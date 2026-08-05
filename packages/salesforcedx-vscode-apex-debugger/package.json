@@ -40,11 +40,9 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
@@ -71,7 +69,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-vscode-apex:compile",
-        "../salesforcedx-vscode-core:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-apex-debugger:compile",
         "../salesforcedx-vscode-i18n:compile"
@@ -112,7 +109,6 @@
       },
       "dependencies": [
         "vscode:package:legacy",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"

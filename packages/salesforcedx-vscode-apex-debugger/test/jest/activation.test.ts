@@ -10,12 +10,6 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { activateEffect } from '../../src/index';
-import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
-
-jest.mock('../../src/utils/coreExtensionUtils', () => ({
-  ...jest.requireActual('../../src/utils/coreExtensionUtils'),
-  getTelemetryService: jest.fn()
-}));
 
 const registerCommandWithLayer = jest.fn();
 
@@ -40,13 +34,8 @@ const runActivate = () =>
   );
 
 describe('activateEffect', () => {
-  let initializeService: jest.Mock;
-
   beforeEach(() => {
     registerCommandWithLayer.mockReturnValue(Effect.void);
-    initializeService = jest.fn(() => Promise.resolve());
-    // resetMocks:true wipes the jest.mock factory impl each test — re-arm the telemetry stub
-    (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({ initializeService });
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
     (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
@@ -67,11 +56,5 @@ describe('activateEffect', () => {
 
     expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
     expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
-  });
-
-  it('initializes telemetry', async () => {
-    await runActivate();
-
-    expect(initializeService).toHaveBeenCalledWith(extensionContext);
   });
 });

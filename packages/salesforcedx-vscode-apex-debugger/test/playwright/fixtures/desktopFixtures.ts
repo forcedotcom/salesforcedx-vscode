@@ -7,8 +7,8 @@
 
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
-// apex-debugger declares core + services as extensionDependencies; load both alongside the extension under test.
-const additionalExtensionDirs = ['salesforcedx-vscode-core', 'salesforcedx-vscode-services'];
+// apex-debugger declares services as an extensionDependency; load it alongside the extension under test.
+const additionalExtensionDirs = ['salesforcedx-vscode-services'];
 
 /** `sfdx-project.json` workspace with the minimal scratch org set as default (`.sfdx/config.json` target-org)
  * so `ConnectionService.getConnection()` resolves for the debuggerStop query. */
