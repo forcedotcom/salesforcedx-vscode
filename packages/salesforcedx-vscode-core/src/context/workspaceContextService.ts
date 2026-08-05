@@ -7,10 +7,8 @@
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { type OrgUserInfo, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
-import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as MutableRef from 'effect/MutableRef';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
@@ -23,12 +21,8 @@ type WorkspaceOrgIdentity = Pick<
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
   previous.username === current.username && previous.alias === current.alias && previous.orgId === current.orgId;
 
-const isInitialIdentityComplete = (identity: WorkspaceOrgIdentity): boolean =>
-  (isUndefined(identity.username) && isUndefined(identity.alias) && isUndefined(identity.orgId)) ||
-  (isNotUndefined(identity.username) && isNotUndefined(identity.orgId));
-
 const transitionAttributes = (identity: WorkspaceOrgIdentity) => ({
-  hasTargetOrg: Boolean(identity.username ?? identity.orgId),
+  hasTargetOrg: Boolean(identity.orgId),
   isScratch: identity.isScratch ?? false,
   isSandbox: identity.isSandbox ?? false
 });
@@ -41,8 +35,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const identityRef = MutableRef.make<WorkspaceOrgIdentity>({});
     const orgChanges = yield* PubSub.sliding<OrgUserInfo>(1);
-    const initialIdentityReady = yield* Deferred.make<void>();
-    const initializedRef = MutableRef.make(false);
+    const initialized = yield* Effect.makeLatch();
     const extensionScope = yield* getExtensionScope();
 
     const refreshReporters = Effect.fn('WorkspaceContext.refreshReporters')(function* () {
@@ -62,16 +55,11 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
           isSandbox
         })),
         Stream.changesWith(sameIdentity),
+        Stream.tap(identity => Effect.sync(() => MutableRef.set(identityRef, identity))),
+        Stream.tap(() => initialized.open),
+        Stream.drop(1),
         Stream.runForEach(identity =>
           Effect.gen(function* () {
-            MutableRef.set(identityRef, identity);
-            if (!MutableRef.get(initializedRef)) {
-              if (isInitialIdentityComplete(identity)) {
-                MutableRef.set(initializedRef, true);
-                yield* Deferred.succeed(initialIdentityReady, undefined);
-              }
-              return;
-            }
             yield* PubSub.publish(orgChanges, { username: identity.username, alias: identity.alias });
             yield* refreshReporters();
           }).pipe(
@@ -83,10 +71,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
       );
     });
 
-    yield* watch().pipe(
-      Effect.onExit(exit => Deferred.done(initialIdentityReady, exit)),
-      Effect.forkIn(extensionScope)
-    );
+    yield* watch().pipe(Effect.forkIn(extensionScope));
 
     const getIdentityValue = <K extends keyof WorkspaceOrgIdentity>(key: K): WorkspaceOrgIdentity[K] =>
       MutableRef.get(identityRef)[key];
@@ -96,7 +81,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
       getAlias: () => getIdentityValue('alias'),
       getOrgId: () => getIdentityValue('orgId'),
       orgChanges,
-      initialized: Deferred.await(initialIdentityReady)
+      initialized: initialized.await
     };
   })
 }) {}

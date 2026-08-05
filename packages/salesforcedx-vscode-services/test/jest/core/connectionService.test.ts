@@ -12,6 +12,8 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AliasService } from '../../../src/core/alias';
@@ -365,9 +367,17 @@ describe('ConnectionService.getConnection (desktop)', () => {
     getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.some(USERNAME)));
     connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
 
-    await run(ConnectionService.getConnection());
-
-    const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+    const orgInfo = await run(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* ConnectionService.getConnection();
+        return yield* ref.changes.pipe(
+          Stream.filter(info => info.orgId === '00Dxx' && info.alias === ALIAS),
+          Stream.runHead,
+          Effect.map(Option.getOrThrow)
+        );
+      })
+    );
     expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
   });
 
@@ -381,9 +391,17 @@ describe('ConnectionService.getConnection (desktop)', () => {
     getTargetOrgMock.mockReturnValue(USERNAME);
     connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
 
-    await run(ConnectionService.getConnection());
-
-    const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+    const orgInfo = await run(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* ConnectionService.getConnection();
+        return yield* ref.changes.pipe(
+          Stream.filter(info => info.orgId === '00Dxx' && isUndefined(info.alias)),
+          Stream.runHead,
+          Effect.map(Option.getOrThrow)
+        );
+      })
+    );
     expect(orgInfo.alias).toBeUndefined();
   });
 

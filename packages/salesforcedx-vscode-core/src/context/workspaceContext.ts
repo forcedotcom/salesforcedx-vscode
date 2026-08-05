@@ -6,63 +6,68 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 import { WorkspaceContextService } from './workspaceContextService';
+
+const createWorkspaceContextAdapter = () => {
+  const orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
+  let initializationPromise: Promise<void> | undefined;
+  let service: WorkspaceContextService | undefined;
+
+  const initialize = async () => {
+    if (initializationPromise) return initializationPromise;
+
+    const initialization = getRuntime().runPromise(
+      Effect.gen(function* () {
+        const workspaceContextService = yield* WorkspaceContextService;
+        const extensionScope = yield* getExtensionScope();
+        yield* Stream.fromPubSub(workspaceContextService.orgChanges).pipe(
+          Stream.runForEach(event => Effect.sync(() => orgChangeEmitter.fire(event))),
+          Effect.forkIn(extensionScope)
+        );
+        yield* workspaceContextService.initialized;
+        service = workspaceContextService;
+      })
+    );
+    initializationPromise = initialization;
+    try {
+      await initialization;
+    } catch (error) {
+      if (initializationPromise === initialization) initializationPromise = undefined;
+      throw error;
+    }
+  };
+
+  return {
+    initialize,
+    onOrgChange: orgChangeEmitter.event,
+    getUsername: () => service?.getUsername(),
+    getAlias: () => service?.getAlias(),
+    getOrgId: () => service?.getOrgId(),
+    dispose: () => {
+      orgChangeEmitter.dispose();
+      service = undefined;
+    }
+  };
+};
+
+let workspaceContextAdapter = createWorkspaceContextAdapter();
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
-  private initializationPromise?: Promise<void>;
-  private registered = false;
-  private disposed = false;
-  private service?: WorkspaceContextService;
-  private serviceSubscription?: vscode.Disposable;
-  private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
-
-  public readonly onOrgChange = this.orgChangeEmitter.event;
+  public readonly onOrgChange = workspaceContextAdapter.onOrgChange;
 
   protected constructor() {}
 
-  public async initialize(extensionContext: vscode.ExtensionContext) {
-    if (!this.registered) {
-      extensionContext.subscriptions.push(this);
-      this.registered = true;
-    }
-    if (this.initializationPromise) return this.initializationPromise;
-
-    const initialization = this._doInitialize(extensionContext);
-    this.initializationPromise = initialization;
-    try {
-      await initialization;
-    } catch (error) {
-      if (this.initializationPromise === initialization) {
-        this.serviceSubscription?.dispose();
-        this.serviceSubscription = undefined;
-        this.initializationPromise = undefined;
-      }
-      throw error;
-    }
-  }
-
-  private async _doInitialize(_extensionContext: vscode.ExtensionContext) {
-    const runtime = getRuntime();
-    const service = await runtime.runPromise(WorkspaceContextService);
-    if (this.disposed) throw new Error('WorkspaceContext was disposed during initialization');
-    this.service = service;
-    const subscriptionFiber = runtime.runFork(
-      Stream.fromPubSub(service.orgChanges).pipe(
-        Stream.runForEach(event => Effect.sync(() => this.orgChangeEmitter.fire(event)))
-      )
-    );
-    this.serviceSubscription = { dispose: () => runtime.runFork(Fiber.interrupt(subscriptionFiber)) };
-    await runtime.runPromise(service.initialized);
+  public async initialize(_extensionContext: vscode.ExtensionContext) {
+    return workspaceContextAdapter.initialize();
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -73,7 +78,8 @@ export class WorkspaceContext {
   }
 
   public static disposeInstance(): void {
-    this.instance?.dispose();
+    workspaceContextAdapter.dispose();
+    workspaceContextAdapter = createWorkspaceContextAdapter();
     this.instance = undefined;
   }
 
@@ -88,23 +94,15 @@ export class WorkspaceContext {
     );
   }
 
-  public dispose(): void {
-    this.disposed = true;
-    this.serviceSubscription?.dispose();
-    this.serviceSubscription = undefined;
-    this.orgChangeEmitter.dispose();
-    this.service = undefined;
-  }
-
   public get username(): string | undefined {
-    return this.service?.getUsername();
+    return workspaceContextAdapter.getUsername();
   }
 
   public get alias(): string | undefined {
-    return this.service?.getAlias();
+    return workspaceContextAdapter.getAlias();
   }
 
   public get orgId(): string | undefined {
-    return this.service?.getOrgId();
+    return workspaceContextAdapter.getOrgId();
   }
 }

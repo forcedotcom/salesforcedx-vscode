@@ -6,7 +6,6 @@
  */
 import { ExtensionProviderService, closeExtensionScope } from '@salesforce/effect-ext-utils';
 import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
-import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
@@ -128,26 +127,19 @@ describe('WorkspaceContext', () => {
     });
   });
 
-  it('waits for a complete initial org identity without emitting setup changes', async () => {
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial' });
+  it('initializes from orgId before username enrichment without emitting setup changes', async () => {
+    await setTargetOrg({ orgId: '00Dinitial' });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
-    const initialization = context.initialize(coreContext as never);
-    const initialized = jest.fn();
-    void initialization.then(initialized);
 
-    await flushEffects();
-    expect(initialized).not.toHaveBeenCalled();
-
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
-    await initialization;
+    await context.initialize(coreContext as never);
 
     expect(listener).not.toHaveBeenCalled();
     expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
-      username: 'initial@example.com',
-      alias: 'initial',
+      username: undefined,
+      alias: undefined,
       orgId: '00Dinitial'
     });
   });
@@ -252,7 +244,7 @@ describe('WorkspaceContext', () => {
     ]);
 
     expect(await context.getConnection()).toBe(connection);
-    expect(coreContext.subscriptions).toHaveLength(1);
+    expect(coreContext.subscriptions).toHaveLength(0);
   });
 
   it('initializes with empty identity when no target org is configured', async () => {
@@ -299,30 +291,15 @@ describe('WorkspaceContext', () => {
     });
   });
 
-  it('disposes the public facade when VS Code disposes extension subscriptions', async () => {
+  it('disposes shared facade state with the singleton', async () => {
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
 
-    coreContext.subscriptions.forEach(subscription => (subscription as { dispose: () => void }).dispose());
+    WorkspaceContext.disposeInstance();
     expect(context.username).toBeUndefined();
     expect(listener).not.toHaveBeenCalled();
-  });
-
-  it('does not retain service state when disposed during initialization', async () => {
-    const targetOrgReady = Effect.runSync(
-      Deferred.make<SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>>()
-    );
-    getTargetOrgRef = () => Deferred.await(targetOrgReady);
-    const context = WorkspaceContext.getInstance(true);
-
-    const initialization = context.initialize(coreContext as never);
-    context.dispose();
-    Effect.runSync(Deferred.succeed(targetOrgReady, targetOrgRef));
-
-    await expect(initialization).rejects.toThrow('WorkspaceContext was disposed during initialization');
-    expect(context.username).toBeUndefined();
   });
 
   it('stops org-change processing when the extension scope closes', async () => {
