@@ -24,6 +24,8 @@ export const messages = {
   apex_class_custom_templates_label: 'Custom Templates',
   apex_generate_class_success: 'Apex class created successfully',
   apex_trigger_name_prompt: 'Enter Apex trigger name',
+  apex_trigger_sobject_prompt: 'Select or enter the sObject to trigger on',
+  apex_trigger_events_prompt: 'Select trigger events',
   apex_trigger_default_template_description: 'Standard Apex trigger',
   apex_trigger_builtin_templates_label: 'Built-In Templates',
   apex_trigger_custom_templates_label: 'Custom Templates',

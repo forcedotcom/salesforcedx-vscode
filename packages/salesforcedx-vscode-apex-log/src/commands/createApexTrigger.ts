@@ -12,6 +12,64 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForApexTypeName } from './sfTemplateProjectHelpers';
 
+const TRIGGER_EVENTS = [
+  'before insert',
+  'before update',
+  'before delete',
+  'after insert',
+  'after update',
+  'after delete',
+  'after undelete'
+] as const;
+
+const promptForSObject = Effect.fn('promptForTriggerSObject')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const sobjects = yield* api.services.MetadataDescribeService.listSObjects().pipe(Effect.orElseSucceed(() => []));
+
+  if (sobjects.length === 0) {
+    return yield* Effect.promise(() =>
+      vscode.window.showInputBox({ prompt: nls.localize('apex_trigger_sobject_prompt') })
+    ).pipe(
+      Effect.map(raw => raw?.trim()),
+      Effect.flatMap(promptService.considerUndefinedAsCancellation)
+    );
+  }
+
+  const items: vscode.QuickPickItem[] = sobjects
+    .filter(s => s.queryable)
+    .toSorted((a, b) => a.name.localeCompare(b.name))
+    .map(s => ({ label: s.name, description: s.custom ? 'Custom' : '' }));
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick(items, { placeHolder: nls.localize('apex_trigger_sobject_prompt') })
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(selected => selected.label)
+  );
+});
+
+const promptForTriggerEvents = Effect.fn('promptForTriggerEvents')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const items: vscode.QuickPickItem[] = TRIGGER_EVENTS.map(event => ({
+    label: event,
+    picked: event === 'before insert'
+  }));
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick(items, {
+      placeHolder: nls.localize('apex_trigger_events_prompt'),
+      canPickMany: true
+    })
+  ).pipe(
+    Effect.flatMap(promptService.considerEmptySelectionAsCancellation),
+    Effect.map(selected => selected.map(item => item.label))
+  );
+});
+
 const APEX_TRIGGER_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
   ApexTrigger: nls.localize('apex_trigger_default_template_description')
 };
@@ -78,6 +136,9 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     prompt: nls.localize('apex_trigger_name_prompt')
   });
 
+  const sobject = yield* promptForSObject();
+  const triggerevents = yield* promptForTriggerEvents();
+
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'triggers');
 
   const outputDirUri =
@@ -99,8 +160,8 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     outputdir: outputDirUri,
     options: {
       triggername: triggerName,
-      triggerevents: ['before insert'],
-      sobject: 'SOBJECT',
+      triggerevents: [triggerevents.join(', ')],
+      sobject,
       template
     }
   });
