@@ -45,7 +45,7 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
     : T extends SfTemplates.TemplateType.ApexClass
       ? ApexClassCreateOptions
       : T extends SfTemplates.TemplateType.ApexTrigger
-        ? SfTemplates.ApexTriggerOptions
+        ? ApexTriggerCreateOptions
         : T extends SfTemplates.TemplateType.LightningApp
           ? SfTemplates.LightningAppOptions
           : T extends SfTemplates.TemplateType.LightningComponent
@@ -84,6 +84,17 @@ export type ApexClassCreateOptions = {
   readonly apiversion?: string;
   readonly outputdir?: string;
   readonly sobjecttype?: string;
+};
+
+/** Apex trigger options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type ApexTriggerCreateOptions = {
+  readonly template: string;
+  readonly triggername: string;
+  readonly sobject: string;
+  readonly triggerevents: string[];
+  readonly apiversion?: string;
+  readonly outputdir?: string;
 };
 
 export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<TemplatesRootPathNotAvailableError>()(
