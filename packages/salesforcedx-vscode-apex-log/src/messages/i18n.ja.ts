@@ -20,8 +20,5 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_class_inbound_email_template_description: '受信メールサービスハンドラー',
   apex_generate_class_success: 'Apex クラスが正常に作成されました',
   apex_trigger_name_prompt: 'Apex トリガ名を入力',
-  apex_generate_trigger_success: 'Apex トリガが作成されました',
-  apex_test_class_name_prompt: 'Apex テストクラス名を入力',
-  apex_unit_test_template_description: 'サンプルテストメソッド付きテンプレート',
-  basic_unit_test_template_description: '最小限のテンプレート'
+  apex_generate_trigger_success: 'Apex トリガが作成されました'
 };
