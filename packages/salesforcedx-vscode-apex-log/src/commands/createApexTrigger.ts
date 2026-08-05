@@ -18,13 +18,6 @@ const APEX_TRIGGER_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 
 const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apextrigger', /\.trigger$/);
-  const builtInItems = builtInNames.map((label: string) => ({
-    label,
-    description: APEX_TRIGGER_TEMPLATE_DESCRIPTIONS[label] ?? ''
-  }));
 
   const configService = yield* api.services.ConfigService;
   const agg = yield* configService.getConfigAggregator();
@@ -41,18 +34,26 @@ const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
     .filter(({ uri }) => Utils.basename(uri).endsWith('.trigger'))
     .map(({ uri }) => ({ label: Utils.basename(uri).replace(/\.trigger$/, ''), description: '' }));
 
+  if (customItems.length === 0) {
+    return 'ApexTrigger';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apextrigger', /\.trigger$/);
+  const builtInItems = builtInNames.map((label: string) => ({
+    label,
+    description: APEX_TRIGGER_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+
   const customNames = new Set(customItems.map(item => item.label));
   const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNames.has(item.label));
 
-  const items: vscode.QuickPickItem[] =
-    customItems.length > 0
-      ? [
-          { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_trigger_builtin_templates_label') },
-          ...nonOverriddenBuiltInItems,
-          { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_trigger_custom_templates_label') },
-          ...customItems
-        ]
-      : [...builtInItems];
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_trigger_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_trigger_custom_templates_label') },
+    ...customItems
+  ];
 
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick<vscode.QuickPickItem>(items, {
