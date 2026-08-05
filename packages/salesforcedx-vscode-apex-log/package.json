@@ -418,10 +418,6 @@
         {
           "command": "sf.apex.generate.class",
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        },
-        {
-          "command": "sf.apex.generate.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
         }
       ]
     },
