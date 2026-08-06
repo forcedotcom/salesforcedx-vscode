@@ -16,7 +16,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
-import { ConnectionService } from '../../../src/core/connectionService';
+import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
@@ -57,7 +57,7 @@ const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
     AliasService.make({
       getAllAliases: () => Effect.succeed({}),
       getAliasesFromUsername: () => Effect.succeed(aliases),
-      getUsernameFromAlias: () => Effect.succeed(undefined as never),
+      getUsernameFromAlias: () => Effect.succeed(Option.none()),
       unsetAliases: () => Effect.void
     })
   );
@@ -72,16 +72,53 @@ type ConnOverrides = {
   isAccessTokenFlow?: boolean;
   identity?: jest.Mock;
   username?: string;
+  orgId?: string;
 };
 
-const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME }: ConnOverrides = {}): Connection =>
+const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME, orgId }: ConnOverrides = {}): Connection =>
   ({
     getAuthInfo: () => ({ isAccessTokenFlow: () => isAccessTokenFlow }),
     getUsername: () => username,
-    getAuthInfoFields: () => ({ username }),
+    getAuthInfoFields: () => ({ username, orgId }),
     instanceUrl: INSTANCE_URL,
     identity: identity ?? jest.fn().mockResolvedValue({ user_id: '005' })
   }) as unknown as Connection;
+
+describe('ConnectionService.getConnectionForOrg', () => {
+  beforeEach(async () => {
+    await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
+  });
+
+  it('returns a connection whose org ID matches the captured operation org', async () => {
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-expected' });
+    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    jest.mocked(Connection.create).mockResolvedValue(connection);
+
+    await expect(
+      Effect.runPromise(ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer())))
+    ).resolves.toBe(connection);
+  });
+
+  it('fails with the captured and observed org IDs when the target org changed', async () => {
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-observed' });
+    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    jest.mocked(Connection.create).mockResolvedValue(connection);
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(
+        new InactiveOrgOperationError({
+          message: "The active org changed while an operation for '00D-expected' was in progress",
+          expectedOrgId: '00D-expected',
+          observedOrgId: '00D-observed'
+        })
+      )
+    );
+  });
+});
 
 describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   let showErrorMessageSpy: jest.SpyInstance;

@@ -194,6 +194,7 @@ export type {
   FailedToSaveAuthInfoError,
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
+  InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   FailedToListAuthorizationsError,
   AccessTokenExpiredError

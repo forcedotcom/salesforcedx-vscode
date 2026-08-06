@@ -19,13 +19,16 @@ import { URI } from 'vscode-uri';
 import { getActiveMetadataOperationRef } from '../core/activeMetadataOperationRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../core/metadataChangeNotificationService';
-import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { OrgMetadataCatalog } from './orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
 import { isOrgMetadataCatalogUri } from './orgMetadataCatalogStore';
-import { ORG_METADATA_SCHEME, parseOrgMetadataDocumentUri } from './orgMetadataReference';
+import {
+  ORG_METADATA_SCHEME,
+  OrgMetadataReferenceService,
+  type OrgMetadataDocumentLocation
+} from './orgMetadataReference';
 import { isOrgMetadataShadowUri } from './orgMetadataShadowStore';
 
 class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider {
@@ -51,15 +54,17 @@ class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider 
   }
 }
 
-const closeInactiveOrgDocuments = (activeOrgId: string | undefined) =>
+const closeInactiveOrgDocuments = (
+  activeOrgId: string | undefined,
+  parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
+) =>
   Effect.gen(function* () {
-    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
     const tabGroups = vscode.window.tabGroups;
     if (!tabGroups) return;
     const tabs = tabGroups.all.flatMap(group =>
       group.tabs.filter(tab => {
         if (!(tab.input instanceof vscode.TabInputText)) return false;
-        const location = parseOrgMetadataDocumentUri(registryAccess, URI.parse(tab.input.uri.toString()));
+        const location = parseDocumentUri(URI.parse(tab.input.uri.toString()));
         return location !== undefined && location.orgId !== activeOrgId;
       })
     );
@@ -74,16 +79,25 @@ const closeInactiveOrgDocuments = (activeOrgId: string | undefined) =>
  * org metadata is not exposed as a filesystem.
  */
 export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentProvider')(function* () {
-  const [catalog, catalogChanges, fileChanges, metadataChanges, defaultOrgRef, activeOperationRef, workspace] =
-    yield* Effect.all([
-      OrgMetadataCatalog,
-      OrgMetadataCatalogChangePubSub,
-      FileChangePubSub,
-      MetadataChangeNotificationService,
-      getDefaultOrgRef(),
-      getActiveMetadataOperationRef(),
-      WorkspaceService.pipe(Effect.flatMap(service => service.getWorkspaceInfoOrThrow()))
-    ]);
+  const [
+    catalog,
+    catalogChanges,
+    fileChanges,
+    metadataChanges,
+    referenceService,
+    defaultOrgRef,
+    activeOperationRef,
+    workspace
+  ] = yield* Effect.all([
+    OrgMetadataCatalog,
+    OrgMetadataCatalogChangePubSub,
+    FileChangePubSub,
+    MetadataChangeNotificationService,
+    OrgMetadataReferenceService,
+    getDefaultOrgRef(),
+    getActiveMetadataOperationRef(),
+    WorkspaceService.pipe(Effect.flatMap(service => service.getWorkspaceInfoOrThrow()))
+  ]);
   const runtime = yield* Effect.runtime();
   const provider = new OrgMetadataDocumentProvider(uri => Runtime.runPromise(runtime)(catalog.readDocumentUri(uri)));
   const registration = vscode.workspace.registerTextDocumentContentProvider(ORG_METADATA_SCHEME, provider);
@@ -173,7 +187,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
       yield* catalog.invalidate();
     }
     if (change.kind === 'org') {
-      yield* closeInactiveOrgDocuments(change.orgId);
+      yield* closeInactiveOrgDocuments(change.orgId, referenceService.parseDocumentUri);
     }
     yield* PubSub.publish(catalogChanges, change);
   });

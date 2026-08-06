@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { URI, Utils } from 'vscode-uri';
@@ -17,11 +16,10 @@ const CATALOG_DIRECTORY = 'metadata-catalog';
 const CATALOG_FILE = 'catalog.json';
 const CATALOG_VERSION = 1;
 
-class OrgMetadataCatalogSnapshotOrgMismatchError extends Data.TaggedError(
-  'OrgMetadataCatalogSnapshotOrgMismatchError'
-)<{
-  readonly message: string;
-}> {}
+class OrgMetadataCatalogSnapshotOrgMismatchError extends Schema.TaggedError<OrgMetadataCatalogSnapshotOrgMismatchError>()(
+  'OrgMetadataCatalogSnapshotOrgMismatchError',
+  { message: Schema.String }
+) {}
 
 export const isOrgMetadataCatalogUri = (workspaceUri: URI, uri: URI): boolean => {
   const root = Utils.joinPath(workspaceUri, '.sf', 'orgs');

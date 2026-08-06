@@ -5,94 +5,98 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { makeOrgCatalogInventory } from './orgCatalogInventory';
-import type { makeOrgCatalogRemoteSource } from './orgCatalogRemoteSource';
-import type { OrgMetadataComponentReference, OrgMetadataDocumentLocation } from './orgMetadataReference';
-import type { FsService } from '../vscode/fsService';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
+import { FsService } from '../vscode/fsService';
+import { OrgCatalogInventory } from './orgCatalogInventory';
+import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
-
-type OrgCatalogDocumentsOptions = {
-  readonly fsService: InstanceType<typeof FsService>;
-  readonly inventories: ReturnType<typeof makeOrgCatalogInventory>;
-  readonly remoteSource: Effect.Effect.Success<ReturnType<typeof makeOrgCatalogRemoteSource>>;
-  readonly documentUri: (orgId: string, reference: OrgMetadataComponentReference) => URI;
-  readonly parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined;
-};
+import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 const notFound = (reference: OrgMetadataComponentReference) =>
   vscode.FileSystemError.FileNotFound(`${reference.xmlName}:${reference.fullName}`);
 
-export const makeOrgCatalogDocuments = ({
-  fsService,
-  inventories,
-  remoteSource,
-  documentUri,
-  parseDocumentUri
-}: OrgCatalogDocumentsOptions) => {
-  const getDocumentUri = Effect.fn('OrgCatalogDocuments.getDocumentUri')(function* (
-    orgId: string,
-    reference: OrgMetadataComponentReference
-  ) {
-    const presence = yield* inventories.getPresence(orgId, reference);
-    if (!presence.inOrg && !presence.inWorkspace) return yield* Effect.fail(notFound(reference));
-    return presence.workspaceUri ?? documentUri(orgId, reference);
-  });
+export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('OrgCatalogDocuments', {
+  accessors: true,
+  dependencies: [
+    FsService.Default,
+    OrgCatalogInventory.Default,
+    OrgCatalogRemoteSource.Default,
+    OrgMetadataReferenceService.Default
+  ],
+  effect: Effect.gen(function* () {
+    const [fsService, inventories, remoteSource, references] = yield* Effect.all([
+      FsService,
+      OrgCatalogInventory,
+      OrgCatalogRemoteSource,
+      OrgMetadataReferenceService
+    ]);
+    const documentUri = (orgId: string, reference: OrgMetadataComponentReference) =>
+      references.documentUri({ orgId, ...reference });
+    const parseDocumentUri = references.parseDocumentUri;
+    const getDocumentUri = Effect.fn('OrgCatalogDocuments.getDocumentUri')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      const presence = yield* inventories.getPresence(orgId, reference);
+      if (!presence.inOrg && !presence.inWorkspace) return yield* Effect.fail(notFound(reference));
+      return presence.workspaceUri ?? documentUri(orgId, reference);
+    });
 
-  const getRemoteDocument = Effect.fn('OrgCatalogDocuments.getRemoteDocument')(function* (
-    orgId: string,
-    reference: OrgMetadataComponentReference
-  ) {
-    const entry = yield* inventories.getEntry(orgId, reference);
-    if (!entry?.inOrg) return yield* Effect.fail(notFound(reference));
-    return {
-      reference,
-      uri: documentUri(orgId, reference),
-      remoteLastModifiedDate: entry.lastModifiedDate
-    };
-  });
+    const getRemoteDocument = Effect.fn('OrgCatalogDocuments.getRemoteDocument')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      const entry = yield* inventories.getEntry(orgId, reference);
+      if (!entry?.inOrg) return yield* Effect.fail(notFound(reference));
+      return {
+        reference,
+        uri: documentUri(orgId, reference),
+        remoteLastModifiedDate: entry.lastModifiedDate
+      };
+    });
 
-  const read = Effect.fn('OrgCatalogDocuments.read')(function* (
-    orgId: string,
-    reference: OrgMetadataComponentReference
-  ) {
-    const presence = yield* inventories.getPresence(orgId, reference);
-    if (!presence.inOrg && !presence.inWorkspace) return yield* Effect.fail(notFound(reference));
-    if (presence.workspaceUri) {
-      return yield* Effect.tryPromise({
-        try: () => vscode.workspace.fs.readFile(presence.workspaceUri!),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new OrgMetadataCatalogError({
-            cause,
-            message: `Failed to read workspace source for ${reference.xmlName} '${reference.fullName}'`,
-            reference
-          });
-        }
-      }).pipe(Effect.map(bytes => new TextDecoder().decode(bytes)));
-    }
-    const artifact = yield* remoteSource.materializePrimaryDocument(orgId, reference);
-    return yield* fsService.readFile(artifact.primaryUri);
-  });
+    const read = Effect.fn('OrgCatalogDocuments.read')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      const presence = yield* inventories.getPresence(orgId, reference);
+      if (!presence.inOrg && !presence.inWorkspace) return yield* Effect.fail(notFound(reference));
+      if (presence.workspaceUri) {
+        return yield* Effect.tryPromise({
+          try: () => vscode.workspace.fs.readFile(presence.workspaceUri!),
+          catch: error => {
+            const { cause } = unknownToErrorCause(error);
+            return new OrgMetadataCatalogError({
+              cause,
+              message: `Failed to read workspace source for ${reference.xmlName} '${reference.fullName}'`,
+              reference
+            });
+          }
+        }).pipe(Effect.map(bytes => new TextDecoder().decode(bytes)));
+      }
+      const artifact = yield* remoteSource.materializePrimaryDocument(orgId, reference);
+      return yield* fsService.readFile(artifact.primaryUri);
+    });
 
-  const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
-    const location = parseDocumentUri(uri);
-    if (location?.orgId !== activeOrgId) {
-      return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
-    }
-    return yield* read(activeOrgId, location);
-  });
+    const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
+      const location = parseDocumentUri(uri);
+      if (location?.orgId !== activeOrgId) {
+        return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
+      }
+      return yield* read(activeOrgId, location);
+    });
 
-  const getDocumentReference = Effect.fn('OrgCatalogDocuments.getDocumentReference')(function* (
-    activeOrgId: string,
-    uri: URI
-  ) {
-    const location = parseDocumentUri(uri);
-    return location?.orgId === activeOrgId ? { xmlName: location.xmlName, fullName: location.fullName } : undefined;
-  });
+    const getDocumentReference = Effect.fn('OrgCatalogDocuments.getDocumentReference')(function* (
+      activeOrgId: string,
+      uri: URI
+    ) {
+      const location = parseDocumentUri(uri);
+      return location?.orgId === activeOrgId ? { xmlName: location.xmlName, fullName: location.fullName } : undefined;
+    });
 
-  return { getDocumentReference, getDocumentUri, getRemoteDocument, read, readDocumentUri } as const;
-};
+    return { getDocumentReference, getDocumentUri, getRemoteDocument, read, readDocumentUri } as const;
+  })
+}) {}

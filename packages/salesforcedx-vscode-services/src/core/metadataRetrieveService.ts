@@ -47,6 +47,7 @@ type PerformRetrieveOperationInput = {
   connection: Connection;
   registryAccess: RegistryAccess;
   title: string;
+  expectedOrgId?: string;
 } & (
   | {
       merge: true;
@@ -57,6 +58,8 @@ type PerformRetrieveOperationInput = {
       outputPath: URI;
     }
 );
+
+type MetadataRetrieveOptions = SourceTrackingOptions & { readonly expectedOrgId?: string };
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   accessors: true,
@@ -80,7 +83,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const defaultOrgRef = yield* getDefaultOrgRef();
 
     const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
-      retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>
+      retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
+      expectedOrgId?: string
     ) {
       const successfulResponses = retrieveOutcome.getFileResponses().filter(isSDRSuccess);
       const changes = dedupeMetadataChanges(
@@ -92,7 +96,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         }))
       );
       if (changes.length === 0) return;
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(defaultOrgRef);
+      const orgId = expectedOrgId ?? activeOrgId;
       yield* Effect.annotateCurrentSpan({
         rawFileResponseCount: successfulResponses.length,
         uniqueComponentCount: changes.length,
@@ -208,9 +213,9 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         yield* Effect.all(
           [
             sourceTrackingService
-              .maybeUpdateTrackingFromRetrieve(retrieveOutcome)
+              .maybeUpdateTrackingFromRetrieve(retrieveOutcome, input.expectedOrgId)
               .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve')),
-            publishRetrieveNotifications(retrieveOutcome)
+            publishRetrieveNotifications(retrieveOutcome, input.expectedOrgId)
           ],
           { concurrency: 'unbounded', discard: true }
         );
@@ -222,26 +227,36 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     /** Retrieve one or more metadata components from the default org. */
     const retrieve = Effect.fn('MetadataRetrieveService.retrieve')(function* (
       members: MetadataMember[],
-      options?: SourceTrackingOptions
+      options?: MetadataRetrieveOptions
     ) {
       const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
         [
-          connectionService.getConnection(),
+          options?.expectedOrgId
+            ? connectionService.getConnectionForOrg(options.expectedOrgId)
+            : connectionService.getConnection(),
           projectService.getSfProject(),
           metadataRegistryService.getRegistryAccess(),
           buildComponentSet(members),
-          sourceTrackingService.hasTracking(),
+          sourceTrackingService.hasTracking(options?.expectedOrgId),
           workspaceService.getWorkspaceInfoOrThrow()
         ],
         { concurrency: 'unbounded' }
       );
 
       if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts();
+        yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
       }
 
       const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
-      return yield* performRetrieveOperation({ componentSet, connection, registryAccess, title, merge: true, project });
+      return yield* performRetrieveOperation({
+        componentSet,
+        connection,
+        registryAccess,
+        title,
+        merge: true,
+        project,
+        expectedOrgId: options?.expectedOrgId
+      });
     }, withActiveMetadataOperationPipeline);
 
     /** Retrieve metadata using a ComponentSet directly.
@@ -249,24 +264,26 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const retrieveComponentSet = Effect.fn('MetadataRetrieveService.retrieveComponentSet')(function* (
       components: ComponentSet,
-      options?: SourceTrackingOptions
+      options?: MetadataRetrieveOptions
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const [connection, project, configAggregator, , hasTracking] = yield* Effect.all(
         [
-          connectionService.getConnection(),
+          options?.expectedOrgId
+            ? connectionService.getConnectionForOrg(options.expectedOrgId)
+            : connectionService.getConnection(),
           projectService.getSfProject(),
           configService.getConfigAggregator(),
           workspaceService.getWorkspaceInfoOrThrow(),
-          sourceTrackingService.hasTracking()
+          sourceTrackingService.hasTracking(options?.expectedOrgId)
         ],
         { concurrency: 'unbounded' }
       );
 
       yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
       if (hasTracking && !options?.ignoreConflicts) {
-        yield* sourceTrackingService.checkConflicts();
+        yield* sourceTrackingService.checkConflicts(options?.expectedOrgId);
       }
 
       const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
@@ -276,7 +293,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         registryAccess,
         title,
         merge: true,
-        project
+        project,
+        expectedOrgId: options?.expectedOrgId
       });
     }, withActiveMetadataOperationPipeline);
 
@@ -284,11 +302,11 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * Sets project directory and API versions on the ComponentSet before retrieving.
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
-      function* (components: NonEmptyComponentSet, outputPath: URI) {
+      function* (components: NonEmptyComponentSet, outputPath: URI, expectedOrgId?: string) {
         const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
-            connectionService.getConnection(),
+            expectedOrgId ? connectionService.getConnectionForOrg(expectedOrgId) : connectionService.getConnection(),
             projectService.getSfProject(),
             configService.getConfigAggregator(),
             workspaceService.getWorkspaceInfoOrThrow()
@@ -309,7 +327,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           registryAccess,
           title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
           merge: false,
-          outputPath
+          outputPath,
+          expectedOrgId
         });
       }
     );

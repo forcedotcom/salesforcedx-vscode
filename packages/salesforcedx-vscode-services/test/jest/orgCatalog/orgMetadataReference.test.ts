@@ -6,27 +6,41 @@
  */
 
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
+import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
-  orgMetadataDocumentUri,
-  parseOrgMetadataDocumentUri
+  OrgMetadataReferenceService
 } from '../../../src/orgCatalog/orgMetadataReference';
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
+  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
+    Layer.provide(
+      Layer.succeed(MetadataRegistryService, {
+        getRegistryAccess: () => Effect.succeed(registryAccess)
+      } as unknown as InstanceType<typeof MetadataRegistryService>)
+    )
+  );
+
+  const run = <A>(body: (service: InstanceType<typeof OrgMetadataReferenceService>) => A): A =>
+    Effect.runSync(OrgMetadataReferenceService.pipe(Effect.map(body), Effect.provide(referenceLayer)));
 
   it('round-trips an Apex class with an editor-friendly extension', () => {
-    const uri = orgMetadataDocumentUri(registryAccess, {
-      orgId: '00Dxx0000000001',
-      xmlName: 'ApexClass',
-      fullName: 'namespace.MyTest'
-    });
+    const uri = run(service =>
+      service.documentUri({
+        orgId: '00Dxx0000000001',
+        xmlName: 'ApexClass',
+        fullName: 'namespace.MyTest'
+      })
+    );
 
     expect(uri.scheme).toBe(ORG_METADATA_SCHEME);
     expect(uri.path.endsWith('/namespace.MyTest.cls')).toBe(true);
-    expect(parseOrgMetadataDocumentUri(registryAccess, uri)).toEqual({
+    expect(run(service => service.parseDocumentUri(uri))).toEqual({
       orgId: '00Dxx0000000001',
       xmlName: 'ApexClass',
       fullName: 'namespace.MyTest'
@@ -34,14 +48,16 @@ describe('org metadata document references', () => {
   });
 
   it('preserves foldered metadata names', () => {
-    const uri = orgMetadataDocumentUri(registryAccess, {
-      orgId: '00Dxx0000000001',
-      xmlName: 'Report',
-      fullName: 'Public Reports/Pipeline'
-    });
+    const uri = run(service =>
+      service.documentUri({
+        orgId: '00Dxx0000000001',
+        xmlName: 'Report',
+        fullName: 'Public Reports/Pipeline'
+      })
+    );
 
     expect(uri.path.endsWith('/Pipeline.report')).toBe(true);
-    expect(parseOrgMetadataDocumentUri(registryAccess, uri)).toEqual({
+    expect(run(service => service.parseDocumentUri(uri))).toEqual({
       orgId: '00Dxx0000000001',
       xmlName: 'Report',
       fullName: 'Public Reports/Pipeline'
@@ -49,24 +65,67 @@ describe('org metadata document references', () => {
   });
 
   it('round-trips metadata types returned by describe but missing from the SDR registry', () => {
-    const uri = orgMetadataDocumentUri(registryAccess, {
-      orgId: '00Dxx0000000001',
-      xmlName: 'TagSet',
-      fullName: 'Example'
-    });
+    const uri = run(service =>
+      service.documentUri({
+        orgId: '00Dxx0000000001',
+        xmlName: 'TagSet',
+        fullName: 'Example'
+      })
+    );
 
-    expect(uri.path.endsWith('/Example.xml')).toBe(true);
-    expect(parseOrgMetadataDocumentUri(registryAccess, uri)).toEqual({
+    expect(uri.path.endsWith('/Example')).toBe(true);
+    expect(run(service => service.parseDocumentUri(uri))).toEqual({
       orgId: '00Dxx0000000001',
       xmlName: 'TagSet',
       fullName: 'Example'
     });
   });
 
-  it('rejects unrelated and malformed URIs', () => {
-    expect(parseOrgMetadataDocumentUri(registryAccess, URI.file('/ApexClass/MyTest.cls'))).toBeUndefined();
+  it('round-trips a registered xml suffix without truncating a full name ending in xml', () => {
+    const uri = run(service =>
+      service.documentUri({
+        orgId: '00Dxx0000000001',
+        xmlName: 'EmailServicesFunction',
+        fullName: 'Inbound.xml'
+      })
+    );
+
+    expect(uri.path.endsWith('/Inbound.xml.xml')).toBe(true);
+    expect(run(service => service.parseDocumentUri(uri))).toEqual({
+      orgId: '00Dxx0000000001',
+      xmlName: 'EmailServicesFunction',
+      fullName: 'Inbound.xml'
+    });
+  });
+
+  it('keeps the org ID as a direct path segment and encodes metadata name segments', () => {
+    const uri = run(service =>
+      service.documentUri({
+        orgId: '00D-org_one',
+        xmlName: 'Report',
+        fullName: 'Public Reports/Pipeline & Forecast'
+      })
+    );
+
+    expect(uri.toString()).toContain('/orgs/00D-org_one/');
+    expect(uri.toString()).toContain('Public%20Reports/Pipeline%20%26%20Forecast.report');
+  });
+
+  it('rejects org IDs that are unsafe as path segments', () => {
+    expect(() =>
+      run(service => service.documentUri({ orgId: '00D/unsafe', xmlName: 'ApexClass', fullName: 'MyTest' } as never))
+    ).toThrow('orgId');
     expect(
-      parseOrgMetadataDocumentUri(registryAccess, URI.parse(`${ORG_METADATA_SCHEME}:/ApexClass/MyTest.cls`))
+      run(service =>
+        service.parseDocumentUri(URI.parse(`${ORG_METADATA_SCHEME}:/orgs/00D%20unsafe/ApexClass/MyTest.cls`))
+      )
+    ).toBeUndefined();
+  });
+
+  it('rejects unrelated and malformed URIs', () => {
+    expect(run(service => service.parseDocumentUri(URI.file('/ApexClass/MyTest.cls')))).toBeUndefined();
+    expect(
+      run(service => service.parseDocumentUri(URI.parse(`${ORG_METADATA_SCHEME}:/ApexClass/MyTest.cls`)))
     ).toBeUndefined();
   });
 

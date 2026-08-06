@@ -79,6 +79,15 @@ export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpir
   username: Schema.optional(Schema.String)
 }) {}
 
+export class InactiveOrgOperationError extends Schema.TaggedError<InactiveOrgOperationError>()(
+  'InactiveOrgOperationError',
+  {
+    message: Schema.String,
+    expectedOrgId: Schema.String,
+    observedOrgId: Schema.optional(Schema.String)
+  }
+) {}
+
 class FailedToGetTracksSourceError extends Schema.TaggedError<FailedToGetTracksSourceError>()(
   'FailedToGetTracksSourceError',
   {
@@ -335,6 +344,17 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       return conn;
     });
 
+    const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
+      const connection = yield* getConnection();
+      const observedOrgId = connection.getAuthInfoFields().orgId;
+      if (observedOrgId === expectedOrgId) return connection;
+      return yield* new InactiveOrgOperationError({
+        message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
+        expectedOrgId,
+        ...(observedOrgId ? { observedOrgId } : {})
+      });
+    });
+
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* connectionCache.invalidateAll;
@@ -364,6 +384,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     return {
       getConnection,
+      getConnectionForOrg,
       validateAccessTokenOrPromptReauth,
       invalidateCachedConnections,
       listAllAuthorizations

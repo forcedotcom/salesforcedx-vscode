@@ -6,13 +6,16 @@
  */
 
 import type { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
 
 export const ORG_METADATA_SCHEME = 'sf-org-metadata';
 
 const NonEmptyString = Schema.String.pipe(Schema.minLength(1));
+const PathSafeOrgId = NonEmptyString.pipe(Schema.pattern(/^[A-Za-z0-9_-]+$/));
 
 export const OrgMetadataReference = Schema.Struct({
   xmlName: Schema.optional(Schema.String),
@@ -28,52 +31,67 @@ export type OrgMetadataComponentReference = typeof OrgMetadataComponentReference
 
 export const OrgMetadataDocumentLocation = Schema.Struct({
   ...OrgMetadataComponentReference.fields,
-  orgId: NonEmptyString
+  orgId: PathSafeOrgId
 });
 export type OrgMetadataDocumentLocation = typeof OrgMetadataDocumentLocation.Type;
 
-const documentExtension = (registryAccess: RegistryAccess, xmlName: string): string => {
-  // Metadata API describe can return types that are not present in the
-  // installed SDR registry. They must remain navigable in catalog inventory.
+const documentExtension = (registryAccess: RegistryAccess, xmlName: string): string | undefined => {
   const metadataType = Option.getOrUndefined(Option.liftThrowable(() => registryAccess.getTypeByName(xmlName))());
-  return `.${metadataType?.suffix ?? 'xml'}`;
+  return metadataType?.suffix ? `.${metadataType.suffix}` : undefined;
 };
 
-const encodedSegments = (value: string): string[] => value.split('/').map(encodeURIComponent);
+const pathSegments = (value: string): string[] => value.split('/');
 
-export const orgMetadataDocumentUri = (
+const makeDocumentUri = (
   registryAccess: RegistryAccess,
   { orgId, xmlName, fullName }: OrgMetadataDocumentLocation
 ): URI => {
-  const segments = encodedSegments(fullName);
+  Schema.decodeUnknownSync(OrgMetadataDocumentLocation)({ orgId, xmlName, fullName });
+  const segments = pathSegments(fullName);
   const finalSegment = segments.at(-1);
+  const extension = documentExtension(registryAccess, xmlName);
   if (finalSegment) {
-    segments[segments.length - 1] = `${finalSegment}${documentExtension(registryAccess, xmlName)}`;
+    segments[segments.length - 1] = `${finalSegment}${extension ?? ''}`;
   }
   return URI.from({
     scheme: ORG_METADATA_SCHEME,
-    path: `/orgs/${encodeURIComponent(orgId)}/${encodeURIComponent(xmlName)}/${segments.join('/')}`
+    path: `/orgs/${orgId}/${xmlName}/${segments.join('/')}`
   });
 };
 
-export const parseOrgMetadataDocumentUri = (
-  registryAccess: RegistryAccess,
-  uri: URI
-): OrgMetadataDocumentLocation | undefined => {
+const parseDocumentUri = (registryAccess: RegistryAccess, uri: URI): OrgMetadataDocumentLocation | undefined => {
   if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
   const [, root, encodedOrgId, encodedXmlName, ...encodedFullName] = uri.path.split('/');
   if (root !== 'orgs' || !encodedOrgId || !encodedXmlName || encodedFullName.length === 0) return undefined;
-  const xmlName = decodeURIComponent(encodedXmlName);
+  const xmlName = encodedXmlName;
   const extension = documentExtension(registryAccess, xmlName);
   const finalSegment = encodedFullName.at(-1);
-  if (!finalSegment?.endsWith(extension)) return undefined;
+  if (!finalSegment || (extension && !finalSegment.endsWith(extension))) return undefined;
   const fullNameSegments = [...encodedFullName];
-  fullNameSegments[fullNameSegments.length - 1] = finalSegment.slice(0, -extension.length);
-  return {
-    orgId: decodeURIComponent(encodedOrgId),
+  fullNameSegments[fullNameSegments.length - 1] = extension ? finalSegment.slice(0, -extension.length) : finalSegment;
+  const location = {
+    orgId: encodedOrgId,
     xmlName,
-    fullName: fullNameSegments.map(decodeURIComponent).join('/')
+    fullName: fullNameSegments.join('/')
   };
+  return Schema.is(OrgMetadataDocumentLocation)(location) ? location : undefined;
 };
 
 export const isOrgMetadataComponentReference = Schema.is(OrgMetadataComponentReference);
+
+export class OrgMetadataReferenceService extends Effect.Service<OrgMetadataReferenceService>()(
+  'OrgMetadataReferenceService',
+  {
+    accessors: true,
+    dependencies: [MetadataRegistryService.Default],
+    effect: Effect.gen(function* () {
+      const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+      return {
+        documentUri: (location: OrgMetadataDocumentLocation): URI => makeDocumentUri(registryAccess, location),
+        parseDocumentUri: (uri: URI): OrgMetadataDocumentLocation | undefined => parseDocumentUri(registryAccess, uri),
+        getTypeSuffix: (xmlName: string): string | undefined =>
+          Option.getOrUndefined(Option.liftThrowable(() => registryAccess.getTypeByName(xmlName).suffix)())
+      } as const;
+    })
+  }
+) {}

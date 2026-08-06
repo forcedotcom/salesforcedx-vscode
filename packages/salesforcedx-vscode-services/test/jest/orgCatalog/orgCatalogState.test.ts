@@ -7,8 +7,9 @@
 
 import type { TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
-import { makeOrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
+import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot
@@ -24,12 +25,15 @@ const makeStore = (snapshot?: OrgMetadataCatalogSnapshot) => {
     })
   );
   const store = new OrgMetadataCatalogStore({ load, save } as unknown as InstanceType<typeof OrgMetadataCatalogStore>);
-  return { load, save, saved, store };
+  const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(
+    Layer.provide(Layer.succeed(OrgMetadataCatalogStore, store))
+  );
+  return { load, save, saved, stateLayer };
 };
 
 describe('OrgCatalogState', () => {
   it('persists remote inventory without retaining workspace-only presence', async () => {
-    const { saved, store } = makeStore();
+    const { saved, stateLayer } = makeStore();
     const inventory: TypeInventory = {
       observedAt: '2026-08-03T12:00:00.000Z',
       folders: new Map(),
@@ -69,11 +73,11 @@ describe('OrgCatalogState', () => {
 
     await Effect.runPromise(
       Effect.gen(function* () {
-        const state = yield* makeOrgCatalogState(store);
+        const state = yield* OrgCatalogState;
         yield* state.ensureHydrated('org-one');
         yield* state.setInventory('org-one', 'ApexClass', inventory);
         yield* state.persistOrg('org-one');
-      })
+      }).pipe(Effect.provide(stateLayer))
     );
 
     expect(saved).toHaveLength(1);
@@ -97,18 +101,18 @@ describe('OrgCatalogState', () => {
       sobjects: { descriptions: [] },
       tracking: [{ xmlName: 'ApexClass', fullName: 'RemoteTest', signature: 'Changed|7' }]
     };
-    const { load, saved, store } = makeStore(snapshot);
+    const { load, saved, stateLayer } = makeStore(snapshot);
 
     const result = await Effect.runPromise(
       Effect.gen(function* () {
-        const state = yield* makeOrgCatalogState(store);
+        const state = yield* OrgCatalogState;
         yield* state.ensureHydrated('org-one');
         yield* state.ensureHydrated('org-one');
         const inventory = yield* state.getPersistedInventory('org-one', 'ApexClass');
         const tracking = yield* state.getTracking('org-one');
         yield* state.persistOrg('org-one');
         return { inventory, tracking };
-      })
+      }).pipe(Effect.provide(stateLayer))
     );
 
     expect(load).toHaveBeenCalledTimes(1);

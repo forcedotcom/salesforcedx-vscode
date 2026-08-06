@@ -27,6 +27,7 @@ import { TransmogrifierService } from './core/transmogrifierService';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
+import { OrgMetadataReferenceService } from './orgCatalog/orgMetadataReference';
 import { TerminalService } from './terminal/terminalService';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
@@ -63,6 +64,7 @@ export const globalLayers = Layer.mergeAll(
   OrgMetadataCatalog.Default,
   OrgMetadataCatalogChangePubSub.Default,
   OrgMetadataCatalogStore.Default,
+  OrgMetadataReferenceService.Default,
   MetadataDeleteService.Default,
   MetadataDeployService.Default,
   PromptService.Default,

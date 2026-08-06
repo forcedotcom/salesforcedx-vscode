@@ -71,6 +71,10 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
   ],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
+    const getConnection = (expectedOrgId: string) =>
+      expectedOrgId === 'default'
+        ? connectionService.getConnection()
+        : connectionService.getConnectionForOrg(expectedOrgId);
 
     // ---------------------------------------------------------------------------
     // Performers — execute network calls, used as Cache lookup functions.
@@ -80,7 +84,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     const performDescribe = Effect.fn('MetadataDescribeService.performDescribe')(function* (orgId: string) {
       yield* Effect.annotateCurrentSpan({ orgId });
-      const conn = yield* connectionService.getConnection();
+      const conn = yield* getConnection(orgId);
       const result = yield* Effect.tryPromise({
         try: () => conn.metadata.describe(),
         catch: e => {
@@ -107,7 +111,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     const performListSObjects = Effect.fn('MetadataDescribeService.performListSObjects')(function* (orgId: string) {
       yield* Effect.annotateCurrentSpan({ orgId });
-      const conn = yield* connectionService.getConnection();
+      const conn = yield* getConnection(orgId);
       return yield* Effect.tryPromise({
         try: () => conn.describeGlobal(),
         catch: e => {
@@ -133,10 +137,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
      * Key is a plain objectName — org isolation is provided by the per-org cache.
      */
     const performDescribeCustomObject = Effect.fn('MetadataDescribeService.performDescribeCustomObject')(function* (
+      orgId: string,
       objectName: string
     ) {
-      yield* Effect.annotateCurrentSpan({ objectName });
-      const conn = yield* connectionService.getConnection();
+      yield* Effect.annotateCurrentSpan({ orgId, objectName });
+      const conn = yield* getConnection(orgId);
       return yield* Effect.tryPromise({
         try: () => conn.describe(objectName),
         catch: e => {
@@ -161,7 +166,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       folder: string | undefined
     ) {
       yield* Effect.annotateCurrentSpan({ orgId, type, folder });
-      const conn = yield* connectionService.getConnection();
+      const conn = yield* getConnection(orgId);
       return yield* Effect.tryPromise({
         try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
         catch: e => {
@@ -192,8 +197,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       );
     });
 
-    const runSObjectBatch = Effect.fn('MetadataDescribeService.runSObjectBatch')(function* (names: string[]) {
-      const conn = yield* connectionService.getConnection();
+    const runSObjectBatch = Effect.fn('MetadataDescribeService.runSObjectBatch')(function* (
+      orgId: string,
+      names: string[]
+    ) {
+      const conn = yield* getConnection(orgId);
       const body: SObjectBatchRequest = {
         batchRequests: names.map(name => ({ method: 'GET', url: `v${conn.version}/sobjects/${name}/describe` }))
       };
@@ -266,7 +274,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
               onFailure: () => Duration.zero
             }),
             // Key = plain objectName. Org isolation provided by the per-org cache.
-            lookup: (objectName: string) => performDescribeCustomObject(objectName)
+            lookup: (objectName: string) => performDescribeCustomObject(orgId, objectName)
           });
 
           const listMetadataCache = yield* Cache.makeWith({
@@ -288,8 +296,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     // Public service methods
     // ---------------------------------------------------------------------------
 
-    const invalidateDescribe = Effect.fn('MetadataDescribeService.invalidateDescribe')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const invalidateDescribe = Effect.fn('MetadataDescribeService.invalidateDescribe')(function* (
+      expectedOrgId?: string
+    ) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { describeCache } = yield* orgCacheRegistry.get(orgId);
       yield* describeCache.invalidate('describe');
@@ -297,35 +308,44 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     const invalidateListMetadata = Effect.fn('MetadataDescribeService.invalidateListMetadata')(function* (
       type: string,
-      folder?: string
+      folder?: string,
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
       const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
       yield* listMetadataCache.invalidate(key);
     });
 
-    const invalidateAllListMetadata = Effect.fn('MetadataDescribeService.invalidateAllListMetadata')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const invalidateAllListMetadata = Effect.fn('MetadataDescribeService.invalidateAllListMetadata')(function* (
+      expectedOrgId?: string
+    ) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
       yield* listMetadataCache.invalidateAll;
     });
 
     const invalidateSObjectDescribe = Effect.fn('MetadataDescribeService.invalidateSObjectDescribe')(function* (
-      objectName: string
+      objectName: string,
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
       yield* sobjectDescribeCache.invalidate(objectName);
     });
 
     const invalidateSObjectDescribes = Effect.fn('MetadataDescribeService.invalidateSObjectDescribes')(function* (
-      objectNames?: readonly string[]
+      objectNames?: readonly string[],
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
       yield* objectNames
@@ -333,15 +353,19 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         : sobjectDescribeCache.invalidateAll;
     });
 
-    const invalidateListSObjects = Effect.fn('MetadataDescribeService.invalidateListSObjects')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const invalidateListSObjects = Effect.fn('MetadataDescribeService.invalidateListSObjects')(function* (
+      expectedOrgId?: string
+    ) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       if (!orgId) return;
       const { listSObjectsCache } = yield* orgCacheRegistry.get(orgId);
       yield* listSObjectsCache.invalidate('global');
     });
 
-    const describe = Effect.fn('MetadataDescribeService.describe')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const describe = Effect.fn('MetadataDescribeService.describe')(function* (expectedOrgId?: string) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
 
       if (!orgId) {
         return yield* new MetadataDescribeError({
@@ -355,16 +379,19 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return yield* describeCache.get('describe');
     });
 
-    const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* () {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const listSObjects = Effect.fn('MetadataDescribeService.listSObjects')(function* (expectedOrgId?: string) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       const { listSObjectsCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
       return yield* listSObjectsCache.get('global');
     });
 
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
-      objectName: string
+      objectName: string,
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
       return yield* sobjectDescribeCache.get(objectName);
     });
@@ -378,9 +405,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
      * No upfront cache probe — batches start immediately.
      */
     const describeCustomObjects = Effect.fn('MetadataDescribeService.describeCustomObjects')(function* (
-      objectNames: string[]
+      objectNames: string[],
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
 
       yield* Effect.annotateCurrentSpan({ objectCount: objectNames.length, orgId });
@@ -412,7 +441,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Stream.mapEffect(
           batch => {
             const names = Chunk.toArray(batch);
-            return runSObjectBatch(names).pipe(
+            return runSObjectBatch(orgId ?? 'default', names).pipe(
               Effect.map(results =>
                 results.flatMap((sr, i) => (Array.isArray(sr.result) ? [] : [{ name: names[i], result: sr.result }]))
               ),
@@ -433,8 +462,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return Stream.concat(Stream.fromIterable(hits), missStream);
     });
 
-    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (
+      type: string,
+      folder?: string,
+      expectedOrgId?: string
+    ) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
       const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
       return yield* listMetadataCache.get(key);
@@ -442,9 +476,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     const listMetadataCached = Effect.fn('MetadataDescribeService.listMetadataCached')(function* (
       type: string,
-      folder?: string
+      folder?: string,
+      expectedOrgId?: string
     ) {
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const orgId = expectedOrgId ?? activeOrgId;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
       const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
       return yield* listMetadataCache.getOptionComplete(key);

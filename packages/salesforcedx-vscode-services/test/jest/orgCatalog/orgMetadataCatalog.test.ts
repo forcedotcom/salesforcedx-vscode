@@ -7,9 +7,11 @@
 
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Either from 'effect/Either';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
@@ -21,7 +23,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ComponentSetService } from '../../../src/core/componentSetService';
-import { ConnectionService } from '../../../src/core/connectionService';
+import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
 import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
@@ -37,6 +39,15 @@ import {
   OrgSObjectDescriptionSchema,
   OrgSObjectSummarySchema
 } from '../../../src/orgCatalog/orgMetadataCatalog';
+import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
+import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
+import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
+import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemoteSource';
+import { OrgCatalogSObjects } from '../../../src/orgCatalog/orgCatalogSObjects';
+import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
+import { OrgCatalogTracking } from '../../../src/orgCatalog/orgCatalogTracking';
+import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
+import { OrgCatalogWorkspace } from '../../../src/orgCatalog/orgCatalogWorkspace';
 import {
   OrgMetadataCatalogChangePubSub,
   type OrgMetadataCatalogChange
@@ -46,6 +57,7 @@ import {
   type OrgMetadataCatalogSnapshot
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
 import { runOrgMetadataDocumentProvider } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
+import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import { OrgMetadataShadowStore } from '../../../src/orgCatalog/orgMetadataShadowStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
 import { FsService } from '../../../src/vscode/fsService';
@@ -73,6 +85,7 @@ type HarnessOptions = {
   readonly storeLoadError?: Error;
   readonly storeSaveError?: Error;
   readonly connectionOrgId?: string;
+  readonly listMetadataError?: InactiveOrgOperationError;
 };
 
 const emptySObject = (name: string): SObject => ({
@@ -111,8 +124,10 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const descriptions = options.descriptions ?? {};
 
   const describe = jest.fn(() => Effect.succeed([]));
-  const listMetadata = jest.fn((xmlName: string) =>
-    Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
+  const listMetadata = jest.fn((xmlName: string, _folder?: string, _expectedOrgId?: string) =>
+    options.listMetadataError
+      ? setOrg(options.listMetadataError.observedOrgId ?? 'org-two').pipe(Effect.andThen(options.listMetadataError))
+      : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
   );
   const listSObjects = jest.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
   const describeCustomObject = jest.fn((apiName: string) =>
@@ -202,7 +217,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
   );
   const buildComponentSet = jest.fn(() => Effect.succeed({ size: 1 }));
   const ensureNonEmptyComponentSet = jest.fn((componentSet: unknown) => Effect.succeed(componentSet));
-  const retrieveComponentSetToDirectory = jest.fn((_componentSet: unknown, _stagingUri: URI) =>
+  const retrieveComponentSetToDirectory = jest.fn((_componentSet: unknown, _stagingUri: URI, _expectedOrgId?: string) =>
     Effect.die('unexpected remote materialization').pipe(Effect.as(undefined as unknown))
   );
   const readDirectoryWithTypes = jest.fn((_uri: URI) =>
@@ -235,12 +250,14 @@ const makeHarness = (options: HarnessOptions = {}) => {
       tooling: { query: toolingQuery }
     })
   );
+  const getConnectionForOrg = jest.fn((_expectedOrgId: string) => getConnection());
   const dependencies = Layer.mergeAll(
     Layer.succeed(ComponentSetService, {
       ensureNonEmptyComponentSet
     } as unknown as InstanceType<typeof ComponentSetService>),
     Layer.succeed(ConnectionService, {
-      getConnection
+      getConnection,
+      getConnectionForOrg
     } as unknown as InstanceType<typeof ConnectionService>),
     Layer.succeed(FsService, {
       readFile: (uri: URI) => Effect.succeed(shadowFiles.get(uri.toString()) ?? ''),
@@ -301,10 +318,42 @@ const makeHarness = (options: HarnessOptions = {}) => {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)
     } as unknown as InstanceType<typeof TransmogrifierService>)
   );
+  const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
+  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
+  const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
+  const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
+  const sobjectsLayer = OrgCatalogSObjects.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
+  const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
+  const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
+  const inventoryLayer = OrgCatalogInventory.DefaultWithoutDependencies.pipe(Layer.provide(inventoryRequirements));
+  const remoteSourceRequirements = Layer.mergeAll(inventoryRequirements, inventoryLayer, remoteRetrieveLayer);
+  const remoteSourceLayer = OrgCatalogRemoteSource.DefaultWithoutDependencies.pipe(
+    Layer.provide(remoteSourceRequirements)
+  );
+  const documentsLayer = OrgCatalogDocuments.DefaultWithoutDependencies.pipe(
+    Layer.provide(Layer.mergeAll(remoteSourceRequirements, remoteSourceLayer))
+  );
+  const trackingLayer = OrgCatalogTracking.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
+  const treeProjectionLayer = OrgCatalogTreeProjection.DefaultWithoutDependencies.pipe(
+    Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer, sobjectsLayer))
+  );
+  const catalogRequirements = Layer.mergeAll(
+    dependencies,
+    stateLayer,
+    referenceLayer,
+    workspaceLayer,
+    sobjectsLayer,
+    inventoryLayer,
+    remoteRetrieveLayer,
+    remoteSourceLayer,
+    documentsLayer,
+    trackingLayer,
+    treeProjectionLayer
+  );
 
   return {
     catalogChanges,
-    layer: Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, dependencies),
+    layer: Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
     mocks: {
       buildComponentSetFromSource,
       buildComponentSet,
@@ -319,6 +368,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getStatus,
       getStatusWithRemoteChanges,
       getConnection,
+      getConnectionForOrg,
       listMetadata,
       listSObjects,
       readDirectoryWithTypes,
@@ -461,6 +511,33 @@ describe('OrgMetadataCatalog contract', () => {
     });
   });
 
+  it('does not commit inventory when acquisition detects that the active org changed', async () => {
+    const { layer, mocks } = makeHarness({
+      listMetadataError: new InactiveOrgOperationError({
+        message: "The active org changed while an operation for 'org-one' was in progress",
+        expectedOrgId: 'org-one',
+        observedOrgId: 'org-two'
+      })
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.gen(function* () {
+        yield* setOrg('org-one');
+        return yield* (yield* OrgMetadataCatalog).listMetadataComponents({ xmlName: 'ApexClass' });
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (!Exit.isFailure(exit)) return;
+    expect(Cause.failureOption(exit.cause).pipe(Option.getOrUndefined)).toMatchObject({
+      _tag: 'InactiveOrgOperationError',
+      expectedOrgId: 'org-one',
+      observedOrgId: 'org-two'
+    });
+    expect(mocks.listMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
+    expect(mocks.storeSave).not.toHaveBeenCalled();
+  });
+
   it('restores persisted inventory and SObject observations after a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
     const first = makeHarness({
@@ -541,7 +618,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     expect(entries.map(entry => entry.name)).toEqual(['NewTest']);
-    expect(restarted.mocks.listMetadata).toHaveBeenCalledWith('ApexClass');
+    expect(restarted.mocks.listMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
   });
 
   it('continues with provider-backed reads when catalog hydration or persistence fails', async () => {
@@ -554,7 +631,7 @@ describe('OrgMetadataCatalog contract', () => {
     const entries = await runWithCatalog(layer, catalog => catalog.listMetadataComponents({ xmlName: 'ApexClass' }));
 
     expect(entries.map(entry => entry.name)).toEqual(['ProviderTest']);
-    expect(mocks.listMetadata).toHaveBeenCalledWith('ApexClass');
+    expect(mocks.listMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
     expect(mocks.storeSave).toHaveBeenCalledTimes(1);
   });
 
@@ -581,8 +658,8 @@ describe('OrgMetadataCatalog contract', () => {
     expect(listedTypes.filter(xmlName => xmlName === 'ApexClass')).toHaveLength(3);
     expect(listedTypes.filter(xmlName => xmlName === 'AuraDefinitionBundle')).toHaveLength(1);
     expect(mocks.invalidateListMetadata).toHaveBeenCalledTimes(2);
-    expect(mocks.invalidateListMetadata).toHaveBeenNthCalledWith(1, 'ApexClass');
-    expect(mocks.invalidateListMetadata).toHaveBeenNthCalledWith(2, 'ApexClass');
+    expect(mocks.invalidateListMetadata).toHaveBeenNthCalledWith(1, 'ApexClass', undefined, 'org-one');
+    expect(mocks.invalidateListMetadata).toHaveBeenNthCalledWith(2, 'ApexClass', undefined, 'org-one');
   });
 
   it('does not retain workspace presence from an inventory load that overlaps invalidation', async () => {
@@ -638,10 +715,10 @@ describe('OrgMetadataCatalog contract', () => {
       ])
     );
 
-    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account', 'Property__c']);
+    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account', 'Property__c'], 'org-one');
     expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomObject');
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomObject', undefined, 'org-one');
   });
 
   it('propagates a Custom Field operation notification to parent SObject reacquisition', async () => {
@@ -655,6 +732,7 @@ describe('OrgMetadataCatalog contract', () => {
       layer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
+      OrgMetadataReferenceService.Default,
       Layer.succeed(
         OrgMetadataCatalogChangePubSub,
         catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
@@ -719,7 +797,7 @@ describe('OrgMetadataCatalog contract', () => {
     expect(result.before.label).toBe('Account');
     expect(result.after.label).toBe('Account after Custom Field change');
     expect(result.invalidatedApiNames).toEqual(['Account']);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField');
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
     expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
     expect(mocks.describeCustomObject).toHaveBeenCalledTimes(2);
   });
@@ -743,6 +821,7 @@ describe('OrgMetadataCatalog contract', () => {
       layer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
+      OrgMetadataReferenceService.Default,
       Layer.succeed(
         OrgMetadataCatalogChangePubSub,
         catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
@@ -983,8 +1062,8 @@ describe('OrgMetadataCatalog contract', () => {
       catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Broker__c' })
     );
 
-    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Broker__c');
-    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Broker__c');
+    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Broker__c', 'org-one');
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Broker__c', 'org-one');
     expect(children).toEqual([
       expect.objectContaining({
         name: 'Email__c',
@@ -1071,6 +1150,7 @@ describe('OrgMetadataCatalog contract', () => {
     expect(repeated).toBe(first);
     expect(revised).toBe(first);
     expect(mocks.toolingQuery).toHaveBeenCalledTimes(2);
+    expect(mocks.getConnectionForOrg).toHaveBeenCalledWith('org-one');
     expect(mocks.shadowPrepare).toHaveBeenCalledTimes(2);
     expect(mocks.shadowPublish).toHaveBeenCalledTimes(2);
     expect(mocks.shadowGet).toHaveBeenNthCalledWith(1, 'org-one', reference, 'revision-1');
@@ -1209,6 +1289,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(mocks.shadowGet).not.toHaveBeenCalled();
     expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
+    expect(mocks.retrieveComponentSetToDirectory.mock.calls[0]?.[2]).toBe('org-one');
     expect(mocks.shadowPrepare).toHaveBeenCalledWith('org-one', reference, undefined);
     expect(artifact.remoteLastModifiedDate).toBe('revision-2');
     expect(entry?.lastModifiedDate).toBe('revision-2');
@@ -1313,7 +1394,7 @@ describe('OrgMetadataCatalog contract', () => {
       })
     ).toBe(true);
     expect(mocks.listSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Property__c');
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Property__c', 'org-one');
     expect(mocks.listMetadata).not.toHaveBeenCalled();
   });
 
@@ -1325,8 +1406,8 @@ describe('OrgMetadataCatalog contract', () => {
     const description = await runWithCatalog(layer, catalog => catalog.refreshSObject('Account'));
 
     expect(description).toMatchObject({ name: 'Account', orgId: 'org-one', provenance: 'rest-api' });
-    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Account');
-    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Account');
+    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Account', 'org-one');
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Account', 'org-one');
     expect(mocks.listMetadata).not.toHaveBeenCalled();
     expect(mocks.describe).not.toHaveBeenCalled();
   });
@@ -1382,11 +1463,12 @@ describe('OrgMetadataCatalog contract', () => {
         { xmlName: 'AuraDefinitionBundle', fullName: 'OldAura' }
       ]
     });
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('ApexClass');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('AuraDefinitionBundle');
-    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account']);
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
+    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('AuraDefinitionBundle', undefined, 'org-one');
+    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account'], 'org-one');
     expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
+    expect(mocks.getStatusWithRemoteChanges).toHaveBeenCalledWith({ local: true, remote: true }, 'org-one');
     expect(mocks.storeSave).toHaveBeenCalledTimes(1);
   });
 
