@@ -551,14 +551,15 @@ class LwcTestController {
           command,
           args
         );
-        const ended = awaitTaskEnd(sfTask, token);
-        await sfTask.execute();
-        const { exitCode } = await ended;
+        // execute() sets taskExecution synchronously, returns promise for completion
+        void sfTask.execute();
+        const { exitCode } = await awaitTaskEnd(sfTask, token);
 
-        // If Jest crashed (positive exit code), it won't have created the output file.
-        // Extract error from captured output and show in Test Explorer.
-        // Use > 0 to exclude signals (e.g., SIGTERM = 143).
-        if (exitCode !== undefined && exitCode > 0) {
+        // Capture error details if Jest crashed, but don't return early.
+        // Jest may write partial results even with exitCode > 0 (e.g., syntax error in one file
+        // of a multi-file run). We'll attempt to read results and show both captured error and
+        // any partial test results Jest produced.
+        if (exitCode === undefined || exitCode > 0) {
           let errorMessage = `Jest test suite failed to run (exit code ${exitCode})`;
           let errorDetail = 'The test suite crashed before producing results.';
 
@@ -573,6 +574,19 @@ class LwcTestController {
           if (sourceItem) {
             const message = new vscode.TestMessage(errorDetail);
             message.actualOutput = errorMessage;
+
+            // Extract error location from stack trace for editor highlighting
+            const match = errorDetail.match(JEST_STACK_TRACE_PATTERN);
+            if (match) {
+              const [, file, lineStr, columnStr] = match;
+              const errorUri = URI.file(file);
+              const position = new vscode.Position(
+                Math.max(0, parseInt(lineStr, 10) - 1),
+                Math.max(0, parseInt(columnStr, 10) - 1)
+              );
+              message.location = new vscode.Location(errorUri, position);
+            }
+
             run.failed(sourceItem, message);
             sourceItem.children.forEach(child => {
               run.failed(child, message);
@@ -583,7 +597,6 @@ class LwcTestController {
             const errorLines = errorDetail.split('\n');
             errorLines.forEach(line => appendLine(run, line));
           }
-          return;
         }
       }
 
@@ -652,8 +665,11 @@ class LwcTestController {
           errorMessage.location = new vscode.Location(errorUri, position);
         }
 
+        // Note: VS Code Test Explorer semantics suggest run.errored() for suite-level failures
+        // (syntax errors, module load failures), but we use run.failed() to preserve the red bar
+        // editor highlight on error location. run.errored() does not trigger editor highlighting,
+        // making it harder for developers to locate the error source.
         run.failed(fileItem, errorMessage);
-        // Mark all child test items as failed since the suite failed to run
         fileItem.children.forEach(child => {
           run.failed(child, errorMessage);
         });

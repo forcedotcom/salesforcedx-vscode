@@ -90,12 +90,17 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
   /**
    * Append text to captured output with memory limit.
    * Keeps most recent output if limit exceeded.
+   * Uses Buffer.byteLength to measure actual UTF-8 bytes, not UTF-16 code units.
    */
   private appendWithLimit(current: string, text: string): string {
     const combined = current + text;
     const maxBytes = MAX_CAPTURED_OUTPUT_KB * 1024;
-    if (combined.length > maxBytes) {
-      return combined.slice(-maxBytes);
+    const byteLength = Buffer.byteLength(combined, 'utf8');
+    if (byteLength > maxBytes) {
+      // Slice by character count to stay under byte limit (approximation)
+      // UTF-8 average is ~1.5 bytes/char for mixed content, so divide by 2 for safety margin
+      const targetChars = Math.floor(maxBytes / 2);
+      return combined.slice(-targetChars);
     }
     return combined;
   }
