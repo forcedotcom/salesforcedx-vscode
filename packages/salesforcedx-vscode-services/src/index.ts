@@ -9,8 +9,10 @@ import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Scope from 'effect/Scope';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
@@ -320,6 +322,36 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.fork(annotateExtensionPackType),
       // watch default org changes to update VS Code context variables and other services
       Effect.forkIn(watchDefaultOrgContext(), scope),
+      // watch default org changes to properly close out the previous org's catalog state
+      Effect.forkIn(
+        Effect.gen(function* () {
+          const catalog = yield* OrgMetadataCatalog;
+          const targetOrgRef = yield* getDefaultOrgRef();
+          const channelService = yield* ChannelService;
+
+          // Track the previous orgId to close it when org changes
+          const previousOrgIdRef = yield* Ref.make<string | undefined>(undefined);
+
+          yield* targetOrgRef.changes.pipe(
+            Stream.map(org => org.orgId),
+            Stream.changes,
+            Stream.mapEffect(newOrgId =>
+              Effect.gen(function* () {
+                const previousOrgId = yield* Ref.get(previousOrgIdRef);
+                yield* channelService.appendToChannel(
+                  `Target org changed to ${newOrgId ?? '<NOT SET>'}${previousOrgId ? `; closing previous org ${previousOrgId}` : ''}`
+                );
+                if (previousOrgId !== undefined && previousOrgId !== newOrgId) {
+                  yield* catalog.closeOrg(previousOrgId);
+                }
+                yield* Ref.set(previousOrgIdRef, newOrgId);
+              })
+            ),
+            Stream.runDrain
+          );
+        }),
+        scope
+      ),
       // watch the config files for changes, which various services use to invalidate caches
       Effect.forkIn(watchConfigFiles(), scope),
       // watch active editor changes to update package directories context

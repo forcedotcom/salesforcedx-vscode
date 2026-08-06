@@ -266,7 +266,20 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       return yield* listMetadataComponents(reference);
     });
 
+    /**
+     * Close out an org's state when it is no longer the active org.
+     * Flushes dirty caches to disk to ensure the org's state is persisted before switching focus.
+     * This is called automatically when the default org changes.
+     */
+    const closeOrg = Effect.fn('OrgMetadataCatalog.closeOrg')(function* (orgId: string) {
+      yield* Effect.logInfo('Closing org catalog', { orgId });
+      // Flush dirty state to disk
+      yield* state.persistOrg(orgId);
+      yield* Effect.logDebug('Org catalog closed', { orgId });
+    });
+
     return {
+      closeOrg,
       getChildren,
       getChildrenCached,
       getDocumentReference,
