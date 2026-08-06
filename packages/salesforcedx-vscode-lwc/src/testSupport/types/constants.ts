@@ -46,6 +46,6 @@ export const LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED = 'lwc.jestRunnerDu
 /**
  * Pattern to extract file location from Jest stack traces.
  * Matches lines like "at SomeFunction (/path/to/file.js:123:45)" or "at /path/to/file.js:123:45"
- * Uses [^)]+ to capture everything except closing paren, handling paths with parens like /path/foo(bar)/file.js
+ * Uses .+? (non-greedy) to capture the file path, stopping at the first :line:col pattern
  */
-export const JEST_STACK_TRACE_PATTERN = /at (?:.*?\()?([^)]+):(\d+):(\d+)\)?/;
+export const JEST_STACK_TRACE_PATTERN = /at (?:.*?\()?(.+?):(\d+):(\d+)\)?/;
