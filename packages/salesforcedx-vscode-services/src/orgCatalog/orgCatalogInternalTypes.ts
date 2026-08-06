@@ -31,3 +31,21 @@ export type RemoteTrackingObservation = {
   readonly reference: OrgMetadataComponentReference;
   readonly signature: string;
 };
+
+export type MetadataTypeObservation = {
+  readonly xmlName: string;
+  readonly directoryName: string;
+  readonly suffix?: string;
+  readonly folderContentType?: string;
+  readonly inFolder: boolean;
+  readonly metaFile: boolean;
+  readonly childXmlNames: readonly string[];
+  readonly observedAt: string;
+};
+
+export type MetadataListingObservation = {
+  readonly xmlName: string;
+  readonly folder?: string;
+  readonly observedAt: string;
+  readonly components: readonly ListedMetadataComponent[];
+};

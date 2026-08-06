@@ -14,7 +14,7 @@ import { WorkspaceService } from '../vscode/workspaceService';
 
 const CATALOG_DIRECTORY = 'metadata-catalog';
 const CATALOG_FILE = 'catalog.json';
-const CATALOG_VERSION = 1;
+const CATALOG_VERSION = 2;
 
 class OrgMetadataCatalogSnapshotOrgMismatchError extends Schema.TaggedError<OrgMetadataCatalogSnapshotOrgMismatchError>()(
   'OrgMetadataCatalogSnapshotOrgMismatchError',
@@ -75,8 +75,23 @@ const PersistedTrackingObservationSchema = Schema.Struct({
   fullName: Schema.String,
   signature: Schema.String
 });
-const OrgMetadataCatalogSnapshotSchema = Schema.Struct({
-  version: Schema.Literal(CATALOG_VERSION),
+const PersistedMetadataTypeObservationSchema = Schema.Struct({
+  xmlName: Schema.String,
+  directoryName: Schema.String,
+  suffix: Schema.optional(Schema.String),
+  folderContentType: Schema.optional(Schema.String),
+  inFolder: Schema.Boolean,
+  metaFile: Schema.Boolean,
+  childXmlNames: Schema.Array(Schema.String),
+  observedAt: Schema.String
+});
+const PersistedMetadataListingObservationSchema = Schema.Struct({
+  xmlName: Schema.String,
+  folder: Schema.optional(Schema.String),
+  observedAt: Schema.String,
+  components: Schema.Array(PersistedListedComponentSchema)
+});
+const SnapshotFields = {
   orgId: Schema.String,
   writtenAt: Schema.String,
   generation: Schema.Number,
@@ -86,6 +101,16 @@ const OrgMetadataCatalogSnapshotSchema = Schema.Struct({
     descriptions: Schema.Array(PersistedSObjectDescriptionSchema)
   }),
   tracking: Schema.Array(PersistedTrackingObservationSchema)
+};
+const OrgMetadataCatalogSnapshotV1Schema = Schema.Struct({
+  version: Schema.Literal(1),
+  ...SnapshotFields
+});
+const OrgMetadataCatalogSnapshotSchema = Schema.Struct({
+  version: Schema.Literal(CATALOG_VERSION),
+  ...SnapshotFields,
+  metadataTypes: Schema.Array(PersistedMetadataTypeObservationSchema),
+  metadataListings: Schema.Array(PersistedMetadataListingObservationSchema)
 });
 export type OrgMetadataCatalogSnapshot = typeof OrgMetadataCatalogSnapshotSchema.Type;
 
@@ -108,7 +133,14 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
     const load = Effect.fn('OrgMetadataCatalogStore.load')(function* (orgId: string) {
       const snapshotUri = yield* getSnapshotUri(orgId);
       if (!(yield* fsService.fileOrFolderExists(snapshotUri))) return undefined;
-      const snapshot = yield* fsService.readJSON(snapshotUri.toString(), OrgMetadataCatalogSnapshotSchema);
+      const decoded = yield* fsService.readJSON(
+        snapshotUri.toString(),
+        Schema.Union(OrgMetadataCatalogSnapshotV1Schema, OrgMetadataCatalogSnapshotSchema)
+      );
+      const snapshot: OrgMetadataCatalogSnapshot =
+        decoded.version === 1
+          ? { ...decoded, version: CATALOG_VERSION, metadataTypes: [], metadataListings: [] }
+          : decoded;
       if (snapshot.orgId !== orgId) {
         return yield* new OrgMetadataCatalogSnapshotOrgMismatchError({
           message: `Catalog snapshot org '${snapshot.orgId}' does not match '${orgId}'`
@@ -120,7 +152,9 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
         inventoryTypeCount: snapshot.inventory.length,
         sobjectSummaryCount: snapshot.sobjects.list?.length ?? 0,
         sobjectDescriptionCount: snapshot.sobjects.descriptions.length,
-        trackingObservationCount: snapshot.tracking.length
+        trackingObservationCount: snapshot.tracking.length,
+        metadataTypeCount: snapshot.metadataTypes.length,
+        metadataListingCount: snapshot.metadataListings.length
       });
       return snapshot;
     });
@@ -141,7 +175,9 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
             inventoryTypeCount: snapshot.inventory.length,
             sobjectSummaryCount: snapshot.sobjects.list?.length ?? 0,
             sobjectDescriptionCount: snapshot.sobjects.descriptions.length,
-            trackingObservationCount: snapshot.tracking.length
+            trackingObservationCount: snapshot.tracking.length,
+            metadataTypeCount: snapshot.metadataTypes.length,
+            metadataListingCount: snapshot.metadataListings.length
           });
           return snapshotUri;
         })

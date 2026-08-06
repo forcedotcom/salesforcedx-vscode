@@ -43,7 +43,8 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
   const project = yield* api.services.ProjectService;
-  const catalog = yield* api.services.OrgMetadataCatalog;
+  const metadataDescribe = yield* api.services.MetadataDescribeService;
+  const transmogrifier = yield* api.services.TransmogrifierService;
 
   const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
     [
@@ -69,11 +70,14 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   // A scoped refresh replaces only that category. Typings share one flat directory, so scoped
   // refreshes overwrite their selected files without removing the other category's definitions.
   // An ALL refresh resets the shared directory as well, removing definitions no longer in the org.
+  if (source === 'manual') {
+    yield* Effect.all([metadataDescribe.invalidateListSObjects(), metadataDescribe.invalidateSObjectDescribes()], {
+      concurrency: 'unbounded',
+      discard: true
+    });
+  }
   const [allSObjects] = yield* Effect.all(
-    [
-      source === 'manual' ? catalog.refreshSObjects() : catalog.listSObjects(),
-      ...categoryDirectories.map(resetDirectory)
-    ],
+    [metadataDescribe.listSObjects(), ...categoryDirectories.map(resetDirectory)],
     { concurrency: 'unbounded' }
   );
   const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
@@ -89,7 +93,8 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const customRef = yield* Ref.make(0);
   const processedRef = yield* Ref.make(0);
 
-  yield* (yield* catalog.describeSObjects(sobjectNames.map(s => s.name))).pipe(
+  yield* (yield* metadataDescribe.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
+    Stream.mapEffect(transmogrifier.toMinimalSObject),
     Stream.mapEffect(
       sobject => {
         const isCustom = sobject.custom;

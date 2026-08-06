@@ -21,12 +21,14 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { normalize } from 'node:path';
+import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -53,7 +55,7 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
 
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
-export type SourceTrackingRemoteChange = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
+type SourceTrackingRemoteChange = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 const isResolvedChangeResult = (c: ChangeResult): c is SourceTrackingRemoteChange =>
   Schema.is(ResolvedChangeResultSchema)(c);
 
@@ -65,18 +67,23 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ConfigService.Default,
     SettingsService.Default,
     WorkspaceService.Default,
-    MetadataRegistryService.Default
+    MetadataRegistryService.Default,
+    MetadataDescribeService.Default,
+    OrgMetadataCatalogRecorder.Default
   ],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
+    const metadataDescribeService = yield* MetadataDescribeService;
+    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
 
     // Semaphores for concurrency control (1 permit each for sequential access)
     const localSemaphore = yield* Effect.makeSemaphore(1);
     const remoteSemaphore = yield* Effect.makeSemaphore(1);
     const trackingCreationSemaphore = yield* Effect.makeSemaphore(1);
+    const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
     // Lazy singleton for SourceTracking instance with org ID validation
     const trackingRef = yield* Ref.make<Option.Option<{ tracking: SourceTracking; orgId: string }>>(Option.none());
@@ -316,7 +323,38 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true },
       expectedOrgId?: string
     ) {
-      return (yield* getStatusWithRemoteChanges(options, expectedOrgId)).status;
+      const result = yield* getStatusWithRemoteChanges(options, expectedOrgId);
+      if (options.remote) {
+        const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+        const orgId =
+          expectedOrgId ?? activeOrgId ?? (yield* connectionService.getConnection()).getAuthInfoFields().orgId;
+        if (orgId) {
+          const changedReferences = yield* catalogRecorder.recordTrackingStatus(
+            orgId,
+            result.status,
+            result.remoteChanges
+          );
+          const affectedTypes = new Set(changedReferences.map(reference => reference.xmlName));
+          yield* Effect.forEach(
+            affectedTypes,
+            xmlName =>
+              folderedMetadataTypes.has(xmlName)
+                ? metadataDescribeService.invalidateAllListMetadata(orgId)
+                : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
+            { discard: true }
+          );
+          const affectedSObjects = new Set<string>();
+          changedReferences.forEach(reference => {
+            if (reference.xmlName === 'CustomObject') affectedSObjects.add(reference.fullName);
+            if (reference.xmlName === 'CustomField') affectedSObjects.add(reference.fullName.split('.')[0]);
+          });
+          if (affectedSObjects.size > 0) {
+            yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
+            yield* metadataDescribeService.invalidateListSObjects(orgId);
+          }
+        }
+      }
+      return result.status;
     });
 
     /** Apply remote deletes to local and get non-deletes component set (both tracking files).
@@ -488,9 +526,6 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
 
       /** Get status of local and/or remote changes (auto-rereads based on options) */
       getStatus,
-
-      /** Get status plus revision-bearing remote observations from the same refresh */
-      getStatusWithRemoteChanges,
 
       /** Apply remote deletes to local and return non-deletes ComponentSet (auto-rereads both) */
       maybeApplyRemoteDeletesToLocal,

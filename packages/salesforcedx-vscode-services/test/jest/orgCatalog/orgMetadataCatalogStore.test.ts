@@ -19,7 +19,7 @@ import { WorkspaceService } from '../../../src/vscode/workspaceService';
 const workspaceUri = URI.file('/workspace');
 
 const snapshot = (orgId: string, generation = 1): OrgMetadataCatalogSnapshot => ({
-  version: 1,
+  version: 2,
   orgId,
   writtenAt: '2026-07-31T12:00:00.000Z',
   generation,
@@ -32,7 +32,9 @@ const snapshot = (orgId: string, generation = 1): OrgMetadataCatalogSnapshot => 
     }
   ],
   sobjects: { descriptions: [] },
-  tracking: [{ xmlName: 'ApexClass', fullName: 'FooTest', signature: 'Changed|1' }]
+  tracking: [{ xmlName: 'ApexClass', fullName: 'FooTest', signature: 'Changed|1' }],
+  metadataTypes: [],
+  metadataListings: []
 });
 
 const makeHarness = () => {
@@ -112,7 +114,7 @@ describe('OrgMetadataCatalogStore', () => {
     expect(loaded).toEqual(stored);
     expect(writes).toEqual([`${uri.toString()}.__staging__`]);
     expect(renames).toEqual([[`${uri.toString()}.__staging__`, uri.toString(), { overwrite: true }]]);
-    expect(files.get(uri.toString())).toContain('\n  "version": 1,\n');
+    expect(files.get(uri.toString())).toContain('\n  "version": 2,\n');
     expect(files.get(uri.toString())).toContain('\n      "xmlName": "ApexClass",\n');
   });
 
@@ -127,6 +129,30 @@ describe('OrgMetadataCatalogStore', () => {
         })
       )
     ).rejects.toThrow("Catalog snapshot org '00D-one' does not match '00D-two'");
+  });
+
+  it('migrates version 1 snapshots with empty normalized observation collections', async () => {
+    const { files, run } = makeHarness();
+    files.set(
+      'file:///workspace/.sf/orgs/00D-one/metadata-catalog/catalog.json',
+      JSON.stringify({
+        version: 1,
+        orgId: '00D-one',
+        writtenAt: '2026-07-31T12:00:00.000Z',
+        generation: 1,
+        inventory: [],
+        sobjects: { descriptions: [] },
+        tracking: []
+      })
+    );
+
+    const loaded = await run(
+      Effect.gen(function* () {
+        return yield* (yield* OrgMetadataCatalogStore).load('00D-one');
+      })
+    );
+
+    expect(loaded).toMatchObject({ version: 2, metadataTypes: [], metadataListings: [] });
   });
 
   it('returns no snapshot when the org has not been persisted', async () => {

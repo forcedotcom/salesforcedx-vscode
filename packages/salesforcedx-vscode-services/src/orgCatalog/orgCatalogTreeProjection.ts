@@ -9,9 +9,10 @@ import type { OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
+import { TransmogrifierService } from '../core/transmogrifierService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
 import { projectChildren } from './orgCatalogProjection';
-import { OrgCatalogSObjects } from './orgCatalogSObjects';
+import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
 import {
   isOrgMetadataComponentReference,
@@ -23,18 +24,20 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
   accessors: true,
   dependencies: [
     OrgCatalogInventory.Default,
-    OrgCatalogSObjects.Default,
+    OrgCatalogState.Default,
     OrgCatalogWorkspace.Default,
     OrgMetadataReferenceService.Default,
-    MetadataDescribeService.Default
+    MetadataDescribeService.Default,
+    TransmogrifierService.Default
   ],
   effect: Effect.gen(function* () {
-    const [inventories, sobjects, workspace, references, metadataDescribeService] = yield* Effect.all([
+    const [inventories, state, workspace, references, metadataDescribeService, transmogrifier] = yield* Effect.all([
       OrgCatalogInventory,
-      OrgCatalogSObjects,
+      OrgCatalogState,
       OrgCatalogWorkspace,
       OrgMetadataReferenceService,
-      MetadataDescribeService
+      MetadataDescribeService,
+      TransmogrifierService
     ]);
     const entryUri = (orgId: string, xmlName: string, fullName: string) =>
       references.documentUri({ orgId, xmlName, fullName: fullName || '__type__' });
@@ -47,18 +50,36 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
       const fieldInventory = yield* inventories.loadType(orgId, 'CustomField');
-      const cachedDescription = yield* sobjects.describeSObject(orgId, objectApiName);
+      yield* state.ensureHydrated(orgId);
+      const acquireDescription = metadataDescribeService.describeCustomObject(objectApiName, orgId).pipe(
+        Effect.flatMap(transmogrifier.toMinimalSObject),
+        Effect.map(sobject => ({
+          ...sobject,
+          orgId,
+          observedAt: new Date().toISOString(),
+          provenance: 'rest-api' as const
+        }))
+      );
+      const cachedDescription = yield* state
+        .getSObjectDescription(orgId, objectApiName)
+        .pipe(Effect.flatMap(description => (description ? Effect.succeed(description) : acquireDescription)));
       const describedObject =
         Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
-          ? yield* sobjects
-              .reacquireSObjectDescription(orgId, objectApiName)
-              .pipe(
-                Effect.catchAll(error =>
-                  Effect.logWarning('Failed to refresh stale SObject description', error).pipe(
-                    Effect.as(cachedDescription)
-                  )
+          ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
+              Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
+              Effect.flatMap(transmogrifier.toMinimalSObject),
+              Effect.map(sobject => ({
+                ...sobject,
+                orgId,
+                observedAt: new Date().toISOString(),
+                provenance: 'rest-api' as const
+              })),
+              Effect.catchAll(error =>
+                Effect.logWarning('Failed to refresh stale SObject description', error).pipe(
+                  Effect.as(cachedDescription)
                 )
               )
+            )
           : cachedDescription;
       const parentNames = new Set([objectEntry.reference.fullName, objectApiName]);
       const inventoryFields = [...fieldInventory.components.values()].filter(entry => {
@@ -166,8 +187,10 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         return yield* getCustomFieldChildren(orgId, component);
       }
       const children = projectChildren(entryUri, orgId, reference.xmlName, reference.fullName, inventory);
-      if (children.length === 0 && reference.fullName) {
-        return yield* Effect.fail(vscode.FileSystemError.FileNotADirectory(reference.fullName));
+      if (children.length === 0 && reference.fullName && !inventory.folders.has(reference.fullName)) {
+        return yield* Effect.fail(
+          vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
+        );
       }
       return children;
     });

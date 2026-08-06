@@ -25,12 +25,12 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   componentSet?: ComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [catalog, componentSetService, HashableUri] = yield* Effect.all(
-    [api.services.OrgMetadataCatalog, api.services.ComponentSetService, api.services.FsService.HashableUri],
+  const [sourceTracking, componentSetService, HashableUri] = yield* Effect.all(
+    [api.services.SourceTrackingService, api.services.ComponentSetService, api.services.FsService.HashableUri],
     { concurrency: 'unbounded' }
   );
 
-  const uris = yield* catalog.getChangeStatus({ local: true, remote: true }).pipe(
+  const uris = yield* sourceTracking.getStatus({ local: true, remote: true }).pipe(
     Stream.fromIterableEffect,
     Stream.filter(
       c =>

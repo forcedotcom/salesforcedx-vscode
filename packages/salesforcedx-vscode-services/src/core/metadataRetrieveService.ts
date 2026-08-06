@@ -20,9 +20,9 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
 import * as Runtime from 'effect/Runtime';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -30,8 +30,8 @@ import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRe
 import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { getDefaultOrgRef } from './defaultOrgRef';
 import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
+import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
@@ -70,7 +70,9 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     MetadataRegistryService.Default,
     ProjectService.Default,
     ConfigService.Default,
-    MetadataChangeNotificationService.Default
+    MetadataChangeNotificationService.Default,
+    MetadataDescribeService.Default,
+    OrgMetadataCatalogRecorder.Default
   ],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
@@ -80,7 +82,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
     const notificationService = yield* MetadataChangeNotificationService;
-    const defaultOrgRef = yield* getDefaultOrgRef();
+    const metadataDescribeService = yield* MetadataDescribeService;
+    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
 
     const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
       retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
@@ -96,19 +99,45 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         }))
       );
       if (changes.length === 0) return;
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(defaultOrgRef);
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = expectedOrgId;
       yield* Effect.annotateCurrentSpan({
         rawFileResponseCount: successfulResponses.length,
         uniqueComponentCount: changes.length,
         affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
       });
-      yield* notificationService.publishOperation({
+      const event = {
         ...(orgId ? { orgId } : {}),
         operation: 'retrieve',
         completedAt: new Date().toISOString(),
         changes: [...changes]
-      });
+      } as const;
+      yield* notificationService.publishOperation(event);
+      if (orgId) {
+        const affectedTypes = new Set(changes.map(change => change.metadataType));
+        const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
+        yield* Effect.forEach(
+          affectedTypes,
+          xmlName =>
+            folderedMetadataTypes.has(xmlName)
+              ? metadataDescribeService.invalidateAllListMetadata(orgId)
+              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
+          { discard: true }
+        );
+        const affectedSObjects = new Set(
+          changes.flatMap(change =>
+            change.metadataType === 'CustomObject'
+              ? [change.fullName]
+              : change.metadataType === 'CustomField'
+                ? [change.fullName.split('.')[0]]
+                : []
+          )
+        );
+        if (affectedSObjects.size > 0) {
+          yield* metadataDescribeService.invalidateListSObjects(orgId);
+          yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
+        }
+      }
+      yield* catalogRecorder.recordOperation(event);
     });
 
     const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
@@ -255,7 +284,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         title,
         merge: true,
         project,
-        expectedOrgId: options?.expectedOrgId
+        expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
       });
     }, withActiveMetadataOperationPipeline);
 
@@ -294,7 +323,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         title,
         merge: true,
         project,
-        expectedOrgId: options?.expectedOrgId
+        expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
       });
     }, withActiveMetadataOperationPipeline);
 

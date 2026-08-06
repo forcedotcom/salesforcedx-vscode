@@ -84,7 +84,7 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
           folders: new Map(orgListing.folders.map(folder => [folder.fullName, folder]))
         } satisfies TypeInventory;
         yield* state.setInventory(orgId, xmlName, inventory);
-        if (!restored) yield* state.persistOrg(orgId);
+        if (!restored) yield* state.queuePersist(orgId);
         return inventory;
       }).pipe(semaphore.withPermits(1));
     });

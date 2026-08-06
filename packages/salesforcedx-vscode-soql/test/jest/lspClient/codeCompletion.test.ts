@@ -8,7 +8,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { SObject } from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
 import * as vscode from 'vscode';
 import type { CancellationToken, CompletionContext, Position, TextDocument } from 'vscode';
 
@@ -16,14 +17,18 @@ type SObjectSummary = { readonly name: string; readonly custom: boolean; readonl
 
 const mockListSObjects = jest.fn<Effect.Effect<readonly SObjectSummary[]>, []>();
 const mockDescribeSObject = jest.fn<Effect.Effect<SObject>, [string]>();
-const mockCatalog = {
+const mockMetadataDescribe = {
   listSObjects: () => mockListSObjects(),
-  describeSObject: (apiName: string) => mockDescribeSObject(apiName)
-} as unknown as InstanceType<typeof OrgMetadataCatalog>;
+  describeCustomObject: (apiName: string) => mockDescribeSObject(apiName)
+} as unknown as InstanceType<typeof MetadataDescribeService>;
+const mockTransmogrifier = {
+  toMinimalSObject: (value: SObject) => Effect.succeed(value)
+} as unknown as InstanceType<typeof TransmogrifierService>;
 const mockExtensionProvider = {
   getServicesApi: Effect.succeed({
     services: {
-      OrgMetadataCatalog
+      MetadataDescribeService,
+      TransmogrifierService
     }
   })
 } as unknown as ExtensionProviderService;
@@ -31,7 +36,8 @@ const mockRunPromise = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
   Effect.runPromise(
     effect.pipe(
       Effect.provideService(ExtensionProviderService, mockExtensionProvider),
-      Effect.provideService(OrgMetadataCatalog, mockCatalog)
+      Effect.provideService(MetadataDescribeService, mockMetadataDescribe),
+      Effect.provideService(TransmogrifierService, mockTransmogrifier)
     ) as Effect.Effect<A, E, never>
   );
 
@@ -101,7 +107,7 @@ const accountDescription: SObject = {
   childRelationships: []
 };
 
-describe('SOQL completion catalog integration', () => {
+describe('SOQL completion metadata describe integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

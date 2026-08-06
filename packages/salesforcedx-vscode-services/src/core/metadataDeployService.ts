@@ -14,16 +14,16 @@ import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
-import { getDefaultOrgRef } from './defaultOrgRef';
 import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
+import { MetadataDescribeService } from './metadataDescribeService';
 import { ProjectService } from './projectService';
 import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
@@ -42,7 +42,9 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     MetadataChangeNotificationService.Default,
     ProjectService.Default,
     WorkspaceService.Default,
-    SourceTrackingService.Default
+    SourceTrackingService.Default,
+    MetadataDescribeService.Default,
+    OrgMetadataCatalogRecorder.Default
   ],
   effect: Effect.gen(function* () {
     const trackingService = yield* SourceTrackingService;
@@ -51,7 +53,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const workspaceService = yield* WorkspaceService;
     const projectService = yield* ProjectService;
     const notificationService = yield* MetadataChangeNotificationService;
-    const defaultOrgRef = yield* getDefaultOrgRef();
+    const metadataDescribeService = yield* MetadataDescribeService;
+    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
 
     /** Get ComponentSet of local changes for deploy */
     const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
@@ -69,7 +72,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     });
 
     const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(function* (
-      deployOutcome: DeployResult
+      deployOutcome: DeployResult,
+      orgId: string | undefined
     ) {
       const successfulResponses = deployOutcome.getFileResponses().filter(isSDRSuccess);
       const changes = dedupeMetadataChanges(
@@ -90,18 +94,44 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         )
       );
       if (changes.length === 0) return;
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
       yield* Effect.annotateCurrentSpan({
         rawFileResponseCount: successfulResponses.length,
         uniqueComponentCount: changes.length,
         affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
       });
-      yield* notificationService.publishOperation({
+      const event = {
         ...(orgId ? { orgId } : {}),
         operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
         completedAt: new Date().toISOString(),
         changes: [...changes]
-      });
+      } as const;
+      yield* notificationService.publishOperation(event);
+      if (orgId) {
+        const affectedTypes = new Set(changes.map(change => change.metadataType));
+        const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
+        yield* Effect.forEach(
+          affectedTypes,
+          xmlName =>
+            folderedMetadataTypes.has(xmlName)
+              ? metadataDescribeService.invalidateAllListMetadata(orgId)
+              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
+          { discard: true }
+        );
+        const affectedSObjects = new Set(
+          changes.flatMap(change =>
+            change.metadataType === 'CustomObject'
+              ? [change.fullName]
+              : change.metadataType === 'CustomField'
+                ? [change.fullName.split('.')[0]]
+                : []
+          )
+        );
+        if (affectedSObjects.size > 0) {
+          yield* metadataDescribeService.invalidateListSObjects(orgId);
+          yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
+        }
+      }
+      yield* catalogRecorder.recordOperation(event);
     });
 
     /** Deploy metadata to the default org */
@@ -169,7 +199,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
             trackingService
               .maybeUpdateTrackingFromDeploy(deployOutcome)
               .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
-            publishDeployNotifications(deployOutcome)
+            publishDeployNotifications(deployOutcome, connection.getAuthInfoFields().orgId)
           ],
           { concurrency: 'unbounded' }
         );

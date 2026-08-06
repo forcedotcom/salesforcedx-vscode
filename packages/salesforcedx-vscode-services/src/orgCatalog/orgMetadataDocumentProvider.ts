@@ -161,8 +161,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
   const changeStreams: readonly Stream.Stream<OrgMetadataCatalogChange>[] = [
     workspaceChanges,
     completedOperationWorkspaceChanges,
-    defaultOrgRef.changes.pipe(Stream.map(org => ({ kind: 'org', orgId: org.orgId }))),
-    Stream.fromPubSub(metadataChanges.pubsub).pipe(Stream.map(event => ({ kind: 'operation', event })))
+    defaultOrgRef.changes.pipe(Stream.map(org => ({ kind: 'org', orgId: org.orgId })))
   ];
 
   const handleCatalogChange = Effect.fn('OrgMetadataDocumentProvider.handleCatalogChange')(function* (
@@ -172,18 +171,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     if (change.kind === 'workspace') {
       yield* Effect.annotateCurrentSpan('workspaceEventCount', change.events.length);
     }
-    if (change.kind === 'operation') {
-      yield* Effect.annotateCurrentSpan('componentChangeCount', change.event.changes.length);
-      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
-      if (!change.event.orgId || change.event.orgId === orgId) {
-        yield* catalog.invalidateReferences(
-          change.event.changes.map(componentChange => ({
-            xmlName: componentChange.metadataType,
-            fullName: componentChange.fullName
-          }))
-        );
-      }
-    } else if (change.kind !== 'tracking') {
+    if (change.kind === 'workspace' || change.kind === 'org') {
       yield* catalog.invalidate();
     }
     if (change.kind === 'org') {

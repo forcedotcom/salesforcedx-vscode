@@ -371,7 +371,10 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const catalog = yield* api.services.OrgMetadataCatalog;
-  yield* catalog.download(reference).pipe(
+  yield* api.services.MetadataRetrieveService.retrieve([{ type: reference.xmlName, fullName: reference.fullName }], {
+    ignoreConflicts: true
+  }).pipe(
+    Effect.andThen(catalog.getDocumentUri(reference)),
     Effect.flatMap(retrievedFileUri =>
       api.services.FsService.showTextDocument(retrievedFileUri, {
         preview: false,

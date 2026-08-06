@@ -4,6 +4,38 @@
 **Date:** 2026-08-03
 **Status:** Complete
 
+## Architecture Amendment — 2026-08-06
+
+The original decomposition preserved provider-shaped acquisition methods on `OrgMetadataCatalog`. Follow-up
+review clarified that the catalog is not intended to replace the existing provider APIs. The sections below
+remain a record of the decomposition work, but their "sole public service" and "public contract to preserve"
+requirements are superseded as follows:
+
+- `MetadataDescribeService`, `SourceTrackingService`, and `MetadataRetrieveService` continue to own their
+  acquisition APIs.
+- Successful provider Effects record normalized observations through the private
+  `OrgMetadataCatalogRecorder` before returning. Provider failures do not create observations.
+- `OrgMetadataCatalog` exposes catalog-native hierarchy, presence, document, shadow-source, invalidation, and
+  explicitly cached queries. It no longer covers source status, SObject acquisition/refresh, or download.
+- Provider callers compose capture with `Effect.tap` or `Stream.tap`; the recorder exposes concrete `Effect.fn`
+  methods rather than a generic higher-order accessor.
+- In-memory state is updated synchronously. Materially changed observations are persisted by a scoped,
+  per-runtime queue that coalesces bursts and flushes dirty orgs during shutdown.
+- Snapshot version 2 adds normalized metadata-type and metadata-listing observations and migrates version 1
+  snapshots with empty collections for those fields.
+- Mutation providers update catalog state and provider caches before returning. The document provider no longer
+  repeats operation invalidation asynchronously.
+
+Current ownership is therefore:
+
+```text
+MetadataDescribeService ─┐
+SourceTrackingService ───┼─> OrgMetadataCatalogRecorder ─> OrgCatalogState + persistence
+Retrieve/Deploy ─────────┘                    └───────────> catalog change notifications
+
+OrgMetadataCatalog ─> catalog-native projections and cached observations
+```
+
 ## Problem
 
 `orgMetadataCatalog.ts` is approximately 1,700 lines and combines public API adaptation, active-org resolution,

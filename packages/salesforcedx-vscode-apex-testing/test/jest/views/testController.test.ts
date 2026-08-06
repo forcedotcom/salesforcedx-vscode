@@ -39,7 +39,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
       ),
     getPresence: () => EffectLib.succeed({ inOrg: true, inWorkspace: false }),
     getDocumentUri: (reference: { fullName: string }) =>
-      EffectLib.succeed(UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)),
+      EffectLib.succeed(
+        mockWorkspaceUris.get(reference.fullName) ??
+          UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)
+      ),
     getDocumentReference: (uri: { path: string; scheme: string }) => {
       const className = uri.path
         .split('/')
@@ -49,15 +52,6 @@ jest.mock('../../../src/services/extensionProvider', () => {
         uri.scheme === 'sf-org-metadata' && className ? { xmlName: 'ApexClass', fullName: className } : undefined
       );
     },
-    download: (reference: { fullName: string }) =>
-      mockMetadataRetrieve([{ type: 'ApexClass', fullName: reference.fullName }], {
-        ignoreConflicts: true
-      }).pipe(
-        EffectLib.map((result: { getFileResponses: () => Array<{ filePath?: string }> }) => {
-          const filePath = result.getFileResponses().find(response => response.filePath)?.filePath;
-          return UriClass.file(filePath ?? `/workspace/${reference.fullName}.cls`);
-        })
-      ),
     invalidate: mockCatalogInvalidate
   };
   const MockConnectionService = {
@@ -801,6 +795,9 @@ describe('ApexTestController', () => {
           getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
         })
       );
+      (
+        extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
+      ).__setMockWorkspaceUris(new Map([['OrgOnlyClass', orgOnlyClassFileUri]]));
       const refreshSpy = jest.spyOn(controller, 'refresh').mockResolvedValue(undefined);
 
       await controller.retrieveOrgOnlyClass(classTestItem);

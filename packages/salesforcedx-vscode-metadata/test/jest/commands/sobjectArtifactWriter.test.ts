@@ -9,7 +9,8 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import type * as vscode from 'vscode';
@@ -30,11 +31,13 @@ const makeHarness = () => {
     { name: 'Account', custom: false, queryable: true },
     { name: 'Property__c', custom: true, queryable: true }
   ];
-  const refreshSObjects = jest.fn(() => Effect.succeed(summaries));
   const listSObjects = jest.fn(() => Effect.succeed(summaries));
-  const describeSObjects = jest.fn((names: readonly string[]) =>
+  const describeCustomObjects = jest.fn((names: readonly string[]) =>
     Effect.succeed(Stream.fromIterable(names.map(name => sobject(name, name.endsWith('__c')))))
   );
+  const invalidateListSObjects = jest.fn(() => Effect.void);
+  const invalidateSObjectDescribes = jest.fn(() => Effect.void);
+  const toMinimalSObject = jest.fn((value: SObject) => Effect.succeed(value));
   const safeDelete = jest.fn((_uri: URI, _options?: { readonly recursive?: boolean }) => Effect.void);
   const createDirectory = jest.fn(() => Effect.void);
   const writeFile = jest.fn((_uri: URI, _content: string) => Effect.void);
@@ -48,24 +51,35 @@ const makeHarness = () => {
     getSoqlStandardObjectsPath: () => path('soql/standard'),
     getSoqlCustomObjectsPath: () => path('soql/custom')
   } as unknown as InstanceType<typeof ProjectService>;
-  const catalog = {
-    refreshSObjects,
+  const metadataDescribe = {
     listSObjects,
-    describeSObjects
-  } as unknown as InstanceType<typeof OrgMetadataCatalog>;
+    describeCustomObjects,
+    invalidateListSObjects,
+    invalidateSObjectDescribes
+  } as unknown as InstanceType<typeof MetadataDescribeService>;
+  const transmogrifier = { toMinimalSObject } as unknown as InstanceType<typeof TransmogrifierService>;
   const provider = {
     getServicesApi: Effect.succeed({
       services: {
         FsService,
         ProjectService,
-        OrgMetadataCatalog
+        MetadataDescribeService,
+        TransmogrifierService
       }
     })
   } as unknown as ExtensionProviderService;
   return {
-    mocks: { createDirectory, describeSObjects, listSObjects, refreshSObjects, safeDelete, writeFile },
+    mocks: {
+      createDirectory,
+      describeCustomObjects,
+      invalidateListSObjects,
+      invalidateSObjectDescribes,
+      listSObjects,
+      safeDelete,
+      writeFile
+    },
     provider,
-    services: { catalog, fsService, projectService }
+    services: { fsService, metadataDescribe, projectService, transmogrifier }
   };
 };
 
@@ -89,21 +103,23 @@ const runWriter = (
       Effect.provideService(ExtensionProviderService, harness.provider),
       Effect.provideService(FsService, harness.services.fsService),
       Effect.provideService(ProjectService, harness.services.projectService),
-      Effect.provideService(OrgMetadataCatalog, harness.services.catalog)
+      Effect.provideService(MetadataDescribeService, harness.services.metadataDescribe),
+      Effect.provideService(TransmogrifierService, harness.services.transmogrifier)
     )
   );
 
-describe('streamAndWriteSobjectArtifacts catalog integration', () => {
-  it('refreshes catalog discovery for a manual run and writes catalog descriptions', async () => {
+describe('streamAndWriteSobjectArtifacts metadata describe integration', () => {
+  it('invalidates provider discovery for a manual run and writes descriptions', async () => {
     const harness = makeHarness();
     const { mocks } = harness;
 
     const result = await runWriter('ALL', harness);
 
     expect(result.data).toEqual({ cancelled: false, standardObjects: 1, customObjects: 1 });
-    expect(mocks.refreshSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.listSObjects).not.toHaveBeenCalled();
-    expect(mocks.describeSObjects).toHaveBeenCalledWith(['Account', 'Property__c']);
+    expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
+    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledTimes(1);
+    expect(mocks.listSObjects).toHaveBeenCalledTimes(1);
+    expect(mocks.describeCustomObjects).toHaveBeenCalledWith(['Account', 'Property__c']);
     expect(mocks.writeFile.mock.calls.map(([uri]) => uri.path)).toEqual(
       expect.arrayContaining([
         '/workspace/.sfdx/soql/typeNames.json',
@@ -130,7 +146,7 @@ describe('streamAndWriteSobjectArtifacts catalog integration', () => {
 
     await runWriter('CUSTOM', harness);
 
-    expect(mocks.describeSObjects).toHaveBeenLastCalledWith(['Property__c']);
+    expect(mocks.describeCustomObjects).toHaveBeenLastCalledWith(['Property__c']);
     expect(mocks.safeDelete.mock.calls.map(([uri]) => uri.path)).toEqual([
       '/workspace/.sfdx/custom',
       '/workspace/.sfdx/soql/custom'
@@ -140,7 +156,7 @@ describe('streamAndWriteSobjectArtifacts catalog integration', () => {
     mocks.writeFile.mockClear();
     await runWriter('STANDARD', harness);
 
-    expect(mocks.describeSObjects).toHaveBeenLastCalledWith(['Account']);
+    expect(mocks.describeCustomObjects).toHaveBeenLastCalledWith(['Account']);
     expect(mocks.safeDelete.mock.calls.map(([uri]) => uri.path)).toEqual([
       '/workspace/.sfdx/standard',
       '/workspace/.sfdx/soql/standard'
@@ -164,14 +180,15 @@ describe('streamAndWriteSobjectArtifacts catalog integration', () => {
     );
   });
 
-  it('uses cached catalog discovery for a startup run', async () => {
+  it('uses provider cache discovery for a startup run', async () => {
     const harness = makeHarness();
     const { mocks } = harness;
 
     await runWriter('ALL', harness, 'startup');
 
     expect(mocks.listSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.refreshSObjects).not.toHaveBeenCalled();
-    expect(mocks.describeSObjects).toHaveBeenCalledWith(['Account', 'Property__c']);
+    expect(mocks.invalidateListSObjects).not.toHaveBeenCalled();
+    expect(mocks.invalidateSObjectDescribes).not.toHaveBeenCalled();
+    expect(mocks.describeCustomObjects).toHaveBeenCalledWith(['Account', 'Property__c']);
   });
 });

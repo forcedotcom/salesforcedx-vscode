@@ -10,3 +10,6 @@ import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
 export const emptyPresence = (): OrgMetadataPresence => ({ inOrg: false, inWorkspace: false });
 export const typeCacheKey = (orgId: string, xmlName: string): string => `${orgId}\0${xmlName}`;
 export const sobjectDescriptionKey = (orgId: string, apiName: string): string => `${orgId}\0${apiName}`;
+
+export const metadataListingKey = (orgId: string, xmlName: string, folder?: string): string =>
+  `${orgId}\0${xmlName}\0${folder ?? ''}`;

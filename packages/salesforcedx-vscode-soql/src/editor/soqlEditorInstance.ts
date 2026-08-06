@@ -34,8 +34,12 @@ const appendToChannel = (message: string) =>
 
 const retrieveSObjectEffect = Effect.fn('retrieveSObjectEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
-  return yield* catalog.describeSObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
+  const metadataDescribe = yield* api.services.MetadataDescribeService;
+  const transmogrifier = yield* api.services.TransmogrifierService;
+  return yield* metadataDescribe.describeCustomObject(sobjectName).pipe(
+    Effect.flatMap(transmogrifier.toMinimalSObject),
+    Effect.orElseSucceed(() => undefined)
+  );
 });
 
 // TODO: This should be exported from soql-builder-ui

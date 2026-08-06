@@ -143,6 +143,7 @@ export type SalesforceVSCodeServicesApi = {
     OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
     ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
     MetadataDeployService: typeof MetadataDeployService;
+    MetadataDescribeService: typeof MetadataDescribeService;
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
@@ -152,6 +153,7 @@ export type SalesforceVSCodeServicesApi = {
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
+    TransmogrifierService: typeof TransmogrifierService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     TerminalService: typeof TerminalService;
@@ -204,7 +206,6 @@ export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export {
   OrgCatalogObservationSchema,
   OrgMetadataCatalogError,
-  OrgMetadataChangeStatusSchema,
   OrgSObjectDescriptionSchema,
   OrgSObjectSummarySchema,
   type KnownOrgMetadataComponentResolution,
@@ -212,7 +213,6 @@ export {
   type OrgMetadataCatalog,
   type OrgMetadataCatalogEntry,
   type OrgMetadataConsistency,
-  type OrgMetadataChangeStatus,
   type OrgMetadataEntryKind,
   type OrgMetadataFieldDetails,
   type OrgMetadataPresence,
@@ -454,6 +454,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       OrgMetadataCatalogChangePubSub,
       ORG_METADATA_SCHEME,
       MetadataDeployService,
+      MetadataDescribeService,
       MetadataRegistryService,
       MetadataRetrieveService,
       ProjectService,
@@ -462,6 +463,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SettingsChangePubSub,
       SettingsService,
       SourceTrackingService,
+      TransmogrifierService,
       ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
       TerminalService,

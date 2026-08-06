@@ -86,7 +86,7 @@ describe('OrgCatalogState', () => {
 
   it('hydrates once and advances the persisted generation', async () => {
     const snapshot: OrgMetadataCatalogSnapshot = {
-      version: 1,
+      version: 2,
       orgId: 'org-one',
       writtenAt: '2026-08-03T12:00:00.000Z',
       generation: 7,
@@ -99,7 +99,9 @@ describe('OrgCatalogState', () => {
         }
       ],
       sobjects: { descriptions: [] },
-      tracking: [{ xmlName: 'ApexClass', fullName: 'RemoteTest', signature: 'Changed|7' }]
+      tracking: [{ xmlName: 'ApexClass', fullName: 'RemoteTest', signature: 'Changed|7' }],
+      metadataTypes: [],
+      metadataListings: []
     };
     const { load, saved, stateLayer } = makeStore(snapshot);
 

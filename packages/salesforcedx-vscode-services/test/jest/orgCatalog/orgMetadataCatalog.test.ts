@@ -6,7 +6,6 @@
  */
 
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Either from 'effect/Either';
@@ -17,7 +16,6 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
-import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -30,22 +28,13 @@ import { MetadataDescribeService } from '../../../src/core/metadataDescribeServi
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
-import { SourceTrackingService, type SourceTrackingRemoteChange } from '../../../src/core/sourceTrackingService';
 import { TransmogrifierService, type SObject } from '../../../src/core/transmogrifierService';
-import {
-  OrgCatalogObservationSchema,
-  OrgMetadataCatalog,
-  OrgMetadataChangeStatusSchema,
-  OrgSObjectDescriptionSchema,
-  OrgSObjectSummarySchema
-} from '../../../src/orgCatalog/orgMetadataCatalog';
+import { OrgMetadataCatalog } from '../../../src/orgCatalog/orgMetadataCatalog';
 import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
 import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
 import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemoteSource';
-import { OrgCatalogSObjects } from '../../../src/orgCatalog/orgCatalogSObjects';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
-import { OrgCatalogTracking } from '../../../src/orgCatalog/orgCatalogTracking';
 import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
 import { OrgCatalogWorkspace } from '../../../src/orgCatalog/orgCatalogWorkspace';
 import {
@@ -223,13 +212,6 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const readDirectoryWithTypes = jest.fn((_uri: URI) =>
     Effect.succeed([] as { readonly uri: URI; readonly type: vscode.FileType }[])
   );
-  const getStatus = jest.fn((_options: unknown) => Effect.succeed([] as StatusOutputRow[]));
-  const getStatusWithRemoteChanges = jest.fn((_options: unknown) =>
-    Effect.succeed({
-      status: [] as StatusOutputRow[],
-      remoteChanges: [] as SourceTrackingRemoteChange[]
-    })
-  );
   const catalogChanges = Effect.runSync(PubSub.unbounded<OrgMetadataCatalogChange>({ replay: 16 }));
   const catalogSnapshots = options.catalogSnapshots ?? new Map<string, OrgMetadataCatalogSnapshot>();
   const storeLoad = jest.fn((orgId: string) =>
@@ -310,10 +292,6 @@ const makeHarness = (options: HarnessOptions = {}) => {
           getPackageDirectories: () => [{ fullPath: '/workspace/force-app' }]
         })
     } as unknown as InstanceType<typeof ProjectService>),
-    Layer.succeed(SourceTrackingService, {
-      getStatus,
-      getStatusWithRemoteChanges
-    } as unknown as InstanceType<typeof SourceTrackingService>),
     Layer.succeed(TransmogrifierService, {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)
     } as unknown as InstanceType<typeof TransmogrifierService>)
@@ -322,7 +300,6 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
   const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
   const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const sobjectsLayer = OrgCatalogSObjects.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
   const inventoryLayer = OrgCatalogInventory.DefaultWithoutDependencies.pipe(Layer.provide(inventoryRequirements));
@@ -333,21 +310,18 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const documentsLayer = OrgCatalogDocuments.DefaultWithoutDependencies.pipe(
     Layer.provide(Layer.mergeAll(remoteSourceRequirements, remoteSourceLayer))
   );
-  const trackingLayer = OrgCatalogTracking.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const treeProjectionLayer = OrgCatalogTreeProjection.DefaultWithoutDependencies.pipe(
-    Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer, sobjectsLayer))
+    Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer))
   );
   const catalogRequirements = Layer.mergeAll(
     dependencies,
     stateLayer,
     referenceLayer,
     workspaceLayer,
-    sobjectsLayer,
     inventoryLayer,
     remoteRetrieveLayer,
     remoteSourceLayer,
     documentsLayer,
-    trackingLayer,
     treeProjectionLayer
   );
 
@@ -365,8 +339,6 @@ const makeHarness = (options: HarnessOptions = {}) => {
       invalidateListSObjects,
       invalidateSObjectDescribe,
       invalidateSObjectDescribes,
-      getStatus,
-      getStatusWithRemoteChanges,
       getConnection,
       getConnectionForOrg,
       listMetadata,
@@ -538,33 +510,25 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.storeSave).not.toHaveBeenCalled();
   });
 
-  it('restores persisted inventory and SObject observations after a catalog restart', async () => {
+  it('restores persisted inventory after a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
     const first = makeHarness({
       catalogSnapshots,
       metadataByType: {
         ApexClass: [{ fullName: 'RemoteTest', lastModifiedDate: '2026-07-31T12:00:00.000Z' }]
-      },
-      sobjects: [{ name: 'Property__c', custom: true, queryable: true }],
-      descriptions: { Property__c: emptySObject('Property__c') }
+      }
     });
 
     await runWithCatalog(first.layer, catalog =>
       Effect.gen(function* () {
         yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' });
-        yield* catalog.listSObjects();
-        yield* catalog.describeSObject('Property__c');
       })
     );
 
     expect(catalogSnapshots.get('org-one')).toEqual(
       expect.objectContaining({
         orgId: 'org-one',
-        inventory: [expect.objectContaining({ xmlName: 'ApexClass' })],
-        sobjects: expect.objectContaining({
-          list: [expect.objectContaining({ name: 'Property__c' })],
-          descriptions: [expect.objectContaining({ name: 'Property__c' })]
-        })
+        inventory: [expect.objectContaining({ xmlName: 'ApexClass' })]
       })
     );
     const persistedObservedAt = catalogSnapshots.get('org-one')?.inventory[0]?.observedAt;
@@ -574,24 +538,16 @@ describe('OrgMetadataCatalog contract', () => {
       workspaceComponents: [{ type: { name: 'ApexClass' }, fullName: 'LocalOnly', content: '/workspace/LocalOnly.cls' }]
     });
     const restored = await runWithCatalog(restarted.layer, catalog =>
-      Effect.all([
-        catalog.listMetadataComponents({ xmlName: 'ApexClass' }),
-        catalog.listSObjects(),
-        catalog.describeSObject('Property__c')
-      ])
+      catalog.listMetadataComponents({ xmlName: 'ApexClass' })
     );
 
-    expect(restored[0].map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
+    expect(restored.map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
       ['LocalOnly', false, true],
       ['RemoteTest', true, false]
     ]);
-    expect(restored[0].find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
-    expect(restored[1]).toEqual([expect.objectContaining({ name: 'Property__c' })]);
-    expect(restored[2]).toEqual(expect.objectContaining({ name: 'Property__c' }));
+    expect(restored.find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
     expect(restarted.mocks.storeLoad).toHaveBeenCalledWith('org-one');
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
-    expect(restarted.mocks.listSObjects).not.toHaveBeenCalled();
-    expect(restarted.mocks.describeCustomObject).not.toHaveBeenCalled();
   });
 
   it('persists targeted invalidation so a restart does not restore stale inventory', async () => {
@@ -721,87 +677,6 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomObject', undefined, 'org-one');
   });
 
-  it('propagates a Custom Field operation notification to parent SObject reacquisition', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness({
-      descriptions: { Account: emptySObject('Account') }
-    });
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
-      dispose: jest.fn()
-    });
-    const providerLayer = Layer.mergeAll(
-      layer,
-      MetadataChangeNotificationService.Default,
-      FileChangePubSub.Default,
-      OrgMetadataReferenceService.Default,
-      Layer.succeed(
-        OrgMetadataCatalogChangePubSub,
-        catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
-      ),
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(new RegistryAccess())
-      } as unknown as InstanceType<typeof MetadataRegistryService>),
-      Layer.succeed(WorkspaceService, {
-        getWorkspaceInfoOrThrow: () =>
-          Effect.succeed({
-            uri: URI.file('/workspace'),
-            path: '/workspace',
-            fsPath: '/workspace',
-            isEmpty: false,
-            isVirtualFs: false,
-            cwd: '/workspace'
-          })
-      } as unknown as InstanceType<typeof WorkspaceService>)
-    );
-
-    const result = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          yield* setOrg('org-one');
-          const invalidated = yield* Deferred.make<readonly string[]>();
-          mocks.invalidateSObjectDescribes.mockImplementation(apiNames =>
-            Deferred.succeed(invalidated, apiNames ?? []).pipe(Effect.asVoid)
-          );
-          const catalog = yield* OrgMetadataCatalog;
-          const notifications = yield* MetadataChangeNotificationService;
-          const before = yield* catalog.describeSObject('Account');
-          mocks.describeCustomObject.mockReturnValue(
-            Effect.succeed({
-              ...emptySObject('Account'),
-              label: 'Account after Custom Field change'
-            })
-          );
-
-          yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
-          yield* Effect.sleep('10 millis');
-          yield* notifications.publishOperation({
-            orgId: 'org-one',
-            operation: 'deploy',
-            completedAt: '2026-07-30T00:00:00.000Z',
-            changes: [
-              {
-                metadataType: 'CustomField',
-                fullName: 'Account.Rating__c',
-                changeType: 'changed',
-                fileUri: Option.none()
-              }
-            ]
-          });
-
-          const invalidatedApiNames = yield* Deferred.await(invalidated);
-          const after = yield* catalog.describeSObject('Account');
-          return { after, before, invalidatedApiNames };
-        })
-      ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'))
-    );
-
-    expect(result.before.label).toBe('Account');
-    expect(result.after.label).toBe('Account after Custom Field change');
-    expect(result.invalidatedApiNames).toEqual(['Account']);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
-    expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.describeCustomObject).toHaveBeenCalledTimes(2);
-  });
-
   it('removes workspace presence after source and sidecar deletion notifications', async () => {
     const workspaceComponents: WorkspaceComponent[] = [
       {
@@ -848,7 +723,6 @@ describe('OrgMetadataCatalog contract', () => {
           yield* setOrg('org-one');
           const catalog = yield* OrgMetadataCatalog;
           const fileChanges = yield* FileChangePubSub;
-          const metadataChanges = yield* MetadataChangeNotificationService;
           const subscription = yield* PubSub.subscribe(catalogChanges);
           const before = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
 
@@ -856,21 +730,6 @@ describe('OrgMetadataCatalog contract', () => {
           yield* Queue.take(subscription); // provider's initial active-org observation
           const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
           const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
-          yield* metadataChanges.publishOperation({
-            orgId: 'org-one',
-            operation: 'retrieve',
-            completedAt: '2026-07-31T00:00:00.000Z',
-            changes: [
-              {
-                metadataType: 'ApexClass',
-                fullName: 'FileUtilitiesTest',
-                changeType: 'created',
-                fileUri: Option.some(sourceUri),
-                fileUris: [sourceUri, metadataUri]
-              }
-            ]
-          });
-          yield* Queue.take(subscription); // targeted retrieve operation
           yield* Effect.sync(() => workspaceComponents.splice(0));
           yield* PubSub.publish(fileChanges, {
             type: 'delete',
@@ -1015,6 +874,28 @@ describe('OrgMetadataCatalog contract', () => {
     ]);
   });
 
+  it('returns an empty child collection for a known empty metadata folder', async () => {
+    const { layer } = makeHarness({
+      metadataByType: {
+        ReportFolder: [{ fullName: 'EmptyReports' }],
+        Report: []
+      }
+    });
+
+    const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ xmlName: 'Report' }));
+    const children = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ xmlName: 'Report', fullName: 'EmptyReports' })
+    );
+
+    expect(folders).toEqual([
+      expect.objectContaining({
+        kind: 'folder',
+        reference: { xmlName: 'Report', fullName: 'EmptyReports' }
+      })
+    ]);
+    expect(children).toEqual([]);
+  });
+
   it('reacquires a persisted SObject description older than Custom Field inventory', async () => {
     const staleDescription = {
       ...emptySObject('Broker__c'),
@@ -1026,7 +907,7 @@ describe('OrgMetadataCatalog contract', () => {
       [
         'org-one',
         {
-          version: 1,
+          version: 2,
           orgId: 'org-one',
           writtenAt: '2026-08-03T13:35:00.000Z',
           generation: 1,
@@ -1045,7 +926,9 @@ describe('OrgMetadataCatalog contract', () => {
             }
           ],
           sobjects: { descriptions: [staleDescription] },
-          tracking: []
+          tracking: [],
+          metadataTypes: [],
+          metadataListings: []
         }
       ]
     ]);
@@ -1367,282 +1250,5 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
     expect(mocks.shadowPrepareBatch).toHaveBeenCalledTimes(1);
     expect(mocks.shadowPublish).toHaveBeenCalledTimes(2);
-  });
-
-  it('returns schema-valid observation, SObject, and change-status projections', async () => {
-    const { layer, mocks } = makeHarness({
-      sobjects: [{ name: 'Property__c', custom: true, queryable: true }],
-      descriptions: { Property__c: emptySObject('Property__c') }
-    });
-
-    const [summaries, description] = await runWithCatalog(layer, catalog =>
-      Effect.all([catalog.listSObjects(), catalog.describeSObject('Property__c')])
-    );
-
-    expect(Schema.is(OrgSObjectSummarySchema)(summaries[0])).toBe(true);
-    expect(Schema.is(OrgSObjectDescriptionSchema)(description)).toBe(true);
-    expect(Schema.is(OrgCatalogObservationSchema)(description)).toBe(true);
-    expect(
-      Schema.is(OrgMetadataChangeStatusSchema)({
-        orgId: 'org-one',
-        observedAt: new Date().toISOString(),
-        provenance: 'source-tracking',
-        fullName: 'Property__c',
-        type: 'CustomObject',
-        origin: 'remote',
-        state: 'Changed'
-      })
-    ).toBe(true);
-    expect(mocks.listSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Property__c', 'org-one');
-    expect(mocks.listMetadata).not.toHaveBeenCalled();
-  });
-
-  it('refreshes individual SObject descriptions without invoking metadata inventory providers', async () => {
-    const { layer, mocks } = makeHarness({
-      descriptions: { Account: emptySObject('Account') }
-    });
-
-    const description = await runWithCatalog(layer, catalog => catalog.refreshSObject('Account'));
-
-    expect(description).toMatchObject({ name: 'Account', orgId: 'org-one', provenance: 'rest-api' });
-    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Account', 'org-one');
-    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Account', 'org-one');
-    expect(mocks.listMetadata).not.toHaveBeenCalled();
-    expect(mocks.describe).not.toHaveBeenCalled();
-  });
-
-  it('publishes one targeted change batch for added, modified, and deleted remote observations', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness();
-    const status: StatusOutputRow[] = [
-      {
-        fullName: 'NewTest',
-        type: 'ApexClass',
-        filePath: 'force-app/main/default/classes/NewTest.cls',
-        origin: 'remote',
-        state: 'add'
-      },
-      {
-        fullName: 'Account.Rating__c',
-        type: 'CustomField',
-        filePath: 'force-app/main/default/objects/Account/fields/Rating__c.field-meta.xml',
-        origin: 'remote',
-        state: 'modify'
-      },
-      {
-        fullName: 'OldAura',
-        type: 'AuraDefinitionBundle',
-        filePath: 'force-app/main/default/aura/OldAura',
-        origin: 'remote',
-        state: 'delete'
-      }
-    ];
-    const remoteChanges: SourceTrackingRemoteChange[] = [
-      { name: 'NewTest', type: 'ApexClass', origin: 'remote', revisionCounter: 1 },
-      { name: 'Account.Rating__c', type: 'CustomField', origin: 'remote', revisionCounter: 2 },
-      { name: 'OldAura', type: 'AuraDefinitionBundle', origin: 'remote', revisionCounter: 3, deleted: true }
-    ];
-    mocks.getStatusWithRemoteChanges.mockReturnValue(Effect.succeed({ remoteChanges, status }));
-
-    const event = await runWithCatalog(layer, catalog =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* catalog.refreshChangeStatus({ local: true, remote: true });
-          return yield* Queue.take(subscription);
-        })
-      )
-    );
-
-    expect(event).toEqual({
-      kind: 'tracking',
-      orgId: 'org-one',
-      references: [
-        { xmlName: 'ApexClass', fullName: 'NewTest' },
-        { xmlName: 'CustomField', fullName: 'Account.Rating__c' },
-        { xmlName: 'AuraDefinitionBundle', fullName: 'OldAura' }
-      ]
-    });
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('AuraDefinitionBundle', undefined, 'org-one');
-    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account'], 'org-one');
-    expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.getStatusWithRemoteChanges).toHaveBeenCalledWith({ local: true, remote: true }, 'org-one');
-    expect(mocks.storeSave).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not republish an unchanged observation but detects a later revision of the same remote change', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness();
-    const status: StatusOutputRow[] = [
-      {
-        fullName: 'MyTest',
-        type: 'ApexClass',
-        filePath: 'force-app/main/default/classes/MyTest.cls',
-        origin: 'remote',
-        state: 'modify'
-      }
-    ];
-    const revision = (revisionCounter: number): SourceTrackingRemoteChange[] => [
-      { name: 'MyTest', type: 'ApexClass', origin: 'remote', revisionCounter }
-    ];
-    mocks.getStatusWithRemoteChanges
-      .mockReturnValueOnce(Effect.succeed({ remoteChanges: revision(1), status }))
-      .mockReturnValueOnce(Effect.succeed({ remoteChanges: revision(1), status }))
-      .mockReturnValueOnce(Effect.succeed({ remoteChanges: revision(2), status }));
-
-    const { first, queueSizeAfterRepeat, revised } = await runWithCatalog(layer, catalog =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          const firstEvent = yield* Queue.take(subscription);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          const repeatedQueueSize = yield* Queue.size(subscription);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          const revisedEvent = yield* Queue.take(subscription);
-          return {
-            first: firstEvent,
-            queueSizeAfterRepeat: repeatedQueueSize,
-            revised: revisedEvent
-          };
-        })
-      )
-    );
-
-    expect(first).toMatchObject({
-      kind: 'tracking',
-      references: [{ xmlName: 'ApexClass', fullName: 'MyTest' }]
-    });
-    expect(queueSizeAfterRepeat).toBe(0);
-    expect(revised).toEqual(first);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledTimes(2);
-    expect(mocks.storeSave).toHaveBeenCalledTimes(2);
-  });
-
-  it('partitions source-tracking observations by org across switches', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness();
-    const status: StatusOutputRow[] = [
-      {
-        fullName: 'SharedTest',
-        type: 'ApexClass',
-        filePath: 'force-app/main/default/classes/SharedTest.cls',
-        origin: 'remote',
-        state: 'modify'
-      }
-    ];
-    mocks.getStatusWithRemoteChanges.mockReturnValue(
-      Effect.succeed({
-        remoteChanges: [
-          {
-            name: 'SharedTest',
-            type: 'ApexClass',
-            origin: 'remote',
-            revisionCounter: 1
-          }
-        ],
-        status
-      })
-    );
-
-    const { first, queueSizeAfterReturn, second } = await runWithCatalog(layer, catalog =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          const firstEvent = yield* Queue.take(subscription);
-          yield* setOrg('org-two');
-          yield* catalog.refreshChangeStatus({ remote: true });
-          const secondEvent = yield* Queue.take(subscription);
-          yield* setOrg('org-one');
-          yield* catalog.refreshChangeStatus({ remote: true });
-          return {
-            first: firstEvent,
-            queueSizeAfterReturn: yield* Queue.size(subscription),
-            second: secondEvent
-          };
-        })
-      )
-    );
-
-    expect(first).toMatchObject({ kind: 'tracking', orgId: 'org-one' });
-    expect(second).toMatchObject({ kind: 'tracking', orgId: 'org-two' });
-    expect(queueSizeAfterReturn).toBe(0);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledTimes(2);
-    expect(mocks.storeSave).toHaveBeenCalledTimes(2);
-  });
-
-  it('does not invalidate catalog inventory for local-only status changes', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness();
-    mocks.getStatusWithRemoteChanges.mockReturnValue(
-      Effect.succeed({
-        remoteChanges: [],
-        status: [
-          {
-            fullName: 'LocalOnly',
-            type: 'ApexClass',
-            filePath: 'force-app/main/default/classes/LocalOnly.cls',
-            origin: 'local',
-            state: 'modify'
-          }
-        ]
-      })
-    );
-
-    const queueSize = await runWithCatalog(layer, catalog =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* catalog.refreshChangeStatus({ local: true, remote: true });
-          return yield* Queue.size(subscription);
-        })
-      )
-    );
-
-    expect(queueSize).toBe(0);
-    expect(mocks.invalidateListMetadata).not.toHaveBeenCalled();
-  });
-
-  it('does not republish a remote-row removal already covered by operation invalidation', async () => {
-    const { catalogChanges, layer, mocks } = makeHarness();
-    const remoteStatus: StatusOutputRow[] = [
-      {
-        fullName: 'RetrievedTest',
-        type: 'ApexClass',
-        filePath: 'force-app/main/default/classes/RetrievedTest.cls',
-        origin: 'remote',
-        state: 'modify'
-      }
-    ];
-    mocks.getStatusWithRemoteChanges
-      .mockReturnValueOnce(
-        Effect.succeed({
-          remoteChanges: [
-            {
-              name: 'RetrievedTest',
-              type: 'ApexClass',
-              origin: 'remote',
-              revisionCounter: 1
-            }
-          ],
-          status: remoteStatus
-        })
-      )
-      .mockReturnValueOnce(Effect.succeed({ remoteChanges: [], status: [] }));
-
-    const queueSize = await runWithCatalog(layer, catalog =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          yield* Queue.take(subscription);
-          yield* catalog.invalidateReferences([{ xmlName: 'ApexClass', fullName: 'RetrievedTest' }]);
-          yield* catalog.refreshChangeStatus({ remote: true });
-          return yield* Queue.size(subscription);
-        })
-      )
-    );
-
-    expect(queueSize).toBe(0);
   });
 });

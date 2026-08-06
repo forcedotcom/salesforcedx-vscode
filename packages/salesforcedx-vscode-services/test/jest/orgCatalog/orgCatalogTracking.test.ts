@@ -6,14 +6,14 @@
  */
 
 import type { RemoteTrackingObservation } from '../../../src/orgCatalog/orgCatalogInternalTypes';
-import { compareTrackingObservations } from '../../../src/orgCatalog/orgCatalogTracking';
+import { compareTrackingObservations } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 
 const observation = (xmlName: string, fullName: string, signature: string): RemoteTrackingObservation => ({
   reference: { xmlName, fullName },
   signature
 });
 
-describe('OrgCatalogTracking', () => {
+describe('OrgMetadataCatalogRecorder tracking comparison', () => {
   it('returns added, changed, and removed references without duplicating identities', () => {
     const previous = new Map([
       ['ApexClass\0Removed', observation('ApexClass', 'Removed', '1')],

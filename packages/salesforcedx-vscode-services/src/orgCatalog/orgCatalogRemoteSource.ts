@@ -221,7 +221,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
               });
               return next;
             });
-            yield* state.persistOrg(orgId);
+            yield* state.queuePersist(orgId);
           }
           return yield* Effect.forEach(uniqueReferences, reference => {
             const artifact = artifactByIdentity.get(identity(reference));

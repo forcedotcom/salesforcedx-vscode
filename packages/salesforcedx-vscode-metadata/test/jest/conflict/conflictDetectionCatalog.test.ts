@@ -11,6 +11,7 @@ import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 import { URI } from 'vscode-uri';
@@ -42,7 +43,7 @@ const componentSet = {
 } as unknown as ComponentSet;
 
 const makeHarness = () => {
-  const getChangeStatus = jest.fn(() =>
+  const getStatus = jest.fn(() =>
     Effect.succeed([
       {
         orgId: 'org-one',
@@ -78,11 +79,11 @@ const makeHarness = () => {
   );
   const refreshMetadataComponents = jest.fn(() => Effect.succeed([]));
   const catalog = {
-    getChangeStatus,
     getEntry,
     materializeRemoteSources,
     refreshMetadataComponents
   } as unknown as InstanceType<typeof OrgMetadataCatalog>;
+  const sourceTracking = { getStatus } as unknown as InstanceType<typeof SourceTrackingService>;
   const toUri = jest.fn((path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.file(path) : path));
   const readFile = jest.fn((uri: string | URI) =>
     Effect.succeed(uri.toString().includes('metadata-shadow') ? 'remote source' : 'local source')
@@ -96,14 +97,14 @@ const makeHarness = () => {
   } as unknown as InstanceType<typeof ComponentSetService>;
   const provider = {
     getServicesApi: Effect.succeed({
-      services: { ComponentSetService, FsService, OrgMetadataCatalog }
+      services: { ComponentSetService, FsService, OrgMetadataCatalog, SourceTrackingService }
     })
   } as unknown as ExtensionProviderService;
 
   return {
     mocks: {
       ensureNonEmptyComponentSet,
-      getChangeStatus,
+      getStatus,
       getComponentSetFromUris,
       getEntry,
       materializeRemoteSources,
@@ -112,7 +113,7 @@ const makeHarness = () => {
       toUri
     },
     provider,
-    services: { catalog, componentSetService, fsService }
+    services: { catalog, componentSetService, fsService, sourceTracking }
   };
 };
 
@@ -122,6 +123,7 @@ const runWithHarness = <A, E, R>(effect: Effect.Effect<A, E, R>, harness: Return
       Effect.provideService(ExtensionProviderService, harness.provider),
       Effect.provideService(FsService, harness.services.fsService),
       Effect.provideService(OrgMetadataCatalog, harness.services.catalog),
+      Effect.provideService(SourceTrackingService, harness.services.sourceTracking),
       Effect.provideService(ComponentSetService, harness.services.componentSetService)
     ) as Effect.Effect<A, E, never>
   );
@@ -139,7 +141,7 @@ describe('conflict detection catalog integration', () => {
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0].localUri.uri.path).toBe(localPath);
     expect(conflicts[0].remoteUri.uri.toString()).toBe(remoteUri.toString());
-    expect(harness.mocks.getChangeStatus).toHaveBeenCalledWith({ local: true, remote: true });
+    expect(harness.mocks.getStatus).toHaveBeenCalledWith({ local: true, remote: true });
     expect(harness.mocks.materializeRemoteSources).toHaveBeenCalledWith([reference], { consistency: 'refresh' });
     expect(harness.mocks.refreshMetadataComponents).not.toHaveBeenCalled();
     expect(harness.mocks.getEntry).not.toHaveBeenCalled();
@@ -159,7 +161,7 @@ describe('conflict detection catalog integration', () => {
     expect(harness.mocks.refreshMetadataComponents).toHaveBeenCalledWith({ xmlName: 'ApexClass' });
     expect(harness.mocks.getEntry).toHaveBeenCalledWith(reference);
     expect(harness.mocks.materializeRemoteSources).toHaveBeenCalledWith([reference], { consistency: 'refresh' });
-    expect(harness.mocks.getChangeStatus).not.toHaveBeenCalled();
+    expect(harness.mocks.getStatus).not.toHaveBeenCalled();
   });
 
   it('does not materialize remote source when catalog timestamps show no deploy conflict', async () => {

@@ -54,18 +54,6 @@ export const OrgSObjectDescriptionSchema = Schema.Struct({
 });
 export type OrgSObjectDescription = typeof OrgSObjectDescriptionSchema.Type;
 
-export const OrgMetadataChangeStatusSchema = Schema.Struct({
-  ...OrgCatalogObservationSchema.fields,
-  fullName: Schema.String,
-  type: Schema.String,
-  origin: Schema.Literal('local', 'remote'),
-  state: Schema.String,
-  filePath: Schema.optional(Schema.String),
-  conflict: Schema.optional(Schema.Boolean),
-  ignored: Schema.optional(Schema.Boolean)
-});
-export type OrgMetadataChangeStatus = typeof OrgMetadataChangeStatusSchema.Type;
-
 export type OrgMetadataEntryKind = 'type' | 'folder' | 'component';
 
 export type OrgMetadataFieldDetails = {
