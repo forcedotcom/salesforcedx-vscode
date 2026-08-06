@@ -9,6 +9,8 @@ import {
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
+  env,
+  execAsync,
   executeCommandWithCommandPalette,
   MINIMAL_ORG_ALIAS,
   selectOutputChannel,
@@ -16,19 +18,15 @@ import {
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
-
-const execAsync = promisify(exec);
 
 test('org extension: SFDX: List All Aliases writes aliases to the output channel', async ({ page }) => {
   test.setTimeout(120_000);
 
   const username = await test.step('setup scratch default org', async () => {
     await createMinimalOrg();
-    const { stdout } = await execAsync(`sf org display --target-org ${MINIMAL_ORG_ALIAS} --json`);
+    const { stdout } = await execAsync(`sf org display --target-org ${MINIMAL_ORG_ALIAS} --json`, { env });
     const result = JSON.parse(stdout) as { result: { username: string } };
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);

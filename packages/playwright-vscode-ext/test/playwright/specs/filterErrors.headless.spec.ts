@@ -33,6 +33,16 @@ test.describe('filterErrors', () => {
     const result = filterErrors(errors);
     expect(result).toHaveLength(0);
   });
+
+  test('filters VS Code AgentHost protocol startup timeouts', () => {
+    const errors = [
+      {
+        text: "[AgentHost:renderer] Protocol connection failed Unknown channel: Channel name 'agentHostProtocol' timed out after 1000ms"
+      }
+    ];
+    const result = filterErrors(errors);
+    expect(result).toHaveLength(0);
+  });
 });
 
 test.describe('filterNetworkErrors', () => {
