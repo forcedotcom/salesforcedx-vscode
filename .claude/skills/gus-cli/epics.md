@@ -57,8 +57,8 @@ create() { # $1=Subject  $2=Details (>=20 chars)
     -v "Subject__c='$1' Details__c='$2' Story_Points__c=2 Product_Tag__c=$PROD RecordTypeId=$RT Epic__c=$EPIC Scrum_Team__c=$TEAM Assignee__c=$ASSIGN" \
     --json 2>/dev/null | jq -r 'if .status == 0 then .result.id else "ERR" end'
 }
-create "1.0 [ai-auto] First task" "Description, at least twenty chars."
-create "1.1 [ai-auto] Second task" "Another, also twenty-plus chars."
+create "1.0 First task [forcedotcom/salesforcedx-vscode] [ai-auto]" "Description, at least twenty chars."
+create "1.1 Second task [forcedotcom/salesforcedx-vscode] [ai-auto]" "Another, also twenty-plus chars."
 ```
 
 Confirm count + W-numbers after: `SELECT Name, Subject__c FROM ADM_Work__c WHERE Epic__c='<epicId>'`.
