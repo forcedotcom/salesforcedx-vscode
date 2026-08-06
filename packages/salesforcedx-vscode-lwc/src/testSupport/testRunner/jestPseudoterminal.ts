@@ -7,6 +7,11 @@
 import { spawn, ChildProcess } from 'node:child_process';
 import * as vscode from 'vscode';
 
+// Error extraction limits - keep context focused on the immediate error
+const MAX_ERROR_STACK_LINES = 30; // Typical stack traces are 10-20 lines
+const MAX_FAIL_CONTEXT_LINES = 50; // FAIL blocks can include test output
+const MAX_CAPTURED_OUTPUT_KB = 100; // Prevent unbounded memory growth on verbose tests
+
 /**
  * Pseudoterminal that spawns Jest, displays output, and captures it for error extraction.
  */
@@ -49,13 +54,13 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
 
     this.process.stdout?.on('data', (data: Buffer) => {
       const text = data.toString();
-      this.capturedOutput += text;
+      this.capturedOutput = this.appendWithLimit(this.capturedOutput, text);
       this.writeEmitter.fire(text);
     });
 
     this.process.stderr?.on('data', (data: Buffer) => {
       const text = data.toString();
-      this.capturedOutput += text;
+      this.capturedOutput = this.appendWithLimit(this.capturedOutput, text);
       this.writeEmitter.fire(text);
     });
 
@@ -83,69 +88,63 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
   }
 
   /**
+   * Append text to captured output with memory limit.
+   * Keeps most recent output if limit exceeded.
+   */
+  private appendWithLimit(current: string, text: string): string {
+    const combined = current + text;
+    const maxBytes = MAX_CAPTURED_OUTPUT_KB * 1024;
+    if (combined.length > maxBytes) {
+      return combined.slice(-maxBytes);
+    }
+    return combined;
+  }
+
+  /**
+   * Collect lines following an error/fail marker until Jest summary or blank lines.
+   * Shared logic for both error patterns and FAIL blocks.
+   */
+  private collectErrorContext(lines: string[], startIndex: number, maxLines: number): string[] {
+    const errorLines: string[] = [lines[startIndex].trim()];
+    let blankLineCount = 0;
+
+    for (let j = 1; j <= maxLines && startIndex + j < lines.length; j++) {
+      const nextLine = lines[startIndex + j].trim();
+      if (nextLine.startsWith('Test Suites:') || nextLine.startsWith('Tests:') || nextLine.startsWith('Snapshots:')) {
+        break;
+      }
+      if (!nextLine) {
+        blankLineCount++;
+        if (blankLineCount >= 2) {
+          break;
+        }
+      } else {
+        blankLineCount = 0;
+      }
+      errorLines.push(nextLine);
+    }
+    return errorLines;
+  }
+
+  /**
    * Extract error message from Jest output for Test Explorer display.
    * Prioritizes error type patterns (TypeError, etc.) with stack traces, then FAIL lines, then last non-empty lines.
    */
   public extractErrorSummary(): string {
     const lines = this.capturedOutput.split('\n');
-    const errorLines: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      if (/^(TypeError|ReferenceError|SyntaxError|Error):/i.test(line.trim())) {
-        errorLines.push(line.trim());
-        let blankLineCount = 0;
-        for (let j = 1; j <= 30 && i + j < lines.length; j++) {
-          const nextLine = lines[i + j].trim();
-          if (
-            nextLine.startsWith('Test Suites:') ||
-            nextLine.startsWith('Tests:') ||
-            nextLine.startsWith('Snapshots:')
-          ) {
-            break;
-          }
-          if (!nextLine) {
-            blankLineCount++;
-            if (blankLineCount >= 2) {
-              break;
-            }
-          } else {
-            blankLineCount = 0;
-          }
-          errorLines.push(nextLine);
-        }
-        break;
+      // Look for specific JavaScript error types with stack traces
+      if (/^(TypeError|ReferenceError|SyntaxError|RangeError|URIError|Error):/i.test(line.trim())) {
+        return this.collectErrorContext(lines, i, MAX_ERROR_STACK_LINES).join('\n');
       }
 
+      // Look for Jest FAIL markers with test failure context
       if (line.includes('FAIL ') || line.includes('Test suite failed to run')) {
-        errorLines.push(line.trim());
-        let blankLineCount = 0;
-        for (let j = 1; j <= 50 && i + j < lines.length; j++) {
-          const nextLine = lines[i + j].trim();
-          if (
-            nextLine.startsWith('Test Suites:') ||
-            nextLine.startsWith('Tests:') ||
-            nextLine.startsWith('Snapshots:')
-          ) {
-            break;
-          }
-          if (!nextLine) {
-            blankLineCount++;
-            if (blankLineCount >= 2) {
-              break;
-            }
-          } else {
-            blankLineCount = 0;
-          }
-          errorLines.push(nextLine);
-        }
-        break;
+        return this.collectErrorContext(lines, i, MAX_FAIL_CONTEXT_LINES).join('\n');
       }
-    }
-
-    if (errorLines.length > 0) {
-      return errorLines.join('\n');
     }
 
     const nonEmptyLines = lines.filter(l => l.trim().length > 0).slice(-10);

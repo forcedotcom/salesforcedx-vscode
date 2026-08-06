@@ -555,9 +555,10 @@ class LwcTestController {
         await sfTask.execute();
         const { exitCode } = await ended;
 
-        // If Jest crashed (non-zero exit), it won't have created the output file.
+        // If Jest crashed (positive exit code), it won't have created the output file.
         // Extract error from captured output and show in Test Explorer.
-        if (exitCode !== undefined && exitCode !== 0) {
+        // Use > 0 to exclude signals (e.g., SIGTERM = 143).
+        if (exitCode !== undefined && exitCode > 0) {
           let errorMessage = `Jest test suite failed to run (exit code ${exitCode})`;
           let errorDetail = 'The test suite crashed before producing results.';
 
@@ -699,27 +700,31 @@ class LwcTestController {
 
 const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<{ exitCode?: number }> =>
   new Promise<{ exitCode?: number }>(resolve => {
-    const endHandler = vscode.tasks.onDidEndTaskProcess(e => {
-      if (e.execution === sfTask.taskExecution) {
+    let resolved = false;
+    const safeResolve = (result: { exitCode?: number }) => {
+      if (!resolved) {
+        resolved = true;
         endHandler.dispose();
         endDisposable.dispose();
         cancelDisposable.dispose();
-        resolve({ exitCode: e.exitCode });
+        resolve(result);
+      }
+    };
+
+    const endHandler = vscode.tasks.onDidEndTaskProcess(e => {
+      if (e.execution === sfTask.taskExecution) {
+        safeResolve({ exitCode: e.exitCode });
       }
     });
     const endDisposable = sfTask.onDidEnd(() => {
       // Fallback if onDidEndTaskProcess doesn't fire quickly
       setTimeout(() => {
-        endHandler.dispose();
-        endDisposable.dispose();
-        cancelDisposable.dispose();
-        resolve({ exitCode: undefined });
-      }, 100);
+        safeResolve({ exitCode: undefined });
+      }, 250);
     });
     const cancelDisposable = token.onCancellationRequested(() => {
       sfTask.terminate();
-      endHandler.dispose();
-      endDisposable.dispose();
+      safeResolve({ exitCode: undefined });
     });
   });
 

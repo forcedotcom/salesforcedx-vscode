@@ -82,24 +82,56 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 ## Implementation Notes (Part B)
 
-**Commits:** 379161eda (initial), f33fac77b (refinement)
+**Implementation approach:** Use `CustomExecution` with hidden `JestPseudoterminal` to capture Jest output (stdout/stderr) for error extraction when Jest crashes before JSON output.
 
-**Initial approach (379161eda):** Added optional `presentationOverride` parameter to `taskService.createTask` for callers to customize terminal presentation.
+**Key changes:**
 
-**Refined approach (f33fac77b):** Reverted to simpler design using default shared panels.
+1. **New `JestPseudoterminal` class** (`jestPseudoterminal.ts`)
+   - Implements `vscode.Pseudoterminal` interface
+   - Spawns Jest process via `node:child_process`
+   - Captures combined stdout/stderr in `capturedOutput` with memory limit (100KB via `appendWithLimit`)
+   - Exposes `extractErrorSummary()` for Test Explorer error display
+   - Error extraction prioritizes: error type patterns (TypeError, ReferenceError, SyntaxError, RangeError, URIError, Error) with stack traces → FAIL lines → last 10 non-empty lines
+   - Limits stack trace capture to 30 lines; FAIL context to 50 lines
+   - Windows-specific: uses `cmd.exe /d /c` to bypass Git Bash issues (GH#2097); non-Windows: uses `shell: true`
 
-**Changes made:**
+2. **`taskService.createTask` refactored** (`taskService.ts`)
+   - Constructs `JestPseudoterminal` instance
+   - Uses `CustomExecution` wrapping pseudoterminal (instead of `ShellExecution`)
+   - Task presentation: `reveal: Never`, `panel: Shared`, `echo: false`, `focus: false`, `clear: true`, `showReuseMessage: false`
+   - Passes pseudoterminal to `SfTask` constructor for error extraction access
 
-1. **`taskService.createTask` defaults** (`taskService.ts`)
-   - Removed `presentationOverride` parameter
-   - Default presentation: `Shared` panel (reused across runs, not spawned per-run), `reveal: Never`, `echo: false`, `focus: false`, `clear: true`, `showReuseMessage: false`
+3. **`SfTask` extended** (`taskService.ts`)
+   - Added public `taskExecution?: vscode.TaskExecution` property (set after `execute()`)
+   - Added public `pseudoterminal?: JestPseudoterminal` property for captured output access
+   - Enables correlation with task process events (e.g., `onDidEndTaskProcess`)
 
-2. **Controller-driven run path** (`lwcTestController.ts`)
-   - In `executeOne` method (non-debug branch), removed custom presentation override
-   - Uses default presentation from `createTask` — terminal hidden yet shared, avoiding redundant terminals spawned per run
-   - Real feedback surface is Test Results tab
+4. **`awaitTaskEnd` enhanced with race condition fix** (`lwcTestController.ts`)
+   - Returns `Promise<{ exitCode?: number }>` (was `Promise<void>`)
+   - Added guard flag `resolved` to prevent double resolution (critical race condition fix)
+   - Listens to `vscode.tasks.onDidEndTaskProcess` (primary signal) for exit code
+   - Fallback to `onDidEnd` with 250ms timeout if process event doesn't fire quickly
+   - Timeout increased from 100ms to 250ms for reliability
+   - Exit code check uses `> 0` (not `!== 0`) to exclude signals like SIGTERM (143)
 
-3. **Test coverage** (`taskService.test.ts`)
-   - Single test verifies default presentation includes hidden shared panel
+5. **Controller error reporting** (`lwcTestController.ts`)
+   - On `exitCode > 0`, attempts error extraction via `sfTask.pseudoterminal.extractErrorSummary()`
+   - Marks file and child items as `failed` (not `errored`)
+   - Uses `vscode.TestMessage` with `actualOutput` (exit code message) and `location` (extracted from stack trace via `JEST_STACK_TRACE_PATTERN`)
 
-**Behavior:** Controller-driven test runs reuse a single shared terminal (hidden from user) across multiple runs, eliminating redundant terminals. Test output flows to JSON result file, which the controller reads and populates into Test Results tab. Watch mode unaffected.
+6. **New constant** (`constants.ts`)
+   - `JEST_STACK_TRACE_PATTERN`: regex to extract file/line/column from Jest stack traces
+
+7. **Mock support** (`config/__mocks__/vscode.js`, `scripts/setup-jest.ts`)
+   - Added `Location` and `TestMessage` classes
+   - Added `tasks.onDidEndTaskProcess` mock
+   - Added `Task`, `CustomExecution`, `TaskScope`, `TaskRevealKind`, `TaskPanelKind` classes
+
+8. **Test coverage** (`lwcTestController.test.ts`, new `jestPseudoterminal.test.ts`)
+   - 373 lines of pseudoterminal tests: spawn behavior (Windows vs non-Windows), output capture, error extraction patterns
+   - Controller tests mock `onDidEndTaskProcess` and verify exit code handling
+
+9. **Testing docs** (`contributing/tests.md`)
+   - Added guidance: use proper VS Code types for mocks, cast mock properties with `as` to avoid `any` types
+
+**Behavior:** Controller-driven test runs spawn a hidden pseudoterminal that captures Jest output. On success, JSON results flow to Test Results tab. On failure (exit code > 0), error extracted from captured output and displayed with source location; no JSON file needed. Terminal remains hidden, reused across runs. Watch mode unaffected.
