@@ -74,9 +74,36 @@ Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `light
 ## Runtime vs provide
 
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
+- **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
 - **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
 - **Exception**: `registerCommandWithLayer(AllServicesLayer)` — pass the Layer; runtime captured at registration time (avoids re-providing on each invocation).
+
+```typescript
+export const disposeRuntime = async (): Promise<void> => {
+  if (_runtime) {
+    await _runtime.dispose();
+    _runtime = undefined;
+  }
+};
+
+export const deactivate = async (): Promise<void> => {
+  await getRuntime().runPromise(deactivation()).finally(disposeRuntime);
+};
+```
+
+## Resource Lifecycle
+
+Prefer Effect scope ownership for resources created inside Effect services/layers:
+
+- Define resource-owning services with `scoped`.
+- Register VS Code `Disposable`s with `Effect.addFinalizer`.
+- Attach long-lived fibers to the owning scope with `Effect.forkIn`.
+- Dispose the owning `ManagedRuntime` on deactivation so layer finalizers run.
+- Don't expose `runDispose`/`dispose` solely for consumers to add to `context.subscriptions`.
+- Keep `context.subscriptions` for resources created outside an Effect scope.
+
+Allocation and cleanup stay together. See `../effect-best-practices/SKILL.md#effect-owned-resources`.
 
 ## Registering Commands
 
@@ -326,6 +353,7 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 - `ChannelServiceLayer` before `ErrorHandlerService`
 - Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
+- Scoped services own their VS Code disposables via finalizers; runtime disposal runs them
 - `registerCommandWithLayer` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
 
