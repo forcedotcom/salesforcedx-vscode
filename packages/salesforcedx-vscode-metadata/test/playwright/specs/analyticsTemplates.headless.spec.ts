@@ -17,10 +17,12 @@ import {
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  waitForOutputChannelText,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
@@ -74,6 +76,11 @@ test('Analytics Templates: creates sample template via command palette and explo
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Salesforce Metadata activation complete.',
+      timeout: 60_000
+    });
   });
 
   await test.step('create analytics template via command palette', async () => {

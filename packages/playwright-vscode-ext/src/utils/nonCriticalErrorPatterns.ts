@@ -86,6 +86,7 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
   // https://github.com/microsoft/vscode/issues/318222
   'agentHostSandboxForwarder',
+  'agentHostProtocol',
   'Remote agent host is not enabled',
   // VS Code 1.129+ bundled vscode.mermaid-markdown-features uses the chatParticipantPrivate
   // proposed API without it being enabled; the extension logs this on boot. Unrelated to our

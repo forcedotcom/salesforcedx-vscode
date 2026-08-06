@@ -188,6 +188,19 @@ describe('orgCreateCommand', () => {
     expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
   });
 
+  it('validates expiration-day boundaries and NumberFromString forms', async () => {
+    showInputBox.mockResolvedValueOnce('myAlias').mockResolvedValueOnce('7');
+
+    await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
+
+    const expirationOptions = showInputBox.mock.calls[1][0] as vscode.InputBoxOptions | undefined;
+    const validateExpiration = expirationOptions?.validateInput?.bind(undefined);
+    ['1', '30', '1e1', ' 10 ', '+10'].map(value => expect(validateExpiration?.(value)).toBeUndefined());
+    ['0', '31', '1.5', 'not-a-number'].map(value =>
+      expect(validateExpiration?.(value)).toBe(nls.localize('error_invalid_expiration_days'))
+    );
+  });
+
   it('cancels (no exec) when the def-file picker is dismissed', async () => {
     showQuickPick.mockResolvedValueOnce(undefined);
 

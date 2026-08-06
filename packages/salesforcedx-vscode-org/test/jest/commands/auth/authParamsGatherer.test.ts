@@ -213,6 +213,9 @@ describe('AuthParamsGatherer', () => {
       const validateUrl = spy.mock.calls[0][0]?.validateInput?.bind(undefined);
       expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
+      expect(validateUrl?.('http://localhost:1717/oauth/callback')).toBeUndefined();
+      expect(validateUrl?.('ftp://my.salesforce.com')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('https://my.salesforce.com/path?query=value')).toBe(nls.localize('auth_invalid_url'));
 
       // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);

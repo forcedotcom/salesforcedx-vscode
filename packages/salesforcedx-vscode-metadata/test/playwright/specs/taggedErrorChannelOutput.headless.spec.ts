@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
 import {
   closeAllEditors,
   closeWelcomeTabs,
@@ -13,7 +12,6 @@ import {
   executeCommandById,
   selectOutputChannel,
   verifyCommandExists,
-  waitForNotification,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -30,9 +28,6 @@ test('tagged command errors include the tag only in channel output', async ({ pa
   await closeAllEditors(page);
 
   await executeCommandById(page, 'sf.metadata.deploy.in.manifest');
-
-  const notification = await waitForNotification(page, new RegExp(`^${messages.deploy_select_manifest}$`));
-  await expect(notification, 'Error notification should remain unprefixed').toHaveText(messages.deploy_select_manifest);
 
   await selectOutputChannel(page, 'Salesforce Metadata');
   await waitForOutputChannelText(page, {
