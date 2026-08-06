@@ -55,13 +55,13 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-type-name.png');
 
-    // Enter sObject (free-text fallback — no org connected)
-    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
-    await quickInput.getByText(messages.apex_trigger_sobject_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    // Select sObject from org QuickPick — type to filter, Enter to confirm
+    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.sobject-prompt-visible.png');
     await page.keyboard.type('Case');
+    await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
-    await saveScreenshot(page, 'step1.after-type-sobject.png');
+    await saveScreenshot(page, 'step1.after-select-sobject.png');
 
     // Select trigger events (multi-select QuickPick)
     // Default pre-checked: "before insert". Deselect it, then select "after insert" and "after update".
