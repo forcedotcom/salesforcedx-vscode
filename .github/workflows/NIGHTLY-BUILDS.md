@@ -34,6 +34,7 @@ For published releases, `scripts/parse-extension-names.js` dynamically extracts 
 
 `nightly.yml` delegates to shared reusable workflow:
 - **Workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main`
+- **Git Identity**: `get-git-identity` job queries `getGithubUserInfo` action; provides username/email to publish job
 - **Scripts**: Downloaded at runtime (not stored locally)
 - **Actions**: check-ci-status, calculate-artifact-name, publish-vsix
 

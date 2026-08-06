@@ -366,10 +366,7 @@
       "dependencies": [
         "vscode:package:modern:prerelease",
         "vscode:package:legacy:prerelease"
-      ],
-      "env": {
-        "WIREIT_PARALLEL": "1"
-      }
+      ]
     },
     "run:web": {
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
