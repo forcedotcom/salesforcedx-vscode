@@ -8,8 +8,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+
+const LwcComponentNameSchema = Schema.String.pipe(Schema.pattern(/^[a-z][A-Za-z0-9_]*$/));
 
 export type PromptForLwcNameOptions = {
   /** Project-wide LWC + Aura component names (lowercase) for cross-bundle collision detection. */
@@ -31,7 +34,7 @@ export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: P
       validateInput: (value: string) => {
         const trimmed = value?.trim();
         if (!trimmed) return nls.localize('lwc_component_name_empty_error');
-        if (!/^[a-z][A-Za-z0-9_]*$/.test(trimmed)) return nls.localize('lwc_component_name_format_error');
+        if (!Schema.is(LwcComponentNameSchema)(trimmed)) return nls.localize('lwc_component_name_format_error');
         if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
         if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
           return nls.localize('rename_component_input_dup_file_name_error');

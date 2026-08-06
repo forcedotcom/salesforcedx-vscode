@@ -65,12 +65,12 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   'initialhint.copilotcli',
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
   'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
-  'agentHostProtocol', // VS Code 1.132 AgentHost protocol startup timeout in desktop E2E (non-critical)
+  // VS Code AgentHost protocol startup noise in desktop and remote-agent startup noise in web E2E
+  'agentHostProtocol',
   // VS Code 1.116+ core Accounts area silently fetches a session/entitlement on boot;
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
-  'Sign-in failed',
-  'Channel is closed',
+  'Sign-in failed: Channel is closed',
   // Bundled A4V (salesforcedx-einstein-gpt) checks the EGPT-for-developers entitlement on default-org
   // change by fetching a JWT. Scratch orgs used in E2E lack that entitlement, so the check fails and the
   // extension logs these. Benign here — OAS generation doesn't depend on EGPT and the org auth is valid.

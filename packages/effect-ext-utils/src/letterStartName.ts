@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { messages as enMessages } from './i18n';
+import * as Schema from 'effect/Schema';
 
-type MessageKey = keyof typeof enMessages;
-
-export const messages: Partial<Record<MessageKey, string>> = {};
+export const LetterStartNameSchema = Schema.String.pipe(Schema.pattern(/^[A-Za-z][A-Za-z0-9_]*$/));

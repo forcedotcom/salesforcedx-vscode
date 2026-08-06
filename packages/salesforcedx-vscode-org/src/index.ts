@@ -16,13 +16,8 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { getOrgChannelService, setOrgChannel } from './channels';
-import {
-  aliasListCommand,
-  orgListCleanCommand,
-  orgLoginWebCommand,
-  orgLogoutAllCommand,
-  orgLogoutDefaultCommand
-} from './commands';
+import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
+import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';

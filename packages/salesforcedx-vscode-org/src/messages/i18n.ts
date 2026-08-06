@@ -6,8 +6,7 @@
  */
 
 export const messages = {
-  alias_list_text: 'SFDX: List All Aliases',
-  auth_invalid_url: 'URL must begin with http:// or https://.',
+  auth_invalid_url: 'Enter a valid URL beginning with http:// or https://.',
   auth_invalid_project_url: 'The sfdcLoginUrl value "%s" in sfdx-project.json is invalid and will not be used.',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_project_label: 'Project Default',

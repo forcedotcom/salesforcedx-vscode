@@ -43,6 +43,18 @@ test.describe('filterErrors', () => {
     const result = filterErrors(errors);
     expect(result).toHaveLength(0);
   });
+
+  test('filters VS Code Accounts startup channel noise', () => {
+    const errors = [{ text: 'Sign-in failed: Channel is closed' }];
+    const result = filterErrors(errors);
+    expect(result).toHaveLength(0);
+  });
+
+  test('passes through unrelated closed-channel errors', () => {
+    const errors = [{ text: 'Salesforce extension channel failed: Channel is closed' }];
+    const result = filterErrors(errors);
+    expect(result).toEqual(errors);
+  });
 });
 
 test.describe('filterNetworkErrors', () => {

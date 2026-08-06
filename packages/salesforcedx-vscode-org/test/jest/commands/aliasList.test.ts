@@ -28,7 +28,7 @@ describe('aliasListCommand', () => {
               AliasService: { getAllAliases },
               ChannelService: Effect.succeed({
                 appendToChannel,
-                getChannel: Effect.succeed({ show })
+                showChannel: Effect.sync(() => show())
               })
             }
           })

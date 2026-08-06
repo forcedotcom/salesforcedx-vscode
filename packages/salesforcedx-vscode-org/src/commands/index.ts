@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { aliasListCommand } from './aliasList';
 export { orgListCleanCommand } from './orgList';
 export { orgLoginWebCommand } from './auth/orgLoginWeb';
 export { orgLogoutAllCommand, orgLogoutDefaultCommand } from './auth/orgLogout';
