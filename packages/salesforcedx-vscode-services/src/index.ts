@@ -276,9 +276,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
         Effect.gen(function* () {
           const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
           if (!orgId) {
-            yield* Effect.promise(() =>
-              vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'))
-            );
+            yield* Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
+            });
             return;
           }
           const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);

@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
+import { toUri } from '../vscode/uriUtils';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 
@@ -41,7 +42,7 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
         // lost merely because the registry represents the component as a child of its container.
         const sourcePath = component.content ?? component.xml;
         if (!sourcePath) return workspaceUris;
-        const candidate = URI.file(sourcePath);
+        const candidate = toUri(sourcePath);
         const existing = workspaceUris.get(component.fullName);
         if (!existing || candidate.path.length < existing.path.length) {
           workspaceUris.set(component.fullName, candidate);

@@ -21,12 +21,7 @@ import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { nls } from './messages';
-import {
-  AllServicesLayer,
-  buildAllServicesLayer,
-  getOrgBrowserRuntime,
-  setAllServicesLayer
-} from './services/extensionProvider';
+import { buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
@@ -238,11 +233,10 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => getOrgBrowserRuntime().runPromise(deactivateEffect());
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
