@@ -55,11 +55,14 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-type-name.png');
 
-    // Select sObject from org QuickPick — type to filter, Enter to confirm
-    await waitForQuickInputFirstOption(page);
+    // Select sObject — QuickPick when org is connected, text input fallback otherwise
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.sobject-prompt-visible.png');
     await page.keyboard.type('Case');
-    await waitForQuickInputFirstOption(page);
+    const hasSObjectList = await page.locator('.quick-input-list').isVisible();
+    if (hasSObjectList) {
+      await waitForQuickInputFirstOption(page);
+    }
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-select-sobject.png');
 
