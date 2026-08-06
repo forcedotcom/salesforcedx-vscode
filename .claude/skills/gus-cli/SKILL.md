@@ -147,10 +147,13 @@ When unsure which epic: ask the user.
 
 ## `[ai-auto]` tag
 
-`[ai-auto]` in `Subject__c` or `Details__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
+`[ai-auto]` in `Subject__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
 
 - Add only on explicit user request; only `Subject__c` (title), never `Details__c`
 - Skip for WIs needing design/coordination
+- End the subject with the bracketed repository slug, then `[ai-auto]`: `<subject> [owner/repo] [ai-auto]`
+- Derive `owner/repo` from the target repository's git remote; example: `Upgrade Tabulator [forcedotcom/salesforcedx-vscode] [ai-auto]`
+- Keep any sequencing prefix at the front: `1 Upgrade Tabulator [forcedotcom/salesforcedx-vscode] [ai-auto]`
 - Query: `Subject__c LIKE '%[ai-auto]%'`
 
 ## Compound workflows
