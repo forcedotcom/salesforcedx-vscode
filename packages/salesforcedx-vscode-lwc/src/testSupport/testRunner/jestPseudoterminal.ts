@@ -83,33 +83,6 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
   }
 
   /**
-   * Extract file location from the first stack trace line.
-   * Returns {file, line, column} if found, undefined otherwise.
-   */
-  public extractErrorLocation(): { file: string; line: number; column: number } | undefined {
-    const lines = this.capturedOutput.split('\n');
-
-    // Look for stack trace lines like:
-    //   at SomeFunction (/path/to/file.js:123:45)
-    //   at /path/to/file.js:123:45
-    const stackTracePattern = /at (?:.*?\()?(.*?):(\d+):(\d+)\)?/;
-
-    for (const line of lines) {
-      const match = line.match(stackTracePattern);
-      if (match) {
-        const [, file, lineStr, columnStr] = match;
-        return {
-          file: file.trim(),
-          line: parseInt(lineStr, 10),
-          column: parseInt(columnStr, 10)
-        };
-      }
-    }
-
-    return undefined;
-  }
-
-  /**
    * Extract error message from Jest output for Test Explorer display.
    * Prioritizes error type patterns (TypeError, etc.) with stack traces, then FAIL lines, then last non-empty lines.
    */
