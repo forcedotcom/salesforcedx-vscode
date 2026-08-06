@@ -665,13 +665,9 @@ class LwcTestController {
           errorMessage.location = new vscode.Location(errorUri, position);
         }
 
-        // Note: VS Code Test Explorer semantics suggest run.errored() for suite-level failures
-        // (syntax errors, module load failures), but we use run.failed() to preserve the red bar
-        // editor highlight on error location. run.errored() does not trigger editor highlighting,
-        // making it harder for developers to locate the error source.
-        run.failed(fileItem, errorMessage);
+        run.errored(fileItem, errorMessage);
         fileItem.children.forEach(child => {
-          run.failed(child, errorMessage);
+          run.errored(child, errorMessage);
         });
         continue;
       }
