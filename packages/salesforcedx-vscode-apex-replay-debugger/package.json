@@ -225,6 +225,9 @@
     "breakpoints": [
       {
         "language": "apex"
+      },
+      {
+        "language": "apex-anon"
       }
     ],
     "menus": {
