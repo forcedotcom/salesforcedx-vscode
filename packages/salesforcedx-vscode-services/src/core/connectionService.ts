@@ -481,12 +481,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const updated = Object.fromEntries(
-    Object.entries({
-      ...existingOrgInfo,
-      ...updates
-    })
-  );
+  const updated = { ...existingOrgInfo, ...updates };
 
   // Check if objects have the same content (deep equality using schema)
   // otherwise, calling set on the ref counts as a change but it's really not one.

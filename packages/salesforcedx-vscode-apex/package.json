@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.9.0",
+  "version": "67.9.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -310,6 +310,11 @@
             "%apex_language_server_restart_behavior_restart_description%",
             "%apex_language_server_restart_behavior_reset_description%"
           ]
+        },
+        "salesforcedx-vscode-apex.autoTerminateOrphanedProcesses": {
+          "type": "boolean",
+          "default": false,
+          "description": "%auto_terminate_orphaned_processes_description%"
         }
       }
     },
