@@ -24,7 +24,10 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 import { runQuery } from './queryRunner';
+
+const COMMAND: ProgressOnlyCommandKey = 'SOQL Builder Run Query';
 
 const appendToChannel = (message: string) =>
   getServicesApi.pipe(
@@ -95,7 +98,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   const conn = yield* Effect.promise(() => getConnection());
   const api = yield* getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
-  const progressLocation = yield* notificationMode.getProgressLocation('SOQL Builder Run Query');
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
       {

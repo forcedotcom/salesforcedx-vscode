@@ -33,6 +33,8 @@
   "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
   "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
   "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications.progressToast.description": "Show progress as a toast notification.",
+  "notifications.progressStatusBar.description": "Show progress spinner in the status bar.",
   "notifications_soql_text_editor_run_query_description": "Notification style for the Run Query action in the SOQL Text Editor.",
   "soql_query_execution_text": "SOQL Text Editor Run Query",
   "notifications_soql_builder_run_query_description": "Notification style for the Run Query button in the SOQL Builder.",
