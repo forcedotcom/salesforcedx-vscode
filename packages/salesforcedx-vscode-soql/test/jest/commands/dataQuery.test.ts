@@ -45,8 +45,7 @@ import {
 
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
-  showSuccessNotification: () => Effect.void,
-  runDispose: jest.fn()
+  showSuccessNotification: () => Effect.void
 } as unknown as NotificationModeService;
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';

@@ -278,8 +278,7 @@ describe.skip('Extension', () => {
             MockOrgBrowserRetrieveServiceLayer,
             Layer.succeed(NotificationModeService, {
               getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
-              showSuccessNotification: () => Effect.void,
-              runDispose: jest.fn()
+              showSuccessNotification: () => Effect.void
             } as unknown as NotificationModeService)
           )
         )

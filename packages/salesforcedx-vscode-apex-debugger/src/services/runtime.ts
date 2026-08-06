@@ -14,3 +14,10 @@ export const getRuntime = () => {
   _apexDebuggerRuntime ??= createApexDebuggerRuntime();
   return _apexDebuggerRuntime;
 };
+
+export const disposeRuntime = async (): Promise<void> => {
+  if (_apexDebuggerRuntime) {
+    await _apexDebuggerRuntime.dispose();
+    _apexDebuggerRuntime = undefined;
+  }
+};

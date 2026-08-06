@@ -21,8 +21,7 @@ jest.mock('../../src/utils/coreExtensionUtils', () => ({
 const registerCommandWithLayer = jest.fn();
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
-  showSuccessNotification: () => Effect.void,
-  runDispose: jest.fn()
+  showSuccessNotification: () => Effect.void
 } as unknown as NotificationModeService;
 
 const extensionProviderLayer = () =>

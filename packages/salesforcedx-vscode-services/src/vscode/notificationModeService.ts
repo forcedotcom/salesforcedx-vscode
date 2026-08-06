@@ -117,11 +117,13 @@ const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode =>
 /** Per-extension service for notification settings, progress placement, and success notifications. */
 export class NotificationModeService extends Effect.Service<NotificationModeService>()('NotificationModeService', {
   accessors: true,
-  effect: (extensionSection: string, statusBarId: string, statusBarName: string) =>
+  scoped: (extensionSection: string, statusBarId: string, statusBarName: string) =>
     Effect.gen(function* () {
+      const scope = yield* Effect.scope;
       const item = yield* Effect.sync(() =>
         vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44)
       );
+      yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
       item.name = statusBarName;
 
       const pendingToastRef = yield* Ref.make<Option.Option<{ message: string; actions: ToastAction[] }>>(
@@ -159,6 +161,11 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           });
         })
       );
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          commandDisposable.dispose();
+        })
+      );
       item.command = commandId;
 
       const showTransient = Effect.fn('NotificationModeService.showTransient')(function* (
@@ -178,7 +185,7 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           Effect.andThen(Effect.sync(() => item.hide())),
           Effect.andThen(Ref.set(hideTimerRef, Option.none())),
           Effect.interruptible,
-          Effect.forkDaemon
+          Effect.forkIn(scope)
         );
         yield* Ref.set(hideTimerRef, Option.some(newFiber));
       });
@@ -202,21 +209,7 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
             ? vscode.ProgressLocation.Notification
             : vscode.ProgressLocation.Window;
-        }),
-        runDispose: (): void => {
-          hideTimerRef.pipe(
-            Ref.get,
-            Effect.flatMap(
-              Option.match({
-                onNone: () => Effect.void,
-                onSome: Fiber.interrupt
-              })
-            ),
-            Runtime.runFork(runtime)
-          );
-          commandDisposable.dispose();
-          item.dispose();
-        }
+        })
       };
     })
 }) {}

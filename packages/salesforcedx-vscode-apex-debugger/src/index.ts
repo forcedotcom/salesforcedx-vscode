@@ -34,7 +34,7 @@ import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { nls } from './messages';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { disposeRuntime, getRuntime } from './services/runtime';
 import { getTelemetryService } from './utils/coreExtensionUtils';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
@@ -242,7 +242,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   extensionContext: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
   yield* Effect.sync(() => {
     const commands = registerCommands();
     const debugHandlers = registerDebugHandlers();
@@ -251,8 +250,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
       commands,
       fileWatchers,
       debugHandlers,
-      vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider()),
-      { dispose: () => notificationMode.runDispose() }
+      vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
     );
   });
 
@@ -267,8 +265,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
 });
 
 export const deactivate = async () => {
-  console.log('Apex Debugger Extension Deactivated');
-  // Send deactivation event using shared service if available
-  const telemetryService = await getTelemetryService();
-  telemetryService.sendExtensionDeactivationEvent();
+  await getTelemetryService()
+    .then(telemetryService => {
+      console.log('Apex Debugger Extension Deactivated');
+      // Send deactivation event using shared service if available
+      telemetryService.sendExtensionDeactivationEvent();
+    })
+    .finally(disposeRuntime);
 };

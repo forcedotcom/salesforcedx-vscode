@@ -17,7 +17,12 @@ import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCr
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { buildAllServicesLayer, getSoqlRuntime, setAllServicesLayer } from './services/extensionProvider';
+import {
+  buildAllServicesLayer,
+  disposeSoqlRuntime,
+  getSoqlRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
@@ -27,16 +32,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await getSoqlRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getSoqlRuntime().runPromise(deactivateEffect()).finally(disposeSoqlRuntime);
+};
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
-  const notificationMode = yield* api.services.NotificationModeService;
   yield* Effect.sync(() => {
-    context.subscriptions.push(SOQLEditorProvider.register(context), { dispose: () => notificationMode.runDispose() });
+    context.subscriptions.push(SOQLEditorProvider.register(context));
     QueryDataViewService.register(context);
     registerSoqlCodeLensProvider(context);
   });

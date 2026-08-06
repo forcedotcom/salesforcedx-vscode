@@ -82,3 +82,10 @@ type MetadataRuntime = ManagedRuntime.ManagedRuntime<
 // eslint-disable-next-line functional/no-let
 let _metadataRuntime: MetadataRuntime | undefined;
 export const getMetadataRuntime = () => (_metadataRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeMetadataRuntime = async (): Promise<void> => {
+  if (_metadataRuntime) {
+    await _metadataRuntime.dispose();
+    _metadataRuntime = undefined;
+  }
+};
