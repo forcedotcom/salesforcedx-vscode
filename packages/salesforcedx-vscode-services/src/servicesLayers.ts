@@ -6,11 +6,8 @@
  */
 
 import * as Layer from 'effect/Layer';
-import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
 import { ComponentSetService } from './core/componentSetService';
-import { ConfigService } from './core/configService';
-import { ConnectionService } from './core/connectionService';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { LightningComponentService } from './core/lightningComponentService';
 import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
@@ -33,15 +30,12 @@ import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
 import { PromptService } from './vscode/prompts/promptService';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
-import { SettingsService } from './vscode/settingsService';
-import { WorkspaceService } from './vscode/workspaceService';
 
 /**
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
  * when deriving runtime type from `typeof globalLayers`.
  */
 export const globalLayers = Layer.mergeAll(
-  AliasService.Default,
   TemplateService.Default,
   ExtensionContextService.Default,
   ExecuteAnonymousService.Default,
@@ -50,8 +44,6 @@ export const globalLayers = Layer.mergeAll(
   ApexLogService.Default,
   ComponentSetService.Default,
   LightningComponentService.Default,
-  ConfigService.Default,
-  ConnectionService.Default,
   EditorService.Default,
   FsService.Default,
   MediaService.Default,
@@ -63,11 +55,9 @@ export const globalLayers = Layer.mergeAll(
   MetadataRegistryService.Default,
   MetadataRetrieveService.Default,
   ProjectService.Default,
-  SettingsService.Default,
   SettingsChangePubSub.Default,
   SourceTrackingService.Default,
   TerminalService.Default,
   TransmogrifierService.Default,
-  TraceFlagService.Default,
-  WorkspaceService.Default
+  TraceFlagService.Default
 );

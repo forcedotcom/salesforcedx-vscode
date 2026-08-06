@@ -7,9 +7,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, workspace } from 'vscode';
+import * as Effect from 'effect/Effect';
+import * as Queue from 'effect/Queue';
+import * as Stream from 'effect/Stream';
+import { makeGovernedEgressDispatcher } from 'salesforcedx-vscode-services/out/src/observability/governedEgressDispatcher';
+import { ExtensionContext, extensions, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
+import type { GovernedEgressSink } from '../../../src/telemetry/governedTelemetry';
 import { AppInsights } from '../../../src/telemetry/reporters/appInsights';
 import { LogStream } from '../../../src/telemetry/reporters/logStream';
 import { O11yReporter } from '../../../src/telemetry/reporters/o11yReporter';
@@ -392,6 +397,219 @@ describe('Telemetry', () => {
         expect(o11y.orgIdentity).toEqual(orgIdentity);
         expect(telemetryFile.orgIdentity).toEqual(orgIdentity);
         expect(logStream.orgIdentity).toEqual(orgIdentity);
+      });
+    });
+
+    describe('governed production telemetry boundary', () => {
+      const snapshot = jest.fn();
+
+      beforeEach(() => {
+        jest.spyOn(extensions, 'getExtension').mockReturnValue({
+          isActive: true,
+          exports: { services: { TelemetryIdentitySnapshot: snapshot } }
+        } as any);
+        snapshot.mockReturnValue({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          isScratch: true,
+          devHubOrgId: '00Dhub',
+          orgEdition: 'Developer Edition'
+        });
+        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          orgShape: 'Scratch',
+          devHubId: '00Dhub',
+          orgEdition: 'Developer Edition'
+        });
+      });
+
+      it('dispatches production telemetry when a local reporter throws', async () => {
+        mockReporter.sendTelemetryEvent.mockImplementation(() => {
+          throw new Error('local failure');
+        });
+        const submit = jest.fn((_item: unknown) => Effect.succeed('claimed' as const));
+        (instance as any).productionDispatcher = {
+          submit,
+          getCurrentOrgId: Effect.succeed('00D'),
+          forceFlush: Effect.void,
+          close: Effect.void
+        };
+
+        instance.sendEventData('event');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(submit).toHaveBeenCalledTimes(1);
+      });
+
+      it('captures a complete immutable envelope identity at send time', async () => {
+        const submit = jest.fn((_item: unknown) => Effect.succeed('claimed' as const));
+        (instance as any).productionDispatcher = {
+          submit,
+          getCurrentOrgId: Effect.succeed('00D'),
+          forceFlush: Effect.void,
+          close: Effect.void
+        };
+        const properties = { key: 'before' };
+
+        instance.sendEventData('event', properties);
+        properties.key = 'after';
+        snapshot.mockReturnValue({ orgId: 'later', cliId: 'later-cli', webUserId: 'later-web' });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const item = submit.mock.calls[0]?.[0] as any;
+        expect(item.payload.identity).toEqual({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          orgShape: 'Scratch',
+          devHubId: '00Dhub',
+          orgEdition: 'Developer Edition'
+        });
+        expect(item.payload.properties).toEqual({ key: 'before' });
+        expect(Object.isFrozen(item.payload)).toBe(true);
+        expect(Object.isFrozen(item.payload.identity)).toBe(true);
+        expect(Object.isFrozen(item.payload.properties)).toBe(true);
+      });
+
+      it.each([
+        ['Gov to nonGov delayed enablement', 'gov', 'nonGov'],
+        ['nonGov to Gov delayed enablement', 'nonGov', 'gov']
+      ])('retains invocation identity during %s', async (_case, invocationOrgId, laterOrgId) => {
+        const submit = jest.fn((_item: unknown) => Effect.succeed('queued' as const));
+        (instance as any).productionDispatcher = {
+          submit,
+          getCurrentOrgId: Effect.succeed(laterOrgId),
+          forceFlush: Effect.void,
+          close: Effect.void
+        };
+        snapshot.mockReturnValue({
+          cliId: `${invocationOrgId}-cli`,
+          webUserId: `${invocationOrgId}-web`,
+          orgId: invocationOrgId,
+          isSandbox: true,
+          devHubOrgId: `${invocationOrgId}-hub`,
+          orgEdition: `${invocationOrgId}-edition`
+        });
+
+        instance.sendEventData('switch');
+        snapshot.mockReturnValue({
+          cliId: `${laterOrgId}-cli`,
+          webUserId: `${laterOrgId}-web`,
+          orgId: laterOrgId
+        });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const submitted = submit.mock.calls[0]?.[0] as any;
+        expect(submitted.orgId).toBe(invocationOrgId);
+        expect(submitted.payload.identity).toEqual({
+          cliId: `${invocationOrgId}-cli`,
+          webUserId: `${invocationOrgId}-web`,
+          orgId: invocationOrgId,
+          orgShape: 'Sandbox',
+          devHubId: `${invocationOrgId}-hub`,
+          orgEdition: `${invocationOrgId}-edition`
+        });
+      });
+
+      it('drains deactivation admission before closing production telemetry', async () => {
+        const order: string[] = [];
+        const submit = jest.fn((_item: unknown) =>
+          Effect.promise(async () => {
+            await Promise.resolve();
+            order.push('submit');
+            return 'claimed' as const;
+          })
+        );
+        const close = Effect.sync(() => order.push('close'));
+        (instance as any).productionDispatcher = {
+          submit,
+          getCurrentOrgId: Effect.succeed('00D'),
+          forceFlush: Effect.void,
+          close
+        };
+
+        instance.sendExtensionDeactivationEvent();
+        await new Promise(resolve => setTimeout(resolve, 0));
+        instance.dispose();
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(order).toEqual(['submit', 'close']);
+      });
+
+      it('drops an unknown queued item when telemetry is disabled before it becomes nonGov', async () => {
+        const enabled = { value: true };
+        jest.spyOn(instance, 'isTelemetryEnabled').mockImplementation(() => Promise.resolve(enabled.value));
+        const sink = (await Effect.runPromise(
+          (instance as any).makeProductionSink(
+            {
+              extName: 'test-extension',
+              version: '1.0.0',
+              aiKey: 'key',
+              userId: 'cli',
+              reporterName: 'test-extension',
+              isDevMode: false,
+              webUserId: 'web'
+            },
+            undefined
+          )
+        )) as GovernedEgressSink<any>;
+        const changes = await Effect.runPromise(Queue.unbounded<{ orgId: string; classification: 'nonGov' }>());
+        const dispatcher = await Effect.runPromise(
+          makeGovernedEgressDispatcher(
+            {
+              getClassification: () => Effect.succeed('unknown' as const),
+              changes: Stream.fromQueue(changes)
+            },
+            Effect.succeed(sink)
+          )
+        );
+        const item = {
+          orgId: '00D',
+          payload: {
+            kind: 'event',
+            name: 'queued',
+            identity: { orgId: '00D', cliId: 'cli', webUserId: 'web' }
+          }
+        };
+
+        expect(await Effect.runPromise(dispatcher.submit(item))).toBe('queued');
+        enabled.value = false;
+        await Effect.runPromise(Queue.offer(changes, { orgId: '00D', classification: 'nonGov' }));
+        await Effect.runPromise(Effect.sleep(10));
+        await Effect.runPromise(dispatcher.forceFlush);
+
+        expect((instance as any).productionReporters).toHaveLength(0);
+        expect(mockReporter.sendTelemetryEvent).not.toHaveBeenCalledWith(
+          'queued',
+          expect.anything(),
+          expect.anything()
+        );
+        await Effect.runPromise(dispatcher.close);
+      });
+    });
+
+    describe('lifecycle', () => {
+      it('registers the service once and direct disposal remains idempotent', async () => {
+        const context = {
+          extension: { packageJSON: { name: 'test-extension', version: '1.0.0' } },
+          extensionMode: 1,
+          subscriptions: []
+        } as unknown as ExtensionContext;
+        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(false);
+        jest.spyOn(instance, 'checkCliTelemetry').mockResolvedValue(false);
+
+        await instance.initializeService(context);
+        await instance.initializeService(context);
+        expect(context.subscriptions.filter(disposable => disposable === instance)).toHaveLength(1);
+
+        expect(() => {
+          instance.dispose();
+          instance.dispose();
+          context.subscriptions[0]?.dispose();
+        }).not.toThrow();
       });
     });
 

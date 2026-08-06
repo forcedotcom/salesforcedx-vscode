@@ -9,6 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { DefaultOrgIdentity } from '../core/defaultOrgIdentity';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { CliId, getCliId } from './cliTelemetry';
@@ -31,6 +32,7 @@ const decodeStoredCliId = (value: string) => Schema.decode(CliId)(value).pipe(Ef
  */
 export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(function* () {
   const contextService = yield* ExtensionContextService;
+  const defaultOrgIdentity = yield* DefaultOrgIdentity;
   const extensionContext = yield* contextService.getContext;
 
   const existingCliId = yield* readGlobalStateKey(TELEMETRY_GLOBAL_USER_ID);
@@ -51,5 +53,8 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
 
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  yield* SubscriptionRef.set(defaultOrgRef, { ...existingOrgInfo, cliId, webUserId });
+  yield* Effect.all([
+    SubscriptionRef.set(defaultOrgRef, { ...existingOrgInfo, cliId, webUserId }),
+    defaultOrgIdentity.seed({ cliId, webUserId })
+  ]);
 });

@@ -10,11 +10,19 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isNotUndefined } from 'effect/Predicate';
+import { ConfigService } from './core/configService';
+import { ConnectionService } from './core/connectionService';
+import { DefaultOrgIdentity } from './core/defaultOrgIdentity';
+import { OrgTelemetryPolicy } from './observability/orgTelemetryPolicy';
 import { globalLayers } from './servicesLayers';
 
 // DERIVED from layer; cannot drift. Error = Layer.Error (graph build failures).
 type ServicesRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<typeof globalLayers>,
+  | Layer.Layer.Success<typeof globalLayers>
+  | ConfigService
+  | ConnectionService
+  | DefaultOrgIdentity
+  | OrgTelemetryPolicy,
   Layer.Layer.Error<typeof globalLayers>
 >;
 
