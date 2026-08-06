@@ -33,29 +33,25 @@ export const refreshTraceFlagsView = Effect.fn('ApexLog.refreshTraceFlagsView')(
   yield* Effect.sync(() => refresh(orgId));
 });
 
-export type UserRecord = { Id: string; FirstName: string; LastName: string; Username: string; UserType: string };
+type UserRecord = { Id: string; FirstName: string; LastName: string; Username: string; UserType: string };
 
 type UserQuickPickItem = vscode.QuickPickItem & { userId: string };
 
-const USER_SECTIONS: readonly { userTypes: readonly string[]; label: Parameters<typeof nls.localize>[0] }[] = [
-  { userTypes: ['Standard'], label: 'trace_flag_user_type_standard' },
-  { userTypes: ['AutomatedProcess'], label: 'trace_flag_user_type_automated_process' },
-  { userTypes: ['PowerPartner'], label: 'trace_flag_user_type_partner' },
-  {
-    userTypes: ['PowerCustomerSuccess', 'CustomerSuccess', 'CsnOnly', 'CspLitePortal', 'SelfService'],
-    label: 'trace_flag_user_type_customer_portal'
-  },
-  { userTypes: ['Guest'], label: 'trace_flag_user_type_guest' },
-  { userTypes: [], label: 'trace_flag_tooltip_other' }
-] as const;
+const USER_TYPE_GROUPS: readonly (readonly string[])[] = [
+  ['Standard'],
+  ['AutomatedProcess'],
+  ['PowerPartner'],
+  ['PowerCustomerSuccess', 'CustomerSuccess', 'CsnOnly', 'CspLitePortal', 'SelfService'],
+  ['Guest']
+];
 
-const userSectionIndex = (record: UserRecord): number => {
-  const index = USER_SECTIONS.findIndex(section => section.userTypes.includes(record.UserType));
-  return index === -1 ? USER_SECTIONS.length - 1 : index;
+const userTypeGroup = (record: UserRecord): number => {
+  const group = USER_TYPE_GROUPS.findIndex(userTypes => userTypes.includes(record.UserType));
+  return group === -1 ? USER_TYPE_GROUPS.length : group;
 };
 
 const userOrder = Order.combineAll([
-  Order.mapInput(Order.number, userSectionIndex),
+  Order.mapInput(Order.number, userTypeGroup),
   Order.mapInput(Order.string, (record: UserRecord) => record.LastName),
   Order.mapInput(Order.string, (record: UserRecord) => record.FirstName)
 ]);
@@ -63,29 +59,15 @@ const userOrder = Order.combineAll([
 const SOSL_DEBOUNCE_MS = 300;
 const SOSL_MIN_CHARS = 2;
 
-export const buildUserQuickPickItems = (records: UserRecord[], excludeUserId: string): vscode.QuickPickItem[] =>
+const buildUserQuickPickItems = (records: UserRecord[], excludeUserId: string): UserQuickPickItem[] =>
   records
     .filter(r => r.Id !== excludeUserId)
     .toSorted(userOrder)
     .map(record => ({
-      sectionIndex: userSectionIndex(record),
-      item: {
-        label: `${record.FirstName ?? ''} ${record.LastName ?? ''}`.trim(),
-        description: `${record.Username}  (${record.UserType})`,
-        userId: record.Id
-      } satisfies UserQuickPickItem
-    }))
-    .flatMap(({ sectionIndex, item }, index, items) =>
-      index === 0 || sectionIndex !== items[index - 1].sectionIndex
-        ? [
-            {
-              kind: vscode.QuickPickItemKind.Separator,
-              label: nls.localize(USER_SECTIONS[sectionIndex].label)
-            },
-            item
-          ]
-        : [item]
-    );
+      label: `${record.FirstName ?? ''} ${record.LastName ?? ''}`.trim(),
+      description: `${record.Username}  (${record.UserType})`,
+      userId: record.Id
+    }));
 
 const isUserQuickPickItem = (item: vscode.QuickPickItem | undefined): item is UserQuickPickItem =>
   item !== undefined && 'userId' in item;
