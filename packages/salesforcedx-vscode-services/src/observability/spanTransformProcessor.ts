@@ -4,67 +4,63 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { DefaultOrgIdentityState, TelemetryIdentitySnapshot } from '../core/defaultOrgIdentity';
+import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Context } from '@opentelemetry/api';
 import { Span, BatchSpanProcessor, SpanExporter, BufferConfig, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 // aliased to Rec so the global `Record<K, V>` utility type stays usable in this file
 import * as Rec from 'effect/Record';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
+import { getTelemetryIdentitySnapshot, type TelemetryIdentitySnapshot } from '../core/defaultOrgRef';
 
 export type SpanCreationIdentity = Readonly<
-  Pick<DefaultOrgIdentityState, 'orgId' | 'devHubOrgId' | 'userId' | 'cliId' | 'webUserId'> & {
-    readonly isSandbox?: boolean;
-    readonly isScratch?: boolean;
-    readonly tracksSource?: boolean;
-    readonly orgEdition?: string;
-  }
+  Pick<
+    typeof DefaultOrgInfoSchema.Type,
+    | 'orgId'
+    | 'devHubOrgId'
+    | 'userId'
+    | 'cliId'
+    | 'webUserId'
+    | 'isSandbox'
+    | 'isScratch'
+    | 'tracksSource'
+    | 'orgEdition'
+  > &
+    Pick<TelemetryIdentitySnapshot, 'telemetryClassification'>
 >;
 
 const creationIdentities = new WeakMap<object, SpanCreationIdentity>();
 
 export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreationIdentity =>
-  creationIdentities.get(span) ?? {};
-
-export const getSpanCreationOrgId = (span: Span | ReadableSpan): string | undefined =>
-  getSpanCreationIdentity(span).orgId;
+  creationIdentities.get(span) ?? { telemetryClassification: 'unknown' };
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
   private readonly shouldEnrich: () => boolean;
 
-  constructor(
-    exporter: SpanExporter,
-    options?: BufferConfig,
-    shouldEnrich: () => boolean = () => true,
-    private readonly getIdentitySnapshot: () => TelemetryIdentitySnapshot = () => ({})
-  ) {
+  constructor({
+    exporter,
+    options,
+    shouldEnrich = () => true,
+    getIdentitySnapshot = getTelemetryIdentitySnapshot
+  }: {
+    exporter: SpanExporter;
+    options?: BufferConfig;
+    shouldEnrich?: () => boolean;
+    getIdentitySnapshot?: () => TelemetryIdentitySnapshot;
+  }) {
     super(exporter, options);
     this.shouldEnrich = shouldEnrich;
+    this.getIdentitySnapshot = getIdentitySnapshot;
   }
+
+  private readonly getIdentitySnapshot: () => TelemetryIdentitySnapshot;
 
   public onStart(span: Span, parentContext: Context): void {
     if (!creationIdentities.has(span)) {
-      const privateIdentity = this.getIdentitySnapshot();
-      const publicIdentity = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
-      creationIdentities.set(
-        span,
-        Object.freeze({
-          ...privateIdentity,
-          ...(privateIdentity.orgId && privateIdentity.orgId === publicIdentity.orgId
-            ? {
-                isSandbox: publicIdentity.isSandbox,
-                isScratch: publicIdentity.isScratch,
-                tracksSource: publicIdentity.tracksSource,
-                orgEdition: publicIdentity.orgEdition
-              }
-            : {})
-        })
-      );
+      creationIdentities.set(span, Object.freeze(this.getIdentitySnapshot()));
     }
     // for top level spans, add additional attributes — skipped when the exporter gate is disabled
     // (the enrichment would be computed per-span then discarded by the gated exporter)

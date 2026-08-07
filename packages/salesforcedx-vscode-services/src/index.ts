@@ -20,8 +20,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { associateDefaultOrgIdentity, DefaultOrgIdentity } from './core/defaultOrgIdentity';
-import { getDefaultOrgRef } from './core/defaultOrgRef';
+import { getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -40,8 +39,6 @@ import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
-import { makeGovernedEgressDispatcher } from './observability/governedEgressDispatcher';
-import { OrgTelemetryPolicy } from './observability/orgTelemetryPolicy';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
@@ -98,7 +95,6 @@ export type SalesforceVSCodeServicesApi = {
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
-      | OrgTelemetryPolicy
       | ProjectService
       | Resource.Resource
       | SettingsChangePubSub
@@ -138,8 +134,6 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
-    OrgTelemetryPolicy: typeof OrgTelemetryPolicy;
-    makeGovernedEgressDispatcher: typeof makeGovernedEgressDispatcher;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: PublicSdkLayerFor;
@@ -148,7 +142,7 @@ export type SalesforceVSCodeServicesApi = {
     SourceTrackingService: typeof SourceTrackingService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
-    TelemetryIdentitySnapshot: () => import('./core/defaultOrgIdentity').TelemetryIdentitySnapshot;
+    TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -164,7 +158,7 @@ type PublicSdkLayerFor = (
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
 export type { AliasService } from './core/alias';
-export type { TelemetryIdentitySnapshot } from './core/defaultOrgIdentity';
+export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   TemplateService,
   type CreateOutput,
@@ -203,14 +197,6 @@ export type {
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
-export type { OrgTelemetryClassification, OrgTelemetryPolicyState } from './observability/orgTelemetryPolicy';
-export type {
-  GovernedEgressDispatcher,
-  GovernedEgressDisposition,
-  GovernedEgressItem,
-  GovernedEgressSink
-} from './observability/governedEgressDispatcher';
-export { makeGovernedEgressDispatcher } from './observability/governedEgressDispatcher';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type {
   MetadataDescribeError,
@@ -319,45 +305,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   setExtensionContext(context);
   const extensionScope = Effect.runSync(getExtensionScope());
   const activateWithScope = async (): Promise<SalesforceVSCodeServicesApi> => {
-    const identityContext = await Effect.runPromise(Layer.buildWithScope(DefaultOrgIdentity.Default, extensionScope));
-    const identityLayer = Layer.succeedContext(identityContext);
-    const foundationContext = await Effect.runPromise(
-      Layer.buildWithScope(
-        Layer.mergeAll(WorkspaceService.Default, SettingsService.Default, AliasService.Default),
-        extensionScope
-      )
-    );
-    const foundationLayer = Layer.succeedContext(foundationContext);
-    const configContext = await Effect.runPromise(
-      Layer.buildWithScope(
-        ConfigService.DefaultWithoutDependencies.pipe(Layer.provide(Layer.merge(foundationLayer, identityLayer))),
-        extensionScope
-      )
-    );
-    const configLayer = Layer.succeedContext(configContext);
-    const connectionContext = await Effect.runPromise(
-      Layer.buildWithScope(
-        ConnectionService.DefaultWithoutDependencies.pipe(
-          Layer.provide(Layer.mergeAll(foundationLayer, identityLayer, configLayer))
-        ),
-        extensionScope
-      )
-    );
-    const connectionLayer = Layer.succeedContext(connectionContext);
-    const policyContext = await Effect.runPromise(
-      Layer.buildWithScope(
-        OrgTelemetryPolicy.DefaultWithoutDependencies.pipe(Layer.provide(identityLayer)),
-        extensionScope
-      )
-    );
-    const policyLayer = Layer.succeedContext(policyContext);
-    const retainedLayers = Layer.mergeAll(foundationLayer, identityLayer, configLayer, connectionLayer, policyLayer);
-    const globalContext = await Effect.runPromise(
-      Layer.buildWithScope(globalLayers.pipe(Layer.provideMerge(retainedLayers)), extensionScope)
-    );
-    const globalLayer = Layer.succeedContext(globalContext);
-    const sharedServiceLayers = Layer.mergeAll(globalLayer, retainedLayers);
-
     if (process.env.ESBUILD_PLATFORM === 'web') {
       // load auth from local environment.  development only.
       if (process.env.ESBUILD_WEB_CONFIG) {
@@ -372,7 +319,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
               ChannelService.Default,
               IndexedDBStorageServiceShared,
               isItReadOnlyLayer,
-              ServicesSdkLayer().pipe(Layer.provide(Layer.merge(policyLayer, identityLayer)))
+              ServicesSdkLayer()
             )
           ),
           Scope.extend(extensionScope)
@@ -385,48 +332,26 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     }
     const internalLayers = Layer.mergeAll(
       FileWatcherLayer,
-      ServicesSdkLayer().pipe(Layer.provide(Layer.merge(policyLayer, identityLayer))),
+      ServicesSdkLayer(),
       SettingsWatcherLayer,
       ErrorHandlerService.Default
     ).pipe(Layer.provideMerge(ChannelService.Default));
 
-    const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(sharedServiceLayers));
+    const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(globalLayers));
 
     // Build the layer with extensionScope - scoped services live until extension deactivates
     const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
-    const defaultOrgIdentity = Context.get(identityContext, DefaultOrgIdentity);
-    const configService = associateDefaultOrgIdentity(Context.get(configContext, ConfigService), defaultOrgIdentity);
-    const connectionService = associateDefaultOrgIdentity(
-      Context.get(connectionContext, ConnectionService),
-      defaultOrgIdentity
-    );
-    const orgTelemetryPolicy = associateDefaultOrgIdentity(
-      Context.get(policyContext, OrgTelemetryPolicy),
-      defaultOrgIdentity
-    );
-    const canonicalContext = Context.add(
-      Context.add(
-        Context.add(Context.add(builtContext, DefaultOrgIdentity, defaultOrgIdentity), ConfigService, configService),
-        ConnectionService,
-        connectionService
-      ),
-      OrgTelemetryPolicy,
-      orgTelemetryPolicy
-    );
-    const publicContext = Context.omit(DefaultOrgIdentity)(canonicalContext);
-    const publicSdkLayerFor: PublicSdkLayerFor = input =>
-      SdkLayerFor(input).pipe(Layer.provide(Layer.merge(policyLayer, identityLayer)));
+    const publicSdkLayerFor: PublicSdkLayerFor = SdkLayerFor;
 
     // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
     // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    canonicalContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
+    builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
 
     await activationEffect(context).pipe(
-      Effect.provideService(DefaultOrgIdentity, defaultOrgIdentity),
-      Effect.provide(canonicalContext),
+      Effect.provide(builtContext),
       Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
       Effect.runPromise
     );
@@ -436,7 +361,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // Return API for other extensions to consume
     return {
       services: {
-        prebuiltServicesDependencies: publicContext,
+        prebuiltServicesDependencies: builtContext,
         ApexLogService,
         AliasService,
         TemplateService,
@@ -464,8 +389,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataDeployService,
         MetadataRegistryService,
         MetadataRetrieveService,
-        OrgTelemetryPolicy,
-        makeGovernedEgressDispatcher,
         ProjectService,
         getSdkLayerConfigFromContext,
         SdkLayerFor: publicSdkLayerFor,
@@ -474,7 +397,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         SourceTrackingService,
         ActiveMetadataOperationRef: getActiveMetadataOperationRef,
         TargetOrgRef: getDefaultOrgRef,
-        TelemetryIdentitySnapshot: defaultOrgIdentity.getTelemetryIdentitySnapshot,
+        TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
         TerminalService,
         TransmogrifierService,
         TraceFlagItemStruct,
@@ -509,7 +432,6 @@ const deactivateEffect = Effect.gen(function* () {
 }).pipe(Effect.provide(ChannelService.Default));
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
-export { type OrgTelemetryPolicy } from './observability/orgTelemetryPolicy';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';

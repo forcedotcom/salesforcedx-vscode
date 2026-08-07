@@ -17,14 +17,12 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
-import { DefaultOrgIdentity } from '../core/defaultOrgIdentity';
 import { DEFAULT_AI_CONNECTION_STRING, isProductionTelemetryExportEnabled } from './appInsights';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
-import { OrgTelemetryPolicy } from './orgTelemetryPolicy';
 import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
@@ -69,8 +67,6 @@ export const NodeSdkLayerFor = ({
 
   return NodeSdk.layer(
     Effect.gen(function* () {
-      const policy = yield* OrgTelemetryPolicy;
-      const identity = yield* DefaultOrgIdentity;
       return {
         resource: {
           serviceName: extensionName,
@@ -85,22 +81,13 @@ export const NodeSdkLayerFor = ({
           // first and unconditional: rewrites secret-shaped text during onEnding, which MultiSpanProcessor
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
-          ...(getConsoleTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new ConsoleSpanExporter(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : []),
+          ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
           // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export
           // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
           // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
-          new SpanTransformProcessor(
-            new GatedSpanExporter(
-              () =>
+          new SpanTransformProcessor({
+            exporter: new GatedSpanExporter({
+              make: () =>
                 enableCustomEventsFromSpans
                   ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
                     new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
@@ -112,57 +99,38 @@ export const NodeSdkLayerFor = ({
                       },
                       localIngestionEndpoint
                     ),
-              () => isProductionTelemetryExportEnabled(),
-              localIngestionEndpoint ? undefined : policy
-            ),
-            enableCustomEventsFromSpans || localIngestionEndpoint
-              ? undefined
-              : {
-                  exportTimeoutMillis: 15_000,
-                  maxQueueSize: 1000
-                },
+              isEnabled: () => isProductionTelemetryExportEnabled(),
+              bypassGovernance: Boolean(localIngestionEndpoint)
+            }),
+            options:
+              enableCustomEventsFromSpans || localIngestionEndpoint
+                ? undefined
+                : {
+                    exportTimeoutMillis: 15_000,
+                    maxQueueSize: 1000
+                  },
             // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
-            () => isProductionTelemetryExportEnabled(),
-            identity.getTelemetryIdentitySnapshot
-          ),
+            shouldEnrich: () => isProductionTelemetryExportEnabled()
+          }),
           // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
           // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
           ...(o11yEndpoint
             ? [
-                new SpanTransformProcessor(
-                  new GatedSpanExporter(
+                new SpanTransformProcessor({
+                  exporter: new GatedSpanExporter({
                     // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
                     // /o11y route instead of uploading through the org connection — mirrors the AI divert.
-                    () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
-                    () => isProductionTelemetryExportEnabled(o11yEndpoint),
-                    localIngestionEndpoint ? undefined : policy
-                  ),
-                  undefined,
-                  () => isProductionTelemetryExportEnabled(o11yEndpoint),
-                  identity.getTelemetryIdentitySnapshot
-                )
+                    make: () =>
+                      new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
+                    isEnabled: () => isProductionTelemetryExportEnabled(o11yEndpoint),
+                    bypassGovernance: Boolean(localIngestionEndpoint)
+                  }),
+                  shouldEnrich: () => isProductionTelemetryExportEnabled(o11yEndpoint)
+                })
               ]
             : []),
-          ...(getLocalTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new OTLPTraceExporter(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : []),
-          ...(getFileTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new OtlpFileSpanExporterNode(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : [])
+          ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
+          ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode() })] : [])
         ],
         logRecordProcessor: [
           ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])

@@ -9,12 +9,27 @@ import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 
+type TelemetryClassification = 'gov' | 'nonGov' | 'unknown';
+export type TelemetryIdentitySnapshot = Readonly<
+  Omit<typeof DefaultOrgInfoSchema.Type, 'instanceName'> & { telemetryClassification: TelemetryClassification }
+>;
+
 // eslint-disable-next-line functional/no-let
 let defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type> | undefined;
 
 export const getDefaultOrgRef = Effect.fn('getDefaultOrgRef')(function* () {
   return (defaultOrgRef ??= yield* SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
 });
+
+export const getTelemetryIdentitySnapshot = (): TelemetryIdentitySnapshot => {
+  const { instanceName: _instanceName, ...identity } = Effect.runSync(
+    getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get))
+  );
+  const normalizedInstanceName = _instanceName?.trim();
+  const telemetryClassification =
+    identity.orgId && normalizedInstanceName ? (/^usa9/i.test(normalizedInstanceName) ? 'gov' : 'nonGov') : 'unknown';
+  return Object.freeze({ ...identity, telemetryClassification });
+};
 
 // preserves the webUserId and cliId when clearing the defaultOrgRef
 export const clearDefaultOrgRef = Effect.fn('clearDefaultOrgRef')(function* () {

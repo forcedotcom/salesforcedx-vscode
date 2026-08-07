@@ -24,12 +24,7 @@ const generateEntry = (): void => {
  */
 
 // This file is auto-generated. Do not edit manually.
-export type {
-  GovernedEgressDispatcher,
-  GovernedEgressItem,
-  GovernedEgressSink,
-  SalesforceVSCodeServicesApi
-} from '../../salesforcedx-vscode-services/out/src/index';
+export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index';
 export { DefaultOrgInfoSchema } from '../../salesforcedx-vscode-services/out/src/core/schemas/defaultOrgInfo';
 export { ICONS, type IconId } from './icons';
 `;

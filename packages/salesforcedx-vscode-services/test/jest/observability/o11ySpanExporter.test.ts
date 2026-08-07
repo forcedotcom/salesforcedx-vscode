@@ -22,12 +22,11 @@ describe('O11ySpanExporter attribution', () => {
       endTime: [1, 0],
       duration: [1, 0]
     } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
-    const processor = new SpanTransformProcessor(
-      {} as never,
-      undefined,
-      () => false,
-      () => snapshot
-    );
+    const processor = new SpanTransformProcessor({
+      exporter: {} as never,
+      shouldEnrich: () => false,
+      getIdentitySnapshot: () => snapshot as never
+    });
     processor.onStart(span, {} as Parameters<SpanTransformProcessor['onStart']>[1]);
 
     const identity = getSpanCreationIdentity(span);

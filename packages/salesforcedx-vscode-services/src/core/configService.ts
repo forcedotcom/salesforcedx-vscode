@@ -14,7 +14,6 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { associateDefaultOrgIdentity, DefaultOrgIdentity } from './defaultOrgIdentity';
 import { clearDefaultOrgRef, getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
 
@@ -62,10 +61,9 @@ const createConfigAggregator = (projectPath: string) =>
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   accessors: true,
-  dependencies: [WorkspaceService.Default, DefaultOrgIdentity.Default],
+  dependencies: [WorkspaceService.Default],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
-    const defaultOrgIdentity = yield* DefaultOrgIdentity;
 
     const configCache = yield* Cache.make({
       capacity: 5, // Maximum number of cached ConfigAggregators
@@ -165,7 +163,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       config.unset(OrgConfigProperties.TARGET_ORG);
       yield* Effect.promise(() => config.write());
       yield* invalidateConfigAggregator();
-      yield* Effect.all([clearDefaultOrgRef(), defaultOrgIdentity.clear()]);
+      yield* clearDefaultOrgRef();
     });
 
     /** Unsets target-dev-hub from the local project config */
@@ -176,20 +174,17 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* invalidateConfigAggregator();
     });
 
-    return associateDefaultOrgIdentity(
-      {
-        getConfigAggregator,
-        invalidateConfigAggregator,
-        getTargetOrg,
-        getTargetDevHub,
-        isCliTelemetryDisabled,
-        isCurrentTargetOrg,
-        isCurrentTargetDevHub,
-        setTargetOrg,
-        unsetTargetOrg,
-        unsetTargetDevHub
-      },
-      defaultOrgIdentity
-    );
+    return {
+      getConfigAggregator,
+      invalidateConfigAggregator,
+      getTargetOrg,
+      getTargetDevHub,
+      isCliTelemetryDisabled,
+      isCurrentTargetOrg,
+      isCurrentTargetDevHub,
+      setTargetOrg,
+      unsetTargetOrg,
+      unsetTargetDevHub
+    };
   })
 }) {}

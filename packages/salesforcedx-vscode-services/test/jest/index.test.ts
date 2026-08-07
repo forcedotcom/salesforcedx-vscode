@@ -34,9 +34,8 @@ import { isServicesRuntimeReady } from '../../src/servicesRuntime';
 import { getExtensionScope } from '../../src/vscode/extensionScope';
 import { ConfigService } from '../../src/core/configService';
 import { ConnectionService } from '../../src/core/connectionService';
-import { DefaultOrgIdentity, getAssociatedDefaultOrgIdentity } from '../../src/core/defaultOrgIdentity';
-import { OrgTelemetryPolicy } from '../../src/observability/orgTelemetryPolicy';
-import * as Option from 'effect/Option';
+import { getDefaultOrgRef } from '../../src/core/defaultOrgRef';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -88,18 +87,8 @@ g.IDBOpenDBRequest = jest.fn() as unknown as typeof IDBOpenDBRequest;
 // Mock spansNode to avoid path.join issues
 jest.mock('../../src/observability/spansNode', () => {
   const E = require('effect');
-  const dependencies: Array<{ identity: unknown; policy: unknown }> = [];
   return {
-    NodeSdkLayerFor: () => {
-      const { DefaultOrgIdentity: Identity } = require('../../src/core/defaultOrgIdentity');
-      const { OrgTelemetryPolicy: Policy } = require('../../src/observability/orgTelemetryPolicy');
-      return E.Layer.effectDiscard(
-        E.Effect.gen(function* () {
-          dependencies.push({ identity: yield* Identity, policy: yield* Policy });
-        })
-      );
-    },
-    getCapturedDependencies: () => dependencies
+    NodeSdkLayerFor: () => E.Layer.empty
   };
 });
 
@@ -245,7 +234,7 @@ describe('Extension', () => {
     vscode.workspace.updateWorkspaceFolders = jest.fn();
   });
 
-  it('activates with one identity shared by config, connection, policy, snapshot, and span SDKs', async () => {
+  it('activates with one default-org ref shared by policy, snapshot, and span SDKs', async () => {
     const context = {
       subscriptions: [],
       extension: {
@@ -267,47 +256,25 @@ describe('Extension', () => {
     expect(api).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();
-    expect(api.services.OrgTelemetryPolicy).toBeDefined();
     expect(api.services.ProjectService).toBeDefined();
     const services = api.services.prebuiltServicesDependencies;
-    const config = Context.get(services, ConfigService);
-    const connection = Context.get(services, ConnectionService);
-    const policy = Context.get(services, OrgTelemetryPolicy);
-    expect(Context.getOption(services, DefaultOrgIdentity)).toEqual(Option.none());
-    const identities = [config, connection, policy].map(service =>
-      getAssociatedDefaultOrgIdentity(service as unknown as object)
-    );
-    expect(identities).not.toContain(undefined);
-    expect(identities[1]).toBe(identities[0]);
-    expect(identities[2]).toBe(identities[0]);
-    const sharedIdentity = identities[0] as DefaultOrgIdentity;
-    const sdkDependencies = require('../../src/observability/spansNode').getCapturedDependencies();
-    expect(sdkDependencies.length).toBeGreaterThan(0);
-    sdkDependencies.map((value: { identity: unknown; policy: unknown }) => {
-      expect(value.identity).toBe(sharedIdentity);
-      expect(value.policy).toBe(policy);
-    });
-
+    Context.get(services, ConfigService);
+    Context.get(services, ConnectionService);
     const externalSdkContext = await Effect.runPromise(
       Layer.buildWithScope(api.services.SdkLayerFor(context), Effect.runSync(getExtensionScope()))
     );
     expect(externalSdkContext).toBeDefined();
-    const externalSdkDependencies = sdkDependencies.at(-1);
-    expect(externalSdkDependencies).toEqual({ identity: sharedIdentity, policy });
 
-    await Effect.runPromise(sharedIdentity.set({ orgId: 'gov-org', instanceName: 'usa9s' }));
-    await expect(Effect.runPromise(policy.getCurrent())).resolves.toEqual({
+    const defaultOrgRef = await Effect.runPromise(getDefaultOrgRef());
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'usa9s' }));
+    expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({
       orgId: 'gov-org',
-      classification: 'gov'
+      telemetryClassification: 'gov'
     });
-    expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({ orgId: 'gov-org' });
     expect(api.services.TelemetryIdentitySnapshot()).not.toHaveProperty('instanceName');
 
-    await Effect.runPromise(sharedIdentity.set({ orgId: 'non-gov-org', instanceName: 'na123' }));
-    await expect(Effect.runPromise(policy.getCurrent())).resolves.toEqual({
-      orgId: 'non-gov-org',
-      classification: 'nonGov'
-    });
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'na123' }));
+    expect(api.services.TelemetryIdentitySnapshot().telemetryClassification).toBe('nonGov');
   });
 
   it('should deactivate successfully', async () => {

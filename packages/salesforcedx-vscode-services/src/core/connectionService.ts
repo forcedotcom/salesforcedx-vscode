@@ -24,7 +24,6 @@ import { SettingsService } from '../vscode/settingsService';
 import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
 import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
-import { associateDefaultOrgIdentity, DefaultOrgIdentity } from './defaultOrgIdentity';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -215,12 +214,11 @@ const getUserFromUserSobject = (orgId: string, conn: Connection) => {
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
-  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default, DefaultOrgIdentity.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
-    const defaultOrgIdentity = yield* DefaultOrgIdentity;
 
     // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
     const promptReauth: (
@@ -328,8 +326,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       // update the org ref in the background — ONLY for the default org (no explicit username)
       if (isUndefined(username)) {
         const { orgId, instanceName } = conn.getAuthInfoFields();
-        yield* defaultOrgIdentity.set({ orgId, instanceName });
-        yield* maybeUpdateDefaultOrgRef(conn, defaultOrgIdentity).pipe(
+        const defaultOrgRef = yield* getDefaultOrgRef();
+        yield* SubscriptionRef.update(defaultOrgRef, current => ({ ...current, orgId, instanceName }));
+        yield* maybeUpdateDefaultOrgRef(conn).pipe(
           Effect.provide(AliasService.Default),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void),
@@ -366,15 +365,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return associateDefaultOrgIdentity(
-      {
-        getConnection,
-        validateAccessTokenOrPromptReauth,
-        invalidateCachedConnections,
-        listAllAuthorizations
-      },
-      defaultOrgIdentity
-    );
+    return {
+      getConnection,
+      validateAccessTokenOrPromptReauth,
+      invalidateCachedConnections,
+      listAllAuthorizations
+    };
   })
 }) {}
 
@@ -396,10 +392,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
-  conn: Connection,
-  defaultOrgIdentity: DefaultOrgIdentity
-) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
   const aliasService = yield* AliasService;
   const { orgId, instanceName, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } =
     conn.getAuthInfoFields();
@@ -457,6 +450,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const updates = Object.fromEntries(
     Object.entries({
       orgId,
+      instanceName,
       devHubUsername,
       tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
       isScratch,
@@ -472,20 +466,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   );
 
   const updated = { ...existingOrgInfo, ...updates };
-  yield* defaultOrgIdentity.enrich(orgId, {
-    orgId,
-    instanceName,
-    devHubOrgId,
-    userId,
-    cliId,
-    webUserId,
-    isScratch,
-    isSandbox,
-    alias: existingOrgInfo.alias,
-    username,
-    orgEdition
-  });
-
   // Check if objects have the same content (deep equality using schema)
   // otherwise, calling set on the ref counts as a change but it's really not one.
   if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {

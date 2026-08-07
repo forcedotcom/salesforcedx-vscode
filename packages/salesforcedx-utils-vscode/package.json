@@ -24,9 +24,7 @@
     "vscode-uri": "^3.1.0",
     "zod": "^4.3.2"
   },
-  "devDependencies": {
-    "@salesforce/vscode-services": "*"
-  },
+  "devDependencies": {},
   "engines": {
     "vscode": "^1.90.0"
   },

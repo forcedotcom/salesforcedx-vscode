@@ -13,7 +13,6 @@ import { join, normalize, sep } from 'node:path';
 import { FileChangePubSub } from '../vscode/fileChangePubSub';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { DefaultOrgIdentity } from './defaultOrgIdentity';
 import { clearDefaultOrgRef } from './defaultOrgRef';
 
 /** Check if a file path is a config file (global or project-specific) */
@@ -41,10 +40,6 @@ export const watchConfigFiles = Effect.fn('watchConfigFiles')(function* () {
     Stream.tap(() => ConfigService.invalidateConfigAggregator()),
     Stream.tap(() => ConnectionService.invalidateCachedConnections()),
     // get connection will cause defaultOrgRef to update, clear the ref if there's any error where we won't have an org connection.
-    Stream.runForEach(() =>
-      ConnectionService.getConnection().pipe(
-        Effect.catchAll(() => Effect.all([clearDefaultOrgRef(), DefaultOrgIdentity.clear()], { discard: true }))
-      )
-    )
+    Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => clearDefaultOrgRef())))
   );
 });

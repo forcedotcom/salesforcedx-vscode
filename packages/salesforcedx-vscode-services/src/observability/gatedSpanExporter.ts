@@ -4,12 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgTelemetryPolicyService } from './orgTelemetryPolicy';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import * as Effect from 'effect/Effect';
-import { GovernedEgressSink, makeGovernedEgressDispatcher } from './governedEgressDispatcher';
-import { getSpanCreationOrgId } from './spanTransformProcessor';
+import { getSpanCreationIdentity } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 /**
@@ -21,76 +18,37 @@ import { isSpanValidForProductionTelemetry } from './spanUtils';
  */
 export class GatedSpanExporter implements SpanExporter {
   private delegate: SpanExporter | undefined;
-  private readonly submissions = new Set<Promise<unknown>>();
-  private readonly dispatcher;
 
   constructor(
-    private readonly make: () => SpanExporter,
-    private readonly isEnabled: () => boolean,
-    policy?: Pick<OrgTelemetryPolicyService, 'getClassification' | 'changes'>
-  ) {
-    this.dispatcher = policy
-      ? Effect.runSync(
-          makeGovernedEgressDispatcher(
-            policy,
-            Effect.sync(
-              (): GovernedEgressSink<ReadableSpan> => ({
-                send: item =>
-                  this.isEnabled()
-                    ? Effect.async<void, unknown>(resume => {
-                        const delegate = (this.delegate ??= this.make());
-                        const completed = { value: false };
-                        delegate.export([item.payload], result => {
-                          if (completed.value) return;
-                          completed.value = true;
-                          resume(
-                            result.code === ExportResultCode.SUCCESS
-                              ? Effect.void
-                              : Effect.fail(result.error ?? 'Span export failed')
-                          );
-                        });
-                      })
-                    : Effect.void,
-                forceFlush: Effect.promise(() => this.delegate?.forceFlush?.() ?? Promise.resolve()),
-                close: Effect.promise(() => this.delegate?.shutdown() ?? Promise.resolve())
-              })
-            )
-          )
-        )
-      : undefined;
-  }
+    private readonly options: {
+      make: () => SpanExporter;
+      isEnabled: () => boolean;
+      bypassGovernance?: boolean;
+    }
+  ) {}
 
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    if (!this.isEnabled()) {
+    if (!this.options.isEnabled()) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
-    if (!this.dispatcher) {
-      (this.delegate ??= this.make()).export(spans, resultCallback);
+    const eligible = spans.filter(
+      span =>
+        isSpanValidForProductionTelemetry(span) &&
+        (this.options.bypassGovernance ?? getSpanCreationIdentity(span).telemetryClassification === 'nonGov')
+    );
+    if (eligible.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
-
-    const submission = Effect.runPromise(
-      Effect.forEach(
-        spans.filter(isSpanValidForProductionTelemetry),
-        span => this.dispatcher!.submit({ orgId: getSpanCreationOrgId(span), payload: span }),
-        { discard: true }
-      )
-    );
-    this.submissions.add(submission);
-    void submission.finally(() => this.submissions.delete(submission));
-    resultCallback({ code: ExportResultCode.SUCCESS });
+    (this.delegate ??= this.options.make()).export(eligible, resultCallback);
   }
 
   public async forceFlush(): Promise<void> {
-    await Promise.all(this.submissions);
-    await (this.dispatcher
-      ? Effect.runPromise(this.dispatcher.forceFlush)
-      : (this.delegate?.forceFlush?.() ?? Promise.resolve()));
+    await this.delegate?.forceFlush?.();
   }
 
   public async shutdown(): Promise<void> {
-    await Promise.all(this.submissions);
-    await (this.dispatcher ? Effect.runPromise(this.dispatcher.close) : this.delegate?.shutdown());
+    await this.delegate?.shutdown();
   }
 }

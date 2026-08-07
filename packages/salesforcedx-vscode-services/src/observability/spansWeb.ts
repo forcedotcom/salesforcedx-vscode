@@ -9,13 +9,11 @@ import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
-import { DefaultOrgIdentity } from '../core/defaultOrgIdentity';
 import { isProductionTelemetryExportEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
-import { OrgTelemetryPolicy } from './orgTelemetryPolicy';
 import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
@@ -23,8 +21,6 @@ import { SpanTransformProcessor } from './spanTransformProcessor';
 export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
   WebSdk.layer(
     Effect.gen(function* () {
-      const policy = yield* OrgTelemetryPolicy;
-      const identity = yield* DefaultOrgIdentity;
       return {
         resource: {
           serviceName: extensionName,
@@ -41,63 +37,32 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           // first and unconditional: rewrites secret-shaped text during onEnding, which MultiSpanProcessor
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
-          ...(getConsoleTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new ConsoleSpanExporter(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : []),
+          ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
           // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export (mid-session toggle)
-          new SpanTransformProcessor(
-            new GatedSpanExporter(
-              () => new ApplicationInsightsWebExporter(),
-              () => isProductionTelemetryExportEnabled(),
-              process.env.ESBUILD_WEB_LOCAL === '1' ? undefined : policy
-            ),
-            undefined,
+          new SpanTransformProcessor({
+            exporter: new GatedSpanExporter({
+              make: () => new ApplicationInsightsWebExporter(),
+              isEnabled: () => isProductionTelemetryExportEnabled(),
+              bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
+            }),
             // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
-            () => isProductionTelemetryExportEnabled(),
-            identity.getTelemetryIdentitySnapshot
-          ),
+            shouldEnrich: () => isProductionTelemetryExportEnabled()
+          }),
           // O11y processor present whenever an endpoint is configured; gate (localhost bypass + telemetry setting) lives in the wrapper
           ...(o11yEndpoint
             ? [
-                new SpanTransformProcessor(
-                  new GatedSpanExporter(
-                    () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
-                    () => isProductionTelemetryExportEnabled(o11yEndpoint),
-                    process.env.ESBUILD_WEB_LOCAL === '1' ? undefined : policy
-                  ),
-                  undefined,
-                  () => isProductionTelemetryExportEnabled(o11yEndpoint),
-                  identity.getTelemetryIdentitySnapshot
-                )
+                new SpanTransformProcessor({
+                  exporter: new GatedSpanExporter({
+                    make: () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
+                    isEnabled: () => isProductionTelemetryExportEnabled(o11yEndpoint),
+                    bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
+                  }),
+                  shouldEnrich: () => isProductionTelemetryExportEnabled(o11yEndpoint)
+                })
               ]
             : []),
-          ...(getLocalTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new OTLPTraceExporter(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : []),
-          ...(getFileTracesEnabled()
-            ? [
-                new SpanTransformProcessor(
-                  new OtlpFileSpanExporterWeb(),
-                  undefined,
-                  undefined,
-                  identity.getTelemetryIdentitySnapshot
-                )
-              ]
-            : [])
+          ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
+          ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterWeb() })] : [])
         ]
       };
     })

@@ -18,7 +18,6 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { DefaultOrgIdentity } from '../../../src/core/defaultOrgIdentity';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -66,12 +65,7 @@ const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
 const buildLayer = (targetOrg: string | undefined = ALIAS) =>
   Layer.provide(
     ConnectionService.DefaultWithoutDependencies,
-    Layer.mergeAll(
-      mockConfigService(targetOrg),
-      mockSettingsService(),
-      mockAliasService([ALIAS]),
-      DefaultOrgIdentity.Default
-    )
+    Layer.mergeAll(mockConfigService(targetOrg), mockSettingsService(), mockAliasService([ALIAS]))
   );
 
 type ConnOverrides = {
@@ -289,12 +283,10 @@ const MockAliasServiceLayer = Layer.succeed(
 const MockSettingsServiceLayer = Layer.succeed(SettingsService, SettingsService.make({} as unknown as SettingsService));
 
 const serviceLayer = ConnectionService.DefaultWithoutDependencies.pipe(
-  Layer.provideMerge(
-    Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer, DefaultOrgIdentity.Default)
-  )
+  Layer.provideMerge(Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer))
 );
 
-const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService | DefaultOrgIdentity>): Promise<A> =>
+const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
   Effect.runPromise(prog.pipe(Effect.provide(serviceLayer)));
 
 describe('ConnectionService.getConnection (desktop)', () => {
@@ -371,20 +363,15 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
   });
 
-  it('no-arg path captures AuthInfo orgId and instanceName in the private identity feed', async () => {
+  it('no-arg path captures AuthInfo orgId and instanceName', async () => {
     getPropertyValueMock.mockReturnValue('default@example.com');
     connectionCreateMock.mockResolvedValue(makeDesktopConn('default@example.com'));
 
-    const identity = await run(
-      ConnectionService.getConnection().pipe(
-        Effect.zipRight(Effect.yieldNow()),
-        Effect.zipRight(DefaultOrgIdentity.get)
-      )
-    );
-    expect(identity).toEqual({ orgId: '00Dxx', instanceName: 'USA9S' });
-    expect(
-      await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.get(ref))))
-    ).not.toHaveProperty('instanceName');
+    await run(ConnectionService.getConnection());
+    expect(await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)))).toMatchObject({
+      orgId: '00Dxx',
+      instanceName: 'USA9S'
+    });
   });
 
   it('no-arg path with no configured target-org fails with NoTargetOrgConfiguredError', async () => {

@@ -10,8 +10,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
-import { DefaultOrgIdentity } from '../../../src/core/defaultOrgIdentity';
-import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { getDefaultOrgRef, getTelemetryIdentitySnapshot } from '../../../src/core/defaultOrgRef';
 import * as cliTelemetryModule from '../../../src/observability/cliTelemetry';
 import { seedTelemetryIdentities } from '../../../src/observability/seedTelemetryIdentities';
 import * as Schema from 'effect/Schema';
@@ -54,13 +53,8 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map([['telemetryUserId', PERSISTED_CLI_ID]]);
     const { update, layer } = buildContextService(state);
 
-    const snapshot = await Effect.runPromise(
-      seedTelemetryIdentities().pipe(
-        Effect.zipRight(DefaultOrgIdentity),
-        Effect.map(identity => identity.getTelemetryIdentitySnapshot()),
-        Effect.provide(Layer.merge(layer, DefaultOrgIdentity.Default))
-      )
-    );
+    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    const snapshot = getTelemetryIdentitySnapshot();
 
     const ref = await Effect.runPromise(getDefaultOrgRef());
     const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
@@ -80,9 +74,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(
-      seedTelemetryIdentities().pipe(Effect.provide(Layer.merge(layer, DefaultOrgIdentity.Default)))
-    );
+    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(update).toHaveBeenCalledWith('telemetryUserId', CLI_FROM_SF);
   });
@@ -93,9 +85,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(
-      seedTelemetryIdentities().pipe(Effect.provide(Layer.merge(layer, DefaultOrgIdentity.Default)))
-    );
+    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     const persistedCliId = state.get('telemetryUserId');
     expect(persistedCliId).toMatch(/^[0-9a-f-]{36}$/);
@@ -108,9 +98,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map();
     const { layer } = buildContextService(state);
 
-    await Effect.runPromise(
-      seedTelemetryIdentities().pipe(Effect.provide(Layer.merge(layer, DefaultOrgIdentity.Default)))
-    );
+    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(cliSpy).not.toHaveBeenCalled();
     const persistedCliId = state.get('telemetryUserId');
@@ -123,9 +111,7 @@ describe('seedTelemetryIdentities', () => {
     const state: GlobalState = new Map([['telemetryWebUserId', 'sha256-existing']]);
     const { update, layer } = buildContextService(state);
 
-    await Effect.runPromise(
-      seedTelemetryIdentities().pipe(Effect.provide(Layer.merge(layer, DefaultOrgIdentity.Default)))
-    );
+    await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     expect(update).not.toHaveBeenCalledWith('telemetryWebUserId', expect.anything());
     const ref = await Effect.runPromise(getDefaultOrgRef());
