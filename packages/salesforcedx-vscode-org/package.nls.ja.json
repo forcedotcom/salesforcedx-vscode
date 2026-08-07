@@ -1,4 +1,5 @@
 {
+  "alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
   "config_set_org_text": "SFDX: Set a Default Org",
   "org_create_default_scratch_org_text": "SFDX: Create a Default Scratch Org...",
   "org_delete_default_text": "SFDX: Delete Default Org",

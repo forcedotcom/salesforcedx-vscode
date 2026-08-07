@@ -22,7 +22,6 @@ export const messages = {
   config_list_column_location: 'Location',
   config_list_table_title: 'List Config',
   config_list_no_results: 'No results found',
-  alias_list_text: 'SFDX: List All Aliases',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',

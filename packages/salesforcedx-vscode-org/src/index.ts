@@ -17,6 +17,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { getOrgChannelService, setOrgChannel } from './channels';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
+import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';
@@ -75,6 +76,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   setOrgChannel(orgChannel);
   extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand('sf.org.delete.username', orgDeleteUsernameCommand);

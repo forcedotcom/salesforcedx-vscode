@@ -1,5 +1,4 @@
 {
-  "alias_list_text": "SFDX: List All Aliases",
   "config_list_text": "SFDX: List All Config Variables",
   "core_settings_title": "Salesforce Core Configuration",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
