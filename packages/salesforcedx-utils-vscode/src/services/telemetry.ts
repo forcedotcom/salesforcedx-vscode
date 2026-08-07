@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getServicesApi } from '@salesforce/effect-ext-utils';
-import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils/out/src/helpers/isLoopbackHttpEndpoint';
+import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -16,7 +16,6 @@ import {
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, extensions, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
 import {
@@ -52,78 +51,27 @@ type IdentityFromServices = {
   webUserId: string;
 } & OrgIdentity;
 
-const FALLBACK_IDENTITY: IdentityFromServices = {
-  cliId: undefined,
-  webUserId: UNAUTHENTICATED_USER,
-  orgId: undefined,
-  orgShape: undefined,
-  devHubId: undefined,
-  orgEdition: undefined
+const identityFromSnapshot = (
+  snapshot: ReturnType<SalesforceVSCodeServicesApi['services']['TelemetryIdentitySnapshot']>
+): IdentityFromServices => ({
+  cliId: snapshot.cliId,
+  webUserId: snapshot.webUserId ?? UNAUTHENTICATED_USER,
+  orgId: snapshot.orgId,
+  orgShape: shapeFrom(snapshot),
+  devHubId: snapshot.devHubOrgId,
+  orgEdition: snapshot.orgEdition
+});
+
+const getIdentitySnapshotFromServices = (): IdentityFromServices => {
+  const extension = extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services');
+  if (!extension?.isActive) throw new Error('Salesforce VS Code Services extension is not active');
+  return identityFromSnapshot(extension.exports.services.TelemetryIdentitySnapshot());
 };
 
-const fallback = Effect.succeed(FALLBACK_IDENTITY);
-
-type ServicesTelemetryIdentitySnapshot = Readonly<{
-  cliId?: string;
-  webUserId?: string;
-  orgId?: string;
-  isScratch?: boolean;
-  isSandbox?: boolean;
-  alias?: string;
-  username?: string;
-  devHubOrgId?: string;
-  orgEdition?: string;
-}>;
-
-const getIdentitySnapshotFromServices = (): IdentityFromServices | undefined => {
-  const api = extensions.getExtension<{
-    services?: { TelemetryIdentitySnapshot?: () => ServicesTelemetryIdentitySnapshot };
-  }>('salesforce.salesforcedx-vscode-services');
-  const snapshot = api?.isActive ? api.exports.services?.TelemetryIdentitySnapshot?.() : undefined;
-  return snapshot
-    ? {
-        cliId: snapshot.cliId,
-        webUserId: snapshot.webUserId ?? UNAUTHENTICATED_USER,
-        orgId: snapshot.orgId,
-        orgShape: shapeFrom(snapshot),
-        devHubId: snapshot.devHubOrgId,
-        orgEdition: snapshot.orgEdition
-      }
-    : undefined;
-};
-
-/** Pull telemetry identity from the services extension. Logs and recovers known error tags. */
+/** Pull telemetry identity from the services extension. */
 const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
   Effect.runPromise(
-    getServicesApi.pipe(
-      Effect.flatMap(api => api.services.TargetOrgRef()),
-      Effect.flatMap(SubscriptionRef.get),
-      Effect.map(
-        ({
-          cliId,
-          webUserId,
-          orgId,
-          isScratch,
-          isSandbox,
-          orgEdition,
-          devHubOrgId,
-          alias,
-          username
-        }): IdentityFromServices => ({
-          cliId,
-          webUserId: webUserId ?? UNAUTHENTICATED_USER,
-          orgId,
-          orgShape: shapeFrom({ isScratch, isSandbox, alias, username }),
-          devHubId: devHubOrgId,
-          orgEdition
-        })
-      ),
-      Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
-      Effect.catchTags({
-        ServicesExtensionNotFoundError: () => fallback,
-        InvalidServicesApiError: () => fallback
-      })
-    )
+    getServicesApi.pipe(Effect.map(api => identityFromSnapshot(api.services.TelemetryIdentitySnapshot())))
   );
 
 type CommandMetric = {
@@ -132,7 +80,7 @@ type CommandMetric = {
   executionTime?: string;
 };
 
-type ProductionTelemetryPayload = Readonly<{
+type TelemetryPayload = Readonly<{
   kind: 'event' | 'exception';
   name: string;
   message?: string;
@@ -161,8 +109,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   private extensionContext: ExtensionContext | undefined;
   private reporters: TelemetryReporter[] = [];
   private productionReporters: (AppInsights | O11yReporter)[] = [];
-  private productionDispatcher: GovernedEgressDispatcher<ProductionTelemetryPayload> | undefined;
-  private currentIdentity: IdentityFromServices = FALLBACK_IDENTITY;
+  private productionDispatcher: GovernedEgressDispatcher<TelemetryPayload> | undefined;
   private productFeatureId: string | undefined;
   private disposed = false;
   private pendingTelemetry = new Set<Promise<void>>();
@@ -245,7 +192,6 @@ export class TelemetryService implements TelemetryServiceInterface {
     if (this.reporters.length === 0 && !this.productionDispatcher && (await this.isTelemetryEnabled())) {
       const identity = await this.getIdentityFromServices();
       const { cliId, webUserId } = identity;
-      this.currentIdentity = identity;
       this.warnDegradedSession(cliId);
       const userId = cliId ?? '';
       const reporterConfig: TelemetryReporterConfig = {
@@ -317,7 +263,6 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     // Sourced from services-owned identity; webUserId always defined (UNAUTHENTICATED_USER until auth).
     const { cliId, webUserId, orgId, orgShape, devHubId, orgEdition } = await this.getIdentityFromServices();
-    this.currentIdentity = { cliId, webUserId, orgId, orgShape, devHubId, orgEdition };
     this.warnDegradedSession(cliId);
     const userId = cliId ?? '';
     const orgIdentity = { orgId, orgShape, devHubId, orgEdition };
@@ -495,10 +440,9 @@ export class TelemetryService implements TelemetryServiceInterface {
    *
    * @param callback function to call if telemetry is enabled
    */
-  private sendTelemetryItem(item: Omit<ProductionTelemetryPayload, 'identity' | 'productFeatureId'>): void {
-    const authoritativeIdentity = getIdentitySnapshotFromServices();
-    const identity = authoritativeIdentity ?? this.currentIdentity;
-    const payload: ProductionTelemetryPayload = Object.freeze({
+  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity' | 'productFeatureId'>): void {
+    const identity = getIdentitySnapshotFromServices();
+    const payload: TelemetryPayload = Object.freeze({
       ...item,
       properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
       measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
@@ -514,8 +458,7 @@ export class TelemetryService implements TelemetryServiceInterface {
             console.error(error);
           }
         });
-        // The private snapshot is the only synchronous authoritative source. Never substitute the cached public org.
-        if (this.productionDispatcher && authoritativeIdentity) {
+        if (this.productionDispatcher) {
           await Effect.runPromise(this.productionDispatcher.submit({ orgId: payload.identity.orgId, payload }));
         }
       })
@@ -533,7 +476,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
   }
 
-  private sendToReporter(reporter: TelemetryReporter, payload: ProductionTelemetryPayload): void {
+  private sendToReporter(reporter: TelemetryReporter, payload: TelemetryPayload): void {
     if (payload.kind === 'event') {
       reporter.sendTelemetryEvent(payload.name, payload.properties, payload.measurements);
       return;
@@ -544,7 +487,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   private makeProductionSink(
     config: TelemetryReporterConfig,
     o11yUploadEndpoint: string | undefined
-  ): Effect.Effect<GovernedEgressSink<ProductionTelemetryPayload>, unknown> {
+  ): Effect.Effect<GovernedEgressSink<TelemetryPayload>, unknown> {
     return Effect.sync(() => {
       const initializeAppInsights = this.stickyReporterInitialization(() =>
         Promise.resolve(
@@ -568,7 +511,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       const sendWith = async (
         label: string,
         initialize: (() => Promise<AppInsights | O11yReporter>) | undefined,
-        payload: ProductionTelemetryPayload
+        payload: TelemetryPayload
       ) => {
         if (!initialize) return;
         try {

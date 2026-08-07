@@ -215,6 +215,15 @@ describe('Telemetry', () => {
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
 
+      jest.spyOn(extensions, 'getExtension').mockReturnValue({
+        isActive: true,
+        exports: {
+          services: {
+            TelemetryIdentitySnapshot: () => ({ cliId: 'cli', webUserId: 'web' })
+          }
+        }
+      } as any);
+
       // Enable telemetry for testing by mocking the validation method to call the callback directly
       (instance as any).validateTelemetry = jest.fn((callback: () => void) => {
         callback(); // Call immediately for testing

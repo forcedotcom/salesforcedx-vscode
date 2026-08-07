@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils/out/src/helpers/isLoopbackHttpEndpoint';
+import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
