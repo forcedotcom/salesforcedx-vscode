@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
@@ -18,22 +19,20 @@ import { isTraceFlagActive } from './traceFlagActive';
 export const SCHEME = 'sf-traceflags';
 
 type TraceFlagsByLogType = {
-  DEVELOPER_LOG?: TraceFlagItem[];
-  USER_DEBUG?: TraceFlagItem[];
-  CLASS_TRACING?: TraceFlagItem[];
-  TRIGGERS?: TraceFlagItem[];
+  DEVELOPER_LOG: TraceFlagItem[];
+  USER_DEBUG: TraceFlagItem[];
+  CLASS_TRACING: TraceFlagItem[];
+  TRIGGERS: TraceFlagItem[];
 };
 
 const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
   const active = items.filter(isTraceFlagActive);
-  const g = Object.groupBy(active, item => (item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType));
-  // Object.groupBy returns Partial; we ensure all keys exist
-  // const g: Partial<Record<keyof TraceFlagsByLogType, TraceFlagItem[]>> = grouped;
+  const grouped = Arr.groupBy(active, item => (item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType));
   return {
-    DEVELOPER_LOG: g.DEVELOPER_LOG ?? [],
-    USER_DEBUG: g.USER_DEBUG ?? [],
-    CLASS_TRACING: g.CLASS_TRACING ?? [],
-    TRIGGERS: g.TRIGGERS ?? []
+    DEVELOPER_LOG: grouped.DEVELOPER_LOG ?? [],
+    USER_DEBUG: grouped.USER_DEBUG ?? [],
+    CLASS_TRACING: grouped.CLASS_TRACING ?? [],
+    TRIGGERS: grouped.TRIGGERS ?? []
   };
 };
 
