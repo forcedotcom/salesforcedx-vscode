@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { DeployResult } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { getMergedDeployFailures } from './getMergedDeployFailures';
@@ -41,7 +42,7 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
   const failed = yield* getMergedDeployFailures(result);
   const applied = deployAppliedToOrg(result);
 
-  const { deploys = [], deleted = [] } = Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
+  const { deploys = [], deleted = [] } = Arr.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
     getComponentState(fr) === 'deleted' ? 'deleted' : 'deploys'
   );
 
