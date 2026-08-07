@@ -50,7 +50,8 @@ export const messages = {
   org_metadata_catalog_no_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
   org_metadata_catalog_state_missing:
     'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
-  org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s'
+  org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s',
+  org_operation_superseded: 'The active org changed before this operation finished. Run it again for the current org.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

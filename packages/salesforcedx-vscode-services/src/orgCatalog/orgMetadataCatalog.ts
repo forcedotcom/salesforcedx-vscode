@@ -273,9 +273,9 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
      */
     const closeOrg = Effect.fn('OrgMetadataCatalog.closeOrg')(function* (orgId: string) {
       yield* Effect.logInfo('Closing org catalog', { orgId });
-      // Flush dirty state to disk
-      yield* state.persistOrg(orgId);
-      yield* Effect.logDebug('Org catalog closed', { orgId });
+      const persisted = yield* state.flushOrg(orgId);
+      yield* Effect.annotateCurrentSpan({ orgId, persisted });
+      yield* Effect.logDebug('Org catalog closed', { orgId, persisted });
     });
 
     return {

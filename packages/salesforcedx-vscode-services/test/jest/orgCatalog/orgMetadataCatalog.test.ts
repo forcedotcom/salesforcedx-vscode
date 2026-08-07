@@ -510,6 +510,30 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.storeSave).not.toHaveBeenCalled();
   });
 
+  it('does not persist a clean catalog when the org closes', async () => {
+    const { layer, mocks } = makeHarness();
+
+    await runWithCatalog(layer, catalog => catalog.closeOrg('org-one'));
+
+    expect(mocks.storeSave).not.toHaveBeenCalled();
+  });
+
+  it('flushes a dirty catalog exactly once when the org closes', async () => {
+    const { layer, mocks } = makeHarness({
+      metadataByType: { ApexClass: [{ fullName: 'RemoteTest' }] }
+    });
+
+    await runWithCatalog(layer, catalog =>
+      Effect.gen(function* () {
+        yield* catalog.getEntry({ xmlName: 'ApexClass', fullName: 'RemoteTest' });
+        yield* catalog.closeOrg('org-one');
+      })
+    );
+
+    expect(mocks.storeSave).toHaveBeenCalledTimes(1);
+    expect(mocks.storeSave).toHaveBeenCalledWith(expect.objectContaining({ orgId: 'org-one', generation: 1 }));
+  });
+
   it('restores persisted inventory after a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
     const first = makeHarness({

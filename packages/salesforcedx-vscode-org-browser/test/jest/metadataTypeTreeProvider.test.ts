@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import {
   MetadataTypeTreeProvider,
   passesTypeFilter,
-  applyViewModeChildFilter
+  applyViewModeChildFilter,
+  suppressInactiveOrgOperation
 } from '../../src/tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from '../../src/tree/orgBrowserNode';
 
@@ -93,6 +95,38 @@ describe('MetadataTypeTreeProvider text filter state', () => {
     expect(provider.typeFilter).toBeUndefined();
     expect(provider.componentFilter).toBeUndefined();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('MetadataTypeTreeProvider root node identity', () => {
+  it('reuses the same root element for a metadata type across refresh projections', () => {
+    const provider = new MetadataTypeTreeProvider();
+
+    const firstAuraNode = provider.getTypeNode('AuraDefinitionBundle');
+    const secondAuraNode = provider.getTypeNode('AuraDefinitionBundle');
+    const actionLinkNode = provider.getTypeNode('ActionLinkGroupTemplate');
+
+    expect(secondAuraNode).toBe(firstAuraNode);
+    expect(firstAuraNode.id).toBe('AuraDefinitionBundle');
+    expect(firstAuraNode.xmlName).toBe('AuraDefinitionBundle');
+    expect(actionLinkNode).not.toBe(firstAuraNode);
+  });
+});
+
+describe('superseded org requests', () => {
+  it('discards children from an acquisition tied to the former org', async () => {
+    const children = await Effect.runPromise(
+      suppressInactiveOrgOperation(
+        Effect.fail({
+          _tag: 'InactiveOrgOperationError' as const,
+          message: 'org changed',
+          expectedOrgId: 'org-one',
+          observedOrgId: 'org-two'
+        })
+      )
+    );
+
+    expect(children).toEqual([]);
   });
 });
 

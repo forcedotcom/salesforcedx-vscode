@@ -136,6 +136,19 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       yield* Queue.offer(persistenceRequests, orgId);
     });
 
+    /** Atomically claims and persists an org only when it has pending catalog changes. */
+    const flushOrg = Effect.fn('OrgMetadataCatalog.flushOrg')(function* (orgId: string) {
+      const dirty = yield* Ref.modify(dirtyOrgIds, current => {
+        if (!current.has(orgId)) return [false, current];
+        const remaining = new Set(current);
+        remaining.delete(orgId);
+        return [true, remaining];
+      });
+      if (dirty) yield* persistOrg(orgId);
+      yield* Effect.annotateCurrentSpan({ orgId, dirty, persisted: dirty });
+      return dirty;
+    });
+
     yield* Effect.forever(
       Effect.gen(function* () {
         yield* Queue.take(persistenceRequests);
@@ -418,6 +431,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
 
     return {
       ensureHydrated,
+      flushOrg,
       getInventory,
       getInventorySemaphore,
       getMetadataListing,

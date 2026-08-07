@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
+import type { MetadataTypeObservation, TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
@@ -30,6 +30,16 @@ const makeStore = (snapshot?: OrgMetadataCatalogSnapshot) => {
   );
   return { load, save, saved, stateLayer };
 };
+
+const metadataTypeObservation = (xmlName: string): MetadataTypeObservation => ({
+  xmlName,
+  directoryName: xmlName === 'ApexClass' ? 'classes' : 'objects',
+  inFolder: false,
+  metaFile: true,
+  childXmlNames: [],
+  observedAt: '2026-08-07T12:00:00.000Z',
+  ...(xmlName === 'ApexClass' ? { suffix: 'cls' } : {})
+});
 
 describe('OrgCatalogState', () => {
   it('persists remote inventory without retaining workspace-only presence', async () => {
@@ -121,5 +131,97 @@ describe('OrgCatalogState', () => {
     expect(result.inventory?.components).toEqual([expect.objectContaining({ fullName: 'RemoteTest' })]);
     expect(result.tracking.get('ApexClass\0RemoteTest')?.signature).toBe('Changed|7');
     expect(saved[0]?.generation).toBe(8);
+  });
+
+  it('flushes dirty state when its scope closes before the debounce elapses', async () => {
+    const { saved, stateLayer } = makeStore();
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        yield* state.setMetadataTypes('org-one', [metadataTypeObservation('ApexClass')]);
+        yield* state.queuePersist('org-one');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toMatchObject({
+      version: 2,
+      orgId: 'org-one',
+      generation: 1,
+      metadataTypes: [expect.objectContaining({ xmlName: 'ApexClass' })]
+    });
+  });
+
+  it('flushes every dirty org exactly once when its scope closes', async () => {
+    const { saved, stateLayer } = makeStore();
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        yield* state.ensureHydrated('org-two');
+        yield* state.setMetadataTypes('org-one', [metadataTypeObservation('ApexClass')]);
+        yield* state.setMetadataTypes('org-two', [metadataTypeObservation('CustomObject')]);
+        yield* state.queuePersist('org-one');
+        yield* state.queuePersist('org-two');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(saved).toHaveLength(2);
+    expect(saved).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ orgId: 'org-one', generation: 1 }),
+        expect.objectContaining({ orgId: 'org-two', generation: 1 })
+      ])
+    );
+  });
+
+  it('does not persist a clean hydrated org when its scope closes', async () => {
+    const { saved, stateLayer } = makeStore();
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(saved).toHaveLength(0);
+  });
+
+  it('does not persist a clean org when it is explicitly flushed', async () => {
+    const { saved, stateLayer } = makeStore();
+
+    const persisted = await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        return yield* state.flushOrg('org-one');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(persisted).toBe(false);
+    expect(saved).toHaveLength(0);
+  });
+
+  it('persists a dirty org exactly once when it is explicitly flushed', async () => {
+    const { saved, stateLayer } = makeStore();
+
+    const results = await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        yield* state.setMetadataTypes('org-one', [metadataTypeObservation('ApexClass')]);
+        yield* state.queuePersist('org-one');
+        const first = yield* state.flushOrg('org-one');
+        const second = yield* state.flushOrg('org-one');
+        return [first, second] as const;
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(results).toEqual([true, false]);
+    expect(saved).toEqual([expect.objectContaining({ orgId: 'org-one', generation: 1 })]);
   });
 });

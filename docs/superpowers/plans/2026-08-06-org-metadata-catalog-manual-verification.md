@@ -739,7 +739,7 @@ Validates the authoritative org ID is shared by connections, caches, and the rec
 - Second org ID: `00DRu00000VgOwvMAF`
 - Second catalog: `.sf/orgs/00DRu00000VgOwvMAF/metadata-catalog/catalog.json`
 
-### Evidence/notes
+### Previous-run evidence (2026-08-06)
 
 - A new scratch org was created in the same workspace, made the default org, and used to open Org Browser and run Refresh All SObjects.
 - The second catalog is schema version 2, generation 70, and was written at `2026-08-06T18:49:22.134Z`.
@@ -750,6 +750,23 @@ Validates the authoritative org ID is shared by connections, caches, and the rec
 - After switching back, workspace configuration again targeted alias `dreamhouselwcclean`. The restored original catalog was generation 443 and retained ten metadata listings, 733 SObject descriptions, its tracking observation, `Broker__c`, `Property__c`, and `FooTest`, with no mismatched SObject org IDs.
 - The second catalog remained separately intact with 1,389 SObject descriptions, no original custom objects, no `FooTest`, no tracking observations, and no mismatched SObject org IDs.
 - Final item 14 result: **PASS**
+
+### Retest evidence (2026-08-07)
+
+- Workspace: `/Users/peter.hale/git/dreamhouse-lwc-clean`
+- Current target-org alias (org A): `dreamhouselwcclean-2`
+- Current org A ID: `00DRu00000VgOwvMAF`
+- Org A catalog: `.sf/orgs/00DRu00000VgOwvMAF/metadata-catalog/catalog.json`
+- Org A baseline: schema version 2, generation `293`, written at `2026-08-07T12:40:50.762Z`, file modification time `2026-08-07 06:40:54 MDT`, and size 42,276,288 bytes.
+- Org A contents: 192 metadata types, eight metadata listings, no projected inventories, 1,397 SObject descriptions, and one tracking observation.
+- Candidate org B ID: `00DWL00000DER2V2AX`; its independent catalog baseline remains present at generation `448`, with ten metadata listings, one projected inventory, 733 SObject descriptions, and one tracking observation.
+- Switched from org A to org B. After the switch, org A was generation `309`, written at `2026-08-07T12:44:41.263Z` with file modification time `2026-08-07 06:44:41 MDT`; org B was generation `460`, written at `2026-08-07T12:44:50.943Z` with file modification time `2026-08-07 06:44:51 MDT`.
+- Both org-specific snapshot paths remain present. All 1,397 org A SObject descriptions carry org A's ID, and all 733 org B descriptions carry org B's ID; neither snapshot contains a mismatched description org ID.
+- Metadata observations remain independent: org B retains `FooTest`, while org A does not. Both orgs now contain the deployed Dreamhouse objects, so `Broker__c` and `Property__c` are no longer useful isolation discriminators.
+- The exported telemetry includes successful catalog saves after both switches and refreshes, but no `OrgMetadataCatalog.closeOrg` span. Because later spans from the same process have exported, this can no longer be attributed confidently to buffering; close-path execution and ordering remain unproven.
+- Org Browser was refreshed against org B and then refreshed again after switching back to org A. The project target returned to `dreamhouselwcclean-2`.
+- After both refreshes, org A was generation `314`, written at `2026-08-07T12:50:07.517Z`, with 1,397 correctly keyed SObject descriptions, eight listings, and no `FooTest`. Org B was generation `465`, written at `2026-08-07T12:49:45.683Z`, with 733 correctly keyed descriptions, ten listings, and `FooTest` retained.
+- No SObject description in either catalog carries the other org's ID. Final item 14 retest result: **PASS**.
 
 ## 15. Persistence Burst and Shutdown
 
@@ -773,7 +790,7 @@ Validates persistence coalescing and dirty-state flushing.
 - [x] Version 2 state restores after restart.
 - [x] Org Browser and other consumers work from the restored state.
 
-### Evidence/notes
+### Previous-run evidence (2026-08-06)
 
 - Test org: `00DRu00000VgOwvMAF` (`dreamhouselwcclean-2`).
 - Before restarting, the org-specific folder was manually removed while its catalog state had previously been loaded. The catalog was recreated by the time the Extension Development Host started, consistent with shutdown flushing/restoration of service-owned state rather than dependence on Org Browser activation.
@@ -794,6 +811,80 @@ Validates persistence coalescing and dirty-state flushing.
 - SOQL completion for `AccountFeed` worked after restart. Exactly one description remained, keyed to `00DRu00000VgOwvMAF`, with its original `2026-08-06T18:48:48.030Z` observation, `rest-api` provenance, and 17 fields.
 - Final item 15 result: **PASS**
 
+### Retest evidence (2026-08-07)
+
+- Workspace: `/Users/peter.hale/git/dreamhouse-lwc-clean`.
+- The `.sf/orgs` directory was reset before the retest. The Extension Development Host was then started with Org Browser still closed and project target-org alias `dreamhouselwcclean`, resolving to org `00DWL00000DER2V2AX`.
+- Before Org Browser activation, the host recreated `.sf/orgs/00DWL00000DER2V2AX/metadata-catalog/catalog.json` as a formatted schema-version-2 snapshot.
+- Baseline snapshot: generation `16`, written at `2026-08-07T13:00:59.538Z`, file modification time `2026-08-07 07:00:59 MDT`, and size 18,927 bytes.
+- Baseline contents: no metadata types, metadata listings, projected inventories, SObject list, or SObject descriptions; 97 source-tracking observations were captured independently of Org Browser.
+- A repeated read after the host settled showed the same generation, timestamp, modification time, and size. The pre-browser catalog was not continuously rewriting.
+- Org Browser was opened and several previously undiscovered types were expanded in a concentrated sequence, including types with components and empty types.
+- The acquisition burst settled at generation `31`, written at `2026-08-07T13:04:03.982Z`, file modification time `2026-08-07 07:04:03 MDT`, and size 209,179 bytes.
+- The snapshot contains 192 metadata types plus seven listings and seven matching inventories: `AnimationRule` (0 components), `ApexClass` (10), `ApexPage` (0), `ApexTrigger` (0), `CustomLabels` (1), `CustomMetadata` (0), and `CustomObject` (278).
+- After a further six-second observation window, generation, written timestamp, file modification time, size, listing count, and inventory count were unchanged. No persistence storm continued after the burst.
+- `jq empty` validated the JSON, and inspection confirmed the snapshot remains formatted and readable.
+- During the first final-discovery attempt, the user accepted an `Aur*` filter, then expanded the sole visible `AuraDefinitionBundle` row. The host trace instead recorded `getChildrenOfTreeItem` with `element=ActionLinkGroupTemplate`, requested `ActionLinkGroupTemplate`, and recorded an empty listing under that key. The filtered Aura row was replaced by the empty-tree message.
+- Repeating the same actions more deliberately on the same unchanged Extension Development Host succeeded: the trace dispatched `AuraDefinitionBundle`, the tree displayed its `pageTemplate_2_7_3` child, and OMC recorded the matching provider listing and inventory.
+- The durable shutdown marker is now the `AuraDefinitionBundle` listing observed at `2026-08-07T13:24:37.026Z`, containing `pageTemplate_2_7_3`. The snapshot reached generation `48`, written at `2026-08-07T13:24:37.280Z`, with the matching inventory present.
+- After normal host reload, the schema-version-2 snapshot restored the Aura listing with the exact original `2026-08-07T13:24:37.026Z` provider timestamp and `pageTemplate_2_7_3` component. Its inventory was rebuilt at `2026-08-07T13:33:29.392Z`, proving normalized observation restoration rather than provider reacquisition.
+- The post-reload catalog was generation `65`, written at `2026-08-07T13:33:29.655Z`, with nine retained normalized listings and the current Aura projection. Org Browser rendered the restored Aura child correctly.
+- The manual run alone does not isolate a dirty-at-shutdown checkpoint: the Aura observation was already visible in the on-disk generation-48 snapshot before shutdown, and the old process did not export a final save span that proves additional dirty state was flushed. Deterministic scoped-service coverage below supplies that remaining evidence.
+- A later host cycle occurred with default org `00DRu00000VgOwvMAF` active. Process `39355` exported the Org Browser deactivation span but no catalog save at shutdown, consistent with an empty dirty set rather than an attempted redundant checkpoint.
+- After restart, org B (`00DWL00000DER2V2AX`) remained independently unchanged at generation `79`, written at `2026-08-07T13:36:17.269Z`, with its nine listings and restored Aura observation. The active org A snapshot advanced independently to generation `43`, with 192 metadata types, no listings or inventories, and 96 tracking observations. This cycle reinforces clean-shutdown deduplication and org isolation, but still does not exercise dirty-state finalization.
+- Deterministic scoped-service coverage now closes the dirty-finalizer gap. `orgCatalogState.test.ts` queues dirty state and ends the service scope before the 250 ms debounce can elapse, proving the finalizer saves the normalized observation. Companion cases prove every dirty org is saved exactly once and a clean hydrated org performs no shutdown write.
+- Focused result: all five `OrgCatalogState` tests pass, including the three shutdown-finalizer cases. Final item 15 retest result: **PASS**.
+
+## 16. Org-Switch Flush
+
+Validates the org-switch lifecycle handling added in `0100ad37d`: `OrgMetadataCatalog.closeOrg()`, wired to `TargetOrgRef.changes`, flushes the previously tracked org's catalog state via `state.persistOrg()` when the listener observes a different org ID.
+
+This listener does not establish a global ordering boundary before the new org becomes active. `TargetOrgRef` has already emitted the new value, and other subscribers may react concurrently; the verification scope is the previous-org flush performed by this listener.
+
+`closeOrg` now atomically claims and persists only dirty state. A clean org switch must leave the outgoing snapshot's generation and modification time unchanged. If the debounce worker already claimed pending state, it remains responsible for that checkpoint; the close path does not create a duplicate write.
+
+Run the clean-close check with Org Browser closed. Opening Org Browser intentionally refreshes metadata for the active org because its persisted catalog may have become stale while another org was active. Likewise, use a single A → B switch and inspect only outgoing org A; switching back makes A active and intentionally refreshes it, invalidating the no-op premise.
+
+### Actions
+
+- [x] Switch the default org from org A to org B.
+- [x] Inspect the output channel for the org-change log line.
+- [x] Reload/start the Extension Development Host fresh (no prior org active) and confirm no spurious close-org activity occurs on the first org emission.
+- [x] Switch the default org from org A to org B when org A has no pending/dirty catalog state.
+- [x] Inspect org A's `catalog.json` generation and modification time after the no-op switch.
+
+### Expected results
+
+- [x] The output channel logs `Target org changed to <B>; closing previous org <A>` at the moment of switch.
+- [x] On first activation, with no previous org tracked, no `closeOrg` call or "closing previous org" log line occurs.
+- [x] The no-op switch (org A has no pending changes) succeeds without error.
+- [x] A metadata discovery superseded by an org switch is discarded silently; no error or informational notification appears.
+- [x] Record the original behavior: org A's `generation` advanced and `catalog.json` was rewritten on a no-op switch, establishing the clean-checkpoint regression that prompted the dirty-aware `closeOrg` change.
+- [x] With Org Browser closed, repeat one settled A → B switch and confirm outgoing org A's generation and modification time do not change. Do not switch back before capturing the result.
+
+### Evidence/notes
+
+- Switched from `00DRu00000VgOwvMAF` to `00DWL00000DER2V2AX` on 2026-08-07.
+- The Salesforce Services output channel logged `Target org changed to 00DWL00000DER2V2AX; closing previous org 00DRu00000VgOwvMAF`.
+- Org A advanced from the stable baseline generation `293` to `309`; org B advanced from `448` to `460`. Because catalog acquisition occurred around the switch, this run does not isolate the single unconditional `closeOrg` write and does not yet satisfy the separate no-op-switch check.
+- Later `OrgMetadataCatalog.refresh`, `OrgMetadataCatalog.persistOrg`, and `OrgMetadataCatalogStore.save` spans from the same process exported for both orgs, but no `OrgMetadataCatalog.closeOrg` span appeared after either switch. The output line is emitted before `yield* catalog.closeOrg(previousOrgId)`, so it proves branch entry but not close completion. Treat the missing span as an instrumentation or execution-path defect until diagnosed.
+- After reloading with the output-channel fix, process `98034` reproduced the result during another org switch and Org Browser refresh sequence: ordinary refresh/persist/save spans exported for both orgs, but no `OrgMetadataCatalog.closeOrg` span exported. This rules out a stale Extension Development Host as the cause.
+- A subsequent clean host start logged `Target org changed to <NOT SET>` followed by `Target org changed to 00DWL00000DER2V2AX`. Neither line included `closing previous org`, confirming the initial unset-to-resolved transition does not invoke the previous-org close branch.
+- Before another switch attempt, `.sf/orgs` was removed. Both org-specific snapshots were recreated successfully and remained isolated, but provider/status reacquisition caused multiple writes, so that run cannot satisfy the no-op-switch condition. No `OrgMetadataCatalog.closeOrg` span exported during this attempt either.
+- After recovery settled, org A (`00DRu00000VgOwvMAF`) was generation `23`, written at `2026-08-07T14:06:18.799Z`, with 192 metadata types and 96 tracking observations. Org B (`00DWL00000DER2V2AX`) was generation `23`, written at `2026-08-07T14:08:16.640Z`, with 192 metadata types and 97 tracking observations. Neither contained listings or inventories, and both remained unchanged across a subsequent six-second read.
+- A subsequent cold-start attempt opened Org Browser, waited at least five seconds, and switched orgs. The first switch displayed `The active org changed while an operation for '00DWL00000DER2V2AX' was in progress`; later switches did not display it.
+- Trace process `76906` shows an Org Browser root `getChildren` request captured the outgoing org ID, then `MetadataDescribeService.getConnectionForOrg` correctly rejected it after the active connection changed. This was expected stale-request cancellation incorrectly surfaced as a user notification, not cross-org catalog capture.
+- Org Browser now catches only `InactiveOrgOperationError` at its tree boundary, annotates the request as `supersededByOrgChange`, and returns no stale children while the independent target-org refresh loads the new root. It deliberately does not retry the outgoing org's request against the new org. The outgoing org retains its completed catalog observations and reacquires any missing slice on later consumer demand after it becomes active again. Compilation and all 15 focused provider tests pass; manual verification after reload remains.
+- Because the cold start and repeated switches advanced org A to generation `41` and org B to `50`, this attempt also does not isolate the single no-op close checkpoint.
+- After rebuilding the superseded-request handling, a rapid-switch stress run launched the host, opened Org Browser, immediately switched orgs, allowed the tree to refresh, then immediately switched and refreshed again. No notifications appeared. The final target was `dreamhouselwcclean` (`00DWL00000DER2V2AX`). Org A persisted generation `66` at `2026-08-07T14:24:48.903Z` with 192 metadata types and 96 tracking observations; org B persisted generation `68` at `2026-08-07T14:24:49.063Z` with 192 metadata types and 97 tracking observations. Both had zero metadata listings, inventories, SObject summaries, and SObject descriptions, which is consistent with root-only Org Browser refreshes. The snapshot `orgId` values matched their directory partitions; no cross-org observations were found.
+- The subsequent settled-state switch changed the target to `dreamhouselwcclean-2` (`00DRu00000VgOwvMAF`). The outgoing `00DWL00000DER2V2AX` snapshot advanced from generation `68` at `2026-08-07T14:24:49.063Z` to generation `74` at `2026-08-07T14:33:52.213Z`, despite retaining the same 192 metadata types, 97 tracking observations, and zero listings, inventories, SObject summaries, and SObject descriptions. The incoming org also wrote generation `70` at `2026-08-07T14:33:52.367Z`. This confirms the unconditional clean-state rewrite and leaves a follow-up to gate `closeOrg` persistence on dirty state.
+- `closeOrg` now delegates to an atomic dirty-only `OrgCatalogState.flushOrg`. Focused tests prove a clean explicit flush performs no save, a dirty explicit flush saves exactly once, a clean catalog close performs no save, and a dirty catalog close saves once before returning. Manual no-op-switch verification after rebuilding remains.
+- The post-fix no-op baseline was captured after launching the host and opening Org Browser for active org `00DRu00000VgOwvMAF`. After a further three-second settling interval, its snapshot remained generation `88`, written at `2026-08-07T14:39:24.294Z`, filesystem mtime epoch `1786113564`, size `65216`, and SHA-256 `d31ca3dea619800c402496f70aa8726de03ac31dd3b7016c6e85b73ba3197186`. The inactive `00DWL00000DER2V2AX` baseline was generation `74`, written at `2026-08-07T14:33:52.213Z`, mtime epoch `1786113232`, size `65369`, and SHA-256 `6a63594f388b3524502c07556482740a9dc68cafe6e42479e1a3e053e050407c`.
+- The first post-fix switch sequence advanced `00DRu00000VgOwvMAF` to generation `94` and `00DWL00000DER2V2AX` to generation `86` with unchanged counts. This does not test a clean close: Org Browser was open and intentionally refreshed each incoming org, and the A → B → A sequence made both orgs incoming. The attempted change that reduced target-org handling to a cached tree re-render was rejected because catalog data may be stale after an org has been inactive; Org Browser retains its existing refresh-on-target-change behavior. A valid clean-close check must keep Org Browser closed, switch only once, and inspect the outgoing org before switching back.
+- A valid cold-start baseline was captured without opening Org Browser. Active org A `00DRu00000VgOwvMAF` remained generation `124`, written at `2026-08-07T14:52:26.175Z`, mtime epoch `1786114346`, size `65217`, and SHA-256 `e1c196907cd678872a82853817e4e6bc720846ec980dae1eebc6f4749c4ff420` across a three-second settling check. Inactive org B `00DWL00000DER2V2AX` remained generation `86`, written at `2026-08-07T14:40:57.948Z`, mtime epoch `1786113657`, size `65369`, and SHA-256 `494c55b9b06b2f1401a05f898b19737680c38d0eabd6301f8e599c2c40b152f4`.
+- The check following that baseline was inconclusive because the configured target was still org A alias `dreamhouselwcclean-2`, rather than org B alias `dreamhouselwcclean`. Org A had advanced to generation `129` and org B to generation `96`, so either no effective one-way switch occurred or the sequence returned to A and made both orgs active. Repeat from a new stable baseline with one explicit switch to `dreamhouselwcclean`, then inspect before any switch back.
+- The valid one-way switch changed the target from org A alias `dreamhouselwcclean-2` to org B alias `dreamhouselwcclean`. Org A advanced independently from the earlier generation-129 baseline to generation `131` at `2026-08-07T14:54:58.836Z`, but trace timing shows that write completed about 22 seconds before the target change was observed at approximately `2026-08-07T14:55:20Z`. After the switch, outgoing org A remained generation `131`, mtime epoch `1786114498`, size `65217`, and SHA-256 `c94540c321391e76c0c91391022c7e7b7e68efbed372f4f1e1ee804e0725a4b4`; a later stability read was identical. Incoming org B wrote generation `102` at `2026-08-07T14:55:25.123Z`, which is allowed because becoming active can trigger fresh provider observations. This passes the dirty-aware no-op `closeOrg` check.
+
 ## Final Result
 
 - [x] Metadata type discovery passed.
@@ -810,11 +901,12 @@ Validates persistence coalescing and dirty-state flushing.
 - [x] Failed-operation behavior passed.
 - [x] Org isolation passed.
 - [x] Persistence burst and restoration passed.
+- [ ] Org-switch flush passed.
 
 Overall result:
 
 - [ ] PASS
-- [x] PASS WITH FOLLOW-UP
+- [ ] PASS WITH FOLLOW-UP
 - [ ] FAIL
 
 ## Defects and Follow-Ups
@@ -823,7 +915,11 @@ Overall result:
 | --- | --- | --- | --- | --- |
 | OMC-MV-002 | 2. Metadata Listing Discovery | A local Custom Object initially displayed no child fields. | Test setup: the `dreamhouse` permission set had not been assigned. After assignment, direct REST Describe and OMC contained all seven custom fields and Org Browser rendered them. | Closed |
 | OMC-MV-003 | 3. Foldered Metadata | Expanding a valid empty Report folder threw `FileNotADirectory` and displayed an unhelpful notification containing only the folder name. | Fixed and manually verified: all five folders now open without errors; empty folders return no children and `unfiled$public` returns six reports. | Closed |
+| OMC-MV-004 | 16. Org-Switch Flush | No `OrgMetadataCatalog.closeOrg` span is exported even though the org-change branch runs and the previous-org snapshot is checkpointed. | Later spans from process `75845` exported normally. The switch-only generation-465 checkpoint has no corresponding close, persist, or save span, indicating the background lifecycle trace is not exported. | Open |
+| OMC-MV-005 | 16. Org-Switch Flush | The Salesforce Services output channel was repeatedly populated with serialized `watchDefaultOrgContext` snapshots. | Removed the debug `Stream.tap` and unused `ChannelService` dependency from `vscode/context.ts`. Focused Jest and service compilation passed, and a host reload plus repeated org switches confirmed the messages no longer appear. | Closed |
 | OB-MV-001 | Follow-up outside OMC | Cold start does not restore Org Browser expansion or last-selected-node state. | Root refresh is working as designed and does not inherently prevent native tree state restoration. Stable normalized OMC observations restored correctly, and cached `AccountFeed` completion continued to work. | Deferred |
+| OB-MV-002 | 15. Persistence Burst and Shutdown | After accepting and saving an `Aur*` type filter, a rapid expansion of the sole visible `AuraDefinitionBundle` row was routed as `ActionLinkGroupTemplate`; repeating the actions slowly on the unchanged host routed Aura correctly. | Root type elements are now retained by XML name across filtering and catalog refreshes. Post-fix process `39355` returned root ID/label `AuraDefinitionBundle`, then expanded ID/label/XML name `AuraDefinitionBundle`; the correct child rendered. Compilation and all 14 focused tests pass. | Closed |
+| OB-MV-003 | 16. Org-Switch Flush | Switching orgs while an Org Browser root request was still resolving displayed an `InactiveOrgOperationError` notification. | The connection guard correctly rejected a request bound to the outgoing org. Org Browser now silently discards that superseded request without retrying it against the incoming org; the target-org watcher independently refreshes the new tree. Rapid back-to-back switches refreshed correctly with no notification, and persisted catalog partitions remained isolated. Compilation and all 15 focused tests pass. | Closed |
 
 ## Additional Notes
 
