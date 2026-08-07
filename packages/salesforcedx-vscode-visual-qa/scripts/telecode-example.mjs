@@ -13,10 +13,8 @@ const text = result => {
   if (!item || result.isError) throw new Error(item?.text ?? `${result}`);
   return JSON.parse(item.text);
 };
-
-try {
-  await client.connect(transport);
-  text(await call('start', { objective: 'Capture a repeatable VS Code observation', extensionMode: 'dev' }));
+const run = async objective => {
+  text(await call('start', { objective, extensionMode: 'dev' }));
   const first = text(await call('observe'));
   text(
     await call('act', {
@@ -26,8 +24,15 @@ try {
   );
   const second = text(await call('observe'));
   if (second.sequence !== first.sequence + 1) throw new Error('Observation sequence did not advance');
-  console.log(`Validated Telecode run; evidence: ${second.screenshotPath}`);
-} finally {
   text(await call('finish'));
+  return second.screenshotPath;
+};
+
+try {
+  await client.connect(transport);
+  const firstEvidence = await run('Capture the first VS Code observation');
+  const secondEvidence = await run('Capture a second VS Code observation');
+  console.log(`Validated 2 sequential Telecode runs; evidence: ${firstEvidence}, ${secondEvidence}`);
+} finally {
   await client.close();
 }

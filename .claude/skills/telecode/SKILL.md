@@ -74,7 +74,7 @@ Example source: `packages/salesforcedx-vscode-visual-qa/scripts/telecode-example
 
 Use for open-ended goals, exploratory testing, bug reproduction, or evidence capture.
 
-1. Call `start` once with the goal. Add `orgAlias` only when the scenario needs an authenticated org.
+1. Call `start` with the goal. Add `orgAlias` only when the scenario needs an authenticated org.
 2. Call `observe`; inspect screenshot plus ARIA/text state.
 3. Choose 1 action justified by that observation.
 4. Call `act` with the latest observation sequence.
@@ -92,7 +92,7 @@ Use Telecode to reproduce the reported deploy-command failure. Explore the workf
 
 ## Rules
 
-- 1 server process owns 1 session; `start` only once.
+- 1 server process owns at most 1 active session. Call `finish` before starting another.
 - Observe before every action; stale sequences fail by design.
 - Prefer role/name actions and command titles visible in the latest observation.
 - Treat unexpected UI and tool errors as evidence, not signals to improvise fallback selectors.

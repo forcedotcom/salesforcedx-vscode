@@ -8,6 +8,7 @@
 import type { VisualQaAction, VisualQaFinding, VisualQaLaunchOptions, VisualQaStatus } from './schemas';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
@@ -48,20 +49,25 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
       options: VisualQaLaunchOptions
     ) {
       const current = yield* Ref.get(state);
-      if (current.lifecycle !== 'new')
+      if (current.lifecycle !== 'new' && current.lifecycle !== 'closed')
         return yield* new VisualQaStateError({
           message: `Visual QA session is ${current.lifecycle}`,
           state: current.lifecycle
         });
-      yield* Ref.set(state, { ...current, lifecycle: 'starting' as const, objective: Option.some(objective) });
+      yield* Ref.set(state, {
+        lifecycle: 'starting' as const,
+        objective: Option.some(objective),
+        session: Option.none(),
+        findingCount: 0
+      });
       const session = yield* sessions
         .launch({ ...options, objective })
-        .pipe(Effect.tapError(() => Ref.set(state, current)));
+        .pipe(Effect.onExit(exit => (Exit.isFailure(exit) ? Ref.set(state, current) : Effect.void)));
       yield* Ref.set(state, {
-        ...current,
         lifecycle: 'running' as const,
         objective: Option.some(objective),
-        session: Option.some(session)
+        session: Option.some(session),
+        findingCount: 0
       });
       return session;
     });

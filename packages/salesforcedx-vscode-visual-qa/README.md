@@ -1,6 +1,6 @@
 # Telecode
 
-Telecode provides remote visual presence and operation in a running VS Code instance, supporting scripted automation and open-ended agent exploration. The MCP server owns one isolated VS Code Electron session and exposes constrained `start`, `observe`, `act`, `add_finding`, `status`, and `finish` tools.
+Telecode provides remote visual presence and operation in a running VS Code instance, supporting scripted automation and open-ended agent exploration. The MCP server owns one isolated VS Code Electron session at a time and exposes constrained `start`, `observe`, `act`, `add_finding`, `status`, and `finish` tools. Call `finish` before starting another session in the same MCP process.
 
 ## Build
 

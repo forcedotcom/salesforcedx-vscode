@@ -158,7 +158,7 @@ export const createVisualQaMcpServer = (
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
     instructions:
-      'Start one Telecode session, observe before acting, use the latest observation sequence, record findings immediately, then finish.'
+      'Run one Telecode session at a time: start, observe before acting, use the latest observation sequence, record findings immediately, then finish. After finish, start another session as needed.'
   });
   const accepting = Ref.unsafeMake(true);
   const handlerScope = Effect.runSync(Scope.make());
