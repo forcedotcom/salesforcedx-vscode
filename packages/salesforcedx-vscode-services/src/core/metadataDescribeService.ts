@@ -26,6 +26,8 @@ import { FilePropertiesByFullName, FilePropertiesSchema } from './schemas/filePr
 import { unknownToErrorCause } from './shared';
 
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
+/** Metadata types listed via a folder argument rather than a flat listMetadata call. */
+export const FOLDERED_METADATA_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
 type DescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 type SObjectBatchError = { errorCode: string; message: string };
@@ -379,6 +381,35 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       yield* listSObjectsCache.invalidate('global');
     });
 
+    /** Invalidates listMetadata and SObject describe caches for the metadata types/objects affected by a set of changes. */
+    const invalidateForMetadataChanges = Effect.fn('MetadataDescribeService.invalidateForMetadataChanges')(function* (
+      orgId: string,
+      references: readonly { readonly xmlName: string; readonly fullName: string }[]
+    ) {
+      const affectedTypes = new Set(references.map(reference => reference.xmlName));
+      yield* Effect.forEach(
+        affectedTypes,
+        xmlName =>
+          FOLDERED_METADATA_TYPES.has(xmlName)
+            ? invalidateAllListMetadata(orgId)
+            : invalidateListMetadata(xmlName, undefined, orgId),
+        { discard: true }
+      );
+      const affectedSObjects = new Set(
+        references.flatMap(reference =>
+          reference.xmlName === 'CustomObject'
+            ? [reference.fullName]
+            : reference.xmlName === 'CustomField'
+              ? [reference.fullName.split('.')[0]]
+              : []
+        )
+      );
+      if (affectedSObjects.size > 0) {
+        yield* invalidateListSObjects(orgId);
+        yield* invalidateSObjectDescribes([...affectedSObjects], orgId);
+      }
+    });
+
     const describe = Effect.fn('MetadataDescribeService.describe')(function* (expectedOrgId?: string) {
       const orgId = yield* resolveOrgId(expectedOrgId);
       const { describeCache } = yield* orgCacheRegistry.get(orgId);
@@ -510,6 +541,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       invalidateSObjectDescribes,
       /** Clears the cached global SObject listing for the current org. */
       invalidateListSObjects,
+      /** Clears listMetadata and SObject describe caches for the types/objects affected by a set of changes. */
+      invalidateForMetadataChanges,
       /**
        * Performs a Metadata API describe and returns the result.
        */

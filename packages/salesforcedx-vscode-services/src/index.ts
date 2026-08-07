@@ -9,8 +9,7 @@ import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
+import * as Option from 'effect/Option';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -53,7 +52,7 @@ import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
 import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
 import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
-import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
+import { disposeServicesRuntime, getServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -263,44 +262,37 @@ export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
-  context: vscode.ExtensionContext
-) {
+const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* () {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // seed populates defaultOrgRef.cliId + webUserId before connectionService and core can read it
   yield* seedTelemetryIdentities();
   const scope = yield* getExtensionScope();
-  const runtime = yield* Effect.runtime();
-  const [catalogStore, fsService] = yield* Effect.all([OrgMetadataCatalogStore, FsService]);
-  context.subscriptions.push(
-    vscode.commands.registerCommand('sf.internal.showOrgMetadataCatalogState', () =>
-      Runtime.runPromise(runtime)(
-        Effect.gen(function* () {
-          const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-          if (!orgId) {
-            yield* Effect.sync(() => {
-              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
-            });
-            return;
-          }
-          const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
-          if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
-            yield* Effect.promise(() =>
-              vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'))
-            );
-            return;
-          }
-          yield* fsService.showTextDocument(snapshotUri, { preview: false });
-        }).pipe(
-          Effect.withSpan('OrgMetadataCatalog.showPersistedState'),
-          Effect.catchAll(error =>
-            Effect.promise(() =>
-              vscode.window.showErrorMessage(
-                nls.localize('org_metadata_catalog_state_open_failed', getErrorMessage(error))
-              )
-            )
-          )
-        )
+  yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.internal.showOrgMetadataCatalogState', () =>
+    Effect.gen(function* () {
+      const [catalogStore, fsService] = yield* Effect.all([OrgMetadataCatalogStore, FsService]);
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) {
+        yield* Effect.sync(() => {
+          void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
+        });
+        return;
+      }
+      const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
+      if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
+        yield* Effect.sync(() => {
+          void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'));
+        });
+        return;
+      }
+      yield* fsService.showTextDocument(snapshotUri, { preview: false });
+    }).pipe(
+      Effect.withSpan('OrgMetadataCatalog.showPersistedState'),
+      Effect.catchAll(error =>
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(
+            nls.localize('org_metadata_catalog_state_open_failed', getErrorMessage(error))
+          );
+        })
       )
     )
   );
@@ -329,22 +321,19 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
           const targetOrgRef = yield* getDefaultOrgRef();
           const channelService = yield* ChannelService;
 
-          // Track the previous orgId to close it when org changes
-          const previousOrgIdRef = yield* Ref.make<string | undefined>(undefined);
-
           yield* targetOrgRef.changes.pipe(
             Stream.map(org => org.orgId),
             Stream.changes,
-            Stream.mapEffect(newOrgId =>
+            Stream.zipWithPrevious,
+            Stream.mapEffect(([previousOrgIdOption, newOrgId]) =>
               Effect.gen(function* () {
-                const previousOrgId = yield* Ref.get(previousOrgIdRef);
+                const previousOrgId = Option.getOrUndefined(previousOrgIdOption);
                 yield* channelService.appendToChannel(
                   `Target org changed to ${newOrgId ?? '<NOT SET>'}${previousOrgId ? `; closing previous org ${previousOrgId}` : ''}`
                 );
                 if (previousOrgId !== undefined && previousOrgId !== newOrgId) {
                   yield* catalog.closeOrg(previousOrgId);
                 }
-                yield* Ref.set(previousOrgIdRef, newOrgId);
               })
             ),
             Stream.runDrain
@@ -447,7 +436,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // fails fast until this is set, so it never blocks activation waiting on it.
   builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
 
-  await activationEffect(context).pipe(
+  await activationEffect().pipe(
     Effect.provide(builtContext),
     Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
     Effect.runPromise

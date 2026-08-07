@@ -20,6 +20,16 @@ type RetrieveRequest = {
   readonly expectedRemoteLastModifiedDate?: string;
 };
 
+const sourceComponentFilePaths = (sourceComponent?: {
+  readonly content?: string;
+  readonly xml?: string;
+  readonly walkContent: () => string[];
+}): readonly string[] => [
+  ...(sourceComponent?.content ? [sourceComponent.content] : []),
+  ...(sourceComponent?.xml ? [sourceComponent.xml] : []),
+  ...(sourceComponent ? [...sourceComponent.walkContent()] : [])
+];
+
 export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRetrieve>()('OrgCatalogRemoteRetrieve', {
   accessors: true,
   dependencies: [
@@ -125,14 +135,11 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                   reference
                 });
               }
-              const sourcePaths = [
-                ...(sourceComponent?.content ? [sourceComponent.content] : []),
-                ...(sourceComponent?.xml ? [sourceComponent.xml] : []),
-                ...(sourceComponent ? [...sourceComponent.walkContent()] : [])
-              ];
-              const sourceComponentUris = yield* Effect.forEach(sourcePaths, path => fsService.toUri(path), {
-                concurrency: 'unbounded'
-              });
+              const sourceComponentUris = yield* Effect.forEach(
+                sourceComponentFilePaths(sourceComponent),
+                path => fsService.toUri(path),
+                { concurrency: 'unbounded' }
+              );
               const artifactFileUris = [
                 ...new Map([...fileUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])).values()
               ];
@@ -205,14 +212,11 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                     );
                     const basenames = sourceBasenames(orgId, reference);
                     const discoveredUris = stagedFiles.filter(uri => basenames.has(Utils.basename(uri)));
-                    const sourcePaths = [
-                      ...(sourceComponent?.content ? [sourceComponent.content] : []),
-                      ...(sourceComponent?.xml ? [sourceComponent.xml] : []),
-                      ...(sourceComponent ? [...sourceComponent.walkContent()] : [])
-                    ];
-                    const sourceComponentUris = yield* Effect.forEach(sourcePaths, path => fsService.toUri(path), {
-                      concurrency: 'unbounded'
-                    });
+                    const sourceComponentUris = yield* Effect.forEach(
+                      sourceComponentFilePaths(sourceComponent),
+                      path => fsService.toUri(path),
+                      { concurrency: 'unbounded' }
+                    );
                     const fileUris = [
                       ...new Map(
                         [...reportedUris, ...discoveredUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])

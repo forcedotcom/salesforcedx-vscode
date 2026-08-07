@@ -12,6 +12,7 @@ import type { MetadataOperationEvent } from '../core/metadataChangeNotificationS
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
+import { componentIdentity } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
 
@@ -42,8 +43,6 @@ type TrackingRemoteChange = {
   readonly modified?: boolean;
 };
 
-const identity = (reference: OrgMetadataComponentReference): string => `${reference.xmlName}\0${reference.fullName}`;
-
 export const compareTrackingObservations = (
   previous: ReadonlyMap<string, RemoteTrackingObservation>,
   current: ReadonlyMap<string, RemoteTrackingObservation>
@@ -55,7 +54,7 @@ export const compareTrackingObservations = (
       return observation ? [observation.reference] : [];
     })
     .reduce(
-      (references, reference) => references.set(identity(reference), reference),
+      (references, reference) => references.set(componentIdentity(reference), reference),
       new Map<string, OrgMetadataComponentReference>()
     )
     .values()
@@ -218,7 +217,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           .filter(row => row.origin === 'remote')
           .forEach(row => {
             const reference = { xmlName: row.type, fullName: row.fullName };
-            const key = identity(reference);
+            const key = componentIdentity(reference);
             observations.set(key, {
               reference,
               signature: `${row.state}\0${revisionByIdentity.get(key) ?? ''}`
@@ -263,7 +262,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           fullName: change.fullName
         }));
         const affectedTypes = new Set(references.map(reference => reference.xmlName));
-        const identities = new Set(references.map(identity));
+        const identities = new Set(references.map(componentIdentity));
         const affectedSObjects = new Set(
           references.flatMap(reference =>
             reference.xmlName === 'CustomObject'

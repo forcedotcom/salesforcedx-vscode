@@ -16,6 +16,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   isDesktop,
+  ORG_METADATA_EDITOR,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -96,7 +97,7 @@ public class ${className} {
       await methodItem.dblclick();
       // Assert the virtual doc actually opened before clicking the code lens, so a broken
       // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
-      await expect(page.locator(`${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`).first()).toBeVisible({
+      await expect(page.locator(ORG_METADATA_EDITOR).first()).toBeVisible({
         timeout: 60_000
       });
       await saveScreenshot(page, 'step.virtual-doc-opened.png');

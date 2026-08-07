@@ -13,7 +13,7 @@ import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
-import { typeCacheKey } from './orgCatalogKeys';
+import { componentIdentity, typeCacheKey } from './orgCatalogKeys';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
@@ -21,7 +21,6 @@ import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from 
 import { OrgMetadataShadowStore, type OrgMetadataShadowArtifact } from './orgMetadataShadowStore';
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-const identity = (reference: OrgMetadataComponentReference): string => `${reference.xmlName}\0${reference.fullName}`;
 
 export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSource>()('OrgCatalogRemoteSource', {
   accessors: true,
@@ -145,7 +144,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
           const uniqueReferences = [
             ...componentReferences
               .reduce(
-                (map, reference) => map.set(identity(reference), reference),
+                (map, reference) => map.set(componentIdentity(reference), reference),
                 new Map<string, OrgMetadataComponentReference>()
               )
               .values()
@@ -178,9 +177,9 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
           const retrieved = yield* remoteRetrieve.materializeRetrievedComponents(orgId, retrievalRequests);
           const artifactByIdentity = new Map<string, OrgMetadataShadowArtifact>([
             ...resolved.flatMap(({ reference, artifact }) =>
-              artifact ? [[identity(reference), artifact] as const] : []
+              artifact ? [[componentIdentity(reference), artifact] as const] : []
             ),
-            ...retrieved.map(({ reference, artifact }) => [identity(reference), artifact] as const)
+            ...retrieved.map(({ reference, artifact }) => [componentIdentity(reference), artifact] as const)
           ]);
           yield* Effect.annotateCurrentSpan({
             requestedComponentCount: componentReferences.length,
@@ -224,7 +223,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
             yield* state.queuePersist(orgId);
           }
           return yield* Effect.forEach(uniqueReferences, reference => {
-            const artifact = artifactByIdentity.get(identity(reference));
+            const artifact = artifactByIdentity.get(componentIdentity(reference));
             return artifact
               ? Effect.succeed({ reference, artifact })
               : Effect.die(

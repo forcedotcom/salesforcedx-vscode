@@ -9,7 +9,7 @@ import type { TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
-import { MetadataDescribeService } from '../core/metadataDescribeService';
+import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { emptyPresence, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
@@ -19,8 +19,6 @@ import {
   OrgMetadataReferenceService,
   type OrgMetadataComponentReference
 } from './orgMetadataReference';
-
-export const FOLDERED_METADATA_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
 export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('OrgCatalogInventory', {
   accessors: true,

@@ -107,29 +107,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       } as const;
       yield* notificationService.publishOperation(event);
       if (orgId) {
-        const affectedTypes = new Set(changes.map(change => change.metadataType));
-        const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
-        yield* Effect.forEach(
-          affectedTypes,
-          xmlName =>
-            folderedMetadataTypes.has(xmlName)
-              ? metadataDescribeService.invalidateAllListMetadata(orgId)
-              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
-          { discard: true }
+        yield* metadataDescribeService.invalidateForMetadataChanges(
+          orgId,
+          changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
         );
-        const affectedSObjects = new Set(
-          changes.flatMap(change =>
-            change.metadataType === 'CustomObject'
-              ? [change.fullName]
-              : change.metadataType === 'CustomField'
-                ? [change.fullName.split('.')[0]]
-                : []
-          )
-        );
-        if (affectedSObjects.size > 0) {
-          yield* metadataDescribeService.invalidateListSObjects(orgId);
-          yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
-        }
       }
       yield* catalogRecorder.recordOperation(event);
     });

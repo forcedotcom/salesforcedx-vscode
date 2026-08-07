@@ -114,6 +114,17 @@ const OrgMetadataCatalogSnapshotSchema = Schema.Struct({
 });
 export type OrgMetadataCatalogSnapshot = typeof OrgMetadataCatalogSnapshotSchema.Type;
 
+const snapshotSpanAttributes = (snapshot: OrgMetadataCatalogSnapshot) => ({
+  orgId: snapshot.orgId,
+  generation: snapshot.generation,
+  inventoryTypeCount: snapshot.inventory.length,
+  sobjectSummaryCount: snapshot.sobjects.list?.length ?? 0,
+  sobjectDescriptionCount: snapshot.sobjects.descriptions.length,
+  trackingObservationCount: snapshot.tracking.length,
+  metadataTypeCount: snapshot.metadataTypes.length,
+  metadataListingCount: snapshot.metadataListings.length
+});
+
 export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogStore>()('OrgMetadataCatalogStore', {
   accessors: true,
   dependencies: [FsService.Default, WorkspaceService.Default],
@@ -146,16 +157,7 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
           message: `Catalog snapshot org '${snapshot.orgId}' does not match '${orgId}'`
         });
       }
-      yield* Effect.annotateCurrentSpan({
-        orgId,
-        generation: snapshot.generation,
-        inventoryTypeCount: snapshot.inventory.length,
-        sobjectSummaryCount: snapshot.sobjects.list?.length ?? 0,
-        sobjectDescriptionCount: snapshot.sobjects.descriptions.length,
-        trackingObservationCount: snapshot.tracking.length,
-        metadataTypeCount: snapshot.metadataTypes.length,
-        metadataListingCount: snapshot.metadataListings.length
-      });
+      yield* Effect.annotateCurrentSpan(snapshotSpanAttributes(snapshot));
       return snapshot;
     });
 
@@ -169,15 +171,8 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
           yield* fsService.safeWriteFile(stagingUri, content);
           yield* fsService.rename(stagingUri.toString(), snapshotUri.toString(), { overwrite: true });
           yield* Effect.annotateCurrentSpan({
-            orgId: snapshot.orgId,
-            generation: snapshot.generation,
-            byteCount: new TextEncoder().encode(content).byteLength,
-            inventoryTypeCount: snapshot.inventory.length,
-            sobjectSummaryCount: snapshot.sobjects.list?.length ?? 0,
-            sobjectDescriptionCount: snapshot.sobjects.descriptions.length,
-            trackingObservationCount: snapshot.tracking.length,
-            metadataTypeCount: snapshot.metadataTypes.length,
-            metadataListingCount: snapshot.metadataListings.length
+            ...snapshotSpanAttributes(snapshot),
+            byteCount: new TextEncoder().encode(content).byteLength
           });
           return snapshotUri;
         })

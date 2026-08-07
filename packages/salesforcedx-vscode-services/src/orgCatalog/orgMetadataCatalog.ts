@@ -15,9 +15,10 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { MetadataDescribeService } from '../core/metadataDescribeService';
+import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { OrgCatalogDocuments } from './orgCatalogDocuments';
-import { FOLDERED_METADATA_TYPES, OrgCatalogInventory } from './orgCatalogInventory';
+import { OrgCatalogInventory } from './orgCatalogInventory';
+import { componentIdentity } from './orgCatalogKeys';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
@@ -200,7 +201,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
     ) {
       yield* state.ensureHydrated(orgId);
       const affectedTypes = new Set(references.map(reference => reference.xmlName));
-      const affectedIdentities = new Set(references.map(reference => `${reference.xmlName}\0${reference.fullName}`));
+      const affectedIdentities = new Set(references.map(componentIdentity));
       yield* state.invalidateTypes(orgId, affectedTypes);
       yield* state.removeTracking(orgId, affectedIdentities);
       yield* Effect.forEach(

@@ -6,8 +6,13 @@
  */
 
 import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import type { OrgMetadataComponentReference } from './orgMetadataReference';
 
 export const emptyPresence = (): OrgMetadataPresence => ({ inOrg: false, inWorkspace: false });
+
+/** Identity key for a metadata component reference, independent of the org it was observed in. */
+export const componentIdentity = (reference: OrgMetadataComponentReference): string =>
+  `${reference.xmlName}\0${reference.fullName}`;
 export const typeCacheKey = (orgId: string, xmlName: string): string => `${orgId}\0${xmlName}`;
 export const sobjectDescriptionKey = (orgId: string, apiName: string): string => `${orgId}\0${apiName}`;
 

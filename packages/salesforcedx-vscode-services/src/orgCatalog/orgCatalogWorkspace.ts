@@ -61,7 +61,11 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
         const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
         const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, []);
         return new Set([...componentSet.getSourceComponents()].map(component => component.type.name));
-      }).pipe(Effect.catchAll(() => Effect.succeed(new Set<string>())));
+      }).pipe(
+        Effect.catchAll(error =>
+          Effect.logWarning('Failed to resolve workspace metadata types', { error }).pipe(Effect.as(new Set<string>()))
+        )
+      );
       yield* state.setWorkspaceTypes(orgId, types);
       return types;
     });

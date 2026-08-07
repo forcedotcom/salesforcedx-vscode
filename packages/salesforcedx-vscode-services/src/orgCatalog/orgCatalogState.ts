@@ -48,7 +48,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     const persistenceRequests = yield* Queue.unbounded<string>();
     const dirtyOrgIds = yield* Ref.make<ReadonlySet<string>>(new Set());
 
-    const persistOrg = Effect.fn('OrgMetadataCatalog.persistOrg')(function* (orgId: string) {
+    const persistOrg = Effect.fn('OrgCatalogState.persistOrg')(function* (orgId: string) {
       const [
         loadedInventory,
         restoredInventory,
@@ -131,13 +131,13 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         .pipe(Effect.catchAll(error => Effect.logWarning('Failed to persist org metadata catalog', error)));
     });
 
-    const queuePersist = Effect.fn('OrgMetadataCatalog.queuePersist')(function* (orgId: string) {
+    const queuePersist = Effect.fn('OrgCatalogState.queuePersist')(function* (orgId: string) {
       yield* Ref.update(dirtyOrgIds, current => new Set(current).add(orgId));
       yield* Queue.offer(persistenceRequests, orgId);
     });
 
     /** Atomically claims and persists an org only when it has pending catalog changes. */
-    const flushOrg = Effect.fn('OrgMetadataCatalog.flushOrg')(function* (orgId: string) {
+    const flushOrg = Effect.fn('OrgCatalogState.flushOrg')(function* (orgId: string) {
       const dirty = yield* Ref.modify(dirtyOrgIds, current => {
         if (!current.has(orgId)) return [false, current];
         const remaining = new Set(current);
@@ -167,7 +167,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       })
     );
 
-    const ensureHydrated = Effect.fn('OrgMetadataCatalog.ensureHydrated')(function* (orgId: string) {
+    const ensureHydrated = Effect.fn('OrgCatalogState.ensureHydrated')(function* (orgId: string) {
       if ((yield* Ref.get(hydratedOrgIds)).has(orgId)) return;
       yield* hydrateSemaphore.withPermits(1)(
         Effect.gen(function* () {

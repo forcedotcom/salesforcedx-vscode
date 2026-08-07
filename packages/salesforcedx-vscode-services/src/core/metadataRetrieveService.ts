@@ -23,6 +23,7 @@ import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
+import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -72,7 +73,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ConfigService.Default,
     MetadataChangeNotificationService.Default,
     MetadataDescribeService.Default,
-    OrgMetadataCatalogRecorder.Default
+    OrgMetadataCatalogRecorder.Default,
+    FsService.Default
   ],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
@@ -84,6 +86,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const notificationService = yield* MetadataChangeNotificationService;
     const metadataDescribeService = yield* MetadataDescribeService;
     const catalogRecorder = yield* OrgMetadataCatalogRecorder;
+    const fsService = yield* FsService;
 
     const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
       retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
@@ -91,12 +94,19 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ) {
       const successfulResponses = retrieveOutcome.getFileResponses().filter(isSDRSuccess);
       const changes = dedupeMetadataChanges(
-        successfulResponses.map(response => ({
-          metadataType: response.type,
-          fullName: response.fullName,
-          changeType: toComponentStatusChangeType(response.state),
-          fileUri: Option.fromNullable(response.filePath ? URI.file(response.filePath) : undefined)
-        }))
+        yield* Effect.forEach(
+          successfulResponses,
+          response =>
+            Effect.gen(function* () {
+              return {
+                metadataType: response.type,
+                fullName: response.fullName,
+                changeType: toComponentStatusChangeType(response.state),
+                fileUri: Option.fromNullable(response.filePath ? yield* fsService.toUri(response.filePath) : undefined)
+              };
+            }),
+          { concurrency: 'unbounded' }
+        )
       );
       if (changes.length === 0) return;
       const orgId = expectedOrgId;
@@ -113,29 +123,10 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       } as const;
       yield* notificationService.publishOperation(event);
       if (orgId) {
-        const affectedTypes = new Set(changes.map(change => change.metadataType));
-        const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
-        yield* Effect.forEach(
-          affectedTypes,
-          xmlName =>
-            folderedMetadataTypes.has(xmlName)
-              ? metadataDescribeService.invalidateAllListMetadata(orgId)
-              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
-          { discard: true }
+        yield* metadataDescribeService.invalidateForMetadataChanges(
+          orgId,
+          changes.map(change => ({ xmlName: change.metadataType, fullName: change.fullName }))
         );
-        const affectedSObjects = new Set(
-          changes.flatMap(change =>
-            change.metadataType === 'CustomObject'
-              ? [change.fullName]
-              : change.metadataType === 'CustomField'
-                ? [change.fullName.split('.')[0]]
-                : []
-          )
-        );
-        if (affectedSObjects.size > 0) {
-          yield* metadataDescribeService.invalidateListSObjects(orgId);
-          yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
-        }
       }
       yield* catalogRecorder.recordOperation(event);
     });

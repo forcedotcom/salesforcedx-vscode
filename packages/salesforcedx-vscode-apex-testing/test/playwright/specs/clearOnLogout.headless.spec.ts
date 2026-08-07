@@ -13,10 +13,10 @@ import {
   clickModalDialogButton,
   closeAllEditors,
   createAndDeployApexTestClass,
-  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
+  ORG_METADATA_EDITOR,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -36,8 +36,6 @@ import {
   TEST_EXPLORER_TREE_ITEM,
   openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
-
-const ORG_METADATA_EDITOR = `${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`;
 
 // `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';

@@ -83,7 +83,6 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const localSemaphore = yield* Effect.makeSemaphore(1);
     const remoteSemaphore = yield* Effect.makeSemaphore(1);
     const trackingCreationSemaphore = yield* Effect.makeSemaphore(1);
-    const folderedMetadataTypes = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
     // Lazy singleton for SourceTracking instance with org ID validation
     const trackingRef = yield* Ref.make<Option.Option<{ tracking: SourceTracking; orgId: string }>>(Option.none());
@@ -334,24 +333,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
             result.status,
             result.remoteChanges
           );
-          const affectedTypes = new Set(changedReferences.map(reference => reference.xmlName));
-          yield* Effect.forEach(
-            affectedTypes,
-            xmlName =>
-              folderedMetadataTypes.has(xmlName)
-                ? metadataDescribeService.invalidateAllListMetadata(orgId)
-                : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
-            { discard: true }
-          );
-          const affectedSObjects = new Set<string>();
-          changedReferences.forEach(reference => {
-            if (reference.xmlName === 'CustomObject') affectedSObjects.add(reference.fullName);
-            if (reference.xmlName === 'CustomField') affectedSObjects.add(reference.fullName.split('.')[0]);
-          });
-          if (affectedSObjects.size > 0) {
-            yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
-            yield* metadataDescribeService.invalidateListSObjects(orgId);
-          }
+          yield* metadataDescribeService.invalidateForMetadataChanges(orgId, changedReferences);
         }
       }
       return result.status;
