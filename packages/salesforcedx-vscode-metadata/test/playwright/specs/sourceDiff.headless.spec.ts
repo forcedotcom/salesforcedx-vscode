@@ -41,9 +41,6 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   // Wait for retrieving message
   await waitForOutputChannelText(page, { expectedText: 'Retrieving 1 component for diff...', timeout: 30_000 });
 
-  // Wait for retrieve output (optional, only for explorer)
-  await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: DEPLOY_TIMEOUT });
-
   // Verify retrieve succeeded
   expect(
     await outputChannelContains(page, '0 components retrieved', { timeout: 100 }),

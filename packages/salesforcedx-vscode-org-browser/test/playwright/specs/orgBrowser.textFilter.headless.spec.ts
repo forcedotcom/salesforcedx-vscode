@@ -50,9 +50,7 @@ test('Org Browser - text filter: exact type name filters tree on commit', async 
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
@@ -60,7 +58,7 @@ test('Org Browser - text filter: exact type name filters tree on commit', async 
   await page.keyboard.press('Enter');
 
   const narrowedItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(narrowedItems).toHaveCount(1, { timeout: 10_000 });
+  await orgBrowserPage.waitForRootTypeCount(1);
   await expect(narrowedItems.first()).toHaveAccessibleName(/^ApexClass/);
   expect(beforeCount).toBeGreaterThan(1);
 });
@@ -108,9 +106,7 @@ test('Org Browser - text filter: Escape cancels without applying filter', async 
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
@@ -118,9 +114,7 @@ test('Org Browser - text filter: Escape cancels without applying filter', async 
   await page.keyboard.press('Escape');
 
   // Tree should remain unfiltered since we cancelled
-  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(beforeCount, {
-    timeout: 10_000
-  });
+  await orgBrowserPage.waitForRootTypeCount(beforeCount);
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
 });
 
@@ -128,9 +122,7 @@ test('Org Browser - text filter: clearing the text and pressing Enter clears the
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
@@ -145,9 +137,7 @@ test('Org Browser - text filter: clearing the text and pressing Enter clears the
   await page.keyboard.press('Enter');
 
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
-  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(beforeCount, {
-    timeout: 10_000
-  });
+  await orgBrowserPage.waitForRootTypeCount(beforeCount);
 });
 
 test('Org Browser - text filter: composes with an active showLocal/showOrg toggle', async ({ page }) => {
@@ -165,7 +155,7 @@ test('Org Browser - text filter: composes with an active showLocal/showOrg toggl
   await page.keyboard.press('Enter');
 
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(items).toHaveCount(1, { timeout: 10_000 });
+  await orgBrowserPage.waitForRootTypeCount(1);
   await expect(items.first()).toHaveAccessibleName(/^ApexClass/);
 });
 
@@ -173,26 +163,24 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
   await activeQuickInputTextField(page).fill('Apex*');
   await page.keyboard.press('Enter');
 
+  await expect(page.locator('[aria-label="Edit Filter (active)"]').first()).toBeVisible({ timeout: 10_000 });
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  const afterCount = await items.count();
+  await expect.poll(() => orgBrowserPage.getRootTypeCount(), { timeout: 10_000 }).toBeLessThan(beforeCount);
+  const afterCount = await orgBrowserPage.getStableRootTypeCount();
 
   // Should have fewer items than before (filtered) but more than 1 (multiple Apex* types)
-  expect(afterCount).toBeLessThan(beforeCount);
   expect(afterCount).toBeGreaterThanOrEqual(1);
 
-  // All visible items should start with "Apex"
-  for (let i = 0; i < afterCount; i++) {
-    const item = items.nth(i);
-    await expect(item).toHaveAccessibleName(/^Apex/);
+  // Virtualized trees may retain rows outside the current model. Assert only rendered rows.
+  for (const item of await items.all()) {
+    if (await item.isVisible()) await expect(item).toHaveAccessibleName(/^Apex/);
   }
 });
 

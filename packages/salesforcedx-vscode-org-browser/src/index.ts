@@ -11,7 +11,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
-import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
@@ -105,7 +104,10 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 
   const queue = yield* Queue.unbounded<string>();
   const deferred = yield* Deferred.make<void>();
-  const acceptedRef = yield* Ref.make(false);
+  // VS Code may hide a QuickPick immediately after firing onDidAccept. This flag must therefore
+  // be updated synchronously in the callback, before the commit Effect is scheduled.
+  // eslint-disable-next-line functional/no-let
+  let accepted = false;
 
   const picker = vscode.window.createQuickPick<FilterQuickPickItem>();
   picker.placeholder = nls.localize('filter_text_placeholder');
@@ -125,7 +127,6 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 
   const commit = (value: string) =>
     Effect.gen(function* () {
-      yield* Ref.set(acceptedRef, true);
       const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
 
       // Check if we should prompt for broad component fetch
@@ -178,13 +179,13 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
   picker.onDidAccept(() => {
     // Accept whatever the user typed, not just selected items
+    accepted = true;
     const valueToCommit = picker.value;
     run(commit(valueToCommit));
   });
   picker.onDidHide(() =>
     run(
       Effect.gen(function* () {
-        const accepted = yield* Ref.get(acceptedRef);
         if (!accepted) {
           treeProvider.setTextFilter(
             previousTypeFilter,

@@ -31,7 +31,8 @@ import {
 } from './orgMetadataReference';
 import { isOrgMetadataShadowUri } from './orgMetadataShadowStore';
 
-class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider {
+/** @internal Exported for focused provider lifecycle tests; not part of the extension API. */
+export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider {
   private readonly changeEmitter = new vscode.EventEmitter<URI>();
   private readonly requestedUris = new Map<string, URI>();
 
@@ -44,8 +45,22 @@ class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider 
     return this.readDocument(uri);
   }
 
-  public notifyCatalogChanged(): void {
-    this.requestedUris.forEach(uri => this.changeEmitter.fire(uri));
+  public notifyCatalogChanged(
+    activeOrgId: string | undefined,
+    parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
+  ): void {
+    this.requestedUris.forEach(uri => {
+      if (parseDocumentUri(uri)?.orgId === activeOrgId) this.changeEmitter.fire(uri);
+    });
+  }
+
+  public removeInactiveOrgUris(
+    activeOrgId: string | undefined,
+    parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
+  ): void {
+    this.requestedUris.forEach((uri, key) => {
+      if (parseDocumentUri(uri)?.orgId !== activeOrgId) this.requestedUris.delete(key);
+    });
   }
 
   public dispose(): void {
@@ -54,7 +69,14 @@ class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider 
   }
 }
 
-const closeInactiveOrgDocuments = (
+const tabInputUris = (input: unknown): readonly URI[] => {
+  if (input instanceof vscode.TabInputText) return [input.uri];
+  if (input instanceof vscode.TabInputTextDiff) return [input.original, input.modified];
+  return [];
+};
+
+/** @internal Exported for focused provider lifecycle tests; not part of the extension API. */
+export const closeInactiveOrgDocuments = (
   activeOrgId: string | undefined,
   parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
 ) =>
@@ -62,14 +84,15 @@ const closeInactiveOrgDocuments = (
     const tabGroups = vscode.window.tabGroups;
     if (!tabGroups) return;
     const tabs = tabGroups.all.flatMap(group =>
-      group.tabs.filter(tab => {
-        if (!(tab.input instanceof vscode.TabInputText)) return false;
-        const location = parseDocumentUri(URI.parse(tab.input.uri.toString()));
-        return location !== undefined && location.orgId !== activeOrgId;
-      })
+      group.tabs.filter(tab =>
+        tabInputUris(tab.input).some(uri => {
+          const location = parseDocumentUri(URI.parse(uri.toString()));
+          return location !== undefined && location.orgId !== activeOrgId;
+        })
+      )
     );
     if (tabs.length > 0) {
-      yield* Effect.promise(() => tabGroups.close(tabs, true)).pipe(Effect.asVoid);
+      yield* Effect.tryPromise(() => tabGroups.close(tabs, true)).pipe(Effect.asVoid);
     }
   });
 
@@ -112,7 +135,20 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
   yield* Effect.forkScoped(
     catalogChanges.pipe(
       Stream.fromPubSub<OrgMetadataCatalogChange>,
-      Stream.runForEach(() => Effect.sync(() => provider.notifyCatalogChanged()))
+      Stream.runForEach(change =>
+        Effect.gen(function* () {
+          const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+          const changedOrgId =
+            change.kind === 'org' || change.kind === 'tracking'
+              ? change.orgId
+              : change.kind === 'operation'
+                ? change.event.orgId
+                : activeOrgId;
+          if (changedOrgId === activeOrgId) {
+            yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, referenceService.parseDocumentUri));
+          }
+        })
+      )
     )
   );
 
@@ -171,11 +207,16 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     if (change.kind === 'workspace') {
       yield* Effect.annotateCurrentSpan('workspaceEventCount', change.events.length);
     }
-    if (change.kind === 'workspace' || change.kind === 'org') {
-      yield* catalog.invalidate();
-    }
     if (change.kind === 'org') {
-      yield* closeInactiveOrgDocuments(change.orgId, referenceService.parseDocumentUri);
+      yield* Effect.sync(() => provider.removeInactiveOrgUris(change.orgId, referenceService.parseDocumentUri));
+      yield* closeInactiveOrgDocuments(change.orgId, referenceService.parseDocumentUri).pipe(
+        Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
+      );
+    }
+    if (change.kind === 'workspace' || (change.kind === 'org' && change.orgId !== undefined)) {
+      yield* catalog
+        .invalidate()
+        .pipe(Effect.catchAll(error => Effect.logWarning('Unable to invalidate org metadata catalog', error)));
     }
     yield* PubSub.publish(catalogChanges, change);
   });
