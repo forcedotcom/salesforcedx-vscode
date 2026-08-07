@@ -7,7 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { validateAliasInput } from '../../util/orgAlias';
@@ -16,6 +18,11 @@ export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
 const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
+const SafeInstanceUrl = Schema.String.pipe(
+  Schema.pattern(/^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/),
+  Schema.compose(Schema.URL)
+);
+const decodeSafeInstanceUrl = Schema.decodeUnknownOption(SafeInstanceUrl);
 
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -60,7 +67,18 @@ const inputAccessToken = async (): Promise<string | undefined> =>
 
 // http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
 const validateUrl = (url: string): string | undefined =>
-  /^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/.test(url) ? undefined : nls.localize('auth_invalid_url');
+  Option.isSome(decodeSafeInstanceUrl(url)) ? undefined : nls.localize('auth_invalid_url');
+
+const normalizeUrl = (value: string): string | undefined => {
+  if (isNotUndefined(validateUrl(value))) return undefined;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
@@ -163,5 +181,14 @@ const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const project = yield* api.services.ProjectService.getSfProject();
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return projectJson.get('sfdcLoginUrl');
+  const projectUrl = projectJson.get('sfdcLoginUrl');
+  if (isUndefined(projectUrl)) return undefined;
+
+  const normalizedUrl = normalizeUrl(projectUrl);
+  if (isUndefined(normalizedUrl)) {
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('auth_invalid_project_url', projectUrl));
+    });
+  }
+  return normalizedUrl;
 });

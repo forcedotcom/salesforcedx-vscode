@@ -13,7 +13,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { setCoreChannel } from './channels';
-import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
+import { configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -93,7 +93,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   }
 
   const registerCommand = servicesApi.services.registerCommandWithLayer(AllServicesLayer);
-  yield* registerCommand('sf.alias.list', () => aliasListCommand());
   yield* registerCommand('sf.config.list', () => configListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
