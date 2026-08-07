@@ -28,7 +28,8 @@ describe('Telemetry', () => {
     jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
     jest.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
       cliId: 'cli',
-      webUserId: 'web'
+      webUserId: 'web',
+      telemetryClassification: 'nonGov'
     });
 
     // Mock createFileSystemWatcher to return a proper mock object
