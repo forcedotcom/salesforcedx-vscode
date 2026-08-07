@@ -38,7 +38,7 @@ const promptForSObject = Effect.fn('promptForTriggerSObject')(function* () {
   }
 
   const items: vscode.QuickPickItem[] = sobjects
-    .filter(s => s.queryable)
+    .filter(s => s.triggerable)
     .toSorted((a, b) => a.name.localeCompare(b.name))
     .map(s => ({ label: s.name, description: s.custom ? 'Custom' : '' }));
 
