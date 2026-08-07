@@ -19,7 +19,6 @@ import { MessageKey } from './i18n';
  */
 export const messages: Partial<Record<MessageKey, string>> = {
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
-  alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',

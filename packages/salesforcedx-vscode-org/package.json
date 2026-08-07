@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.9.3",
+  "version": "67.9.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -230,6 +230,10 @@
     "menus": {
       "commandPalette": [
         {
+          "command": "sf.alias.list",
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
           "command": "sf.org.login.web.dev.hub",
           "when": "sf:project_opened"
         },
@@ -284,6 +288,10 @@
       ]
     },
     "commands": [
+      {
+        "command": "sf.alias.list",
+        "title": "%alias_list_text%"
+      },
       {
         "command": "sf.org.login.web.dev.hub",
         "title": "%org_login_web_authorize_dev_hub_text%"
