@@ -21,7 +21,7 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
@@ -89,7 +89,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     yield* Effect.promise(() => initializeProject(extensionContext));
   }
 
-  const registerCommand = servicesApi.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.alias.list', () => aliasListCommand());
   yield* registerCommand('sf.config.list', () => configListCommand());
 

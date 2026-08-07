@@ -18,7 +18,7 @@ jest.mock('../../src/utils/coreExtensionUtils', () => ({
   getTelemetryService: jest.fn()
 }));
 
-const registerCommandWithLayer = jest.fn();
+const registerCommandWithRuntime = jest.fn();
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
   showSuccessNotification: () => Effect.void
@@ -29,7 +29,7 @@ const extensionProviderLayer = () =>
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
         services: {
-          registerCommandWithLayer: () => registerCommandWithLayer,
+          registerCommandWithRuntime: () => registerCommandWithRuntime,
           NotificationModeService
         }
       })
@@ -51,7 +51,7 @@ describe('activateEffect', () => {
   let initializeService: jest.Mock;
 
   beforeEach(() => {
-    registerCommandWithLayer.mockReturnValue(Effect.void);
+    registerCommandWithRuntime.mockReturnValue(Effect.void);
     initializeService = jest.fn(() => Promise.resolve());
     // resetMocks:true wipes the jest.mock factory impl each test — re-arm the telemetry stub
     (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({ initializeService });
@@ -73,8 +73,8 @@ describe('activateEffect', () => {
   it('registers the Effect-based commands', async () => {
     await runActivate();
 
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
   });
 
   it('initializes telemetry', async () => {

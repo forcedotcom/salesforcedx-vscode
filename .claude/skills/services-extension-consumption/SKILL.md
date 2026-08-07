@@ -69,7 +69,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 ```
 
-Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
+Two patterns exist depending on whether the extension adds services beyond the shared base:
+
+- **Shared base only** (`core`, `apex`, `apex-testing`, `lightning`, `lwc`, `org`, `visualforce`): import `buildAllServicesLayer` directly from `@salesforce/effect-ext-utils` and pass it to `setAllServicesLayer` at activation. No local factory needed.
+- **Extension-specific services added** (`apex-debugger`, `apex-log`, `apex-oas`, `apex-replay-debugger`, `metadata`, `org-browser`, `soql`): define a local `buildAllServicesLayer` in `services/extensionProvider.ts` that calls `buildSharedServicesLayer` from `@salesforce/effect-ext-utils` and merges the extension's own Effect services via `Layer.mergeAll`. The extra services vary — `apex-oas` adds `ApexMetadataService` and `LLMService`; extensions with the notifications system add `NotificationModeService.Default`; `org-browser` adds `OrgBrowserRetrieveService`.
 
 ## Runtime vs provide
 
@@ -292,7 +295,7 @@ export const getRuntime = () => (_runtime ??= createRuntime());
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import { nls } from './messages';
 import { myCommandEffect } from './commands/myCommand';
-import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 
 export const activate = async (context: vscode.ExtensionContext) => {
@@ -304,7 +307,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.my.command', myCommandEffect);
 
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');

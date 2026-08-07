@@ -36,7 +36,6 @@ import {
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
   disposeMetadataRuntime,
   getMetadataRuntime,
@@ -59,8 +58,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
-  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
   const projectGenerateCommands =
     process.env.ESBUILD_PLATFORM === 'web'
       ? []

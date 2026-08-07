@@ -33,7 +33,7 @@ import {
   ORG_LOGOUT_DEFAULT_COMMAND,
   ORG_OPEN_COMMAND
 } from './constants';
-import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
+import { getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
@@ -42,9 +42,8 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
+  yield* api.services.registerCommandWithRuntime(getOrgRuntime())('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
@@ -67,14 +66,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
   // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
   const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
   setOrgChannel(orgChannel);
   extensionContext.subscriptions.push(orgChannel);
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand('sf.org.delete.username', orgDeleteUsernameCommand);
