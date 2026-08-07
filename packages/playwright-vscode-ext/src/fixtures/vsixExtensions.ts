@@ -101,14 +101,15 @@ const resolveLocalExtensions = async (repoRoot: string, packageDirs: string[]): 
     orderExtensionDirsForInstall(repoRoot, packageDirs).map(async packageDir => {
       const extensionPackage = readExtensionPackageJson(repoRoot, packageDir);
       const packagePath = path.join(repoRoot, 'packages', packageDir);
+      const expectedVsix = `${extensionPackage.name}-${extensionPackage.version}.vsix`;
       const vsixFiles = existsSync(packagePath) ? readdirSync(packagePath).filter(file => file.endsWith('.vsix')).toSorted() : [];
-      if (vsixFiles.length !== 1) {
+      if (!vsixFiles.includes(expectedVsix)) {
         throw new Error(
-          `Expected exactly 1 VSIX in packages/${packageDir}/ but found ${vsixFiles.length}: [${vsixFiles.join(', ')}]. ` +
+          `Expected packages/${packageDir}/${expectedVsix}, found [${vsixFiles.join(', ')}]. ` +
             `Run 'npm run vscode:package -w ${packageDir}' first.`
         );
       }
-      const vsixPath = path.join(packagePath, vsixFiles[0]);
+      const vsixPath = path.join(packagePath, expectedVsix);
       return {
         packageDir,
         id: `${extensionPackage.publisher}.${extensionPackage.name}`,

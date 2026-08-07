@@ -25,7 +25,7 @@ const createPackage = async (
       path.join(packageDir, 'package.json'),
       JSON.stringify({ name: directory, publisher: 'salesforce', version: '1.0.0', extensionDependencies })
     ),
-    writeFile(path.join(packageDir, `${directory}.vsix`), vsixContents)
+    writeFile(path.join(packageDir, `${directory}-1.0.0.vsix`), vsixContents)
   ]);
   return packageDir;
 };
@@ -110,8 +110,8 @@ test.describe('prepareVsixExtensions', () => {
         'salesforce.dependent'
       ]);
       expect(result.extensions.map(extension => path.basename(extension.vsixPath))).toEqual([
-        'dependency.vsix',
-        'dependent.vsix'
+        'dependency-1.0.0.vsix',
+        'dependent-1.0.0.vsix'
       ]);
       expect(result.extensions.map(extension => extension.sha256)).toEqual([
         'f26350dafe3f19aabfd69ac463fb5daf76015c9a2763e76e2ad32fc0fcfedf31',
@@ -122,31 +122,36 @@ test.describe('prepareVsixExtensions', () => {
         result.extensionsDir
       ]);
       expect((await readInstalls(installsLog)).map(install => path.basename(install))).toEqual([
-        'dependency.vsix',
-        'dependent.vsix'
+        'dependency-1.0.0.vsix',
+        'dependent-1.0.0.vsix'
       ]);
     } finally {
       await rm(repoRoot, { recursive: true, force: true });
     }
   });
 
-  test('requires exactly one existing root-produced VSIX per package', async () => {
+  test('requires the VSIX matching the package version and ignores stale versions', async () => {
     const repoRoot = await mkdtemp(path.join(os.tmpdir(), 'prepare-vsix-input-'));
     try {
       const packageDir = await createPackage(repoRoot, 'extension');
-      await rm(path.join(packageDir, 'extension.vsix'));
+      await rm(path.join(packageDir, 'extension-1.0.0.vsix'));
       const { executable } = await createFakeVsCode(repoRoot);
       await expect(
         prepareVsixExtensions({ repoRoot, packageDirs: ['extension'], vscodeExecutable: executable })
-      ).rejects.toThrow('Expected exactly 1 VSIX in packages/extension/ but found 0: []');
+      ).rejects.toThrow('Expected packages/extension/extension-1.0.0.vsix, found []');
 
-      await Promise.all([
-        writeFile(path.join(packageDir, 'first.vsix'), 'first'),
-        writeFile(path.join(packageDir, 'second.vsix'), 'second')
-      ]);
+      await writeFile(path.join(packageDir, 'extension-0.9.0.vsix'), 'stale');
       await expect(
         prepareVsixExtensions({ repoRoot, packageDirs: ['extension'], vscodeExecutable: executable })
-      ).rejects.toThrow('Expected exactly 1 VSIX in packages/extension/ but found 2: [first.vsix, second.vsix]');
+      ).rejects.toThrow('Expected packages/extension/extension-1.0.0.vsix, found [extension-0.9.0.vsix]');
+
+      await writeFile(path.join(packageDir, 'extension-1.0.0.vsix'), 'current');
+      const result = await prepareVsixExtensions({
+        repoRoot,
+        packageDirs: ['extension'],
+        vscodeExecutable: executable
+      });
+      expect(path.basename(result.extensions[0].vsixPath)).toBe('extension-1.0.0.vsix');
     } finally {
       await rm(repoRoot, { recursive: true, force: true });
     }
@@ -158,7 +163,7 @@ test.describe('prepareVsixExtensions', () => {
       const packageDir = await createPackage(repoRoot, 'extension');
       const { executable } = await createFakeVsCode(repoRoot);
       const first = await prepareVsixExtensions({ repoRoot, packageDirs: ['extension'], vscodeExecutable: executable });
-      await writeFile(path.join(packageDir, 'extension.vsix'), 'changed');
+      await writeFile(path.join(packageDir, 'extension-1.0.0.vsix'), 'changed');
       const changed = await prepareVsixExtensions({
         repoRoot,
         packageDirs: ['extension'],

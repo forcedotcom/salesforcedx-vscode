@@ -1,8 +1,8 @@
 {
-  "name": "@salesforce/vscode-visual-qa",
+  "name": "@salesforce/telecode",
   "version": "0.1.0",
   "private": true,
-  "description": "Agent-driven visual QA for Salesforce DX VS Code extensions",
+  "description": "Remote visual presence and operation in VS Code",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
   "repository": {
@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-visual-qa",
   "bin": {
-    "salesforce-visual-qa-mcp": "./bin/visual-qa-mcp.js"
+    "telecode-mcp": "./bin/telecode-mcp.js"
   },
   "scripts": {
     "check:circular-deps": "wireit",

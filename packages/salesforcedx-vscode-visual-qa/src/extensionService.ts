@@ -11,6 +11,7 @@ import * as Path from '@effect/platform/Path';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import { execFileSync } from 'node:child_process';
 import { VISUAL_QA_EXTENSION_DIRS } from './constants';
 import { causeMessage, VisualQaExtensionError } from './errors';
 
@@ -55,7 +56,14 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Visual
       vscodeExecutable: string
     ) {
       const prepared = yield* Effect.tryPromise({
-        try: () => prepareVsixExtensions({ repoRoot, packageDirs: [...VISUAL_QA_EXTENSION_DIRS], vscodeExecutable }),
+        try: async () => {
+          execFileSync('npm', ['run', 'vscode:package'], { cwd: repoRoot, stdio: 'pipe' });
+          return await prepareVsixExtensions({
+            repoRoot,
+            packageDirs: [...VISUAL_QA_EXTENSION_DIRS],
+            vscodeExecutable
+          });
+        },
         catch: cause =>
           new VisualQaExtensionError({
             message: 'Failed to prepare canonical VSIX extensions',

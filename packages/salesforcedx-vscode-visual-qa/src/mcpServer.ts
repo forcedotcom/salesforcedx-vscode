@@ -36,7 +36,7 @@ import { ControllerService } from './controllerService';
 import { causeMessage, VisualQaMcpShutdownError } from './errors';
 import { ActInput, StartInput, VisualQaFinding } from './schemas';
 
-const SERVER_INFO = { name: 'salesforce-visual-qa', version: '0.1.0' };
+const SERVER_INFO = { name: 'telecode', version: '0.1.0' };
 const AppLayer = ControllerService.Default.pipe(Layer.provide(Layer.merge(NodeFileSystem.layer, NodePath.layer)));
 const EmptyInput = Schema.Struct({}).annotations({
   jsonSchema: { type: 'object', properties: {}, required: [], additionalProperties: false }
@@ -158,7 +158,7 @@ export const createVisualQaMcpServer = (
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
     instructions:
-      'Start one visual QA session, observe before acting, use the latest observation sequence, record findings immediately, then finish.'
+      'Start one Telecode session, observe before acting, use the latest observation sequence, record findings immediately, then finish.'
   });
   const accepting = Ref.unsafeMake(true);
   const handlerScope = Effect.runSync(Scope.make());
@@ -176,7 +176,7 @@ export const createVisualQaMcpServer = (
                 ),
                 { propagateInterruption: true }
               ).pipe(Effect.flatMap(Fiber.join))
-            : Effect.fail(new McpError(ErrorCode.InternalError, 'Visual QA MCP server is shutting down'))
+            : Effect.fail(new McpError(ErrorCode.InternalError, 'Telecode MCP server is shutting down'))
         )
       ),
       { signal: extra.signal }
@@ -248,7 +248,7 @@ const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
   yield* Deferred.await(stopped);
 });
 
-if (process.env.SALESFORCE_VISUAL_QA_MCP_MAIN === '1') {
+if (process.env.TELECODE_MCP_MAIN === '1') {
   serverProgram()
     .pipe(Effect.scoped, Effect.runPromise)
     .catch(error => {
