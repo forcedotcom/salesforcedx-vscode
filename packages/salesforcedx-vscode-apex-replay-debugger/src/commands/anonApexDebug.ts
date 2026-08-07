@@ -57,13 +57,13 @@ const getAnonApexContext = Effect.fn('ApexReplayDebugger.getAnonApexContext')(fu
       selectionRange: !editor.selection.isEmpty
         ? new vscode.Range(editor.selection.start, editor.selection.end)
         : undefined,
-      documentUri: URI.parse(document.uri.toString())
+      documentUri: document.uri
     } satisfies AnonApexContext;
   }
   return {
     kind: 'file',
     filePath: document.uri.fsPath,
-    documentUri: URI.file(document.uri.fsPath)
+    documentUri: document.uri
   } satisfies AnonApexContext;
 });
 
