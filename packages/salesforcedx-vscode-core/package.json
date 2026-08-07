@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.9.2",
+  "version": "67.9.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -229,10 +229,6 @@
         {
           "command": "sf.config.list",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.alias.list",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         }
       ]
     },
@@ -244,10 +240,6 @@
       {
         "command": "sf.config.list",
         "title": "%config_list_text%"
-      },
-      {
-        "command": "sf.alias.list",
-        "title": "%alias_list_text%"
       }
     ],
     "configuration": {

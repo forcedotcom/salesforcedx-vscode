@@ -11,7 +11,8 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -20,14 +21,9 @@ import { decodeTaggedCliResponse } from '../util/cliJson';
 import { isValidOrgAlias } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
-const isInteger = (value: string | undefined): boolean =>
-  isNotUndefined(value) && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));
-
-const isIntegerInRange = (value: string | undefined, range: [number, number]): boolean =>
-  isNotUndefined(value) &&
-  isInteger(value) &&
-  Number.parseInt(value, 10) >= range[0] &&
-  Number.parseInt(value, 10) <= range[1];
+const decodeExpirationDays = Schema.decodeUnknownOption(
+  Schema.NumberFromString.pipe(Schema.int(), Schema.between(1, 30))
+);
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -120,7 +116,7 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       value: DEFAULT_EXPIRATION_DAYS,
       validateInput: value =>
-        isIntegerInRange(value, [1, 30]) ? undefined : nls.localize('error_invalid_expiration_days')
+        Option.isSome(decodeExpirationDays(value)) ? undefined : nls.localize('error_invalid_expiration_days')
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
@@ -158,7 +154,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const terminalService = yield* api.services.TerminalService;
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
   // quote alias: validateInput (isValidOrgAlias) permits embedded spaces, and childProcess.exec runs
-  // via /bin/sh -c, so an unquoted `--alias my org` would word-split. days is digits-only (no quoting needed).
+  // via /bin/sh -c, so an unquoted `--alias my org` would word-split. Validated days contain no shell metachars.
   const command = `sf org create scratch --definition-file "${defFilePath}" --alias "${alias}" --duration-days ${days} --set-default --json`;
   const stdout = yield* terminalService
     .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
