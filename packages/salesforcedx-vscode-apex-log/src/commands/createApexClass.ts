@@ -36,7 +36,7 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apexclass', /.cls$/);
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apexclass', /\.cls$/);
   const sortedNames = ['DefaultApexClass', ...builtInNames.filter((n: string) => n !== 'DefaultApexClass')];
   const builtInItems = sortedNames.map((label: string) => ({
     label,
