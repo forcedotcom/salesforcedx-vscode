@@ -84,8 +84,12 @@ type TelemetryPayload = Readonly<{
   properties?: Readonly<Properties>;
   measurements?: Readonly<Measurements>;
   identity: Readonly<IdentityFromServices>;
-  productFeatureId?: string;
 }>;
+
+const sendToReporter = (reporter: TelemetryReporter, payload: TelemetryPayload): void =>
+  payload.kind === 'event'
+    ? reporter.sendTelemetryEvent(payload.name, payload.properties, payload.measurements)
+    : reporter.sendExceptionEvent(payload.name, payload.message ?? '', payload.measurements);
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -104,10 +108,9 @@ export class TelemetryServiceProvider {
 
 export class TelemetryService implements TelemetryServiceInterface {
   private extensionContext: ExtensionContext | undefined;
-  private reporters: TelemetryReporter[] = [];
-  private productionReporters: (AppInsights | O11yReporter)[] = [];
+  private localReporters: TelemetryReporter[] = [];
+  private remoteReporters: (AppInsights | O11yReporter)[] = [];
   private sendProductionTelemetry: ((payload: TelemetryPayload) => Promise<void>) | undefined;
-  private productFeatureId: string | undefined;
   private disposed = false;
   private pendingTelemetry = new Set<Promise<void>>();
   private aiKey = DEFAULT_AIKEY;
@@ -186,7 +189,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       console.log(`Error initializing telemetry service: ${errorToString(error)}`);
     });
 
-    if (this.reporters.length === 0 && !this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
+    if (this.localReporters.length === 0 && !this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
       const identity = await this.getIdentityFromServices();
       const { cliId, webUserId } = identity;
       this.warnDegradedSession(cliId);
@@ -201,7 +204,6 @@ export class TelemetryService implements TelemetryServiceInterface {
         webUserId
       };
 
-      this.productFeatureId = productFeatureId;
       const localO11yEndpoint =
         this.isDevMode && isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT) ? process.env.O11Y_ENDPOINT : undefined;
       const resolvedO11yEndpoint = localO11yEndpoint ?? o11yUploadEndpoint;
@@ -216,13 +218,12 @@ export class TelemetryService implements TelemetryServiceInterface {
           Boolean(localO11yEndpoint)
         );
       }
-      this.reporters.push(
+      this.localReporters.push(
         ...(this.isDevMode ? determineReporters(reporterConfig) : determineLocalReporters(reporterConfig))
       );
       if (!this.isDevMode) {
-        this.sendProductionTelemetry = this.makeProductionSender(
-          reporterConfig,
-          enableO11y ? resolvedO11yEndpoint : undefined
+        this.sendProductionTelemetry = await Effect.runPromise(
+          this.makeProductionSender(reporterConfig, enableO11y ? resolvedO11yEndpoint : undefined, productFeatureId)
         );
       }
     }
@@ -240,7 +241,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public getReporters(): TelemetryReporter[] {
-    return [...this.reporters, ...this.productionReporters];
+    return [...this.localReporters, ...this.remoteReporters];
   }
 
   /**
@@ -253,7 +254,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   public async updateReporters(extensionContext: ExtensionContext): Promise<void> {
     if (
       !this.extensionContext ||
-      (this.reporters.length === 0 && !this.sendProductionTelemetry) ||
+      (this.localReporters.length === 0 && !this.sendProductionTelemetry) ||
       !(await this.isTelemetryEnabled())
     ) {
       return;
@@ -273,18 +274,18 @@ export class TelemetryService implements TelemetryServiceInterface {
       extensionContext.extension.packageJSON
     );
     // fresh object per reporter — avoid aliasing one shared-mutable orgIdentity across instances
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
       // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
       .forEach(r => (r.orgIdentity = { ...orgIdentity }));
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
       .forEach(r => {
         r.userId = userId;
         r.webUserId = webUserId;
         r.orgIdentity = { ...orgIdentity };
       });
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof O11yReporter)
       // don't overwrite PFT if already set
       .filter(r => isUndefined(r.productFeatureId))
@@ -425,8 +426,8 @@ export class TelemetryService implements TelemetryServiceInterface {
     void Promise.allSettled(this.pendingTelemetry)
       .then(() =>
         Promise.allSettled([
-          ...this.reporters.map(reporter => Promise.resolve().then(() => reporter.dispose())),
-          ...this.productionReporters.map(reporter => reporter.dispose())
+          ...this.localReporters.map(reporter => Promise.resolve().then(() => reporter.dispose())),
+          ...this.remoteReporters.map(reporter => reporter.dispose())
         ])
       )
       .catch(err => console.log(err));
@@ -438,20 +439,19 @@ export class TelemetryService implements TelemetryServiceInterface {
    *
    * @param callback function to call if telemetry is enabled
    */
-  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity' | 'productFeatureId'>): void {
+  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity'>): void {
     const identity = getIdentitySnapshotFromServices();
     const payload: TelemetryPayload = Object.freeze({
       ...item,
       properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
       measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
-      identity: Object.freeze({ ...identity }),
-      productFeatureId: this.productFeatureId
+      identity: Object.freeze({ ...identity })
     });
     const pending = Promise.resolve(
       this.validateTelemetry(async () => {
-        this.reporters.map(reporter => {
+        this.localReporters.map(reporter => {
           try {
-            this.sendToReporter(reporter, payload);
+            sendToReporter(reporter, payload);
           } catch (error) {
             console.error(error);
           }
@@ -464,7 +464,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   private async validateTelemetry(callback: () => void | Promise<void>): Promise<void> {
-    if (this.disposed || (this.reporters.length === 0 && !this.sendProductionTelemetry)) return;
+    if (this.disposed || (this.localReporters.length === 0 && !this.sendProductionTelemetry)) return;
     try {
       if (await this.isTelemetryEnabled()) await callback();
     } catch (err) {
@@ -472,73 +472,76 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
   }
 
-  private sendToReporter(reporter: TelemetryReporter, payload: TelemetryPayload): void {
-    if (payload.kind === 'event') {
-      reporter.sendTelemetryEvent(payload.name, payload.properties, payload.measurements);
-      return;
-    }
-    reporter.sendExceptionEvent(payload.name, payload.message ?? '', payload.measurements);
-  }
-
   private makeProductionSender(
     config: TelemetryReporterConfig,
-    o11yUploadEndpoint: string | undefined
-  ): (payload: TelemetryPayload) => Promise<void> {
-    const initializeAppInsights = this.stickyReporterInitialization(() =>
-      Promise.resolve(
-        new AppInsights(config.reporterName, config.version, config.aiKey, config.userId, config.webUserId, true)
-      )
-    );
-    const initializeO11y = o11yUploadEndpoint
-      ? this.stickyReporterInitialization(async () => {
-          const reporter = new O11yReporter(
-            config.extName,
-            config.version,
-            o11yUploadEndpoint,
-            config.userId,
-            config.webUserId,
-            this.productFeatureId
-          );
-          await reporter.initialize(config.extName);
-          return reporter;
-        })
-      : undefined;
-    const sendWith = async (
-      label: string,
-      initialize: (() => Promise<AppInsights | O11yReporter>) | undefined,
-      payload: TelemetryPayload
-    ) => {
-      if (!initialize) return;
-      try {
-        const reporter = await initialize();
-        if (!this.productionReporters.includes(reporter)) this.productionReporters.push(reporter);
-        const { identity, productFeatureId } = payload;
-        reporter.userId = identity.cliId ?? '';
-        reporter.webUserId = identity.webUserId;
-        reporter.orgIdentity = {
-          orgId: identity.orgId,
-          orgShape: identity.orgShape,
-          devHubId: identity.devHubId,
-          orgEdition: identity.orgEdition
-        };
-        if (reporter instanceof O11yReporter) reporter.productFeatureId = productFeatureId;
-        this.sendToReporter(reporter, payload);
-      } catch (error) {
-        console.error(`${label} telemetry failed:`, error);
-      }
-    };
-    return async payload => {
-      if (payload.identity.telemetryClassification !== 'nonGov' || !(await this.isTelemetryEnabled())) return;
-      await Promise.allSettled([
-        sendWith('App Insights', initializeAppInsights, payload),
-        sendWith('O11y', initializeO11y, payload)
-      ]);
-    };
-  }
-
-  private stickyReporterInitialization<Reporter>(initialize: () => Promise<Reporter>): () => Promise<Reporter> {
-    const initialized: { promise?: Promise<Reporter> } = {};
-    return () => (initialized.promise ??= Promise.resolve().then(initialize));
+    o11yUploadEndpoint: string | undefined,
+    productFeatureId: string | undefined
+  ): Effect.Effect<(payload: TelemetryPayload) => Promise<void>> {
+    return Effect.gen(this, function* () {
+      const service = this;
+      const initializeAppInsights = yield* Effect.cached(
+        Effect.try(
+          () =>
+            new AppInsights(config.reporterName, config.version, config.aiKey, config.userId, config.webUserId, true)
+        )
+      );
+      const initializeO11y = o11yUploadEndpoint
+        ? yield* Effect.cached(
+            Effect.tryPromise(async () => {
+              const reporter = new O11yReporter(
+                config.extName,
+                config.version,
+                o11yUploadEndpoint,
+                config.userId,
+                config.webUserId,
+                productFeatureId
+              );
+              await reporter.initialize(config.extName);
+              return reporter;
+            })
+          )
+        : undefined;
+      const sendWith = Effect.fn('TelemetryService.sendWith')(function* (
+        label: string,
+        initialize: Effect.Effect<AppInsights | O11yReporter, unknown> | undefined,
+        payload: TelemetryPayload
+      ) {
+        if (!initialize) return;
+        yield* initialize.pipe(
+          Effect.flatMap(reporter =>
+            Effect.try(() => {
+              if (!service.remoteReporters.includes(reporter)) service.remoteReporters.push(reporter);
+              const { identity } = payload;
+              reporter.userId = identity.cliId ?? '';
+              reporter.webUserId = identity.webUserId;
+              reporter.orgIdentity = {
+                orgId: identity.orgId,
+                orgShape: identity.orgShape,
+                devHubId: identity.devHubId,
+                orgEdition: identity.orgEdition
+              };
+              if (reporter instanceof O11yReporter) reporter.productFeatureId = productFeatureId;
+              sendToReporter(reporter, payload);
+            })
+          ),
+          Effect.catchAll(error => Effect.sync(() => console.error(`${label} telemetry failed:`, error)))
+        );
+      });
+      return (payload: TelemetryPayload) =>
+        Effect.runPromise(
+          Effect.gen(this, function* () {
+            if (
+              payload.identity.telemetryClassification !== 'nonGov' ||
+              !(yield* Effect.tryPromise(() => service.isTelemetryEnabled()))
+            )
+              return;
+            yield* Effect.all(
+              [sendWith('App Insights', initializeAppInsights, payload), sendWith('O11y', initializeO11y, payload)],
+              { concurrency: 'unbounded', discard: true }
+            );
+          })
+        );
+    }).pipe(Effect.withSpan('TelemetryService.makeProductionSender'));
   }
 }
 

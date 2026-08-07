@@ -20,11 +20,11 @@ describe('O11ySpanExporter attribution', () => {
       spanContext: () => ({ traceId: 'trace', spanId: 'span' }),
       startTime: [0, 0],
       endTime: [1, 0],
-      duration: [1, 0]
+      duration: [1, 0],
+      setAttribute: jest.fn()
     } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
     const processor = new SpanTransformProcessor({
       exporter: {} as never,
-      shouldEnrich: () => false,
       getIdentitySnapshot: () => snapshot as never
     });
     processor.onStart(span, {} as Parameters<SpanTransformProcessor['onStart']>[1]);

@@ -15,7 +15,7 @@ import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
 import { getTelemetryIdentitySnapshot, type TelemetryIdentitySnapshot } from '../core/defaultOrgRef';
 
-export type SpanCreationIdentity = Readonly<
+type SpanCreationIdentity = Readonly<
   Pick<
     typeof DefaultOrgInfoSchema.Type,
     | 'orgId'
@@ -38,21 +38,16 @@ export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreation
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
-  private readonly shouldEnrich: () => boolean;
-
   constructor({
     exporter,
     options,
-    shouldEnrich = () => true,
     getIdentitySnapshot = getTelemetryIdentitySnapshot
   }: {
     exporter: SpanExporter;
     options?: BufferConfig;
-    shouldEnrich?: () => boolean;
     getIdentitySnapshot?: () => TelemetryIdentitySnapshot;
   }) {
     super(exporter, options);
-    this.shouldEnrich = shouldEnrich;
     this.getIdentitySnapshot = getIdentitySnapshot;
   }
 
@@ -62,9 +57,8 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
     if (!creationIdentities.has(span)) {
       creationIdentities.set(span, Object.freeze(this.getIdentitySnapshot()));
     }
-    // for top level spans, add additional attributes — skipped when the exporter gate is disabled
-    // (the enrichment would be computed per-span then discarded by the gated exporter)
-    if (!span.parentSpanContext && this.shouldEnrich()) {
+    // for top level spans, add additional attributes
+    if (!span.parentSpanContext) {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];

@@ -22,12 +22,9 @@ export const getDefaultOrgRef = Effect.fn('getDefaultOrgRef')(function* () {
 });
 
 export const getTelemetryIdentitySnapshot = (): TelemetryIdentitySnapshot => {
-  const { instanceName: _instanceName, ...identity } = Effect.runSync(
-    getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get))
-  );
-  const normalizedInstanceName = _instanceName?.trim();
+  const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
   const telemetryClassification =
-    identity.orgId && normalizedInstanceName ? (/^usa9/i.test(normalizedInstanceName) ? 'gov' : 'nonGov') : 'unknown';
+    identity.orgId && instanceName ? (/^usa9/i.test(instanceName) ? 'gov' : 'nonGov') : 'unknown';
   return Object.freeze({ ...identity, telemetryClassification });
 };
 

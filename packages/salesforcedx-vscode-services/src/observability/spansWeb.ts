@@ -9,7 +9,6 @@ import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
-import { isProductionTelemetryExportEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
@@ -42,11 +41,8 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           new SpanTransformProcessor({
             exporter: new GatedSpanExporter({
               make: () => new ApplicationInsightsWebExporter(),
-              isEnabled: () => isProductionTelemetryExportEnabled(),
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
-            }),
-            // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
-            shouldEnrich: () => isProductionTelemetryExportEnabled()
+            })
           }),
           // O11y processor present whenever an endpoint is configured; gate (localhost bypass + telemetry setting) lives in the wrapper
           ...(o11yEndpoint
@@ -54,10 +50,9 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
                 new SpanTransformProcessor({
                   exporter: new GatedSpanExporter({
                     make: () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
-                    isEnabled: () => isProductionTelemetryExportEnabled(o11yEndpoint),
+                    o11yEndpoint,
                     bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
-                  }),
-                  shouldEnrich: () => isProductionTelemetryExportEnabled(o11yEndpoint)
+                  })
                 })
               ]
             : []),

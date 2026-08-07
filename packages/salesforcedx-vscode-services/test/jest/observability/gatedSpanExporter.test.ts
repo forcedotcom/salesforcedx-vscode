@@ -8,6 +8,13 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { GatedSpanExporter } from '../../../src/observability/gatedSpanExporter';
 import { SpanTransformProcessor } from '../../../src/observability/spanTransformProcessor';
+import { isProductionTelemetryExportEnabled } from '../../../src/observability/appInsights';
+
+jest.mock('../../../src/observability/appInsights', () => ({
+  isProductionTelemetryExportEnabled: jest.fn()
+}));
+
+const mockedIsProductionTelemetryExportEnabled = jest.mocked(isProductionTelemetryExportEnabled);
 
 const makeFakeExporter = (): SpanExporter & { export: jest.Mock; forceFlush: jest.Mock; shutdown: jest.Mock } => ({
   export: jest.fn((_spans: ReadableSpan[], callback: (result: ExportResult) => void) =>
@@ -26,20 +33,23 @@ const stampedSpan = (
     name,
     attributes: telemetryIgnore ? { telemetryIgnore: true } : {},
     parentSpanContext: undefined,
-    resource: { attributes: {} }
+    resource: { attributes: {} },
+    setAttribute: jest.fn()
   } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
   new SpanTransformProcessor({
     exporter: makeFakeExporter(),
-    shouldEnrich: () => false,
     getIdentitySnapshot: () => ({ telemetryClassification })
   }).onStart(span, {} as Parameters<SpanTransformProcessor['onStart']>[1]);
   return span as unknown as ReadableSpan;
 };
 
 describe('GatedSpanExporter', () => {
+  beforeEach(() => mockedIsProductionTelemetryExportEnabled.mockReturnValue(true));
+
   it('does not construct the delegate when disabled', () => {
+    mockedIsProductionTelemetryExportEnabled.mockReturnValue(false);
     const make = jest.fn(makeFakeExporter);
-    const exporter = new GatedSpanExporter({ make, isEnabled: () => false });
+    const exporter = new GatedSpanExporter({ make });
     const callback = jest.fn();
 
     exporter.export([stampedSpan('allowed', 'nonGov')], callback);
@@ -51,7 +61,7 @@ describe('GatedSpanExporter', () => {
   it('exports only valid nonGov spans from a mixed batch', () => {
     const delegate = makeFakeExporter();
     const make = jest.fn(() => delegate);
-    const exporter = new GatedSpanExporter({ make, isEnabled: () => true });
+    const exporter = new GatedSpanExporter({ make });
     const callback = jest.fn();
 
     exporter.export(
@@ -71,7 +81,7 @@ describe('GatedSpanExporter', () => {
 
   it.each(['gov', 'unknown'] as const)('does not construct the delegate for %s spans', classification => {
     const make = jest.fn(makeFakeExporter);
-    const exporter = new GatedSpanExporter({ make, isEnabled: () => true });
+    const exporter = new GatedSpanExporter({ make });
 
     exporter.export([stampedSpan(classification, classification)], jest.fn());
 
@@ -82,7 +92,6 @@ describe('GatedSpanExporter', () => {
     const delegate = makeFakeExporter();
     const exporter = new GatedSpanExporter({
       make: () => delegate,
-      isEnabled: () => true,
       bypassGovernance: true
     });
 
@@ -94,14 +103,14 @@ describe('GatedSpanExporter', () => {
   it('re-checks enablement and reuses the delegate', () => {
     const delegate = makeFakeExporter();
     const make = jest.fn(() => delegate);
-    const enabled = { value: true };
-    const exporter = new GatedSpanExporter({ make, isEnabled: () => enabled.value });
+    const exporter = new GatedSpanExporter({ make, o11yEndpoint: 'http://localhost:4318' });
     const span = stampedSpan('allowed', 'nonGov');
 
     exporter.export([span], jest.fn());
-    enabled.value = false;
+    mockedIsProductionTelemetryExportEnabled.mockReturnValue(false);
     exporter.export([span], jest.fn());
 
+    expect(mockedIsProductionTelemetryExportEnabled).toHaveBeenCalledWith('http://localhost:4318');
     expect(make).toHaveBeenCalledTimes(1);
     expect(delegate.export).toHaveBeenCalledTimes(1);
   });
@@ -109,7 +118,7 @@ describe('GatedSpanExporter', () => {
   it('flushes and shuts down only an initialized delegate', async () => {
     const delegate = makeFakeExporter();
     const make = jest.fn(() => delegate);
-    const exporter = new GatedSpanExporter({ make, isEnabled: () => true });
+    const exporter = new GatedSpanExporter({ make });
 
     await exporter.forceFlush();
     expect(make).not.toHaveBeenCalled();

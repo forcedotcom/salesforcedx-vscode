@@ -17,7 +17,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
-import { DEFAULT_AI_CONNECTION_STRING, isProductionTelemetryExportEnabled } from './appInsights';
+import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
@@ -99,7 +99,6 @@ export const NodeSdkLayerFor = ({
                       },
                       localIngestionEndpoint
                     ),
-              isEnabled: () => isProductionTelemetryExportEnabled(),
               bypassGovernance: Boolean(localIngestionEndpoint)
             }),
             options:
@@ -108,9 +107,7 @@ export const NodeSdkLayerFor = ({
                 : {
                     exportTimeoutMillis: 15_000,
                     maxQueueSize: 1000
-                  },
-            // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
-            shouldEnrich: () => isProductionTelemetryExportEnabled()
+                  }
           }),
           // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
           // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
@@ -122,10 +119,9 @@ export const NodeSdkLayerFor = ({
                     // /o11y route instead of uploading through the org connection — mirrors the AI divert.
                     make: () =>
                       new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
-                    isEnabled: () => isProductionTelemetryExportEnabled(o11yEndpoint),
+                    o11yEndpoint,
                     bypassGovernance: Boolean(localIngestionEndpoint)
-                  }),
-                  shouldEnrich: () => isProductionTelemetryExportEnabled(o11yEndpoint)
+                  })
                 })
               ]
             : []),

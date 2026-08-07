@@ -204,8 +204,8 @@ describe('Telemetry', () => {
         dispose: jest.fn()
       };
 
-      // Replace the reporters array with our mock
-      (instance as any).reporters = [mockReporter];
+      // Replace the local reporters array with our mock
+      (instance as any).localReporters = [mockReporter];
 
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
@@ -384,7 +384,7 @@ describe('Telemetry', () => {
       } as unknown as ExtensionContext;
 
       beforeEach(() => {
-        (instance as any).reporters = [appInsights, o11y, telemetryFile, logStream];
+        (instance as any).localReporters = [appInsights, o11y, telemetryFile, logStream];
         (instance as any).extensionContext = extensionContext;
         jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
         jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
