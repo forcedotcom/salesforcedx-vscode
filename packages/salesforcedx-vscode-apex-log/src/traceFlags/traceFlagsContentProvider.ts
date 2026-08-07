@@ -19,15 +19,21 @@ import { isTraceFlagActive } from './traceFlagActive';
 export const SCHEME = 'sf-traceflags';
 
 type TraceFlagsByLogType = {
-  DEVELOPER_LOG?: TraceFlagItem[];
-  USER_DEBUG?: TraceFlagItem[];
-  CLASS_TRACING?: TraceFlagItem[];
-  TRIGGERS?: TraceFlagItem[];
+  DEVELOPER_LOG: TraceFlagItem[];
+  USER_DEBUG: TraceFlagItem[];
+  CLASS_TRACING: TraceFlagItem[];
+  TRIGGERS: TraceFlagItem[];
 };
 
 const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
   const active = items.filter(isTraceFlagActive);
-  return Arr.groupBy(active, item => (item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType));
+  const grouped = Arr.groupBy(active, item => (item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType));
+  return {
+    DEVELOPER_LOG: grouped.DEVELOPER_LOG ?? [],
+    USER_DEBUG: grouped.USER_DEBUG ?? [],
+    CLASS_TRACING: grouped.CLASS_TRACING ?? [],
+    TRIGGERS: grouped.TRIGGERS ?? []
+  };
 };
 
 /**
