@@ -112,12 +112,8 @@ describe('NotificationModeService.Default', () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  const makeService = () =>
-    Effect.runPromise(
-      Effect.gen(function* () {
-        return yield* NotificationModeService;
-      }).pipe(Effect.provide(NotificationModeService.Default('ext', 'status-id', 'Status Name')))
-    );
+  const runWithService = <A>(effect: Effect.Effect<A, never, NotificationModeService>) =>
+    Effect.runPromise(effect.pipe(Effect.provide(NotificationModeService.Default('ext', 'status-id', 'Status Name'))));
 
   it.each([
     ['progressToastSuccessOff', vscode.ProgressLocation.Notification],
@@ -125,21 +121,18 @@ describe('NotificationModeService.Default', () => {
   ] as const)('configures the status item and maps %s progress', async (mode, expectedLocation) => {
     makeConfig({ extGlobal: mode });
 
-    const service = await makeService();
-
+    await expect(NotificationModeService.getProgressLocation('Command').pipe(runWithService)).resolves.toBe(
+      expectedLocation
+    );
     expect(vscode.window.createStatusBarItem).toHaveBeenCalledWith('status-id', vscode.StatusBarAlignment.Left, 44);
     expect(item.name).toBe('Status Name');
     expect(item.command).toBe('status-id.showToast');
     expect(vscode.commands.registerCommand).toHaveBeenCalledWith('status-id.showToast', expect.any(Function));
-    await expect(Effect.runPromise(service.getProgressLocation('Command'))).resolves.toBe(expectedLocation);
-    service.runDispose();
   });
 
-  it('disposes the registered command and status item', async () => {
+  it('disposes the registered command and status item when the service scope closes', async () => {
     makeConfig({ extGlobal: 'progressToastSuccessOff' });
-    const service = await makeService();
-
-    service.runDispose();
+    await runWithService(NotificationModeService);
 
     expect(commandDisposable.dispose).toHaveBeenCalledTimes(1);
     expect(item.dispose).toHaveBeenCalledTimes(1);

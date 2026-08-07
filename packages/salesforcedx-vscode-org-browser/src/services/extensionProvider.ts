@@ -50,3 +50,10 @@ type OrgBrowserRuntime = ManagedRuntime.ManagedRuntime<
 // eslint-disable-next-line functional/no-let
 let _orgBrowserRuntime: OrgBrowserRuntime | undefined;
 export const getOrgBrowserRuntime = () => (_orgBrowserRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeOrgBrowserRuntime = async (): Promise<void> => {
+  if (_orgBrowserRuntime) {
+    await _orgBrowserRuntime.dispose();
+    _orgBrowserRuntime = undefined;
+  }
+};

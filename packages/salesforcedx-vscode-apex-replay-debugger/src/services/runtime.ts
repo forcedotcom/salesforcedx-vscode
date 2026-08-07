@@ -14,3 +14,10 @@ export const getRuntime = () => {
   _replayDebuggerRuntime ??= createReplayDebuggerRuntime();
   return _replayDebuggerRuntime;
 };
+
+export const disposeRuntime = async (): Promise<void> => {
+  if (_replayDebuggerRuntime) {
+    await _replayDebuggerRuntime.dispose();
+    _replayDebuggerRuntime = undefined;
+  }
+};

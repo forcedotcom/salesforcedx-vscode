@@ -24,8 +24,7 @@ const getProgressLocation = jest.fn(() => Effect.succeed(15 /* vscode.ProgressLo
 const showSuccessNotification = jest.fn(() => Effect.void);
 const notificationMode = {
   getProgressLocation,
-  showSuccessNotification,
-  runDispose: jest.fn()
+  showSuccessNotification
 } as unknown as NotificationModeService;
 
 // Fake jsforce Connection: `tooling.query` returns the seeded records; `tooling.sobject(...).update` is a spy.

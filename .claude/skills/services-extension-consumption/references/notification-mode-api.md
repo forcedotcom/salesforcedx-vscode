@@ -25,7 +25,8 @@ const layer = api.services.NotificationModeService.Default(
 yield* program.pipe(Effect.provide(layer));
 ```
 
-`Default(extensionSection, statusBarId, statusBarName)` returns the per-extension layer. Add its service disposal to the extension context subscriptions.
+`Default(extensionSection, statusBarId, statusBarName)` returns a scoped per-extension layer. Its status item,
+registered command, and timer are released when the owning runtime is disposed.
 
 ## showSuccessNotification
 
@@ -72,7 +73,9 @@ const location = yield* service.getProgressLocation(commandKey);
 
 ## Lifecycle
 
-Yield the service during activation and add `{ dispose: service.runDispose }` to `context.subscriptions`.
+The service owns its VS Code resources through Effect finalizers. Don't add a notification disposable to
+`context.subscriptions`. Dispose the `ManagedRuntime` during extension deactivation; see the parent skill's
+Resource Lifecycle section.
 
 ## Mode types
 

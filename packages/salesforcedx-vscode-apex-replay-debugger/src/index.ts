@@ -6,7 +6,6 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -44,7 +43,7 @@ import {
 } from './debuggerConstants';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { disposeRuntime, getRuntime } from './services/runtime';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -177,7 +176,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const commands = yield* Effect.promise(() => registerCommands(extensionContext));
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
@@ -206,7 +204,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
   });
 
-  const notificationMode = yield* api.services.NotificationModeService;
   extensionContext.subscriptions.push(
     debuggerChannel,
     commands,
@@ -215,8 +212,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     checkpointsView,
     breakpointsSub,
     debugTests,
-    debugTest,
-    { dispose: () => notificationMode.runDispose() }
+    debugTest
   );
 
   // Telemetry
@@ -289,8 +285,12 @@ export const writeToDebuggerOutputWindow = (
   }
 };
 
-export const deactivate = () => {
-  console.log('Apex Replay Debugger Extension Deactivated');
-  // Send deactivation event using shared service
-  TelemetryService.getInstance().sendExtensionDeactivationEvent();
+export const deactivate = async () => {
+  await Promise.resolve()
+    .then(() => {
+      console.log('Apex Replay Debugger Extension Deactivated');
+      // Send deactivation event using shared service
+      TelemetryService.getInstance().sendExtensionDeactivationEvent();
+    })
+    .finally(disposeRuntime);
 };

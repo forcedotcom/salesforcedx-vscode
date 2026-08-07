@@ -34,8 +34,7 @@ const createMockExtensionProvider = () =>
 
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
-  showSuccessNotification: () => Effect.void,
-  runDispose: jest.fn()
+  showSuccessNotification: () => Effect.void
 } as unknown as NotificationModeService;
 
 const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>

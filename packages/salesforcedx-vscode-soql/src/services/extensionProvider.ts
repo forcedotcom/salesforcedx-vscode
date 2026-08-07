@@ -74,3 +74,10 @@ type SoqlRuntime = ManagedRuntime.ManagedRuntime<
 >;
 let _soqlRuntime: SoqlRuntime | undefined;
 export const getSoqlRuntime = () => (_soqlRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeSoqlRuntime = async (): Promise<void> => {
+  if (_soqlRuntime) {
+    await _soqlRuntime.dispose();
+    _soqlRuntime = undefined;
+  }
+};
