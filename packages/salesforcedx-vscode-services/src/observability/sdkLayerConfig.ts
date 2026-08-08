@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
@@ -55,8 +56,10 @@ const DEFAULT_LOCAL_INGESTION_ENDPOINT = 'http://localhost:3003';
  *
  * Node-only: the web exporter targets a hard-coded connection string and cannot be diverted.
  */
-const resolveLocalIngestionEndpoint = (isDevOrTest: boolean): string | undefined =>
-  process.env.SF_OTEL_INGESTION_ENDPOINT ?? (isDevOrTest ? DEFAULT_LOCAL_INGESTION_ENDPOINT : undefined);
+const resolveLocalIngestionEndpoint = (isDevOrTest: boolean): string | undefined => {
+  const configured = process.env.SF_OTEL_INGESTION_ENDPOINT;
+  return isDevOrTest ? (isLoopbackHttpEndpoint(configured) ? configured : DEFAULT_LOCAL_INGESTION_ENDPOINT) : undefined;
+};
 
 type ExtensionPackageJSON = {
   name: string;
@@ -74,7 +77,10 @@ export const getSdkLayerConfigFromPackageJSON = (
 ): SdkLayerConfig => ({
   extensionName: packageJSON.name,
   extensionVersion: packageJSON.version,
-  o11yEndpoint: process.env.O11Y_ENDPOINT ?? packageJSON?.o11yUploadEndpoint,
+  o11yEndpoint:
+    isDevOrTest && isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT)
+      ? process.env.O11Y_ENDPOINT
+      : packageJSON?.o11yUploadEndpoint,
   productFeatureId: packageJSON?.productFeatureId,
   enableCustomEventsFromSpans: packageJSON?.enableCustomEventsFromSpans,
   connectionString: resolveConnectionString(packageJSON) ?? DEFAULT_AI_CONNECTION_STRING,

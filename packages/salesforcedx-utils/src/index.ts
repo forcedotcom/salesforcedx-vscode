@@ -18,3 +18,6 @@ export { TELEMETRY_HEADER } from './constants';
 export { CommandBuilder } from './cli/commandBuilder';
 export { CommandOutput } from './cli/commandOutput';
 export { SfCommandBuilder } from './cli/sfCommandBuilder';
+
+// Helpers
+export { isLoopbackHttpEndpoint } from './helpers/isLoopbackHttpEndpoint';
