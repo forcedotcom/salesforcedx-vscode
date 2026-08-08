@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  TELEMETRY_GLOBAL_USER_ID,
+  TELEMETRY_GLOBAL_WEB_USER_ID,
+  TelemetryService
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import { window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -22,6 +26,11 @@ describe('Telemetry', () => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
     jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
+    jest.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
+      cliId: 'cli',
+      webUserId: 'web',
+      telemetryClassification: 'nonGov'
+    });
 
     // Mock createFileSystemWatcher to return a proper mock object
     jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({

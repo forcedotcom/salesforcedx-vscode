@@ -19,7 +19,7 @@
 
 import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
-import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
+import { determineLocalReporters, determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
@@ -93,7 +93,8 @@ describe('determineReporters', () => {
       try {
         expect(determineReporters(config)).toHaveLength(0);
       } finally {
-        prev === undefined ? delete process.env.O11Y_ENDPOINT : (process.env.O11Y_ENDPOINT = prev);
+        if (prev === undefined) delete process.env.O11Y_ENDPOINT;
+        else process.env.O11Y_ENDPOINT = prev;
       }
     });
   });
@@ -113,6 +114,17 @@ describe('determineReporters', () => {
       expect(reporters[0]).toBeInstanceOf(AppInsights);
       expect(reporters[1]).toBeInstanceOf(LogStream);
     });
+  });
+
+  it('keeps local reporters independent from production reporters', () => {
+    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('true') });
+    config.isDevMode = true;
+
+    const reporters = determineLocalReporters(config);
+
+    expect(reporters).toHaveLength(1);
+    expect(reporters[0]).toBeInstanceOf(TelemetryFile);
+    expect(reporters.some(reporter => reporter instanceof AppInsights)).toBe(false);
   });
 });
 
@@ -148,7 +160,15 @@ describe('initializeO11yReporter', () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
     const webUserId = 'test-webUserId';
     await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
-    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId, webUserId, undefined);
+    expect(O11yReporterMock).toHaveBeenCalledWith(
+      extName,
+      version,
+      o11yUploadEndpoint,
+      userId,
+      webUserId,
+      undefined,
+      false
+    );
     expect(initializeMock).toHaveBeenCalledWith(extName);
   });
 
@@ -224,7 +244,8 @@ describe('initializeO11yReporter', () => {
       });
       expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
     } finally {
-      prev === undefined ? delete process.env.O11Y_ENDPOINT : (process.env.O11Y_ENDPOINT = prev);
+      if (prev === undefined) delete process.env.O11Y_ENDPOINT;
+      else process.env.O11Y_ENDPOINT = prev;
     }
   });
 });

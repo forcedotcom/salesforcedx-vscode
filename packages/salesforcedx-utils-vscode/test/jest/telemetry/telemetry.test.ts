@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, workspace } from 'vscode';
+import { ExtensionContext, extensions, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
 import { AppInsights } from '../../../src/telemetry/reporters/appInsights';
@@ -204,11 +204,20 @@ describe('Telemetry', () => {
         dispose: jest.fn()
       };
 
-      // Replace the reporters array with our mock
-      (instance as any).reporters = [mockReporter];
+      // Replace the local reporters array with our mock
+      (instance as any).localReporters = [mockReporter];
 
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
+
+      jest.spyOn(extensions, 'getExtension').mockReturnValue({
+        isActive: true,
+        exports: {
+          services: {
+            TelemetryIdentitySnapshot: () => ({ cliId: 'cli', webUserId: 'web' })
+          }
+        }
+      } as any);
 
       // Enable telemetry for testing by mocking the validation method to call the callback directly
       (instance as any).validateTelemetry = jest.fn((callback: () => void) => {
@@ -375,13 +384,14 @@ describe('Telemetry', () => {
       } as unknown as ExtensionContext;
 
       beforeEach(() => {
-        (instance as any).reporters = [appInsights, o11y, telemetryFile, logStream];
+        (instance as any).localReporters = [appInsights, o11y, telemetryFile, logStream];
         (instance as any).extensionContext = extensionContext;
         jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
         jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
           cliId: 'cli',
           webUserId: 'sha',
-          ...orgIdentity
+          ...orgIdentity,
+          telemetryClassification: 'nonGov'
         });
       });
 
@@ -392,6 +402,132 @@ describe('Telemetry', () => {
         expect(o11y.orgIdentity).toEqual(orgIdentity);
         expect(telemetryFile.orgIdentity).toEqual(orgIdentity);
         expect(logStream.orgIdentity).toEqual(orgIdentity);
+      });
+    });
+
+    describe('governed production telemetry boundary', () => {
+      const snapshot = jest.fn();
+
+      beforeEach(() => {
+        jest.spyOn(extensions, 'getExtension').mockReturnValue({
+          isActive: true,
+          exports: { services: { TelemetryIdentitySnapshot: snapshot } }
+        } as any);
+        snapshot.mockReturnValue({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          isScratch: true,
+          devHubOrgId: '00Dhub',
+          orgEdition: 'Developer Edition',
+          telemetryClassification: 'nonGov'
+        });
+        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          orgShape: 'Scratch',
+          devHubId: '00Dhub',
+          orgEdition: 'Developer Edition',
+          telemetryClassification: 'nonGov'
+        });
+      });
+
+      it('dispatches production telemetry when a local reporter throws', async () => {
+        mockReporter.sendTelemetryEvent.mockImplementation(() => {
+          throw new Error('local failure');
+        });
+        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+
+        instance.sendEventData('event');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(sendProductionTelemetry).toHaveBeenCalledTimes(1);
+      });
+
+      it('captures a complete immutable envelope identity at send time', async () => {
+        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+        const properties = { key: 'before' };
+
+        instance.sendEventData('event', properties);
+        properties.key = 'after';
+        snapshot.mockReturnValue({ orgId: 'later', cliId: 'later-cli', webUserId: 'later-web' });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
+        expect(payload.identity).toEqual({
+          cliId: 'cli',
+          webUserId: 'web',
+          orgId: '00D',
+          orgShape: 'Scratch',
+          devHubId: '00Dhub',
+          orgEdition: 'Developer Edition',
+          telemetryClassification: 'nonGov'
+        });
+        expect(payload.properties).toEqual({ key: 'before' });
+        expect(Object.isFrozen(payload)).toBe(true);
+        expect(Object.isFrozen(payload.identity)).toBe(true);
+        expect(Object.isFrozen(payload.properties)).toBe(true);
+      });
+
+      it.each([
+        ['Gov to nonGov delayed enablement', 'gov', 'nonGov'],
+        ['nonGov to Gov delayed enablement', 'nonGov', 'gov']
+      ])('retains invocation identity during %s', async (_case, invocationOrgId, laterOrgId) => {
+        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+        snapshot.mockReturnValue({
+          cliId: `${invocationOrgId}-cli`,
+          webUserId: `${invocationOrgId}-web`,
+          orgId: invocationOrgId,
+          isSandbox: true,
+          devHubOrgId: `${invocationOrgId}-hub`,
+          orgEdition: `${invocationOrgId}-edition`,
+          telemetryClassification: invocationOrgId === 'gov' ? 'gov' : 'nonGov'
+        });
+
+        instance.sendEventData('switch');
+        snapshot.mockReturnValue({
+          cliId: `${laterOrgId}-cli`,
+          webUserId: `${laterOrgId}-web`,
+          orgId: laterOrgId
+        });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const submitted = sendProductionTelemetry.mock.calls[0]?.[0] as any;
+        expect(submitted.identity).toEqual({
+          cliId: `${invocationOrgId}-cli`,
+          webUserId: `${invocationOrgId}-web`,
+          orgId: invocationOrgId,
+          orgShape: 'Sandbox',
+          devHubId: `${invocationOrgId}-hub`,
+          orgEdition: `${invocationOrgId}-edition`,
+          telemetryClassification: invocationOrgId === 'gov' ? 'gov' : 'nonGov'
+        });
+      });
+    });
+
+    describe('lifecycle', () => {
+      it('registers the service once and direct disposal remains idempotent', async () => {
+        const context = {
+          extension: { packageJSON: { name: 'test-extension', version: '1.0.0' } },
+          extensionMode: 1,
+          subscriptions: []
+        } as unknown as ExtensionContext;
+        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(false);
+        jest.spyOn(instance, 'checkCliTelemetry').mockResolvedValue(false);
+
+        await instance.initializeService(context);
+        await instance.initializeService(context);
+        expect(context.subscriptions.filter(disposable => disposable === instance)).toHaveLength(1);
+
+        expect(() => {
+          instance.dispose();
+          instance.dispose();
+          context.subscriptions[0]?.dispose();
+        }).not.toThrow();
       });
     });
 

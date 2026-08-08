@@ -19,24 +19,16 @@ import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace } from 'vscode';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
   spanDuration
 } from './spanUtils';
-// TODO: should this be in Effect?
-// Lazy initialization to avoid bundling issues
-const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
-export const getWebAppInsightsReporter = (): TelemetryReporter => {
-  _webAppInsightsReporter.instance ??= new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING);
-  return _webAppInsightsReporter.instance;
-};
 
 const getSpanKindName = (kind: SpanKind): string =>
   Match.value(kind).pipe(
@@ -58,12 +50,19 @@ const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vsc
  * with the Node SDK behavior.
  */
 export class ApplicationInsightsWebExporter implements SpanExporter {
-  // eslint-disable-next-line class-methods-use-this
+  private reporter: TelemetryReporter | undefined;
+
+  constructor(private readonly makeReporter = () => new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING)) {}
+
+  private getReporter(): TelemetryReporter {
+    return (this.reporter ??= this.makeReporter());
+  }
+
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     void Effect.runPromise(
       Stream.fromIterable(spans).pipe(
         Stream.filter(isSpanValidForProductionTelemetry),
-        Stream.mapEffect(exportSpan),
+        Stream.mapEffect(span => exportSpan(span, () => this.getReporter())),
         Stream.runDrain,
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
@@ -72,13 +71,12 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
     );
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public shutdown(): Promise<void> {
-    return Promise.resolve();
+    return this.reporter?.dispose() ?? Promise.resolve();
   }
 }
 
-const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
+const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
   const success = span.status?.code !== SpanStatusCode.ERROR;
 
   // Create distributed trace context from OpenTelemetry span context
@@ -88,7 +86,7 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
     parentID: span.parentSpanContext?.spanId
   };
 
-  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get));
+  const { userId, webUserId } = getSpanCreationIdentity(span);
 
   const props = {
     ...convertAttributes(span.resource.attributes),
@@ -112,8 +110,8 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
       process.env.ESBUILD_WEB_LOCAL === '1'
         ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
         : success
-          ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
-          : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+          ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+          : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
     catch: error => unknownToErrorCause(error)
   }).pipe(
     Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))

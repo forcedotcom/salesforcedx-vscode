@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { UNAUTHENTICATED_USER } from '../../../src/constants';
 
 const ServicesExtensionNotFoundError = class extends Error {
@@ -28,11 +26,9 @@ type OrgInfoShape = {
   alias?: string;
   username?: string;
 };
-const makeRef = (info: OrgInfoShape) => Effect.runSync(SubscriptionRef.make<OrgInfoShape>(info));
-
 const mockApiState = {
   mode: 'happy' as 'happy' | 'no-ext' | 'invalid',
-  ref: undefined as SubscriptionRef.SubscriptionRef<OrgInfoShape> | undefined
+  identity: {} as OrgInfoShape
 };
 
 jest.mock('@salesforce/effect-ext-utils', () => {
@@ -56,7 +52,7 @@ jest.mock('@salesforce/effect-ext-utils', () => {
       }
       return E.succeed({
         services: {
-          TargetOrgRef: () => E.succeed(mockApiState.ref)
+          TelemetryIdentitySnapshot: () => mockApiState.identity
         }
       });
     }
@@ -70,31 +66,31 @@ import { TelemetryService } from '../../../src/services/telemetry';
 describe('TelemetryService.getIdentityFromServices', () => {
   beforeEach(() => {
     mockApiState.mode = 'happy';
-    mockApiState.ref = makeRef({});
+    mockApiState.identity = {};
   });
 
   it('returns identity from defaultOrgRef on happy path', async () => {
-    mockApiState.ref = makeRef({ cliId: 'cli', userId: 'soql', webUserId: 'sha' });
+    mockApiState.identity = { cliId: 'cli', userId: 'soql', webUserId: 'sha' };
     const result = await new TelemetryService().getIdentityFromServices();
     // bare mock has no org fields -> shapeFrom yields 'Undefined' (a defined key toEqual won't ignore)
     expect(result).toEqual(expect.objectContaining({ cliId: 'cli', webUserId: 'sha', orgShape: 'Undefined' }));
   });
 
   it('derives orgShape Production from alias via shapeFrom wiring', async () => {
-    mockApiState.ref = makeRef({ cliId: 'cli', webUserId: 'sha', alias: 'my-org' });
+    mockApiState.identity = { cliId: 'cli', webUserId: 'sha', alias: 'my-org' };
     const result = await new TelemetryService().getIdentityFromServices();
     expect(result.orgShape).toBe('Production');
   });
 
   it('derives orgShape Scratch and propagates org fields through the bridge', async () => {
-    mockApiState.ref = makeRef({
+    mockApiState.identity = {
       cliId: 'cli',
       webUserId: 'sha',
       isScratch: true,
       orgId: '00Dxx',
       devHubOrgId: '00Dhub',
       orgEdition: 'Developer Edition'
-    });
+    };
     const result = await new TelemetryService().getIdentityFromServices();
     expect(result).toEqual(
       expect.objectContaining({
@@ -107,21 +103,19 @@ describe('TelemetryService.getIdentityFromServices', () => {
   });
 
   it('falls back webUserId to UNAUTHENTICATED_USER when missing', async () => {
-    mockApiState.ref = makeRef({ cliId: 'cli', userId: 'soql' });
+    mockApiState.identity = { cliId: 'cli', userId: 'soql' };
     const result = await new TelemetryService().getIdentityFromServices();
     expect(result.webUserId).toBe(UNAUTHENTICATED_USER);
   });
 
-  it('recovers ServicesExtensionNotFoundError to degraded identity', async () => {
+  it('rejects when the services extension is missing', async () => {
     mockApiState.mode = 'no-ext';
-    const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: undefined, webUserId: UNAUTHENTICATED_USER });
+    await expect(new TelemetryService().getIdentityFromServices()).rejects.toThrow();
   });
 
-  it('recovers InvalidServicesApiError to degraded identity', async () => {
+  it('rejects when the services API is invalid', async () => {
     mockApiState.mode = 'invalid';
-    const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: undefined, webUserId: UNAUTHENTICATED_USER });
+    await expect(new TelemetryService().getIdentityFromServices()).rejects.toThrow();
   });
 
   it('runtime error tag classes are referenced', () => {

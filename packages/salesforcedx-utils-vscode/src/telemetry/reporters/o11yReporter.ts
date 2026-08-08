@@ -63,7 +63,8 @@ export class O11yReporter
     o11yUploadEndpoint: string,
     public userId: string,
     public webUserId: string,
-    productFeatureId?: string
+    productFeatureId?: string,
+    private readonly directLocal = false
   ) {
     super(() => {
       this.toDispose.forEach(d => {
@@ -81,7 +82,7 @@ export class O11yReporter
 
   public async initialize(extensionName: string): Promise<void> {
     // when O11Y_ENDPOINT is set, omit getConnection so uploader skips org proxy and POSTs directly to endpoint
-    const connectionMethod = process.env.O11Y_ENDPOINT ? undefined : getConnection;
+    const connectionMethod = this.directLocal ? undefined : getConnection;
     await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, connectionMethod);
 
     // Enable automatic batching with 30-second periodic flush
