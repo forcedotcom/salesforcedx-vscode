@@ -325,7 +325,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
       // update the org ref in the background — ONLY for the default org (no explicit username)
       if (isUndefined(username)) {
-        yield* maybeUpdateDefaultOrgRef(conn).pipe(
+        const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
+        const instanceName = rawInstanceName?.trim();
+        const defaultOrgRef = yield* getDefaultOrgRef();
+        const previousOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+        yield* SubscriptionRef.update(defaultOrgRef, current => ({ ...current, orgId, instanceName }));
+        yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
           Effect.provide(AliasService.Default),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void),
@@ -389,12 +394,24 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
+  conn: Connection,
+  previousOrgId?: string
+) {
   const aliasService = yield* AliasService;
-  const { orgId, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } = conn.getAuthInfoFields();
+  const {
+    orgId,
+    instanceName: rawInstanceName,
+    devHubUsername,
+    isScratch,
+    isSandbox,
+    tracksSource,
+    orgEdition
+  } = conn.getAuthInfoFields();
+  const instanceName = rawInstanceName?.trim();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  const orgIdChanged = existingOrgInfo.orgId !== orgId;
+  const orgIdChanged = previousOrgId !== orgId;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId)
@@ -446,6 +463,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const updates = Object.fromEntries(
     Object.entries({
       orgId,
+      instanceName,
       devHubUsername,
       tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
       isScratch,
@@ -461,7 +479,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   );
 
   const updated = { ...existingOrgInfo, ...updates };
-
   // Check if objects have the same content (deep equality using schema)
   // otherwise, calling set on the ref counts as a change but it's really not one.
   if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {

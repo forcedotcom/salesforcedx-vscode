@@ -50,6 +50,5 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
   }
 
   const defaultOrgRef = yield* getDefaultOrgRef();
-  const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  yield* SubscriptionRef.set(defaultOrgRef, { ...existingOrgInfo, cliId, webUserId });
+  yield* SubscriptionRef.update(defaultOrgRef, existingOrgInfo => ({ ...existingOrgInfo, cliId, webUserId }));
 });
