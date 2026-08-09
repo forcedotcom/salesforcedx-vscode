@@ -55,31 +55,30 @@ const createWorkspaceContextAdapter = () => {
   };
 };
 
-let workspaceContextAdapter = createWorkspaceContextAdapter();
-
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
-  public readonly onOrgChange = workspaceContextAdapter.onOrgChange;
+  private readonly adapter = createWorkspaceContextAdapter();
+  public readonly onOrgChange = this.adapter.onOrgChange;
 
   protected constructor() {}
 
   public async initialize(_extensionContext: vscode.ExtensionContext) {
-    return workspaceContextAdapter.initialize();
+    return this.adapter.initialize();
   }
 
-  public static getInstance(forceNew = false): WorkspaceContext {
-    if (!this.instance || forceNew) {
-      this.instance = new WorkspaceContext();
-    }
-    return this.instance;
+  public static getInstance(): WorkspaceContext;
+  /** @deprecated The forceNew parameter is ignored. Call getInstance() without an argument. */
+  // eslint-disable-next-line @typescript-eslint/unified-signatures -- isolates deprecation to argument-bearing calls
+  public static getInstance(forceNew: boolean): WorkspaceContext;
+  public static getInstance(_forceNew = false): WorkspaceContext {
+    return (this.instance ??= new WorkspaceContext());
   }
 
   public static disposeInstance(): void {
-    workspaceContextAdapter.dispose();
-    workspaceContextAdapter = createWorkspaceContextAdapter();
+    this.instance?.adapter.dispose();
     this.instance = undefined;
   }
 
@@ -95,14 +94,14 @@ export class WorkspaceContext {
   }
 
   public get username(): string | undefined {
-    return workspaceContextAdapter.getUsername();
+    return this.adapter.getUsername();
   }
 
   public get alias(): string | undefined {
-    return workspaceContextAdapter.getAlias();
+    return this.adapter.getAlias();
   }
 
   public get orgId(): string | undefined {
-    return workspaceContextAdapter.getOrgId();
+    return this.adapter.getOrgId();
   }
 }

@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as MutableRef from 'effect/MutableRef';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
+import * as Struct from 'effect/Struct';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 
 type WorkspaceOrgIdentity = Pick<
@@ -35,7 +36,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const identityRef = MutableRef.make<WorkspaceOrgIdentity>({});
     const orgChanges = yield* PubSub.sliding<OrgUserInfo>(1);
-    const initialized = yield* Effect.makeLatch();
+    const latch = yield* Effect.makeLatch();
     const extensionScope = yield* getExtensionScope();
 
     const refreshReporters = Effect.fn('WorkspaceContext.refreshReporters')(function* () {
@@ -47,16 +48,10 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
 
     const watch = Effect.fnUntraced(function* () {
       yield* targetOrgRef.changes.pipe(
-        Stream.map(({ username, alias, orgId, isScratch, isSandbox }) => ({
-          username,
-          alias,
-          orgId,
-          isScratch,
-          isSandbox
-        })),
+        Stream.map(Struct.pick('username', 'alias', 'orgId', 'isScratch', 'isSandbox')),
         Stream.changesWith(sameIdentity),
         Stream.tap(identity => Effect.sync(() => MutableRef.set(identityRef, identity))),
-        Stream.tap(() => initialized.open),
+        Stream.tap(() => latch.open),
         Stream.drop(1),
         Stream.runForEach(identity =>
           Effect.gen(function* () {
@@ -81,7 +76,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
       getAlias: () => getIdentityValue('alias'),
       getOrgId: () => getIdentityValue('orgId'),
       orgChanges,
-      initialized: initialized.await
+      initialized: latch.await
     };
   })
 }) {}
