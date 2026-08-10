@@ -3,9 +3,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 
-const client = new Client({ name: 'telecode-example', version: '1.0.0' });
+const client = new Client({ name: 'drivable-vscode-example', version: '1.0.0' });
 const transport = new StdioClientTransport({
-  command: './packages/salesforcedx-vscode-visual-qa/bin/telecode-mcp.js'
+  command: './packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js'
 });
 const call = async (name, args = {}) => await client.callTool({ name, arguments: args }, CallToolResultSchema);
 const text = result => {
@@ -32,7 +32,7 @@ try {
   await client.connect(transport);
   const firstEvidence = await run('Capture the first VS Code observation');
   const secondEvidence = await run('Capture a second VS Code observation');
-  console.log(`Validated 2 sequential Telecode runs; evidence: ${firstEvidence}, ${secondEvidence}`);
+  console.log(`Validated 2 sequential drivable-vscode runs; evidence: ${firstEvidence}, ${secondEvidence}`);
 } finally {
   await client.close();
 }

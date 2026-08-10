@@ -1,10 +1,10 @@
 ---
-name: telecode
-description: Operate a real VS Code instance through Telecode. Use for visual QA, exploratory testing, customer bug reproduction, feature verification, screenshots, videos, or other evidence from VS Code.
+name: drivable-vscode
+description: Operate a real VS Code instance through drivable-vscode. Use for visual QA, exploratory testing, customer bug reproduction, feature verification, screenshots, videos, or other evidence from VS Code.
 review: always
 ---
 
-# Telecode
+# drivable-vscode
 
 Remote visual presence and operation in a running VS Code instance.
 
@@ -14,7 +14,7 @@ From repo root:
 
 ```bash
 npm install
-npm run compile -w @salesforce/telecode
+npm run compile -w @salesforce/drivable-vscode
 ```
 
 `start` runs the cached `vscode:package` graph before VSIX launch. For faster source iteration, run `npm run vscode:bundle`, then start with `extensionMode: "dev"`.
@@ -22,8 +22,8 @@ npm run compile -w @salesforce/telecode
 ### Claude Code
 
 ```bash
-claude mcp add --scope local telecode -- ./packages/salesforcedx-vscode-visual-qa/bin/telecode-mcp.js
-claude mcp get telecode
+claude mcp add --scope local drivable-vscode -- ./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js
+claude mcp get drivable-vscode
 ```
 
 Restart Claude Code after adding the server. Check `/mcp` when tools are unavailable.
@@ -35,9 +35,9 @@ Add to `opencode.jsonc`:
 ```jsonc
 {
   "mcp": {
-    "telecode": {
+    "drivable-vscode": {
       "type": "local",
-      "command": ["./packages/salesforcedx-vscode-visual-qa/bin/telecode-mcp.js"],
+      "command": ["./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js"],
       "enabled": true,
       "timeout": 10000
     }
@@ -50,10 +50,10 @@ Restart OpenCode. Verify with `opencode mcp list`.
 ### Cursor
 
 ```bash
-cursor --add-mcp '{"name":"telecode","command":"./packages/salesforcedx-vscode-visual-qa/bin/telecode-mcp.js"}'
+cursor --add-mcp '{"name":"drivable-vscode","command":"./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js"}'
 ```
 
-Or add the same command under `mcpServers.telecode` in `.cursor/mcp.json`. Restart Cursor, then enable Telecode under **Settings > Tools & MCP**.
+Or add the same command under `mcpServers.drivable-vscode` in `.cursor/mcp.json`. Restart Cursor, then enable drivable-vscode under **Settings > Tools & MCP**.
 
 ## Choose Workflow
 
@@ -65,10 +65,10 @@ Validated example:
 
 ```bash
 npm run vscode:bundle
-node packages/salesforcedx-vscode-visual-qa/scripts/telecode-example.mjs
+node packages/salesforcedx-vscode-visual-qa/scripts/drivable-vscode-example.mjs
 ```
 
-Example source: `packages/salesforcedx-vscode-visual-qa/scripts/telecode-example.mjs`.
+Example source: `packages/salesforcedx-vscode-visual-qa/scripts/drivable-vscode-example.mjs`.
 
 ### Agent-Driven
 
@@ -87,7 +87,7 @@ Use for open-ended goals, exploratory testing, bug reproduction, or evidence cap
 Prompt example:
 
 ```text
-Use Telecode to reproduce the reported deploy-command failure. Explore the workflow from a clean VS Code session, record defects as findings, and finish with screenshot/video evidence and exact reproduction steps.
+Use drivable-vscode to reproduce the reported deploy-command failure. Explore the workflow from a clean VS Code session, record defects as findings, and finish with screenshot/video evidence and exact reproduction steps.
 ```
 
 ## Rules
@@ -98,4 +98,4 @@ Use Telecode to reproduce the reported deploy-command failure. Explore the workf
 - Treat unexpected UI and tool errors as evidence, not signals to improvise fallback selectors.
 - `finish` on success and failure; it saves final screenshot, video, action log, console log, findings, and summary.
 - Text artifacts redact common credentials. Screenshots/video do not; avoid displaying secrets.
-- Native OS dialogs and external windows are outside Telecode control.
+- Native OS dialogs and external windows are outside drivable-vscode control.

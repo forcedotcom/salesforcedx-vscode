@@ -27,6 +27,7 @@ import * as JSONSchema from 'effect/JSONSchema';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Match from 'effect/Match';
+import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
@@ -36,7 +37,7 @@ import { ControllerService } from './controllerService';
 import { causeMessage, VisualQaMcpShutdownError } from './errors';
 import { ActInput, StartInput, VisualQaFinding } from './schemas';
 
-const SERVER_INFO = { name: 'telecode', version: '0.1.0' };
+const SERVER_INFO = { name: 'drivable-vscode', version: '0.1.0' };
 const AppLayer = ControllerService.Default.pipe(Layer.provide(Layer.merge(NodeFileSystem.layer, NodePath.layer)));
 const EmptyInput = Schema.Struct({}).annotations({
   jsonSchema: { type: 'object', properties: {}, required: [], additionalProperties: false }
@@ -44,6 +45,7 @@ const EmptyInput = Schema.Struct({}).annotations({
 const inputSchema = <A, I>(schema: Schema.Schema<A, I>): Tool['inputSchema'] => {
   const jsonSchema = JSONSchema.make(schema);
   if (!('type' in jsonSchema) || jsonSchema.type !== 'object')
+    // eslint-disable-next-line functional/no-throw-statements -- MCP requires object schemas; fail startup on invalid definitions.
     throw new TypeError('MCP tool input schema must be an object');
   return { ...jsonSchema };
 };
@@ -84,7 +86,7 @@ const toolError = (error: unknown): CallToolResult => ({
     {
       type: 'text',
       text: JSON.stringify(
-        redactValue(error instanceof Error ? { name: error.name, message: error.message } : error),
+        redactValue(isError(error) ? { name: error.name, message: error.message } : error),
         undefined,
         2
       )
@@ -158,7 +160,7 @@ export const createVisualQaMcpServer = (
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
     instructions:
-      'Run one Telecode session at a time: start, observe before acting, use the latest observation sequence, record findings immediately, then finish. After finish, start another session as needed.'
+      'Run one drivable-vscode session at a time: start, observe before acting, use the latest observation sequence, record findings immediately, then finish. After finish, start another session as needed.'
   });
   const accepting = Ref.unsafeMake(true);
   const handlerScope = Effect.runSync(Scope.make());
@@ -176,7 +178,7 @@ export const createVisualQaMcpServer = (
                 ),
                 { propagateInterruption: true }
               ).pipe(Effect.flatMap(Fiber.join))
-            : Effect.fail(new McpError(ErrorCode.InternalError, 'Telecode MCP server is shutting down'))
+            : Effect.fail(new McpError(ErrorCode.InternalError, 'drivable-vscode MCP server is shutting down'))
         )
       ),
       { signal: extra.signal }
@@ -248,7 +250,7 @@ const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
   yield* Deferred.await(stopped);
 });
 
-if (process.env.TELECODE_MCP_MAIN === '1') {
+if (process.env.DRIVABLE_VSCODE_MCP_MAIN === '1') {
   serverProgram()
     .pipe(Effect.scoped, Effect.runPromise)
     .catch(error => {

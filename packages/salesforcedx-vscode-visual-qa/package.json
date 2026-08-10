@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/telecode",
+  "name": "@salesforce/drivable-vscode",
   "version": "0.1.0",
   "private": true,
   "description": "Remote visual presence and operation in VS Code",
@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-visual-qa",
   "bin": {
-    "telecode-mcp": "./bin/telecode-mcp.js"
+    "drivable-vscode-mcp": "./bin/drivable-vscode-mcp.js"
   },
   "scripts": {
     "check:circular-deps": "wireit",

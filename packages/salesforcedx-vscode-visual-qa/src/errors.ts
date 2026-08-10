@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
 const ErrorFields = { message: Schema.String, cause: Schema.optional(Schema.String) };
@@ -54,4 +55,4 @@ export class VisualQaStaleObservationError extends Schema.TaggedError<VisualQaSt
   }
 ) {}
 
-export const causeMessage = (cause: unknown): string => (cause instanceof Error ? cause.message : String(cause));
+export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));

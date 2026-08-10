@@ -580,6 +580,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-services-types/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/salesforcedx-vscode-visual-qa/**/*.ts',
       'packages/salesforcedx-vscode-visualforce/**/*.ts'
     ],
     ignores: [
@@ -747,6 +748,7 @@ export default [
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
+      'packages/salesforcedx-vscode-visual-qa/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {

@@ -19,6 +19,7 @@ export type ConsoleWrite =
 export const consumeConsoleWrites = (
   queue: Queue.Dequeue<ConsoleWrite>,
   persist: (entry: VisualQaRendererConsoleEntry) => Effect.Effect<void, VisualQaArtifactError>
+  // eslint-disable-next-line local/no-explicit-effect-return-type -- Recursive implementation requires an annotation.
 ): Effect.Effect<void, VisualQaArtifactError> =>
   queue.pipe(
     Queue.take,
@@ -36,7 +37,7 @@ export const consumeConsoleWrites = (
 export const drainConsoleWrites = (
   queue: Queue.Queue<ConsoleWrite>,
   consumer: Fiber.Fiber<void, VisualQaArtifactError>
-): Effect.Effect<void, VisualQaArtifactError> =>
+) =>
   Effect.uninterruptible(
     Queue.offer(queue, { _tag: 'Stop' }).pipe(
       Effect.zipRight(Fiber.join(consumer)),
