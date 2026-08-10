@@ -80,7 +80,6 @@ Two patterns exist depending on whether the extension adds services beyond the s
 - **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
 - **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
-- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — pass the Layer; runtime captured at registration time (avoids re-providing on each invocation).
 
 ```typescript
 export const disposeRuntime = async (): Promise<void> => {
@@ -110,18 +109,13 @@ Allocation and cleanup stay together. See `../effect-best-practices/SKILL.md#eff
 
 ## Registering Commands
 
-Use `registerCommandWithLayer` (for layers) or `registerCommandWithRuntime` (for runtimes):
+Use `registerCommandWithRuntime`:
 
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
-// Using Layer
-const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-yield * registerCommand('sf.my.command', myCommandEffect);
-
-// Using Runtime
 const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
 yield * registerCommand('sf.my.command', myCommandEffect);
 ```
@@ -304,7 +298,8 @@ export const activate = async (context: vscode.ExtensionContext) => {
 };
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const providerService = yield* ExtensionProviderService;
+  const api = yield* providerService.getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
@@ -357,7 +352,7 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 - Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
 - Scoped services own their VS Code disposables via finalizers; runtime disposal runs them
-- `registerCommandWithLayer` for all commands (tracing + error handling)
+- `registerCommandWithRuntime` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
 
 ## Don't: rebuild services already in prebuiltServicesDependencies

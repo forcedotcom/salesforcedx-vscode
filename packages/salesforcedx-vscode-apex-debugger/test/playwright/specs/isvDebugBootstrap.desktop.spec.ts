@@ -48,7 +48,7 @@ import packageNls from '../../../package.nls.json';
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
       await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await saveScreenshot(page, 'isvBootstrap.02-forceide-prompt.png');
-      // Esc cancels the gatherer → UserCancellationError, silently swallowed by registerCommandWithLayer.
+      // Esc cancels the gatherer → UserCancellationError, silently swallowed by registerCommandWithRuntime.
       await page.keyboard.press('Escape');
       await expect(quickInput).not.toBeVisible({ timeout: 10_000 });
       await saveScreenshot(page, 'isvBootstrap.03-cancelled.png');

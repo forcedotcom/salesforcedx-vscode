@@ -65,7 +65,7 @@ import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
 import { NotificationModeService } from './vscode/notificationModeService';
 import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
-import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
+import { registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
@@ -117,7 +117,6 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
-    registerCommandWithLayer: typeof registerCommandWithLayer;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
@@ -382,7 +381,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         ConfigService,
         ConnectionService,
         ExecuteAnonymousService,
-        registerCommandWithLayer,
         registerCommandWithRuntime,
         EditorService,
         ErrorHandlerService,

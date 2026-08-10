@@ -40,7 +40,7 @@ const titleKey = (op: OperationType) =>
  *
  * **Cancellation:** When the user cancels, the active sub-effect (prepare or conflict detection)
  * is interrupted via a cancellation Deferred raced against each phase. The operator then fails
- * with {@link UserCancellationError}, which is silently swallowed by `registerCommandWithLayer`
+ * with {@link UserCancellationError}, which is silently swallowed by `registerCommandWithRuntime`
  * (same as all other command cancellations).
  *
  * **Conflict errors:** Any error thrown by `detectConflictsFn` (e.g. `ConflictsDetectedError`) is
