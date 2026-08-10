@@ -5,111 +5,103 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { OrgUserInfo, WorkspaceContextUtil, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
+import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
-import { getDefaultOrgInfo } from './defaultOrgInfo';
-import { getOrgShape } from './workspaceOrgShape';
+import { WorkspaceContextService } from './workspaceContextService';
 
-const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConnectionService.getConnection();
-});
+const createWorkspaceContextAdapter = () => {
+  const orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
+  let initializationPromise: Promise<void> | undefined;
+  let service: WorkspaceContextService | undefined;
 
-const getDevHubId = Effect.fn('workspaceContext.getDevHubId')(function* () {
-  const info = yield* getDefaultOrgInfo();
-  return info.devHubOrgId;
-});
+  const initialize = async () => {
+    if (initializationPromise) return initializationPromise;
+
+    const initialization = getRuntime().runPromise(
+      Effect.gen(function* () {
+        const workspaceContextService = yield* WorkspaceContextService;
+        const extensionScope = yield* getExtensionScope();
+        yield* Stream.fromPubSub(workspaceContextService.orgChanges).pipe(
+          Stream.runForEach(event => Effect.sync(() => orgChangeEmitter.fire(event))),
+          Effect.forkIn(extensionScope)
+        );
+        yield* workspaceContextService.initialized;
+        service = workspaceContextService;
+      })
+    );
+    initializationPromise = initialization;
+    try {
+      await initialization;
+    } catch (error) {
+      if (initializationPromise === initialization) initializationPromise = undefined;
+      throw error;
+    }
+  };
+
+  return {
+    initialize,
+    onOrgChange: orgChangeEmitter.event,
+    getUsername: () => service?.getUsername(),
+    getAlias: () => service?.getAlias(),
+    getOrgId: () => service?.getOrgId(),
+    dispose: () => {
+      orgChangeEmitter.dispose();
+      service = undefined;
+    }
+  };
+};
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
-  private coreExtensionContext?: vscode.ExtensionContext;
-  private initializationPromise?: Promise<void>;
+  private readonly adapter = createWorkspaceContextAdapter();
+  public readonly onOrgChange = this.adapter.onOrgChange;
 
-  public readonly onOrgChange: vscode.Event<OrgUserInfo>;
+  protected constructor() {}
 
-  protected constructor() {
-    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
-    this.onOrgChange = workspaceContextUtil.onOrgChange;
-    this.onOrgChange(c => this.handleOrgShapeChange(c));
-    this.onOrgChange(() => this.handleTelemetryUpdate());
+  public async initialize(_extensionContext: vscode.ExtensionContext) {
+    return this.adapter.initialize();
   }
 
-  public async initialize(extensionContext: vscode.ExtensionContext) {
-    this.initializationPromise ??= this._doInitialize(extensionContext);
-    return this.initializationPromise;
+  public static getInstance(): WorkspaceContext;
+  /** @deprecated The forceNew parameter is ignored. Call getInstance() without an argument. */
+  // eslint-disable-next-line @typescript-eslint/unified-signatures -- isolates deprecation to argument-bearing calls
+  public static getInstance(forceNew: boolean): WorkspaceContext;
+  public static getInstance(_forceNew = false): WorkspaceContext {
+    return (this.instance ??= new WorkspaceContext());
   }
 
-  private async _doInitialize(extensionContext: vscode.ExtensionContext) {
-    if (extensionContext.extension.id === 'salesforce.salesforcedx-vscode-core') {
-      this.coreExtensionContext = extensionContext;
-    }
-    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
-  }
-
-  public static getInstance(forceNew = false): WorkspaceContext {
-    if (!this.instance || forceNew) {
-      this.instance = new WorkspaceContext();
-    }
-    return this.instance;
+  public static disposeInstance(): void {
+    this.instance?.adapter.dispose();
+    this.instance = undefined;
   }
 
   // @deprecated. Use getConnection from the Services extension.
   // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
-    return getRuntime().runPromise(getConnection());
+    return getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.ConnectionService.getConnection();
+      })
+    );
   }
-
-  protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
-    const { username } = orgInfo;
-    if (isNotUndefined(username)) {
-      const orgShape = await getOrgShape(username);
-      if (orgShape !== 'Undefined') {
-        WorkspaceContextUtil.getInstance().orgShape = orgShape;
-        WorkspaceContextUtil.getInstance().devHubId = undefined;
-        try {
-          const connection = await this.getConnection();
-          WorkspaceContextUtil.getInstance().orgEdition = connection.getAuthInfoFields().orgEdition;
-        } catch {
-          /* best effort — orgEdition may not yet be populated */
-        }
-      }
-      if (orgShape === 'Scratch') {
-        const devHubId = await getRuntime().runPromise(getDevHubId().pipe(Effect.orElseSucceed(() => undefined)));
-        WorkspaceContextUtil.getInstance().devHubId = devHubId;
-      }
-    }
-  }
-
-  /** Refresh telemetry reporters for ALL extensions when org changes (identity sourced from services). */
-  protected handleTelemetryUpdate = async () => {
-    if (!this.coreExtensionContext) {
-      return;
-    }
-
-    try {
-      await refreshAllExtensionReporters(this.coreExtensionContext);
-    } catch (error) {
-      console.log('Failed to refresh telemetry reporters after org change:', error);
-    }
-  };
 
   public get username(): string | undefined {
-    return WorkspaceContextUtil.getInstance().username;
+    return this.adapter.getUsername();
   }
 
   public get alias(): string | undefined {
-    return WorkspaceContextUtil.getInstance().alias;
+    return this.adapter.getAlias();
   }
 
   public get orgId(): string | undefined {
-    return WorkspaceContextUtil.getInstance().orgId;
+    return this.adapter.getOrgId();
   }
 }

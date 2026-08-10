@@ -6,13 +6,18 @@
  */
 
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import * as Layer from 'effect/Layer';
+import { WorkspaceContextService } from '../context/workspaceContextService';
 
 /**
  * Layer that provides all services from the SalesforceVSCodeServicesApi.
  * Set via setAllServicesLayer during extension activation; consumed by getRuntime().
  */
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+export let AllServicesLayer: ReturnType<typeof buildCoreServicesLayer>;
 
-export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+export const buildCoreServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) =>
+  Layer.merge(layer, Layer.provide(WorkspaceContextService.Default, layer));
+
+export const setAllServicesLayer = (layer: ReturnType<typeof buildCoreServicesLayer>) => {
   AllServicesLayer = layer;
 };

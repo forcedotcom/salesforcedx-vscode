@@ -1,0 +1,29 @@
+{
+  "name": "salesforcedx-vscode-workspace-context-playwright",
+  "displayName": "Workspace Context Playwright",
+  "publisher": "salesforce",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sf.internal.workspaceContext.setTargetOrgToUsername",
+        "title": "%workspace_context_set_username_test_text%"
+      },
+      {
+        "command": "sf.internal.workspaceContext.selectOrg",
+        "title": "%workspace_context_select_org_test_text%"
+      }
+    ]
+  }
+}
