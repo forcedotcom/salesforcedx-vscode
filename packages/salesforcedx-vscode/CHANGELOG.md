@@ -1,36 +1,64 @@
-# 67.7.1 - July 29, 2026
+# 67.10.0 - August 12, 2026
 
 ## Added
 
-#### salesforcedx-vscode-core
+#### salesforcedx-utils
 
-- We added support for Japanese localization. If your VS Code display language is set to Japanese, you'll now see Japanese translations in the Salesforce extensions. ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-utils-vscode
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-vscode-apex
+
+- Add auto-terminate setting for orphaned Apex Language Server processes - W-23251304 ([PR #7643](https://github.com/forcedotcom/salesforcedx-vscode/pull/7643))
+
+#### salesforcedx-vscode-apex-log
+
+- Group trace flag users by user type - W-23574066 ([PR #7958](https://github.com/forcedotcom/salesforcedx-vscode/pull/7958))
+
+#### salesforcedx-vscode-lightning
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
 
 #### salesforcedx-vscode-metadata
 
-- When you run **SFDX: Create Project**, you can now select **Angular** as a framework option for Experience Cloud sites. ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-vscode-services
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-vscode-services-types
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-vscode-soql
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
+
+#### salesforcedx-vscode-visualforce
+
+- GovCloud support - W-23749092 ([PR #7963](https://github.com/forcedotcom/salesforcedx-vscode/pull/7963))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-debugger
+#### docs
 
-- We fixed a bug where **SFDX: Stop Apex Debugger Session** showed a "No target org configured" error instead of stopping the current ISV Debugger session. ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
+- TerminalService gathers the sf CLI env at exec time - W-23480631 ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-core
 
-- When you delete an Apex test suite with **SFDX: Delete Apex Test Suite**, the suite now correctly disappears from the **Testing** sidebar. ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
+- Bump @salesforce/templates to ^66.15.3 to prevent malicious templates - W-23595931 ([PR #7935](https://github.com/forcedotcom/salesforcedx-vscode/pull/7935))
 
-- We fixed a bug in **SFDX: Edit Apex Test Suite** where test classes with namespaces weren't being correctly selected when editing an existing suite. ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
-
-#### salesforcedx-vscode-lwc
-
-- When Jest fails to run tests due to module resolution errors or syntax errors, the **Test Results** panel now displays the actual error message instead of "test case did not report any output". ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845), [ISSUE #7788](https://github.com/forcedotcom/salesforcedx-vscode/issues/7788))
+- TerminalService gathers the sf CLI env at exec time - W-23480631 ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
 
 #### salesforcedx-vscode-org
 
-- You can now use hyphens in org aliases when authorizing orgs or creating scratch orgs (for example, `my-scratch-org`). ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866), [ISSUE #7794](https://github.com/forcedotcom/salesforcedx-vscode/issues/7794))
+- Validate project login URLs before web login - W-23603165 ([PR #7945](https://github.com/forcedotcom/salesforcedx-vscode/pull/7945))
 
-## Under the Hood
+#### salesforcedx-vscode-services
 
-- We made some under the hood changes. ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659), [PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797), [PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810), [PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822), [PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856), [PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862), [PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876), [PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883), [PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893), [PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
+- Tag channel errors by type - W-23557549 ([PR #7920](https://github.com/forcedotcom/salesforcedx-vscode/pull/7920))
 
