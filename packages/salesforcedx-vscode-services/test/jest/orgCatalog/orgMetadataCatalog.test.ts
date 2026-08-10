@@ -395,6 +395,47 @@ const runWithCatalog = <A, E, LayerError>(
   );
 
 describe('OrgMetadataCatalog contract', () => {
+  it('starts the metadata document provider when no workspace is open', async () => {
+    const { catalogChanges, layer } = makeHarness();
+    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
+      dispose: jest.fn()
+    });
+    const providerLayer = Layer.mergeAll(
+      layer,
+      MetadataChangeNotificationService.Default,
+      FileChangePubSub.Default,
+      OrgMetadataReferenceService.Default,
+      Layer.succeed(
+        OrgMetadataCatalogChangePubSub,
+        catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
+      ),
+      Layer.succeed(MetadataRegistryService, {
+        getRegistryAccess: () => Effect.succeed(new RegistryAccess())
+      } as unknown as InstanceType<typeof MetadataRegistryService>),
+      Layer.succeed(WorkspaceService, {
+        getWorkspaceInfo: () =>
+          Effect.succeed({
+            uri: URI.parse(''),
+            path: '',
+            fsPath: '',
+            isEmpty: true,
+            isVirtualFs: false,
+            cwd: '/workspace'
+          }),
+        getWorkspaceInfoOrThrow: () => Effect.die('getWorkspaceInfoOrThrow must not run during activation')
+      } as unknown as InstanceType<typeof WorkspaceService>)
+    );
+
+    const result = await runOrgMetadataDocumentProvider().pipe(
+      Effect.timeoutOption('20 millis'),
+      Effect.provide(providerLayer),
+      Effect.scoped,
+      Effect.runPromise
+    );
+
+    expect(Option.isNone(result)).toBe(true);
+  });
+
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {
     const { layer, mocks } = makeHarness({ connectionOrgId: 'startup-org' });
 
@@ -746,6 +787,15 @@ describe('OrgMetadataCatalog contract', () => {
         getRegistryAccess: () => Effect.succeed(new RegistryAccess())
       } as unknown as InstanceType<typeof MetadataRegistryService>),
       Layer.succeed(WorkspaceService, {
+        getWorkspaceInfo: () =>
+          Effect.succeed({
+            uri: URI.file('/workspace'),
+            path: '/workspace',
+            fsPath: '/workspace',
+            isEmpty: false,
+            isVirtualFs: false,
+            cwd: '/workspace'
+          }),
         getWorkspaceInfoOrThrow: () =>
           Effect.succeed({
             uri: URI.file('/workspace'),

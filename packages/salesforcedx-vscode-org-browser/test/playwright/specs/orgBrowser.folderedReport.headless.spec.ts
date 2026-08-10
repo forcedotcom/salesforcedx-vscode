@@ -8,15 +8,13 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  clickModalDialogButton,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
-  NOTIFICATION_LIST_ITEM,
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { confirmOverwriteAndWaitForProgress, retrieveAndWaitForProgress } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 /** Headless-like test for foldered Report retrieval */
@@ -73,7 +71,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     );
     const txt = (await level3.textContent())?.trim() ?? '';
     reportName = txt.split('/').pop();
-    await level3.hover({ timeout: 500 });
+    await level3.hover();
     // Expected structure: treeitem at level 3 (nested under folder) with toolbar containing Retrieve Metadata button
     await expect(level3).toHaveRole('treeitem');
     await expect(level3).toHaveAttribute('aria-level', '3');
@@ -81,18 +79,19 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     return level3;
   });
 
-  await test.step('trigger retrieval on a single report', async () => {
+  await test.step('trigger retrieval on a single report and observe progress', async () => {
     const reportItem = await orgBrowserPage.getMetadataItem(
       'unfiled$public',
       'unfiled$public/flow_screen_prebuilt_report',
       3
     );
-    const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
+    const clicked = await retrieveAndWaitForProgress(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(reportItem),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i,
+      60_000
+    );
     expect(clicked).toBe(true);
-  });
-
-  await test.step('wait for retrieval progress to appear', async () => {
-    await waitForRetrieveProgressNotificationToAppear(page, 60_000);
   });
 
   await test.step('wait for editor file to open (completion signal)', async () => {
@@ -126,13 +125,11 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
       .then(() => true)
       .catch(() => false);
     if (overwriteVisible) {
-      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i);
-      await clickModalDialogButton(page, 'Yes');
-      const retrieving = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Retrieving\s+(Report|ReportFolder)/i })
-        .first();
-      await expect(retrieving).toBeVisible({ timeout: 60_000 });
+      await confirmOverwriteAndWaitForProgress(
+        page,
+        /Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i,
+        60_000
+      );
     }
   });
 });

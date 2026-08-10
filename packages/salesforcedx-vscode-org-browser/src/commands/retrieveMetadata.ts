@@ -13,6 +13,7 @@ import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { isMemberPresentInProject } from './componentPresence';
 
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
   node: OrgBrowserTreeItem,
@@ -63,19 +64,6 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     ),
     Match.orElse(() => Effect.succeed([]))
   );
-
-/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
-const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
-  if (projectComponentSet.has(m)) return true;
-  if (m.type === 'CustomField') {
-    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
-      fullName: m.fullName,
-      type: 'CustomField'
-    });
-    return fieldPaths.length > 0;
-  }
-  return false;
-};
 
 const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
   members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);

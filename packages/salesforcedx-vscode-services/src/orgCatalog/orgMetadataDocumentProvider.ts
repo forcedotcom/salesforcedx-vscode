@@ -111,7 +111,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     referenceService,
     defaultOrgRef,
     activeOperationRef,
-    workspace
+    workspaceService
   ] = yield* Effect.all([
     OrgMetadataCatalog,
     OrgMetadataCatalogChangePubSub,
@@ -120,7 +120,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     OrgMetadataReferenceService,
     getDefaultOrgRef(),
     getActiveMetadataOperationRef(),
-    WorkspaceService.pipe(Effect.flatMap(service => service.getWorkspaceInfoOrThrow()))
+    WorkspaceService
   ]);
   const runtime = yield* Effect.runtime();
   const provider = new OrgMetadataDocumentProvider(uri => Runtime.runPromise(runtime)(catalog.readDocumentUri(uri)));
@@ -157,8 +157,17 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
   );
 
   const workspaceChanges = Stream.fromPubSub(fileChanges).pipe(
-    Stream.filter(
-      event => !isOrgMetadataShadowUri(workspace.uri, event.uri) && !isOrgMetadataCatalogUri(workspace.uri, event.uri)
+    Stream.filterEffect(event =>
+      workspaceService
+        .getWorkspaceInfo()
+        .pipe(
+          Effect.map(
+            workspace =>
+              !workspace.isEmpty &&
+              !isOrgMetadataShadowUri(workspace.uri, event.uri) &&
+              !isOrgMetadataCatalogUri(workspace.uri, event.uri)
+          )
+        )
     ),
     Stream.mapEffect(event =>
       SubscriptionRef.get(activeOperationRef).pipe(Effect.map(activeOperations => ({ activeOperations, event })))
