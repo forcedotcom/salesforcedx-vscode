@@ -92,7 +92,7 @@ export type ApexTriggerCreateOptions = {
   readonly template: string;
   readonly triggername: string;
   readonly sobject: string;
-  readonly triggerevents: string[];
+  readonly triggerevents: string;
   readonly apiversion?: string;
   readonly outputdir?: string;
 };

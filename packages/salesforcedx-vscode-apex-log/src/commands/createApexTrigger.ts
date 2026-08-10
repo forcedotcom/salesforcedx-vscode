@@ -148,7 +148,7 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
     outputdir: outputDirUri,
     options: {
       triggername: triggerName,
-      triggerevents: [triggerevents.join(', ')],
+      triggerevents: triggerevents.join(', '),
       sobject,
       template
     }
