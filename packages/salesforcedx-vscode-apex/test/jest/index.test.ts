@@ -173,15 +173,15 @@ describe('index tests', () => {
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
             services: {
-              WorkspaceService: Effect.succeed({
+              WorkspaceService: {
                 getWorkspaceInfoOrThrow
-              }),
+              },
               ProjectService: {
                 isSalesforceProject: () => Effect.succeed(isSalesforceProject)
               }
             }
           })
-        } as any)
+        } as unknown as ExtensionProviderService)
       );
 
       return Effect.runPromise(effect as Effect.Effect<void, unknown, never>);
@@ -233,7 +233,7 @@ describe('index tests', () => {
         onDidCreate: jest.fn(),
         onDidChange: jest.fn(),
         dispose: jest.fn()
-      } as any);
+      } as unknown as vscode.FileSystemWatcher);
     });
 
     afterEach(() => {
