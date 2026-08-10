@@ -125,12 +125,16 @@ type CreateDesktopTestOptions = {
   emptyWorkspace?: boolean;
   /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
   additionalExtensionDirs?: string[];
+  /** Test-only extension paths, relative to the calling package, loaded as development extensions in all modes. */
+  testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
   userSettings?: Record<string, unknown>;
+  /** Optional setup that must complete before the configured workspace is created and VS Code launches. */
+  beforeLaunch?: () => Promise<unknown>;
   /**
    * When true, install VSIXs and launch VS Code with --extensions-dir instead of --extensionDevelopmentPath.
    * Exercises the real shipping artifact (bundled dist/, packageUpdates, .vscodeignore).
@@ -173,9 +177,11 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     orgAlias,
     emptyWorkspace = false,
     additionalExtensionDirs = [],
+    testExtensionPaths = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
-    userSettings
+    userSettings,
+    beforeLaunch
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -218,6 +224,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Create workspace directory (shared with electronApp so tests can access path)
     workspaceDir: async ({}, use): Promise<void> => {
+      await beforeLaunch?.();
       const dir = emptyWorkspace ? await createEmptyTestWorkspace() : await createTestWorkspace(orgAlias);
       await use(dir);
     },
@@ -261,6 +268,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       }
 
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
+      const testExtensionArgs = testExtensionPaths.map(
+        extensionPath => `--extensionDevelopmentPath=${path.resolve(packageRoot, extensionPath)}`
+      );
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
@@ -295,6 +305,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
           `--user-data-dir=${userDataDir}`,
           `--extensions-dir=${installedExtensionsDir}`,
+          ...testExtensionArgs,
           ...disabledBuiltins,
           ...startupArgs
         ]
@@ -316,6 +327,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             `--user-data-dir=${userDataDir}`,
             `--extensions-dir=${extensionsDir}`,
             ...extensionArgs,
+            ...testExtensionArgs,
             ...(disableOtherExtensions ? ['--disable-extensions'] : []),
             ...disabledBuiltins,
             ...startupArgs

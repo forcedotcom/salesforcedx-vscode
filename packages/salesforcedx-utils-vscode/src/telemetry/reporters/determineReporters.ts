@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { isLocalLogging } from '../../telemetry/utils/devModeUtils';
 import { AppInsights } from './appInsights';
@@ -33,7 +34,7 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
   // dev/test: O11Y_ENDPOINT forces O11yReporter live (normally inert without it)
   return isDevMode
     ? [
-        ...(process.env.O11Y_ENDPOINT ? getO11yReporter(extName) : []),
+        ...(isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT) ? getO11yReporter(extName) : []),
         ...(isLocalLogging(extName) ? [new TelemetryFile(extName)] : [])
       ]
     : [
@@ -42,6 +43,13 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
         ...getLogStreamReporter(extName)
       ];
 };
+
+export const determineLocalReporters = (config: Pick<TelemetryReporterConfig, 'extName' | 'isDevMode'>) =>
+  config.isDevMode
+    ? isLocalLogging(config.extName)
+      ? [new TelemetryFile(config.extName)]
+      : []
+    : getLogStreamReporter(config.extName);
 
 const getAppInsightsReporter = (
   reporterName: string,
@@ -60,7 +68,8 @@ export const initializeO11yReporter = async (
   userId: string,
   version: string,
   webUserId: string,
-  productFeatureId: string | undefined
+  productFeatureId: string | undefined,
+  directLocal = false
 ): Promise<void> => {
   if (o11yReporterInstances.has(extName)) return;
 
@@ -75,7 +84,8 @@ export const initializeO11yReporter = async (
     o11yUploadEndpoint,
     userId,
     webUserId,
-    productFeatureId
+    productFeatureId,
+    directLocal
   );
   const initPromise = o11yReporterInstance
     .initialize(extName)
