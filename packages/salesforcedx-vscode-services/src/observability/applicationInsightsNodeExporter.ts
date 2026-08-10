@@ -25,11 +25,10 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { join } from 'node:path';
 import { workspace } from 'vscode';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
+import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -105,7 +104,7 @@ const sendSpan = Effect.fn('sendSpan')(function* (
 ) {
   const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
-  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get));
+  const { userId, webUserId } = getSpanCreationIdentity(span);
 
   const isError = span.status?.code === SpanStatusCode.ERROR;
 

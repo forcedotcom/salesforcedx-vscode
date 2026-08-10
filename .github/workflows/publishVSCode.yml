@@ -160,8 +160,20 @@ jobs:
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
 
+  get-git-identity:
+    runs-on: ubuntu-latest
+    outputs:
+      username: ${{ steps.github-user-info.outputs.username }}
+      email: ${{ steps.github-user-info.outputs.email }}
+    steps:
+      - name: Get Github user info
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
   publish:
-    needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list', 'validate-vsix']
+    needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list', 'validate-vsix', 'get-git-identity']
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
     with:
       branch: 'main'
@@ -170,6 +182,8 @@ jobs:
       pre-release: 'false'  # Stable releases (even minor versions)
       version-bump: 'none'  # Version already set in release
       dry-run: false  # Publish to marketplace
+      git-user-name: ${{ needs.get-git-identity.outputs.username }}
+      git-user-email: ${{ needs.get-git-identity.outputs.email }}
     secrets: inherit
 
   ctcCloseSuccess:

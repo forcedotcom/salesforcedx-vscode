@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { buildAllServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, closeExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
 import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -13,7 +13,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { setCoreChannel } from './channels';
-import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
+import { configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -21,7 +21,7 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { setAllServicesLayer } from './services/extensionProvider';
+import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
@@ -38,7 +38,9 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   // Initialize services layer first so getRuntime() can use it.
-  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
+  setAllServicesLayer(
+    buildAllServicesLayer(extensionContext, nls.localize('channel_name')).pipe(buildCoreServicesLayer)
+  );
 
   await getRuntime().runPromise(activateEffect(extensionContext));
 
@@ -76,6 +78,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
+  yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
   if (internalDev) {
     console.log('SF CLI Extension Activated (internal dev mode)');
@@ -90,7 +93,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   }
 
   const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
-  yield* registerCommand('sf.alias.list', () => aliasListCommand());
   yield* registerCommand('sf.config.list', () => configListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
@@ -110,10 +112,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
       initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup)
     );
   }
-
-  setImmediate(() => {
-    void WorkspaceContext.getInstance().initialize(extensionContext);
-  });
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
@@ -136,8 +134,11 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   );
 };
 
-export const deactivate = (): void => {
+export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');
+
+  WorkspaceContext.disposeInstance();
+  await getRuntime().runPromise(closeExtensionScope());
 
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();

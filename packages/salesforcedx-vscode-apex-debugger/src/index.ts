@@ -34,8 +34,7 @@ import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
-import { disposeRuntime, getRuntime } from './services/runtime';
-import { getTelemetryService } from './utils/coreExtensionUtils';
+import { getRuntime } from './services/runtime';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 
@@ -206,7 +205,7 @@ const notifyDebuggerSessionFileChanged = (): void => {
  * NOTE: The below function is created for salesforcedx-apex-debugger to use the debugger extension as a middleman to send info to outside sources.
  * The info is sent via events, which the debugger extension, as an event handler, is subscribed to and continuously listens for.
  *
- * One use case for this event handling mechanism that is currently implemented is sending telemetry to AppInsights, which is the `event.event === SEND_METRIC_EVENT` if statement block.
+ * One use case for this event handling mechanism that is currently implemented is sending telemetry, which is the `event.event === SEND_METRIC_EVENT` if statement block.
  *
  * In the future, this registerDebugHandlers() function might be used for other purposes,
  * such as sending `console.log()` messages - salesforcedx-apex-debugger does not have access to the console in Toggle Developer Tools,
@@ -220,11 +219,15 @@ const registerDebugHandlers = (): vscode.Disposable => {
       }
 
       if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
-        // Send metric event using core telemetry service
-        const telemetryService = await getTelemetryService();
-        // Convert the debug event to telemetry format
-        const eventData = event.body as any;
-        telemetryService.sendEventData('apexDebuggerMetric', eventData.properties, eventData.measurements);
+        const { subject, type: metricType } = event.body;
+        await getRuntime().runPromise(
+          Effect.void.pipe(
+            Effect.withSpan('apexDebuggerMetric', {
+              attributes: { subject, type: metricType },
+              root: true
+            })
+          )
+        );
       }
     }
   });
@@ -257,18 +260,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.debugger.stop', debuggerStop);
   yield* registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
-
-  // Telemetry
-  const telemetryService = yield* Effect.promise(() => getTelemetryService());
-  yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
 });
 
-export const deactivate = async () => {
-  await getTelemetryService()
-    .then(telemetryService => {
-      console.log('Apex Debugger Extension Deactivated');
-      // Send deactivation event using shared service if available
-      telemetryService.sendExtensionDeactivationEvent();
-    })
-    .finally(disposeRuntime);
-};
+export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivateEffect());
+
+export const deactivateEffect = Effect.fn('deactivation:salesforcedx-vscode-apex-debugger')(function* () {
+  yield* Effect.sync(() => console.log('Apex Debugger Extension Deactivated'));
+});

@@ -11,12 +11,6 @@ import * as Layer from 'effect/Layer';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { activateEffect } from '../../src/index';
-import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
-
-jest.mock('../../src/utils/coreExtensionUtils', () => ({
-  ...jest.requireActual('../../src/utils/coreExtensionUtils'),
-  getTelemetryService: jest.fn()
-}));
 
 const registerCommandWithRuntime = jest.fn();
 const notificationMode = {
@@ -48,13 +42,8 @@ const runActivate = () =>
   );
 
 describe('activateEffect', () => {
-  let initializeService: jest.Mock;
-
   beforeEach(() => {
     registerCommandWithRuntime.mockReturnValue(Effect.void);
-    initializeService = jest.fn(() => Promise.resolve());
-    // resetMocks:true wipes the jest.mock factory impl each test — re-arm the telemetry stub
-    (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({ initializeService });
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
     (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
@@ -75,11 +64,5 @@ describe('activateEffect', () => {
 
     expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
     expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
-  });
-
-  it('initializes telemetry', async () => {
-    await runActivate();
-
-    expect(initializeService).toHaveBeenCalledWith(extensionContext);
   });
 });
