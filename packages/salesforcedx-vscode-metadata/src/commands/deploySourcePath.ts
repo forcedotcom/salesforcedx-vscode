@@ -13,11 +13,10 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { type CommandKey } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.deploy_this_source_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
@@ -44,13 +43,15 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const notificationMode = yield* api.services.NotificationModeService;
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
-    return yield* deployUris(new Set([activeEditorUri]));
+    const result = yield* deployUris(new Set([activeEditorUri]));
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
+    );
+    return result;
   },
-  withConfigurableSuccessNotification(
-    COMMAND,
-    nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
-  ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
       Effect.as(undefined)
@@ -70,14 +71,18 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
 // sourceUri is passed, but uris is undefined.
 
 /** Deploy source paths to the default org */
-export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(
-  function* (sourceUri: URI, uris: URI[] = []) {
-    yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-    const urisSet = new Set([sourceUri, ...uris]);
-    return yield* deployUris(urisSet);
-  },
-  withConfigurableSuccessNotification(
+export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(function* (
+  sourceUri: URI,
+  uris: URI[] = []
+) {
+  yield* Effect.annotateCurrentSpan({ sourceUri, uris });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const urisSet = new Set([sourceUri, ...uris]);
+  const result = yield* deployUris(urisSet);
+  yield* notificationMode.showSuccessNotification(
     COMMAND,
     nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
-  )
-);
+  );
+  return result;
+});

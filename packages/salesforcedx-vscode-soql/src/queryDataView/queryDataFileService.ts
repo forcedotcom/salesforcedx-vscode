@@ -15,7 +15,7 @@ import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { type SuccessOnlyCommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
@@ -79,11 +79,13 @@ const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryRes
 }) {
   const { fileUri, fileContentString } = params;
   const api = yield* getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   yield* api.services.FsService.writeFile(fileUri, fileContentString);
   const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   showFileInExplorer(fileUri, fsPath);
-  yield* Effect.sync(() =>
-    showSuccessNotification(SAVE_COMMAND, nls.localize('info_file_save_success', Utils.basename(fileUri)))
+  yield* notificationMode.showSuccessNotification(
+    SAVE_COMMAND,
+    nls.localize('info_file_save_success', Utils.basename(fileUri))
   );
   return fileUri;
 });

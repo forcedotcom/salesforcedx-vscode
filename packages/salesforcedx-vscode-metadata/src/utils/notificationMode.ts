@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
-
-export type CommandKey =
+export type ProgressAndSuccessCommandKey =
   | 'SFDX: Deploy This Source to Org'
   | 'SFDX: Retrieve This Source from Org'
   | 'SFDX: Push Source to Default Org'
@@ -15,12 +13,9 @@ export type CommandKey =
   | 'SFDX: Deploy Source in Manifest to Org'
   | 'SFDX: Retrieve Source in Manifest from Org'
   | 'SFDX: Delete from Project and Org'
-  | 'SFDX: Diff Source Against Org'
-  | 'Deploy on Save'
-  | 'SFDX: Install Package';
+  | 'SFDX: Install Package'
+  | 'Deploy on Save';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<CommandKey>(
-  'salesforcedx-vscode-metadata',
-  'sf-metadata-notifications',
-  'Salesforce: Metadata Notifications'
-);
+export type ProgressOnlyCommandKey = 'SFDX: Diff Source Against Org';
+
+export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;

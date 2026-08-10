@@ -1,27 +1,39 @@
-# NotificationModeApi
+# NotificationModeService
 
-Configurable success notifications for command execution feedback. Auto-detects command type (progress+success, success-only, or progress-only) from stored settings.
+Configurable success notifications & progress location detection. Auto-detects command type from settings.
 
-Create via `createNotificationModeApi` from `@salesforce/effect-ext-utils`:
+Get the class and per-extension layer factory from the services API:
 
 ```typescript
-import { createNotificationModeApi, type ToastAction } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ToastAction } from 'salesforcedx-vscode-services';
+import * as Effect from 'effect/Effect';
 
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
+const program = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const service = yield* api.services.NotificationModeService;
+  // use service.showSuccessNotification, service.getProgressLocation
+});
+
+const api = yield* (yield* ExtensionProviderService).getServicesApi;
+const layer = api.services.NotificationModeService.Default(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
 );
+
+yield* program.pipe(Effect.provide(layer));
 ```
 
-3 args: `extensionSection`, `statusBarId`, `statusBarName`. Type parameters control which command keys map to which notification shapes.
+`Default(extensionSection, statusBarId, statusBarName)` returns a scoped per-extension layer. Its status item,
+registered command, and timer are released when the owning runtime is disposed.
 
 ## showSuccessNotification
 
-Show success notification per command mode. Auto-detects from settings.
+Show success notification per command mode.
 
 ```typescript
-showSuccessNotification(commandKey, message, forceShow?, actions?);
+yield* service.showSuccessNotification(commandKey, message, forceShow?, actions?);
 ```
 
 **Params:**
@@ -47,17 +59,23 @@ type ToastAction = { label: string; run: () => void | Promise<void> };
 | `successStatusBar` (SO) | Status bar | Status bar |
 | `successOff` (SO) | No | Toast |
 
-PAS = ProgressAndSuccessMode, SO = SuccessOnlyMode. `forceShow: true` for critical info only (e.g., request ID). Status bar click opens toast with message + actions.
+PAS = ProgressAndSuccessMode; SO = SuccessOnlyMode. Use `forceShow: true` for critical info (e.g., request ID). Status bar click → toast with message + actions.
 
 ## getProgressLocation
 
 Progress location for command.
 
 ```typescript
-const location = getProgressLocation(commandKey);
+const location = yield* service.getProgressLocation(commandKey);
 ```
 
-**Returns:** `vscode.ProgressLocation.Notification` (toast modes) or `.Window` (status bar modes).
+**Returns:** `Effect<vscode.ProgressLocation.Notification | vscode.ProgressLocation.Window>`.
+
+## Lifecycle
+
+The service owns its VS Code resources through Effect finalizers. Don't add a notification disposable to
+`context.subscriptions`. Dispose the `ManagedRuntime` during extension deactivation; see the parent skill's
+Resource Lifecycle section.
 
 ## Mode types
 
@@ -76,33 +94,35 @@ const location = getProgressLocation(commandKey);
 - `progressToast` — toast progress
 - `progressStatusBar` — status bar progress
 
-All 3 mode value sets are disjoint; factory auto-detects from raw string. Configure per-command, per-extension, or globally via VS Code settings.
+3 disjoint mode sets; factory auto-detects from raw string. Configure per-command, per-extension, or globally.
 
 ## Example
 
 ```typescript
-import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
+const deployCommand = Effect.fn('deploy')(function* () {
+  const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
+  const service = yield* extensionApi.services.NotificationModeService;
+  const promptService = yield* extensionApi.services.PromptService;
+  const location = yield* service.getProgressLocation('deploy');
+
+  const requestId = yield* extensionApi.services.DeployService.deploy().pipe(
+    promptService.withProgress(nls.localize('deploying'), location),
+    Effect.tap(id =>
+      service.showSuccessNotification('deploy', message, !!id, [
+        { label: nls.localize('view_details'), run: () => { /* show */ } }
+      ])
+    )
+  );
+});
+
+// In extension activate():
+const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
+const layer = extensionApi.services.NotificationModeService.Default(
   'salesforcedx-vscode-metadata',
   'metadata.deploy.progress',
   'Metadata Deployment'
 );
-
-const deployCommand = Effect.fn('deploy')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const location = getProgressLocation('deploy');
-
-  const requestId = yield* api.services.DeployService.deploy().pipe(
-    promptService.withProgress(nls.localize('deploying'), location),
-    Effect.tap(id =>
-      Effect.sync(() =>
-        showSuccessNotification('deploy', message, !!id, [
-          { label: nls.localize('view_details'), run: () => { /* show */ } }
-        ])
-      )
-    )
-  );
-});
 ```

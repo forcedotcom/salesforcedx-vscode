@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type CommandKey } from '../../utils/notificationMode';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
@@ -24,12 +24,15 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 }) {
   const { componentSet, ignoreConflicts, fileResponsesFromDelete, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const channelService = yield* api.services.ChannelService;
 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
     ignoreConflicts,
     progressLocation

@@ -8,5 +8,4 @@
 import { createNls } from '@salesforce/vscode-i18n';
 import { messages as enMessages } from './i18n';
 
-export { messages } from './i18n';
 export const nls = createNls({ instanceName: 'salesforcedx-vscode-org-browser', messages: enMessages });

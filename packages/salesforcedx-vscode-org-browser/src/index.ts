@@ -22,8 +22,8 @@ import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { nls } from './messages';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
+  disposeOrgBrowserRuntime,
   getOrgBrowserRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
@@ -233,18 +233,18 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => {
+  await getOrgBrowserRuntime().runPromise(deactivateEffect()).finally(disposeOrgBrowserRuntime);
+};
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
-
   // get a connection to initiate the ref
   yield* api.services.ConnectionService.getConnection();
   // wait for the target org ref to have an orgId

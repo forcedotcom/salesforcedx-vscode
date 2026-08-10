@@ -10,17 +10,18 @@ import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
 
 /** Delete a ComponentSet, handling cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
-  command?: CommandKey;
+  command?: ProgressAndSuccessCommandKey;
 }) {
   const { componentSet, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
@@ -31,20 +32,21 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation });
+
   const { isSDRFailure } = componentSetService;
-  const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation }).pipe(
-    Effect.filterOrFail(
-      deployResult => !deployResult.getFileResponses().some(isSDRFailure),
-      deployResult =>
-        new DeleteSourceFailedError({
-          cause: new Error(
-            nls.localize('delete_source_operation_failed', deployResult.response?.errorMessage ?? 'Unknown error')
-          ),
-          result: deployResult
-        })
-    )
-  );
+
+  if (result.getFileResponses().some(isSDRFailure)) {
+    return yield* new DeleteSourceFailedError({
+      cause: new Error(
+        nls.localize('delete_source_operation_failed', result.response?.errorMessage ?? 'Unknown error')
+      ),
+      result
+    });
+  }
 
   // Delete local files after successful deploy
   yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);

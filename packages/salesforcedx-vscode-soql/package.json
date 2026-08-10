@@ -511,12 +511,12 @@
             "SOQL Builder Run Query": {
               "type": "string",
               "enum": [
-                "progressToastSuccessOff",
-                "progressStatusBarSuccessOff"
+                "progressToast",
+                "progressStatusBar"
               ],
               "enumDescriptions": [
-                "%notifications.progressToastSuccessOff.description%",
-                "%notifications.progressStatusBarSuccessOff.description%"
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
               ],
               "description": "%notifications_soql_builder_run_query_description%"
             },

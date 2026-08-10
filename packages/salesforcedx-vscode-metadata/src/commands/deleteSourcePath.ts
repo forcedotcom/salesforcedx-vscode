@@ -15,11 +15,10 @@ import { messages } from '../messages/i18n';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
-import { type CommandKey } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.delete_source_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.delete_source_text;
 
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
@@ -49,6 +48,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
+    const notificationMode = yield* api.services.NotificationModeService;
 
     // Resolve source URI from parameter or active editor
     const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
@@ -77,11 +77,11 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
         ])
       )
     );
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('delete_source_text'))
+    );
   },
-  withConfigurableSuccessNotification(
-    COMMAND,
-    nls.localize('command_succeeded_text', nls.localize('delete_source_text'))
-  ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));

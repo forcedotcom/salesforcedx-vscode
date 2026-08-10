@@ -18,9 +18,9 @@ import * as Str from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = messages.package_install_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
 const PackageIdSchema = SalesforceIdSchema.pipe(Schema.startsWith('04t'));
 
@@ -172,11 +172,13 @@ const pollUntilComplete = Effect.fn('packageInstall.pollUntilComplete')(function
 export const packageInstallCommand = Effect.fn('packageInstallCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
+  const verifyProgressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress(nls.localize('package_install_verifying_progress', id), getProgressLocation(COMMAND))
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id), verifyProgressLocation)
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -191,8 +193,10 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
   if (!shouldPoll) {
-    yield* Effect.sync(() =>
-      showSuccessNotification(COMMAND, nls.localize('package_install_submitted_message', requestId), true)
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('package_install_submitted_message', requestId),
+      true
     );
     return;
   }
@@ -200,15 +204,17 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   yield* pollUntilComplete(requestId).pipe(
     promptService.withCancellableProgress(
       nls.localize('package_install_polling_progress', packageId),
-      getProgressLocation(COMMAND)
+      yield* notificationMode.getProgressLocation(COMMAND)
     ),
     Effect.tap(() =>
-      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId)))
+      notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
     ),
-    // custom message to make it clear how cancellation works
+    // custom message to make it clear how cancellation works; forceShow so it's never suppressed
     Effect.tapErrorTag('UserCancellationError', () =>
-      Effect.sync(() =>
-        vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('package_install_cancelled_message', requestId),
+        true
       )
     )
   );

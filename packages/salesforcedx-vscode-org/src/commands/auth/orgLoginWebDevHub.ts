@@ -19,7 +19,7 @@ import { executeOrgLoginWeb } from './orgLoginWebExec';
  * verification-code fork, cancellable progress, port-1717 conflict handling, and config refresh.
  *
  * Telemetry: the root span name `sf.org.login.web.dev.hub` IS the telemetry event name (set by
- * registerCommandWithLayer); this intentionally renames the old `org_login_web_dev_hub` key — same
+ * registerCommandWithRuntime); this intentionally renames the old `org_login_web_dev_hub` key — same
  * migration orgOpen made. No manual logMetric.
  */
 export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(function* () {

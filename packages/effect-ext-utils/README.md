@@ -34,45 +34,6 @@ yield * annotateRootSpan({ orgId, featureFlag: 'enabled' });
 
 Signature mirrors `Effect.annotateCurrentSpan` — both `(key, value)` and record overloads. The helper walks `Span.parent` to find the trace root, no-ops with a debug log if there is no current span or the chain dead-ends at a non-Effect (External) span.
 
-### createNotificationModeApi
-
-```typescript
-import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
-
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
-  'my-extension-section',
-  'my-extension.statusBar',
-  'My Extension Status'
-);
-
-// Get progress location for commands with a progress phase
-const location = getProgressLocation('progressCommandKey');
-
-// Show success notification (works for both progress+success and success-only commands)
-showSuccessNotification('commandKey', 'Done!');
-
-// Show success with action buttons
-showSuccessNotification('commandKey', 'Success!', false, [
-  { label: 'Open', run: () => { /* action handler */ } }
-]);
-
-// Override success-off modes for critical info
-showSuccessNotification('commandKey', 'Success with ID: 12345', true);
-```
-
-Creates a notification API that auto-detects the command type (progress+success, success-only, or progress-only) from stored settings. The factory takes three arguments: `extensionSection`, `statusBarId`, and `statusBarName`. Type parameters control which command keys use which notification shapes — no 4th argument needed.
-
-Returns API with:
-- `showSuccessNotification(command, message, forceShow?, actions?)` — accepts progress+success and success-only command keys
-- `getProgressLocation(command)` — accepts progress+success and progress-only command keys
-
-Mode values (auto-detected from settings):
-- **Progress+Success**: `progressToastSuccessToast`, `progressToastSuccessOff`, `progressStatusBarSuccessStatusBar`, `progressStatusBarSuccessOff`
-- **Success-only**: `successToast`, `successStatusBar`, `successOff`
-- **Progress-only**: `progressToast`, `progressStatusBar`
-
-Use `forceShow: true` to override `*SuccessOff`/`successOff` modes when the message contains critical info (e.g., a request ID). Action buttons appear in toasts and on status bar item click.
-
 ## License
 
 BSD-3-Clause

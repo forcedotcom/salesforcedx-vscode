@@ -21,9 +21,9 @@ import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CH
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
-import { CommandKey, getProgressLocation } from '../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = 'Update Checkpoints in Org';
+const COMMAND: ProgressOnlyCommandKey = 'Update Checkpoints in Org';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -543,6 +543,13 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   // The status message isn't changing, call to localize it once and use the localized string in the
   // progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
+  const progressLocation = getRuntime().runSync(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
+  );
   // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
   try {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
@@ -551,7 +558,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
       writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
       await vscode.window.withProgress(
         {
-          location: getProgressLocation(COMMAND),
+          location: progressLocation,
           title: localizedProgressMessage,
           cancellable: false
         },

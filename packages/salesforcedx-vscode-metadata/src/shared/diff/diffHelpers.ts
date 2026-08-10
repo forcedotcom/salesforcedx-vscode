@@ -16,11 +16,11 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 import { MissingDefaultOrgError } from './diffErrors';
-
-const COMMAND: CommandKey = 'SFDX: Diff Source Against Org';
 import { createDiffFilePair, type DiffFilePair } from './diffTypes';
+
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Diff Source Against Org';
 
 export const sourceComponentToPaths = (component: SourceComponent) =>
   [component.content, component.xml, ...component.walkContent()].filter(isString);
@@ -52,6 +52,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   componentSet: NonEmptyComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const cacheDirUri = yield* getCacheDirectoryUri();
 
   yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
@@ -59,7 +60,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
     componentSet,
     cacheDirUri,
-    { progressLocation: getProgressLocation(COMMAND) }
+    { progressLocation: yield* notificationMode.getProgressLocation(COMMAND) }
   );
 
   return result;

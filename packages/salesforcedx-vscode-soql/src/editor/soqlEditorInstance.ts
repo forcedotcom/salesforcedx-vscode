@@ -24,8 +24,10 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
-import { getProgressLocation } from '../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 import { runQuery } from './queryRunner';
+
+const COMMAND: ProgressOnlyCommandKey = 'SOQL Builder Run Query';
 
 const appendToChannel = (message: string) =>
   getServicesApi.pipe(
@@ -94,11 +96,14 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   }
   const queryText = document.getText();
   const conn = yield* Effect.promise(() => getConnection());
+  const api = yield* getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
       {
         cancellable: false,
-        location: getProgressLocation('SOQL Builder Run Query'),
+        location: progressLocation,
         title: nls.localize('progress_running_query')
       },
       () => runQuery(conn)(queryText, { maxRows })
@@ -243,20 +248,21 @@ export class SOQLEditorInstance {
 
       case 'run_query': {
         const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
-        return runBuilderQueryEffect(
-          this.document,
-          maxRows,
-          data => this.openQueryDataView(data),
-          () => this.runQueryDone()
-        ).pipe(
-          Effect.catchAllCause(cause => {
-            const err = Cause.squash(cause);
-            return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
-              Effect.andThen(this.runQueryDone())
-            );
-          }),
-          Effect.withSpan('SOQLEditor.run_query')
-        );
+        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
+        const runQueryDone = () => this.runQueryDone();
+        const { document } = this;
+        return Effect.promise(() =>
+          getSoqlRuntime().runPromise(
+            runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
+              Effect.catchAllCause(cause => {
+                const err = Cause.squash(cause);
+                return appendToChannel(
+                  nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
+                ).pipe(Effect.andThen(runQueryDone()));
+              })
+            )
+          )
+        ).pipe(Effect.withSpan('SOQLEditor.run_query'));
       }
 
       case 'get_query_plan': {

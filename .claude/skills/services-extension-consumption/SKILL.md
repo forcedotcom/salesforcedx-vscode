@@ -69,29 +69,53 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 ```
 
-Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
+Two patterns exist depending on whether the extension adds services beyond the shared base:
+
+- **Shared base only** (`core`, `apex`, `apex-testing`, `lightning`, `lwc`, `org`, `visualforce`): import `buildAllServicesLayer` directly from `@salesforce/effect-ext-utils` and pass it to `setAllServicesLayer` at activation. No local factory needed.
+- **Extension-specific services added** (`apex-debugger`, `apex-log`, `apex-oas`, `apex-replay-debugger`, `metadata`, `org-browser`, `soql`): define a local `buildAllServicesLayer` in `services/extensionProvider.ts` that calls `buildSharedServicesLayer` from `@salesforce/effect-ext-utils` and merges the extension's own Effect services via `Layer.mergeAll`. The extra services vary — `apex-oas` adds `ApexMetadataService` and `LLMService`; extensions with the notifications system add `NotificationModeService.Default`; `org-browser` adds `OrgBrowserRetrieveService`.
 
 ## Runtime vs provide
 
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
+- **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
 - **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
-- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — keep passing the Layer; it internally uses provide.
+
+```typescript
+export const disposeRuntime = async (): Promise<void> => {
+  if (_runtime) {
+    await _runtime.dispose();
+    _runtime = undefined;
+  }
+};
+
+export const deactivate = async (): Promise<void> => {
+  await getRuntime().runPromise(deactivation()).finally(disposeRuntime);
+};
+```
+
+## Resource Lifecycle
+
+Prefer Effect scope ownership for resources created inside Effect services/layers:
+
+- Define resource-owning services with `scoped`.
+- Register VS Code `Disposable`s with `Effect.addFinalizer`.
+- Attach long-lived fibers to the owning scope with `Effect.forkIn`.
+- Dispose the owning `ManagedRuntime` on deactivation so layer finalizers run.
+- Don't expose `runDispose`/`dispose` solely for consumers to add to `context.subscriptions`.
+- Keep `context.subscriptions` for resources created outside an Effect scope.
+
+Allocation and cleanup stay together. See `../effect-best-practices/SKILL.md#effect-owned-resources`.
 
 ## Registering Commands
 
-Use `registerCommandWithLayer` (for layers) or `registerCommandWithRuntime` (for runtimes):
+Use `registerCommandWithRuntime`:
 
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
-// Using Layer
-const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-yield * registerCommand('sf.my.command', myCommandEffect);
-
-// Using Runtime
 const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
 yield * registerCommand('sf.my.command', myCommandEffect);
 ```
@@ -160,7 +184,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
-- [NotificationModeApi](references/notification-mode-api.md) - Configurable success notifications
+- [NotificationModeService](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
 
@@ -265,7 +289,7 @@ export const getRuntime = () => (_runtime ??= createRuntime());
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import { nls } from './messages';
 import { myCommandEffect } from './commands/myCommand';
-import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 
 export const activate = async (context: vscode.ExtensionContext) => {
@@ -274,10 +298,11 @@ export const activate = async (context: vscode.ExtensionContext) => {
 };
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const providerService = yield* ExtensionProviderService;
+  const api = yield* providerService.getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.my.command', myCommandEffect);
 
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');
@@ -326,7 +351,8 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 - `ChannelServiceLayer` before `ErrorHandlerService`
 - Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
-- `registerCommandWithLayer` for all commands (tracing + error handling)
+- Scoped services own their VS Code disposables via finalizers; runtime disposal runs them
+- `registerCommandWithRuntime` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
 
 ## Don't: rebuild services already in prebuiltServicesDependencies

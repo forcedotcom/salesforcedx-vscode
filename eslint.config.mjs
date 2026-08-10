@@ -616,6 +616,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
+      'packages/effect-ext-utils/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],

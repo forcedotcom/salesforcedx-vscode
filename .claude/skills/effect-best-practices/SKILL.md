@@ -45,6 +45,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Atom State        | `Atom.keepAlive` for global state                        | Forgetting keepAlive for persistent state                        |
 | Atom Updates      | `useAtomSet` in React components                         | `Atom.update` imperatively from React                            |
 | Atom Cleanup      | `get.addFinalizer()` for side effects                    | Missing cleanup for event listeners                              |
+| Resource Cleanup  | Scoped service/layer + `Effect.addFinalizer`             | Returning `dispose`; delegating Effect-owned resources to callers |
 | Atom Results      | `Result.builder` with `onErrorTag`                       | Ignoring loading/error states                                    |
 | Grouping          | `Arr.groupBy` (effect/Array)                             | `Object.groupBy`, whose `Partial<Record>` forces a filter        |
 
@@ -303,6 +304,25 @@ const AppLive = Layer.mergeAll(
 ```
 
 See `references/layer-patterns.md` for testing layers and config-dependent layers.
+
+### Effect-Owned Resources
+
+Resources created inside an Effect service/layer belong to its scope. Prefer `scoped` plus
+`Effect.addFinalizer` or `Effect.acquireRelease`; don't expose `dispose` or delegate cleanup to a host lifecycle.
+
+```typescript
+export class StatusService extends Effect.Service<StatusService>()('StatusService', {
+  accessors: true,
+  scoped: Effect.gen(function* () {
+    const item = vscode.window.createStatusBarItem();
+    yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
+    return { show: Effect.sync(() => item.show()) };
+  })
+}) {}
+```
+
+The layer owner must close its scope. A `ManagedRuntime` owns its layers' scopes; dispose it during extension
+deactivation. Use `context.subscriptions` only for resources created outside Effect ownership.
 
 ## Option Handling
 
