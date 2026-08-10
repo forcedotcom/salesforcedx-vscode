@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.9.6",
+  "version": "67.10.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -45,7 +45,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*"
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -122,7 +123,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:schemas"
+        "copy:schemas",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -182,12 +184,13 @@
       "dependencies": [
         "vscode:package:legacy",
         "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**",
         "package*.json",
         "../../.github/**"
       ],

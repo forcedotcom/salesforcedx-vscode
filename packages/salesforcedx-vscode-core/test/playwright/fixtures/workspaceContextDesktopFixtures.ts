@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { createDesktopTest, createMinimalOrg, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
-import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
-
-export const desktopTest = createDesktopTest({
+export const workspaceContextDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
-  // some of the necessary configs are over there
+  beforeLaunch: createMinimalOrg,
   additionalExtensionDirs: ['salesforcedx-vscode-org', 'salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  testExtensionPaths: ['test/playwright/fixtureExtensions/workspaceContext'],
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
