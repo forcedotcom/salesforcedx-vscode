@@ -278,7 +278,14 @@ const getUsernameFromAliasMock = jest.fn();
 const makeDesktopConn = (username: string): Connection =>
   ({
     getUsername: () => username,
-    getAuthInfoFields: () => ({ username, orgId: '00Dxx', tracksSource: false, isScratch: false, isSandbox: false }),
+    getAuthInfoFields: () => ({
+      username,
+      orgId: '00Dxx',
+      instanceName: 'USA9S',
+      tracksSource: false,
+      isScratch: false,
+      isSandbox: false
+    }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
     query: async () => ({ records: [], totalSize: 0 })
@@ -312,9 +319,8 @@ const MockAliasServiceLayer = Layer.succeed(
 
 const MockSettingsServiceLayer = Layer.succeed(SettingsService, SettingsService.make({} as unknown as SettingsService));
 
-const serviceLayer = Layer.provide(
-  ConnectionService.DefaultWithoutDependencies,
-  Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer)
+const serviceLayer = ConnectionService.DefaultWithoutDependencies.pipe(
+  Layer.provideMerge(Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer))
 );
 
 const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
@@ -392,6 +398,17 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     expect(getPropertyValueMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
+  });
+
+  it('no-arg path captures AuthInfo orgId and instanceName', async () => {
+    getPropertyValueMock.mockReturnValue('default@example.com');
+    connectionCreateMock.mockResolvedValue(makeDesktopConn('default@example.com'));
+
+    await run(ConnectionService.getConnection());
+    expect(await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)))).toMatchObject({
+      orgId: '00Dxx',
+      instanceName: 'USA9S'
+    });
   });
 
   it('no-arg path with no configured target-org fails with NoTargetOrgConfiguredError', async () => {

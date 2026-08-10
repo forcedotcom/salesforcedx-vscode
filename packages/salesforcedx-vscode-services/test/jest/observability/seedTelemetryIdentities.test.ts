@@ -10,7 +10,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
-import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { getDefaultOrgRef, getTelemetryIdentitySnapshot } from '../../../src/core/defaultOrgRef';
 import * as cliTelemetryModule from '../../../src/observability/cliTelemetry';
 import { seedTelemetryIdentities } from '../../../src/observability/seedTelemetryIdentities';
 import * as Schema from 'effect/Schema';
@@ -54,11 +54,17 @@ describe('seedTelemetryIdentities', () => {
     const { update, layer } = buildContextService(state);
 
     await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
+    const snapshot = getTelemetryIdentitySnapshot();
 
     const ref = await Effect.runPromise(getDefaultOrgRef());
     const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
     expect(info.cliId).toBe(PERSISTED_CLI_ID);
     expect(info.webUserId).toBe(UNAUTHENTICATED_USER);
+    expect(snapshot).toMatchObject({
+      cliId: PERSISTED_CLI_ID,
+      webUserId: UNAUTHENTICATED_USER
+    });
+    expect(snapshot).not.toHaveProperty('instanceName');
     expect(update).toHaveBeenCalledWith('telemetryWebUserId', UNAUTHENTICATED_USER);
   });
 

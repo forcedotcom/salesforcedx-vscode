@@ -24,11 +24,18 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 import { activate, deactivate } from '../../src/index';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 import { SettingsService } from '../../src/vscode/settingsService';
 import { WorkspaceService } from '../../src/vscode/workspaceService';
+import { isServicesRuntimeReady } from '../../src/servicesRuntime';
+import { getExtensionScope } from '../../src/vscode/extensionScope';
+import { ConfigService } from '../../src/core/configService';
+import { ConnectionService } from '../../src/core/connectionService';
+import { getDefaultOrgRef } from '../../src/core/defaultOrgRef';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -227,7 +234,7 @@ describe('Extension', () => {
     vscode.workspace.updateWorkspaceFolders = jest.fn();
   });
 
-  it('should activate successfully', async () => {
+  it('activates with one default-org ref shared by policy, snapshot, and span SDKs', async () => {
     const context = {
       subscriptions: [],
       extension: {
@@ -245,25 +252,64 @@ describe('Extension', () => {
       }
     } as unknown as import('vscode').ExtensionContext;
 
-    // In environments where os.homedir() returns undefined, activation may fail
-    // but should still return the API
-    try {
-      const api = await activate(context);
-      expect(api).toBeDefined();
-      expect(api.services).toBeDefined();
-      expect(api.services.ConnectionService).toBeDefined();
-      expect(api.services.ProjectService).toBeDefined();
-    } catch (error) {
-      // If activation fails due to path issues or invalid project workspace, that's expected in test environments
-      expect(String(error)).toMatch(
-        /path argument must be of type string|The "path" argument must be of type string|does not contain a valid Salesforce DX project/
-      );
-    }
+    const api = await activate(context);
+    expect(api).toBeDefined();
+    expect(api.services).toBeDefined();
+    expect(api.services.ConnectionService).toBeDefined();
+    expect(api.services.ProjectService).toBeDefined();
+    const services = api.services.prebuiltServicesDependencies;
+    Context.get(services, ConfigService);
+    Context.get(services, ConnectionService);
+    const externalSdkContext = await Effect.runPromise(
+      Layer.buildWithScope(api.services.SdkLayerFor(context), Effect.runSync(getExtensionScope()))
+    );
+    expect(externalSdkContext).toBeDefined();
+
+    const defaultOrgRef = await Effect.runPromise(getDefaultOrgRef());
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'usa9s' }));
+    expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({
+      orgId: 'gov-org',
+      telemetryClassification: 'gov'
+    });
+    expect(api.services.TelemetryIdentitySnapshot()).not.toHaveProperty('instanceName');
+
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'na123' }));
+    expect(api.services.TelemetryIdentitySnapshot().telemetryClassification).toBe('nonGov');
   });
 
   it('should deactivate successfully', async () => {
     await deactivate();
     expect(true).toBe(true);
+  });
+
+  it('cleans up the runtime and extension scope when activation fails after acquisition', async () => {
+    await deactivate();
+    const vscode = require('vscode');
+    const acquiredScope = Effect.runSync(getExtensionScope());
+    vscode.commands.executeCommand = jest.fn().mockRejectedValue(new Error('activation failed'));
+    const context = {
+      subscriptions: [],
+      extension: {
+        packageJSON: {
+          name: 'test-extension',
+          version: '1.0.0',
+          enableO11y: 'false'
+        }
+      },
+      globalState: {
+        get: jest.fn().mockReturnValue(undefined),
+        update: jest.fn().mockResolvedValue(undefined)
+      }
+    } as unknown as import('vscode').ExtensionContext;
+
+    await expect(activate(context)).rejects.toThrow('activation failed');
+
+    expect(isServicesRuntimeReady()).toBe(false);
+    expect(Effect.runSync(getExtensionScope())).not.toBe(acquiredScope);
+    vscode.commands.executeCommand.mockResolvedValue(undefined);
+    await expect(activate(context)).resolves.toBeDefined();
+    expect(isServicesRuntimeReady()).toBe(true);
+    await deactivate();
   });
 
   it('should handle homedir correctly in web environment', async () => {
