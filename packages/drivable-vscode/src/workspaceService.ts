@@ -8,9 +8,9 @@
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as Effect from 'effect/Effect';
-import { causeMessage, VisualQaWorkspaceError } from './errors';
+import { causeMessage, DrivableVscodeWorkspaceError } from './errors';
 
-export class WorkspaceService extends Effect.Service<WorkspaceService>()('VisualQa/WorkspaceService', {
+export class WorkspaceService extends Effect.Service<WorkspaceService>()('DrivableVscode/WorkspaceService', {
   accessors: true,
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
@@ -25,10 +25,10 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Visual
       yield* fs.writeFileString(filePath, contents);
     });
     const create = Effect.fn('WorkspaceService.create')(function* (orgAlias?: string) {
-      const workspaceDir = yield* fs.makeTempDirectory({ prefix: 'salesforce-agent-qa-' }).pipe(
+      const workspaceDir = yield* fs.makeTempDirectory({ prefix: 'salesforce-drivable-vscode-' }).pipe(
         Effect.mapError(
           cause =>
-            new VisualQaWorkspaceError({
+            new DrivableVscodeWorkspaceError({
               message: 'Failed to create disposable workspace',
               cause: causeMessage(cause)
             })
@@ -55,55 +55,55 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Visual
         writeSeed(
           workspaceDir,
           'config/project-scratch-def.json',
-          `${JSON.stringify({ orgName: 'Agent Visual QA', edition: 'Developer' }, undefined, 2)}\n`
+          `${JSON.stringify({ orgName: 'Drivable VS Code', edition: 'Developer' }, undefined, 2)}\n`
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/classes/AgentQaController.cls',
-          "public with sharing class AgentQaController {\n    @AuraEnabled(cacheable=true)\n    public static String greeting() {\n        return 'Hello from agent QA';\n    }\n}\n"
+          'force-app/main/default/classes/DrivableVscodeController.cls',
+          "public with sharing class DrivableVscodeController {\n    @AuraEnabled(cacheable=true)\n    public static String greeting() {\n        return 'Hello from drivable VS Code';\n    }\n}\n"
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/classes/AgentQaController.cls-meta.xml',
+          'force-app/main/default/classes/DrivableVscodeController.cls-meta.xml',
           '<?xml version="1.0" encoding="UTF-8"?>\n<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><status>Active</status></ApexClass>\n'
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/aura/agentQaCard/agentQaCard.cmp',
-          '<aura:component><lightning:card title="Agent QA"><p class="slds-p-around_small">Ready for exploration</p></lightning:card></aura:component>\n'
+          'force-app/main/default/aura/drivableVscodeCard/drivableVscodeCard.cmp',
+          '<aura:component><lightning:card title="Drivable VS Code"><p class="slds-p-around_small">Ready for exploration</p></lightning:card></aura:component>\n'
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/lwc/agentQaCard/agentQaCard.html',
-          '<template><lightning-card title="Agent QA"><p class="slds-p-around_small">{message}</p></lightning-card></template>\n'
+          'force-app/main/default/lwc/drivableVscodeCard/drivableVscodeCard.html',
+          '<template><lightning-card title="Drivable VS Code"><p class="slds-p-around_small">{message}</p></lightning-card></template>\n'
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/lwc/agentQaCard/agentQaCard.js',
-          "import { LightningElement } from 'lwc';\n\nexport default class AgentQaCard extends LightningElement {\n    message = 'Ready for exploration';\n}\n"
+          'force-app/main/default/lwc/drivableVscodeCard/drivableVscodeCard.js',
+          "import { LightningElement } from 'lwc';\n\nexport default class DrivableVscodeCard extends LightningElement {\n    message = 'Ready for exploration';\n}\n"
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/lwc/agentQaCard/agentQaCard.js-meta.xml',
+          'force-app/main/default/lwc/drivableVscodeCard/drivableVscodeCard.js-meta.xml',
           '<?xml version="1.0" encoding="UTF-8"?>\n<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><isExposed>true</isExposed></LightningComponentBundle>\n'
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/pages/AgentQa.page',
-          '<apex:page controller="AgentQaController"><apex:pageMessages/><h1>Agent Visual QA</h1></apex:page>\n'
+          'force-app/main/default/pages/DrivableVscode.page',
+          '<apex:page controller="DrivableVscodeController"><apex:pageMessages/><h1>Drivable VS Code</h1></apex:page>\n'
         ),
         writeSeed(
           workspaceDir,
-          'force-app/main/default/pages/AgentQa.page-meta.xml',
-          '<?xml version="1.0" encoding="UTF-8"?>\n<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><availableInTouch>true</availableInTouch><confirmationTokenRequired>false</confirmationTokenRequired><label>Agent QA</label></ApexPage>\n'
+          'force-app/main/default/pages/DrivableVscode.page-meta.xml',
+          '<?xml version="1.0" encoding="UTF-8"?>\n<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><availableInTouch>true</availableInTouch><confirmationTokenRequired>false</confirmationTokenRequired><label>Drivable VS Code</label></ApexPage>\n'
         ),
         writeSeed(workspaceDir, 'queries/accounts.soql', 'SELECT Id, Name FROM Account ORDER BY Name LIMIT 10\n')
       ];
       yield* Effect.all(writes, { concurrency: 'unbounded' }).pipe(
         Effect.mapError(cause =>
-          cause instanceof VisualQaWorkspaceError
+          cause instanceof DrivableVscodeWorkspaceError
             ? cause
-            : new VisualQaWorkspaceError({
+            : new DrivableVscodeWorkspaceError({
                 message: 'Failed to populate disposable workspace',
                 cause: causeMessage(cause)
               })

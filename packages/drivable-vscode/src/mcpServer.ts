@@ -34,8 +34,8 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import process = require('node:process');
 import { ControllerService } from './controllerService';
-import { causeMessage, VisualQaMcpShutdownError } from './errors';
-import { ActInput, StartInput, VisualQaFinding } from './schemas';
+import { causeMessage, DrivableVscodeMcpShutdownError } from './errors';
+import { ActInput, StartInput, DrivableVscodeFinding } from './schemas';
 
 const SERVER_INFO = { name: 'drivable-vscode', version: '0.1.0' };
 const AppLayer = ControllerService.Default.pipe(Layer.provide(Layer.merge(NodeFileSystem.layer, NodePath.layer)));
@@ -50,7 +50,7 @@ const inputSchema = <A, I>(schema: Schema.Schema<A, I>): Tool['inputSchema'] => 
   return { ...jsonSchema };
 };
 const tools = [
-  { name: 'start', description: 'Start the single visual QA session.', inputSchema: inputSchema(StartInput) },
+  { name: 'start', description: 'Start the single drivable VS Code session.', inputSchema: inputSchema(StartInput) },
   {
     name: 'observe',
     description: 'Capture the current bounded UI state and screenshot.',
@@ -63,8 +63,8 @@ const tools = [
   },
   {
     name: 'add_finding',
-    description: 'Persist a visual QA finding with reproducible evidence.',
-    inputSchema: inputSchema(VisualQaFinding)
+    description: 'Persist a drivable VS Code finding with reproducible evidence.',
+    inputSchema: inputSchema(DrivableVscodeFinding)
   },
   {
     name: 'status',
@@ -129,7 +129,7 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
       )
     ),
     Match.when('add_finding', () =>
-      Schema.decodeUnknown(VisualQaFinding)(args).pipe(
+      Schema.decodeUnknown(DrivableVscodeFinding)(args).pipe(
         Effect.flatMap(ControllerService.addFinding),
         Effect.as(textResult({ added: true }))
       )
@@ -149,10 +149,10 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
 });
 
 /** Creates the MCP server independently of stdio for contract testing. */
-type ServerShutdown = Effect.Effect<void, VisualQaMcpShutdownError>;
+type ServerShutdown = Effect.Effect<void, DrivableVscodeMcpShutdownError>;
 const serverShutdowns = new WeakMap<Server, ServerShutdown>();
 
-export const createVisualQaMcpServer = (
+export const createDrivableVscodeMcpServer = (
   runtime: Runtime.Runtime<ControllerService>,
   finish: Effect.Effect<void, unknown, ControllerService> = ControllerService.finish,
   dispose: Effect.Effect<void, unknown> = Effect.void
@@ -192,22 +192,25 @@ export const createVisualQaMcpServer = (
       Effect.tryPromise({
         try: () => Runtime.runPromise(runtime)(finish),
         catch: cause =>
-          new VisualQaMcpShutdownError({ message: 'Failed to finish visual QA session', cause: causeMessage(cause) })
+          new DrivableVscodeMcpShutdownError({
+            message: 'Failed to finish drivable VS Code session',
+            cause: causeMessage(cause)
+          })
       })
     );
     const serverExit = yield* Effect.exit(
       Effect.tryPromise({
         try: () => server.close(),
         catch: cause =>
-          new VisualQaMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+          new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
       })
     );
     yield* Scope.close(handlerScope, Exit.void);
     const runtimeExit = yield* Effect.exit(dispose);
     const failures = [finishExit, serverExit, runtimeExit].filter(Exit.isFailure);
     if (failures.length > 0) {
-      return yield* new VisualQaMcpShutdownError({
-        message: 'Failed to shut down visual QA MCP server',
+      return yield* new DrivableVscodeMcpShutdownError({
+        message: 'Failed to shut down drivable VS Code MCP server',
         cause: failures.map(failure => causeMessage(failure.cause)).join('\n')
       });
     }
@@ -217,17 +220,22 @@ export const createVisualQaMcpServer = (
 };
 
 /** Stops request handling and releases the server and runtime in order. */
-export const shutdownVisualQaMcpServer = (server: Server): ServerShutdown =>
+export const shutdownDrivableVscodeMcpServer = (server: Server): ServerShutdown =>
   serverShutdowns.get(server) ??
   Effect.tryPromise({
     try: () => server.close(),
-    catch: cause => new VisualQaMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+    catch: cause =>
+      new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
   });
 
 const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
   const runtime = ManagedRuntime.make(AppLayer);
-  const server = createVisualQaMcpServer(yield* runtime.runtimeEffect, ControllerService.finish, runtime.disposeEffect);
-  yield* Effect.addFinalizer(() => shutdownVisualQaMcpServer(server).pipe(Effect.orDie));
+  const server = createDrivableVscodeMcpServer(
+    yield* runtime.runtimeEffect,
+    ControllerService.finish,
+    runtime.disposeEffect
+  );
+  yield* Effect.addFinalizer(() => shutdownDrivableVscodeMcpServer(server).pipe(Effect.orDie));
   const transport = new StdioServerTransport();
   const stopped = yield* Deferred.make<void>();
   const stop = () => Runtime.runFork(Runtime.defaultRuntime)(Deferred.succeed(stopped, undefined));

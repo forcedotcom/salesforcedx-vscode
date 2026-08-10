@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Deferred from 'effect/Deferred';
 import * as Runtime from 'effect/Runtime';
 import { ControllerService } from '../src/controllerService';
-import { createVisualQaMcpServer, shutdownVisualQaMcpServer } from '../src/mcpServer';
+import { createDrivableVscodeMcpServer, shutdownDrivableVscodeMcpServer } from '../src/mcpServer';
 
 jest.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
 
@@ -26,12 +26,12 @@ const callTool = async (client: Client, name: string, args: Record<string, unkno
   return CallToolResultSchema.parse(result);
 };
 
-describe('visual QA MCP server', () => {
+describe('drivable VS Code MCP server', () => {
   const start = jest.fn(() =>
     Effect.succeed({ runId: 'run-1', artifactDir: '/artifacts/run-1', workspaceDir: '/workspace' })
   );
   const observeForMcp = Effect.succeed({
-    observation: { sequence: 1, title: 'Visual QA' },
+    observation: { sequence: 1, title: 'Drivable VS Code' },
     screenshot: Uint8Array.from([1, 2, 3])
   });
   const act = jest.fn(() => Effect.void);
@@ -55,8 +55,8 @@ describe('visual QA MCP server', () => {
     finish
   } as unknown as InstanceType<typeof ControllerService>;
   const runtime = Runtime.defaultRuntime.pipe(Runtime.provideService(ControllerService, service));
-  const server = createVisualQaMcpServer(runtime);
-  const client = new Client({ name: 'visual-qa-contract-test', version: '1.0.0' });
+  const server = createDrivableVscodeMcpServer(runtime);
+  const client = new Client({ name: 'drivable-vscode-contract-test', version: '1.0.0' });
 
   beforeAll(async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -98,7 +98,7 @@ describe('visual QA MCP server', () => {
     });
 
     const observed = await callTool(client, 'observe', {});
-    expect(JSON.parse(text(observed))).toEqual({ sequence: 1, title: 'Visual QA' });
+    expect(JSON.parse(text(observed))).toEqual({ sequence: 1, title: 'Drivable VS Code' });
     expect(observed.content[1]).toEqual({ type: 'image', data: 'AQID', mimeType: 'image/png' });
   });
 
@@ -127,17 +127,17 @@ describe('visual QA MCP server', () => {
       finish
     } as unknown as InstanceType<typeof ControllerService>;
     const blockingRuntime = Runtime.defaultRuntime.pipe(Runtime.provideService(ControllerService, blockingService));
-    const blockingServer = createVisualQaMcpServer(
+    const blockingServer = createDrivableVscodeMcpServer(
       blockingRuntime,
       Deferred.await(interrupted).pipe(Effect.zipRight(Effect.sync(() => finishOrder.push('finish'))))
     );
-    const blockingClient = new Client({ name: 'visual-qa-shutdown-test', version: '1.0.0' });
+    const blockingClient = new Client({ name: 'drivable-vscode-shutdown-test', version: '1.0.0' });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([blockingServer.connect(serverTransport), blockingClient.connect(clientTransport)]);
     const request = blockingClient.callTool({ name: 'observe', arguments: {} }, CallToolResultSchema);
     await active.pipe(Deferred.await, Effect.runPromise);
 
-    await Effect.runPromise(shutdownVisualQaMcpServer(blockingServer));
+    await Effect.runPromise(shutdownDrivableVscodeMcpServer(blockingServer));
 
     await expect(request).rejects.toThrow();
     expect(finishOrder).toEqual(['finish']);

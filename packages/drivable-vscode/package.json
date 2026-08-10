@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
-  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-visual-qa",
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/drivable-vscode",
   "bin": {
     "drivable-vscode-mcp": "./bin/drivable-vscode-mcp.js"
   },

@@ -6,7 +6,7 @@
  */
 
 /** Executable extension directories in the same canonical order as `.vscode/launch.json`. */
-export const VISUAL_QA_EXTENSION_DIRS = [
+export const DRIVABLE_VSCODE_EXTENSION_DIRS = [
   'salesforcedx-vscode-visualforce',
   'salesforcedx-vscode-soql',
   'salesforcedx-vscode-lwc',

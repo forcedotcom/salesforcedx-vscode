@@ -5,22 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { VisualQaArtifactError } from './errors';
-import type { VisualQaRendererConsoleEntry } from './schemas';
+import type { DrivableVscodeArtifactError } from './errors';
+import type { DrivableVscodeRendererConsoleEntry } from './schemas';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Queue from 'effect/Queue';
 
 export type ConsoleWrite =
-  | { readonly _tag: 'Entry'; readonly entry: VisualQaRendererConsoleEntry }
+  | { readonly _tag: 'Entry'; readonly entry: DrivableVscodeRendererConsoleEntry }
   | { readonly _tag: 'Stop' };
 
 export const consumeConsoleWrites = (
   queue: Queue.Dequeue<ConsoleWrite>,
-  persist: (entry: VisualQaRendererConsoleEntry) => Effect.Effect<void, VisualQaArtifactError>
+  persist: (entry: DrivableVscodeRendererConsoleEntry) => Effect.Effect<void, DrivableVscodeArtifactError>
   // eslint-disable-next-line local/no-explicit-effect-return-type -- Recursive implementation requires an annotation.
-): Effect.Effect<void, VisualQaArtifactError> =>
+): Effect.Effect<void, DrivableVscodeArtifactError> =>
   queue.pipe(
     Queue.take,
     Effect.flatMap(item =>
@@ -36,7 +36,7 @@ export const consumeConsoleWrites = (
 
 export const drainConsoleWrites = (
   queue: Queue.Queue<ConsoleWrite>,
-  consumer: Fiber.Fiber<void, VisualQaArtifactError>
+  consumer: Fiber.Fiber<void, DrivableVscodeArtifactError>
 ) =>
   Effect.uninterruptible(
     Queue.offer(queue, { _tag: 'Stop' }).pipe(

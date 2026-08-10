@@ -5,24 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { VisualQaAction, VisualQaFinding, VisualQaLaunchOptions, VisualQaStatus } from './schemas';
+import type {
+  DrivableVscodeAction,
+  DrivableVscodeFinding,
+  DrivableVscodeLaunchOptions,
+  DrivableVscodeStatus
+} from './schemas';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
-import { VisualQaStateError } from './errors';
-import { SessionService, type VisualQaSession } from './sessionService';
+import { DrivableVscodeStateError } from './errors';
+import { SessionService, type DrivableVscodeSession } from './sessionService';
 
 type ControllerState = {
-  lifecycle: VisualQaStatus['state'];
+  lifecycle: DrivableVscodeStatus['state'];
   objective: Option.Option<string>;
-  session: Option.Option<VisualQaSession>;
+  session: Option.Option<DrivableVscodeSession>;
   findingCount: number;
 };
 
-export class ControllerService extends Effect.Service<ControllerService>()('VisualQa/ControllerService', {
+export class ControllerService extends Effect.Service<ControllerService>()('DrivableVscode/ControllerService', {
   accessors: true,
   dependencies: [SessionService.Default],
   effect: Effect.gen(function* () {
@@ -39,19 +44,22 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
       Effect.flatMap(current =>
         Option.match(current.session, {
           onNone: () =>
-            new VisualQaStateError({ message: `Visual QA session is ${current.lifecycle}`, state: current.lifecycle }),
+            new DrivableVscodeStateError({
+              message: `Drivable VS Code session is ${current.lifecycle}`,
+              state: current.lifecycle
+            }),
           onSome: Effect.succeed
         })
       )
     );
     const startCriticalSection = Effect.fn('ControllerService.startCriticalSection')(function* (
       objective: string,
-      options: VisualQaLaunchOptions
+      options: DrivableVscodeLaunchOptions
     ) {
       const current = yield* Ref.get(state);
       if (current.lifecycle !== 'new' && current.lifecycle !== 'closed')
-        return yield* new VisualQaStateError({
-          message: `Visual QA session is ${current.lifecycle}`,
+        return yield* new DrivableVscodeStateError({
+          message: `Drivable VS Code session is ${current.lifecycle}`,
           state: current.lifecycle
         });
       yield* Ref.set(state, {
@@ -73,7 +81,7 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
     });
     const start = Effect.fn('ControllerService.start')(function* (
       objective: string,
-      options: VisualQaLaunchOptions = {}
+      options: DrivableVscodeLaunchOptions = {}
     ) {
       return yield* semaphore.withPermits(1)(startCriticalSection(objective, options));
     });
@@ -83,17 +91,17 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
         fs.readFile(observation.screenshotPath).pipe(Effect.map(screenshot => ({ observation, screenshot })))
       )
     );
-    const act = Effect.fn('ControllerService.act')(function* (action: VisualQaAction) {
+    const act = Effect.fn('ControllerService.act')(function* (action: DrivableVscodeAction) {
       yield* semaphore.withPermits(1)(requireSession.pipe(Effect.flatMap(session => session.act(action))));
     });
     const addFindingCriticalSection = Effect.fn('ControllerService.addFindingCriticalSection')(function* (
-      finding: VisualQaFinding
+      finding: DrivableVscodeFinding
     ) {
       const session = yield* requireSession;
       yield* session.addFinding(finding);
       yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
     });
-    const addFinding = Effect.fn('ControllerService.addFinding')(function* (finding: VisualQaFinding) {
+    const addFinding = Effect.fn('ControllerService.addFinding')(function* (finding: DrivableVscodeFinding) {
       yield* semaphore.withPermits(1)(addFindingCriticalSection(finding));
     });
     const status = Ref.get(state).pipe(
@@ -105,7 +113,7 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
             runId: Option.getOrUndefined(Option.map(current.session, session => session.runId)),
             artifactDir: Option.getOrUndefined(Option.map(current.session, session => session.artifactDir)),
             findingCount: current.findingCount
-          }) satisfies VisualQaStatus
+          }) satisfies DrivableVscodeStatus
       )
     );
     const finishCriticalSection = Effect.fn('ControllerService.finishCriticalSection')(function* () {
@@ -118,8 +126,8 @@ export class ControllerService extends Effect.Service<ControllerService>()('Visu
         Match.orElse(() =>
           Option.match(current.session, {
             onNone: () =>
-              new VisualQaStateError({
-                message: `Visual QA session is ${current.lifecycle}`,
+              new DrivableVscodeStateError({
+                message: `Drivable VS Code session is ${current.lifecycle}`,
                 state: current.lifecycle
               }),
             onSome: session =>

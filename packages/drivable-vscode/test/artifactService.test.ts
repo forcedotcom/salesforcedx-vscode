@@ -22,7 +22,7 @@ describe('ArtifactService', () => {
     const files = await Effect.runPromise(
       Effect.gen(function* () {
         const fs = yield* FileSystem.FileSystem;
-        const root = yield* fs.makeTempDirectoryScoped({ prefix: 'visual-qa-artifacts-' });
+        const root = yield* fs.makeTempDirectoryScoped({ prefix: 'drivable-vscode-artifacts-' });
         const artifacts = yield* ArtifactService.create(root, 'run-1');
         const finding = {
           title: 'Misleading URL feedback',

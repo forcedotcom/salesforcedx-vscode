@@ -14,7 +14,7 @@ const OptionalObservationSequence = {
 
 const ExtensionMode = Schema.Literal('dev', 'vsix');
 
-export const VisualQaExtension = Schema.Struct({
+export const DrivableVscodeExtension = Schema.Struct({
   directory: NonEmptyString,
   id: NonEmptyString,
   version: NonEmptyString,
@@ -22,9 +22,9 @@ export const VisualQaExtension = Schema.Struct({
   path: NonEmptyString,
   hash: Schema.optional(NonEmptyString)
 });
-export type VisualQaExtension = Schema.Schema.Type<typeof VisualQaExtension>;
+export type DrivableVscodeExtension = Schema.Schema.Type<typeof DrivableVscodeExtension>;
 
-export const VisualQaLaunchOptions = Schema.Struct({
+export const DrivableVscodeLaunchOptions = Schema.Struct({
   objective: Schema.optional(NonEmptyString),
   extensionMode: Schema.optional(ExtensionMode),
   repoRoot: Schema.optional(NonEmptyString),
@@ -33,9 +33,9 @@ export const VisualQaLaunchOptions = Schema.Struct({
   userSettings: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
   orgAlias: Schema.optional(NonEmptyString)
 });
-export type VisualQaLaunchOptions = Schema.Schema.Type<typeof VisualQaLaunchOptions>;
+export type DrivableVscodeLaunchOptions = Schema.Schema.Type<typeof DrivableVscodeLaunchOptions>;
 
-export const VisualQaObservation = Schema.Struct({
+export const DrivableVscodeObservation = Schema.Struct({
   sequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
   capturedAt: NonEmptyString,
   title: Schema.String,
@@ -50,9 +50,9 @@ export const VisualQaObservation = Schema.Struct({
   statusBar: Schema.Array(Schema.String),
   screenshotPath: NonEmptyString
 });
-export type VisualQaObservation = Schema.Schema.Type<typeof VisualQaObservation>;
+export type DrivableVscodeObservation = Schema.Schema.Type<typeof DrivableVscodeObservation>;
 
-export const VisualQaAction = Schema.Union(
+export const DrivableVscodeAction = Schema.Union(
   Schema.Struct({
     kind: Schema.Literal('click'),
     role: NonEmptyString,
@@ -79,9 +79,9 @@ export const VisualQaAction = Schema.Union(
     ...OptionalObservationSequence
   })
 );
-export type VisualQaAction = Schema.Schema.Type<typeof VisualQaAction>;
+export type DrivableVscodeAction = Schema.Schema.Type<typeof DrivableVscodeAction>;
 
-export const VisualQaFinding = Schema.Struct({
+export const DrivableVscodeFinding = Schema.Struct({
   title: NonEmptyString,
   severity: Schema.Literal('critical', 'high', 'medium', 'low'),
   area: NonEmptyString,
@@ -91,9 +91,9 @@ export const VisualQaFinding = Schema.Struct({
   confidence: Schema.Literal('high', 'medium', 'low'),
   evidence: NonEmptyString.pipe(Schema.Array, Schema.optional)
 });
-export type VisualQaFinding = Schema.Schema.Type<typeof VisualQaFinding>;
+export type DrivableVscodeFinding = Schema.Schema.Type<typeof DrivableVscodeFinding>;
 
-export const VisualQaManifest = Schema.Struct({
+export const DrivableVscodeManifest = Schema.Struct({
   runId: NonEmptyString,
   objective: NonEmptyString,
   mode: ExtensionMode,
@@ -101,13 +101,13 @@ export const VisualQaManifest = Schema.Struct({
   repoRoot: NonEmptyString,
   workspaceDir: NonEmptyString,
   vscodeExecutable: NonEmptyString,
-  extensions: Schema.Array(VisualQaExtension),
+  extensions: Schema.Array(DrivableVscodeExtension),
   orgAlias: Schema.optional(NonEmptyString),
   screenshotWarning: NonEmptyString
 });
-export type VisualQaManifest = Schema.Schema.Type<typeof VisualQaManifest>;
+export type DrivableVscodeManifest = Schema.Schema.Type<typeof DrivableVscodeManifest>;
 
-export const VisualQaSummary = Schema.Struct({
+export const DrivableVscodeSummary = Schema.Struct({
   objective: NonEmptyString,
   runId: NonEmptyString,
   exploredCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
@@ -117,16 +117,16 @@ export const VisualQaSummary = Schema.Struct({
   status: Schema.Literal('completed', 'completed-with-limitations', 'failed'),
   limitations: Schema.Array(NonEmptyString)
 });
-export type VisualQaSummary = Schema.Schema.Type<typeof VisualQaSummary>;
+export type DrivableVscodeSummary = Schema.Schema.Type<typeof DrivableVscodeSummary>;
 
 const ActionRecord = {
   sequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
   observationSequence: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
   startedAt: NonEmptyString,
-  action: VisualQaAction
+  action: DrivableVscodeAction
 };
-export const VisualQaActionRecord = Schema.Union(
-  Schema.Struct({ kind: Schema.Literal('observation'), ...VisualQaObservation.fields }),
+export const DrivableVscodeActionRecord = Schema.Union(
+  Schema.Struct({ kind: Schema.Literal('observation'), ...DrivableVscodeObservation.fields }),
   Schema.Struct({ kind: Schema.Literal('action-started'), ...ActionRecord }),
   Schema.Struct({ kind: Schema.Literal('action-succeeded'), ...ActionRecord, completedAt: NonEmptyString }),
   Schema.Struct({
@@ -137,26 +137,26 @@ export const VisualQaActionRecord = Schema.Union(
   }),
   Schema.Struct({ kind: Schema.Literal('session-closing'), capturedAt: NonEmptyString })
 );
-export type VisualQaActionRecord = Schema.Schema.Type<typeof VisualQaActionRecord>;
+export type DrivableVscodeActionRecord = Schema.Schema.Type<typeof DrivableVscodeActionRecord>;
 
-export const VisualQaRendererConsoleEntry = Schema.Struct({
+export const DrivableVscodeRendererConsoleEntry = Schema.Struct({
   capturedAt: NonEmptyString,
   type: NonEmptyString,
   text: Schema.String,
   location: Schema.Struct({ url: Schema.String, lineNumber: Schema.Number, columnNumber: Schema.Number })
 });
-export type VisualQaRendererConsoleEntry = Schema.Schema.Type<typeof VisualQaRendererConsoleEntry>;
+export type DrivableVscodeRendererConsoleEntry = Schema.Schema.Type<typeof DrivableVscodeRendererConsoleEntry>;
 
 const ControllerLifecycle = Schema.Literal('new', 'starting', 'running', 'stopping', 'closed');
 
-export const VisualQaStatus = Schema.Struct({
+export const DrivableVscodeStatus = Schema.Struct({
   state: ControllerLifecycle,
   objective: Schema.optional(NonEmptyString),
   runId: Schema.optional(NonEmptyString),
   artifactDir: Schema.optional(NonEmptyString),
   findingCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative())
 });
-export type VisualQaStatus = Schema.Schema.Type<typeof VisualQaStatus>;
+export type DrivableVscodeStatus = Schema.Schema.Type<typeof DrivableVscodeStatus>;
 
 export const StartInput = Schema.Struct({
   objective: NonEmptyString,
@@ -169,6 +169,6 @@ export type StartInput = Schema.Schema.Type<typeof StartInput>;
 
 export const ActInput = Schema.Struct({
   observationSequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  action: VisualQaAction
+  action: DrivableVscodeAction
 });
 export type ActInput = Schema.Schema.Type<typeof ActInput>;

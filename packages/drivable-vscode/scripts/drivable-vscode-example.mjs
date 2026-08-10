@@ -5,7 +5,7 @@ import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 
 const client = new Client({ name: 'drivable-vscode-example', version: '1.0.0' });
 const transport = new StdioClientTransport({
-  command: './packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js'
+  command: './packages/drivable-vscode/bin/drivable-vscode-mcp.js'
 });
 const call = async (name, args = {}) => await client.callTool({ name, arguments: args }, CallToolResultSchema);
 const text = result => {

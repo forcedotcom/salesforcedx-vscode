@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { VisualQaExtension } from './schemas';
+import type { DrivableVscodeExtension } from './schemas';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { execFileSync } from 'node:child_process';
-import { VISUAL_QA_EXTENSION_DIRS } from './constants';
-import { causeMessage, VisualQaExtensionError } from './errors';
+import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
+import { causeMessage, DrivableVscodeExtensionError } from './errors';
 
 const ExtensionPackage = Schema.Struct({ name: Schema.String, publisher: Schema.String, version: Schema.String });
 const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(ExtensionPackage));
 
-export class ExtensionService extends Effect.Service<ExtensionService>()('VisualQa/ExtensionService', {
+export class ExtensionService extends Effect.Service<ExtensionService>()('DrivableVscode/ExtensionService', {
   accessors: true,
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
@@ -38,12 +38,12 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Visual
       };
     });
     const resolveDev = Effect.fn('ExtensionService.resolveDev')(function* (repoRoot: string) {
-      return yield* Effect.forEach(VISUAL_QA_EXTENSION_DIRS, directory =>
+      return yield* Effect.forEach(DRIVABLE_VSCODE_EXTENSION_DIRS, directory =>
         resolveDevExtension(repoRoot, directory)
       ).pipe(
         Effect.mapError(
           cause =>
-            new VisualQaExtensionError({
+            new DrivableVscodeExtensionError({
               message: 'Failed to resolve canonical development extensions',
               cause: causeMessage(cause)
             })
@@ -60,17 +60,19 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Visual
           execFileSync('npm', ['run', 'vscode:package'], { cwd: repoRoot, stdio: 'pipe' });
           return await prepareVsixExtensions({
             repoRoot,
-            packageDirs: [...VISUAL_QA_EXTENSION_DIRS],
+            packageDirs: [...DRIVABLE_VSCODE_EXTENSION_DIRS],
             vscodeExecutable
           });
         },
         catch: cause =>
-          new VisualQaExtensionError({
+          new DrivableVscodeExtensionError({
             message: 'Failed to prepare canonical VSIX extensions',
             cause: causeMessage(cause)
           })
       });
-      const directoryById = new Map(VISUAL_QA_EXTENSION_DIRS.map(directory => [directory.toLowerCase(), directory]));
+      const directoryById = new Map(
+        DRIVABLE_VSCODE_EXTENSION_DIRS.map(directory => [directory.toLowerCase(), directory])
+      );
       return {
         extensionsDir: prepared.extensionsDir,
         extensions: prepared.extensions.map(
@@ -82,7 +84,7 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Visual
               mode: 'vsix' as const,
               path: extension.vsixPath,
               hash: extension.sha256
-            }) satisfies VisualQaExtension
+            }) satisfies DrivableVscodeExtension
         )
       };
     });

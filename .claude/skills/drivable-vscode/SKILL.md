@@ -1,6 +1,6 @@
 ---
 name: drivable-vscode
-description: Operate a real VS Code instance through drivable-vscode. Use for visual QA, exploratory testing, customer bug reproduction, feature verification, screenshots, videos, or other evidence from VS Code.
+description: Operate a real VS Code instance through drivable-vscode. Use for drivable VS Code, exploratory testing, customer bug reproduction, feature verification, screenshots, videos, or other evidence from VS Code.
 review: always
 ---
 
@@ -22,7 +22,7 @@ npm run compile -w @salesforce/drivable-vscode
 ### Claude Code
 
 ```bash
-claude mcp add --scope local drivable-vscode -- ./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js
+claude mcp add --scope local drivable-vscode -- ./packages/drivable-vscode/bin/drivable-vscode-mcp.js
 claude mcp get drivable-vscode
 ```
 
@@ -37,7 +37,7 @@ Add to `opencode.jsonc`:
   "mcp": {
     "drivable-vscode": {
       "type": "local",
-      "command": ["./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js"],
+      "command": ["./packages/drivable-vscode/bin/drivable-vscode-mcp.js"],
       "enabled": true,
       "timeout": 10000
     }
@@ -50,7 +50,7 @@ Restart OpenCode. Verify with `opencode mcp list`.
 ### Cursor
 
 ```bash
-cursor --add-mcp '{"name":"drivable-vscode","command":"./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js"}'
+cursor --add-mcp '{"name":"drivable-vscode","command":"./packages/drivable-vscode/bin/drivable-vscode-mcp.js"}'
 ```
 
 Or add the same command under `mcpServers.drivable-vscode` in `.cursor/mcp.json`. Restart Cursor, then enable drivable-vscode under **Settings > Tools & MCP**.
@@ -65,10 +65,10 @@ Validated example:
 
 ```bash
 npm run vscode:bundle
-node packages/salesforcedx-vscode-visual-qa/scripts/drivable-vscode-example.mjs
+node packages/drivable-vscode/scripts/drivable-vscode-example.mjs
 ```
 
-Example source: `packages/salesforcedx-vscode-visual-qa/scripts/drivable-vscode-example.mjs`.
+Example source: `packages/drivable-vscode/scripts/drivable-vscode-example.mjs`.
 
 ### Agent-Driven
 

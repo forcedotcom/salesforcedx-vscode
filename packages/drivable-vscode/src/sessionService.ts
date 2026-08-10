@@ -27,39 +27,47 @@ import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './c
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
 import {
   causeMessage,
-  VisualQaActionError,
-  VisualQaArtifactError,
-  VisualQaLaunchError,
-  VisualQaObservationError,
-  VisualQaStaleObservationError,
-  VisualQaStateError,
-  VisualQaTeardownError
+  DrivableVscodeActionError,
+  DrivableVscodeArtifactError,
+  DrivableVscodeLaunchError,
+  DrivableVscodeObservationError,
+  DrivableVscodeStaleObservationError,
+  DrivableVscodeStateError,
+  DrivableVscodeTeardownError
 } from './errors';
 import { ExtensionService } from './extensionService';
 import {
-  VisualQaObservation,
-  VisualQaRendererConsoleEntry,
-  type VisualQaAction,
-  type VisualQaExtension,
-  type VisualQaFinding,
-  type VisualQaLaunchOptions
+  DrivableVscodeObservation,
+  DrivableVscodeRendererConsoleEntry,
+  type DrivableVscodeAction,
+  type DrivableVscodeExtension,
+  type DrivableVscodeFinding,
+  type DrivableVscodeLaunchOptions
 } from './schemas';
 import { WorkspaceService } from './workspaceService';
 
-export type VisualQaSession = {
+export type DrivableVscodeSession = {
   runId: string;
   artifactDir: string;
   workspaceDir: string;
-  extensions: readonly VisualQaExtension[];
-  observe: Effect.Effect<VisualQaObservation, VisualQaArtifactError | VisualQaObservationError | VisualQaStateError>;
+  extensions: readonly DrivableVscodeExtension[];
+  observe: Effect.Effect<
+    DrivableVscodeObservation,
+    DrivableVscodeArtifactError | DrivableVscodeObservationError | DrivableVscodeStateError
+  >;
   act: (
-    action: VisualQaAction
+    action: DrivableVscodeAction
   ) => Effect.Effect<
     void,
-    VisualQaActionError | VisualQaArtifactError | VisualQaStaleObservationError | VisualQaStateError
+    | DrivableVscodeActionError
+    | DrivableVscodeArtifactError
+    | DrivableVscodeStaleObservationError
+    | DrivableVscodeStateError
   >;
-  addFinding: (finding: VisualQaFinding) => Effect.Effect<void, VisualQaStateError | VisualQaArtifactError>;
-  close: Effect.Effect<void, VisualQaTeardownError>;
+  addFinding: (
+    finding: DrivableVscodeFinding
+  ) => Effect.Effect<void, DrivableVscodeStateError | DrivableVscodeArtifactError>;
+  close: Effect.Effect<void, DrivableVscodeTeardownError>;
 };
 
 type SessionState = {
@@ -184,7 +192,7 @@ const defaultSettings = {
   'extensions.autoUpdate': false,
   'telemetry.telemetryLevel': 'off',
   'update.mode': 'none',
-  'salesforcedx-vscode-core.telemetry-tag': 'agent-visual-qa'
+  'salesforcedx-vscode-core.telemetry-tag': 'drivable-vscode'
 };
 const disabledBuiltins = [
   'vscode.github',
@@ -209,14 +217,18 @@ const launchEnvironment = (): Record<string, string> => {
 };
 
 const teardownFailure = (message: string, cause: unknown) =>
-  new VisualQaTeardownError({ message, cause: causeMessage(cause) });
+  new DrivableVscodeTeardownError({ message, cause: causeMessage(cause) });
 const finalizer = <E>(effect: Effect.Effect<unknown, E>) => effect.pipe(Effect.uninterruptible, Effect.orDie);
 const closeSessionScope = (scope: Scope.CloseableScope, exit: Exit.Exit<unknown, unknown>) =>
   Scope.close(scope, exit).pipe(
     Effect.uninterruptible,
     Effect.sandbox,
     Effect.mapError(
-      cause => new VisualQaTeardownError({ message: 'Visual QA session teardown failed', cause: Cause.pretty(cause) })
+      cause =>
+        new DrivableVscodeTeardownError({
+          message: 'Drivable VS Code session teardown failed',
+          cause: Cause.pretty(cause)
+        })
     )
   );
 
@@ -227,9 +239,9 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
       ? Effect.try({
           try: () => process.kill(process.platform === 'win32' ? child.pid! : -child.pid!, 'SIGKILL'),
           catch: cause =>
-            new VisualQaTeardownError({ message: 'Failed to kill VS Code process', cause: causeMessage(cause) })
+            new DrivableVscodeTeardownError({ message: 'Failed to kill VS Code process', cause: causeMessage(cause) })
         }).pipe(
-          Effect.catchTag('VisualQaTeardownError', error =>
+          Effect.catchTag('DrivableVscodeTeardownError', error =>
             error.cause?.includes('ESRCH') ? Effect.void : Effect.fail(error)
           )
         )
@@ -237,7 +249,7 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
   );
   const close = Effect.tryPromise({
     try: () => app.close(),
-    catch: cause => new VisualQaTeardownError({ message: 'VS Code close failed', cause: causeMessage(cause) })
+    catch: cause => new DrivableVscodeTeardownError({ message: 'VS Code close failed', cause: causeMessage(cause) })
   });
   yield* Effect.uninterruptibleMask(restore =>
     Effect.exit(restore(close).pipe(Effect.timeoutOption(CLOSE_TIMEOUT))).pipe(
@@ -251,7 +263,7 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
   );
 });
 
-const executeAction = (page: Page, action: VisualQaAction) =>
+const executeAction = (page: Page, action: DrivableVscodeAction) =>
   Effect.tryPromise({
     try: () =>
       Match.value(action).pipe(
@@ -281,10 +293,10 @@ const executeAction = (page: Page, action: VisualQaAction) =>
         Match.exhaustive
       ),
     catch: cause =>
-      new VisualQaActionError({ message: `Failed to execute ${action.kind} action`, cause: causeMessage(cause) })
+      new DrivableVscodeActionError({ message: `Failed to execute ${action.kind} action`, cause: causeMessage(cause) })
   });
 
-export class SessionService extends Effect.Service<SessionService>()('VisualQa/SessionService', {
+export class SessionService extends Effect.Service<SessionService>()('DrivableVscode/SessionService', {
   accessors: true,
   dependencies: [ArtifactService.Default, ExtensionService.Default, WorkspaceService.Default],
   effect: Effect.gen(function* () {
@@ -293,11 +305,11 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
     const artifactService = yield* ArtifactService;
     const extensionService = yield* ExtensionService;
     const workspaceService = yield* WorkspaceService;
-    const launch = Effect.fn('SessionService.launch')(function* (options: VisualQaLaunchOptions = {}) {
+    const launch = Effect.fn('SessionService.launch')(function* (options: DrivableVscodeLaunchOptions = {}) {
       const repoRoot = options.repoRoot ?? process.cwd();
       const extensionMode = options.extensionMode ?? 'vsix';
       const runId = `${new Date().toISOString().replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
-      const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'visual-qa');
+      const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'drivable-vscode');
       const artifacts = yield* artifactService.create(artifactRoot, runId);
       const sessionScope = yield* Scope.make(ExecutionStrategy.sequential);
       const scoped = Scope.extend(sessionScope);
@@ -320,7 +332,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
       const closeSemaphore = yield* Effect.makeSemaphore(1);
       const runPhase = <K extends keyof Omit<SessionState, 'observationSequence' | 'actionSequence' | 'lifecycle'>>(
         phase: K,
-        operation: Effect.Effect<void, VisualQaTeardownError>
+        operation: Effect.Effect<void, DrivableVscodeTeardownError>
       ) =>
         Ref.get(state).pipe(
           Effect.flatMap(value =>
@@ -334,7 +346,8 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           .remove(directory, { recursive: true })
           .pipe(
             Effect.mapError(
-              cause => new VisualQaTeardownError({ message: `Failed to remove ${label}`, cause: causeMessage(cause) })
+              cause =>
+                new DrivableVscodeTeardownError({ message: `Failed to remove ${label}`, cause: causeMessage(cause) })
             )
           );
       const acquireSession = Effect.fn('SessionService.acquireSession')(function* () {
@@ -345,10 +358,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
         );
         const userDataDir = yield* scoped(
           Effect.acquireRelease(
-            fs.makeTempDirectory({ prefix: 'salesforce-agent-qa-user-data-' }).pipe(
+            fs.makeTempDirectory({ prefix: 'salesforce-drivable-vscode-user-data-' }).pipe(
               Effect.mapError(
                 cause =>
-                  new VisualQaLaunchError({
+                  new DrivableVscodeLaunchError({
                     message: 'Failed to create VS Code user data directory',
                     cause: causeMessage(cause)
                   })
@@ -368,7 +381,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
         ).pipe(
           Effect.mapError(
             cause =>
-              new VisualQaLaunchError({
+              new DrivableVscodeLaunchError({
                 message: 'Failed to prepare VS Code launch directories',
                 cause: causeMessage(cause)
               })
@@ -382,7 +395,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           .pipe(
             Effect.mapError(
               cause =>
-                new VisualQaLaunchError({ message: 'Failed to write VS Code settings', cause: causeMessage(cause) })
+                new DrivableVscodeLaunchError({
+                  message: 'Failed to write VS Code settings',
+                  cause: causeMessage(cause)
+                })
             )
           );
         const vscodeExecutable =
@@ -395,7 +411,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
                 reporter: new SilentReporter()
               }),
             catch: cause =>
-              new VisualQaLaunchError({ message: 'Failed to acquire VS Code', cause: causeMessage(cause) })
+              new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: causeMessage(cause) })
           }));
         const resolved =
           extensionMode === 'dev'
@@ -434,7 +450,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
                   recordVideo: { dir: videosDir, size: { width: 1920, height: 1080 } }
                 }),
               catch: cause =>
-                new VisualQaLaunchError({ message: 'Failed to launch VS Code', cause: causeMessage(cause) })
+                new DrivableVscodeLaunchError({ message: 'Failed to launch VS Code', cause: causeMessage(cause) })
             }),
             acquiredApp => finalizer(runPhase('electronClosed', closeElectron(acquiredApp)))
           )
@@ -448,7 +464,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
             return firstWindow;
           },
           catch: cause =>
-            new VisualQaLaunchError({ message: 'VS Code workbench failed to become ready', cause: causeMessage(cause) })
+            new DrivableVscodeLaunchError({
+              message: 'VS Code workbench failed to become ready',
+              cause: causeMessage(cause)
+            })
         });
         const consoleWrites = yield* Queue.unbounded<ConsoleWrite>();
         const consumeConsole = consumeConsoleWrites(consoleWrites, artifacts.appendRendererConsole);
@@ -460,7 +479,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
                 drainConsoleWrites(consoleWrites, consumer).pipe(
                   Effect.mapError(
                     cause =>
-                      new VisualQaTeardownError({
+                      new DrivableVscodeTeardownError({
                         message: 'Failed to drain renderer console',
                         cause: causeMessage(cause)
                       })
@@ -471,7 +490,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           )
         );
         const recordConsole = (message: ConsoleMessage) => {
-          const entry = Schema.decodeUnknownSync(VisualQaRendererConsoleEntry)(
+          const entry = Schema.decodeUnknownSync(DrivableVscodeRendererConsoleEntry)(
             redactValue({
               capturedAt: new Date().toISOString(),
               type: message.type(),
@@ -496,7 +515,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
         );
         yield* artifacts.writeManifest({
           runId,
-          objective: options.objective ?? 'Unspecified visual QA objective',
+          objective: options.objective ?? 'Unspecified drivable VS Code objective',
           mode: extensionMode,
           startedAt: new Date().toISOString(),
           repoRoot,
@@ -512,7 +531,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           Effect.filterOrFail(
             current => current.lifecycle === 'open',
             current =>
-              new VisualQaStateError({ message: `Visual QA session is ${current.lifecycle}`, state: current.lifecycle })
+              new DrivableVscodeStateError({
+                message: `Drivable VS Code session is ${current.lifecycle}`,
+                state: current.lifecycle
+              })
           )
         );
         const observeSession = Effect.fn('SessionService.observe')(function* () {
@@ -548,16 +570,16 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
               return redacted;
             },
             catch: cause =>
-              new VisualQaObservationError({
+              new DrivableVscodeObservationError({
                 message: 'Failed to capture VS Code observation',
                 cause: causeMessage(cause)
               })
           }).pipe(
-            Effect.flatMap(Schema.decodeUnknown(VisualQaObservation)),
+            Effect.flatMap(Schema.decodeUnknown(DrivableVscodeObservation)),
             Effect.mapError(cause =>
-              cause instanceof VisualQaObservationError
+              cause instanceof DrivableVscodeObservationError
                 ? cause
-                : new VisualQaObservationError({
+                : new DrivableVscodeObservationError({
                     message: 'Captured an invalid VS Code observation',
                     cause: causeMessage(cause)
                   })
@@ -567,10 +589,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           return observation;
         });
         const observe = Effect.suspend(observeSession);
-        const act = Effect.fn('SessionService.act')(function* (action: VisualQaAction) {
+        const act = Effect.fn('SessionService.act')(function* (action: DrivableVscodeAction) {
           const current = yield* requireOpen;
           if (action.observationSequence !== undefined && action.observationSequence !== current.observationSequence) {
-            return yield* new VisualQaStaleObservationError({
+            return yield* new DrivableVscodeStaleObservationError({
               message: `Stale observation ${action.observationSequence}; latest observation is ${current.observationSequence}`,
               requestedSequence: action.observationSequence,
               latestSequence: current.observationSequence
@@ -594,7 +616,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
             )
           );
         });
-        const addFinding = Effect.fn('SessionService.addFinding')(function* (finding: VisualQaFinding) {
+        const addFinding = Effect.fn('SessionService.addFinding')(function* (finding: DrivableVscodeFinding) {
           yield* requireOpen;
           yield* artifacts.appendFinding(finding);
           yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
@@ -608,7 +630,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
             Effect.tryPromise({
               try: () => page.screenshot({ path: path.join(artifacts.screenshotsDir, 'final.png') }),
               catch: cause =>
-                new VisualQaTeardownError({ message: 'Failed to save final screenshot', cause: causeMessage(cause) })
+                new DrivableVscodeTeardownError({
+                  message: 'Failed to save final screenshot',
+                  cause: causeMessage(cause)
+                })
             }).pipe(Effect.asVoid)
           );
           const closingRecord = runPhase(
@@ -618,7 +643,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
               .pipe(
                 Effect.mapError(
                   cause =>
-                    new VisualQaTeardownError({ message: 'Failed to record session close', cause: causeMessage(cause) })
+                    new DrivableVscodeTeardownError({
+                      message: 'Failed to record session close',
+                      cause: causeMessage(cause)
+                    })
                 )
               )
           );
@@ -629,13 +657,16 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
               ? Effect.tryPromise({
                   try: () => video.path(),
                   catch: cause =>
-                    new VisualQaTeardownError({ message: 'Failed to locate session video', cause: causeMessage(cause) })
+                    new DrivableVscodeTeardownError({
+                      message: 'Failed to locate session video',
+                      cause: causeMessage(cause)
+                    })
                 }).pipe(
                   Effect.flatMap(videoPath => fs.rename(videoPath, path.join(artifacts.artifactDir, 'session.webm'))),
                   Effect.mapError(cause =>
-                    cause instanceof VisualQaTeardownError
+                    cause instanceof DrivableVscodeTeardownError
                       ? cause
-                      : new VisualQaTeardownError({
+                      : new DrivableVscodeTeardownError({
                           message: 'Failed to save session video',
                           cause: causeMessage(cause)
                         })
@@ -654,7 +685,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
                 drainConsoleWrites(consoleWrites, consoleConsumer).pipe(
                   Effect.mapError(
                     cause =>
-                      new VisualQaTeardownError({
+                      new DrivableVscodeTeardownError({
                         message: 'Failed to drain renderer console',
                         cause: causeMessage(cause)
                       })
@@ -681,7 +712,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           ];
           const finalArtifacts = artifacts
             .finish({
-              objective: options.objective ?? 'Unspecified visual QA objective',
+              objective: options.objective ?? 'Unspecified drivable VS Code objective',
               runId,
               exploredCount: beforeFinish.actionSequence + beforeFinish.observationSequence,
               actionCount: beforeFinish.actionSequence,
@@ -697,7 +728,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
                   artifacts.flush.pipe(
                     Effect.mapError(
                       cause =>
-                        new VisualQaTeardownError({
+                        new DrivableVscodeTeardownError({
                           message: 'Failed to flush session artifacts',
                           cause: causeMessage(cause)
                         })
@@ -707,7 +738,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
               ),
               Effect.mapError(
                 cause =>
-                  new VisualQaTeardownError({
+                  new DrivableVscodeTeardownError({
                     message: 'Failed to finish session artifacts',
                     cause: causeMessage(cause)
                   })
@@ -723,7 +754,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
             Exit.match(finishArtifactsExit, { onFailure: Cause.pretty, onSuccess: () => undefined })
           ].filter((failure): failure is string => failure !== undefined);
           if (failures.length > 0) {
-            return yield* teardownFailure('Visual QA session teardown failed', failures.join('\n'));
+            return yield* teardownFailure('Drivable VS Code session teardown failed', failures.join('\n'));
           }
           yield* Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const }));
         });
@@ -731,10 +762,10 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           Effect.suspend(() =>
             closeSession().pipe(
               Effect.mapError(error =>
-                error instanceof VisualQaTeardownError
+                error instanceof DrivableVscodeTeardownError
                   ? error
-                  : new VisualQaTeardownError({
-                      message: 'Visual QA session teardown failed',
+                  : new DrivableVscodeTeardownError({
+                      message: 'Drivable VS Code session teardown failed',
                       cause: causeMessage(error)
                     })
               )
@@ -750,7 +781,7 @@ export class SessionService extends Effect.Service<SessionService>()('VisualQa/S
           act,
           addFinding,
           close
-        } satisfies VisualQaSession;
+        } satisfies DrivableVscodeSession;
       });
       return yield* acquireSession().pipe(
         Effect.onError(cause => closeSessionScope(sessionScope, Exit.failCause(cause)).pipe(Effect.orDie))

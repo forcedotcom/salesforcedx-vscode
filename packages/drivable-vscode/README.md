@@ -19,7 +19,7 @@ VSIX mode runs the cached packaging graph for the canonical 15 extensions before
   "mcp": {
     "drivable-vscode": {
       "type": "local",
-      "command": ["./packages/salesforcedx-vscode-visual-qa/bin/drivable-vscode-mcp.js"]
+      "command": ["./packages/drivable-vscode/bin/drivable-vscode-mcp.js"]
     }
   }
 }
@@ -31,7 +31,7 @@ See `.claude/skills/drivable-vscode/SKILL.md` for Claude Code, OpenCode, and Cur
 
 ```bash
 npm run vscode:bundle
-node packages/salesforcedx-vscode-visual-qa/scripts/drivable-vscode-example.mjs
+node packages/drivable-vscode/scripts/drivable-vscode-example.mjs
 ```
 
 Text observations, console entries, findings, artifact JSON, and MCP text responses scrub common credential forms. Screenshots and video are not pixel-redacted and can contain secrets displayed by VS Code. Native OS dialogs and external windows remain outside Playwright's Electron page.

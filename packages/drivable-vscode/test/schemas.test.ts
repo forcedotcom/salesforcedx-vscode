@@ -11,25 +11,25 @@ import * as Exit from 'effect/Exit';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
-import { VISUAL_QA_EXTENSION_DIRS } from '../src/constants';
+import { DRIVABLE_VSCODE_EXTENSION_DIRS } from '../src/constants';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from '../src/consoleWriteQueue';
 import { releaseAll } from '../src/releaseAll';
 import {
-  VisualQaActionRecord,
+  DrivableVscodeActionRecord,
   ActInput,
   StartInput,
-  VisualQaFinding,
-  VisualQaManifest,
-  VisualQaRendererConsoleEntry,
-  type VisualQaRendererConsoleEntry as VisualQaRendererConsoleEntryType
+  DrivableVscodeFinding,
+  DrivableVscodeManifest,
+  DrivableVscodeRendererConsoleEntry,
+  type DrivableVscodeRendererConsoleEntry as DrivableVscodeRendererConsoleEntryType
 } from '../src/schemas';
 
-describe('visual QA contracts', () => {
+describe('drivable VS Code contracts', () => {
   test('retains the canonical 15 extension inventory', () => {
-    expect(VISUAL_QA_EXTENSION_DIRS).toHaveLength(15);
-    expect(new Set(VISUAL_QA_EXTENSION_DIRS).size).toBe(15);
-    expect(VISUAL_QA_EXTENSION_DIRS).toContain('salesforcedx-vscode-apex-oas');
-    expect(VISUAL_QA_EXTENSION_DIRS).toContain('salesforcedx-vscode-apex-debugger');
+    expect(DRIVABLE_VSCODE_EXTENSION_DIRS).toHaveLength(15);
+    expect(new Set(DRIVABLE_VSCODE_EXTENSION_DIRS).size).toBe(15);
+    expect(DRIVABLE_VSCODE_EXTENSION_DIRS).toContain('salesforcedx-vscode-apex-oas');
+    expect(DRIVABLE_VSCODE_EXTENSION_DIRS).toContain('salesforcedx-vscode-apex-debugger');
   });
 
   test('decodes MCP inputs through canonical Effect schemas', () => {
@@ -44,10 +44,10 @@ describe('visual QA contracts', () => {
       })
     ).toEqual({ observationSequence: 7, action: { kind: 'command', title: 'SFDX: Create Project' } });
     expect(() =>
-      Schema.decodeUnknownSync(VisualQaFinding)({
+      Schema.decodeUnknownSync(DrivableVscodeFinding)({
         title: 'Missing steps',
         severity: 'low',
-        area: 'QA',
+        area: 'Project creation',
         steps: [],
         expected: 'feedback',
         actual: 'none',
@@ -66,15 +66,15 @@ describe('visual QA contracts', () => {
   });
 
   test('validates persisted artifact contracts', () => {
-    const renderer = Schema.decodeUnknownSync(VisualQaRendererConsoleEntry)({
+    const renderer = Schema.decodeUnknownSync(DrivableVscodeRendererConsoleEntry)({
       capturedAt: '2026-08-06T00:00:00.000Z',
       type: 'log',
       text: 'ready',
       location: { url: 'file:///extension.js', lineNumber: 1, columnNumber: 2 }
     });
-    expect(Schema.encodeSync(VisualQaRendererConsoleEntry)(renderer)).toEqual(renderer);
-    expect(() => Schema.decodeUnknownSync(VisualQaActionRecord)({ kind: 'session-closing' })).toThrow();
-    expect(() => Schema.decodeUnknownSync(VisualQaManifest)({ runId: 'run' })).toThrow();
+    expect(Schema.encodeSync(DrivableVscodeRendererConsoleEntry)(renderer)).toEqual(renderer);
+    expect(() => Schema.decodeUnknownSync(DrivableVscodeActionRecord)({ kind: 'session-closing' })).toThrow();
+    expect(() => Schema.decodeUnknownSync(DrivableVscodeManifest)({ runId: 'run' })).toThrow();
   });
 
   test('attempts every release when releases fail', async () => {
@@ -104,8 +104,8 @@ describe('visual QA contracts', () => {
   });
 
   test('drains queued console entries in order before stopping', async () => {
-    const entries: VisualQaRendererConsoleEntryType[] = [];
-    const entry = (text: string): VisualQaRendererConsoleEntryType => ({
+    const entries: DrivableVscodeRendererConsoleEntryType[] = [];
+    const entry = (text: string): DrivableVscodeRendererConsoleEntryType => ({
       capturedAt: '2026-08-06T00:00:00.000Z',
       type: 'log',
       text,
