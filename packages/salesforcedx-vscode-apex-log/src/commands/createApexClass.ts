@@ -43,23 +43,10 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
     description: APEX_CLASS_TEMPLATE_DESCRIPTIONS[label] ?? ''
   }));
 
-  const configService = yield* api.services.ConfigService;
-  const agg = yield* configService.getConfigAggregator();
-  const customPath = agg.getPropertyValue<string>('org-custom-metadata-templates') ?? undefined;
-
-  const fsService = yield* api.services.FsService;
-  const apexclassDir = customPath ? Utils.joinPath(URI.file(customPath), 'apexclass') : undefined;
-  const isDir = apexclassDir ? yield* fsService.isDirectory(apexclassDir) : false;
-  const entries =
-    isDir && apexclassDir
-      ? yield* fsService.readDirectoryWithTypes(apexclassDir).pipe(Effect.orElseSucceed(() => []))
-      : [];
-  const customItems = entries
-    .filter(({ uri }) => Utils.basename(uri).endsWith('.cls'))
-    .map(({ uri }) => ({ label: Utils.basename(uri).replace(/\.cls$/, ''), description: '' }));
-
-  const customNames = new Set(customItems.map(item => item.label));
-  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNames.has(item.label));
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('apexclass', '.cls');
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
 
   const builtInSeparator: vscode.QuickPickItem = {
     kind: vscode.QuickPickItemKind.Separator,

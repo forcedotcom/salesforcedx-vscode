@@ -77,20 +77,8 @@ const APEX_TRIGGER_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const configService = yield* api.services.ConfigService;
-  const agg = yield* configService.getConfigAggregator();
-  const customPath = agg.getPropertyValue<string>('org-custom-metadata-templates') ?? undefined;
-
-  const fsService = yield* api.services.FsService;
-  const apextriggerDir = customPath ? Utils.joinPath(URI.file(customPath), 'apextrigger') : undefined;
-  const isDir = apextriggerDir ? yield* fsService.isDirectory(apextriggerDir) : false;
-  const entries =
-    isDir && apextriggerDir
-      ? yield* fsService.readDirectoryWithTypes(apextriggerDir).pipe(Effect.orElseSucceed(() => []))
-      : [];
-  const customItems = entries
-    .filter(({ uri }) => Utils.basename(uri).endsWith('.trigger'))
-    .map(({ uri }) => ({ label: Utils.basename(uri).replace(/\.trigger$/, ''), description: '' }));
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('apextrigger', '.trigger');
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
 
   if (customItems.length === 0) {
     return 'ApexTrigger';
@@ -103,8 +91,8 @@ const promptForTemplate = Effect.fn('promptForTriggerTemplate')(function* () {
     description: APEX_TRIGGER_TEMPLATE_DESCRIPTIONS[label] ?? ''
   }));
 
-  const customNames = new Set(customItems.map(item => item.label));
-  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNames.has(item.label));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
 
   const items: vscode.QuickPickItem[] = [
     { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_trigger_builtin_templates_label') },

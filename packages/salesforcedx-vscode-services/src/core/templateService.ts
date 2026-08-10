@@ -18,7 +18,7 @@ import * as Stream from 'effect/Stream';
 import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { Utils, type URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
@@ -303,6 +303,26 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       );
     });
 
+    const getCustomTemplateNames = Effect.fn('TemplateService.getCustomTemplateNames')(function* (
+      templateDir: string,
+      ext: string
+    ) {
+      const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+      if (!customPath) return [];
+      const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
+      const isDir = yield* Effect.tryPromise(() => vscode.workspace.fs.stat(subdirUri)).pipe(
+        Effect.map(s => s.type === vscode.FileType.Directory),
+        Effect.orElseSucceed(() => false)
+      );
+      if (!isDir) return [];
+      const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(subdirUri)).pipe(
+        Effect.orElseSucceed((): [string, vscode.FileType][] => [])
+      );
+      return entries
+        .filter(([name, type]) => type === vscode.FileType.File && name.endsWith(ext))
+        .map(([name]) => name.slice(0, -ext.length));
+    });
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const { templatesRootPath } = yield* getTemplatesRootCached;
       yield* ensureTemplatesInFsOnce;
@@ -323,6 +343,6 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templateService.create(params.templateType, templateOptions, customTemplatesPath)
       );
     });
-    return { create, getBuiltInTemplateNames };
+    return { create, getBuiltInTemplateNames, getCustomTemplateNames };
   })
 }) {}
