@@ -10,11 +10,10 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
+import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -42,7 +41,7 @@ const getConnection = () =>
   );
 
 /** Build the O11y event payload for a span — the exact shape passed to o11yService.logEvent. */
-const toEvent = (span: ReadableSpan, identity: { userId?: string; cliId?: string; webUserId?: string }) => ({
+export const toO11yEvent = (span: ReadableSpan, identity: { userId?: string; cliId?: string; webUserId?: string }) => ({
   name: span.name,
   success: span.status?.code !== SpanStatusCode.ERROR,
   properties: {
@@ -109,12 +108,9 @@ export class O11ySpanExporter implements SpanExporter {
         try: async () => {
           await this.ensureInitialized();
           const pdpEventSchema = await getPdpEventSchema();
-          const { userId, cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
-            Effect.flatMap(ref => SubscriptionRef.get(ref)),
-            Effect.runSync
-          );
           spans.filter(isSpanValidForProductionTelemetry).forEach(span => {
-            const { success, properties: props, measurements } = toEvent(span, { userId, cliId, webUserId });
+            const identity = getSpanCreationIdentity(span);
+            const { success, properties: props, measurements } = toO11yEvent(span, identity);
 
             if (success) {
               this.o11yService.logEvent({
@@ -139,7 +135,7 @@ export class O11ySpanExporter implements SpanExporter {
                   eventName: 'vscodeExtension.executed',
                   productFeatureId: this.productFeatureId,
                   contextName: 'orgId::devhubId',
-                  contextValue: `${orgId}::${devHubOrgId}`,
+                  contextValue: `${identity.orgId}::${identity.devHubOrgId}`,
                   componentId: `${props['common.extname']}.${span.attributes['command']}`
                 },
                 pdpEventSchema
@@ -170,11 +166,7 @@ export class O11ySpanExporter implements SpanExporter {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
-    // Identity may be unavailable pre-runtime; default to empty rather than throwing (diagnostic sink).
-    const identity = isServicesRuntimeReady()
-      ? getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.runSync)
-      : {};
-    const events = valid.map(span => toEvent(span, identity));
+    const events = valid.map(span => toO11yEvent(span, getSpanCreationIdentity(span)));
     // eslint-disable-next-line functional/no-try-statements -- network boundary
     try {
       const res = await fetch(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`, {

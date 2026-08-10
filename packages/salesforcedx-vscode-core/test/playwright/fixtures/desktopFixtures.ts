@@ -11,6 +11,6 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  additionalExtensionDirs: ['salesforcedx-vscode-org', 'salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });

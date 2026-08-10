@@ -4,35 +4,69 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
+import { Span, BatchSpanProcessor, SpanExporter, BufferConfig, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 // aliased to Rec so the global `Record<K, V>` utility type stays usable in this file
 import * as Rec from 'effect/Record';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
+import { getTelemetryIdentitySnapshot, type TelemetryIdentitySnapshot } from '../core/defaultOrgRef';
+
+type SpanCreationIdentity = Readonly<
+  Pick<
+    typeof DefaultOrgInfoSchema.Type,
+    | 'orgId'
+    | 'devHubOrgId'
+    | 'userId'
+    | 'cliId'
+    | 'webUserId'
+    | 'isSandbox'
+    | 'isScratch'
+    | 'tracksSource'
+    | 'orgEdition'
+  > &
+    Pick<TelemetryIdentitySnapshot, 'telemetryClassification'>
+>;
+
+const creationIdentities = new WeakMap<object, SpanCreationIdentity>();
+
+export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreationIdentity =>
+  creationIdentities.get(span) ?? { telemetryClassification: 'unknown' };
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
-  private readonly shouldEnrich: () => boolean;
-
-  constructor(exporter: SpanExporter, options?: BufferConfig, shouldEnrich: () => boolean = () => true) {
+  constructor({
+    exporter,
+    options,
+    getIdentitySnapshot = getTelemetryIdentitySnapshot
+  }: {
+    exporter: SpanExporter;
+    options?: BufferConfig;
+    getIdentitySnapshot?: () => TelemetryIdentitySnapshot;
+  }) {
     super(exporter, options);
-    this.shouldEnrich = shouldEnrich;
+    this.getIdentitySnapshot = getIdentitySnapshot;
   }
 
+  private readonly getIdentitySnapshot: () => TelemetryIdentitySnapshot;
+
   public onStart(span: Span, parentContext: Context): void {
-    // for top level spans, add additional attributes — skipped when the exporter gate is disabled
-    // (the enrichment would be computed per-span then discarded by the gated exporter)
-    if (!span.parentSpanContext && this.shouldEnrich()) {
+    if (!creationIdentities.has(span)) {
+      creationIdentities.set(span, Object.freeze(this.getIdentitySnapshot()));
+    }
+    // for top level spans, add additional attributes
+    if (!span.parentSpanContext) {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
       const [dynamic, permanent] = Effect.runSync(
-        Effect.all([getAdditionalAttributes(extensionName, extensionVersion), memoized('everySpanIsTheSame')]) // it seems to want a key
+        Effect.all([
+          getAdditionalAttributes(getSpanCreationIdentity(span), extensionName, extensionVersion),
+          memoized('everySpanIsTheSame')
+        ]) // it seems to want a key
       );
       // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
       Object.entries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
@@ -44,37 +78,36 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 /** Attribute values are optional at build time; the undefined ones are dropped before they reach the span. */
 type TelemetryAttributes = Record<string, string | undefined>;
 
-const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown) =>
-  getDefaultOrgRef().pipe(
-    Effect.flatMap(ref => SubscriptionRef.get(ref)),
-    Effect.map(
-      ({
-        orgId,
-        devHubOrgId,
-        isSandbox,
-        isScratch,
-        tracksSource,
-        userId,
-        webUserId,
-        cliId,
-        orgEdition
-      }): TelemetryAttributes => ({
-        // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
-        'common.extname': isString(extensionName) ? extensionName : undefined,
-        'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
-        orgId,
-        devHubOrgId,
-        isSandbox: optionalBooleanToString(isSandbox),
-        isScratch: optionalBooleanToString(isScratch),
-        tracksSource: optionalBooleanToString(tracksSource),
-        userId,
-        cliId,
-        webUserId,
-        orgEdition,
-        telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
-      })
-    )
-  );
+const getAdditionalAttributes = (
+  {
+    orgId,
+    devHubOrgId,
+    isSandbox,
+    isScratch,
+    tracksSource,
+    userId,
+    webUserId,
+    cliId,
+    orgEdition
+  }: SpanCreationIdentity,
+  extensionName: unknown,
+  extensionVersion: unknown
+) =>
+  Effect.succeed<TelemetryAttributes>({
+    // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+    'common.extname': isString(extensionName) ? extensionName : undefined,
+    'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
+    orgId,
+    devHubOrgId,
+    isSandbox: optionalBooleanToString(isSandbox),
+    isScratch: optionalBooleanToString(isScratch),
+    tracksSource: optionalBooleanToString(tracksSource),
+    userId,
+    cliId,
+    webUserId,
+    orgEdition,
+    telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
+  });
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
   if (uiKindString !== 'Desktop') return undefined;

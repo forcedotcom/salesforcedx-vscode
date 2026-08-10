@@ -6,6 +6,9 @@
  */
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { isProductionTelemetryExportEnabled } from './appInsights';
+import { getSpanCreationIdentity } from './spanTransformProcessor';
+import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 /**
  * Wraps a real SpanExporter with a per-export gate. The `isEnabled` predicate is re-checked
@@ -18,19 +21,35 @@ export class GatedSpanExporter implements SpanExporter {
   private delegate: SpanExporter | undefined;
 
   constructor(
-    private readonly make: () => SpanExporter,
-    private readonly isEnabled: () => boolean
+    private readonly options: {
+      make: () => SpanExporter;
+      o11yEndpoint?: string;
+      bypassGovernance?: boolean;
+    }
   ) {}
 
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    if (!this.isEnabled()) {
+    if (!isProductionTelemetryExportEnabled(this.options.o11yEndpoint)) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
-    (this.delegate ??= this.make()).export(spans, resultCallback);
+    const eligible = spans.filter(
+      span =>
+        isSpanValidForProductionTelemetry(span) &&
+        (this.options.bypassGovernance ? true : getSpanCreationIdentity(span).telemetryClassification === 'nonGov')
+    );
+    if (eligible.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+    (this.delegate ??= this.options.make()).export(eligible, resultCallback);
   }
 
-  public shutdown(): Promise<void> {
-    return this.delegate?.shutdown() ?? Promise.resolve();
+  public async forceFlush(): Promise<void> {
+    await this.delegate?.forceFlush?.();
+  }
+
+  public async shutdown(): Promise<void> {
+    await this.delegate?.shutdown();
   }
 }

@@ -21,6 +21,5 @@ export const aliasListCommand = Effect.fn('aliasListCommand')(function* () {
   );
 
   yield* channelService.appendToChannel(table);
-  const channel = yield* channelService.getChannel;
-  channel.show();
+  yield* channelService.showChannel;
 });

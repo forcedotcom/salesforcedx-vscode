@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -15,8 +16,7 @@ import {
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ExtensionContext, ExtensionMode, extensions, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
 import {
   DEFAULT_AIKEY,
@@ -29,7 +29,11 @@ import { shapeFrom } from '../context/workspaceOrgShape';
 import { errorToString } from '../helpers/errorUtils';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
-import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
+import {
+  determineLocalReporters,
+  determineReporters,
+  initializeO11yReporter
+} from '../telemetry/reporters/determineReporters';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { O11yReporter } from '../telemetry/reporters/o11yReporter';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
@@ -40,51 +44,31 @@ import { isInternalHost } from '../telemetry/utils/isInternal';
 type IdentityFromServices = {
   cliId: string | undefined;
   webUserId: string;
+  telemetryClassification: 'gov' | 'nonGov' | 'unknown';
 } & OrgIdentity;
 
-const FALLBACK_IDENTITY: IdentityFromServices = {
-  cliId: undefined,
-  webUserId: UNAUTHENTICATED_USER,
-  orgId: undefined,
-  orgShape: undefined,
-  devHubId: undefined,
-  orgEdition: undefined
+const identityFromSnapshot = (
+  snapshot: ReturnType<SalesforceVSCodeServicesApi['services']['TelemetryIdentitySnapshot']>
+): IdentityFromServices => ({
+  cliId: snapshot.cliId,
+  webUserId: snapshot.webUserId ?? UNAUTHENTICATED_USER,
+  orgId: snapshot.orgId,
+  orgShape: shapeFrom(snapshot),
+  devHubId: snapshot.devHubOrgId,
+  orgEdition: snapshot.orgEdition,
+  telemetryClassification: snapshot.telemetryClassification
+});
+
+const getIdentitySnapshotFromServices = (): IdentityFromServices => {
+  const extension = extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services');
+  if (!extension?.isActive) throw new Error('Salesforce VS Code Services extension is not active');
+  return identityFromSnapshot(extension.exports.services.TelemetryIdentitySnapshot());
 };
 
-const fallback = Effect.succeed(FALLBACK_IDENTITY);
-
-/** Pull telemetry identity from the services extension. Logs and recovers known error tags. */
+/** Pull telemetry identity from the services extension. */
 const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
   Effect.runPromise(
-    getServicesApi.pipe(
-      Effect.flatMap(api => api.services.TargetOrgRef()),
-      Effect.flatMap(SubscriptionRef.get),
-      Effect.map(
-        ({
-          cliId,
-          webUserId,
-          orgId,
-          isScratch,
-          isSandbox,
-          orgEdition,
-          devHubOrgId,
-          alias,
-          username
-        }): IdentityFromServices => ({
-          cliId,
-          webUserId: webUserId ?? UNAUTHENTICATED_USER,
-          orgId,
-          orgShape: shapeFrom({ isScratch, isSandbox, alias, username }),
-          devHubId: devHubOrgId,
-          orgEdition
-        })
-      ),
-      Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
-      Effect.catchTags({
-        ServicesExtensionNotFoundError: () => fallback,
-        InvalidServicesApiError: () => fallback
-      })
-    )
+    getServicesApi.pipe(Effect.map(api => identityFromSnapshot(api.services.TelemetryIdentitySnapshot())))
   );
 
 type CommandMetric = {
@@ -92,6 +76,20 @@ type CommandMetric = {
   commandName: string;
   executionTime?: string;
 };
+
+type TelemetryPayload = Readonly<{
+  kind: 'event' | 'exception';
+  name: string;
+  message?: string;
+  properties?: Readonly<Properties>;
+  measurements?: Readonly<Measurements>;
+  identity: Readonly<IdentityFromServices>;
+}>;
+
+const sendToReporter = (reporter: TelemetryReporter, payload: TelemetryPayload): void =>
+  payload.kind === 'event'
+    ? reporter.sendTelemetryEvent(payload.name, payload.properties, payload.measurements)
+    : reporter.sendExceptionEvent(payload.name, payload.message ?? '', payload.measurements);
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -110,7 +108,11 @@ export class TelemetryServiceProvider {
 
 export class TelemetryService implements TelemetryServiceInterface {
   private extensionContext: ExtensionContext | undefined;
-  private reporters: TelemetryReporter[] = [];
+  private localReporters: TelemetryReporter[] = [];
+  private remoteReporters: (AppInsights | O11yReporter)[] = [];
+  private sendProductionTelemetry: ((payload: TelemetryPayload) => Promise<void>) | undefined;
+  private disposed = false;
+  private pendingTelemetry = new Set<Promise<void>>();
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   public isInternal: boolean = false;
@@ -187,8 +189,9 @@ export class TelemetryService implements TelemetryServiceInterface {
       console.log(`Error initializing telemetry service: ${errorToString(error)}`);
     });
 
-    if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
-      const { cliId, webUserId } = await this.getIdentityFromServices();
+    if (this.localReporters.length === 0 && !this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
+      const identity = await this.getIdentityFromServices();
+      const { cliId, webUserId } = identity;
       this.warnDegradedSession(cliId);
       const userId = cliId ?? '';
       const reporterConfig: TelemetryReporterConfig = {
@@ -201,28 +204,30 @@ export class TelemetryService implements TelemetryServiceInterface {
         webUserId
       };
 
-      if (enableO11y) {
-        // O11Y_ENDPOINT overrides package.json endpoint (mirrors sdkLayerConfig OTEL path)
-        const resolvedO11yEndpoint = process.env.O11Y_ENDPOINT ?? o11yUploadEndpoint;
-        if (!resolvedO11yEndpoint) {
-          console.log('o11yUploadEndpoint is not defined. Skipping O11y initialization.');
-          return;
-        }
-
+      const localO11yEndpoint =
+        this.isDevMode && isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT) ? process.env.O11Y_ENDPOINT : undefined;
+      const resolvedO11yEndpoint = localO11yEndpoint ?? o11yUploadEndpoint;
+      if (this.isDevMode && enableO11y && resolvedO11yEndpoint) {
         await initializeO11yReporter(
           reporterConfig.extName,
           resolvedO11yEndpoint,
           userId,
           version,
           webUserId,
-          productFeatureId
+          productFeatureId,
+          Boolean(localO11yEndpoint)
         );
       }
-
-      const reporters = determineReporters(reporterConfig);
-      this.reporters.push(...reporters);
+      this.localReporters.push(
+        ...(this.isDevMode ? determineReporters(reporterConfig) : determineLocalReporters(reporterConfig))
+      );
+      if (!this.isDevMode) {
+        this.sendProductionTelemetry = await Effect.runPromise(
+          this.makeProductionSender(reporterConfig, enableO11y ? resolvedO11yEndpoint : undefined, productFeatureId)
+        );
+      }
     }
-    this.extensionContext?.subscriptions.push(...this.reporters);
+    if (!extensionContext.subscriptions.includes(this)) extensionContext.subscriptions.push(this);
   }
 
   /**
@@ -236,7 +241,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public getReporters(): TelemetryReporter[] {
-    return this.reporters;
+    return [...this.localReporters, ...this.remoteReporters];
   }
 
   /**
@@ -247,7 +252,11 @@ export class TelemetryService implements TelemetryServiceInterface {
    * extensionContext is used to access globalState
    */
   public async updateReporters(extensionContext: ExtensionContext): Promise<void> {
-    if (!this.extensionContext || this.reporters.length === 0 || !(await this.isTelemetryEnabled())) {
+    if (
+      !this.extensionContext ||
+      (this.localReporters.length === 0 && !this.sendProductionTelemetry) ||
+      !(await this.isTelemetryEnabled())
+    ) {
       return;
     }
 
@@ -265,18 +274,18 @@ export class TelemetryService implements TelemetryServiceInterface {
       extensionContext.extension.packageJSON
     );
     // fresh object per reporter — avoid aliasing one shared-mutable orgIdentity across instances
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
       // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
       .forEach(r => (r.orgIdentity = { ...orgIdentity }));
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
       .forEach(r => {
         r.userId = userId;
         r.webUserId = webUserId;
         r.orgIdentity = { ...orgIdentity };
       });
-    this.reporters
+    this.localReporters
       .filter(r => r instanceof O11yReporter)
       // don't overwrite PFT if already set
       .filter(r => isUndefined(r.productFeatureId))
@@ -357,20 +366,14 @@ export class TelemetryService implements TelemetryServiceInterface {
       ...telemetryData?.measurements
     };
 
-    this.validateTelemetry(() => {
-      this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent('activationEvent', properties, measurements);
-      });
-    });
+    this.sendTelemetryItem({ kind: 'event', name: 'activationEvent', properties, measurements });
   }
 
   public sendExtensionDeactivationEvent(): void {
-    this.validateTelemetry(() => {
-      this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent('deactivationEvent', {
-          extensionName: this.extensionName
-        });
-      });
+    this.sendTelemetryItem({
+      kind: 'event',
+      name: 'deactivationEvent',
+      properties: { extensionName: this.extensionName }
     });
   }
 
@@ -380,43 +383,33 @@ export class TelemetryService implements TelemetryServiceInterface {
     properties?: Properties,
     measurements?: Measurements
   ): void {
-    this.validateTelemetry(() => {
-      if (commandName) {
-        const baseProperties: CommandMetric = {
-          extensionName: this.extensionName,
-          commandName
-        };
-        const aggregatedProps = Object.assign(baseProperties, properties);
+    if (commandName) {
+      const baseProperties: CommandMetric = {
+        extensionName: this.extensionName,
+        commandName
+      };
+      const aggregatedProps = Object.assign(baseProperties, properties);
 
-        const convertedStartTime = this.hrTimeToMilliseconds(startTime);
+      const convertedStartTime = this.hrTimeToMilliseconds(startTime);
 
-        let aggregatedMeasurements: Measurements | undefined;
-        if (convertedStartTime || measurements) {
-          aggregatedMeasurements = { ...measurements };
-          if (convertedStartTime) {
-            aggregatedMeasurements.executionTime = globalThis.performance.now() - convertedStartTime;
-          }
+      let aggregatedMeasurements: Measurements | undefined;
+      if (convertedStartTime || measurements) {
+        aggregatedMeasurements = { ...measurements };
+        if (convertedStartTime) {
+          aggregatedMeasurements.executionTime = globalThis.performance.now() - convertedStartTime;
         }
-        this.reporters.forEach(reporter => {
-          reporter.sendTelemetryEvent('commandExecution', aggregatedProps, aggregatedMeasurements);
-        });
       }
-    });
+      this.sendTelemetryItem({
+        kind: 'event',
+        name: 'commandExecution',
+        properties: aggregatedProps,
+        measurements: aggregatedMeasurements
+      });
+    }
   }
 
   public sendException(name: string, message: string) {
-    this.validateTelemetry(() => {
-      this.reporters.forEach(reporter => {
-        try {
-          reporter.sendExceptionEvent(name, message);
-        } catch {
-          console.log(
-            `There was an error sending an exception report to: ${typeof reporter} ` +
-              `name: ${String(name)} message: ${String(message)}`
-          );
-        }
-      });
-    });
+    this.sendTelemetryItem({ kind: 'exception', name, message });
   }
 
   public sendEventData(
@@ -424,17 +417,20 @@ export class TelemetryService implements TelemetryServiceInterface {
     properties?: { [key: string]: string },
     measures?: { [key: string]: number }
   ): void {
-    this.validateTelemetry(() => {
-      this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent(eventName, properties, measures);
-      });
-    });
+    this.sendTelemetryItem({ kind: 'event', name: eventName, properties, measurements: measures });
   }
 
   public dispose(): void {
-    this.reporters.forEach(reporter => {
-      reporter.dispose().catch(err => console.log(err));
-    });
+    if (this.disposed) return;
+    this.disposed = true;
+    void Promise.allSettled(this.pendingTelemetry)
+      .then(() =>
+        Promise.allSettled([
+          ...this.localReporters.map(reporter => Promise.resolve().then(() => reporter.dispose())),
+          ...this.remoteReporters.map(reporter => reporter.dispose())
+        ])
+      )
+      .catch(err => console.log(err));
   }
 
   /**
@@ -443,12 +439,109 @@ export class TelemetryService implements TelemetryServiceInterface {
    *
    * @param callback function to call if telemetry is enabled
    */
-  private validateTelemetry(callback: () => void): void {
-    if (this.reporters.length > 0) {
-      this.isTelemetryEnabled()
-        .then(enabled => (enabled ? callback() : undefined))
-        .catch(err => console.error(err));
+  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity'>): void {
+    const identity = getIdentitySnapshotFromServices();
+    const payload: TelemetryPayload = Object.freeze({
+      ...item,
+      properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
+      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
+      identity: Object.freeze({ ...identity })
+    });
+    const pending = Promise.resolve(
+      this.validateTelemetry(async () => {
+        this.localReporters.map(reporter => {
+          try {
+            sendToReporter(reporter, payload);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+        await this.sendProductionTelemetry?.(payload);
+      })
+    );
+    this.pendingTelemetry.add(pending);
+    void pending.finally(() => this.pendingTelemetry.delete(pending));
+  }
+
+  private async validateTelemetry(callback: () => void | Promise<void>): Promise<void> {
+    if (this.disposed || (this.localReporters.length === 0 && !this.sendProductionTelemetry)) return;
+    try {
+      if (await this.isTelemetryEnabled()) await callback();
+    } catch (err) {
+      console.error(err);
     }
+  }
+
+  private makeProductionSender(
+    config: TelemetryReporterConfig,
+    o11yUploadEndpoint: string | undefined,
+    productFeatureId: string | undefined
+  ): Effect.Effect<(payload: TelemetryPayload) => Promise<void>> {
+    return Effect.gen(this, function* () {
+      const service = this;
+      const initializeAppInsights = yield* Effect.cached(
+        Effect.try(
+          () =>
+            new AppInsights(config.reporterName, config.version, config.aiKey, config.userId, config.webUserId, true)
+        )
+      );
+      const initializeO11y = o11yUploadEndpoint
+        ? yield* Effect.cached(
+            Effect.tryPromise(async () => {
+              const reporter = new O11yReporter(
+                config.extName,
+                config.version,
+                o11yUploadEndpoint,
+                config.userId,
+                config.webUserId,
+                productFeatureId
+              );
+              await reporter.initialize(config.extName);
+              return reporter;
+            })
+          )
+        : undefined;
+      const sendWith = Effect.fn('TelemetryService.sendWith')(function* (
+        label: string,
+        initialize: Effect.Effect<AppInsights | O11yReporter, unknown> | undefined,
+        payload: TelemetryPayload
+      ) {
+        if (!initialize) return;
+        yield* initialize.pipe(
+          Effect.flatMap(reporter =>
+            Effect.try(() => {
+              if (!service.remoteReporters.includes(reporter)) service.remoteReporters.push(reporter);
+              const { identity } = payload;
+              reporter.userId = identity.cliId ?? '';
+              reporter.webUserId = identity.webUserId;
+              reporter.orgIdentity = {
+                orgId: identity.orgId,
+                orgShape: identity.orgShape,
+                devHubId: identity.devHubId,
+                orgEdition: identity.orgEdition
+              };
+              if (reporter instanceof O11yReporter) reporter.productFeatureId = productFeatureId;
+              sendToReporter(reporter, payload);
+            })
+          ),
+          Effect.catchAll(error => Effect.sync(() => console.error(`${label} telemetry failed:`, error)))
+        );
+      });
+      return (payload: TelemetryPayload) =>
+        Effect.runPromise(
+          Effect.gen(this, function* () {
+            if (
+              payload.identity.telemetryClassification !== 'nonGov' ||
+              !(yield* Effect.tryPromise(() => service.isTelemetryEnabled()))
+            )
+              return;
+            yield* Effect.all(
+              [sendWith('App Insights', initializeAppInsights, payload), sendWith('O11y', initializeO11y, payload)],
+              { concurrency: 'unbounded', discard: true }
+            );
+          })
+        );
+    }).pipe(Effect.withSpan('TelemetryService.makeProductionSender'));
   }
 }
 

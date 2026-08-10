@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -21,7 +22,7 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
       validateInput: (value: string) => {
         const normalized = value.trim();
         if (!normalized) return nls.localize('create_script_name_empty_error');
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(normalized)) return nls.localize('create_script_name_format_error');
+        if (!Schema.is(LetterStartNameSchema)(normalized)) return nls.localize('create_script_name_format_error');
         return undefined;
       }
     })

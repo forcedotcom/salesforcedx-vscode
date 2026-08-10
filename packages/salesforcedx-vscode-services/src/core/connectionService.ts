@@ -323,10 +323,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return desktopConn;
           });
 
-      // update the org ref in the background — ONLY for the default org (no explicit username)
+      // Update the org ref in the background only for the default org (no explicit username).
       if (isUndefined(username)) {
-        yield* maybeUpdateDefaultOrgRef(conn).pipe(
-          Effect.provide(AliasService.Default),
+        const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
+        const instanceName = rawInstanceName?.trim();
+        const defaultOrgRef = yield* getDefaultOrgRef();
+        const previousOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+        yield* SubscriptionRef.update(defaultOrgRef, current => ({ ...current, orgId, instanceName }));
+        yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
+          Effect.provideService(AliasService, aliasService),
+          Effect.provideService(ConfigService, configService),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void),
           Effect.forkDaemon
@@ -389,12 +395,25 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
+  conn: Connection,
+  previousOrgId?: string
+) {
   const aliasService = yield* AliasService;
-  const { orgId, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } = conn.getAuthInfoFields();
+  const configService = yield* ConfigService;
+  const {
+    orgId,
+    instanceName: rawInstanceName,
+    devHubUsername,
+    isScratch,
+    isSandbox,
+    tracksSource,
+    orgEdition
+  } = conn.getAuthInfoFields();
+  const instanceName = rawInstanceName?.trim();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  const orgIdChanged = existingOrgInfo.orgId !== orgId;
+  const orgIdChanged = previousOrgId !== orgId;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId)
@@ -417,6 +436,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const authUsername = resolveUsername(conn);
   const username = queriedUsername ?? authUsername ?? undefined;
   const userId = queriedUserId;
+  const targetOrg = yield* configService.getTargetOrg();
+  const alias = targetOrg && targetOrg !== username ? targetOrg : undefined;
 
   const aliases =
     username && (orgIdChanged || existingOrgInfo.username !== username)
@@ -430,6 +451,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     isSandbox,
     tracksSource,
     username,
+    alias,
     userId,
     devHubOrgId,
     aliases
@@ -446,6 +468,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const updates = Object.fromEntries(
     Object.entries({
       orgId,
+      instanceName,
       devHubUsername,
       tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
       isScratch,
@@ -455,12 +478,13 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
+      alias,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const updated = { ...existingOrgInfo, ...updates };
+  const updated = { ...existingOrgInfo, ...updates, alias };
 
   // Check if objects have the same content (deep equality using schema)
   // otherwise, calling set on the ref counts as a change but it's really not one.

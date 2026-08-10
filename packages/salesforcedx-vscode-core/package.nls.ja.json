@@ -1,5 +1,4 @@
 {
-  "alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
   "core_settings_title": "Salesforce 機能のプレビュー",
   "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
