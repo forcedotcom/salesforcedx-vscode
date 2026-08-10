@@ -12,6 +12,8 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AliasService } from '../../../src/core/alias';
@@ -234,6 +236,7 @@ const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
 
 // The desktop getConnection path reads target-org off the config aggregator; spy on it.
 const getPropertyValueMock = jest.fn();
+const getTargetOrgMock = jest.fn();
 const getUsernameFromAliasMock = jest.fn();
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
@@ -260,7 +263,7 @@ const MockConfigServiceLayer = Layer.succeed(
     getConfigAggregator: () =>
       Effect.succeed({ getPropertyValue: getPropertyValueMock } as unknown as ConfigAggregator),
     invalidateConfigAggregator: () => Effect.void,
-    getTargetOrg: () => Effect.succeed(undefined),
+    getTargetOrg: () => Effect.succeed(getTargetOrgMock()),
     getTargetDevHub: () => Effect.succeed(undefined),
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
@@ -292,6 +295,7 @@ const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
 describe('ConnectionService.getConnection (desktop)', () => {
   beforeEach(async () => {
     getPropertyValueMock.mockReset();
+    getTargetOrgMock.mockReset().mockReturnValue(undefined);
     getUsernameFromAliasMock.mockReset().mockReturnValue(Effect.succeed(Option.none()));
     authInfoCreateMock.mockReset().mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     connectionCreateMock.mockReset();
@@ -361,6 +365,50 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     expect(getPropertyValueMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
+  });
+
+  it('caches the configured alias with the resolved default-org identity', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? ALIAS : undefined));
+    getTargetOrgMock.mockReturnValue(ALIAS);
+    getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.some(USERNAME)));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
+
+    const orgInfo = await run(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* ConnectionService.getConnection();
+        return yield* ref.changes.pipe(
+          Stream.filter(info => info.orgId === '00Dxx' && info.alias === ALIAS),
+          Stream.runHead,
+          Effect.map(Option.getOrThrow)
+        );
+      })
+    );
+    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
+  });
+
+  it('clears a cached alias when target-org is configured as the username', async () => {
+    await Effect.runPromise(
+      getDefaultOrgRef().pipe(
+        Effect.flatMap(ref => SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: '00Dxx' }))
+      )
+    );
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    getTargetOrgMock.mockReturnValue(USERNAME);
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
+
+    const orgInfo = await run(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* ConnectionService.getConnection();
+        return yield* ref.changes.pipe(
+          Stream.filter(info => info.orgId === '00Dxx' && isUndefined(info.alias)),
+          Stream.runHead,
+          Effect.map(Option.getOrThrow)
+        );
+      })
+    );
+    expect(orgInfo.alias).toBeUndefined();
   });
 
   it('no-arg path captures AuthInfo orgId and instanceName', async () => {
