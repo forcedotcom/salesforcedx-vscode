@@ -310,11 +310,6 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
       if (!customPath) return [];
       const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
-      const isDir = yield* Effect.tryPromise(() => vscode.workspace.fs.stat(subdirUri)).pipe(
-        Effect.map(s => s.type === vscode.FileType.Directory),
-        Effect.orElseSucceed(() => false)
-      );
-      if (!isDir) return [];
       const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(subdirUri)).pipe(
         Effect.orElseSucceed((): [string, vscode.FileType][] => [])
       );
