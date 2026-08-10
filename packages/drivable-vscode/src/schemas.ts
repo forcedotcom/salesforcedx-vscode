@@ -161,7 +161,6 @@ export type DrivableVscodeStatus = Schema.Schema.Type<typeof DrivableVscodeStatu
 export const StartInput = Schema.Struct({
   objective: NonEmptyString,
   artifactRoot: Schema.optional(NonEmptyString),
-  vscodeExecutable: Schema.optional(NonEmptyString),
   orgAlias: Schema.optional(NonEmptyString),
   extensionMode: Schema.optionalWith(ExtensionMode, { default: () => 'vsix' as const })
 });

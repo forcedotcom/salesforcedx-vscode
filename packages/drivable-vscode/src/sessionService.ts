@@ -255,7 +255,7 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
     Effect.exit(restore(close).pipe(Effect.timeoutOption(CLOSE_TIMEOUT))).pipe(
       Effect.flatMap(exit =>
         Exit.match(exit, {
-          onFailure: cause => Effect.exit(kill).pipe(Effect.zipRight(Effect.failCause(cause))),
+          onFailure: () => kill,
           onSuccess: result => (Option.isSome(result) ? Effect.void : kill)
         })
       )
@@ -638,17 +638,15 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           );
           const closingRecord = runPhase(
             'closingRecorded',
-            artifacts
-              .appendAction({ kind: 'session-closing', capturedAt: new Date().toISOString() })
-              .pipe(
-                Effect.mapError(
-                  cause =>
-                    new DrivableVscodeTeardownError({
-                      message: 'Failed to record session close',
-                      cause: causeMessage(cause)
-                    })
-                )
+            artifacts.appendAction({ kind: 'session-closing', capturedAt: new Date().toISOString() }).pipe(
+              Effect.mapError(
+                cause =>
+                  new DrivableVscodeTeardownError({
+                    message: 'Failed to record session close',
+                    cause: causeMessage(cause)
+                  })
               )
+            )
           );
           const video = page.video();
           const videoSave = runPhase(

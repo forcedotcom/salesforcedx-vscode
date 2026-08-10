@@ -58,7 +58,6 @@ type ProvenanceManifest = {
 const DIAGNOSTIC_LIMIT = 4000;
 const LOCK_RETRY_MS = 50;
 const LOCK_STALE_MS = 5 * 60_000;
-const LOCK_TIMEOUT_MS = 30_000;
 const LOCK_OWNER_FILE = 'owner.json';
 const PROVENANCE_FILE = '.vsix-provenance.json';
 
@@ -260,7 +259,7 @@ const isCacheLockStale = async (lockDir: string): Promise<boolean> => {
   try {
     const owner = JSON.parse(await fs.readFile(path.join(lockDir, LOCK_OWNER_FILE), 'utf8')) as Partial<CacheLockOwner>;
     return typeof owner.pid !== 'number' || typeof owner.createdAt !== 'number' ||
-      !isProcessAlive(owner.pid) || Date.now() - owner.createdAt > LOCK_STALE_MS;
+      !isProcessAlive(owner.pid);
   } catch (error) {
     if (!isFileSystemError(error, 'ENOENT') && !(error instanceof SyntaxError)) throw error;
     return lockAge > LOCK_STALE_MS;
@@ -281,8 +280,7 @@ const removeStaleCacheLock = async (lockDir: string): Promise<void> => {
 const acquireCacheLock = async (lockDir: string): Promise<() => Promise<void>> => {
   await fs.mkdir(path.dirname(lockDir), { recursive: true });
   const owner: CacheLockOwner = { pid: process.pid, createdAt: Date.now(), token: crypto.randomUUID() };
-  const deadline = Date.now() + LOCK_TIMEOUT_MS;
-  while (Date.now() < deadline) {
+  while (true) {
     try {
       await fs.mkdir(lockDir);
       try {
@@ -313,7 +311,6 @@ const acquireCacheLock = async (lockDir: string): Promise<() => Promise<void>> =
       await new Promise(resolve => setTimeout(resolve, LOCK_RETRY_MS));
     }
   }
-  throw new Error(`Timed out after ${LOCK_TIMEOUT_MS}ms waiting for VSIX cache lock ${lockDir}`);
 };
 
 const removeInvalidCache = async (extensionsDir: string): Promise<void> => {
