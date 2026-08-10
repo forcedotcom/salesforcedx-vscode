@@ -44,6 +44,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow();
 
+  const isSalesforceProject = yield* api.services.ProjectService.isSalesforceProject();
+
+  if (!isSalesforceProject) {
+    return;
+  }
+
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);

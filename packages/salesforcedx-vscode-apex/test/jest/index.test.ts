@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
@@ -151,6 +154,38 @@ describe('index tests', () => {
     let mockContext: vscode.ExtensionContext;
     let originalWorkspaceFolders: any;
     let originalExtensions: any;
+    const runActivateEffect = (isSalesforceProject: boolean) => {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+      const getWorkspaceInfoOrThrow = () =>
+        workspaceFolder
+          ? Effect.succeed({
+              uri: workspaceFolder.uri,
+              path: workspaceFolder.uri.toString(),
+              fsPath: workspaceFolder.uri.fsPath,
+              isEmpty: false,
+              isVirtualFs: workspaceFolder.uri.scheme !== 'file',
+              cwd: process.cwd()
+            })
+          : Effect.fail(new Error('No workspace is currently open'));
+
+      const effect = index.activateEffect(mockContext).pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: {
+              WorkspaceService: Effect.succeed({
+                getWorkspaceInfoOrThrow
+              }),
+              ProjectService: {
+                isSalesforceProject: () => Effect.succeed(isSalesforceProject)
+              }
+            }
+          })
+        } as any)
+      );
+
+      return Effect.runPromise(effect as Effect.Effect<void, unknown, never>);
+    };
 
     beforeEach(() => {
       // Store original extensions
@@ -220,6 +255,52 @@ describe('index tests', () => {
         configurable: true
       });
       await expect(index.activate(mockContext)).rejects.toThrow(''); //should be "Unable to determine workspace folders for workspace"
+    });
+
+    it('should not start the Apex language server in a non-Salesforce workspace', async () => {
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+        value: [
+          {
+            uri: URI.file('/mock/non-sfdx-workspace'),
+            name: 'non-sfdx-workspace',
+            index: 0
+          }
+        ],
+        configurable: true
+      });
+
+      const unexpectedStart = new Error('unexpected Apex language server start');
+
+      const createLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'createLanguageClient')
+        .mockRejectedValue(unexpectedStart);
+
+      await runActivateEffect(false);
+
+      expect(createLanguageClientSpy).not.toHaveBeenCalled();
+    });
+
+    it('should start the Apex language server in a Salesforce workspace', async () => {
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+        value: [
+          {
+            uri: URI.file('/mock/sfdx-workspace'),
+            name: 'sfdx-workspace',
+            index: 0
+          }
+        ],
+        configurable: true
+      });
+
+      const expectedStart = new Error('expected Apex language server start');
+
+      const createLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'createLanguageClient')
+        .mockRejectedValue(expectedStart);
+
+      await expect(runActivateEffect(true)).rejects.toThrow('expected Apex language server start');
+
+      expect(createLanguageClientSpy).toHaveBeenCalledTimes(1);
     });
   });
 
