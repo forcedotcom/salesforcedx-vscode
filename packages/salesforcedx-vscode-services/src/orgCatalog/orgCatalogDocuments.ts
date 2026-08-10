@@ -8,11 +8,9 @@
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { unknownToErrorCause } from '../core/shared';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
-import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 const notFound = (reference: OrgMetadataComponentReference) =>
@@ -65,17 +63,7 @@ export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('
       const presence = yield* inventories.getPresence(orgId, reference);
       if (!presence.inOrg && !presence.inWorkspace) return yield* Effect.fail(notFound(reference));
       if (presence.workspaceUri) {
-        return yield* Effect.tryPromise({
-          try: () => vscode.workspace.fs.readFile(presence.workspaceUri!),
-          catch: error => {
-            const { cause } = unknownToErrorCause(error);
-            return new OrgMetadataCatalogError({
-              cause,
-              message: `Failed to read workspace source for ${reference.xmlName} '${reference.fullName}'`,
-              reference
-            });
-          }
-        }).pipe(Effect.map(bytes => new TextDecoder().decode(bytes)));
+        return yield* fsService.readFile(presence.workspaceUri);
       }
       const artifact = yield* remoteSource.materializePrimaryDocument(orgId, reference);
       return yield* fsService.readFile(artifact.primaryUri);

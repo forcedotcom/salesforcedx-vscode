@@ -18,7 +18,7 @@ import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { OrgCatalogDocuments } from './orgCatalogDocuments';
 import { OrgCatalogInventory } from './orgCatalogInventory';
-import { componentIdentity } from './orgCatalogKeys';
+import { componentIdentity, referencesToAffectedSObjects } from './orgCatalogKeys';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
@@ -204,22 +204,9 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       const affectedIdentities = new Set(references.map(componentIdentity));
       yield* state.invalidateTypes(orgId, affectedTypes);
       yield* state.removeTracking(orgId, affectedIdentities);
-      yield* Effect.forEach(
-        affectedTypes,
-        xmlName =>
-          FOLDERED_METADATA_TYPES.has(xmlName)
-            ? metadataDescribeService.invalidateAllListMetadata(orgId)
-            : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
-        { discard: true }
-      );
-      const affectedSObjects = new Set<string>();
-      references.forEach(reference => {
-        if (reference.xmlName === 'CustomObject') affectedSObjects.add(reference.fullName);
-        if (reference.xmlName === 'CustomField') affectedSObjects.add(reference.fullName.split('.')[0]);
-      });
+      yield* metadataDescribeService.invalidateForMetadataChanges(orgId, references);
+      const affectedSObjects = referencesToAffectedSObjects(references);
       if (affectedSObjects.size > 0) {
-        yield* metadataDescribeService.invalidateSObjectDescribes([...affectedSObjects], orgId);
-        yield* metadataDescribeService.invalidateListSObjects(orgId);
         yield* state.invalidateSObjects(orgId, affectedSObjects);
       }
       if (persist) yield* state.persistOrg(orgId);

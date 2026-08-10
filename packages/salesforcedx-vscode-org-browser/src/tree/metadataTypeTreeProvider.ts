@@ -126,7 +126,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
   const reference = Match.value(node).pipe(
     Match.when(Match.undefined, () => ({})),
     Match.when(isFolderNode, n => ({
@@ -142,7 +141,7 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
     ),
     Match.orElse(n => ({ xmlName: n?.xmlName }))
   );
-  yield* catalog.refresh(reference);
+  yield* api.services.OrgMetadataCatalog.refresh(reference);
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {

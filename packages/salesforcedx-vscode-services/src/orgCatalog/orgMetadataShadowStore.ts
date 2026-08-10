@@ -7,6 +7,7 @@
 
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -106,7 +107,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
       const manifest = yield* fsService
         .readJSON(Utils.joinPath(rootUri, MANIFEST_FILE).toString(), ShadowManifest)
         .pipe(Effect.option);
-      if (manifest._tag === 'None') return undefined;
+      if (Option.isNone(manifest)) return undefined;
       if (
         manifest.value.xmlName !== reference.xmlName ||
         manifest.value.fullName !== reference.fullName ||
@@ -172,7 +173,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
             Effect.map(manifest => ({ manifest, rootUri }))
           ),
         { concurrency: 'unbounded' }
-      )).flatMap(({ manifest, rootUri }) => (manifest._tag === 'Some' ? [{ manifest: manifest.value, rootUri }] : []));
+      )).flatMap(({ manifest, rootUri }) => (Option.isSome(manifest) ? [{ manifest: manifest.value, rootUri }] : []));
       const protectedRoots = new Set(
         vscode.workspace.textDocuments.flatMap(document => {
           const openUri = URI.parse(document.uri.toString());

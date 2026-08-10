@@ -12,7 +12,7 @@ import type { MetadataOperationEvent } from '../core/metadataChangeNotificationS
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
-import { componentIdentity } from './orgCatalogKeys';
+import { componentIdentity, referencesToAffectedSObjects } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
 
@@ -227,15 +227,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const changedReferences = compareTrackingObservations(previous, observations);
         if (changedReferences.length > 0) {
           const affectedTypes = new Set(changedReferences.map(reference => reference.xmlName));
-          const affectedSObjects = new Set(
-            changedReferences.flatMap(reference =>
-              reference.xmlName === 'CustomObject'
-                ? [reference.fullName]
-                : reference.xmlName === 'CustomField'
-                  ? [reference.fullName.split('.')[0]]
-                  : []
-            )
-          );
+          const affectedSObjects = referencesToAffectedSObjects(changedReferences);
           yield* state.invalidateTypes(orgId, affectedTypes);
           if (affectedSObjects.size > 0) yield* state.invalidateSObjects(orgId, affectedSObjects);
           yield* state.setTracking(orgId, observations);
@@ -263,15 +255,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         }));
         const affectedTypes = new Set(references.map(reference => reference.xmlName));
         const identities = new Set(references.map(componentIdentity));
-        const affectedSObjects = new Set(
-          references.flatMap(reference =>
-            reference.xmlName === 'CustomObject'
-              ? [reference.fullName]
-              : reference.xmlName === 'CustomField'
-                ? [reference.fullName.split('.')[0]]
-                : []
-          )
-        );
+        const affectedSObjects = referencesToAffectedSObjects(references);
         yield* state.invalidateTypes(orgId, affectedTypes);
         yield* state.removeTracking(orgId, identities);
         if (affectedSObjects.size > 0) yield* state.invalidateSObjects(orgId, affectedSObjects);

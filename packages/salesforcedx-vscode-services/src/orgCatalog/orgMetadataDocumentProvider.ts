@@ -8,6 +8,7 @@
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
@@ -138,12 +139,15 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
       Stream.runForEach(change =>
         Effect.gen(function* () {
           const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
-          const changedOrgId =
-            change.kind === 'org' || change.kind === 'tracking'
-              ? change.orgId
-              : change.kind === 'operation'
-                ? change.event.orgId
-                : activeOrgId;
+          const changedOrgId = Match.value(change).pipe(
+            Match.discriminators('kind')({
+              org: orgChange => orgChange.orgId,
+              tracking: trackingChange => trackingChange.orgId,
+              operation: operationChange => operationChange.event.orgId,
+              workspace: () => activeOrgId
+            }),
+            Match.exhaustive
+          );
           if (changedOrgId === activeOrgId) {
             yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, referenceService.parseDocumentUri));
           }
@@ -204,20 +208,29 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     change: OrgMetadataCatalogChange
   ) {
     yield* Effect.annotateCurrentSpan('changeKind', change.kind);
-    if (change.kind === 'workspace') {
-      yield* Effect.annotateCurrentSpan('workspaceEventCount', change.events.length);
-    }
-    if (change.kind === 'org') {
-      yield* Effect.sync(() => provider.removeInactiveOrgUris(change.orgId, referenceService.parseDocumentUri));
-      yield* closeInactiveOrgDocuments(change.orgId, referenceService.parseDocumentUri).pipe(
-        Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
-      );
-    }
-    if (change.kind === 'workspace' || (change.kind === 'org' && change.orgId !== undefined)) {
-      yield* catalog
-        .invalidate()
-        .pipe(Effect.catchAll(error => Effect.logWarning('Unable to invalidate org metadata catalog', error)));
-    }
+    const invalidateCatalog = catalog
+      .invalidate()
+      .pipe(Effect.catchAll(error => Effect.logWarning('Unable to invalidate org metadata catalog', error)));
+    yield* Match.value(change).pipe(
+      Match.discriminators('kind')({
+        workspace: workspaceChange =>
+          Effect.annotateCurrentSpan('workspaceEventCount', workspaceChange.events.length).pipe(
+            Effect.andThen(invalidateCatalog)
+          ),
+        org: orgChange =>
+          Effect.sync(() => provider.removeInactiveOrgUris(orgChange.orgId, referenceService.parseDocumentUri)).pipe(
+            Effect.andThen(
+              closeInactiveOrgDocuments(orgChange.orgId, referenceService.parseDocumentUri).pipe(
+                Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
+              )
+            ),
+            Effect.andThen(orgChange.orgId !== undefined ? invalidateCatalog : Effect.void)
+          ),
+        operation: () => Effect.void,
+        tracking: () => Effect.void
+      }),
+      Match.exhaustive
+    );
     yield* PubSub.publish(catalogChanges, change);
   });
 

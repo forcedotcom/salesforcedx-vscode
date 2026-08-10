@@ -32,7 +32,7 @@ const appendToChannel = (message: string) =>
     Effect.flatMap(svc => svc.appendToChannel(message))
   );
 
-const retrieveSObjectEffect = Effect.fn('retrieveSObjectEffect')(function* (sobjectName: string) {
+const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const metadataDescribe = yield* api.services.MetadataDescribeService;
   const transmogrifier = yield* api.services.TransmogrifierService;
@@ -201,7 +201,7 @@ export class SOQLEditorInstance {
       }
 
       case 'sobject_metadata_request':
-        return retrieveSObjectEffect(event.payload).pipe(
+        return retrieveSObject(event.payload).pipe(
           Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })

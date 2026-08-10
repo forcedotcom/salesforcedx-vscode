@@ -7,6 +7,7 @@
 
 import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import * as Clock from 'effect/Clock';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
@@ -15,7 +16,7 @@ import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { MetadataChangeType } from './sdrGuards';
 
-const WORKSPACE_CORRELATION_WINDOW_MS = 2000;
+const WORKSPACE_CORRELATION_WINDOW = Duration.seconds(2);
 
 // URI has a protected constructor so Schema.instanceOf doesn't apply; use Schema.declare with instanceof predicate
 const UriSchema = Schema.declare((u): u is URI => u instanceof URI, {
@@ -122,7 +123,11 @@ export class MetadataChangeNotificationService extends Effect.Service<MetadataCh
                   uri =>
                     [
                       canonicalFilePath(uri),
-                      { changeType: change.changeType, expiresAt: now + WORKSPACE_CORRELATION_WINDOW_MS, uri }
+                      {
+                        changeType: change.changeType,
+                        expiresAt: now + Duration.toMillis(WORKSPACE_CORRELATION_WINDOW),
+                        uri
+                      }
                     ] as const
                 )
               )

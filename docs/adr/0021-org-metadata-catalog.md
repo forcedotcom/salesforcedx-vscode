@@ -2,9 +2,9 @@
 
 Cross-extension consumers use the services-owned `OrgMetadataCatalog` for org metadata discovery, workspace presence, SObject schema, change status, and remote source materialization. The catalog owns stable projections and cache/invalidation policy; metadata describe, source tracking, Tooling, and Metadata API services remain internal providers, while deploy, retrieve, and delete remain explicit mutation services that publish successful outcomes to the catalog operation stream.
 
-Editor documents retain the `sf-org-metadata:` identity needed by VS Code and language tooling, but remote source bodies are stored in revision-addressed snapshots under `.sf/orgs/<orgId>/metadata-shadow`. The catalog reuses current snapshots, retains the current and two newest prior revisions, protects revisions used by open documents, partitions all observations and artifacts by org, and emits deduplicated, targeted change notifications.
+Editor documents retain the `sf-org-metadata:` identity needed by VS Code and language tooling, but remote source bodies are stored in revision-addressed snapshots. The catalog reuses current snapshots, retains a bounded number of recent revisions, protects revisions used by open documents, partitions all observations and artifacts by org, and emits deduplicated, targeted change notifications.
 
-Reusable catalog observations are also checkpointed as a schema-versioned, atomically published `.sf/orgs/<orgId>/metadata-catalog/catalog.json`. A catalog instance lazily hydrates metadata inventory, SObject, and source-tracking slices from the active org's checkpoint; workspace presence and all runtime coordination state are recomputed rather than restored, and invalid or unwritable checkpoints never fail catalog reads.
+Reusable catalog observations are also checkpointed as a schema-versioned, atomically published per-org snapshot. A catalog instance lazily hydrates metadata inventory, SObject, and source-tracking slices from the active org's checkpoint; workspace presence and all runtime coordination state are recomputed rather than restored, and invalid or unwritable checkpoints never fail catalog reads.
 
 ## Considered Options
 

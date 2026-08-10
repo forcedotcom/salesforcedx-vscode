@@ -38,7 +38,6 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
-  const catalog = yield* api.services.OrgMetadataCatalog;
 
   const allProjectComponents = projectComponentSet.getSourceComponents().toArray();
   const projectComponents = componentFilter ? allProjectComponents.filter(componentFilter) : allProjectComponents;
@@ -49,7 +48,7 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
     projectComponents: projectComponents.map(c => `${c.type.name}:${c.fullName}`)
   });
 
-  const materialized = yield* catalog.materializeRemoteSources(
+  const materialized = yield* api.services.OrgMetadataCatalog.materializeRemoteSources(
     projectComponents.map(component => ({ xmlName: component.type.name, fullName: component.fullName })),
     { consistency }
   );

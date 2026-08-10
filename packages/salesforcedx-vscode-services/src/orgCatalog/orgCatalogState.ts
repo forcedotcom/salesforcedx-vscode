@@ -16,6 +16,7 @@ import type {
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import { metadataListingKey, sobjectDescriptionKey, typeCacheKey } from './orgCatalogKeys';
@@ -42,11 +43,11 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     const workspaceTypeCache = yield* Ref.make<ReadonlyMap<string, ReadonlySet<string>>>(new Map());
     const sobjectListCache = yield* Ref.make<ReadonlyMap<string, readonly OrgSObjectSummary[]>>(new Map());
     const sobjectDescriptionCache = yield* Ref.make<ReadonlyMap<string, OrgSObjectDescription>>(new Map());
-    const hydratedOrgIds = yield* Ref.make<ReadonlySet<string>>(new Set());
+    const hydratedOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
     const persistedGenerations = yield* Ref.make<ReadonlyMap<string, number>>(new Map());
     const hydrateSemaphore = yield* Effect.makeSemaphore(1);
     const persistenceRequests = yield* Queue.unbounded<string>();
-    const dirtyOrgIds = yield* Ref.make<ReadonlySet<string>>(new Set());
+    const dirtyOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
 
     const persistOrg = Effect.fn('OrgCatalogState.persistOrg')(function* (orgId: string) {
       const [
@@ -132,18 +133,15 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     });
 
     const queuePersist = Effect.fn('OrgCatalogState.queuePersist')(function* (orgId: string) {
-      yield* Ref.update(dirtyOrgIds, current => new Set(current).add(orgId));
+      yield* Ref.update(dirtyOrgIds, current => HashSet.add(current, orgId));
       yield* Queue.offer(persistenceRequests, orgId);
     });
 
     /** Atomically claims and persists an org only when it has pending catalog changes. */
     const flushOrg = Effect.fn('OrgCatalogState.flushOrg')(function* (orgId: string) {
-      const dirty = yield* Ref.modify(dirtyOrgIds, current => {
-        if (!current.has(orgId)) return [false, current];
-        const remaining = new Set(current);
-        remaining.delete(orgId);
-        return [true, remaining];
-      });
+      const dirty = yield* Ref.modify(dirtyOrgIds, current =>
+        HashSet.has(current, orgId) ? [true, HashSet.remove(current, orgId)] : [false, current]
+      );
       if (dirty) yield* persistOrg(orgId);
       yield* Effect.annotateCurrentSpan({ orgId, dirty, persisted: dirty });
       return dirty;
@@ -154,24 +152,24 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         yield* Queue.take(persistenceRequests);
         yield* Effect.sleep(Duration.millis(250));
         yield* Queue.takeAll(persistenceRequests);
-        const pendingOrgIds = yield* Ref.getAndSet(dirtyOrgIds, new Set());
+        const pendingOrgIds = yield* Ref.getAndSet(dirtyOrgIds, HashSet.empty<string>());
         yield* Effect.forEach(pendingOrgIds, persistOrg, { concurrency: 1, discard: true });
       })
     ).pipe(Effect.forkScoped);
 
     yield* Effect.addFinalizer(() =>
       Effect.gen(function* () {
-        const pendingOrgIds = yield* Ref.getAndSet(dirtyOrgIds, new Set());
+        const pendingOrgIds = yield* Ref.getAndSet(dirtyOrgIds, HashSet.empty<string>());
         yield* Effect.forEach(pendingOrgIds, persistOrg, { concurrency: 1, discard: true });
         yield* Queue.shutdown(persistenceRequests);
       })
     );
 
     const ensureHydrated = Effect.fn('OrgCatalogState.ensureHydrated')(function* (orgId: string) {
-      if ((yield* Ref.get(hydratedOrgIds)).has(orgId)) return;
+      if (HashSet.has(yield* Ref.get(hydratedOrgIds), orgId)) return;
       yield* hydrateSemaphore.withPermits(1)(
         Effect.gen(function* () {
-          if ((yield* Ref.get(hydratedOrgIds)).has(orgId)) return;
+          if (HashSet.has(yield* Ref.get(hydratedOrgIds), orgId)) return;
           const snapshot = yield* catalogStore
             .load(orgId)
             .pipe(
@@ -219,7 +217,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
             });
             yield* Ref.update(persistedGenerations, current => new Map(current).set(orgId, snapshot.generation));
           }
-          yield* Ref.update(hydratedOrgIds, current => new Set(current).add(orgId));
+          yield* Ref.update(hydratedOrgIds, current => HashSet.add(current, orgId));
         })
       );
     });

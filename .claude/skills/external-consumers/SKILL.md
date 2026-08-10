@@ -62,6 +62,16 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core').expor
 
 > **einstein-gpt ships from a non-default branch.** The published extension `salesforce.agentforce-vibes-autocomplete` (VS Marketplace, ~27k installs) is built from branch **`afv-v3.0-iac`**, not `main` (its `.github/workflows/iac-release.yml` checks out `ref: afv-v3.0-iac`; `main` is now an unrelated `packages/` monorepo). On `afv-v3.0-iac` the extension **hard-depends on core**: `extensionDependencies` includes `salesforce.salesforcedx-vscode-core`, `MINIMUM_REQUIRED_VERSION_CORE_EXTENSION = '60.13.0'`, and `src/services/CoreExtensionService.ts` **throws** `CommandEventDispatcher not found` at activation if core omits it. **Do not remove `CommandEventDispatcher` / `onRefreshSObjectsCommandCompletion` (`sf.internal.sobjectrefresh.complete`) from core's API** — it is a live contract. Because code search skips non-default branches, `main`-only sweeps show zero hits and falsely read as "core dep dropped"; always inspect `afv-v3.0-iac` directly.
 
+## Direct services API consumers (`SalesforceVSCodeServicesApi`)
+
+Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
+
+| Repo | Visibility | Consumed |
+|------|-----------|----------|
+| [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private** | `services.ConnectionService.getConnection`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
+
+> **einstein-gpt directly consumes the services extension API** (separate from its core dependency and its `@salesforce/vscode-service-provider` telemetry use). `packages/extension/src/services/auth/org-service.ts` (on the actively-shipping `main` branch, which now builds `afv-v4` via `release.yml`) resolves `salesforce.salesforcedx-vscode-services`, duplicates a local `SalesforceVSCodeServicesApi` type, and calls `api.services.ConnectionService.getConnection()`, `api.services.TargetOrgRef()`, and reads `api.services.prebuiltServicesDependencies`. **Check changes to `ConnectionService.getConnection`, `TargetOrgRef`, or `prebuiltServicesDependencies` against this consumer** — breaking any of them is a breaking change even though code search on `main` may not surface the duplicated type.
+
 ## `@salesforce/vscode-service-provider` consumers
 
 [Repo](https://github.com/forcedotcom/salesforcedx-vscode-service-provider) (public) — abstraction bridging to core services. Still depends on core being active.

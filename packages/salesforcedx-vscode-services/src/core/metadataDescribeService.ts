@@ -16,6 +16,7 @@ import * as Option from 'effect/Option';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { referencesToAffectedSObjects } from '../orgCatalog/orgCatalogKeys';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
@@ -93,6 +94,14 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         function: 'resolveOrgId',
         message: 'Failed to resolve metadata operation org: No orgId found in connection'
       });
+    });
+
+    /** Resolves the org id for invalidation: the explicit org if given, else the active org, or undefined. */
+    const resolveOptionalOrgId = Effect.fn('MetadataDescribeService.resolveOptionalOrgId')(function* (
+      expectedOrgId?: string
+    ) {
+      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      return expectedOrgId ?? activeOrgId;
     });
 
     // ---------------------------------------------------------------------------
@@ -317,8 +326,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const invalidateDescribe = Effect.fn('MetadataDescribeService.invalidateDescribe')(function* (
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { describeCache } = yield* orgCacheRegistry.get(orgId);
       yield* describeCache.invalidate('describe');
@@ -329,8 +337,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       folder?: string,
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
       const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
@@ -340,8 +347,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const invalidateAllListMetadata = Effect.fn('MetadataDescribeService.invalidateAllListMetadata')(function* (
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
       yield* listMetadataCache.invalidateAll;
@@ -351,8 +357,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       objectName: string,
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
       yield* sobjectDescribeCache.invalidate(objectName);
@@ -362,8 +367,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       objectNames?: readonly string[],
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
       yield* objectNames
@@ -374,8 +378,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const invalidateListSObjects = Effect.fn('MetadataDescribeService.invalidateListSObjects')(function* (
       expectedOrgId?: string
     ) {
-      const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const orgId = expectedOrgId ?? activeOrgId;
+      const orgId = yield* resolveOptionalOrgId(expectedOrgId);
       if (!orgId) return;
       const { listSObjectsCache } = yield* orgCacheRegistry.get(orgId);
       yield* listSObjectsCache.invalidate('global');
@@ -395,15 +398,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             : invalidateListMetadata(xmlName, undefined, orgId),
         { discard: true }
       );
-      const affectedSObjects = new Set(
-        references.flatMap(reference =>
-          reference.xmlName === 'CustomObject'
-            ? [reference.fullName]
-            : reference.xmlName === 'CustomField'
-              ? [reference.fullName.split('.')[0]]
-              : []
-        )
-      );
+      const affectedSObjects = referencesToAffectedSObjects(references);
       if (affectedSObjects.size > 0) {
         yield* invalidateListSObjects(orgId);
         yield* invalidateSObjectDescribes([...affectedSObjects], orgId);

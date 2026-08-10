@@ -24,7 +24,7 @@ import { ComponentSetService } from '../../../src/core/componentSetService';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
-import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
@@ -125,12 +125,35 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const describeCustomObjects = jest.fn((apiNames: readonly string[]) =>
     Effect.succeed(Stream.fromIterable(apiNames.map(apiName => descriptions[apiName] ?? emptySObject(apiName))))
   );
-  const invalidateDescribe = jest.fn(() => Effect.void);
-  const invalidateListMetadata = jest.fn((_xmlName: string) => Effect.void);
-  const invalidateAllListMetadata = jest.fn(() => Effect.void);
-  const invalidateSObjectDescribe = jest.fn((_apiName: string) => Effect.void);
-  const invalidateSObjectDescribes = jest.fn((_apiNames?: readonly string[]) => Effect.void);
-  const invalidateListSObjects = jest.fn(() => Effect.void);
+  const invalidateDescribe = jest.fn((_orgId?: string) => Effect.void);
+  const invalidateListMetadata = jest.fn((_xmlName: string, _folder?: string, _orgId?: string) => Effect.void);
+  const invalidateAllListMetadata = jest.fn((_orgId?: string) => Effect.void);
+  const invalidateSObjectDescribe = jest.fn((_apiName: string, _orgId?: string) => Effect.void);
+  const invalidateSObjectDescribes = jest.fn((_apiNames?: readonly string[], _orgId?: string) => Effect.void);
+  const invalidateListSObjects = jest.fn((_orgId?: string) => Effect.void);
+  const invalidateForMetadataChanges = jest.fn(
+    (orgId: string, references: readonly { readonly xmlName: string; readonly fullName: string }[]) =>
+      Effect.gen(function* () {
+        const affectedTypes = new Set(references.map(reference => reference.xmlName));
+        yield* Effect.forEach(
+          affectedTypes,
+          xmlName =>
+            FOLDERED_METADATA_TYPES.has(xmlName)
+              ? invalidateAllListMetadata(orgId)
+              : invalidateListMetadata(xmlName, undefined, orgId),
+          { discard: true }
+        );
+        const affectedSObjects = new Set<string>();
+        references.forEach(reference => {
+          if (reference.xmlName === 'CustomObject') affectedSObjects.add(reference.fullName);
+          if (reference.xmlName === 'CustomField') affectedSObjects.add(reference.fullName.split('.')[0]);
+        });
+        if (affectedSObjects.size > 0) {
+          yield* invalidateListSObjects(orgId);
+          yield* invalidateSObjectDescribes([...affectedSObjects], orgId);
+        }
+      })
+  );
   const shadowArtifacts = new Map<
     string,
     {
@@ -262,7 +285,8 @@ const makeHarness = (options: HarnessOptions = {}) => {
       invalidateAllListMetadata,
       invalidateSObjectDescribe,
       invalidateSObjectDescribes,
-      invalidateListSObjects
+      invalidateListSObjects,
+      invalidateForMetadataChanges
     } as unknown as InstanceType<typeof MetadataDescribeService>),
     Layer.succeed(MetadataRegistryService, {
       getRegistryAccess: () => Effect.succeed(new RegistryAccess())
@@ -357,10 +381,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
   };
 };
 
-const setOrg = (orgId: string) =>
-  Effect.gen(function* () {
-    yield* SubscriptionRef.set(yield* getDefaultOrgRef(), { orgId });
-  });
+const setOrg = (orgId: string) => getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, { orgId })));
 
 const runWithCatalog = <A, E, LayerError>(
   layer: Layer.Layer<OrgMetadataCatalog, LayerError>,
@@ -543,11 +564,7 @@ describe('OrgMetadataCatalog contract', () => {
       }
     });
 
-    await runWithCatalog(first.layer, catalog =>
-      Effect.gen(function* () {
-        yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' });
-      })
-    );
+    await runWithCatalog(first.layer, catalog => catalog.listMetadataComponents({ xmlName: 'ApexClass' }));
 
     expect(catalogSnapshots.get('org-one')).toEqual(
       expect.objectContaining({
@@ -741,35 +758,33 @@ describe('OrgMetadataCatalog contract', () => {
       } as unknown as InstanceType<typeof WorkspaceService>)
     );
 
-    const result = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          yield* setOrg('org-one');
-          const catalog = yield* OrgMetadataCatalog;
-          const fileChanges = yield* FileChangePubSub;
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          const before = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+    const result = await Effect.scoped(
+      Effect.gen(function* () {
+        yield* setOrg('org-one');
+        const catalog = yield* OrgMetadataCatalog;
+        const fileChanges = yield* FileChangePubSub;
+        const subscription = yield* PubSub.subscribe(catalogChanges);
+        const before = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
 
-          yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
-          yield* Queue.take(subscription); // provider's initial active-org observation
-          const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
-          const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
-          yield* Effect.sync(() => workspaceComponents.splice(0));
-          yield* PubSub.publish(fileChanges, {
-            type: 'delete',
-            uri: sourceUri
-          });
-          yield* PubSub.publish(fileChanges, {
-            type: 'delete',
-            uri: metadataUri
-          });
+        yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
+        yield* Queue.take(subscription); // provider's initial active-org observation
+        const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
+        const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
+        yield* Effect.sync(() => workspaceComponents.splice(0));
+        yield* PubSub.publish(fileChanges, {
+          type: 'delete',
+          uri: sourceUri
+        });
+        yield* PubSub.publish(fileChanges, {
+          type: 'delete',
+          uri: metadataUri
+        });
 
-          const event = yield* Queue.take(subscription);
-          const after = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-          return { after, before, event };
-        })
-      ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'))
-    );
+        const event = yield* Queue.take(subscription);
+        const after = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        return { after, before, event };
+      })
+    ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
 
     expect(result.before).toMatchObject({ inOrg: true, inWorkspace: true });
     expect(result.after).toMatchObject({ inOrg: true, inWorkspace: false });
