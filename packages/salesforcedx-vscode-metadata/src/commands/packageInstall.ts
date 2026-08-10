@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -22,15 +22,12 @@ import { type CommandKey, getProgressLocation, showSuccessNotification } from '.
 
 const COMMAND: CommandKey = messages.package_install_text;
 
-const PKG_ID_PREFIX = '04t';
+const PackageIdSchema = SalesforceIdSchema.pipe(Schema.startsWith('04t'));
 
 // Live tooling API returns Status as uppercase (e.g. 'SUCCESS'); @salesforce/types' enum casing is wrong.
 // Verified against live record 0HfE2000005KJObKAO; matches @salesforce/packaging which polls on ['SUCCESS','ERROR'].
 type RuntimeInstallStatus = 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'CANCELED' | 'UNKNOWN';
 type PackageInstallRequest = Omit<ToolingPackageInstallRequest, 'Status'> & { Status?: RuntimeInstallStatus };
-
-const isValidPackageId = (value: string): boolean =>
-  (value.length === 15 || value.length === 18) && value.startsWith(PKG_ID_PREFIX) && /^[A-Za-z0-9]+$/.test(value);
 
 class PackageInstallFailedError extends Schema.TaggedError<PackageInstallFailedError>()('PackageInstallFailedError', {
   message: Schema.String
@@ -45,7 +42,7 @@ const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* ()
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
       validateInput: value =>
-        value === '' || isValidPackageId(value) ? null : nls.localize('package_install_id_validation')
+        value === '' || Schema.is(PackageIdSchema)(value) ? undefined : nls.localize('package_install_id_validation')
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);

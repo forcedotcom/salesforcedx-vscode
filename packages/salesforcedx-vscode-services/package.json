@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.9.1",
+  "version": "67.10.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -42,13 +42,14 @@
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "@salesforce/core": "^8.32.2",
     "@salesforce/o11y-reporter": "^1.8.5",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-deploy-retrieve": "^12.37.2",
     "@salesforce/source-tracking": "^7.8.16",
     "@salesforce/templates": "^66.13.5",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
-    "jsforce": "^3.10.16",
+    "jsforce": "^3.10.19",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
@@ -97,6 +98,7 @@
       "dependencies": [
         "build:icons",
         "generate-types",
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [

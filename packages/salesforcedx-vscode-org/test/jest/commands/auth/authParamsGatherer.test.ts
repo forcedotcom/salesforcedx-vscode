@@ -28,11 +28,17 @@ import {
 } from '../../testHelpers/promptServiceStub';
 
 describe('AuthParamsGatherer', () => {
-  const buildLayer = (confirm = true) => {
+  const buildLayer = (confirm = true, projectLoginUrl?: string) => {
     const mockServicesApi = {
       services: {
         // PromptService has accessors:false, so consumers `yield*` the service first
         PromptService: Effect.succeed({ considerUndefinedAsCancellation, confirmOrThrow: makeConfirmOrThrow(confirm) }),
+        ProjectService: {
+          getSfProject: () =>
+            Effect.succeed({
+              retrieveSfProjectJson: () => Promise.resolve({ get: () => projectLoginUrl })
+            })
+        },
         UserCancellationError
       }
     } as unknown as SalesforceVSCodeServicesApi;
@@ -41,10 +47,12 @@ describe('AuthParamsGatherer', () => {
     });
   };
 
-  const useLayer = (confirm = true): void => {
+  const useLayer = (confirm = true, projectLoginUrl?: string): void => {
     resetOrgRuntimeForTesting();
     setAllServicesLayer(
-      buildLayer(confirm) as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
+      buildLayer(confirm, projectLoginUrl) as ReturnType<
+        typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer
+      >
     );
   };
 
@@ -85,6 +93,64 @@ describe('AuthParamsGatherer', () => {
         gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '   ' })
       );
       expect(exit).toStrictEqual(Exit.succeed({ alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }));
+    });
+  });
+
+  describe('project default instance URL', () => {
+    const gatherFromPicker = async (projectLoginUrl?: string) => {
+      useLayer(true, projectLoginUrl);
+      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValue('myAlias');
+      const quickPick = jest.spyOn(vscode.window, 'showQuickPick').mockImplementation(async items => {
+        const choices = await items;
+        return choices.find(choice => choice.label === nls.localize('auth_project_label')) ?? choices[0];
+      });
+
+      const exit = await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl: undefined, reauthAliasOrUsername: undefined })
+      );
+      return { exit, choices: await quickPick.mock.calls[0][0] };
+    };
+
+    it.each([
+      ['https://example.com', 'https://example.com/'],
+      ['http://example.com:8080/login', 'http://example.com:8080/login']
+    ])('normalizes a valid %s project URL', async (projectLoginUrl, expected) => {
+      const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+
+      const { exit, choices } = await gatherFromPicker(projectLoginUrl);
+
+      expect(exit).toStrictEqual(Exit.succeed({ alias: 'myAlias', loginUrl: expected }));
+      expect(choices).toContainEqual(
+        expect.objectContaining({
+          label: nls.localize('auth_project_label'),
+          detail: `${nls.localize('auth_project_detail')} (${expected})`
+        })
+      );
+      expect(warning).not.toHaveBeenCalled();
+    });
+
+    it.each(['not a URL', 'ftp://example.com', 'https://example.com; touch /tmp/pwned'])(
+      'warns and omits an invalid project URL: %s',
+      async projectLoginUrl => {
+        const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+
+        const { exit, choices } = await gatherFromPicker(projectLoginUrl);
+
+        expect(exit).toStrictEqual(Exit.succeed({ alias: 'myAlias', loginUrl: 'https://login.salesforce.com' }));
+        expect(choices).not.toContainEqual(expect.objectContaining({ label: nls.localize('auth_project_label') }));
+        expect(warning).toHaveBeenCalledWith(nls.localize('auth_invalid_project_url', projectLoginUrl));
+      }
+    );
+
+    it('offers safe choices without warning when sfdcLoginUrl is absent', async () => {
+      const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+
+      const { exit, choices } = await gatherFromPicker();
+
+      expect(exit).toStrictEqual(Exit.succeed({ alias: 'myAlias', loginUrl: 'https://login.salesforce.com' }));
+      expect(choices).toHaveLength(3);
+      expect(choices).not.toContainEqual(expect.objectContaining({ label: nls.localize('auth_project_label') }));
+      expect(warning).not.toHaveBeenCalled();
     });
   });
 
@@ -147,6 +213,9 @@ describe('AuthParamsGatherer', () => {
       const validateUrl = spy.mock.calls[0][0]?.validateInput?.bind(undefined);
       expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
+      expect(validateUrl?.('http://localhost:1717/oauth/callback')).toBeUndefined();
+      expect(validateUrl?.('ftp://my.salesforce.com')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('https://my.salesforce.com/path?query=value')).toBe(nls.localize('auth_invalid_url'));
 
       // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
