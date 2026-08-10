@@ -424,6 +424,11 @@ export abstract class BaseWorkspaceContext {
           };
 
           jsconfigContent = JSON.stringify(mergedConfig, null, 4);
+
+          // Only write if content has changed
+          if (jsconfigContent === existingConfigContent) {
+            continue;
+          }
         } else {
           // Create new jsconfig from template
           if (this.workspaceRoots?.length === 0 || !this.workspaceRoots[0]) {
