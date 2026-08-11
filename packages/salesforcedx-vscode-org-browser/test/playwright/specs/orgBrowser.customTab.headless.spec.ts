@@ -15,7 +15,7 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { confirmOverwriteAndWaitForProgress, retrieveAndWaitForProgress } from '../pages/notifications';
+import { overwriteAndWaitForCompletion, retrieveAndHandleOverwrite } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 test.setTimeout(RETRIEVE_TIMEOUT_MS);
@@ -63,11 +63,11 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   });
 
   await test.step('trigger retrieval and observe progress', async () => {
-    const clicked = await retrieveAndWaitForProgress(
+    const clicked = await retrieveAndHandleOverwrite(
       page,
       () => orgBrowserPage.clickRetrieveButton(brokerItem),
       /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
-      60_000
+      RETRIEVE_TIMEOUT_MS
     );
     expect(clicked).toBe(true);
   });
@@ -98,15 +98,23 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   });
 
   await test.step('override confirmation for a single file', async () => {
-    await orgBrowserPage.clickRetrieveButton(brokerItem);
-    await confirmOverwriteAndWaitForProgress(page, /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i, 60_000);
+    await overwriteAndWaitForCompletion(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(brokerItem),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
   });
 
   await test.step('download all customTabs from the type-level retrieve icon', async () => {
     const originalTabTexts = await page.locator(TAB).allTextContents();
     const typeLocator = await orgBrowserPage.findMetadataType('CustomTab');
-    await orgBrowserPage.clickRetrieveButton(typeLocator);
-    await confirmOverwriteAndWaitForProgress(page, /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i, 60_000);
+    await overwriteAndWaitForCompletion(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(typeLocator),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
 
     // we didn't open any additional files on a "retrieve all"
     expect(await page.locator(TAB).allTextContents()).toEqual(originalTabTexts);

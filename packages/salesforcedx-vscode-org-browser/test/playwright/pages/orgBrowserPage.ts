@@ -92,22 +92,28 @@ export class OrgBrowserPage {
   }
 
   public async expandFolder(folderName: string, level?: number): Promise<void> {
-    const folderItem = level
-      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
-      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
-    const twistie = folderItem.locator('.monaco-tl-twistie');
-    if ((await folderItem.getAttribute('aria-expanded')) !== 'true') {
-      await folderItem.click({ timeout: 5000 });
-    }
+    const folderItem = (
+      level
+        ? this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+        : this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName) })
+    ).first();
 
-    // aria-expanded is the stable tree contract. The previous scroll/collapse/reopen sequence raced
-    // catalog-driven tree refreshes and could leave the row collapsed after a successful first expansion.
-    await expect(folderItem, `${folderName} should be expanded`).toHaveAttribute('aria-expanded', 'true', {
-      timeout: 60_000
-    });
-    await expect(twistie, `${folderName} should finish loading`).not.toContainClass('codicon-tree-item-loading', {
-      timeout: 60_000
-    });
+    // A catalog-backed expansion can briefly collapse again when its first discovery
+    // snapshot is empty. Re-drive the twistie until a completed discovery leaves the
+    // node expanded instead of waiting forever on the result of a single click.
+    await expect(async () => {
+      await expect(folderItem, `${folderName} should be visible`).toBeVisible({ timeout: 5000 });
+      if ((await folderItem.getAttribute('aria-expanded')) !== 'true') {
+        await folderItem.locator('.monaco-tl-twistie').click({ timeout: 5000 });
+      }
+      await expect(folderItem, `${folderName} should be expanded`).toHaveAttribute('aria-expanded', 'true', {
+        timeout: 5000
+      });
+      await expect(folderItem.locator('.monaco-tl-twistie'), `${folderName} should finish loading`).not.toContainClass(
+        'codicon-tree-item-loading',
+        { timeout: 10_000 }
+      );
+    }).toPass({ timeout: 60_000, intervals: [1000, 2000, 3000] });
 
     await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
   }
@@ -163,14 +169,22 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    // Expansion awaits the catalog-backed getChildren call. After that readiness boundary, use
-    // tree type-ahead once to reveal an item that may be outside VS Code's virtualized viewport.
-    await this.page.waitForTimeout(1000);
-    await this.page.keyboard.type(itemName, { delay: typingSpeed });
-    await expect(
-      metadataItem.first(),
-      `Metadata item "${itemName}" should be available under "${metadataType}" after discovery`
-    ).toBeVisible({ timeout: 15_000 });
+    // Focus the expanded parent before type-ahead. Catalog refreshes can replace the
+    // focused row, so retry both expansion and navigation until the requested child
+    // is present in the virtualized tree.
+    await expect(async () => {
+      await this.expandFolder(metadataType, level - 1);
+      const parent = this.sidebar
+        .getByRole('treeitem', { level: level - 1, name: exactTreeItemName(metadataType) })
+        .first();
+      await parent.focus();
+      await this.page.waitForTimeout(1000);
+      await this.page.keyboard.type(itemName, { delay: typingSpeed });
+      await expect(
+        metadataItem.first(),
+        `Metadata item "${itemName}" should be available under "${metadataType}" after discovery`
+      ).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 60_000, intervals: [1000, 2000, 3000] });
     await saveScreenshot(this.page, `getMetadataItem.${metadataType}.${itemName}.png`, true);
     return metadataItem.first();
   }

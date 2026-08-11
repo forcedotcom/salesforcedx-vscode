@@ -14,7 +14,7 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { confirmOverwriteAndWaitForProgress, retrieveAndWaitForProgress } from '../pages/notifications';
+import { overwriteAndWaitForCompletion, retrieveAndHandleOverwrite } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 test.setTimeout(RETRIEVE_TIMEOUT_MS);
@@ -65,11 +65,11 @@ test('Org Browser - CustomObject retrieval: customobject headless: retrieve Brok
   });
 
   await test.step('trigger retrieval and observe progress', async () => {
-    const clicked = await retrieveAndWaitForProgress(
+    const clicked = await retrieveAndHandleOverwrite(
       page,
       () => orgBrowserPage.clickRetrieveButton(brokerItem),
       /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomObject\s*\?/i,
-      60_000
+      RETRIEVE_TIMEOUT_MS
     );
     expect(clicked).toBe(true);
   });
@@ -79,11 +79,11 @@ test('Org Browser - CustomObject retrieval: customobject headless: retrieve Brok
   });
 
   await test.step('override confirmation for Broker__c', async () => {
-    await orgBrowserPage.clickRetrieveButton(brokerItem);
-    await confirmOverwriteAndWaitForProgress(
+    await overwriteAndWaitForCompletion(
       page,
+      () => orgBrowserPage.clickRetrieveButton(brokerItem),
       /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomObject\s*\?/i,
-      60_000
+      RETRIEVE_TIMEOUT_MS
     );
   });
 });

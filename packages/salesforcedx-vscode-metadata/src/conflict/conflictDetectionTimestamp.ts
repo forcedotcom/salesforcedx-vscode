@@ -11,11 +11,9 @@ import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import { URI } from 'vscode-uri';
-import { filesAreNotIdentical, materializeRemoteComponents, sourceComponentToPaths } from '../shared/diff/diffHelpers';
+import { filesAreNotIdentical, materializeRemoteComponents } from '../shared/diff/diffHelpers';
 import { buildTimestampIndex } from './resultStorage';
 
 const componentKey = (type: string, fullName: string) => `${type}:${fullName}`;
@@ -92,17 +90,10 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
     'refresh'
   );
 
-  const conflictingPaths = new Set(
-    projectComponents
-      .filter(c => potentialConflictKeys.has(componentKey(c.type.name, c.fullName)))
-      .flatMap(sourceComponentToPaths)
-      .map(p => URI.file(p).path)
-  );
-
-  if (conflictingPaths.size === 0) return [] satisfies DiffFilePair[];
-
-  const conflictPairs = HashSet.filter(deployPairs, pair => conflictingPaths.has(pair.localUri.uri.path));
-  const deployDiffering = yield* conflictPairs.pipe(
+  // materializeRemoteComponents already received the potential-conflict component
+  // predicate. Avoid filtering the resulting URIs again as plain strings: Windows
+  // paths are case-insensitive and may arrive with different segment casing.
+  const deployDiffering = yield* deployPairs.pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
     Stream.runCollect

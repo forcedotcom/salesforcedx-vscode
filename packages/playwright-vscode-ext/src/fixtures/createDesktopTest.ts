@@ -454,7 +454,13 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         electron.launch({
           executablePath: vscodeExecutable,
           args: launchArgs,
-          env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
+          // Codex and some editor-integrated terminals set ELECTRON_RUN_AS_NODE=1
+          // for their own Electron process. Passing it through makes VS Code run
+          // as Node and reject Electron launch flags instead of opening the app.
+          env: {
+            ...Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'ELECTRON_RUN_AS_NODE')),
+            VSCODE_DESKTOP: '1'
+          } as Record<string, string>,
           timeout: 60_000,
           recordVideo: {
             dir: videosDir,

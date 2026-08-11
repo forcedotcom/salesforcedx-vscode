@@ -64,12 +64,26 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
       // between components that share filenames (e.g. two LWCs both having helper.js).
       const byBasename = new Map(artifact.fileUris.map(uri => [Utils.basename(uri), uri]));
       return Stream.fromIterable(sourceComponentToPaths(projectComp)).pipe(
-        Stream.mapEffect(p => fsService.toUri(p).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri)))),
-        Stream.filter(u => !localUriFilter || HashSet.has(localUriFilter, u)),
-        Stream.filterMap(localUri =>
-          Option.fromNullable(byBasename.get(Utils.basename(localUri.uri))).pipe(
-            Option.map(remoteUri => ({ localUri, remoteUri }))
-          )
+        Stream.mapEffect(p =>
+          fsService
+            .toUri(p)
+            .pipe(
+              Effect.map(uri => ({
+                localUri: fsService.HashableUri.fromUri(uri),
+                isContent: p === projectComp.content
+              }))
+            )
+        ),
+        Stream.filter(({ localUri }) => !localUriFilter || HashSet.has(localUriFilter, localUri)),
+        Stream.filterMap(({ localUri, isContent }) =>
+          Option.fromNullable(
+            byBasename.get(Utils.basename(localUri.uri)) ??
+              // Component identity already selected this artifact. On Windows,
+              // SDR and VS Code can disagree on filename casing even though the
+              // filesystem treats them as the same path; the primary document is
+              // therefore the authoritative match for the component content.
+              (isContent ? artifact.primaryUri : undefined)
+          ).pipe(Option.map(remoteUri => ({ localUri, remoteUri })))
         ),
         Stream.map(({ localUri, remoteUri }) =>
           createDiffFilePair({

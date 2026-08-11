@@ -14,7 +14,7 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { confirmOverwriteAndWaitForProgress, retrieveAndWaitForProgress } from '../pages/notifications';
+import { overwriteAndWaitForCompletion, retrieveAndHandleOverwrite } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 /** Headless-like test for foldered Report retrieval */
@@ -85,11 +85,11 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
       'unfiled$public/flow_screen_prebuilt_report',
       3
     );
-    const clicked = await retrieveAndWaitForProgress(
+    const clicked = await retrieveAndHandleOverwrite(
       page,
       () => orgBrowserPage.clickRetrieveButton(reportItem),
       /Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i,
-      60_000
+      RETRIEVE_TIMEOUT_MS
     );
     expect(clicked).toBe(true);
   });
@@ -117,19 +117,11 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
       'unfiled$public/flow_screen_prebuilt_report',
       3
     );
-    await orgBrowserPage.clickRetrieveButton(reportItem);
-
-    const overwrite = page.locator('.monaco-dialog-box');
-    const overwriteVisible = await overwrite
-      .waitFor({ state: 'visible', timeout: 5000 })
-      .then(() => true)
-      .catch(() => false);
-    if (overwriteVisible) {
-      await confirmOverwriteAndWaitForProgress(
-        page,
-        /Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i,
-        60_000
-      );
-    }
+    await overwriteAndWaitForCompletion(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(reportItem),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+(Report|ReportFolder)s?\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
   });
 });

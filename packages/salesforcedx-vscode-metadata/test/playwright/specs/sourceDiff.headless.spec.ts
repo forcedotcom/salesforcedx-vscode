@@ -109,6 +109,11 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+
+    // The command can finish writing output before source tracking has applied the
+    // deploy result. Editing sooner lets that late update reset the new local
+    // change to zero, which is most visible on slower Windows runners.
+    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
   });
 
   await test.step('create local change and diff via command palette', async () => {

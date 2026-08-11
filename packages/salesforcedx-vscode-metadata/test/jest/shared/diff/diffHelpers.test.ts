@@ -56,10 +56,12 @@ const createMockCatalog = (
           const component = remoteComponents.find(
             candidate => candidate.fullName === reference.fullName && candidate.type.name === reference.xmlName
           );
+          const fileUris = component ? sourceComponentToPaths(component).map(path => URI.file(path)) : [];
           return {
             reference,
             artifact: {
-              fileUris: component ? sourceComponentToPaths(component).map(path => URI.file(path)) : []
+              primaryUri: fileUris[0],
+              fileUris
             }
           };
         })
@@ -215,6 +217,24 @@ describe('materializeRemoteComponents', () => {
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
+  });
+
+  it('uses the component primary document when Windows filename casing differs', async () => {
+    const localPath = 'C:\\Users\\runner\\project\\classes\\ConflictsTest.cls';
+    const remoteCls = 'C:\\Users\\runner\\project\\.sf\\metadata-shadow\\conflictstest.cls';
+    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
+    const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls)];
+
+    const result = (await runWithMocks(
+      materializeRemoteComponents(projectSet),
+      createMockFsService(),
+      remoteComponents
+    )) as HashSet.HashSet<DiffFilePair>;
+
+    expect(HashSet.size(result)).toBe(1);
+    const [pair] = [...HashSet.toValues(result)];
+    expect(pair.remoteUri.uri.scheme).toBe('file');
+    expect(pair.remoteUri.uri.path.toLowerCase()).toBe(URI.file(remoteCls).path.toLowerCase());
   });
 
   it('matches Apex class in non-default directory (controllers, not classes)', async () => {
