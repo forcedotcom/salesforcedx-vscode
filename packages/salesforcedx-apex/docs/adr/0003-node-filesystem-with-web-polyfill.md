@@ -1,0 +1,5 @@
+# Use Node filesystem APIs with a web-build memfs substitution
+
+`@salesforce/apex-node` keeps `node:fs` and Node path/stream APIs as its filesystem contract. Istanbul coverage reporting is synchronously coupled to Node filesystem operations: its reporting context constructs an internal `FileWriter`, report implementations write through it, and HTML reports also read assets with `node:fs`. Istanbul exposes source lookup but no supported filesystem/writer injection, so an injected filesystem would not make the full reporter portable.
+
+Web extension bundles replace `fs`, `node:fs`, and `node:fs/promises` at build time with the `@salesforce/core/fs` facade, backed by memfs. This preserves one Node-shaped implementation for CLI consumers and web bundles; consumers provide source text to execute-anonymous operations instead of asking apex-node to read source files through a second filesystem abstraction.
