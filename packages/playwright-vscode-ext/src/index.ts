@@ -75,6 +75,7 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 
 export { SPANS_DIR, readAllSpanRows, waitForSpanRows } from './utils/spanFiles';
 export type { SpanRow } from './utils/spanFiles';
+export { redactText, redactValue } from './utils/redaction';
 
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
@@ -174,6 +175,12 @@ export { saveScreenshot } from './shared/screenshotUtils';
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
 export { createDesktopTest } from './fixtures/createDesktopTest';
+export { prepareVsixExtensions } from './fixtures/vsixExtensions';
+export type {
+  PreparedVsixExtension,
+  PreparedVsixExtensions,
+  PrepareVsixExtensionsOptions
+} from './fixtures/vsixExtensions';
 export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureTypes';
 
 // Web

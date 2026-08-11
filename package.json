@@ -197,6 +197,7 @@
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
+        "./packages/drivable-vscode:compile",
         "./packages/salesforcedx-vscode-apex-log:compile"
       ]
     },
@@ -228,6 +229,7 @@
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
+        "./packages/drivable-vscode:lint",
         "./packages/salesforcedx-vscode-apex-log:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
@@ -266,6 +268,7 @@
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
         "./packages/effect-ext-utils:test"
       ]
