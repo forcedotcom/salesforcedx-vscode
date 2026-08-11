@@ -88,9 +88,17 @@ export class MetadataXmlSupport {
       redHatExtension.exports.addXMLCatalogs(inputCatalogs);
       redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
 
-      // Disable RedHat XML hover to prevent duplication with our custom hover provider
+      // Disable RedHat XML hover to prevent duplication with our custom hover provider,
+      // but only if the user has not already set a value at any scope.
       const config = vscode.workspace.getConfiguration('xml');
-      await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+      const docTypeInspect = config.inspect<string>('preferences.showSchemaDocumentationType');
+      const userHasSetValue =
+        isNotUndefined(docTypeInspect?.globalValue) ||
+        isNotUndefined(docTypeInspect?.workspaceValue) ||
+        isNotUndefined(docTypeInspect?.workspaceFolderValue);
+      if (!userHasSetValue) {
+        await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+      }
 
       // Ensure the XML language server has enough memory to avoid OOM crashes on large Salesforce
       // projects. Write to User settings so it persists across all projects, but only if the
