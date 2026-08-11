@@ -35,6 +35,18 @@ type WebConnectionKey = {
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
+export const updateDefaultOrgIdentity = Effect.fn('updateDefaultOrgIdentity')(function* (
+  defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>,
+  orgId: string | undefined,
+  instanceName: string | undefined
+) {
+  const current = yield* SubscriptionRef.get(defaultOrgRef);
+  if (current.orgId === orgId && current.instanceName === instanceName) return current.orgId;
+
+  yield* SubscriptionRef.set(defaultOrgRef, { ...current, orgId, instanceName });
+  return current.orgId;
+});
+
 export class FailedToCreateAuthInfoError extends Schema.TaggedError<FailedToCreateAuthInfoError>()(
   'FailedToCreateAuthInfoError',
   {
@@ -337,8 +349,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
         const instanceName = rawInstanceName?.trim();
         const defaultOrgRef = yield* getDefaultOrgRef();
-        const previousOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
-        yield* SubscriptionRef.update(defaultOrgRef, current => ({ ...current, orgId, instanceName }));
+        const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
           Effect.provide(AliasService.Default),
           Effect.tapError(e => Effect.logWarning(String(e))),

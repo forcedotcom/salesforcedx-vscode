@@ -31,6 +31,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _typeIsRegex = false;
   private _componentIsRegex = false;
   private _userApprovedBroadFetch = false;
+  private treeEmpty = false;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -89,6 +90,13 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   public clearTextFilter(): void {
     this.setTextFilter(undefined, undefined, false, false);
+  }
+
+  /** Update the view-empty context only when it changes to avoid triggering a tree reload loop. */
+  public async updateTreeEmptyContext(value: boolean): Promise<void> {
+    if (this.treeEmpty === value) return;
+    this.treeEmpty = value;
+    await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', value);
   }
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -260,7 +268,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     if (!element) {
       // Both OFF = empty tree (explicit "show nothing" state)
       if (!provider.showLocal && !provider.showOrg) {
-        yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', true));
+        yield* Effect.promise(() => provider.updateTreeEmptyContext(true));
         return [];
       }
 
@@ -285,9 +293,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         resultLabels: JSON.stringify(result.slice(0, 10).map(node => getTreeItemLabel(node)))
       });
 
-      yield* Effect.promise(() =>
-        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', result.length === 0)
-      );
+      yield* Effect.promise(() => provider.updateTreeEmptyContext(result.length === 0));
       return result;
     }
     return yield* Match.value(element).pipe(

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import {
   MetadataTypeTreeProvider,
   passesTypeFilter,
@@ -110,6 +111,25 @@ describe('MetadataTypeTreeProvider root node identity', () => {
     expect(firstAuraNode.id).toBe('AuraDefinitionBundle');
     expect(firstAuraNode.xmlName).toBe('AuraDefinitionBundle');
     expect(actionLinkNode).not.toBe(firstAuraNode);
+  });
+});
+
+describe('MetadataTypeTreeProvider empty-tree context', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('updates the context only when the empty state changes', async () => {
+    const provider = new MetadataTypeTreeProvider();
+
+    await provider.updateTreeEmptyContext(false);
+    await provider.updateTreeEmptyContext(true);
+    await provider.updateTreeEmptyContext(true);
+    await provider.updateTreeEmptyContext(false);
+
+    expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(1, 'setContext', 'sf:orgBrowser.treeEmpty', true);
+    expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(2, 'setContext', 'sf:orgBrowser.treeEmpty', false);
+    expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(2);
   });
 });
 

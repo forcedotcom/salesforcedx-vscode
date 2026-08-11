@@ -16,8 +16,13 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
-import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
+import {
+  ConnectionService,
+  InactiveOrgOperationError,
+  updateDefaultOrgIdentity
+} from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -325,6 +330,40 @@ const serviceLayer = ConnectionService.DefaultWithoutDependencies.pipe(
 
 const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
   Effect.runPromise(prog.pipe(Effect.provide(serviceLayer)));
+
+describe('updateDefaultOrgIdentity', () => {
+  it('does not publish when the org identity is unchanged', async () => {
+    const initial: typeof DefaultOrgInfoSchema.Type = {
+      orgId: '00Dxx',
+      instanceName: 'USA9S',
+      username: 'user@example.com'
+    };
+    const ref = Effect.runSync(SubscriptionRef.make(initial));
+
+    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dxx', 'USA9S'));
+
+    expect(previousOrgId).toBe('00Dxx');
+    expect(await Effect.runPromise(SubscriptionRef.get(ref))).toBe(initial);
+  });
+
+  it('publishes when the org identity changes', async () => {
+    const initial: typeof DefaultOrgInfoSchema.Type = {
+      orgId: '00Dold',
+      instanceName: 'USA1',
+      username: 'user@example.com'
+    };
+    const ref = Effect.runSync(SubscriptionRef.make(initial));
+
+    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dnew', 'USA9S'));
+
+    expect(previousOrgId).toBe('00Dold');
+    expect(await Effect.runPromise(SubscriptionRef.get(ref))).toEqual({
+      orgId: '00Dnew',
+      instanceName: 'USA9S',
+      username: 'user@example.com'
+    });
+  });
+});
 
 describe('ConnectionService.getConnection (desktop)', () => {
   beforeEach(async () => {
