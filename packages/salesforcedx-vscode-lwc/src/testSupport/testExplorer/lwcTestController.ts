@@ -24,7 +24,7 @@ import {
   TestResultStatus,
   isTestCaseInfo
 } from '../types';
-import { LWC_TEST_RUN_LOG_NAME, JEST_STACK_TRACE_PATTERN } from '../types/constants';
+import { LWC_TEST_RUN_LOG_NAME, matchJestStackTraceLocation } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace, workspaceService } from '../workspace';
@@ -576,14 +576,10 @@ class LwcTestController {
             message.actualOutput = errorMessage;
 
             // Extract error location from stack trace for editor highlighting
-            const match = errorDetail.match(JEST_STACK_TRACE_PATTERN);
-            if (match) {
-              const [, file, lineStr, columnStr] = match;
-              const errorUri = URI.file(file);
-              const position = new vscode.Position(
-                Math.max(0, parseInt(lineStr, 10) - 1),
-                Math.max(0, parseInt(columnStr, 10) - 1)
-              );
+            const location = matchJestStackTraceLocation(errorDetail);
+            if (location) {
+              const errorUri = URI.file(location.file);
+              const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
               message.location = new vscode.Location(errorUri, position);
             }
 
@@ -654,14 +650,10 @@ class LwcTestController {
         const errorMessage = new vscode.TestMessage(cleanMessage);
 
         // Extract error location from stack trace in message for red highlight
-        const match = cleanMessage.match(JEST_STACK_TRACE_PATTERN);
-        if (match && fileItem.uri) {
-          const [, file, lineStr, columnStr] = match;
-          const errorUri = URI.file(file);
-          const position = new vscode.Position(
-            Math.max(0, parseInt(lineStr, 10) - 1),
-            Math.max(0, parseInt(columnStr, 10) - 1)
-          );
+        const location = matchJestStackTraceLocation(cleanMessage);
+        if (location && fileItem.uri) {
+          const errorUri = URI.file(location.file);
+          const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
           errorMessage.location = new vscode.Location(errorUri, position);
         }
 

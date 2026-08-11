@@ -45,7 +45,27 @@ export const LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED = 'lwc.jestRunnerDu
 
 /**
  * Pattern to extract file location from Jest stack traces.
- * Matches lines like "at SomeFunction (/path/to/file.js:123:45)" or "at /path/to/file.js:123:45"
- * Uses .+? (non-greedy) to capture the file path, stopping at the first :line:col pattern
+ * Matches "at SomeFunction (/path/to/file.js:123:45)" (groups 1-3) or the unparenthesized
+ * "at /path/to/file.js:123:45" (groups 4-6) as mutually exclusive alternatives, anchored to
+ * end-of-line ($/m). This lets the path itself contain literal parentheses (e.g. a "Program
+ * Files (x86)" directory) without being confused for the function-name delimiter — a single
+ * optional non-capturing group can't disambiguate that case. Use matchJestStackTraceLocation
+ * rather than matching against this directly.
  */
-export const JEST_STACK_TRACE_PATTERN = /at (?:.*?\()?(.+?):(\d+):(\d+)\)?/;
+const JEST_STACK_TRACE_PATTERN = /at (?:.*?\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$/m;
+
+/**
+ * Extracts a file/line/column location from the first Jest stack trace line found in `text`.
+ */
+export const matchJestStackTraceLocation = (
+  text: string
+): { file: string; line: number; column: number } | undefined => {
+  const match = text.match(JEST_STACK_TRACE_PATTERN);
+  if (!match) {
+    return undefined;
+  }
+  const file = match[1] ?? match[4];
+  const line = match[2] ?? match[5];
+  const column = match[3] ?? match[6];
+  return { file, line: parseInt(line, 10), column: parseInt(column, 10) };
+};
