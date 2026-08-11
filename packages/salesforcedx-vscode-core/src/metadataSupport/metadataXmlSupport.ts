@@ -88,25 +88,31 @@ export class MetadataXmlSupport {
       redHatExtension.exports.addXMLCatalogs(inputCatalogs);
       redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
 
-      // Disable RedHat XML hover to prevent duplication with our custom hover provider,
-      // but only if the user has not already set a value at any scope.
-      const config = vscode.workspace.getConfiguration('xml');
-      const docTypeInspect = config.inspect<string>('preferences.showSchemaDocumentationType');
-      const userHasSetValue =
-        isNotUndefined(docTypeInspect?.globalValue) ||
-        isNotUndefined(docTypeInspect?.workspaceValue) ||
-        isNotUndefined(docTypeInspect?.workspaceFolderValue);
-      if (!userHasSetValue) {
-        await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+      // Suppress RedHat XML hover/completion docs (unless user opts in) to prevent duplication,
+      // but only if they haven't already set a value for the xml setting at any scope.
+      const doNotSuppress = vscode.workspace
+        .getConfiguration('salesforcedx-vscode-core')
+        .get<boolean>('metadata.doNotSuppressRedhatSchemaDocumentation', false);
+      if (!doNotSuppress) {
+        const config = vscode.workspace.getConfiguration('xml');
+        const docTypeInspect = config.inspect<string>('preferences.showSchemaDocumentationType');
+        const userHasSetValue =
+          isNotUndefined(docTypeInspect?.globalValue) ||
+          isNotUndefined(docTypeInspect?.workspaceValue) ||
+          isNotUndefined(docTypeInspect?.workspaceFolderValue);
+        if (!userHasSetValue) {
+          await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+        }
       }
 
       // Ensure the XML language server has enough memory to avoid OOM crashes on large Salesforce
       // projects. Write to User settings so it persists across all projects, but only if the
       // current User-level value is absent or below the minimum heap threshold.
-      const vmArgsInspect = config.inspect<string>('server.vmargs');
+      const xmlConfig = vscode.workspace.getConfiguration('xml');
+      const vmArgsInspect = xmlConfig.inspect<string>('server.vmargs');
       const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
       if (isNotUndefined(updatedVmArgs)) {
-        await config.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
+        await xmlConfig.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
         channel.appendLine(nls.localize('metadata_xml_vmargs_configured'));
       }
 
