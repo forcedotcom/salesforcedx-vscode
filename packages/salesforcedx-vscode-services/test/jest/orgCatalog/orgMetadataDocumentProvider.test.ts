@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
   closeInactiveOrgDocuments,
+  isCatalogRelevantWorkspaceUri,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
 import type { OrgMetadataDocumentLocation } from '../../../src/orgCatalog/orgMetadataReference';
@@ -66,5 +67,19 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
     await Effect.runPromise(closeInactiveOrgDocuments('org-two', parseDocumentUri));
 
     expect(close).toHaveBeenCalledWith([staleTextTab, staleDiffTab], true);
+  });
+
+  it('ignores internal Salesforce state with Windows drive-letter casing differences', () => {
+    const workspaceUri = URI.parse('file:///C:/workspace');
+
+    expect(
+      isCatalogRelevantWorkspaceUri(
+        workspaceUri,
+        URI.parse('file:///c:/workspace/.sf/orgs/00D/metadata-catalog/catalog.json')
+      )
+    ).toBe(false);
+    expect(
+      isCatalogRelevantWorkspaceUri(workspaceUri, URI.parse('file:///c:/workspace/force-app/main/default/Foo.cls'))
+    ).toBe(true);
   });
 });

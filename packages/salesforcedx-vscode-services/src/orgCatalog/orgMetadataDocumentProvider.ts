@@ -16,21 +16,24 @@ import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { getActiveMetadataOperationRef } from '../core/activeMetadataOperationRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../core/metadataChangeNotificationService';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
+import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { OrgMetadataCatalog } from './orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
-import { isOrgMetadataCatalogUri } from './orgMetadataCatalogStore';
 import {
   ORG_METADATA_SCHEME,
   OrgMetadataReferenceService,
   type OrgMetadataDocumentLocation
 } from './orgMetadataReference';
-import { isOrgMetadataShadowUri } from './orgMetadataShadowStore';
+
+/** Internal Salesforce state must not invalidate the catalog that produced it. */
+export const isCatalogRelevantWorkspaceUri = (workspaceUri: URI, uri: URI): boolean =>
+  !isUriEqualOrWithin(Utils.joinPath(workspaceUri, '.sf'), uri);
 
 /** @internal Exported for focused provider lifecycle tests; not part of the extension API. */
 export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider {
@@ -160,14 +163,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     Stream.filterEffect(event =>
       workspaceService
         .getWorkspaceInfo()
-        .pipe(
-          Effect.map(
-            workspace =>
-              !workspace.isEmpty &&
-              !isOrgMetadataShadowUri(workspace.uri, event.uri) &&
-              !isOrgMetadataCatalogUri(workspace.uri, event.uri)
-          )
-        )
+        .pipe(Effect.map(workspace => !workspace.isEmpty && isCatalogRelevantWorkspaceUri(workspace.uri, event.uri)))
     ),
     Stream.mapEffect(event =>
       SubscriptionRef.get(activeOperationRef).pipe(Effect.map(activeOperations => ({ activeOperations, event })))

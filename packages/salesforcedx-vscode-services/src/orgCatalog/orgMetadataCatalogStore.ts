@@ -10,6 +10,7 @@ import * as Schema from 'effect/Schema';
 import { URI, Utils } from 'vscode-uri';
 import { SObjectSchema } from '../core/transmogrifierService';
 import { FsService } from '../vscode/fsService';
+import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 const CATALOG_DIRECTORY = 'metadata-catalog';
@@ -23,9 +24,7 @@ class OrgMetadataCatalogSnapshotOrgMismatchError extends Schema.TaggedError<OrgM
 
 export const isOrgMetadataCatalogUri = (workspaceUri: URI, uri: URI): boolean => {
   const root = Utils.joinPath(workspaceUri, '.sf', 'orgs');
-  return (
-    uri.scheme === root.scheme && uri.path.startsWith(`${root.path}/`) && uri.path.includes(`/${CATALOG_DIRECTORY}/`)
-  );
+  return isUriEqualOrWithin(root, uri) && uriPathIncludesSegments(uri, [CATALOG_DIRECTORY]);
 };
 
 const ProvenanceSchema = Schema.Literal(

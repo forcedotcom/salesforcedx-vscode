@@ -98,6 +98,15 @@ describe('OrgMetadataCatalogStore', () => {
     ).toBe(false);
   });
 
+  it('recognizes catalog paths when Windows drive-letter casing differs', () => {
+    expect(
+      isOrgMetadataCatalogUri(
+        URI.parse('file:///C:/workspace'),
+        URI.parse('file:///c:/workspace/.sf/orgs/00D/metadata-catalog/catalog.json')
+      )
+    ).toBe(true);
+  });
+
   it('atomically publishes and reloads a schema-valid per-org snapshot', async () => {
     const { files, renames, run, writes } = makeHarness();
     const stored = snapshot('00D-one');

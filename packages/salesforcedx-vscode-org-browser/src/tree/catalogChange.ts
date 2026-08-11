@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Duration from 'effect/Duration';
+import * as Stream from 'effect/Stream';
 import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
 
 /**
@@ -12,3 +14,9 @@ import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
  */
 export const shouldRefreshTreeForCatalogChange = (change: OrgMetadataCatalogChange): boolean =>
   change.kind !== 'operation' || change.event.operation !== 'retrieve';
+
+export const coalesceTreeRefreshes = <E, R>(
+  changes: Stream.Stream<OrgMetadataCatalogChange, E, R>,
+  quietPeriod: Duration.DurationInput = Duration.millis(500)
+): Stream.Stream<OrgMetadataCatalogChange, E, R> =>
+  changes.pipe(Stream.filter(shouldRefreshTreeForCatalogChange), Stream.debounce(quietPeriod));

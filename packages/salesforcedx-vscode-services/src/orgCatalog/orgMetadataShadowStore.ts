@@ -12,6 +12,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { FsService } from '../vscode/fsService';
+import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 const SHADOW_DIRECTORY = 'metadata-shadow';
@@ -53,10 +54,9 @@ const containsUri = (root: URI, child: URI): boolean =>
 export const isOrgMetadataShadowUri = (workspaceUri: URI, uri: URI): boolean => {
   const root = Utils.joinPath(workspaceUri, '.sf', 'orgs');
   return (
-    uri.scheme === root.scheme &&
-    uri.path.startsWith(`${root.path}/`) &&
-    (uri.path.includes(`/${SHADOW_DIRECTORY}/`) ||
-      uri.path.includes(`/${SDR_STAGING_DIRECTORY}/${CATALOG_STAGING_DIRECTORY}/`))
+    isUriEqualOrWithin(root, uri) &&
+    (uriPathIncludesSegments(uri, [SHADOW_DIRECTORY]) ||
+      uriPathIncludesSegments(uri, [SDR_STAGING_DIRECTORY, CATALOG_STAGING_DIRECTORY]))
   );
 };
 

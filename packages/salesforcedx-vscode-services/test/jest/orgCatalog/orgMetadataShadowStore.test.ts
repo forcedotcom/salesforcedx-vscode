@@ -317,4 +317,13 @@ describe('OrgMetadataShadowStore', () => {
       isOrgMetadataShadowUri(URI.file('/other-workspace'), URI.file('/workspace/.sf/orgs/00D/metadata-shadow/Foo.cls'))
     ).toBe(false);
   });
+
+  it('recognizes shadow paths when Windows drive-letter casing differs', () => {
+    expect(
+      isOrgMetadataShadowUri(
+        URI.parse('file:///C:/workspace'),
+        URI.parse('file:///c:/workspace/.sf/orgs/00D/metadata-shadow/ApexClass/Foo.cls')
+      )
+    ).toBe(true);
+  });
 });

@@ -15,10 +15,17 @@ import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetriev
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 import { isMemberPresentInProject } from './componentPresence';
 
+export const hasRetrieveTreeItem = (node: OrgBrowserTreeItem | undefined): node is OrgBrowserTreeItem =>
+  isNotUndefined(node);
+
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
-  node: OrgBrowserTreeItem,
+  node: OrgBrowserTreeItem | undefined,
   treeProvider: MetadataTypeTreeProvider
 ) {
+  if (!hasRetrieveTreeItem(node)) {
+    yield* Effect.logWarning('Retrieve Metadata was invoked without an Org Browser tree item');
+    return yield* Effect.void;
+  }
   const members = yield* getRetrieveMembers(node, treeProvider);
   if (members.length === 0) {
     return yield* Effect.void;

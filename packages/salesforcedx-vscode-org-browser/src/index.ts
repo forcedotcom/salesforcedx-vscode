@@ -21,7 +21,7 @@ import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { nls } from './messages';
 import { buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
-import { shouldRefreshTreeForCatalogChange } from './tree/catalogChange';
+import { coalesceTreeRefreshes } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
@@ -261,8 +261,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
   const extensionScope = yield* getExtensionScope();
   yield* Effect.forkIn(
-    Stream.fromPubSub(orgMetadataChanges).pipe(
-      Stream.filter(shouldRefreshTreeForCatalogChange),
+    orgMetadataChanges.pipe(
+      changes => Stream.fromPubSub(changes),
+      coalesceTreeRefreshes,
       Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
     ),
     extensionScope
@@ -335,7 +336,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
         Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
       ),
-      registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
+      registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem | undefined) =>
         retrieveEffect(node, treeProvider)
       ),
       registerCommand(`${TREE_VIEW_ID}.showLocal.on`, () =>
