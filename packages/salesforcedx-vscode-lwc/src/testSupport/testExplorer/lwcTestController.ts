@@ -578,7 +578,7 @@ class LwcTestController {
             // Extract error location from stack trace for editor highlighting
             const location = matchJestStackTraceLocation(errorDetail);
             if (location) {
-              const errorUri = URI.file(location.file);
+              const errorUri = URI.file(normalizeJestFsPath(location.file));
               const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
               message.location = new vscode.Location(errorUri, position);
             }
@@ -652,7 +652,7 @@ class LwcTestController {
         // Extract error location from stack trace in message for red highlight
         const location = matchJestStackTraceLocation(cleanMessage);
         if (location && fileItem.uri) {
-          const errorUri = URI.file(location.file);
+          const errorUri = URI.file(normalizeJestFsPath(location.file));
           const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
           errorMessage.location = new vscode.Location(errorUri, position);
         }
@@ -674,14 +674,22 @@ class LwcTestController {
         if (status === 'passed') {
           run.passed(caseItem);
         } else if (status === 'failed') {
-          const message = new vscode.TestMessage(
-            assertion.failureMessages?.join('\n') ?? nls.localize('lwc_test_failed_message')
-          );
+          const failureText = assertion.failureMessages?.join('\n') ?? nls.localize('lwc_test_failed_message');
+          const message = new vscode.TestMessage(failureText);
+
           if (caseItem.uri && assertion.location) {
             message.location = new vscode.Location(
               caseItem.uri,
               new vscode.Position(Math.max(0, assertion.location.line - 1), Math.max(0, assertion.location.column - 1))
             );
+          } else {
+            // Extract error location from stack trace in failure message
+            const location = matchJestStackTraceLocation(failureText);
+            if (location) {
+              const errorUri = URI.file(normalizeJestFsPath(location.file));
+              const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
+              message.location = new vscode.Location(errorUri, position);
+            }
           }
           run.failed(caseItem, message);
         } else {

@@ -55,17 +55,52 @@ export const LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED = 'lwc.jestRunnerDu
 const JEST_STACK_TRACE_PATTERN = /at (?:.*?\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$/m;
 
 /**
- * Extracts a file/line/column location from the first Jest stack trace line found in `text`.
+ * Extracts file/line/column location from Jest stack trace lines in `text`.
+ * Prefers test files (`__tests__/` or `.test.[jt]sx?`) over other user code.
+ * Skips `node_modules` frames entirely. Falls back to first non-node_modules frame,
+ * then first match if all frames are in node_modules.
  */
 export const matchJestStackTraceLocation = (
   text: string
 ): { file: string; line: number; column: number } | undefined => {
-  const match = text.match(JEST_STACK_TRACE_PATTERN);
-  if (!match) {
+  const globalPattern = new RegExp(JEST_STACK_TRACE_PATTERN.source, 'gm');
+  const matches = [...text.matchAll(globalPattern)];
+
+  if (matches.length === 0) {
     return undefined;
   }
-  const file = match[1] ?? match[4];
-  const line = match[2] ?? match[5];
-  const column = match[3] ?? match[6];
+
+  // Prefer test files over source files, and skip node_modules entirely
+  let firstNonNodeModules: { file: string; line: number; column: number } | undefined;
+
+  for (const match of matches) {
+    const filePath = match[1] ?? match[4];
+    if (filePath.includes('node_modules')) {
+      continue;
+    }
+
+    const lineNum = match[2] ?? match[5];
+    const colNum = match[3] ?? match[6];
+    const location = { file: filePath, line: parseInt(lineNum, 10), column: parseInt(colNum, 10) };
+
+    // Prefer test files (__tests__/ or .test.js/.test.ts)
+    if (filePath.includes('__tests__') || /\.test\.[jt]sx?$/.test(filePath)) {
+      return location;
+    }
+
+    // Remember first non-node_modules as fallback
+    firstNonNodeModules ??= location;
+  }
+
+  // Return first non-node_modules if no test file found
+  if (firstNonNodeModules) {
+    return firstNonNodeModules;
+  }
+
+  // Fallback to first match if all are in node_modules
+  const firstMatch = matches[0];
+  const file = firstMatch[1] ?? firstMatch[4];
+  const line = firstMatch[2] ?? firstMatch[5];
+  const column = firstMatch[3] ?? firstMatch[6];
   return { file, line: parseInt(line, 10), column: parseInt(column, 10) };
 };
