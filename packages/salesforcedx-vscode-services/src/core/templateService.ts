@@ -312,11 +312,14 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
       const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(subdirUri)).pipe(
         Effect.catchAll(e => {
-          const isNotFound = e instanceof vscode.FileSystemError && (e.code === 'FileNotFound' || e.code === 'ENOENT');
+          // Effect.tryPromise wraps thrown values in UnknownException; the original error is on .error
+          const cause = e.error;
+          const isNotFound =
+            cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
           return isNotFound
             ? Effect.succeed<[string, vscode.FileType][]>([])
             : Effect.logWarning(
-                `Failed to read custom templates from ${subdirUri.fsPath}: ${isError(e) ? e.message : String(e)}`
+                `Failed to read custom templates from ${subdirUri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
               ).pipe(Effect.as<[string, vscode.FileType][]>([]));
         })
       );
