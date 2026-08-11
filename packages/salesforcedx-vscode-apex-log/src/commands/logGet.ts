@@ -23,10 +23,12 @@ const formatLogSize = (bytes: number): string =>
 export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const logService = yield* api.services.ApexLogService;
-  const logs = yield* logService.listLogs();
-  if (logs.length === 0) {
-    return yield* new LogGetNoLogsError({ message: nls.localize('log_get_no_logs') });
-  }
+  const logs = yield* logService.listLogs().pipe(
+    Effect.filterOrFail(
+      items => items.some(() => true),
+      () => new LogGetNoLogsError({ message: nls.localize('log_get_no_logs') })
+    )
+  );
   const selected = yield* selectLog(logs);
   const body = yield* logService.getLogBody(selected.id);
   yield* saveAndOpenLog(selected.id, body);
