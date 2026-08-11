@@ -207,33 +207,21 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
   }
 });
 
-test('Org Browser - text filter: combined wildcard *Class:*Broker* works', async ({ page }) => {
+test('Org Browser - text filter: combined wildcard *Object:*Broker* works', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('*Class:*Broker*');
+  await activeQuickInputTextField(page).fill('*Object:*Broker*');
   await page.keyboard.press('Enter');
 
-  // Should see types ending with "Class"
   const typesLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(typesLocator.first()).toBeVisible({ timeout: 10_000 });
+  await expect(typesLocator).toHaveCount(1, { timeout: 10_000 });
+  await expect(typesLocator.first()).toHaveAccessibleName(/^CustomObject/);
 
-  // Expand first matching type to see filtered components
-  const firstType = typesLocator.first();
-  const typeName = await firstType.getAttribute('aria-label');
-  if (typeName?.endsWith('Class')) {
-    await firstType.click();
-
-    const componentsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
-    if ((await componentsLocator.count()) > 0) {
-      // All visible components should contain "Broker"
-      const count = await componentsLocator.count();
-      for (let i = 0; i < count; i++) {
-        const item = componentsLocator.nth(i);
-        await expect(item).toHaveAccessibleName(/Broker/i);
-      }
-    }
-  }
+  await orgBrowserPage.expandFolder('CustomObject');
+  const componentsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
+  await expect(componentsLocator).toHaveCount(1, { timeout: 10_000 });
+  await expect(componentsLocator.first()).toHaveAccessibleName(/Broker__c/i);
 });
