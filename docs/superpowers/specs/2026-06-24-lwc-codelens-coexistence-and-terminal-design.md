@@ -112,10 +112,12 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 5. **Controller error reporting** (`lwcTestController.ts`)
    - On `exitCode > 0`, extracts error via `sfTask.pseudoterminal.extractErrorSummary()`
    - Marks items as `failed` (not `errored`)
-   - `TestMessage` includes `actualOutput` (exit code) and `location` (extracted via `JEST_STACK_TRACE_PATTERN`)
+   - `TestMessage` includes `actualOutput` (exit code) and `location` (extracted via `matchJestStackTraceLocation()`)
+   - For assertion failures within successful runs, when `assertion.location` unavailable: extracts from `assertion.failureMessages` using `matchJestStackTraceLocation()`
 
-6. **New constant** (`constants.ts`)
-   - `JEST_STACK_TRACE_PATTERN`: regex (`/at (?:.*?\()?(.+?):(\d+):(\d+)\)?/`) to extract file/line/column from Jest stack traces like "at SomeFunction (/path/to/file.js:123:45)"
+6. **New constant/utility** (`constants.ts`)
+   - Private `JEST_STACK_TRACE_PATTERN`: regex handles "at Function (/path:line:col)" and bare "at /path:line:col" formats; preserves literal parens in paths (e.g. "Program Files (x86)")
+   - Exported `matchJestStackTraceLocation()`: skips `node_modules` frames; prefers test files (`__tests__/` or `.test.[jt]sx?`) over source; falls back to 1st non-node_modules, then 1st frame if all in node_modules
 
 7. **Mock support** (`config/__mocks__/vscode.js`, `scripts/setup-jest.ts`)
    - Added `Location`, `TestMessage`, `Task`, `CustomExecution`, `TaskScope`, `TaskRevealKind`, `TaskPanelKind` classes

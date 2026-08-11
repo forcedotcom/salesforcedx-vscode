@@ -827,7 +827,8 @@ describe('LwcTestController public run API', () => {
     expect(mockRun.failed).toHaveBeenCalled();
     const [, message] = (mockRun.failed as jest.Mock).mock.calls[0];
     expect(message.location).toBeDefined();
-    expect(message.location.uri.fsPath).toBe('/project/force-app/lwc/foo/__tests__/foo.test.js');
+    // Compare URIs rather than fsPath to avoid platform-specific path separators
+    expect(message.location.uri.toString()).toBe(testUri.toString());
     expect(message.location.range.line).toBe(41);
     expect(message.location.range.character).toBe(6);
   });
