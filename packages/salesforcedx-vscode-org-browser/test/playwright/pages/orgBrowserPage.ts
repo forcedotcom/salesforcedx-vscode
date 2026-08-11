@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot, typingSpeed, waitForWorkspaceReady, TAB } from '@salesforce/playwright-vscode-ext';
+import {
+  activeQuickInputTextField,
+  saveScreenshot,
+  typingSpeed,
+  waitForWorkspaceReady,
+  TAB
+} from '@salesforce/playwright-vscode-ext';
 
 /**
  * Exact tree-item name match, tolerant of VS Code's `"<label>, has actions"` suffix
@@ -89,6 +95,37 @@ export class OrgBrowserPage {
   public async getStableRootTypeCount(timeout = 10_000): Promise<number> {
     await expect.poll(() => this.getRootTypeCount(), { timeout }).toBeGreaterThan(0);
     return this.getRootTypeCount();
+  }
+
+  /** Open the text-filter prompt and fill it, retrying if VS Code replaces the Quick Input widget. */
+  public async fillTextFilter(value: string): Promise<void> {
+    const input = activeQuickInputTextField(this.page);
+
+    await expect(async () => {
+      if (!(await input.isVisible().catch(() => false))) {
+        const filterButton = this.page
+          .locator('[aria-label="Filter by Type/Component"], [aria-label="Edit Filter (active)"]')
+          .filter({ visible: true })
+          .first();
+        await expect(filterButton).toBeVisible({ timeout: 5000 });
+        await filterButton.click();
+      }
+
+      await expect(input).toBeVisible({ timeout: 5000 });
+      await input.fill(value, { force: true });
+      await expect(input).toHaveValue(value, { timeout: 5000 });
+    }).toPass({ timeout: 30_000, intervals: [250, 500, 1000] });
+  }
+
+  /** Fill and commit the text filter, retrying the complete interaction if its prompt closes early. */
+  public async applyTextFilter(value: string): Promise<void> {
+    const input = activeQuickInputTextField(this.page);
+
+    await expect(async () => {
+      await this.fillTextFilter(value);
+      await this.page.keyboard.press('Enter');
+      await expect(input).toBeHidden({ timeout: 5000 });
+    }).toPass({ timeout: 30_000, intervals: [250, 500, 1000] });
   }
 
   public async expandFolder(folderName: string, level?: number): Promise<void> {
