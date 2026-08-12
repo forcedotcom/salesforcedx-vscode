@@ -61,20 +61,21 @@ test('Org Browser - text filter: Type:component filters expanded children', asyn
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  await orgBrowserPage.applyTextFilter('ApexClass:');
+  await orgBrowserPage.applyTextFilter('CustomObject:');
 
-  await orgBrowserPage.expandFolder('ApexClass');
+  await orgBrowserPage.expandFolder('CustomObject');
   const componentsBeforeLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
   await expect(componentsBeforeLocator.first()).toBeVisible({ timeout: 10_000 });
   const componentsBefore = await componentsBeforeLocator.count();
   expect(componentsBefore).toBeGreaterThan(0);
 
-  await orgBrowserPage.applyTextFilter('ApexClass:Broker');
+  await orgBrowserPage.applyTextFilter('CustomObject:Broker__c');
 
   const componentsAfter = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
   await expect(componentsAfter.first()).toBeVisible({ timeout: 10_000 });
   const afterCount = await componentsAfter.count();
   expect(afterCount).toBeLessThanOrEqual(componentsBefore);
+  await expect(componentsAfter.first()).toHaveAccessibleName(/Broker__c/i);
 });
 
 test('Org Browser - text filter: unresolved type name empties the tree', async ({ page }) => {
