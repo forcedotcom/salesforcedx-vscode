@@ -17,9 +17,9 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^8.32.2",
-    "@salesforce/kit": "^3.2.6",
-    "@salesforce/ts-types": "^2.0.10",
+    "@salesforce/core": "^9.0.0",
+    "@salesforce/kit": "^4.0.0",
+    "@salesforce/ts-types": "^3.0.0",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -124,7 +124,7 @@
   },
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">=18.18.2"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"
