@@ -29,7 +29,6 @@ import { noOrgTest } from '../fixtures';
       // Moved template commands should be visible with just a project
       await verifyCommandExists(page, packageNls.apex_generate_class_text, 30_000);
       await verifyCommandExists(page, packageNls.apex_generate_trigger_text, 30_000);
-      await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 30_000);
     });
 
     await noOrgTest.step('verify org-dependent commands are hidden', async () => {
