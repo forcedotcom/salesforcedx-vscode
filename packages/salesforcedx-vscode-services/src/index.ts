@@ -162,6 +162,8 @@ export type { AliasService } from './core/alias';
 export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   TemplateService,
+  type ApexClassCreateOptions,
+  type ApexTriggerCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,

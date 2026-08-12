@@ -17,8 +17,6 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
-import { apexGenerateUnitTestClassCommand } from './commands/apexGenerateUnitTestClass';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { createApexClassCommand } from './commands/createApexClass';
 import { createApexTriggerCommand } from './commands/createApexTrigger';
@@ -82,9 +80,6 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.log.openFolder', openLogsFolderCommand),
       registerCommand('sf.apex.generate.class', createApexClassCommand),
       registerCommand('sf.apex.generate.trigger', createApexTriggerCommand),
-      registerCommand('sf.apex.generate.unit.test.class', (outputDir?: URI) =>
-        apexGenerateUnitTestClassCommand(undefined, outputDir)
-      ),
       registerCommand('sf.apex.traceFlags.open', () => openTraceFlagsCommand()),
       registerCommand('sf.apex.traceFlags.createForCurrentUser', () => createTraceFlagForCurrentUserCommand()),
       registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () => deleteTraceFlagForCurrentUserCommand()),
