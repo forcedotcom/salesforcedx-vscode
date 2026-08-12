@@ -18,10 +18,18 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_class_default_template_description: 'コンストラクター付きの標準 Apex クラス',
   apex_class_exception_template_description: 'カスタム例外クラス',
   apex_class_inbound_email_template_description: '受信メールサービスハンドラー',
+  apex_class_unit_test_template_description: 'サンプルテストメソッド付きの単体テストテンプレート',
+  apex_class_basic_unit_test_template_description: '最小限の単体テストテンプレート',
+  apex_class_batchable_template_description: 'バッチ処理可能な Apex クラス',
+  apex_class_queueable_template_description: 'キュー処理可能な Apex クラス',
+  apex_class_builtin_templates_label: '組み込みテンプレート',
+  apex_class_custom_templates_label: 'カスタムテンプレート',
   apex_generate_class_success: 'Apex クラスが正常に作成されました',
   apex_trigger_name_prompt: 'Apex トリガ名を入力',
-  apex_generate_trigger_success: 'Apex トリガが作成されました',
-  apex_test_class_name_prompt: 'Apex テストクラス名を入力',
-  apex_unit_test_template_description: 'サンプルテストメソッド付きテンプレート',
-  basic_unit_test_template_description: '最小限のテンプレート'
+  apex_trigger_sobject_prompt: 'トリガ対象の sObject を選択または入力',
+  apex_trigger_events_prompt: 'トリガイベントを選択',
+  apex_trigger_default_template_description: '標準 Apex トリガ',
+  apex_trigger_builtin_templates_label: '組み込みテンプレート',
+  apex_trigger_custom_templates_label: 'カスタムテンプレート',
+  apex_generate_trigger_success: 'Apex トリガが作成されました'
 };

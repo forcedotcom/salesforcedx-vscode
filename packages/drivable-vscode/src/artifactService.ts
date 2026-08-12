@@ -50,32 +50,28 @@ export class ArtifactService extends Effect.Service<ArtifactService>()('Drivable
     const create = Effect.fn('ArtifactService.create')(function* (artifactRoot: string, runId: string) {
       const artifactDir = path.join(artifactRoot, runId);
       const screenshotsDir = path.join(artifactDir, 'screenshots');
-      yield* fs
-        .makeDirectory(screenshotsDir, { recursive: true })
-        .pipe(
-          Effect.mapError(
-            cause =>
-              new DrivableVscodeArtifactError({
-                message: 'Failed to create artifact directory',
-                cause: causeMessage(cause)
-              })
-          )
-        );
+      yield* fs.makeDirectory(screenshotsDir, { recursive: true }).pipe(
+        Effect.mapError(
+          cause =>
+            new DrivableVscodeArtifactError({
+              message: 'Failed to create artifact directory',
+              cause: causeMessage(cause)
+            })
+        )
+      );
       const semaphore = yield* Effect.makeSemaphore(1);
       const findings: DrivableVscodeFinding[] = [];
       const write = Effect.fn('ArtifactService.write')((item: ArtifactWrite) =>
         semaphore.withPermits(1)(
-          fs
-            .writeFileString(item.filePath, item.contents, item.append ? { flag: 'a' } : undefined)
-            .pipe(
-              Effect.mapError(
-                cause =>
-                  new DrivableVscodeArtifactError({
-                    message: `Failed to write ${item.filePath}`,
-                    cause: causeMessage(cause)
-                  })
-              )
+          fs.writeFileString(item.filePath, item.contents, item.append ? { flag: 'a' } : undefined).pipe(
+            Effect.mapError(
+              cause =>
+                new DrivableVscodeArtifactError({
+                  message: `Failed to write ${item.filePath}`,
+                  cause: causeMessage(cause)
+                })
             )
+          )
         )
       );
       return {

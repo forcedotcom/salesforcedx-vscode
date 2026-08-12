@@ -4,7 +4,6 @@
   "apexLog.command.createAnonymousApexScript": "SFDX: Create Anonymous Apex Script",
   "apex_generate_class_text": "SFDX: Create Apex Class",
   "apex_generate_trigger_text": "SFDX: Create Apex Trigger",
-  "apex_generate_unit_test_class_text": "SFDX: Create Apex Unit Test Class",
   "apexLog.command.logGet": "SFDX: Get Apex Debug Logs",
   "apexLog.command.openLogsFolder": "SFDX: Open Apex Logs Folder",
   "apexLog.configuration.title": "Salesforce Apex Log",
