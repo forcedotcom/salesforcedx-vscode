@@ -12,6 +12,8 @@ jest.mock('../../../src/channels', () => ({
   getCoreChannelService: () => ({ appendLine: jest.fn() })
 }));
 
+type InspectResult = ReturnType<vscode.WorkspaceConfiguration['inspect']>;
+
 // Minimal RedHat XML extension API stub
 const makeRedhatExtension = () =>
   ({
@@ -25,7 +27,7 @@ const makeRedhatExtension = () =>
   }) as unknown as vscode.Extension<any>;
 
 // Build a WorkspaceConfiguration stub for the xml namespace
-const makeXmlConfig = (inspectResult: Partial<vscode.InspectPropertiesType<string>>): vscode.WorkspaceConfiguration =>
+const makeXmlConfig = (inspectResult: Partial<InspectResult>): vscode.WorkspaceConfiguration =>
   ({
     get: jest.fn().mockReturnValue(undefined),
     update: jest.fn().mockResolvedValue(undefined),
@@ -54,10 +56,7 @@ describe('MetadataXmlSupport — showSchemaDocumentationType suppression', () =>
     } as unknown as vscode.ExtensionContext;
   });
 
-  const runInitialize = async (
-    doNotSuppress: boolean,
-    inspectResult: Partial<vscode.InspectPropertiesType<string>>
-  ) => {
+  const runInitialize = async (doNotSuppress: boolean, inspectResult: Partial<InspectResult>) => {
     const redhat = makeRedhatExtension();
     const xmlConfig = makeXmlConfig(inspectResult);
     xmlConfigUpdateMock = jest.mocked(xmlConfig.update);
