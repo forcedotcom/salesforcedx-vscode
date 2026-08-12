@@ -38,15 +38,17 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('command is present', async () => {
-    await verifyCommandExists(page, packageNls.apex_generate_unit_test_class_text, 120_000);
+    await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
   });
 
-  await test.step('run Create Apex Unit Test Class command', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.apex_generate_unit_test_class_text);
+  await test.step('run Create Apex Class command', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
     await saveScreenshot(page, 'step.command-triggered.png');
   });
 
-  await test.step('select template in QuickPick', async () => {
+  await test.step('select ApexUnitTest template in QuickPick', async () => {
+    await waitForQuickInputFirstOption(page);
+    await page.keyboard.type('ApexUnitTest');
     await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.template-selected.png');
@@ -55,7 +57,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   await test.step('enter class name in InputBox', async () => {
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await quickInput.getByText(messages.apex_test_class_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_class_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await page.keyboard.type(className);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step.class-name-entered.png');

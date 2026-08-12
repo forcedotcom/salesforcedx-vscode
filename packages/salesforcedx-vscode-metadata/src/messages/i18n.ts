@@ -71,7 +71,6 @@ export const messages = {
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
   delete_source_operation_failed: 'Delete operation failed: %s',
-  delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   manifest_file_name_empty_error: 'File name cannot be empty',

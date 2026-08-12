@@ -17,7 +17,7 @@
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "jsforce": "^3.10.16",
+    "jsforce": "^3.10.19",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^11",
@@ -32,7 +32,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "^0.86.2",
+    "@effect/language-service": "^0.87.2",
     "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
@@ -51,8 +51,8 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
-    "@typescript-eslint/eslint-plugin": "^8.65.0",
-    "@typescript-eslint/parser": "^8.65.0",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "3.5.0",
@@ -69,17 +69,17 @@
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
     "esbuild-plugins-node-modules-polyfill": "1.8.2",
-    "eslint": "^10.5.0",
+    "eslint": "^10.8.1",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-barrel-files": "^3.0.1",
-    "eslint-plugin-eslint-plugin": "7.2.0",
-    "eslint-plugin-functional": "9.0.3",
-    "eslint-plugin-import-x": "4.16.2",
-    "eslint-plugin-jest": "29.15.2",
+    "eslint-plugin-eslint-plugin": "7.6.1",
+    "eslint-plugin-functional": "9.0.5",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-jest": "29.16.0",
     "eslint-plugin-jest-formatting": "3.1.0",
-    "eslint-plugin-jsdoc": "63.0.2",
+    "eslint-plugin-jsdoc": "63.3.3",
     "eslint-plugin-local-rules": "3.0.2",
-    "eslint-plugin-playwright": "2.10.4",
+    "eslint-plugin-playwright": "2.11.0",
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-unicorn": "68.0.0",
     "eslint-plugin-workspaces": "0.12.1",
@@ -146,6 +146,11 @@
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
+    "vscode:package:prerelease": "wireit",
+    "vscode:package:modern:prerelease": "wireit",
+    "vscode:package:legacy:prerelease": "wireit",
+    "package:packages": "npm run vscode:package",
+    "package:packages:prerelease": "npm run vscode:package:prerelease",
     "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
@@ -192,6 +197,7 @@
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
+        "./packages/drivable-vscode:compile",
         "./packages/salesforcedx-vscode-apex-log:compile"
       ]
     },
@@ -223,6 +229,7 @@
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
+        "./packages/drivable-vscode:lint",
         "./packages/salesforcedx-vscode-apex-log:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
@@ -261,6 +268,7 @@
         "./packages/salesforcedx-vscode-services:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
+        "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
         "./packages/effect-ext-utils:test"
       ]
@@ -307,6 +315,15 @@
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
       ]
     },
+    "vscode:package:legacy:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
+      ]
+    },
     "vscode:package:modern": {
       "dependencies": [
         "./packages/salesforcedx-vscode:vscode:package",
@@ -323,6 +340,22 @@
         "./packages/salesforcedx-vscode-metadata:vscode:package"
       ]
     },
+    "vscode:package:modern:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-expanded:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-log:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-visualforce:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-soql:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-services:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org-browser:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-metadata:vscode:package:prerelease"
+      ]
+    },
     "vscode:package": {
       "command": "npm run vscode:package:legacy",
       "env": {
@@ -330,6 +363,12 @@
       },
       "dependencies": [
         "vscode:package:modern"
+      ]
+    },
+    "vscode:package:prerelease": {
+      "dependencies": [
+        "vscode:package:modern:prerelease",
+        "vscode:package:legacy:prerelease"
       ]
     },
     "run:web": {

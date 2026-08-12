@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.7.1",
+  "version": "67.11.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.37.2",
+    "@salesforce/source-deploy-retrieve": "^13.0.0",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -62,7 +62,8 @@
     "lint:fix": "npm run lint -- --fix",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -262,6 +263,24 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls.json",
+        "package.nls.ja.json",
+        "README.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "activationEvents": [

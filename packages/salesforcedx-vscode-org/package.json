@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.7.1",
+  "version": "67.11.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^9.0.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-services": "*",
@@ -57,7 +57,8 @@
     "test": "wireit",
     "test:desktop": "wireit",
     "check:circular-deps": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -191,6 +192,23 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "activationEvents": [
@@ -211,6 +229,10 @@
   "contributes": {
     "menus": {
       "commandPalette": [
+        {
+          "command": "sf.alias.list",
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
         {
           "command": "sf.org.login.web.dev.hub",
           "when": "sf:project_opened"
@@ -266,6 +288,10 @@
       ]
     },
     "commands": [
+      {
+        "command": "sf.alias.list",
+        "title": "%alias_list_text%"
+      },
       {
         "command": "sf.org.login.web.dev.hub",
         "title": "%org_login_web_authorize_dev_hub_text%"

@@ -16,6 +16,14 @@ import { Disposable, env, workspace } from 'vscode';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
+const guard = (label: string, op: () => void): void => {
+  try {
+    op();
+  } catch (error) {
+    console.error(`O11yReporter ${label} failed:`, error);
+  }
+};
+
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
 const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
   promise: null
@@ -55,7 +63,8 @@ export class O11yReporter
     o11yUploadEndpoint: string,
     public userId: string,
     public webUserId: string,
-    productFeatureId?: string
+    productFeatureId?: string,
+    private readonly directLocal = false
   ) {
     super(() => {
       this.toDispose.forEach(d => {
@@ -73,7 +82,7 @@ export class O11yReporter
 
   public async initialize(extensionName: string): Promise<void> {
     // when O11Y_ENDPOINT is set, omit getConnection so uploader skips org proxy and POSTs directly to endpoint
-    const connectionMethod = process.env.O11Y_ENDPOINT ? undefined : getConnection;
+    const connectionMethod = this.directLocal ? undefined : getConnection;
     await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, connectionMethod);
 
     // Enable automatic batching with 30-second periodic flush
@@ -152,10 +161,12 @@ export class O11yReporter
           : { ...props, webUserId: this.webUserId }
       );
 
-      this.o11yService.logEvent({
-        name: `${this.extensionId}/${eventName}`,
-        properties: props,
-        measurements
+      guard('logEvent', () => {
+        this.o11yService.logEvent({
+          name: `${this.extensionId}/${eventName}`,
+          properties: props,
+          measurements
+        });
       });
 
       // Batching is enabled - no need to upload after each event
@@ -163,7 +174,9 @@ export class O11yReporter
 
       // we also send these for monCloud/PFT
       if (eventName === 'commandExecution') {
-        void this.sendPftEvent({ orgId, devHubId, commandId: props.commandName });
+        this.sendPftEvent({ orgId, devHubId, commandId: props.commandName }).catch(error => {
+          console.error('O11yReporter sendPftEvent failed:', error);
+        });
       }
     }
   }
@@ -189,10 +202,12 @@ export class O11yReporter
         webUserId: this.webUserId
       });
 
-      this.o11yService.logEvent({
-        exception: error,
-        properties: props,
-        measurements
+      guard('logEvent(exception)', () => {
+        this.o11yService.logEvent({
+          exception: error,
+          properties: props,
+          measurements
+        });
       });
 
       // Batching is enabled - no need to upload after each event
@@ -208,7 +223,9 @@ export class O11yReporter
     }
 
     // Force final flush of any remaining events
-    await this.o11yService.forceFlush();
+    await this.o11yService.forceFlush().catch(error => {
+      console.error('O11yReporter forceFlush failed:', error);
+    });
   }
 
   /**

@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.7.1",
+  "version": "67.11.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -34,7 +34,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^9.0.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -55,7 +55,8 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -263,6 +264,26 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**",
+        "syntaxes/**",
+        "grammars/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "contributes": {
@@ -335,10 +356,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.anon.apex.execute.selection",
           "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && editorHasSelection && sf:has_target_org"
         },
@@ -401,10 +418,6 @@
         {
           "command": "sf.apex.generate.class",
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
-        },
-        {
-          "command": "sf.apex.generate.unit.test.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
         }
       ]
     },
@@ -420,10 +433,6 @@
       {
         "command": "sf.apex.generate.trigger",
         "title": "%apex_generate_trigger_text%"
-      },
-      {
-        "command": "sf.apex.generate.unit.test.class",
-        "title": "%apex_generate_unit_test_class_text%"
       },
       {
         "command": "sf.apex.log.get",

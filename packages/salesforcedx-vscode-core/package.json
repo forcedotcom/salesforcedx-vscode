@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.7.1",
+  "version": "67.11.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,13 +28,13 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^9.0.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.37.2",
-    "@salesforce/templates": "^66.13.3",
-    "@salesforce/ts-types": "^2.0.12",
+    "@salesforce/source-deploy-retrieve": "^13.0.0",
+    "@salesforce/templates": "^66.13.5",
+    "@salesforce/ts-types": "^3.0.0",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.8.10",
@@ -45,7 +45,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*"
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -85,7 +86,8 @@
     "test": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -121,7 +123,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:schemas"
+        "copy:schemas",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
@@ -181,12 +184,13 @@
       "dependencies": [
         "vscode:package:legacy",
         "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**",
         "package*.json",
         "../../.github/**"
       ],
@@ -203,6 +207,15 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:legacy:prerelease": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "env": {
+        "VSCE_PRE_RELEASE": "true"
+      }
     }
   },
   "activationEvents": [
@@ -219,10 +232,6 @@
         {
           "command": "sf.config.list",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.alias.list",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         }
       ]
     },
@@ -234,10 +243,6 @@
       {
         "command": "sf.config.list",
         "title": "%config_list_text%"
-      },
-      {
-        "command": "sf.alias.list",
-        "title": "%alias_list_text%"
       }
     ],
     "configuration": {

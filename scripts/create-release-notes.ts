@@ -42,11 +42,23 @@ function getCurrentRemoteReleaseBranch(): string {
  */
 function getPreviousRemoteReleaseBranch(): string {
   logger('\nStep 2: Getting latest tag to compare last published version');
-  // Match only top-level extension release tags (e.g. v66.5.4), excluding
-  // subpackage tags like `vscode-i18n-v66.7.0` or `soql-common-v2.0.0`.
-  const latestReleasedTag = execSync("git describe --tags --abbrev=0 --match 'v[0-9]*'", {
+  // Match only top-level extension release tags (e.g. v66.5.4), excluding:
+  // - subpackage tags like `vscode-i18n-v66.7.0` or `soql-common-v2.0.0`
+  // - nightly prerelease tags like `v67.7.2-nightly.develop.20260803`
+  // Get all matching tags, sorted by version, then filter out nightly tags
+  const allTags = execSync("git tag --list 'v[0-9]*' --sort=-version:refname", {
     encoding: 'utf8'
-  }).trim();
+  })
+    .trim()
+    .split('\n')
+    .filter(tag => tag && !tag.includes('-nightly.'));
+
+  if (allTags.length === 0) {
+    console.error('No stable release tags found');
+    process.exit(1);
+  }
+
+  const latestReleasedTag = allTags[0];
   const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
   validateReleaseBranch(latestReleasedBranchName);
   return latestReleasedBranchName;

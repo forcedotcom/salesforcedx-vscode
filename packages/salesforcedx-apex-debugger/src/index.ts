@@ -39,11 +39,10 @@ export type WorkspaceSettings = {
   connectionTimeoutMs: number;
 };
 
-// Define Metric object to be used for sending attributes to AppInsights telemetry
-// NOTE: Refer to attribute names 'message' and 'eventName' defined in sendTelemetryEvent() in telemetryReporter.d.ts, which match the names in AppInsights telemetry
+// Define the metric payload sent to the debugger extension.
 type Metric = {
-  message: string; // match 'subject' attribute in Event from messages.d.ts
-  eventName: string; // match 'type' attribute in Event from messages.d.ts
+  subject: string;
+  type: string;
 };
 
 // Type guard to check if the object conforms to Metric

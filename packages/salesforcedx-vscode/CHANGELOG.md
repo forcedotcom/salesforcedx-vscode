@@ -1,36 +1,45 @@
-# 67.7.1 - July 29, 2026
+# 67.10.0 - August 12, 2026
 
 ## Added
 
-#### salesforcedx-vscode-core
+#### salesforcedx-vscode-apex
 
-- We added support for Japanese localization. If your VS Code display language is set to Japanese, you'll now see Japanese translations in the Salesforce extensions. ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
+- We added an option to automatically terminate orphaned Apex Language Server
+  processes without prompting. Enable the new
+  `salesforcedx-vscode-apex.autoTerminateOrphanedProcesses` setting to silently
+  kill orphaned processes on activation, or click **Always Auto-Terminate** in
+  the orphan-detection prompt to enable it with confirmation.
+  ([PR #7643](https://github.com/forcedotcom/salesforcedx-vscode/pull/7643))
 
-#### salesforcedx-vscode-metadata
+#### salesforcedx-vscode-apex-log
 
-- When you run **SFDX: Create Project**, you can now select **Angular** as a framework option for Experience Cloud sites. ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
+- The trace flag user picker now groups results by user type — Standard,
+  Automated Process, Partner, Customer/Portal, Guest, and Other — making it
+  easier to find the right user when setting a trace flag.
+  ([PR #7958](https://github.com/forcedotcom/salesforcedx-vscode/pull/7958))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-debugger
+#### salesforcedx-vscode-core
 
-- We fixed a bug where **SFDX: Stop Apex Debugger Session** showed a "No target org configured" error instead of stopping the current ISV Debugger session. ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
+- We fixed a bug where `NODE_EXTRA_CA_CERTS`, `SF_LOG_LEVEL`, and
+  `SF_DISABLE_TELEMETRY` were not passed to `sf` CLI commands. Settings changes
+  now take effect on the next command without requiring a VS Code window reload.
+  ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
 
-#### salesforcedx-vscode-apex-testing
-
-- When you delete an Apex test suite with **SFDX: Delete Apex Test Suite**, the suite now correctly disappears from the **Testing** sidebar. ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
-
-- We fixed a bug in **SFDX: Edit Apex Test Suite** where test classes with namespaces weren't being correctly selected when editing an existing suite. ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
-
-#### salesforcedx-vscode-lwc
-
-- When Jest fails to run tests due to module resolution errors or syntax errors, the **Test Results** panel now displays the actual error message instead of "test case did not report any output". ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845), [ISSUE #7788](https://github.com/forcedotcom/salesforcedx-vscode/issues/7788))
+- We updated the `@salesforce/templates` dependency to prevent a vulnerability
+  that could allow malicious template execution.
+  ([PR #7935](https://github.com/forcedotcom/salesforcedx-vscode/pull/7935))
 
 #### salesforcedx-vscode-org
 
-- You can now use hyphens in org aliases when authorizing orgs or creating scratch orgs (for example, `my-scratch-org`). ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866), [ISSUE #7794](https://github.com/forcedotcom/salesforcedx-vscode/issues/7794))
+- We fixed a bug where a malformed or unsafe `sfdcLoginUrl` in
+  `sfdx-project.json` could be offered as the **Project Default** login URL.
+  Malformed URLs are now rejected and a warning is shown.
+  ([PR #7945](https://github.com/forcedotcom/salesforcedx-vscode/pull/7945))
 
-## Under the Hood
+#### salesforcedx-vscode-services
 
-- We made some under the hood changes. ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659), [PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797), [PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810), [PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822), [PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856), [PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862), [PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876), [PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883), [PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893), [PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
-
+- We improved output-channel error messages to include the error type, making
+  failures easier to identify.
+  ([PR #7920](https://github.com/forcedotcom/salesforcedx-vscode/pull/7920))

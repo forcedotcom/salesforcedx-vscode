@@ -20,7 +20,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { getDefaultOrgRef } from './core/defaultOrgRef';
+import { getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -136,12 +136,13 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
-    SdkLayerFor: typeof SdkLayerFor;
+    SdkLayerFor: PublicSdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
+    TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -150,9 +151,18 @@ export type SalesforceVSCodeServicesApi = {
     UserCancellationError: typeof UserCancellationError;
   };
 };
+type PublicSdkLayerFor = (
+  input: Parameters<typeof SdkLayerFor>[0]
+) => Layer.Layer<
+  Layer.Layer.Success<ReturnType<typeof SdkLayerFor>>,
+  Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
+>;
 export type { AliasService } from './core/alias';
+export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   TemplateService,
+  type ApexClassCreateOptions,
+  type ApexTriggerCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,
@@ -296,110 +306,115 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   setExtensionContext(context);
   const extensionScope = Effect.runSync(getExtensionScope());
-
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    // load auth from local environment.  development only.
-    if (process.env.ESBUILD_WEB_CONFIG) {
-      await Effect.runPromise(runWebAuthEffect());
+  const activateWithScope = async (): Promise<SalesforceVSCodeServicesApi> => {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      // load auth from local environment.  development only.
+      if (process.env.ESBUILD_WEB_CONFIG) {
+        await Effect.runPromise(runWebAuthEffect());
+      }
+      // first, before all other things, get the FS running.
+      await Effect.runPromise(
+        fileSystemSetup(context).pipe(
+          Effect.provide(
+            Layer.mergeAll(
+              SettingsService.Default,
+              ChannelService.Default,
+              IndexedDBStorageServiceShared,
+              isItReadOnlyLayer,
+              ServicesSdkLayer()
+            )
+          ),
+          Scope.extend(extensionScope)
+        )
+      );
+      // test-web has this on by default. vscode-dev does not
+      if (vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false)) {
+        await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
+      }
     }
-    // first, before all other things, get the FS running.
-    await Effect.runPromise(
-      fileSystemSetup(context).pipe(
-        Effect.provide(
-          Layer.mergeAll(
-            SettingsService.Default,
-            ChannelService.Default,
-            IndexedDBStorageServiceShared,
-            isItReadOnlyLayer,
-            ServicesSdkLayer()
-          )
-        ),
-        Scope.extend(extensionScope)
-      )
+    const internalLayers = Layer.mergeAll(
+      FileWatcherLayer,
+      ServicesSdkLayer(),
+      SettingsWatcherLayer,
+      ErrorHandlerService.Default
+    ).pipe(Layer.provideMerge(ChannelService.Default));
+
+    const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(globalLayers));
+
+    // Build the layer with extensionScope - scoped services live until extension deactivates
+    const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
+    const publicSdkLayerFor: PublicSdkLayerFor = SdkLayerFor;
+
+    // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
+    // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
+    // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
+    // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
+    // fails fast until this is set, so it never blocks activation waiting on it.
+    builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
+
+    await activationEffect(context).pipe(
+      Effect.provide(builtContext),
+      Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
+      Effect.runPromise
     );
-    // test-web has this on by default. vscode-dev does not
-    if (vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false)) {
-      await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
-    }
 
-    const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
-    context.subscriptions.push(getWebAppInsightsReporter());
-  }
-  const internalLayers = Layer.mergeAll(
-    FileWatcherLayer,
-    ServicesSdkLayer(),
-    SettingsWatcherLayer,
-    ErrorHandlerService.Default
-  ).pipe(Layer.provideMerge(ChannelService.Default));
+    console.log('Salesforce Services extension is now active!');
 
-  const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(globalLayers));
-
-  // Build the layer with extensionScope - scoped services live until extension deactivates
-  const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
-
-  // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
-  // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
-  // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
-  // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
-  // fails fast until this is set, so it never blocks activation waiting on it.
-  builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
-
-  await activationEffect(context).pipe(
-    Effect.provide(builtContext),
-    Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
-    Effect.runPromise
-  );
-
-  console.log('Salesforce Services extension is now active!');
-
-  // Return API for other extensions to consume
-  return {
-    services: {
-      prebuiltServicesDependencies: builtContext,
-      ApexLogService,
-      AliasService,
-      TemplateService,
-      TemplateType,
-      ChannelService,
-      ChannelServiceLayer,
-      ComponentSetService,
-      LightningComponentService,
-      ConfigService,
-      ConnectionService,
-      ExecuteAnonymousService,
-      registerCommandWithLayer,
-      registerCommandWithRuntime,
-      EditorService,
-      ErrorHandlerService,
-      ExtensionContextService,
-      ExtensionContextServiceLayer,
-      FileChangePubSub,
-      FsService,
-      getErrorMessage,
-      MediaService,
-      MetadataChangeNotificationService,
-      MetadataDeleteService,
-      MetadataDescribeService,
-      MetadataDeployService,
-      MetadataRegistryService,
-      MetadataRetrieveService,
-      ProjectService,
-      getSdkLayerConfigFromContext,
-      SdkLayerFor,
-      SettingsChangePubSub,
-      SettingsService,
-      SourceTrackingService,
-      ActiveMetadataOperationRef: getActiveMetadataOperationRef,
-      TargetOrgRef: getDefaultOrgRef,
-      TerminalService,
-      TransmogrifierService,
-      TraceFlagItemStruct,
-      TraceFlagService,
-      WorkspaceService,
-      PromptService,
-      UserCancellationError
-    }
+    // Return API for other extensions to consume
+    return {
+      services: {
+        prebuiltServicesDependencies: builtContext,
+        ApexLogService,
+        AliasService,
+        TemplateService,
+        TemplateType,
+        ChannelService,
+        ChannelServiceLayer,
+        ComponentSetService,
+        LightningComponentService,
+        ConfigService,
+        ConnectionService,
+        ExecuteAnonymousService,
+        registerCommandWithLayer,
+        registerCommandWithRuntime,
+        EditorService,
+        ErrorHandlerService,
+        ExtensionContextService,
+        ExtensionContextServiceLayer,
+        FileChangePubSub,
+        FsService,
+        getErrorMessage,
+        MediaService,
+        MetadataChangeNotificationService,
+        MetadataDeleteService,
+        MetadataDescribeService,
+        MetadataDeployService,
+        MetadataRegistryService,
+        MetadataRetrieveService,
+        ProjectService,
+        getSdkLayerConfigFromContext,
+        SdkLayerFor: publicSdkLayerFor,
+        SettingsChangePubSub,
+        SettingsService,
+        SourceTrackingService,
+        ActiveMetadataOperationRef: getActiveMetadataOperationRef,
+        TargetOrgRef: getDefaultOrgRef,
+        TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
+        TerminalService,
+        TransmogrifierService,
+        TraceFlagItemStruct,
+        TraceFlagService,
+        WorkspaceService,
+        PromptService,
+        UserCancellationError
+      }
+    };
   };
+  return activateWithScope().catch(async error => {
+    // Cleanup completes before the original activation rejection is restored.
+    await Effect.runPromise(disposeServicesRuntime().pipe(Effect.ensuring(closeExtensionScope())));
+    return Effect.runPromise(Effect.fail(error));
+  });
 };
 
 /** Deactivates the Salesforce Services extension */
@@ -416,10 +431,7 @@ const deactivateEffect = Effect.gen(function* () {
   yield* ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
   );
-}).pipe(
-  Effect.withSpan('deactivation:salesforcedx-vscode-services'),
-  Effect.provide(Layer.mergeAll(ChannelService.Default, ServicesSdkLayer()))
-);
+}).pipe(Effect.provide(ChannelService.Default));
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';

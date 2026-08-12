@@ -1,0 +1,137 @@
+name: Nightly Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: false
+        default: 'develop'
+        type: string
+      extensions:
+        description: |
+          Comma-separated extension names (e.g., "salesforcedx-vscode-apex,salesforcedx-vscode-core")
+          Leave empty to publish all extensions (dynamically discovered via scripts/list-vscode-extensions.js)
+        required: false
+        default: ''
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Nightly pre-release build at 4 AM UTC - publishes all extensions
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.event.inputs.branch || 'develop' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  validate-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required secrets
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry-run || false }}
+          IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
+          OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
+        run: |
+          MISSING_SECRETS=()
+
+          # IDEE_GH_TOKEN always required (for version bumps and tagging)
+          if [ -z "$IDEE_GH_TOKEN" ]; then
+            MISSING_SECRETS+=("IDEE_GH_TOKEN")
+          fi
+
+          # Publishing tokens only required when not in dry-run
+          if [ "$DRY_RUN" != "true" ]; then
+            if [ -z "$VSCE_PAT" ]; then
+              MISSING_SECRETS+=("VSCE_PERSONAL_ACCESS_TOKEN")
+            fi
+            if [ -z "$OVSX_PAT" ]; then
+              MISSING_SECRETS+=("IDEE_OVSX_PAT")
+            fi
+          fi
+
+          if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+            echo "❌ Missing required secrets: ${MISSING_SECRETS[*]}"
+            exit 1
+          fi
+
+          echo "✅ All required secrets are configured"
+
+  build-extension-list:
+    needs: validate-secrets
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.list.outputs.extensions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'develop' }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Build extension list
+        id: list
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_EXTENSIONS: ${{ github.event.inputs.extensions }}
+        run: |
+          # For scheduled runs or empty input, publish all extensions
+          if [ "$EVENT_NAME" = "schedule" ] || [ -z "$INPUT_EXTENSIONS" ]; then
+            # Dynamically discover all publishable VS Code extensions
+            EXTENSIONS=$(node scripts/list-vscode-extensions.js)
+            EXTENSION_COUNT=$(echo "$EXTENSIONS" | tr ',' '\n' | wc -l)
+            echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
+          else
+            # Sanitize: allow alphanumeric, dash, underscore, comma only (prevent command injection)
+            SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,_-')
+
+            if [ "$SANITIZED" != "$INPUT_EXTENSIONS" ]; then
+              echo "❌ Invalid characters in extensions input. Only alphanumeric, dash, underscore, and comma allowed."
+              printf 'Original: %s\n' "$INPUT_EXTENSIONS"
+              printf 'Sanitized: %s\n' "$SANITIZED"
+              exit 1
+            fi
+
+            EXTENSIONS="$SANITIZED"
+            echo "Publishing specified extensions: $EXTENSIONS"
+          fi
+
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+
+  get-git-identity:
+    runs-on: ubuntu-latest
+    outputs:
+      username: ${{ steps.github-user-info.outputs.username }}
+      email: ${{ steps.github-user-info.outputs.email }}
+    steps:
+      - name: Get Github user info
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+  nightly-release:
+    needs: [build-extension-list, get-git-identity]
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
+    with:
+      branch: ${{ github.event.inputs.branch || 'develop' }}
+      extensions: ${{ needs.build-extension-list.outputs.extensions }}
+      registries: 'all'
+      pre-release: 'true'
+      version-bump: 'auto'
+      dry-run: ${{ github.event.inputs.dry-run || false }}
+      git-user-name: ${{ needs.get-git-identity.outputs.username }}
+      git-user-email: ${{ needs.get-git-identity.outputs.email }}
+    secrets: inherit

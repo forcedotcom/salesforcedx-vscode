@@ -18,7 +18,7 @@ import * as Stream from 'effect/Stream';
 import * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { Utils, type URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
@@ -43,9 +43,9 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
   T extends SfTemplates.TemplateType.AnalyticsTemplate
     ? SfTemplates.AnalyticsTemplateOptions
     : T extends SfTemplates.TemplateType.ApexClass
-      ? SfTemplates.ApexClassOptions
+      ? ApexClassCreateOptions
       : T extends SfTemplates.TemplateType.ApexTrigger
-        ? SfTemplates.ApexTriggerOptions
+        ? ApexTriggerCreateOptions
         : T extends SfTemplates.TemplateType.LightningApp
           ? SfTemplates.LightningAppOptions
           : T extends SfTemplates.TemplateType.LightningComponent
@@ -74,6 +74,27 @@ export type CreateParams<T extends SfTemplates.TemplateType = SfTemplates.Templa
   readonly templateType: T;
   readonly outputdir?: URI;
   readonly options: TemplateOptionsFor<T>;
+};
+
+/** Apex class options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type ApexClassCreateOptions = {
+  readonly template: string;
+  readonly classname: string;
+  readonly apiversion?: string;
+  readonly outputdir?: string;
+  readonly sobjecttype?: string;
+};
+
+/** Apex trigger options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type ApexTriggerCreateOptions = {
+  readonly template: string;
+  readonly triggername: string;
+  readonly sobject: string;
+  readonly triggerevents: string;
+  readonly apiversion?: string;
+  readonly outputdir?: string;
 };
 
 export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<TemplatesRootPathNotAvailableError>()(
@@ -271,6 +292,42 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       )
     );
 
+    const getBuiltInTemplateNames = Effect.fn('TemplateService.getBuiltInTemplateNames')(function* (
+      templateDir: string,
+      filetype: RegExp
+    ) {
+      const { templatesRootPath } = yield* getTemplatesRootCached;
+      yield* ensureTemplatesInFsOnce;
+      return yield* Effect.try(() =>
+        SfTemplates.CreateUtil.getCommandTemplatesForFiletype(filetype, templateDir, nodeFs, templatesRootPath)
+      );
+    });
+
+    const getCustomTemplateNames = Effect.fn('TemplateService.getCustomTemplateNames')(function* (
+      templateDir: string,
+      ext: string
+    ) {
+      const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+      if (!customPath) return [];
+      const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
+      const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(subdirUri)).pipe(
+        Effect.catchAll(e => {
+          // Effect.tryPromise wraps thrown values in UnknownException; the original error is on .error
+          const cause = e.error;
+          const isNotFound =
+            cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
+          return isNotFound
+            ? Effect.succeed<[string, vscode.FileType][]>([])
+            : Effect.logWarning(
+                `Failed to read custom templates from ${subdirUri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
+              ).pipe(Effect.as<[string, vscode.FileType][]>([]));
+        })
+      );
+      return entries
+        .filter(([name, type]) => type === vscode.FileType.File && name.endsWith(ext))
+        .map(([name]) => name.slice(0, -ext.length));
+    });
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const { templatesRootPath } = yield* getTemplatesRootCached;
       yield* ensureTemplatesInFsOnce;
@@ -291,6 +348,6 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templateService.create(params.templateType, templateOptions, customTemplatesPath)
       );
     });
-    return { create };
+    return { create, getBuiltInTemplateNames, getCustomTemplateNames };
   })
 }) {}

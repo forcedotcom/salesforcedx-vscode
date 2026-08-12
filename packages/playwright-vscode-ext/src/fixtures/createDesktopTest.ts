@@ -10,8 +10,6 @@ import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { spawnSync, type ChildProcess } from 'node:child_process';
-import * as crypto from 'node:crypto';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -19,6 +17,7 @@ import * as path from 'node:path';
 import { filterErrors, isWindowsDesktop } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createEmptyTestWorkspace, createTestWorkspace } from './desktopWorkspace';
+import { prepareVsixExtensions } from './vsixExtensions';
 
 /** Close timeout before force-kill (non-macOS-CI path). */
 const CLOSE_TIMEOUT_MS = 5000;
@@ -126,85 +125,22 @@ type CreateDesktopTestOptions = {
   emptyWorkspace?: boolean;
   /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
   additionalExtensionDirs?: string[];
+  /** Test-only extension paths, relative to the calling package, loaded as development extensions in all modes. */
+  testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
   userSettings?: Record<string, unknown>;
+  /** Optional setup that must complete before the configured workspace is created and VS Code launches. */
+  beforeLaunch?: () => Promise<unknown>;
   /**
    * When true, install VSIXs and launch VS Code with --extensions-dir instead of --extensionDevelopmentPath.
    * Exercises the real shipping artifact (bundled dist/, packageUpdates, .vscodeignore).
    * Defaults to false; set E2E_FROM_VSIX=1 to enable without code changes.
    */
   useVsix?: boolean;
-};
-
-type ExtensionPackageJson = {
-  name: string;
-  publisher: string;
-  extensionDependencies?: string[];
-};
-
-const unique = <T>(values: T[]): T[] => values.filter((value, index) => values.indexOf(value) === index);
-
-const readExtensionPackageJson = (repoRoot: string, packageDir: string): ExtensionPackageJson =>
-  JSON.parse(readFileSync(path.join(repoRoot, 'packages', packageDir, 'package.json'), 'utf8')) as ExtensionPackageJson;
-
-const orderExtensionDirsForInstall = (repoRoot: string, packageDirs: string[]): string[] => {
-  const dirs = unique(packageDirs);
-  const packagesByDir = new Map(dirs.map(dir => [dir, readExtensionPackageJson(repoRoot, dir)]));
-  const dirsByExtensionId = new Map(dirs.map(dir => [`${packagesByDir.get(dir)!.publisher}.${packagesByDir.get(dir)!.name}`, dir]));
-  const orderedDirs: string[] = [];
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const visit = (dir: string): void => {
-    if (visited.has(dir) || visiting.has(dir)) return;
-    visiting.add(dir);
-    packagesByDir
-      .get(dir)
-      ?.extensionDependencies?.map(id => dirsByExtensionId.get(id))
-      .filter((dependencyDir): dependencyDir is string => dependencyDir !== undefined)
-      .forEach(visit);
-    visiting.delete(dir);
-    visited.add(dir);
-    orderedDirs.push(dir);
-  };
-
-  dirs.forEach(visit);
-  return orderedDirs;
-};
-
-/**
- * Resolve *.vsix files for the given package directories (relative to repo root packages/).
- * Fails loudly if a package has 0 or >1 VSIX (wireit should produce exactly one).
- */
-const resolveVsixPaths = (repoRoot: string, packageDirs: string[]): string[] =>
-  packageDirs.map(dir => {
-    const pkgDir = path.join(repoRoot, 'packages', dir);
-    const vsixFiles = existsSync(pkgDir) ? readdirSync(pkgDir).filter(f => f.endsWith('.vsix')) : [];
-    if (vsixFiles.length !== 1) {
-      throw new Error(
-        `Expected exactly 1 VSIX in packages/${dir}/ but found ${vsixFiles.length}: [${vsixFiles.join(', ')}]. ` +
-          `Run 'npm run vscode:package -w ${dir}' first.`
-      );
-    }
-    return path.join(pkgDir, vsixFiles[0]);
-  });
-
-/**
- * Compute a cache key from the combined sha256 of all VSIX files.
- * Uses file sizes+mtimes as a fast proxy — avoids reading multi-MB VSIX bytes.
- * Marketplace IDs participate in the key so that adding/removing one busts the cache.
- */
-const computeVsixCacheKey = async (vsixPaths: string[], marketplaceExtensions: string[]): Promise<string> => {
-  const hash = crypto.createHash('sha256');
-  for (const p of vsixPaths) {
-    const stat = await fs.stat(p);
-    hash.update(`${p}:${stat.size}:${stat.mtimeMs}`);
-  }
-  marketplaceExtensions.forEach(id => hash.update(`mkt:${id}`));
-  return hash.digest('hex').slice(0, 16);
 };
 
 /**
@@ -234,63 +170,6 @@ const installMarketplaceExtensions = (
   }
 };
 
-/**
- * Install VSIXs into a hash-keyed cache dir under <repoRoot>/.vscode-test/ext-<hash>/.
- * Each worker gets its own per-pid tmp dir to avoid concurrent install conflicts.
- * Atomic rename to final cache dir; second worker to finish sees the dir exists and cleans up.
- * Idempotent: skips if <dir>/extensions.json already exists (first worker won).
- */
-const installVsixsToCache = async (
-  cacheDir: string,
-  vsixPaths: string[],
-  marketplaceExtensions: string[],
-  vscodeExecutable: string
-): Promise<void> => {
-  const extensionsJson = path.join(cacheDir, 'extensions.json');
-  if (existsSync(extensionsJson)) {
-    return; // already installed — fast path
-  }
-
-  // Per-pid tmp dir: avoids concurrent workers writing to the same directory
-  const tmpDir = `${cacheDir}.tmp.${process.pid}`;
-  await fs.rm(tmpDir, { recursive: true, force: true });
-  await fs.mkdir(tmpDir, { recursive: true });
-
-  const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-  // VS Code 1.115+ CLI auto-installs `extensionDependencies` from the marketplace gallery
-  // when multiple --install-extension flags are passed in one invocation; the dep-resolver
-  // queries gallery before sibling vsixs register in extensions.json, so the published
-  // (potentially older) gallery version wins over our local vsix. Install one vsix per
-  // spawn, in dependency order, so each registers before its dependents are processed.
-  const failedInstalls = vsixPaths
-    .map(p => ({
-      p,
-      status: spawnSync(
-        cli,
-        ['--extensions-dir', tmpDir, '--user-data-dir', path.join(tmpDir, '.ud'), '--install-extension', p],
-        { stdio: 'inherit', shell: process.platform === 'win32' }
-      ).status
-    }))
-    .filter(r => r.status !== 0);
-
-  if (failedInstalls.length > 0) {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-    throw new Error(
-      `VSIX install failed: ${failedInstalls.map(r => `${r.p} (exit ${r.status})`).join(', ')}`
-    );
-  }
-
-  // Marketplace extensions install into the same dir — happens after VSIXs so locally-built deps win
-  installMarketplaceExtensions(tmpDir, path.join(tmpDir, '.ud'), marketplaceExtensions, vscodeExecutable);
-
-  // Atomic rename: first worker wins; others clean up their own tmp and use the winner's dir
-  try {
-    await fs.rename(tmpDir, cacheDir);
-  } catch {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-  }
-};
-
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
 export const createDesktopTest = (options: CreateDesktopTestOptions) => {
   const {
@@ -298,9 +177,11 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     orgAlias,
     emptyWorkspace = false,
     additionalExtensionDirs = [],
+    testExtensionPaths = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
-    userSettings
+    userSettings,
+    beforeLaunch
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -330,22 +211,20 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           return;
         }
         const repoRoot = resolveRepoRoot(fixturesDir);
-        const allDirs = orderExtensionDirsForInstall(repoRoot, [
-          'salesforcedx-vscode-services',
-          packageDir,
-          ...additionalExtensionDirs
-        ]);
-        const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
-        const cacheKey = await computeVsixCacheKey(vsixPaths, marketplaceExtensions);
-        const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);
-        await installVsixsToCache(cacheDir, vsixPaths, marketplaceExtensions, vscodeExecutable);
-        await use(cacheDir);
+        const { extensionsDir } = await prepareVsixExtensions({
+          repoRoot,
+          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs],
+          vscodeExecutable,
+          marketplaceExtensions
+        });
+        await use(extensionsDir);
       },
       { scope: 'worker' }
     ],
 
     // Create workspace directory (shared with electronApp so tests can access path)
     workspaceDir: async ({}, use): Promise<void> => {
+      await beforeLaunch?.();
       const dir = emptyWorkspace ? await createEmptyTestWorkspace() : await createTestWorkspace(orgAlias);
       await use(dir);
     },
@@ -389,6 +268,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       }
 
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
+      const testExtensionArgs = testExtensionPaths.map(
+        extensionPath => `--extensionDevelopmentPath=${path.resolve(packageRoot, extensionPath)}`
+      );
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
@@ -423,6 +305,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
           `--user-data-dir=${userDataDir}`,
           `--extensions-dir=${installedExtensionsDir}`,
+          ...testExtensionArgs,
           ...disabledBuiltins,
           ...startupArgs
         ]
@@ -444,6 +327,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             `--user-data-dir=${userDataDir}`,
             `--extensions-dir=${extensionsDir}`,
             ...extensionArgs,
+            ...testExtensionArgs,
             ...(disableOtherExtensions ? ['--disable-extensions'] : []),
             ...disabledBuiltins,
             ...startupArgs
