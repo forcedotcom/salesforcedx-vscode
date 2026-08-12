@@ -88,7 +88,7 @@ export class MetadataXmlSupport {
       redHatExtension.exports.addXMLCatalogs(inputCatalogs);
       redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
 
-      // Suppress RedHat XML hover/completion docs (unless user opts in) to prevent duplication,
+      // Suppress RedHat XML schema documentation (unless user opts in) to prevent duplication,
       // but only if they haven't already set a value for the xml setting at any scope.
       const doNotSuppress = vscode.workspace
         .getConfiguration('salesforcedx-vscode-core')
@@ -99,7 +99,9 @@ export class MetadataXmlSupport {
         const userHasSetValue =
           isNotUndefined(docTypeInspect?.globalValue) ||
           isNotUndefined(docTypeInspect?.workspaceValue) ||
-          isNotUndefined(docTypeInspect?.workspaceFolderValue);
+          isNotUndefined(docTypeInspect?.workspaceFolderValue) ||
+          isNotUndefined(docTypeInspect?.globalLanguageValue) ||
+          isNotUndefined(docTypeInspect?.workspaceLanguageValue);
         if (!userHasSetValue) {
           await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
         }
