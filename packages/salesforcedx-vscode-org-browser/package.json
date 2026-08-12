@@ -496,6 +496,18 @@
         {
           "command": "sfdxOrgBrowser.filterText.active",
           "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.retrieveMetadata",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.collapseAll",
+          "when": "false"
         }
       ],
       "view/item/context": [
