@@ -30,7 +30,7 @@ const getSynchronizeFileEvents = () => [
   workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
   workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
   // need to watch for directory deletions as no events are created for contents or deleted directories
-  workspace.createFileSystemWatcher('**/', true, true, false)
+  workspace.createFileSystemWatcher('**/', false, true, false)
 ];
 
 const sharedUriConverters = {

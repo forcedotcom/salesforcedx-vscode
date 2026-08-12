@@ -334,6 +334,44 @@ describe('WorkspaceContext', () => {
     expect(afterSecond.include).toEqual(afterFirst.include);
   });
 
+  it('configureProject() does not rewrite jsconfig when content is semantically unchanged despite formatting differences', async () => {
+    // Use a fresh accessor + content map so this test is independent
+    const freshAccessor = new LspFileSystemAccessor();
+    const freshMap = buildContentMap(SFDX_WORKSPACE_PATH, SFDX_WORKSPACE_STRUCTURE as Record<string, string>);
+    mockAccessorWithVirtualFs(freshAccessor, freshMap);
+
+    const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, freshAccessor);
+    context.initialize('SFDX');
+
+    const jsconfigPath = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
+
+    // First configuration creates the file
+    await context.configureProject();
+    const afterFirstContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    const afterFirst = JSON.parse(Buffer.from(afterFirstContent).toString('utf8')) as JsconfigContent;
+
+    // Manually reformat the file with different spacing (2 spaces instead of 4) to simulate external formatting
+    const reformattedContent = JSON.stringify(afterFirst, null, 2);
+    await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
+
+    // Track writes by spying on updateFileContent
+    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    writeSpy.mockClear(); // Clear any previous calls
+
+    // Second configuration should detect semantic equality and skip the write
+    await context.configureProject();
+
+    // Verify that updateFileContent was NOT called for this jsconfig path
+    const writesToJsconfig = writeSpy.mock.calls.filter(call => call[0] === jsconfigPath);
+    expect(writesToJsconfig).toHaveLength(0);
+
+    // Verify content remained reformatted (2-space indent)
+    const finalContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    expect(finalContent).toBe(reformattedContent);
+
+    writeSpy.mockRestore();
+  });
+
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemAccessor);
     context.initialize('CORE_PARTIAL');

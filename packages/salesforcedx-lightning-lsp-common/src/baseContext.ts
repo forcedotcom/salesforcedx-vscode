@@ -42,6 +42,25 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
+/**
+ * Canonicalizes a JSON-serializable value for comparison by producing a deterministic string representation.
+ * Sorts object keys recursively to ensure equivalent objects produce the same string.
+ */
+const canonicalizeJson = (value: unknown): string => {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value !== 'object') return JSON.stringify(value);
+
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalizeJson).join(',')}]`;
+  }
+
+  if (!isRecord(value)) return JSON.stringify(value);
+  const keys = Object.keys(value).toSorted();
+  const pairs = keys.map(key => `${JSON.stringify(key)}:${canonicalizeJson(value[key])}`);
+  return `{${pairs.join(',')}}`;
+};
+
 /** Default config when sfdx-project.json is missing or unreadable (e.g. workspace/readFile not yet handled by client). */
 const DEFAULT_SFDX_PROJECT_CONFIG: SfdxProjectConfig = {
   packageDirectories: [],
@@ -423,12 +442,12 @@ export abstract class BaseWorkspaceContext {
             include: [...new Set([...userInclude, ...jsconfigSfdx.include, typingsInclude])]
           };
 
-          jsconfigContent = JSON.stringify(mergedConfig, null, 4);
-
-          // Only write if content has changed
-          if (jsconfigContent === existingConfigContent) {
+          // Only write if content has changed semantically
+          if (canonicalizeJson(mergedConfig) === canonicalizeJson(existingConfig)) {
             continue;
           }
+
+          jsconfigContent = JSON.stringify(mergedConfig, null, 4);
         } else {
           // Create new jsconfig from template
           if (this.workspaceRoots?.length === 0 || !this.workspaceRoots[0]) {
