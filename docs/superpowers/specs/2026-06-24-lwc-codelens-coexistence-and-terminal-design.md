@@ -82,52 +82,86 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 ## Implementation Notes (Part B)
 
-**Implementation approach:** Use `CustomExecution` with hidden `JestPseudoterminal` to capture Jest output (stdout/stderr) for error extraction when Jest crashes before JSON output.
+**Approach:** `CustomExecution` w/ hidden `JestPseudoterminal` captures Jest output (stdout/stderr) for error extraction on crash-before-JSON.
 
 **Key changes:**
 
 1. **New `JestPseudoterminal` class** (`jestPseudoterminal.ts`)
-   - Implements `vscode.Pseudoterminal`, spawns Jest via `node:child_process`
-   - Captures stdout/stderr (100KB limit) in `capturedOutput`; exposes `extractErrorSummary()`
-   - Error priority: JS error types (TypeError, ReferenceError, SyntaxError, etc.) with stack → FAIL lines → last 10 non-empty lines
-   - Stack traces capped at 30 lines; FAIL context at 50 lines
-   - Windows: `cmd.exe /d /c` (bypass Git Bash issues GH#2097); non-Windows: `shell: true`
+   - Implements `vscode.Pseudoterminal`; spawns Jest via `node:child_process`
+   - Captures stdout/stderr (100KB limit); exposes `extractErrorSummary()`
+   - Error priority: JS types (TypeError, ReferenceError, etc.) w/ stack → FAIL → last 10 lines
+   - Stack traces: 30 lines; FAIL context: 50 lines
+   - Windows: `cmd.exe /d /c` (bypass GH#2097); non-Windows: `shell: true`
+   - `'close'` event ensures stderr flushed before extraction; prevents truncated crash messages
 
 2. **`taskService.createTask` refactored** (`taskService.ts`)
    - Wraps `JestPseudoterminal` via `CustomExecution` (not `ShellExecution`)
-   - Presentation: `reveal: Never`, `panel: Shared`, `echo/focus/showReuseMessage: false`, `clear: true`
-   - Passes pseudoterminal to `SfTask` for error extraction
+   - Presentation: `reveal: Never`; `panel: Shared`; `echo/focus/showReuseMessage: false`; `clear: true`
+   - Passes pseudoterminal to `SfTask` for extraction
 
 3. **`SfTask` extended** (`taskService.ts`)
-   - Added `taskExecution?: vscode.TaskExecution` property (set after `execute()`)
-   - Added `pseudoterminal?: JestPseudoterminal` property for captured output access
-   - Enables correlation with `onDidEndTaskProcess` events
+   - Added `taskExecution?: vscode.TaskExecution` (set post-`execute()`)
+   - Added `pseudoterminal?: JestPseudoterminal` for output access
+   - Enables `onDidEndTaskProcess` correlation
 
-4. **`awaitTaskEnd` enhanced with race condition fix** (`lwcTestController.ts`)
+4. **`awaitTaskEnd` enhanced w/ race fix** (`lwcTestController.ts`)
    - Returns `Promise<{ exitCode?: number }>` (was `Promise<void>`)
-   - Guard flag `resolved` prevents double resolution (critical race fix)
-   - Primary: `onDidEndTaskProcess` for exit code; fallback: `onDidEnd` with 250ms timeout
-   - Exit check uses `> 0` (excludes signals like SIGTERM=143, not `!== 0`)
+   - Guard `resolved` prevents double resolution
+   - Primary: `onDidEndTaskProcess`; fallback: `onDidEnd` + 250ms timeout
+   - Exit check: `> 0` (skips signals like SIGTERM=143)
 
-5. **Controller error reporting** (`lwcTestController.ts`)
-   - On `exitCode > 0`, extracts error via `sfTask.pseudoterminal.extractErrorSummary()`
-   - Marks items as `failed` (not `errored`)
-   - `TestMessage` includes `actualOutput` (exit code) and `location` (extracted via `matchJestStackTraceLocation()`)
-   - For assertion failures within successful runs, when `assertion.location` unavailable: extracts from `assertion.failureMessages` using `matchJestStackTraceLocation()`
+5. **Crash error tracking via `capturedCrashError` flag** (`lwcTestController.ts`)
+   - Set `true` post-`run.failed()` on crash
+   - Flows to `waitForResultFile()` & `applyResults()` for timeout/result coordination
 
-6. **New constant/utility** (`constants.ts`)
-   - Private `JEST_STACK_TRACE_PATTERN`: regex handles "at Function (/path:line:col)" and bare "at /path:line:col" formats; preserves literal parens in paths (e.g. "Program Files (x86)")
-   - Exported `matchJestStackTraceLocation()`: skips `node_modules` frames; prefers test files (`__tests__/` or `.test.[jt]sx?`) over source; falls back to 1st non-node_modules, then 1st frame if all in node_modules
+6. **Optimized `waitForResultFile` timeout** (`lwcTestController.ts`)
+   - Accepts `expectNoResults` param (default `false`)
+   - Crash + no results: 4 × 500ms = 2s
+   - Normal: 600 × 500ms = 5m
+   - Avoids hang on crash-before-results; enables quick failure reporting
 
-7. **Mock support** (`config/__mocks__/vscode.js`, `scripts/setup-jest.ts`)
-   - Added `Location`, `TestMessage`, `Task`, `CustomExecution`, `TaskScope`, `TaskRevealKind`, `TaskPanelKind` classes
-   - Added `tasks.onDidEndTaskProcess` mock
+7. **`applyResults` safeguard w/ `skipItem` param** (`lwcTestController.ts`)
+   - Optional `skipItem` (defaults `undefined`)
+   - Skips JSON processing for matched file item
+   - Prevents overwriting crash-extracted errors w/ generic partial-result messages
+   - Pass `sourceItem` on crash; `undefined` on normal flow
 
-8. **Test coverage** (`lwcTestController.test.ts`, new `jestPseudoterminal.test.ts`)
-   - 373 lines: spawn behavior (Windows vs non-Windows), output capture, error extraction patterns
-   - Controller tests mock `onDidEndTaskProcess` and verify exit code handling
+8. **Crash error extraction & formatting** (`lwcTestController.ts`)
+   - On `exitCode > 0`/undefined: call `extractErrorSummary()`
+   - Strip ANSI via `replaceAll(/\x1b\[[0-9;]*m/g, '')`
+   - Use `run.failed()` for consistency
+   - Build `TestMessage` w/ `actualOutput` (exit code) + `location` from stack
+   - Handle multi-line via split/append
 
-9. **Testing docs** (`contributing/tests.md`)
-   - Use proper VS Code types for mocks, cast with `as` to avoid `any` types
+9. **Controller error reporting** (`lwcTestController.ts`)
+   - Normal runs: `applyResults()` w/ `skipItem: undefined`
+   - Assertion failures (no `assertion.location`): extract from `failureMessages`
+   - Crash flow: extract → fail → set flag → short timeout → `applyResults(undefined, sourceItem)` to skip re-mark
 
-**Behavior:** Controller-driven runs spawn a hidden pseudoterminal capturing Jest output. Success: JSON results to Test Results tab. Failure (exit code > 0): error extracted from output and displayed with source location. Terminal hidden, reused across runs. Watch mode unaffected.
+10. **New constant/utility** (`constants.ts`)
+    - Private `JEST_STACK_TRACE_PATTERN`: regex for "at Function (/path:line:col)" & bare formats; preserves literal parens
+    - Exported `matchJestStackTraceLocation()`: skip `node_modules`; prefer test files; fallback 1st non-`node_modules` or 1st if all in `node_modules`
+
+11. **Mock support** (`config/__mocks__/vscode.js`, `scripts/setup-jest.ts`)
+    - Added `Location`, `TestMessage`, `Task`, `CustomExecution`, `TaskScope`, `TaskRevealKind`, `TaskPanelKind`
+    - Added `tasks.onDidEndTaskProcess` mock
+
+12. **Test coverage** (`lwcTestController.test.ts`, `jestPseudoterminal.test.ts`)
+    - 373 lines: spawn (Windows vs non-Windows), capture, extraction patterns
+    - Controller tests mock `onDidEndTaskProcess`; verify exit codes
+    - Crash extraction, ANSI stripping, `skipItem` filter validated
+
+13. **Testing docs** (`contributing/tests.md`)
+    - Use VS Code types for mocks; cast w/ `as` to avoid `any`
+
+**Crash error handling flow:**
+1. Task completion, `exitCode > 0` or undefined: extract via `sfTask.pseudoterminal.extractErrorSummary()`
+2. Strip ANSI, mark source + children `failed` w/ message + location
+3. Set `capturedCrashError = true`
+4. `expectNoResults = true` to `waitForResultFile()` → 2s timeout (avoid 5m hang)
+5. `applyResults(run, results, sourceItem)` → skip re-mark via `skipItem` check
+6. Result: clean error display w/ location, no overwrites
+
+**Event handling:** `'close'` ensures stderr fully flushed before extraction; prevents truncated messages.
+
+**Behavior:** Hidden pseudoterminal captures Jest output. Success: JSON → Test Results tab. Failure (exit > 0): extract error + location in 2s. Terminal hidden, reused. Watch unaffected.

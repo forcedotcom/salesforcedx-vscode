@@ -525,6 +525,11 @@ class LwcTestController {
 
       const { command, args, workspaceFolder, testResultFsPath } = shellInfo;
 
+      // Track whether we've marked items as failed due to a crash error.
+      // This prevents applyResults from overwriting the crash-extracted error with generic messages.
+      let capturedCrashError = false;
+      let exitCode: number | undefined;
+
       if (isDebug) {
         await vscode.debug.startDebugging(workspaceFolder, {
           sfDebugSessionId: globalThis.crypto.randomUUID(),
@@ -553,7 +558,8 @@ class LwcTestController {
         );
         // execute() sets taskExecution synchronously, returns promise for completion
         void sfTask.execute();
-        const { exitCode } = await awaitTaskEnd(sfTask, token);
+        const taskEnd = await awaitTaskEnd(sfTask, token);
+        exitCode = taskEnd.exitCode;
 
         // Capture error details if Jest crashed, but don't return early.
         // Jest may write partial results even with exitCode > 0 (e.g., syntax error in one file
@@ -567,7 +573,8 @@ class LwcTestController {
             const capturedError = sfTask.pseudoterminal.extractErrorSummary();
             if (capturedError) {
               errorMessage = 'Jest test suite failed to run';
-              errorDetail = capturedError;
+              // Strip ANSI escape codes from crash-path error message
+              errorDetail = capturedError.replaceAll(/\x1b\[[0-9;]*m/g, '');
             }
           }
 
@@ -592,6 +599,7 @@ class LwcTestController {
             // Split multi-line error detail into individual lines for proper formatting
             const errorLines = errorDetail.split('\n');
             errorLines.forEach(line => appendLine(run, line));
+            capturedCrashError = true;
           }
         }
       }
@@ -599,9 +607,13 @@ class LwcTestController {
       if (token.isCancellationRequested) {
         return;
       }
+
       // Jest may not have flushed the output file to disk immediately when the task completes.
       // Poll for the file's existence with a short timeout before attempting to read.
-      await waitForResultFile(testResultFsPath, token);
+      // If we captured a crash error and the exit code suggests no results file will exist,
+      // use a shorter timeout to avoid hanging for 5 minutes.
+      const expectNoResults = capturedCrashError && (exitCode === undefined || exitCode > 0);
+      await waitForResultFile(testResultFsPath, token, expectNoResults);
 
       if (token.isCancellationRequested) {
         return;
@@ -609,10 +621,13 @@ class LwcTestController {
 
       const results = await readJestResults(testResultFsPath);
       if (results) {
-        this.applyResults(run, results);
+        // Don't let applyResults overwrite crash-extracted errors.
+        // Pass the crash state so it can skip items already marked as failed.
+        this.applyResults(run, results, capturedCrashError ? sourceItem : undefined);
         appendTestResultsOutput(run, results, this.testItemLookup);
-      } else if (sourceItem) {
-        run.errored(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
+      } else if (sourceItem && !capturedCrashError) {
+        // Only show generic "no results" error if we didn't already capture a specific crash error
+        run.failed(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
         appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
@@ -635,15 +650,25 @@ class LwcTestController {
       )
   };
 
-  /** Walk the Jest JSON output and attribute results to matching TestItems. */
-  private applyResults = (run: vscode.TestRun, results: LwcJestTestResults): void => {
+  /**
+   * Walk the Jest JSON output and attribute results to matching TestItems.
+   * @param run The test run to apply results to
+   * @param results Jest JSON results
+   * @param skipItem If provided, skip marking this item (already marked with crash error)
+   */
+  private applyResults = (run: vscode.TestRun, results: LwcJestTestResults, skipItem?: vscode.TestItem): void => {
     for (const fileResult of results.testResults) {
       // Strip /private prefix on macOS so URI matches findFiles (symlink, not realpath), then reconcile any
       // remaining short/long (8.3) path divergence back to the discovery URI that keys the items.
       const testUri = this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(fileResult.name)));
       const fileItem = this.fileItems.get(createFileId(testUri));
 
-      // When assertionResults is empty and there's a runtime error message, mark file and all its children as errored
+      // Skip this file if it already has a crash-extracted error
+      if (skipItem && fileItem === skipItem) {
+        continue;
+      }
+
+      // When assertionResults is empty and there's a runtime error message, mark file and all its children as failed
       if (fileResult.assertionResults.length === 0 && fileResult.message && fileItem) {
         // Strip ANSI escape codes from Jest's error message
         const cleanMessage = fileResult.message.replaceAll(/\x1b\[[0-9;]*m/g, '');
@@ -657,9 +682,9 @@ class LwcTestController {
           errorMessage.location = new vscode.Location(errorUri, position);
         }
 
-        run.errored(fileItem, errorMessage);
+        run.failed(fileItem, errorMessage);
         fileItem.children.forEach(child => {
-          run.errored(child, errorMessage);
+          run.failed(child, errorMessage);
         });
         continue;
       }
@@ -743,10 +768,19 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
 /**
  * Waits for the jest test-result file to appear on disk before reading.
  * Jest may not flush output immediately after task completion, so we poll the file system.
+ * @param filePath Path to the Jest results JSON file
+ * @param token Cancellation token
+ * @param expectNoResults If true, use a shorter timeout (no file expected on crash-before-results)
  */
-const waitForResultFile = async (filePath: string, token: vscode.CancellationToken): Promise<void> => {
+const waitForResultFile = async (
+  filePath: string,
+  token: vscode.CancellationToken,
+  expectNoResults = false
+): Promise<void> => {
   const uri = URI.file(filePath);
-  for (let attempt = 0; attempt < 600; attempt++) {
+  // On crash-before-results, use shorter timeout to avoid 5-minute hang
+  const maxAttempts = expectNoResults ? 4 : 600; // 2 seconds vs 5 minutes
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     if (token.isCancellationRequested) {
       return;
     }

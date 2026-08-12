@@ -136,7 +136,7 @@ describe('JestPseudoterminal', () => {
       });
 
       pty.open();
-      mockProcess.emit('exit', 0);
+      mockProcess.emit('close', 0);
     });
 
     it('fires onDidClose with error exit code', done => {
@@ -147,7 +147,7 @@ describe('JestPseudoterminal', () => {
       });
 
       pty.open();
-      mockProcess.emit('exit', 1);
+      mockProcess.emit('close', 1);
     });
 
     it('fires onDidClose with exit code 1 on spawn error', done => {

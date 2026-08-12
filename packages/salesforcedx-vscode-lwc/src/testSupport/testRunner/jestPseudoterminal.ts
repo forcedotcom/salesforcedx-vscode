@@ -64,7 +64,9 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
       this.writeEmitter.fire(text);
     });
 
-    this.process.on('exit', code => {
+    // Use 'close' instead of 'exit' to ensure all stdio streams are fully drained.
+    // 'exit' can fire before stderr is flushed, potentially truncating crash messages.
+    this.process.on('close', code => {
       this.closeEmitter.fire(code ?? undefined);
     });
 
