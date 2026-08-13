@@ -180,6 +180,7 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
+      'local/notification-slot-matches-package-json': 'error',
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
