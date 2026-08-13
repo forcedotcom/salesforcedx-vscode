@@ -90,8 +90,15 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
     'typings'
   ).toString();
 
+  // Get package directories from sfdx-project.json to scope file watchers (performance optimization)
+  const packageDirectories: string[] | undefined = yield* api.services.ProjectService.getSfProject().pipe(
+    Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
+    Effect.orElseSucceed(() => undefined)
+  );
+
   const client = yield* Effect.tryPromise({
-    try: () => createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir }),
+    try: () =>
+      createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir }, packageDirectories),
     catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.tapError(error =>

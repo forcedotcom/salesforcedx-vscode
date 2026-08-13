@@ -17,7 +17,8 @@ import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOpti
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: LwcInitializationOptions
+  initializationOptions: LwcInitializationOptions,
+  packageDirectories?: string[]
 ): LanguageClient => {
   // Browser mode: use web worker
   // Create a web worker for the language server
@@ -64,7 +65,7 @@ export const createLanguageClient = (
   }
 
   const clientOptions: LanguageClientOptions = {
-    ...getBaseClientOptions(initializationOptions),
+    ...getBaseClientOptions(initializationOptions, packageDirectories),
     documentSelector: buildDocumentSelector(Array.from(schemes)),
     outputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Error,

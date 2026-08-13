@@ -14,7 +14,8 @@ import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOpti
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: LwcInitializationOptions
+  initializationOptions: LwcInitializationOptions,
+  packageDirectories?: string[]
 ): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
@@ -30,7 +31,7 @@ export const createLanguageClient = (
   };
 
   const clientOptions: LanguageClientOptions = {
-    ...getBaseClientOptions(initializationOptions),
+    ...getBaseClientOptions(initializationOptions, packageDirectories),
     documentSelector: buildDocumentSelector(['file'])
   };
 
