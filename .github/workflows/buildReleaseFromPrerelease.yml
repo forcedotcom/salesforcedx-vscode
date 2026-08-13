@@ -1,0 +1,224 @@
+name: Build Release from Prerelease
+
+on:
+  workflow_dispatch:
+    inputs:
+      prereleaseTag:
+        description: 'Promoted prerelease tag (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest.'
+        required: false
+        type: string
+      releaseVersion:
+        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate (bump minor from prerelease).'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  build-release:
+    name: 'Build Release from Prerelease'
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.calculate-version.outputs.version }}
+      prerelease_tag: ${{ steps.detect-tag.outputs.tag }}
+      release_tag: ${{ steps.calculate-version.outputs.release_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for tags
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Detect promoted prerelease tag
+        id: detect-tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.prereleaseTag }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+            echo "Using provided tag: $TAG"
+          else
+            # Find latest nightly tag (promoted prereleases use this pattern)
+            # Sort by version, take most recent
+            TAG=$(git tag -l 'v*-nightly.develop.*' --sort=-v:refname | head -1)
+
+            if [ -z "$TAG" ]; then
+              echo "::error::No nightly prerelease tags found. Expected pattern: v*-nightly.develop.*"
+              exit 1
+            fi
+
+            echo "Auto-detected latest nightly tag: $TAG"
+          fi
+
+          # Verify tag exists
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $TAG does not exist"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Calculate release version
+        id: calculate-version
+        env:
+          PRERELEASE_TAG: ${{ steps.detect-tag.outputs.tag }}
+          INPUT_VERSION: ${{ github.event.inputs.releaseVersion }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+            echo "Using provided version: $VERSION"
+          else
+            # Extract version from tag: v67.11.1-nightly.develop.20260812 → 67.11.1
+            PRERELEASE_VERSION=$(echo "$PRERELEASE_TAG" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+            # Bump minor version: 67.11.1 → 67.12.0
+            MAJOR=$(echo "$PRERELEASE_VERSION" | cut -d. -f1)
+            MINOR=$(echo "$PRERELEASE_VERSION" | cut -d. -f2)
+            MINOR=$((MINOR + 1))
+            VERSION="$MAJOR.$MINOR.0"
+
+            echo "Calculated version from $PRERELEASE_VERSION: $VERSION"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Checkout prerelease tag
+        run: |
+          echo "Checking out prerelease tag: ${{ steps.detect-tag.outputs.tag }}"
+          git checkout ${{ steps.detect-tag.outputs.tag }}
+
+      - name: Configure git
+        uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Update package versions
+        env:
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+        run: |
+          echo "Updating all package.json files to version $RELEASE_VERSION"
+
+          # Update version in all publishable packages
+          # Reusing logic from create-release-branch.js
+          find packages -name "package.json" -type f | while read pkg; do
+            # Check if package should be versioned (has vscode:publish or publishConfig)
+            HAS_PUBLISH=$(node -pe "
+              const pkg = require('./$pkg');
+              const hasVscodePublish = pkg.scripts?.['vscode:publish'];
+              const hasPublishConfig = pkg.publishConfig;
+              const versionedIndependently = pkg.versionedIndependently;
+              (!versionedIndependently && (hasVscodePublish || hasPublishConfig)) ? 'true' : 'false'
+            ")
+
+            if [ "$HAS_PUBLISH" = "true" ]; then
+              echo "Updating $(dirname $pkg)"
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('$pkg', 'utf8'));
+                pkg.version = '$RELEASE_VERSION';
+                fs.writeFileSync('$pkg', JSON.stringify(pkg, null, 2) + '\n');
+              "
+            fi
+          done
+
+          # Update package-lock.json
+          echo "Updating package-lock.json"
+          npm install --ignore-scripts --package-lock-only --no-audit
+
+      - name: Build VSIXs
+        run: |
+          echo "Building VSIX files"
+          npm run vscode:package
+
+      - name: Generate SHA256 checksums
+        run: |
+          echo "Generating SHA256.md"
+          npm run vscode:sha256
+
+      - name: Display built VSIXs
+        run: |
+          echo "Built VSIX files:"
+          find . -name "*.vsix" -type f | while read vsix; do
+            echo "  - $(basename $vsix) ($(du -h "$vsix" | cut -f1))"
+          done
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+          PRERELEASE_TAG: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          echo "Creating GitHub pre-release: $RELEASE_TAG"
+
+          # Create release notes
+          {
+            echo "## Release $RELEASE_VERSION"
+            echo ""
+            echo "Built from promoted prerelease: \`$PRERELEASE_TAG\`"
+            echo ""
+            echo "### Testing Required"
+            echo ""
+            echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
+            echo ""
+            echo "### Testing Checklist"
+            echo ""
+            echo "1. Download VSIX files from this release"
+            echo "2. Install extensions locally"
+            echo "3. Run manual QA tests"
+            echo "4. If tests PASS - Trigger publishVSCode.yml workflow with version $RELEASE_VERSION"
+            echo "5. If tests FAIL - Create immediate prerelease, bump version, and retry"
+            echo ""
+            echo "### Installation"
+            echo ""
+            echo '```bash'
+            echo "gh release download $RELEASE_TAG"
+            echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
+            echo '```'
+          } > release_notes.md
+
+          # Collect all VSIX files
+          VSIX_FILES=$(find . -name "*.vsix" -type f)
+
+          # Create pre-release
+          gh release create "$RELEASE_TAG" \
+            --title "Release $RELEASE_VERSION - Ready for Testing" \
+            --notes-file release_notes.md \
+            --prerelease \
+            $VSIX_FILES \
+            packages/salesforcedx-vscode/SHA256.md
+
+          echo "Pre-release created: $RELEASE_TAG"
+          echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
+
+  summary:
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## ✅ Release Built Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Version:** ${{ needs.build-release.outputs.release_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Tag:** ${{ needs.build-release.outputs.release_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** ${{ needs.build-release.outputs.prerelease_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download and test VSIX files from the pre-release" >> $GITHUB_STEP_SUMMARY
+          echo "2. If tests pass, trigger \`publishVSCode.yml\` workflow" >> $GITHUB_STEP_SUMMARY
+          echo "3. If tests fail, create immediate prerelease and retry with bumped version" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View Pre-release](https://github.com/${{ github.repository }}/releases/tag/${{ needs.build-release.outputs.release_tag }})" >> $GITHUB_STEP_SUMMARY

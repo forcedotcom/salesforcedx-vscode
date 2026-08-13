@@ -65,6 +65,8 @@ If you get `error: failed to push some refs to 'https://github.com/forcedotcom/s
 
 **Pre-release promotion:** `promote-prerelease.yml` (Wednesdays 7 AM UTC) promotes nightly builds to pre-release channels when stability criteria met: nightly tag ≥7 days old + all CI checks passed on tag's commit. Allows safe rollback window before general release.
 
+**Build from promoted prerelease:** `buildReleaseFromPrerelease.yml` (manual workflow_dispatch) builds release VSIXs from promoted prerelease tags for internal testing before marketplace publish. Accepts optional `prereleaseTag` (auto-detects latest if omitted) and `releaseVersion` (auto-bumps minor if omitted). Creates GitHub pre-release with testing checklist and VSIX artifacts. Use before triggering `publishVSCode.yml` for final marketplace publish.
+
 **Artifact retention:** Nightly builds retain artifacts 30 days (vs. 5 days for PR builds) to support promotion workflows accessing build artifacts for stability verification.
 
 ## Publishing Main

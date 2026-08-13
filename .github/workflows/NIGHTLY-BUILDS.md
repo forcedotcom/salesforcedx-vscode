@@ -8,7 +8,7 @@ Automated nightly VS Code extension builds via `salesforcecli/github-workflows` 
 
 Daily 4 AM UTC: publishes all extensions as prereleases. New extensions auto-included via dynamic discovery.
 
-### Manual Trigger
+#### Manual Trigger
 
 ```bash
 # Publish all (dynamically discovered)
@@ -20,6 +20,27 @@ gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx
 # Dry-run (no publish)
 gh workflow run nightly.yml -f dry-run=true
 ```
+
+## Building Release Versions for Testing
+
+After promoting a prerelease to test candidates, build final release VSIXs locally before marketplace publish:
+
+```bash
+# Auto-detect latest prerelease, calculate version
+gh workflow run buildReleaseFromPrerelease.yml
+
+# Specify prerelease + version explicitly
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
+  -f releaseVersion="67.12.0"
+```
+
+Workflow:
+- Detects latest promoted prerelease tag or uses provided tag
+- Auto-bumps minor version (e.g., 67.11.1 → 67.12.0) or uses provided version
+- Checks out prerelease tag, updates `package.json` versions, builds VSIXs
+- Creates GitHub pre-release with testing checklist + VSIX artifacts
+- Download + test locally before triggering `publishVSCode.yml` for marketplace publish
 
 ## Extension Discovery
 
