@@ -6,6 +6,7 @@
  */
 
 import { isError, isString, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -43,23 +44,110 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 /**
- * Canonicalizes a JSON-serializable value for comparison by producing a deterministic string representation.
- * Sorts object keys recursively to ensure equivalent objects produce the same string.
+ * Debounced file writer using Effect to prevent rapid successive writes to the same file.
+ * Uses a Ref to track pending writes and Effect.sleep for debouncing.
+ */
+const createDebouncedWriter = (debounceMs = 500) => {
+  const pendingWrites = new Map<string, { content: string; timer: NodeJS.Timeout }>();
+
+  return {
+    /**
+     * Schedule a debounced write. If called multiple times for the same path,
+     * only the last write will execute after the debounce period.
+     */
+    write: (
+      filePath: string,
+      content: string,
+      writeImpl: (targetPath: string, data: string) => Promise<void>
+    ): Promise<void> => {
+      // Clear any pending write for this path
+      const existing = pendingWrites.get(filePath);
+      if (existing) {
+        clearTimeout(existing.timer);
+      }
+
+      // Schedule new write after debounce period
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          pendingWrites.delete(filePath);
+          writeImpl(filePath, content)
+            .then(() => resolve())
+            .catch(error => reject(error));
+        }, debounceMs);
+
+        pendingWrites.set(filePath, { content, timer });
+      });
+    },
+
+    /** Flush all pending writes immediately */
+    flush: (): void => {
+      const timers = Array.from(pendingWrites.values());
+      pendingWrites.clear();
+      timers.forEach(({ timer }) => clearTimeout(timer));
+    }
+  };
+};
+
+/**
+ * Schema for JSON-serializable values (primitives, arrays, nested objects).
+ * Uses Schema.suspend for recursive types (arrays and objects can contain JSON values).
+ * This allows Effect Schema to validate and provide structural equality checking.
+ */
+const JsonValueSchema: Schema.Schema<JsonValue> = Schema.suspend(() =>
+  Schema.Union(
+    Schema.Null,
+    Schema.Undefined,
+    Schema.String,
+    Schema.Number,
+    Schema.Boolean,
+    Schema.Array(JsonValueSchema),
+    Schema.Record({ key: Schema.String, value: JsonValueSchema })
+  )
+);
+
+// Type representing a JSON-serializable value
+type JsonValue =
+  | null
+  | undefined
+  | string
+  | number
+  | boolean
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
+/**
+ * Equivalence relation for JSON values created from the schema.
+ * This provides deep structural equality that handles nested objects and arrays correctly.
+ * Effect Schema's equivalence automatically handles recursive structures.
+ */
+const jsonValueEquivalence = Schema.equivalence(JsonValueSchema);
+
+/**
+ * Compares two JSON-serializable values for deep structural equality using Effect Schema.
+ *
+ * Uses Schema.equivalence() which provides proper structural equality for:
+ * - Nested objects (key order independent)
+ * - Arrays (order dependent)
+ * - All JSON primitives
+ *
+ * This is the idiomatic Effect way to compare complex data structures.
  * @internal Exported for testing only
  */
-export const canonicalizeJson = (value: unknown): string => {
-  if (value === null) return 'null';
-  if (value === undefined) return 'undefined';
-  if (typeof value !== 'object') return JSON.stringify(value);
+export const areJsonValuesEqual = (a: unknown, b: unknown): boolean => {
+  // Fast path: reference equality
+  if (a === b) return true;
 
-  if (Array.isArray(value)) {
-    return `[${value.map(canonicalizeJson).join(',')}]`;
+  try {
+    // Decode both values through the schema to validate they're valid JSON
+    // Then use the schema-derived equivalence to compare them
+    const decodedA = Schema.decodeUnknownSync(JsonValueSchema)(a);
+    const decodedB = Schema.decodeUnknownSync(JsonValueSchema)(b);
+
+    return jsonValueEquivalence(decodedA, decodedB);
+  } catch {
+    // If schema validation fails, values are not equal
+    return false;
   }
-
-  if (!isRecord(value)) return JSON.stringify(value);
-  const keys = Object.keys(value).toSorted();
-  const pairs = keys.map(key => `${JSON.stringify(key)}:${canonicalizeJson(value[key])}`);
-  return `{${pairs.join(',')}}`;
 };
 
 /** Default config when sfdx-project.json is missing or unreadable (e.g. workspace/readFile not yet handled by client). */
@@ -236,6 +324,7 @@ export abstract class BaseWorkspaceContext {
   public fileSystemAccessor: LspFileSystemAccessor;
   private readonly sfdxTypingsDir?: string;
   private _connection?: Connection;
+  private readonly debouncedWriter = createDebouncedWriter(500);
 
   /** The LSP connection. Setting this also propagates to the fileSystemAccessor. */
   public get connection(): Connection | undefined {
@@ -444,7 +533,7 @@ export abstract class BaseWorkspaceContext {
           };
 
           // Only write if content has changed semantically
-          if (canonicalizeJson(mergedConfig) === canonicalizeJson(existingConfig)) {
+          if (areJsonValuesEqual(mergedConfig, existingConfig)) {
             continue;
           }
 
@@ -474,7 +563,10 @@ export abstract class BaseWorkspaceContext {
           jsconfigContent = JSON.stringify(config, null, 2);
         }
 
-        await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
+        // Use debounced writer to prevent rapid successive writes during git operations
+        await this.debouncedWriter.write(jsconfigPath, jsconfigContent, (filePath, fileContent) =>
+          this.fileSystemAccessor.updateFileContent(filePath, fileContent)
+        );
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${isError(error) ? error.message : String(error)}`
@@ -514,7 +606,10 @@ export abstract class BaseWorkspaceContext {
             include: [...jsconfigCore.include, typingsInclude]
           };
           const jsconfigContent = JSON.stringify(config, null, 2);
-          await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
+          // Use debounced writer to prevent rapid successive writes
+          await this.debouncedWriter.write(jsconfigPath, jsconfigContent, (filePath, fileContent) =>
+            this.fileSystemAccessor.updateFileContent(filePath, fileContent)
+          );
         } catch (error) {
           console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
           throw error;
