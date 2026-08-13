@@ -7,45 +7,14 @@
 
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-
-type PackageJson = {
-  contributes?: {
-    configuration?: {
-      properties?: Record<string, { properties?: Record<string, { enum?: string[] }> }>;
-    };
-  };
-};
+import { getNearestPackageJson } from './packageJsonUtils';
 
 const SUCCESS_ONLY_ENUM = new Set(['successToast', 'successStatusBar', 'successOff']);
 const PROGRESS_ONLY_ENUM = new Set(['progressToast', 'progressStatusBar']);
 
-const packageJsonCache = new Map<string, PackageJson | undefined>();
-
-const getPackageJson = (filePath: string): PackageJson | undefined => {
-  const dir = path.dirname(filePath);
-  if (packageJsonCache.has(dir)) return packageJsonCache.get(dir);
-
-  const parts = dir.split(path.sep);
-  for (let i = parts.length; i > 0; i--) {
-    const candidate = path.join(parts.slice(0, i).join(path.sep), 'package.json');
-    try {
-      const parsed = JSON.parse(fs.readFileSync(candidate, 'utf8')) as PackageJson;
-      packageJsonCache.set(dir, parsed);
-      return parsed;
-    } catch {
-      // continue walking up
-    }
-  }
-
-  packageJsonCache.set(dir, undefined);
-  return undefined;
-};
-
 /** Read commandLevelNotifications properties from nearest package.json */
 const getCommandLevelProps = (filePath: string): Record<string, { enum?: string[] }> => {
-  const pkg = getPackageJson(filePath);
+  const pkg = getNearestPackageJson(filePath);
   if (!pkg) return {};
   const configProps = pkg.contributes?.configuration?.properties ?? {};
   const sectionKey = Object.keys(configProps).find(k => k.endsWith('.commandLevelNotifications'));
