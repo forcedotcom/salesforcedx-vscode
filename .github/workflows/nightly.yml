@@ -130,6 +130,7 @@ jobs:
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
       registries: 'all'
       pre-release: 'true'
+      nightly: true  # Skip marketplace publishing, use nightly versioning
       version-bump: 'auto'
       dry-run: ${{ github.event.inputs.dry-run || false }}
       git-user-name: ${{ needs.get-git-identity.outputs.username }}
