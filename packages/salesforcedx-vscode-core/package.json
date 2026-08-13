@@ -273,6 +273,11 @@
           "type": "string",
           "default": null,
           "description": "%telemetry_tag_description%"
+        },
+        "salesforcedx-vscode-core.metadata.doNotSuppressRedhatSchemaDocumentation": {
+          "type": "boolean",
+          "default": false,
+          "description": "%metadata_do_not_suppress_redhat_schema_documentation_description%"
         }
       }
     },
