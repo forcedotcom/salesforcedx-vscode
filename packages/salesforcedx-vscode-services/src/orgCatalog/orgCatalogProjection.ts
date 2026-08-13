@@ -6,7 +6,7 @@
  */
 
 import type { ListedMetadataComponent, TypeInventory } from './orgCatalogInternalTypes';
-import type { OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import { URI } from 'vscode-uri';
 import { isOrgMetadataComponentReference } from './orgMetadataReference';
 

@@ -14,6 +14,7 @@ import { URI } from 'vscode-uri';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
+import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import {
   OrgMetadataCatalogChangePubSub,
   type OrgMetadataCatalogChange
@@ -39,6 +40,10 @@ const makeHarness = () => {
       OrgMetadataCatalogChangePubSub,
       catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
     ),
+    Layer.succeed(OrgMetadataReferenceService, {
+      documentUri: ({ orgId, xmlName, fullName }: { orgId: string; xmlName: string; fullName: string }) =>
+        URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`)
+    } as unknown as InstanceType<typeof OrgMetadataReferenceService>),
     TransmogrifierService.Default
   );
   const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
@@ -93,6 +98,37 @@ describe('OrgMetadataCatalogRecorder', () => {
     ]);
     expect(saves[0]?.metadataListings).toEqual([
       expect.objectContaining({ xmlName: 'ApexClass', components: [expect.objectContaining({ fullName: 'Foo' })] })
+    ]);
+  });
+
+  it('persists partial component discoveries without claiming a complete type inventory', async () => {
+    const { layer, saves } = makeHarness();
+
+    const entry = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        yield* recorder.recordRemoteComponents('org-one', 'metadata-api', [
+          { type: 'ApexClass', fullName: 'DiscoveredTest', lastModifiedDate: '2026-08-13T00:00:00.000Z' }
+        ]);
+        const discovered = (yield* state.getInventory('org-one', 'ApexClass'))?.components.get('DiscoveredTest');
+        yield* Effect.sleep('350 millis');
+        return discovered;
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(entry).toMatchObject({
+      inOrg: true,
+      inWorkspace: false,
+      reference: { xmlName: 'ApexClass', fullName: 'DiscoveredTest' },
+      remoteLastModifiedDate: '2026-08-13T00:00:00.000Z'
+    });
+    expect(saves[0]?.inventory).toEqual([
+      expect.objectContaining({
+        xmlName: 'ApexClass',
+        complete: false,
+        components: [expect.objectContaining({ fullName: 'DiscoveredTest' })]
+      })
     ]);
   });
 

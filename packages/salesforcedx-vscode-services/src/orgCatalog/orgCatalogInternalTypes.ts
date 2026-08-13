@@ -6,7 +6,7 @@
  */
 
 import type { PersistedTypeInventory } from './orgMetadataCatalogStore';
-import type { OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 
 export type ListedMetadataComponent = {
@@ -20,6 +20,8 @@ export type ListedMetadataComponent = {
 
 export type TypeInventory = {
   readonly observedAt: string;
+  /** Whether this inventory represents a complete type listing rather than consumer-discovered members. */
+  readonly complete: boolean;
   readonly components: ReadonlyMap<string, OrgMetadataCatalogEntry>;
   readonly folders: ReadonlyMap<string, ListedMetadataComponent>;
 };

@@ -12,12 +12,11 @@ import * as HashSet from 'effect/HashSet';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 import { toUri } from 'salesforcedx-vscode-services/src/vscode/uriUtils';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { URI } from 'vscode-uri';
 import type { DiffFilePair } from '../../../../src/shared/diff/diffTypes';
 import {
   filesAreNotIdentical,
-  materializeRemoteComponents,
+  matchUrisToComponents,
   sourceComponentToPaths
 } from '../../../../src/shared/diff/diffHelpers';
 
@@ -41,33 +40,13 @@ const createMockProjectSet = (components: SourceComponent[]): ComponentSet =>
     getSourceComponents: () => ({ toArray: () => components })
   }) as unknown as ComponentSet;
 
-const createMockCatalog = (
-  remoteComponents: SourceComponent[],
-  onMaterialize?: (options: { readonly consistency?: 'cache-first' | 'refresh' }) => void
-) =>
+const createMockRetrievedSet = (remoteComponents: SourceComponent[]): ComponentSet =>
   ({
-    materializeRemoteSources: (
-      references: readonly { readonly fullName: string; readonly xmlName: string }[],
-      options: { readonly consistency?: 'cache-first' | 'refresh' }
-    ) => {
-      onMaterialize?.(options);
-      return Effect.succeed(
-        references.map(reference => {
-          const component = remoteComponents.find(
-            candidate => candidate.fullName === reference.fullName && candidate.type.name === reference.xmlName
-          );
-          const fileUris = component ? sourceComponentToPaths(component).map(path => URI.file(path)) : [];
-          return {
-            reference,
-            artifact: {
-              primaryUri: fileUris[0],
-              fileUris
-            }
-          };
-        })
-      );
-    }
-  }) as unknown as InstanceType<typeof OrgMetadataCatalog>;
+    getComponentFilenamesByNameAndType: ({ fullName, type }: { fullName: string; type: string }) =>
+      remoteComponents.flatMap(component =>
+        component.fullName === fullName && component.type.name === type ? sourceComponentToPaths(component) : []
+      )
+  }) as unknown as ComponentSet;
 
 /** api.services.FsService is an Effect that yields the service */
 const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Effect.Effect<string> }) => {
@@ -81,35 +60,23 @@ const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Ef
 const createMockExtensionProvider = () =>
   ({
     getServicesApi: Effect.succeed({
-      services: { FsService, OrgMetadataCatalog }
+      services: { FsService }
     })
   }) as unknown as ExtensionProviderService;
 
 const provideMocks =
-  (
-    fsService = createMockFsService(),
-    remoteComponents: SourceComponent[] = [],
-    onMaterialize?: (options: { readonly consistency?: 'cache-first' | 'refresh' }) => void
-  ) =>
+  (fsService = createMockFsService()) =>
   (e: Effect.Effect<unknown, unknown, unknown>) =>
     e.pipe(
       Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
-      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
-      Effect.provideService(OrgMetadataCatalog, createMockCatalog(remoteComponents, onMaterialize))
+      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>)
     );
 
 /** Run effect with mocks - cast to satisfy runPromise's never requirement */
-const runWithMocks = <A, E, R>(
-  effect: Effect.Effect<A, E, R>,
-  fsService = createMockFsService(),
-  remoteComponents: SourceComponent[] = [],
-  onMaterialize?: (options: { readonly consistency?: 'cache-first' | 'refresh' }) => void
-) =>
-  Effect.runPromise(
-    effect.pipe(provideMocks(fsService, remoteComponents, onMaterialize)) as Effect.Effect<A, E, never>
-  );
+const runWithMocks = <A, E, R>(effect: Effect.Effect<A, E, R>, fsService = createMockFsService()) =>
+  Effect.runPromise(effect.pipe(provideMocks(fsService)) as Effect.Effect<A, E, never>);
 
-describe('materializeRemoteComponents', () => {
+describe('matchUrisToComponents', () => {
   it('returns pairs when local .cls matches remote .cls path', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
     const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
@@ -120,9 +87,7 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls, remoteMeta)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, localUriFilter),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
@@ -141,9 +106,7 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('OtherClass', 'ApexClass', remoteCls)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, localUriFilter),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
@@ -160,9 +123,7 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls, remoteMeta)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, localUriFilter),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
@@ -179,9 +140,7 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, HashSet.empty()),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), HashSet.empty())
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
@@ -189,7 +148,7 @@ describe('materializeRemoteComponents', () => {
 
   it('returns empty for empty projectComponents', async () => {
     const result = (await runWithMocks(
-      materializeRemoteComponents(createMockProjectSet([]))
+      matchUrisToComponents(createMockProjectSet([]), createMockRetrievedSet([]))
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(0);
@@ -211,30 +170,10 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, localUriFilter),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
-  });
-
-  it('uses the component primary document when Windows filename casing differs', async () => {
-    const localPath = 'C:\\Users\\runner\\project\\classes\\ConflictsTest.cls';
-    const remoteCls = 'C:\\Users\\runner\\project\\.sf\\metadata-shadow\\conflictstest.cls';
-    const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
-    const remoteComponents = [createMockComponent('ConflictsTest', 'ApexClass', remoteCls)];
-
-    const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet),
-      createMockFsService(),
-      remoteComponents
-    )) as HashSet.HashSet<DiffFilePair>;
-
-    expect(HashSet.size(result)).toBe(1);
-    const [pair] = [...HashSet.toValues(result)];
-    expect(pair.remoteUri.uri.scheme).toBe('file');
-    expect(pair.remoteUri.uri.path.toLowerCase()).toBe(URI.file(remoteCls).path.toLowerCase());
   });
 
   it('matches Apex class in non-default directory (controllers, not classes)', async () => {
@@ -246,41 +185,13 @@ describe('materializeRemoteComponents', () => {
     const remoteComponents = [createMockComponent('MyClass', 'ApexClass', remoteCls)];
 
     const result = (await runWithMocks(
-      materializeRemoteComponents(projectSet, localUriFilter),
-      createMockFsService(),
-      remoteComponents
+      matchUrisToComponents(projectSet, createMockRetrievedSet(remoteComponents), localUriFilter)
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
     const [pair] = [...HashSet.toValues(result)];
     expect(pair.localUri.uri.path).toContain('controllers/MyClass.cls');
     expect(pair.remoteUri.uri.path).toContain('classes/MyClass.cls');
-  });
-
-  it('passes a component group and its consistency policy to the catalog in one request', async () => {
-    const localPath = (name: string) => `/workspace/force-app/main/default/classes/${name}.cls`;
-    const remotePath = (name: string) => `/workspace/.sf/orgs/org123/metadata-shadow/classes/${name}.cls`;
-    const options: { readonly consistency?: 'cache-first' | 'refresh' }[] = [];
-
-    await runWithMocks(
-      materializeRemoteComponents(
-        createMockProjectSet([
-          createMockComponent('FirstTest', 'ApexClass', localPath('FirstTest')),
-          createMockComponent('SecondTest', 'ApexClass', localPath('SecondTest'))
-        ]),
-        undefined,
-        undefined,
-        'refresh'
-      ),
-      createMockFsService(),
-      [
-        createMockComponent('FirstTest', 'ApexClass', remotePath('FirstTest')),
-        createMockComponent('SecondTest', 'ApexClass', remotePath('SecondTest'))
-      ],
-      value => options.push(value)
-    );
-
-    expect(options).toEqual([{ consistency: 'refresh' }]);
   });
 });
 

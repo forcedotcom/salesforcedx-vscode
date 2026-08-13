@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { OrgMetadataComponentReference } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -374,13 +375,15 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
   yield* api.services.MetadataRetrieveService.retrieve([{ type: reference.xmlName, fullName: reference.fullName }], {
     ignoreConflicts: true
   }).pipe(
-    Effect.andThen(catalog.getDocumentUri(reference)),
-    Effect.flatMap(retrievedFileUri =>
-      api.services.FsService.showTextDocument(retrievedFileUri, {
-        preview: false,
-        viewColumn: vscode.ViewColumn.Active,
-        preserveFocus: false
-      }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
+    Effect.andThen(catalog.resolveComponents([{ type: reference.xmlName, fullName: reference.fullName }])),
+    Effect.flatMap(([resolution]) =>
+      resolution
+        ? api.services.FsService.showTextDocument(resolution.preferredUri, {
+            preview: false,
+            viewColumn: vscode.ViewColumn.Active,
+            preserveFocus: false
+          }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
+        : Effect.void
     ),
     Effect.tap(() => Effect.sync(() => notificationService.showSuccessfulExecution(executionName)))
   );
@@ -406,10 +409,24 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   }
 };
 
+const apexClassReferenceFromUri = (
+  uri: URI,
+  orgMetadataScheme: string
+): { readonly orgId: string; readonly reference: OrgMetadataComponentReference } | undefined => {
+  if (uri.scheme !== orgMetadataScheme) return undefined;
+  const [, root, orgId, xmlName, ...fullNameSegments] = uri.path.split('/');
+  const finalSegment = fullNameSegments.at(-1);
+  if (root !== 'orgs' || !orgId || xmlName !== 'ApexClass' || !finalSegment?.endsWith('.cls')) return undefined;
+  const fullName = [...fullNameSegments.slice(0, -1), finalSegment.slice(0, -'.cls'.length)].join('/');
+  return fullName ? { orgId, reference: { xmlName, fullName } } : undefined;
+};
+
 const getApexClassReference = Effect.fn('ApexTesting.getApexClassReference')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const reference = yield* (yield* api.services.OrgMetadataCatalog).getDocumentReference(uri);
-  return reference?.xmlName === 'ApexClass' ? reference : undefined;
+  const location = apexClassReferenceFromUri(uri, api.services.ORG_METADATA_SCHEME);
+  if (!location) return undefined;
+  const activeOrgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  return location.orgId === activeOrgId ? location.reference : undefined;
 });
 
 // Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).

@@ -228,6 +228,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         retrieveOutcome,
         fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath)
       });
+      const orgId = input.expectedOrgId ?? input.connection.getAuthInfoFields().orgId;
       // only do tracking in the case where we retrieve to project
       if (input.merge) {
         yield* Effect.all(
@@ -239,6 +240,32 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           ],
           { concurrency: 'unbounded', discard: true }
         );
+      } else if (orgId) {
+        const fileProperties = Array.isArray(retrieveOutcome.response.fileProperties)
+          ? retrieveOutcome.response.fileProperties
+          : [retrieveOutcome.response.fileProperties];
+        const observationsByIdentity = fileProperties.reduce(
+          (byIdentity, property) =>
+            property?.type && property.fullName
+              ? byIdentity.set(`${property.type}\0${property.fullName}`, {
+                  type: property.type,
+                  fullName: property.fullName,
+                  ...(property.lastModifiedDate ? { lastModifiedDate: property.lastModifiedDate } : {})
+                })
+              : byIdentity,
+          new Map<string, { readonly type: string; readonly fullName: string; readonly lastModifiedDate?: string }>()
+        );
+        retrieveOutcome
+          .getFileResponses()
+          .filter(isSDRSuccess)
+          .forEach(response => {
+            const identity = `${response.type}\0${response.fullName}`;
+            if (!observationsByIdentity.has(identity)) {
+              observationsByIdentity.set(identity, { type: response.type, fullName: response.fullName });
+            }
+          });
+        const observations = [...observationsByIdentity.values()];
+        yield* catalogRecorder.recordRemoteComponents(orgId, 'metadata-api', observations);
       }
 
       return retrieveOutcome;
@@ -348,7 +375,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
           merge: false,
           outputPath,
-          expectedOrgId
+          expectedOrgId: expectedOrgId ?? connection.getAuthInfoFields().orgId
         });
       }
     );

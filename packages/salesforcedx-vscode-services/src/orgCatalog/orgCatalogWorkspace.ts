@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { KnownOrgMetadataComponentResolution } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
@@ -74,9 +73,10 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
      * Resolves workspace presence for components already discovered by a consumer. This deliberately avoids
      * Metadata API inventory acquisition: the caller's discovery result is authoritative for org presence.
      */
-    const resolveKnownOrgComponents = Effect.fn('OrgCatalogWorkspace.resolveKnownOrgComponents')(function* (
+    const resolveComponents = Effect.fn('OrgCatalogWorkspace.resolveComponents')(function* (
       orgId: string,
-      componentReferences: readonly OrgMetadataComponentReference[]
+      componentReferences: readonly OrgMetadataComponentReference[],
+      options: { readonly prefer: 'workspace' | 'org' }
     ) {
       const xmlNames = [...new Set(componentReferences.map(reference => reference.xmlName))];
       const workspaceByType = new Map(
@@ -96,21 +96,23 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       );
       const resolutions = componentReferences.map(reference => {
         const workspaceUri = workspaceByType.get(reference.xmlName)?.get(reference.fullName);
+        const orgUri = referenceService.documentUri({ orgId, ...reference });
         return {
           reference,
-          documentUri: workspaceUri ?? referenceService.documentUri({ orgId, ...reference }),
-          inWorkspace: workspaceUri !== undefined,
+          presence: workspaceUri ? ('both' as const) : ('org' as const),
+          preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
+          orgUri,
           ...(workspaceUri ? { workspaceUri } : {})
-        } satisfies KnownOrgMetadataComponentResolution;
+        };
       });
       yield* Effect.annotateCurrentSpan({
         componentCount: componentReferences.length,
         metadataTypeCount: xmlNames.length,
-        workspaceComponentCount: resolutions.filter(resolution => resolution.inWorkspace).length
+        workspaceComponentCount: resolutions.filter(resolution => resolution.presence === 'both').length
       });
       return resolutions;
     });
 
-    return { getWorkspaceMetadataTypes, resolveKnownOrgComponents, scanWorkspace } as const;
+    return { getWorkspaceMetadataTypes, resolveComponents, scanWorkspace } as const;
   })
 }) {}

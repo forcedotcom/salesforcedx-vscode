@@ -78,6 +78,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         inventory.set(xmlName, {
           xmlName,
           observedAt: value.observedAt,
+          complete: value.complete,
           components: remoteComponents.map(component => ({
             fullName: isOrgMetadataComponentReference(component.reference)
               ? component.reference.fullName

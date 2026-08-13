@@ -7,22 +7,26 @@
 
 /* eslint-disable barrel-files/avoid-barrel-files -- temporary re-export layer during refactoring. Consider removing once consumers can import directly from source modules. */
 
-import type { OrgMetadataConsistency } from './orgMetadataCatalogTypes';
+import type {
+  OrgMetadataCatalogComponentReference,
+  OrgMetadataCatalogEntry,
+  OrgMetadataCatalogInternalEntry,
+  OrgMetadataCatalogReference,
+  OrgMetadataConsistency,
+  OrgMetadataHierarchyConsistency
+} from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
-import { OrgCatalogDocuments } from './orgCatalogDocuments';
 import { OrgCatalogInventory } from './orgCatalogInventory';
-import { componentIdentity, referencesToAffectedSObjects } from './orgCatalogKeys';
-import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
+import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
 
 export {
   OrgCatalogObservationSchema,
@@ -31,16 +35,36 @@ export {
 } from './orgMetadataCatalogTypes';
 export { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 export type {
-  KnownOrgMetadataComponentResolution,
   OrgCatalogObservation,
+  OrgMetadataCatalogComponentReference,
   OrgMetadataCatalogEntry,
+  OrgMetadataCatalogReference,
+  OrgMetadataComponentResolution,
   OrgMetadataConsistency,
+  OrgMetadataHierarchyConsistency,
   OrgMetadataEntryKind,
   OrgMetadataFieldDetails,
   OrgMetadataPresence,
   OrgSObjectDescription,
   OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
+
+const toInternalReference = (reference: OrgMetadataCatalogReference): OrgMetadataReference => ({
+  ...(reference.type ? { xmlName: reference.type } : {}),
+  ...(reference.fullName ? { fullName: reference.fullName } : {})
+});
+
+const toInternalComponentReference = (
+  reference: OrgMetadataCatalogComponentReference
+): OrgMetadataComponentReference => ({ xmlName: reference.type, fullName: reference.fullName });
+
+const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCatalogEntry => ({
+  ...entry,
+  reference: {
+    ...(entry.reference.xmlName ? { type: entry.reference.xmlName } : {}),
+    ...(entry.reference.fullName ? { fullName: entry.reference.fullName } : {})
+  }
+});
 
 /**
  * Canonical, services-owned inventory and content catalog for metadata in the
@@ -52,33 +76,23 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
   dependencies: [
     ConnectionService.Default,
     MetadataDescribeService.Default,
-    OrgCatalogDocuments.Default,
     OrgCatalogInventory.Default,
-    OrgCatalogRemoteSource.Default,
     OrgCatalogState.Default,
     OrgCatalogTreeProjection.Default,
-    OrgCatalogWorkspace.Default
+    OrgCatalogWorkspace.Default,
+    OrgMetadataCatalogRecorder.Default
   ],
   effect: Effect.gen(function* () {
-    const [
-      connectionService,
-      metadataDescribeService,
-      documents,
-      inventories,
-      remoteSource,
-      state,
-      treeProjection,
-      workspace
-    ] = yield* Effect.all([
-      ConnectionService,
-      MetadataDescribeService,
-      OrgCatalogDocuments,
-      OrgCatalogInventory,
-      OrgCatalogRemoteSource,
-      OrgCatalogState,
-      OrgCatalogTreeProjection,
-      OrgCatalogWorkspace
-    ]);
+    const [connectionService, metadataDescribeService, inventories, state, treeProjection, workspace, recorder] =
+      yield* Effect.all([
+        ConnectionService,
+        MetadataDescribeService,
+        OrgCatalogInventory,
+        OrgCatalogState,
+        OrgCatalogTreeProjection,
+        OrgCatalogWorkspace,
+        OrgMetadataCatalogRecorder
+      ]);
     const getActiveOrgId = Effect.fn('OrgMetadataCatalog.getActiveOrgId')(function* () {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       if (orgId) return orgId;
@@ -94,132 +108,32 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       return yield* Effect.fail(vscode.FileSystemError.Unavailable('No default org is configured'));
     });
 
-    const resolveKnownOrgComponents = Effect.fn('OrgMetadataCatalog.resolveKnownOrgComponents')(function* (
-      references: readonly OrgMetadataComponentReference[]
+    const resolveComponents = Effect.fn('OrgMetadataCatalog.resolveComponents')(function* (
+      references: readonly OrgMetadataCatalogComponentReference[]
     ) {
       const orgId = yield* getActiveOrgId();
-      return yield* workspace.resolveKnownOrgComponents(orgId, references);
+      const resolutions = yield* workspace.resolveComponents(orgId, references.map(toInternalComponentReference), {
+        prefer: 'workspace'
+      });
+      yield* recorder.recordRemoteComponents(
+        orgId,
+        'tooling-api',
+        resolutions.map(resolution => ({
+          type: resolution.reference.xmlName,
+          fullName: resolution.reference.fullName,
+          ...(resolution.workspaceUri ? { workspaceUri: resolution.workspaceUri } : {})
+        }))
+      );
+      return resolutions.map(resolution => ({
+        ...resolution,
+        reference: { type: resolution.reference.xmlName, fullName: resolution.reference.fullName }
+      }));
     });
 
-    const getPresence = Effect.fn('OrgMetadataCatalog.getPresence')(function* (
-      reference: OrgMetadataComponentReference
-    ) {
-      const orgId = yield* getActiveOrgId();
-      return yield* inventories.getPresence(orgId, reference);
-    });
-
-    const getWorkspaceMetadataTypes = Effect.fn('OrgMetadataCatalog.getWorkspaceMetadataTypes')(function* () {
-      const orgId = yield* getActiveOrgId();
-      return yield* workspace.getWorkspaceMetadataTypes(orgId);
-    });
-
-    const getSObjectsCached = Effect.fn('OrgMetadataCatalog.getSObjectsCached')(function* () {
-      const orgId = yield* getActiveOrgId();
-      yield* state.ensureHydrated(orgId);
-      return yield* state.getSObjectList(orgId);
-    });
-
-    const getSObjectCached = Effect.fn('OrgMetadataCatalog.getSObjectCached')(function* (apiName: string) {
-      const orgId = yield* getActiveOrgId();
-      yield* state.ensureHydrated(orgId);
-      return yield* state.getSObjectDescription(orgId, apiName);
-    });
-
-    const getTrackingObservationsCached = Effect.fn('OrgMetadataCatalog.getTrackingObservationsCached')(function* () {
-      const orgId = yield* getActiveOrgId();
-      yield* state.ensureHydrated(orgId);
-      return [...(yield* state.getTracking(orgId)).values()];
-    });
-
-    const getChildren = Effect.fn('OrgMetadataCatalog.getChildren')(function* (reference: OrgMetadataReference = {}) {
-      const orgId = yield* getActiveOrgId();
-      return yield* treeProjection.getChildren(orgId, reference);
-    });
-
-    const getChildrenCached = Effect.fn('OrgMetadataCatalog.getChildrenCached')(function* (
+    const invalidateHierarchy = Effect.fn('OrgMetadataCatalog.invalidateHierarchy')(function* (
+      orgId: string,
       reference: OrgMetadataReference
     ) {
-      if (!reference.xmlName) return undefined;
-      const orgId = yield* getActiveOrgId();
-      return yield* treeProjection.getChildrenCached(orgId, reference);
-    });
-
-    const getEntry = Effect.fn('OrgMetadataCatalog.getEntry')(function* (reference: OrgMetadataComponentReference) {
-      const orgId = yield* getActiveOrgId();
-      return yield* inventories.getEntry(orgId, reference);
-    });
-
-    const getDocumentUri = Effect.fn('OrgMetadataCatalog.getDocumentUri')(function* (
-      reference: OrgMetadataComponentReference
-    ) {
-      return yield* documents.getDocumentUri(yield* getActiveOrgId(), reference);
-    });
-
-    const materializeRemoteSources = Effect.fn('OrgMetadataCatalog.materializeRemoteSources')(function* (
-      references: readonly OrgMetadataComponentReference[],
-      options: { readonly consistency?: OrgMetadataConsistency } = {}
-    ) {
-      return yield* remoteSource.materializeRemoteSources(yield* getActiveOrgId(), references, options);
-    });
-
-    const materializeRemoteSource = Effect.fn('OrgMetadataCatalog.materializeRemoteSource')(function* (
-      reference: OrgMetadataComponentReference,
-      options: { readonly consistency?: OrgMetadataConsistency } = {}
-    ) {
-      return yield* remoteSource.materializeRemoteSource(yield* getActiveOrgId(), reference, options);
-    });
-
-    const getRemoteDocument = Effect.fn('OrgMetadataCatalog.getRemoteDocument')(function* (
-      reference: OrgMetadataComponentReference
-    ) {
-      return yield* documents.getRemoteDocument(yield* getActiveOrgId(), reference);
-    });
-
-    const read = Effect.fn('OrgMetadataCatalog.read')(function* (reference: OrgMetadataComponentReference) {
-      return yield* documents.read(yield* getActiveOrgId(), reference);
-    });
-
-    const readDocumentUri = Effect.fn('OrgMetadataCatalog.readDocumentUri')(function* (uri: URI) {
-      return yield* documents.readDocumentUri(yield* getActiveOrgId(), uri);
-    });
-
-    const getDocumentReference = Effect.fn('OrgMetadataCatalog.getDocumentReference')(function* (uri: URI) {
-      return yield* documents.getDocumentReference(yield* getActiveOrgId(), uri);
-    });
-
-    const invalidate = Effect.fn('OrgMetadataCatalog.invalidate')(function* () {
-      const orgId = yield* getActiveOrgId();
-      yield* state.ensureHydrated(orgId);
-      yield* state.invalidateOrgInventories(orgId);
-      yield* state.persistOrg(orgId);
-    });
-
-    const invalidateReferencesInternal = Effect.fn('OrgMetadataCatalog.invalidateReferencesInternal')(function* (
-      orgId: string,
-      references: readonly OrgMetadataComponentReference[],
-      persist: boolean
-    ) {
-      yield* state.ensureHydrated(orgId);
-      const affectedTypes = new Set(references.map(reference => reference.xmlName));
-      const affectedIdentities = new Set(references.map(componentIdentity));
-      yield* state.invalidateTypes(orgId, affectedTypes);
-      yield* state.removeTracking(orgId, affectedIdentities);
-      yield* metadataDescribeService.invalidateForMetadataChanges(orgId, references);
-      const affectedSObjects = referencesToAffectedSObjects(references);
-      if (affectedSObjects.size > 0) {
-        yield* state.invalidateSObjects(orgId, affectedSObjects);
-      }
-      if (persist) yield* state.persistOrg(orgId);
-    });
-
-    const invalidateReferences = Effect.fn('OrgMetadataCatalog.invalidateReferences')(function* (
-      references: readonly OrgMetadataComponentReference[]
-    ) {
-      yield* invalidateReferencesInternal(yield* getActiveOrgId(), references, true);
-    });
-
-    const refresh = Effect.fn('OrgMetadataCatalog.refresh')(function* (reference: OrgMetadataReference = {}) {
-      const orgId = yield* getActiveOrgId();
       if (!reference.xmlName) {
         yield* metadataDescribeService.invalidateDescribe(orgId);
       } else if (FOLDERED_METADATA_TYPES.has(reference.xmlName)) {
@@ -228,69 +142,56 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         yield* metadataDescribeService.invalidateListMetadata(reference.xmlName, undefined, orgId);
       }
       yield* state.ensureHydrated(orgId);
-      yield* state.invalidateOrgInventories(orgId);
+      yield* reference.xmlName
+        ? state.invalidateTypes(orgId, new Set([reference.xmlName]))
+        : state.invalidateOrgInventories(orgId);
       yield* state.persistOrg(orgId);
     });
 
-    const listMetadataTypes = Effect.fn('OrgMetadataCatalog.listMetadataTypes')(function* () {
-      return yield* getChildren();
-    });
-
-    const listMetadataComponents = Effect.fn('OrgMetadataCatalog.listMetadataComponents')(function* (
-      reference: OrgMetadataReference & { readonly xmlName: string }
+    const getChildren = Effect.fn('OrgMetadataCatalog.getChildren')(function* (
+      reference: OrgMetadataCatalogReference = {},
+      options: { readonly consistency?: OrgMetadataHierarchyConsistency } = {}
     ) {
-      return yield* getChildren(reference);
+      const orgId = yield* getActiveOrgId();
+      const internalReference = toInternalReference(reference);
+      if (options.consistency === 'cache-only') {
+        return internalReference.xmlName
+          ? ((yield* treeProjection.getChildrenCached(orgId, internalReference)) ?? []).map(toCatalogEntry)
+          : [];
+      }
+      if (options.consistency === 'refresh') yield* invalidateHierarchy(orgId, internalReference);
+      return (yield* treeProjection.getChildren(orgId, internalReference)).map(toCatalogEntry);
     });
 
-    const refreshMetadataTypes = Effect.fn('OrgMetadataCatalog.refreshMetadataTypes')(function* () {
-      yield* refresh();
-      return yield* listMetadataTypes();
-    });
-
-    const refreshMetadataComponents = Effect.fn('OrgMetadataCatalog.refreshMetadataComponents')(function* (
-      reference: OrgMetadataReference & { readonly xmlName: string }
+    const getEntries = Effect.fn('OrgMetadataCatalog.getEntries')(function* (
+      references: readonly OrgMetadataCatalogComponentReference[],
+      options: { readonly consistency?: OrgMetadataConsistency } = {}
     ) {
-      yield* refresh(reference);
-      return yield* listMetadataComponents(reference);
-    });
-
-    /**
-     * Close out an org's state when it is no longer the active org.
-     * Flushes dirty caches to disk to ensure the org's state is persisted before switching focus.
-     * This is called automatically when the default org changes.
-     */
-    const closeOrg = Effect.fn('OrgMetadataCatalog.closeOrg')(function* (orgId: string) {
-      yield* Effect.logInfo('Closing org catalog', { orgId });
-      const persisted = yield* state.flushOrg(orgId);
-      yield* Effect.annotateCurrentSpan({ orgId, persisted });
-      yield* Effect.logDebug('Org catalog closed', { orgId, persisted });
+      const orgId = yield* getActiveOrgId();
+      const internalReferences = references.map(toInternalComponentReference);
+      if (options.consistency === 'refresh') {
+        const xmlNames = new Set(internalReferences.map(reference => reference.xmlName));
+        yield* Effect.forEach(
+          xmlNames,
+          xmlName =>
+            FOLDERED_METADATA_TYPES.has(xmlName)
+              ? metadataDescribeService.invalidateAllListMetadata(orgId)
+              : metadataDescribeService.invalidateListMetadata(xmlName, undefined, orgId),
+          { concurrency: 1, discard: true }
+        );
+        yield* state.ensureHydrated(orgId);
+        yield* state.invalidateTypes(orgId, xmlNames);
+        yield* state.persistOrg(orgId);
+      }
+      return yield* Effect.forEach(internalReferences, reference => inventories.getEntry(orgId, reference), {
+        concurrency: 'unbounded'
+      }).pipe(Effect.map(entries => entries.map(entry => (entry ? toCatalogEntry(entry) : entry))));
     });
 
     return {
-      closeOrg,
       getChildren,
-      getChildrenCached,
-      getDocumentReference,
-      getDocumentUri,
-      getEntry,
-      getPresence,
-      getRemoteDocument,
-      getSObjectCached,
-      getSObjectsCached,
-      getTrackingObservationsCached,
-      getWorkspaceMetadataTypes,
-      invalidate,
-      invalidateReferences,
-      listMetadataComponents,
-      listMetadataTypes,
-      materializeRemoteSource,
-      materializeRemoteSources,
-      read,
-      readDocumentUri,
-      resolveKnownOrgComponents,
-      refresh,
-      refreshMetadataComponents,
-      refreshMetadataTypes
+      getEntries,
+      resolveComponents
     };
   })
 }) {}

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
+import type { OrgMetadataReference } from './orgMetadataReference';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { SObjectSchema } from '../core/transmogrifierService';
@@ -18,10 +18,25 @@ export type OrgMetadataPresence = {
 
 export type OrgMetadataConsistency = 'cache-first' | 'refresh';
 
-export type KnownOrgMetadataComponentResolution = {
-  readonly reference: OrgMetadataComponentReference;
-  readonly documentUri: URI;
-  readonly inWorkspace: boolean;
+export type OrgMetadataHierarchyConsistency = OrgMetadataConsistency | 'cache-only';
+
+/** Public catalog hierarchy reference. Metadata API `xmlName` is exposed as the conventional `type`. */
+export type OrgMetadataCatalogReference = {
+  readonly type?: string;
+  readonly fullName?: string;
+};
+
+export type OrgMetadataCatalogComponentReference = {
+  readonly type: string;
+  readonly fullName: string;
+};
+
+/** Document resolution for a consumer-discovered org component. */
+export type OrgMetadataComponentResolution = {
+  readonly reference: OrgMetadataCatalogComponentReference;
+  readonly presence: 'org' | 'both';
+  readonly preferredUri: URI;
+  readonly orgUri: URI;
   readonly workspaceUri?: URI;
 };
 
@@ -65,11 +80,10 @@ export type OrgMetadataFieldDetails = {
   readonly precision?: number;
 };
 
-export type OrgMetadataCatalogEntry = OrgMetadataPresence & {
+type OrgMetadataCatalogEntryBase = OrgMetadataPresence & {
   readonly orgId: string;
   readonly observedAt: string;
   readonly provenance: OrgCatalogObservation['provenance'];
-  readonly reference: OrgMetadataReference;
   readonly name: string;
   readonly kind: OrgMetadataEntryKind;
   readonly documentUri: URI;
@@ -80,4 +94,14 @@ export type OrgMetadataCatalogEntry = OrgMetadataPresence & {
   readonly lastModifiedDate?: string;
   readonly remoteLastModifiedDate?: string;
   readonly field?: OrgMetadataFieldDetails;
+};
+
+/** Services-internal entry shape used by catalog storage and projections. */
+export type OrgMetadataCatalogInternalEntry = OrgMetadataCatalogEntryBase & {
+  readonly reference: OrgMetadataReference;
+};
+
+/** Consumer-facing entry shape. */
+export type OrgMetadataCatalogEntry = OrgMetadataCatalogEntryBase & {
+  readonly reference: OrgMetadataCatalogReference;
 };

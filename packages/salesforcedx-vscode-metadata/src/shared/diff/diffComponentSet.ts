@@ -28,7 +28,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
     `Retrieving ${componentSet.size} component${componentSet.size === 1 ? '' : 's'} for diff...`
   );
 
-  const pairsSet = yield* materializeRemoteComponents(componentSet, localUriFilter, undefined, 'refresh');
+  const pairsSet = yield* materializeRemoteComponents(componentSet, localUriFilter);
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');

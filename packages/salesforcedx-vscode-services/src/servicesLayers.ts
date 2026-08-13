@@ -24,6 +24,8 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { OrgCatalogDocuments } from './orgCatalog/orgCatalogDocuments';
+import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
@@ -64,6 +66,8 @@ export const globalLayers = Layer.mergeAll(
   OrgMetadataCatalog.Default,
   OrgMetadataCatalogChangePubSub.Default,
   OrgMetadataCatalogStore.Default,
+  OrgCatalogDocuments.Default,
+  OrgCatalogState.Default,
   OrgMetadataReferenceService.Default,
   MetadataDeleteService.Default,
   MetadataDeployService.Default,

@@ -52,7 +52,7 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
 
   const localUriFilter = HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri)));
 
-  return yield* (yield* materializeRemoteComponents(localComponentSet, localUriFilter, undefined, 'refresh')).pipe(
+  return yield* (yield* materializeRemoteComponents(localComponentSet, localUriFilter)).pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
     Stream.runCollect,

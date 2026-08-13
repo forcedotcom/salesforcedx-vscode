@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalogEntry, OrgMetadataConsistency } from './orgMetadataCatalogTypes';
+import type {
+  OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
+  OrgMetadataConsistency
+} from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';

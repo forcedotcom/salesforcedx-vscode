@@ -9,7 +9,7 @@ import { OrgBrowserTreeItem } from './orgBrowserNode';
 
 export const createCustomFieldNode = (
   entry: OrgMetadataCatalogEntry & {
-    readonly reference: { readonly xmlName: string; readonly fullName: string };
+    readonly reference: { readonly type: string; readonly fullName: string };
     readonly field: OrgMetadataFieldDetails;
   }
 ): OrgBrowserTreeItem =>

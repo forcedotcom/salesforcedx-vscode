@@ -8,7 +8,6 @@
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
-import * as Either from 'effect/Either';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
@@ -37,6 +36,7 @@ import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemote
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
 import { OrgCatalogWorkspace } from '../../../src/orgCatalog/orgCatalogWorkspace';
+import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 import {
   OrgMetadataCatalogChangePubSub,
   type OrgMetadataCatalogChange
@@ -323,6 +323,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
   const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
   const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
+  const recorderLayer = OrgMetadataCatalogRecorder.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
@@ -346,12 +347,15 @@ const makeHarness = (options: HarnessOptions = {}) => {
     remoteRetrieveLayer,
     remoteSourceLayer,
     documentsLayer,
+    recorderLayer,
     treeProjectionLayer
   );
 
   return {
     catalogChanges,
+    internalLayer: Layer.mergeAll(stateLayer, documentsLayer),
     layer: Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
+    remoteSourceLayer,
     mocks: {
       buildComponentSetFromSource,
       buildComponentSet,
@@ -394,14 +398,51 @@ const runWithCatalog = <A, E, LayerError>(
     }).pipe(Effect.provide(layer))
   );
 
+const getEntry = (
+  catalog: InstanceType<typeof OrgMetadataCatalog>,
+  reference: { readonly xmlName: string; readonly fullName: string }
+) =>
+  catalog
+    .getEntries([{ type: reference.xmlName, fullName: reference.fullName }])
+    .pipe(Effect.map(entries => entries[0]));
+
+const materializeRemoteSource = (
+  remoteSource: InstanceType<typeof OrgCatalogRemoteSource>,
+  reference: { readonly xmlName: string; readonly fullName: string },
+  options: { readonly consistency?: 'cache-first' | 'refresh' } = {}
+) => remoteSource.materializeRemoteSource('org-one', reference, options);
+
+const runWithCatalogAndRemoteSource = <A, E, LayerError>(
+  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource, LayerError>,
+  body: (
+    catalog: InstanceType<typeof OrgMetadataCatalog>,
+    remoteSource: InstanceType<typeof OrgCatalogRemoteSource>
+  ) => Effect.Effect<A, E>
+): Promise<A> =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      yield* setOrg('org-one');
+      return yield* body(yield* OrgMetadataCatalog, yield* OrgCatalogRemoteSource);
+    }).pipe(Effect.provide(layer))
+  );
+
 describe('OrgMetadataCatalog contract', () => {
+  it('exposes only consumer-shaped operations', async () => {
+    const { layer } = makeHarness();
+
+    const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
+
+    expect(keys).toEqual(['getChildren', 'getEntries', 'resolveComponents']);
+  });
+
   it('starts the metadata document provider when no workspace is open', async () => {
-    const { catalogChanges, layer } = makeHarness();
+    const { catalogChanges, internalLayer, layer } = makeHarness();
     jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
       dispose: jest.fn()
     });
     const providerLayer = Layer.mergeAll(
       layer,
+      internalLayer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
       OrgMetadataReferenceService.Default,
@@ -443,13 +484,13 @@ describe('OrgMetadataCatalog contract', () => {
       Effect.gen(function* () {
         yield* SubscriptionRef.set(yield* getDefaultOrgRef(), {});
         const catalog = yield* OrgMetadataCatalog;
-        return yield* catalog.resolveKnownOrgComponents([{ xmlName: 'ApexClass', fullName: 'RemoteTest' }]);
+        return yield* catalog.resolveComponents([{ type: 'ApexClass', fullName: 'RemoteTest' }]);
       }).pipe(Effect.provide(layer))
     );
 
     expect(resolutions[0]).toMatchObject({
-      inWorkspace: false,
-      documentUri: URI.parse('sf-org-metadata:/orgs/startup-org/ApexClass/RemoteTest.cls')
+      presence: 'org',
+      preferredUri: URI.parse('sf-org-metadata:/orgs/startup-org/ApexClass/RemoteTest.cls')
     });
     expect(mocks.getConnection).toHaveBeenCalledTimes(1);
     expect(mocks.listMetadata).not.toHaveBeenCalled();
@@ -467,28 +508,43 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const resolutions = await runWithCatalog(layer, catalog =>
-      catalog.resolveKnownOrgComponents([
-        { xmlName: 'ApexClass', fullName: 'LocalTest' },
-        { xmlName: 'ApexClass', fullName: 'RemoteTest' }
+      catalog.resolveComponents([
+        { type: 'ApexClass', fullName: 'LocalTest' },
+        { type: 'ApexClass', fullName: 'RemoteTest' }
       ])
     );
 
     expect(resolutions).toEqual([
       expect.objectContaining({
-        reference: { xmlName: 'ApexClass', fullName: 'LocalTest' },
-        inWorkspace: true,
-        documentUri: URI.file('/workspace/force-app/main/default/classes/LocalTest.cls')
+        reference: { type: 'ApexClass', fullName: 'LocalTest' },
+        presence: 'both',
+        preferredUri: URI.file('/workspace/force-app/main/default/classes/LocalTest.cls'),
+        orgUri: URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/LocalTest.cls'),
+        workspaceUri: URI.file('/workspace/force-app/main/default/classes/LocalTest.cls')
       }),
       expect.objectContaining({
-        reference: { xmlName: 'ApexClass', fullName: 'RemoteTest' },
-        inWorkspace: false,
-        documentUri: URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/RemoteTest.cls')
+        reference: { type: 'ApexClass', fullName: 'RemoteTest' },
+        presence: 'org',
+        preferredUri: URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/RemoteTest.cls'),
+        orgUri: URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/RemoteTest.cls')
       })
     ]);
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(1);
     expect(mocks.listMetadata).not.toHaveBeenCalled();
-    expect(mocks.storeLoad).not.toHaveBeenCalled();
-    expect(mocks.storeSave).not.toHaveBeenCalled();
+    expect(mocks.storeLoad).toHaveBeenCalledWith('org-one');
+    expect(mocks.storeSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        inventory: [
+          expect.objectContaining({
+            complete: false,
+            components: expect.arrayContaining([
+              expect.objectContaining({ fullName: 'LocalTest' }),
+              expect.objectContaining({ fullName: 'RemoteTest' })
+            ])
+          })
+        ]
+      })
+    );
   });
 
   it('coalesces equivalent inventory requests and merges org/workspace presence with remote timestamps', async () => {
@@ -516,13 +572,10 @@ describe('OrgMetadataCatalog contract', () => {
     const [first, second, cached] = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
         const concurrent = yield* Effect.all(
-          [
-            catalog.listMetadataComponents({ xmlName: 'ApexClass' }),
-            catalog.listMetadataComponents({ xmlName: 'ApexClass' })
-          ],
+          [catalog.getChildren({ type: 'ApexClass' }), catalog.getChildren({ type: 'ApexClass' })],
           { concurrency: 'unbounded' }
         );
-        return [...concurrent, yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' })] as const;
+        return [...concurrent, yield* catalog.getChildren({ type: 'ApexClass' })] as const;
       })
     );
 
@@ -557,7 +610,7 @@ describe('OrgMetadataCatalog contract', () => {
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
         yield* setOrg('org-one');
-        return yield* (yield* OrgMetadataCatalog).listMetadataComponents({ xmlName: 'ApexClass' });
+        return yield* (yield* OrgMetadataCatalog).getChildren({ type: 'ApexClass' });
       }).pipe(Effect.provide(layer))
     );
 
@@ -572,30 +625,6 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.storeSave).not.toHaveBeenCalled();
   });
 
-  it('does not persist a clean catalog when the org closes', async () => {
-    const { layer, mocks } = makeHarness();
-
-    await runWithCatalog(layer, catalog => catalog.closeOrg('org-one'));
-
-    expect(mocks.storeSave).not.toHaveBeenCalled();
-  });
-
-  it('flushes a dirty catalog exactly once when the org closes', async () => {
-    const { layer, mocks } = makeHarness({
-      metadataByType: { ApexClass: [{ fullName: 'RemoteTest' }] }
-    });
-
-    await runWithCatalog(layer, catalog =>
-      Effect.gen(function* () {
-        yield* catalog.getEntry({ xmlName: 'ApexClass', fullName: 'RemoteTest' });
-        yield* catalog.closeOrg('org-one');
-      })
-    );
-
-    expect(mocks.storeSave).toHaveBeenCalledTimes(1);
-    expect(mocks.storeSave).toHaveBeenCalledWith(expect.objectContaining({ orgId: 'org-one', generation: 1 }));
-  });
-
   it('restores persisted inventory after a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
     const first = makeHarness({
@@ -605,7 +634,7 @@ describe('OrgMetadataCatalog contract', () => {
       }
     });
 
-    await runWithCatalog(first.layer, catalog => catalog.listMetadataComponents({ xmlName: 'ApexClass' }));
+    await runWithCatalog(first.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
 
     expect(catalogSnapshots.get('org-one')).toEqual(
       expect.objectContaining({
@@ -619,9 +648,7 @@ describe('OrgMetadataCatalog contract', () => {
       catalogSnapshots,
       workspaceComponents: [{ type: { name: 'ApexClass' }, fullName: 'LocalOnly', content: '/workspace/LocalOnly.cls' }]
     });
-    const restored = await runWithCatalog(restarted.layer, catalog =>
-      catalog.listMetadataComponents({ xmlName: 'ApexClass' })
-    );
+    const restored = await runWithCatalog(restarted.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
 
     expect(restored.map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
       ['LocalOnly', false, true],
@@ -632,31 +659,33 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
   });
 
-  it('persists targeted invalidation so a restart does not restore stale inventory', async () => {
+  it('persists refreshed inventory for a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const apexClasses: ListedComponent[] = [{ fullName: 'OldTest' }];
     const first = makeHarness({
       catalogSnapshots,
-      metadataByType: { ApexClass: [{ fullName: 'OldTest' }] }
+      metadataByType: { ApexClass: apexClasses }
     });
     await runWithCatalog(first.layer, catalog =>
       Effect.gen(function* () {
-        yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' });
-        yield* catalog.invalidateReferences([{ xmlName: 'ApexClass', fullName: 'OldTest' }]);
+        yield* catalog.getChildren({ type: 'ApexClass' });
+        yield* Effect.sync(() => apexClasses.splice(0));
+        yield* catalog.getChildren({ type: 'ApexClass' }, { consistency: 'refresh' });
       })
     );
 
-    expect(catalogSnapshots.get('org-one')?.inventory).toEqual([]);
+    expect(catalogSnapshots.get('org-one')?.inventory).toEqual([
+      expect.objectContaining({ xmlName: 'ApexClass', components: [] })
+    ]);
 
     const restarted = makeHarness({
       catalogSnapshots,
       metadataByType: { ApexClass: [{ fullName: 'NewTest' }] }
     });
-    const entries = await runWithCatalog(restarted.layer, catalog =>
-      catalog.listMetadataComponents({ xmlName: 'ApexClass' })
-    );
+    const entries = await runWithCatalog(restarted.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
 
-    expect(entries.map(entry => entry.name)).toEqual(['NewTest']);
-    expect(restarted.mocks.listMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
+    expect(entries).toEqual([]);
+    expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
   });
 
   it('continues with provider-backed reads when catalog hydration or persistence fails', async () => {
@@ -666,7 +695,7 @@ describe('OrgMetadataCatalog contract', () => {
       storeSaveError: new Error('read-only workspace')
     });
 
-    const entries = await runWithCatalog(layer, catalog => catalog.listMetadataComponents({ xmlName: 'ApexClass' }));
+    const entries = await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
 
     expect(entries.map(entry => entry.name)).toEqual(['ProviderTest']);
     expect(mocks.listMetadata).toHaveBeenCalledWith('ApexClass', undefined, 'org-one');
@@ -683,12 +712,11 @@ describe('OrgMetadataCatalog contract', () => {
 
     await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
-        yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' });
-        yield* catalog.listMetadataComponents({ xmlName: 'AuraDefinitionBundle' });
-        yield* catalog.invalidateReferences([{ xmlName: 'ApexClass', fullName: 'MyTest' }]);
-        yield* catalog.listMetadataComponents({ xmlName: 'ApexClass' });
-        yield* catalog.listMetadataComponents({ xmlName: 'AuraDefinitionBundle' });
-        yield* catalog.refreshMetadataComponents({ xmlName: 'ApexClass' });
+        yield* catalog.getChildren({ type: 'ApexClass' });
+        yield* catalog.getChildren({ type: 'AuraDefinitionBundle' });
+        yield* catalog.getChildren({ type: 'ApexClass' }, { consistency: 'refresh' });
+        yield* catalog.getChildren({ type: 'AuraDefinitionBundle' });
+        yield* catalog.getChildren({ type: 'ApexClass' }, { consistency: 'refresh' });
       })
     );
 
@@ -727,36 +755,22 @@ describe('OrgMetadataCatalog contract', () => {
             )
             .mockImplementationOnce(() => Effect.succeed({ getSourceComponents: () => [] }));
 
-          const initialLoad = yield* Effect.forkScoped(catalog.listMetadataComponents({ xmlName: 'ApexClass' }));
+          const initialLoad = yield* Effect.forkScoped(catalog.getChildren({ type: 'ApexClass' }));
           yield* Deferred.await(scanStarted);
-          const invalidation = yield* Effect.forkScoped(catalog.invalidate());
+          const invalidation = yield* Effect.forkScoped(
+            catalog.getChildren({ type: 'ApexClass' }, { consistency: 'refresh' })
+          );
           yield* Deferred.succeed(finishStaleScan, undefined);
           yield* Fiber.join(initialLoad);
           yield* Fiber.join(invalidation);
 
-          return yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+          return yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
         })
       )
     );
 
-    expect(presence).toEqual({ inOrg: true, inWorkspace: false });
+    expect(presence).toMatchObject({ inOrg: true, inWorkspace: false });
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(2);
-  });
-
-  it('invalidates correlated SObject observations for Custom Object and Custom Field changes', async () => {
-    const { layer, mocks } = makeHarness();
-
-    await runWithCatalog(layer, catalog =>
-      catalog.invalidateReferences([
-        { xmlName: 'CustomField', fullName: 'Account.Rating__c' },
-        { xmlName: 'CustomObject', fullName: 'Property__c' }
-      ])
-    );
-
-    expect(mocks.invalidateSObjectDescribes).toHaveBeenCalledWith(['Account', 'Property__c'], 'org-one');
-    expect(mocks.invalidateListSObjects).toHaveBeenCalledTimes(1);
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomField', undefined, 'org-one');
-    expect(mocks.invalidateListMetadata).toHaveBeenCalledWith('CustomObject', undefined, 'org-one');
   });
 
   it('removes workspace presence after source and sidecar deletion notifications', async () => {
@@ -767,7 +781,7 @@ describe('OrgMetadataCatalog contract', () => {
         content: '/workspace/force-app/main/default/classes/FileUtilitiesTest.cls'
       }
     ];
-    const { catalogChanges, layer } = makeHarness({
+    const { catalogChanges, internalLayer, layer } = makeHarness({
       metadataByType: { ApexClass: [{ fullName: 'FileUtilitiesTest' }] },
       workspaceComponents
     });
@@ -776,6 +790,7 @@ describe('OrgMetadataCatalog contract', () => {
     });
     const providerLayer = Layer.mergeAll(
       layer,
+      internalLayer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
       OrgMetadataReferenceService.Default,
@@ -814,7 +829,7 @@ describe('OrgMetadataCatalog contract', () => {
         const catalog = yield* OrgMetadataCatalog;
         const fileChanges = yield* FileChangePubSub;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        const before = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
 
         yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
         yield* Queue.take(subscription); // provider's initial active-org observation
@@ -831,7 +846,7 @@ describe('OrgMetadataCatalog contract', () => {
         });
 
         const event = yield* Queue.take(subscription);
-        const after = yield* catalog.getPresence({ xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        const after = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
         return { after, before, event };
       })
     ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
@@ -913,18 +928,18 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const children = await runWithCatalog(layer, catalog =>
-      catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Account' })
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Account' })
     );
 
     expect(children.map(child => child.name)).toEqual(['Rating__c', 'RuntimeOnly__c']);
     expect(children[0]).toMatchObject({
-      reference: { xmlName: 'CustomField', fullName: 'Account.Rating__c' },
+      reference: { type: 'CustomField', fullName: 'Account.Rating__c' },
       provenance: 'metadata-api',
       remoteLastModifiedDate: '2026-07-30T12:00:00.000Z',
       field: { name: 'Rating__c', type: 'string', length: 80 }
     });
     expect(children[1]).toMatchObject({
-      reference: { xmlName: 'CustomField', fullName: 'Account.RuntimeOnly__c' },
+      reference: { type: 'CustomField', fullName: 'Account.RuntimeOnly__c' },
       provenance: 'rest-api',
       inOrg: true,
       inWorkspace: false,
@@ -949,13 +964,13 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const children = await runWithCatalog(layer, catalog =>
-      catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Broker__c' })
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })
     );
 
     expect(children).toEqual([
       expect.objectContaining({
         name: 'Email__c',
-        reference: { xmlName: 'CustomField', fullName: 'Broker__c.Email__c' },
+        reference: { type: 'CustomField', fullName: 'Broker__c.Email__c' },
         inOrg: true,
         inWorkspace: true,
         workspaceUri: URI.file('/workspace/force-app/main/default/objects/Broker__c/fields/Email__c.field-meta.xml')
@@ -971,15 +986,15 @@ describe('OrgMetadataCatalog contract', () => {
       }
     });
 
-    const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ xmlName: 'Report' }));
+    const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'Report' }));
     const children = await runWithCatalog(layer, catalog =>
-      catalog.getChildren({ xmlName: 'Report', fullName: 'EmptyReports' })
+      catalog.getChildren({ type: 'Report', fullName: 'EmptyReports' })
     );
 
     expect(folders).toEqual([
       expect.objectContaining({
         kind: 'folder',
-        reference: { xmlName: 'Report', fullName: 'EmptyReports' }
+        reference: { type: 'Report', fullName: 'EmptyReports' }
       })
     ]);
     expect(children).toEqual([]);
@@ -1031,7 +1046,7 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const children = await runWithCatalog(layer, catalog =>
-      catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Broker__c' })
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })
     );
 
     expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Broker__c', 'org-one');
@@ -1051,11 +1066,11 @@ describe('OrgMetadataCatalog contract', () => {
 
     const [orgOne, orgTwo, orgOneAgain] = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
-        const first = yield* catalog.getEntry({ xmlName: 'ApexClass', fullName: 'SharedTest' });
+        const first = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'SharedTest' });
         yield* setOrg('org-two');
-        const second = yield* catalog.getEntry({ xmlName: 'ApexClass', fullName: 'SharedTest' });
+        const second = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'SharedTest' });
         yield* setOrg('org-one');
-        const third = yield* catalog.getEntry({ xmlName: 'ApexClass', fullName: 'SharedTest' });
+        const third = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'SharedTest' });
         return [first, second, third] as const;
       })
     );
@@ -1067,71 +1082,8 @@ describe('OrgMetadataCatalog contract', () => {
     expect(orgTwo?.documentUri.toString()).not.toBe(orgOne?.documentUri.toString());
   });
 
-  it('rejects document URIs from an inactive org after an org switch', async () => {
-    const { layer } = makeHarness({
-      metadataByType: { ApexClass: [{ fullName: 'SharedTest' }] }
-    });
-
-    const { inactiveDocument, inactiveReference, orgOneUri, orgTwoUri } = await runWithCatalog(layer, catalog =>
-      Effect.gen(function* () {
-        const reference = { xmlName: 'ApexClass', fullName: 'SharedTest' };
-        const firstUri = yield* catalog.getDocumentUri(reference);
-        yield* setOrg('org-two');
-        const secondUri = yield* catalog.getDocumentUri(reference);
-        return {
-          inactiveDocument: yield* Effect.either(catalog.readDocumentUri(firstUri)),
-          inactiveReference: yield* catalog.getDocumentReference(firstUri),
-          orgOneUri: firstUri,
-          orgTwoUri: secondUri
-        };
-      })
-    );
-
-    expect(orgTwoUri.toString()).not.toBe(orgOneUri.toString());
-    expect(inactiveReference).toBeUndefined();
-    expect(Either.isLeft(inactiveDocument)).toBe(true);
-    if (Either.isLeft(inactiveDocument)) {
-      expect(inactiveDocument.left).toMatchObject({ code: 'FileNotFound' });
-    }
-  });
-
-  it('reuses a materialized document for the same remote revision and isolates a newer revision', async () => {
-    const remoteComponent = {
-      fullName: 'RemoteTest',
-      lastModifiedDate: 'revision-1'
-    };
-    const { layer, mocks } = makeHarness({
-      metadataByType: { ApexClass: [remoteComponent] }
-    });
-    const reference = { xmlName: 'ApexClass', fullName: 'RemoteTest' };
-
-    const [first, repeated, revised] = await runWithCatalog(layer, catalog =>
-      Effect.gen(function* () {
-        const [firstRead, repeatedRead] = yield* Effect.all([catalog.read(reference), catalog.read(reference)], {
-          concurrency: 'unbounded'
-        });
-        yield* Effect.sync(() => {
-          remoteComponent.lastModifiedDate = 'revision-2';
-        });
-        yield* catalog.refresh({ xmlName: 'ApexClass' });
-        return [firstRead, repeatedRead, yield* catalog.read(reference)] as const;
-      })
-    );
-
-    expect(first).toBe('public class RemoteTest {}');
-    expect(repeated).toBe(first);
-    expect(revised).toBe(first);
-    expect(mocks.toolingQuery).toHaveBeenCalledTimes(2);
-    expect(mocks.getConnectionForOrg).toHaveBeenCalledWith('org-one');
-    expect(mocks.shadowPrepare).toHaveBeenCalledTimes(2);
-    expect(mocks.shadowPublish).toHaveBeenCalledTimes(2);
-    expect(mocks.shadowGet).toHaveBeenNthCalledWith(1, 'org-one', reference, 'revision-1');
-    expect(mocks.shadowGet).toHaveBeenNthCalledWith(2, 'org-one', reference, 'revision-1');
-    expect(mocks.shadowGet).toHaveBeenNthCalledWith(3, 'org-one', reference, 'revision-2');
-  });
-
   it('materializes decomposed metadata represented only by a metadata XML file', async () => {
-    const { layer, mocks } = makeHarness({
+    const { layer, mocks, remoteSourceLayer } = makeHarness({
       metadataByType: { ListView: [{ fullName: 'Broker__c.All', lastModifiedDate: 'revision-1' }] }
     });
     mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
@@ -1170,8 +1122,8 @@ describe('OrgMetadataCatalog contract', () => {
       });
     });
 
-    const artifact = await runWithCatalog(layer, catalog =>
-      catalog.materializeRemoteSource({ xmlName: 'ListView', fullName: 'Broker__c.All' })
+    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
+      materializeRemoteSource(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/objects/Broker__c/listViews/All.listView-meta.xml')).toBe(true);
@@ -1185,7 +1137,7 @@ describe('OrgMetadataCatalog contract', () => {
   });
 
   it('materializes metadata by discovering files written to the staging directory', async () => {
-    const { layer, mocks } = makeHarness({
+    const { layer, mocks, remoteSourceLayer } = makeHarness({
       metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
     });
     let retrievedUri: URI | undefined;
@@ -1204,8 +1156,8 @@ describe('OrgMetadataCatalog contract', () => {
       Effect.succeed(retrievedUri ? [{ uri: retrievedUri, type: vscode.FileType.File }] : [])
     );
 
-    const artifact = await runWithCatalog(layer, catalog =>
-      catalog.materializeRemoteSource({ xmlName: 'Prompt', fullName: 'Property' })
+    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
+      materializeRemoteSource(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
@@ -1214,7 +1166,7 @@ describe('OrgMetadataCatalog contract', () => {
 
   it('refreshes remote source independently of cached inventory and records the observed revision', async () => {
     const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks } = makeHarness({
+    const { layer, mocks, remoteSourceLayer } = makeHarness({
       metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
     });
     mocks.shadowGet.mockImplementation(() =>
@@ -1251,12 +1203,14 @@ describe('OrgMetadataCatalog contract', () => {
       });
     });
 
-    const { artifact, entry } = await runWithCatalog(layer, catalog =>
-      Effect.gen(function* () {
-        yield* catalog.getEntry(reference);
-        const materialized = yield* catalog.materializeRemoteSource(reference, { consistency: 'refresh' });
-        return { artifact: materialized, entry: yield* catalog.getEntry(reference) };
-      })
+    const { artifact, entry } = await runWithCatalogAndRemoteSource(
+      Layer.merge(layer, remoteSourceLayer),
+      (catalog, remoteSource) =>
+        Effect.gen(function* () {
+          yield* getEntry(catalog, reference);
+          const materialized = yield* materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' });
+          return { artifact: materialized, entry: yield* getEntry(catalog, reference) };
+        })
     );
 
     expect(mocks.shadowGet).not.toHaveBeenCalled();
@@ -1269,7 +1223,7 @@ describe('OrgMetadataCatalog contract', () => {
 
   it('does not gate fresh materialization on cached inventory presence', async () => {
     const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks } = makeHarness();
+    const { layer, mocks, remoteSourceLayer } = makeHarness();
     mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
       const filePath = Utils.joinPath(
         stagingUri,
@@ -1289,8 +1243,8 @@ describe('OrgMetadataCatalog contract', () => {
       });
     });
 
-    const artifact = await runWithCatalog(layer, catalog =>
-      catalog.materializeRemoteSource(reference, { consistency: 'refresh' })
+    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
+      materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
@@ -1302,7 +1256,7 @@ describe('OrgMetadataCatalog contract', () => {
       { xmlName: 'Prompt', fullName: 'Property' },
       { xmlName: 'Prompt', fullName: 'Broker' }
     ];
-    const { layer, mocks } = makeHarness();
+    const { layer, mocks, remoteSourceLayer } = makeHarness();
     mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
       const filePath = (fullName: string) =>
         Utils.joinPath(stagingUri, 'package', 'main', 'default', 'prompts', `${fullName}.prompt-meta.xml`).fsPath;
@@ -1328,8 +1282,8 @@ describe('OrgMetadataCatalog contract', () => {
       });
     });
 
-    const materialized = await runWithCatalog(layer, catalog =>
-      catalog.materializeRemoteSources(references, { consistency: 'refresh' })
+    const materialized = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
+      remoteSource.materializeRemoteSources('org-one', references, { consistency: 'refresh' })
     );
 
     expect(materialized.map(({ reference }) => reference)).toEqual(references);

@@ -138,8 +138,8 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
               const matchedCount = types.filter(
                 entry =>
                   entry.kind === 'type' &&
-                  entry.reference.xmlName &&
-                  matchesPattern(entry.reference.xmlName, typeFilter, typeIsRegex)
+                  entry.reference.type &&
+                  matchesPattern(entry.reference.type, typeFilter, typeIsRegex)
               ).length;
 
               if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {

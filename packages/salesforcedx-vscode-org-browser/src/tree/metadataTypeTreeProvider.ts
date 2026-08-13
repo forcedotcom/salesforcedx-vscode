@@ -134,6 +134,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
+  const catalog = yield* api.services.OrgMetadataCatalog;
   const reference = Match.value(node).pipe(
     Match.when(Match.undefined, () => ({})),
     Match.when(isFolderNode, n => ({
@@ -147,9 +148,9 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
         fullName: n!.componentName
       })
     ),
-    Match.orElse(n => ({ xmlName: n?.xmlName }))
+    Match.orElse(n => ({ type: n?.xmlName }))
   );
-  yield* api.services.OrgMetadataCatalog.refresh(reference);
+  yield* catalog.getChildren(reference, { consistency: 'refresh' });
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
@@ -209,7 +210,7 @@ const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComp
   const catalog = yield* api.services.OrgMetadataCatalog;
   return yield* Effect.all(
     typeNodes.map(typeNode =>
-      catalog.getChildren({ xmlName: typeNode.xmlName }).pipe(
+      catalog.getChildren({ type: typeNode.xmlName }).pipe(
         Effect.map(hasMatchingComponent(provider)),
         Effect.map(hasMatch => (hasMatch ? Option.some(typeNode) : Option.none<OrgBrowserTreeItem>()))
       )
@@ -231,7 +232,7 @@ const filterTypesWithCachedComponents = Effect.fn('filterTypesWithCachedComponen
   return yield* Effect.all(
     typeNodes.map(typeNode =>
       catalog
-        .getChildrenCached({ xmlName: typeNode.xmlName })
+        .getChildren({ type: typeNode.xmlName }, { consistency: 'cache-only' })
         .pipe(
           Effect.map(components =>
             components && hasMatchingComponent(provider)(components) ? Option.some(typeNode) : Option.none()
@@ -275,13 +276,13 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       const typeEntries = yield* orgMetadataCatalog.getChildren();
       const allNodes = typeEntries
         .flatMap(entry =>
-          entry.kind === 'type' && entry.reference.xmlName ? [provider.getTypeNode(entry.reference.xmlName)] : []
+          entry.kind === 'type' && entry.reference.type ? [provider.getTypeNode(entry.reference.type)] : []
         )
         .toSorted((a, b) => a.xmlName.localeCompare(b.xmlName));
 
       // localOnly (showLocal && !showOrg): keep only types with local source files.
       const presenceFilteredNodes = allNodes.filter(node => {
-        const entry = typeEntries.find(candidate => candidate.reference.xmlName === node.xmlName);
+        const entry = typeEntries.find(candidate => candidate.reference.type === node.xmlName);
         return entry ? inventoryEntryMatchesViewMode(entry, provider) : false;
       });
       const typeFilteredNodes = presenceFilteredNodes.filter(node => passesTypeFilter(node, provider));
@@ -300,14 +301,14 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       Match.when({ kind: 'customObject' }, el =>
         Effect.gen(function* () {
           const fields = yield* orgMetadataCatalog.getChildren({
-            xmlName: 'CustomObject',
+            type: 'CustomObject',
             fullName: el.componentName!
           });
           return fields.filter(isCustomFieldEntry).map(createCustomFieldNode);
         })
       ),
       Match.when(isFolderListingNode, el =>
-        orgMetadataCatalog.getChildren({ xmlName: el.xmlName }).pipe(
+        orgMetadataCatalog.getChildren({ type: el.xmlName }).pipe(
           Effect.map(entries =>
             entries
               .filter(isFolderEntry)
@@ -317,7 +318,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         )
       ),
       Match.when({ kind: 'type' }, el =>
-        orgMetadataCatalog.getChildren({ xmlName: el.xmlName }).pipe(
+        orgMetadataCatalog.getChildren({ type: el.xmlName }).pipe(
           Effect.map(entries => entries.filter(isVisibleComponentEntry).map(listMetadataToComponent(el))),
           Effect.map(nodes => applyViewModeChildFilter(nodes, provider))
         )
@@ -328,7 +329,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
         // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
         // the components inside that specific folder.
-        orgMetadataCatalog.getChildren({ xmlName: el.xmlName, fullName: el.folderName }).pipe(
+        orgMetadataCatalog.getChildren({ type: el.xmlName, fullName: el.folderName }).pipe(
           Effect.map(entries => entries.filter(isVisibleComponentEntry).map(listMetadataToFolderItem(el))),
           Effect.map(nodes => applyViewModeChildFilter(nodes, provider))
         )
@@ -380,7 +381,7 @@ const listMetadataToComponent =
   (element: OrgBrowserTreeItem) =>
   (
     c: OrgMetadataCatalogEntry & {
-      readonly reference: { readonly xmlName: string; readonly fullName: string };
+      readonly reference: { readonly type: string; readonly fullName: string };
     }
   ): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
@@ -397,7 +398,7 @@ const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
   (
     c: OrgMetadataCatalogEntry & {
-      readonly reference: { readonly xmlName: string; readonly fullName: string };
+      readonly reference: { readonly type: string; readonly fullName: string };
     }
   ): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
@@ -412,7 +413,7 @@ const listMetadataToFolderItem =
   (element: OrgBrowserTreeItem) =>
   (
     c: OrgMetadataCatalogEntry & {
-      readonly reference: { readonly xmlName: string; readonly fullName: string };
+      readonly reference: { readonly type: string; readonly fullName: string };
     }
   ): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
@@ -435,14 +436,14 @@ const mdapiDescribeToOrgBrowserNode = (t: { readonly xmlName: string }): OrgBrow
 
 /** applies to all listMetadata calls */
 type EntryWithFullName = OrgMetadataCatalogEntry & {
-  readonly reference: { readonly xmlName: string; readonly fullName: string };
+  readonly reference: { readonly type: string; readonly fullName: string };
 };
 
 const globalMetadataFilter = (i: OrgMetadataCatalogEntry): i is EntryWithFullName =>
   hasFullName(i) && isSupportedManageableState(i);
 
 const hasFullName = (i: OrgMetadataCatalogEntry): i is EntryWithFullName =>
-  Boolean(i.reference.xmlName && i.reference.fullName);
+  Boolean(i.reference.type && i.reference.fullName);
 const isFolderEntry = (i: OrgMetadataCatalogEntry): i is EntryWithFullName => i.kind === 'folder' && hasFullName(i);
 const isVisibleComponentEntry = (i: OrgMetadataCatalogEntry): i is EntryWithFullName =>
   i.kind === 'component' && globalMetadataFilter(i);

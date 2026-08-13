@@ -48,6 +48,7 @@ const PersistedListedComponentSchema = Schema.Struct({
 const PersistedTypeInventorySchema = Schema.Struct({
   xmlName: Schema.String,
   observedAt: Schema.String,
+  complete: Schema.optional(Schema.Boolean),
   components: Schema.Array(PersistedListedComponentSchema),
   folders: Schema.Array(PersistedListedComponentSchema)
 });

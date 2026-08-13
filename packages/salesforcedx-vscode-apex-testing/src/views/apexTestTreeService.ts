@@ -435,15 +435,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const catalog = yield* api.services.OrgMetadataCatalog;
       const classNames = classes.map(getFullClassName);
-      const resolutions = yield* catalog.resolveKnownOrgComponents(
-        classNames.map(fullName => ({ xmlName: 'ApexClass', fullName }))
+      const resolutions = yield* catalog.resolveComponents(
+        classNames.map(fullName => ({ type: 'ApexClass', fullName }))
       );
       return new Map(
         resolutions.map((resolution, index) => [
           classNames[index],
           {
-            uri: resolution.documentUri,
-            inWorkspace: resolution.inWorkspace
+            uri: resolution.preferredUri,
+            inWorkspace: resolution.presence === 'both'
           } satisfies ApexClassResolution
         ])
       );

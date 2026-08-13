@@ -24,34 +24,20 @@ jest.mock('../../../src/services/extensionProvider', () => {
   );
   const mockCatalogInvalidate = jest.fn(() => EffectLib.void);
   const mockOrgMetadataCatalog = {
-    resolveKnownOrgComponents: (references: readonly { xmlName: string; fullName: string }[]) =>
+    resolveComponents: (references: readonly { type: string; fullName: string }[]) =>
       EffectLib.succeed(
         references.map(reference => {
           const workspaceUri = mockWorkspaceUris.get(reference.fullName);
+          const orgUri = UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`);
           return {
             reference,
-            documentUri:
-              workspaceUri ?? UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`),
-            inWorkspace: workspaceUri !== undefined,
+            presence: workspaceUri ? 'both' : 'org',
+            preferredUri: workspaceUri ?? orgUri,
+            orgUri,
             ...(workspaceUri ? { workspaceUri } : {})
           };
         })
       ),
-    getPresence: () => EffectLib.succeed({ inOrg: true, inWorkspace: false }),
-    getDocumentUri: (reference: { fullName: string }) =>
-      EffectLib.succeed(
-        mockWorkspaceUris.get(reference.fullName) ??
-          UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)
-      ),
-    getDocumentReference: (uri: { path: string; scheme: string }) => {
-      const className = uri.path
-        .split('/')
-        .at(-1)
-        ?.replace(/\.cls$/, '');
-      return EffectLib.succeed(
-        uri.scheme === 'sf-org-metadata' && className ? { xmlName: 'ApexClass', fullName: className } : undefined
-      );
-    },
     invalidate: mockCatalogInvalidate
   };
   const MockConnectionService = {
@@ -88,6 +74,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
       MetadataRetrieveService: {
         retrieve: mockMetadataRetrieve
       },
+      ORG_METADATA_SCHEME: 'sf-org-metadata',
       OrgMetadataCatalog: EffectLib.succeed(mockOrgMetadataCatalog),
       // restore-previous-results defaults false so discovery's restore step short-circuits in tests not
       // exercising it; other keys fall through to their provided default. Yielded as an instance
@@ -864,6 +851,22 @@ describe('ApexTestController', () => {
         id: 'class:LocalClass',
         label: 'LocalClass',
         uri: URI.file('/workspace/force-app/main/default/classes/LocalClass.cls')
+      } as unknown as vscode.TestItem;
+
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(
+        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not retrieve a virtual class from an inactive org', async () => {
+      const classTestItem = {
+        id: 'class:StaleClass',
+        label: 'StaleClass',
+        uri: URI.parse('sf-org-metadata:/orgs/another-org/ApexClass/StaleClass.cls')
       } as unknown as vscode.TestItem;
 
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();

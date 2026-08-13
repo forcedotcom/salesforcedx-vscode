@@ -23,14 +23,14 @@ const dateIsNewer = (remote: string, stored: DateTime.Utc) =>
 
 const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotentialConflictKeys')(function* (
   entries: readonly {
-    readonly reference: { readonly xmlName?: string; readonly fullName?: string };
+    readonly reference: { readonly type?: string; readonly fullName?: string };
     readonly lastModifiedDate?: string;
   }[]
 ) {
   const timestampIndex = yield* buildTimestampIndex();
   return entries.reduce<Set<string>>((acc, entry) => {
-    if (!entry.reference.xmlName || !entry.reference.fullName) return acc;
-    const key = componentKey(entry.reference.xmlName, entry.reference.fullName);
+    if (!entry.reference.type || !entry.reference.fullName) return acc;
+    const key = componentKey(entry.reference.type, entry.reference.fullName);
     const stored = timestampIndex.get(key);
     if (!entry.lastModifiedDate) return acc;
     const isConflict = !stored || dateIsNewer(entry.lastModifiedDate, stored);
@@ -56,7 +56,7 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
   }
 
   if (operationType === 'retrieve') {
-    const retrievePairs = yield* materializeRemoteComponents(componentSet, undefined, undefined, 'refresh');
+    const retrievePairs = yield* materializeRemoteComponents(componentSet);
     return yield* retrievePairs.pipe(
       Stream.fromIterable,
       Stream.filterEffect(filesAreNotIdentical),
@@ -65,29 +65,19 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
     );
   }
 
-  yield* Effect.forEach(
-    [...new Set(projectComponents.map(component => component.type.name))],
-    xmlName => api.services.OrgMetadataCatalog.refreshMetadataComponents({ xmlName }),
-    { concurrency: 1, discard: true }
-  );
-  const entries = (yield* Effect.forEach(
-    projectComponents,
-    component =>
-      api.services.OrgMetadataCatalog.getEntry({
-        xmlName: component.type.name,
-        fullName: component.fullName
-      }),
-    { concurrency: 'unbounded' }
+  const entries = (yield* api.services.OrgMetadataCatalog.getEntries(
+    projectComponents.map(component => ({
+      type: component.type.name,
+      fullName: component.fullName
+    })),
+    { consistency: 'refresh' }
   )).filter(isNotUndefined);
   const potentialConflictKeys = yield* computePotentialConflictKeys(entries);
 
   if (potentialConflictKeys.size === 0) return [] satisfies DiffFilePair[];
 
-  const deployPairs = yield* materializeRemoteComponents(
-    componentSet,
-    undefined,
-    component => potentialConflictKeys.has(componentKey(component.type.name, component.fullName)),
-    'refresh'
+  const deployPairs = yield* materializeRemoteComponents(componentSet, undefined, component =>
+    potentialConflictKeys.has(componentKey(component.type.name, component.fullName))
   );
 
   // materializeRemoteComponents already received the potential-conflict component

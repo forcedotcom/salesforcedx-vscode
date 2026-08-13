@@ -6,15 +6,20 @@
  */
 
 import type { ListedMetadataComponent, RemoteTrackingObservation } from './orgCatalogInternalTypes';
-import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
-import type { OrgMetadataComponentReference } from './orgMetadataReference';
+import type {
+  OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
+  OrgSObjectDescription,
+  OrgSObjectSummary
+} from './orgMetadataCatalogTypes';
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
+import type { URI } from 'vscode-uri';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
-import { componentIdentity, referencesToAffectedSObjects } from './orgCatalogKeys';
+import { componentIdentity, referencesToAffectedSObjects, typeCacheKey } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
+import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 type MetadataTypeResult = {
   readonly xmlName: string;
@@ -74,13 +79,71 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
   'OrgMetadataCatalogRecorder',
   {
     accessors: true,
-    dependencies: [OrgCatalogState.Default, OrgMetadataCatalogChangePubSub.Default, TransmogrifierService.Default],
+    dependencies: [
+      OrgCatalogState.Default,
+      OrgMetadataCatalogChangePubSub.Default,
+      OrgMetadataReferenceService.Default,
+      TransmogrifierService.Default
+    ],
     effect: Effect.gen(function* () {
-      const [state, catalogChanges, transmogrifier] = yield* Effect.all([
+      const [state, catalogChanges, referenceService, transmogrifier] = yield* Effect.all([
         OrgCatalogState,
         OrgMetadataCatalogChangePubSub,
+        OrgMetadataReferenceService,
         TransmogrifierService
       ]);
+
+      /** Records positive, possibly partial, evidence learned by another metadata-producing service. */
+      const recordRemoteComponents = Effect.fn('OrgMetadataCatalogRecorder.recordRemoteComponents')(function* (
+        orgId: string,
+        provenance: 'metadata-api' | 'tooling-api',
+        components: readonly {
+          readonly type: string;
+          readonly fullName: string;
+          readonly lastModifiedDate?: string;
+          readonly workspaceUri?: URI;
+        }[]
+      ) {
+        if (components.length === 0) return;
+        yield* state.ensureHydrated(orgId);
+        const observedAt = new Date().toISOString();
+        yield* state.updateInventories(current => {
+          const next = new Map(current);
+          components.forEach(component => {
+            const reference = { xmlName: component.type, fullName: component.fullName };
+            const key = typeCacheKey(orgId, component.type);
+            const inventory = next.get(key);
+            const previous = inventory?.components.get(component.fullName);
+            const entry: OrgMetadataCatalogEntry = {
+              ...previous,
+              orgId,
+              observedAt,
+              provenance:
+                provenance === 'metadata-api' && (component.workspaceUri || previous?.inWorkspace)
+                  ? 'metadata-api+workspace'
+                  : provenance,
+              reference,
+              documentUri: referenceService.documentUri({ orgId, ...reference }),
+              name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,
+              kind: 'component',
+              inOrg: true,
+              inWorkspace: Boolean(component.workspaceUri) || (previous?.inWorkspace ?? false),
+              workspaceUri: component.workspaceUri ?? previous?.workspaceUri,
+              lastModifiedDate: component.lastModifiedDate ?? previous?.lastModifiedDate,
+              remoteLastModifiedDate: component.lastModifiedDate ?? previous?.remoteLastModifiedDate
+            };
+            next.set(key, {
+              observedAt,
+              complete: inventory?.complete ?? false,
+              components: new Map(inventory?.components).set(component.fullName, entry),
+              folders: inventory?.folders ?? new Map()
+            });
+          });
+          return next;
+        });
+        yield* state.queuePersist(orgId);
+        yield* Effect.annotateCurrentSpan({ orgId, provenance, observationCount: components.length });
+      });
 
       const recordMetadataTypes = Effect.fn('OrgMetadataCatalogRecorder.recordMetadataTypes')(function* (
         orgId: string,
@@ -274,6 +337,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         recordMetadataListing,
         recordMetadataTypes,
         recordOperation,
+        recordRemoteComponents,
         recordSObjectDescription,
         recordSObjectList,
         recordTrackingStatus

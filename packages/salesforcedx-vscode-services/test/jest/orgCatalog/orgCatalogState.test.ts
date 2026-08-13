@@ -46,6 +46,7 @@ describe('OrgCatalogState', () => {
     const { saved, stateLayer } = makeStore();
     const inventory: TypeInventory = {
       observedAt: '2026-08-03T12:00:00.000Z',
+      complete: true,
       folders: new Map(),
       components: new Map([
         [

@@ -100,43 +100,23 @@ const mockServicesApi = {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
     OrgMetadataCatalog: Effect.succeed({
-      resolveKnownOrgComponents: (references: readonly { xmlName: string; fullName: string }[]) => {
+      resolveComponents: (references: readonly { type: string; fullName: string }[]) => {
         if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
         return Effect.succeed(
           references.map(reference => {
             const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
             const workspaceUri = mockClassNameToUri.get(baseName);
+            const orgUri = jest
+              .requireActual('vscode-uri')
+              .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`);
             return {
               reference,
-              documentUri:
-                workspaceUri ??
-                jest
-                  .requireActual('vscode-uri')
-                  .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`),
-              inWorkspace: Boolean(workspaceUri),
+              presence: workspaceUri ? 'both' : 'org',
+              preferredUri: workspaceUri ?? orgUri,
+              orgUri,
               workspaceUri
             };
           })
-        );
-      },
-      getPresence: (reference: { fullName: string }) => {
-        if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
-        const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
-        const workspaceUri = mockClassNameToUri.get(baseName);
-        return Effect.succeed({
-          inOrg: true,
-          inWorkspace: Boolean(workspaceUri),
-          workspaceUri
-        });
-      },
-      getDocumentUri: (reference: { fullName: string }) => {
-        if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
-        const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
-        return Effect.succeed(
-          mockClassNameToUri.get(baseName) ??
-            jest
-              .requireActual('vscode-uri')
-              .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)
         );
       }
     }),

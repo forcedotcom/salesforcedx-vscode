@@ -37,7 +37,7 @@ import {
 } from '../helpers/testExplorerHelpers';
 
 // "Org-only" = the class exists in the org but NOT in local source. The retrieve flow
-// (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve, then catalog document lookup)
+// (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve, then component resolution)
 // only fires on the `sf-org-metadata:` document, which requires the
 // Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
 // also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.

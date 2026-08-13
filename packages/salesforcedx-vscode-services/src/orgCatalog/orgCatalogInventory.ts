@@ -41,26 +41,27 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       yield* state.ensureHydrated(orgId);
       const key = typeCacheKey(orgId, xmlName);
       const cached = yield* state.getInventory(orgId, xmlName);
-      if (cached) return cached;
+      if (cached?.complete) return cached;
       const semaphore = yield* state.getInventorySemaphore(key);
       return yield* Effect.gen(function* () {
         const coalesced = yield* state.getInventory(orgId, xmlName);
-        if (coalesced) return coalesced;
+        if (coalesced?.complete) return coalesced;
         const restored = yield* state.getPersistedInventory(orgId, xmlName);
-        const listOrgComponents = restored
-          ? Effect.succeed({ components: restored.components, folders: restored.folders })
-          : FOLDERED_METADATA_TYPES.has(xmlName)
-            ? Effect.gen(function* () {
-                const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
-                const folderComponents = yield* Effect.all(
-                  folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
-                  { concurrency: 10 }
-                );
-                return { components: folderComponents.flat(), folders };
-              })
-            : metadataDescribeService
-                .listMetadata(xmlName, undefined, orgId)
-                .pipe(Effect.map(components => ({ components, folders: [] })));
+        const listOrgComponents =
+          restored && restored.complete !== false
+            ? Effect.succeed({ components: restored.components, folders: restored.folders })
+            : FOLDERED_METADATA_TYPES.has(xmlName)
+              ? Effect.gen(function* () {
+                  const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
+                  const folderComponents = yield* Effect.all(
+                    folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
+                    { concurrency: 10 }
+                  );
+                  return { components: folderComponents.flat(), folders };
+                })
+              : metadataDescribeService
+                  .listMetadata(xmlName, undefined, orgId)
+                  .pipe(Effect.map(components => ({ components, folders: [] })));
         const [orgListing, workspaceUris] = yield* Effect.all(
           [
             listOrgComponents,
@@ -68,9 +69,10 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
           ],
           { concurrency: 'unbounded' }
         );
-        const observedAt = restored?.observedAt ?? new Date().toISOString();
+        const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
         const inventory = {
           observedAt,
+          complete: true,
           components: mergeInventory({
             entryUri,
             orgId,
@@ -91,7 +93,8 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const entry = (yield* loadType(orgId, reference.xmlName)).components.get(reference.fullName);
+      const cachedEntry = (yield* state.getInventory(orgId, reference.xmlName))?.components.get(reference.fullName);
+      const entry = cachedEntry ?? (yield* loadType(orgId, reference.xmlName)).components.get(reference.fullName);
       return entry
         ? ({
             inOrg: entry.inOrg,
@@ -105,7 +108,8 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const inventory = yield* loadType(orgId, reference.xmlName);
+      const cached = yield* state.getInventory(orgId, reference.xmlName);
+      const inventory = cached?.components.has(reference.fullName) ? cached : yield* loadType(orgId, reference.xmlName);
       return (
         inventory.components.get(reference.fullName) ??
         projectChildren(

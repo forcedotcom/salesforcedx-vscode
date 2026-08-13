@@ -59,6 +59,7 @@ describe('Org Catalog inventory projection', () => {
     });
     const inventory: TypeInventory = {
       observedAt: '2026-08-03T12:00:00.000Z',
+      complete: true,
       components,
       folders: new Map([['Sales', { fullName: 'Sales' }]])
     };

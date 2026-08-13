@@ -46,6 +46,7 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
@@ -217,11 +218,14 @@ export {
   OrgMetadataCatalogError,
   OrgSObjectDescriptionSchema,
   OrgSObjectSummarySchema,
-  type KnownOrgMetadataComponentResolution,
   type OrgCatalogObservation,
   type OrgMetadataCatalog,
+  type OrgMetadataCatalogComponentReference,
   type OrgMetadataCatalogEntry,
+  type OrgMetadataCatalogReference,
+  type OrgMetadataComponentResolution,
   type OrgMetadataConsistency,
+  type OrgMetadataHierarchyConsistency,
   type OrgMetadataEntryKind,
   type OrgMetadataFieldDetails,
   type OrgMetadataPresence,
@@ -325,7 +329,7 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       // watch default org changes to properly close out the previous org's catalog state
       Effect.forkIn(
         Effect.gen(function* () {
-          const catalog = yield* OrgMetadataCatalog;
+          const catalogState = yield* OrgCatalogState;
           const targetOrgRef = yield* getDefaultOrgRef();
           const channelService = yield* ChannelService;
 
@@ -340,7 +344,12 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
                   `Target org changed to ${newOrgId ?? '<NOT SET>'}${previousOrgId ? `; closing previous org ${previousOrgId}` : ''}`
                 );
                 if (previousOrgId !== undefined && previousOrgId !== newOrgId) {
-                  yield* catalog.closeOrg(previousOrgId);
+                  yield* Effect.gen(function* () {
+                    yield* Effect.logInfo('Closing org catalog', { orgId: previousOrgId });
+                    const persisted = yield* catalogState.flushOrg(previousOrgId);
+                    yield* Effect.annotateCurrentSpan({ orgId: previousOrgId, persisted });
+                    yield* Effect.logDebug('Org catalog closed', { orgId: previousOrgId, persisted });
+                  }).pipe(Effect.withSpan('OrgMetadataCatalog.closeOrg'));
                 }
               })
             ),

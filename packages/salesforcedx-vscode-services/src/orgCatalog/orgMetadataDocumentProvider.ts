@@ -23,7 +23,8 @@ import { MetadataChangeNotificationService } from '../core/metadataChangeNotific
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
 import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { OrgMetadataCatalog } from './orgMetadataCatalog';
+import { OrgCatalogDocuments } from './orgCatalogDocuments';
+import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
 import {
   ORG_METADATA_SCHEME,
@@ -107,7 +108,8 @@ export const closeInactiveOrgDocuments = (
  */
 export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentProvider')(function* () {
   const [
-    catalog,
+    documents,
+    catalogState,
     catalogChanges,
     fileChanges,
     metadataChanges,
@@ -116,7 +118,8 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     activeOperationRef,
     workspaceService
   ] = yield* Effect.all([
-    OrgMetadataCatalog,
+    OrgCatalogDocuments,
+    OrgCatalogState,
     OrgMetadataCatalogChangePubSub,
     FileChangePubSub,
     MetadataChangeNotificationService,
@@ -126,7 +129,15 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     WorkspaceService
   ]);
   const runtime = yield* Effect.runtime();
-  const provider = new OrgMetadataDocumentProvider(uri => Runtime.runPromise(runtime)(catalog.readDocumentUri(uri)));
+  const provider = new OrgMetadataDocumentProvider(uri =>
+    Runtime.runPromise(runtime)(
+      Effect.gen(function* () {
+        const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+        if (!activeOrgId) return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
+        return yield* documents.readDocumentUri(activeOrgId, uri);
+      })
+    )
+  );
   const registration = vscode.workspace.registerTextDocumentContentProvider(ORG_METADATA_SCHEME, provider);
   const pendingOperationWorkspaceEvents = yield* Ref.make<readonly FileChangeEvent[]>([]);
 
@@ -213,9 +224,13 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     change: OrgMetadataCatalogChange
   ) {
     yield* Effect.annotateCurrentSpan('changeKind', change.kind);
-    const invalidateCatalog = catalog
-      .invalidate()
-      .pipe(Effect.catchAll(error => Effect.logWarning('Unable to invalidate org metadata catalog', error)));
+    const invalidateCatalog = Effect.gen(function* () {
+      const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+      if (!activeOrgId) return;
+      yield* catalogState.ensureHydrated(activeOrgId);
+      yield* catalogState.invalidateOrgInventories(activeOrgId);
+      yield* catalogState.persistOrg(activeOrgId);
+    });
     yield* Match.value(change).pipe(
       Match.discriminators('kind')({
         workspace: workspaceChange =>
