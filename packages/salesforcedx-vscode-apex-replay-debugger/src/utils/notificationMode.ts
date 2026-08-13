@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type ProgressAndSuccessCommandKey = 'Debug Apex Test Class' | 'Debug Anonymous Apex';
+import type pkg from '../../package.json';
+
+type CommandNotificationKey =
+  keyof (typeof pkg)['contributes']['configuration']['properties']['salesforcedx-vscode-apex-replay-debugger.commandLevelNotifications']['properties'];
 
 export type ProgressOnlyCommandKey = 'Update Checkpoints in Org';
+
+export type ProgressAndSuccessCommandKey = Exclude<CommandNotificationKey, ProgressOnlyCommandKey>;

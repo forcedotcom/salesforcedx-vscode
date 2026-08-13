@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type ProgressAndSuccessCommandKey =
-  | 'SFDX: Execute Anonymous Apex with Currently Open Editor'
-  | "SFDX: Execute Anonymous Apex with Editor's Selected Text";
+import type pkg from '../../package.json';
+
+type CommandNotificationKey =
+  keyof (typeof pkg)['contributes']['configuration']['properties']['salesforcedx-vscode-apex-log.commandLevelNotifications']['properties'];
 
 export type SuccessOnlyCommandKey =
   | 'SFDX: Remove Trace Flag for Current User'
   | 'SFDX: Remove Trace Flag'
   | 'SFDX: Remove Debug Level';
+
+export type ProgressAndSuccessCommandKey = Exclude<CommandNotificationKey, SuccessOnlyCommandKey>;
