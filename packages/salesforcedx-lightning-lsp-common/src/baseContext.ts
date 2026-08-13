@@ -45,8 +45,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 /**
  * Canonicalizes a JSON-serializable value for comparison by producing a deterministic string representation.
  * Sorts object keys recursively to ensure equivalent objects produce the same string.
+ * @internal Exported for testing only
  */
-const canonicalizeJson = (value: unknown): string => {
+export const canonicalizeJson = (value: unknown): string => {
   if (value === null) return 'null';
   if (value === undefined) return 'undefined';
   if (typeof value !== 'object') return JSON.stringify(value);
