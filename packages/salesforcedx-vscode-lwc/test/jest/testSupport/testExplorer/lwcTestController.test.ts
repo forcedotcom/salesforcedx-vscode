@@ -771,8 +771,8 @@ describe('LwcTestController public run API', () => {
       });
 
     // No result file was ever written since Jest crashed before writing it. Resolve `stat` immediately
-    // (instead of rejecting, which would drive waitForResultFile's real 300s polling loop) and make the
-    // subsequent read fail, so readJestResults resolves to undefined without a long-running retry.
+    // (instead of rejecting, which would drive waitForResultFile's 2s crash-before-results polling) and make the
+    // subsequent read fail, so readJestResults resolves to undefined without blocking.
     const vscodeMock = require('vscode');
     jest.spyOn(vscodeMock.workspace.fs, 'stat').mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0 });
     const EffectLib = jest.requireActual('effect/Effect');
@@ -831,6 +831,339 @@ describe('LwcTestController public run API', () => {
     expect(message.location.uri.toString()).toBe(testUri.toString());
     expect(message.location.range.line).toBe(41);
     expect(message.location.range.character).toBe(6);
+  });
+
+  it('runByExecutionInfo preserves crash-extracted error when results file exists after crash', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: {
+        isCancellationRequested: false,
+        onCancellationRequested: jest.fn(() => ({ dispose: jest.fn() }))
+      },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile' as const, testUri }]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue({
+        command: 'node',
+        args: [],
+        workspaceFolder: { uri: URI.file('/project') },
+        testResultFsPath: '/project/.sfdx/tools/testresults/lwc/test-result-1.json'
+      });
+
+    const capturedStackTrace =
+      'SyntaxError: Unexpected token\n    at Object.<anonymous> (/project/force-app/lwc/foo/__tests__/foo.test.js:15:3)';
+
+    // Mock that a results file WAS written (Jest partial results despite crash)
+    const vscodeMock = require('vscode');
+    jest.spyOn(vscodeMock.workspace.fs, 'stat').mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 100 });
+    vscodeMock.workspace.getWorkspaceFolder = jest.fn().mockReturnValue({
+      uri: URI.file('/project'),
+      name: 'project',
+      index: 0
+    });
+
+    // Mock readJestResults to return generic Jest error message (simulating what Jest writes to the results file)
+    const EffectLib = jest.requireActual('effect/Effect');
+    mockFsReadFile.mockImplementation(() =>
+      EffectLib.succeed(
+        JSON.stringify({
+          testResults: [
+            {
+              name: '/project/force-app/lwc/foo/__tests__/foo.test.js',
+              status: 'failed',
+              assertionResults: [],
+              message: 'Generic Jest error message from results file'
+            }
+          ]
+        })
+      )
+    );
+
+    let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
+    vscodeMock.tasks.onDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
+      taskEndProcessCallback = cb;
+      return { dispose: jest.fn() };
+    });
+
+    const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
+    jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
+      let endCb: (() => void) | undefined;
+      const mockTaskExecution: vscode.TaskExecution = {
+        task: {} as vscode.Task,
+        terminate: jest.fn()
+      } as vscode.TaskExecution;
+      return {
+        onDidEnd: (cb: () => void) => {
+          endCb = cb;
+          return { dispose: jest.fn() };
+        },
+        execute: jest.fn().mockImplementation(function (this: any) {
+          this.taskExecution = mockTaskExecution;
+          // Jest crashed with non-zero exit but DID write a partial results file
+          setImmediate(() => {
+            taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 1 });
+            endCb?.();
+          });
+          return Promise.resolve();
+        }),
+        terminate: jest.fn(),
+        taskExecution: undefined,
+        pseudoterminal: {
+          extractErrorSummary: jest.fn(() => capturedStackTrace)
+        }
+      };
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
+
+    // The crash-extracted error should be preserved, not overwritten by Jest's generic message
+    expect(mockRun.failed).toHaveBeenCalled();
+    const failedCalls = (mockRun.failed as jest.Mock).mock.calls;
+
+    // Find the call with the crash-extracted error (should contain "SyntaxError" in the message field)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const crashErrorCall = failedCalls.find((call: any[]) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const testMessage = call[1];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      return testMessage?.message?.includes('SyntaxError');
+    });
+    expect(crashErrorCall).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const [item, crashMessage] = crashErrorCall;
+
+    // Verify the crash message contains the extracted stack trace info, not Jest's generic message
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.message).toContain('SyntaxError');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.message).toContain('Unexpected token');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.actualOutput).toBe('Jest test suite failed to run');
+
+    // Verify the location was extracted from the stack trace
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.location).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    expect(crashMessage.location.uri.toString()).toBe(testUri.toString());
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.location.range.line).toBe(14); // line 15 in trace -> 0-indexed line 14
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(crashMessage.location.range.character).toBe(2); // column 3 -> 0-indexed column 2
+
+    // Verify that applyResults was called and did NOT overwrite the crash error
+    // (the file item should still have the crash-extracted error, not "Generic Jest error message from results file")
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(item.id).toBe('file:file:///project/force-app/lwc/foo/__tests__/foo.test.js');
+  });
+
+  it('applyResults skips files when crash-extracted error exists in deeply nested descendant', async () => {
+    // This test verifies the ancestor chain walking works for deeply nested items
+    // Simulates a case where a deeply nested test case (e.g., inside multiple describe blocks) crashes
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: {
+        isCancellationRequested: false,
+        onCancellationRequested: jest.fn(() => ({ dispose: jest.fn() }))
+      },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile' as const, testUri }]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue({
+        command: 'node',
+        args: [],
+        workspaceFolder: { uri: URI.file('/project') },
+        testResultFsPath: '/project/.sfdx/tools/testresults/lwc/test-result-1.json'
+      });
+
+    const vscodeMock = require('vscode');
+    jest.spyOn(vscodeMock.workspace.fs, 'stat').mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 100 });
+    vscodeMock.workspace.getWorkspaceFolder = jest.fn().mockReturnValue({
+      uri: URI.file('/project'),
+      name: 'project',
+      index: 0
+    });
+
+    // Mock that a results file exists with generic error
+    const EffectLib = jest.requireActual('effect/Effect');
+    mockFsReadFile.mockImplementation(() =>
+      EffectLib.succeed(
+        JSON.stringify({
+          testResults: [
+            {
+              name: '/project/force-app/lwc/foo/__tests__/foo.test.js',
+              status: 'failed',
+              assertionResults: [],
+              message: 'Generic Jest error that should NOT overwrite crash error'
+            }
+          ]
+        })
+      )
+    );
+
+    let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
+    vscodeMock.tasks.onDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
+      taskEndProcessCallback = cb;
+      return { dispose: jest.fn() };
+    });
+
+    const capturedStackTrace =
+      'ReferenceError: foo is not defined\n    at Object.<anonymous> (/project/force-app/lwc/foo/__tests__/foo.test.js:20:5)';
+
+    const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
+    jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
+      let endCb: (() => void) | undefined;
+      const mockTaskExecution: vscode.TaskExecution = {
+        task: {} as vscode.Task,
+        terminate: jest.fn()
+      } as vscode.TaskExecution;
+      return {
+        onDidEnd: (cb: () => void) => {
+          endCb = cb;
+          return { dispose: jest.fn() };
+        },
+        execute: jest.fn().mockImplementation(function (this: any) {
+          this.taskExecution = mockTaskExecution;
+          setImmediate(() => {
+            taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 1 });
+            endCb?.();
+          });
+          return Promise.resolve();
+        }),
+        terminate: jest.fn(),
+        taskExecution: undefined,
+        pseudoterminal: {
+          extractErrorSummary: jest.fn(() => capturedStackTrace)
+        }
+      };
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // Run a file-level test that crashes
+    await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
+
+    // The file should have been marked as failed with the crash error
+    expect(mockRun.failed).toHaveBeenCalled();
+
+    // Verify that the crash error message is preserved (contains "ReferenceError")
+    // and NOT overwritten by the generic Jest message from the results file
+    const failedCalls = (mockRun.failed as jest.Mock).mock.calls;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const fileFailedCall = failedCalls.find((call: any[]) => call[1]?.message?.includes('ReferenceError'));
+
+    expect(fileFailedCall).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(fileFailedCall[1].message).toContain('ReferenceError: foo is not defined');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(fileFailedCall[1].message).not.toContain('Generic Jest error');
   });
 
   it('runByExecutionInfo reveals Test Results panel when starting a run', async () => {

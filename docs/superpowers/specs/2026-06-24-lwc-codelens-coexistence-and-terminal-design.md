@@ -116,13 +116,22 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 6. **Optimized `waitForResultFile` timeout** (`lwcTestController.ts`)
    - Accepts `expectNoResults` param (default `false`)
-   - Crash + no results: 4 × 500ms = 2s
-   - Normal: 600 × 500ms = 5m
+   - Crash + no results: 4 × 500ms = 2s (suppresses warning toast)
+   - Normal: 600 × 500ms = 5m (shows warning toast on timeout)
    - Avoids hang on crash-before-results; enables quick failure reporting
+   - Warning suppression prevents unhelpful "timeout waiting for results" toasts when Jest crashed before writing results
+
+6a. **New `isAncestorOrSelf` helper** (`lwcTestController.ts`)
+   - Private method that walks entire parent chain from item to root
+   - Enables ancestor detection for deeply nested test structures
+   - Supports file items, immediate children, and descendants multiple levels deep
+   - Used by `applyResults` to validate `skipItem` relationships
 
 7. **`applyResults` safeguard w/ `skipItem` param** (`lwcTestController.ts`)
    - Optional `skipItem` (defaults `undefined`)
-   - Skips JSON processing for matched file item
+   - Skips JSON processing for file item when skipItem is an ancestor or the file item itself
+   - Uses new `isAncestorOrSelf` helper (walks entire parent chain to root)
+   - Supports deeply nested test structures (multiple nested describe blocks)
    - Prevents overwriting crash-extracted errors w/ generic partial-result messages
    - Pass `sourceItem` on crash; `undefined` on normal flow
 

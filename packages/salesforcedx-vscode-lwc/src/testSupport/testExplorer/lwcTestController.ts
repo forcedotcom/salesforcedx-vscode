@@ -651,10 +651,62 @@ class LwcTestController {
   };
 
   /**
+   * Check if candidate is an ancestor of item or is item itself.
+   *
+   * Walks up the entire parent chain from item to the root, checking at each level whether
+   * candidate appears anywhere in that ancestry. This supports deeply nested test structures
+   * where test cases may be wrapped in multiple describe blocks.
+   *
+   * @param candidate The potential ancestor or self item to check for
+   * @param item The starting test item whose ancestry chain will be walked
+   * @returns true if candidate is found anywhere in item's parent chain (or is item itself), false otherwise
+   *
+   * @example
+   * // Given a nested structure: fileItem -> describeItem -> testCaseItem
+   * isAncestorOrSelf(fileItem, testCaseItem) // returns true
+   * isAncestorOrSelf(describeItem, testCaseItem) // returns true
+   * isAncestorOrSelf(testCaseItem, testCaseItem) // returns true
+   * isAncestorOrSelf(unrelatedItem, testCaseItem) // returns false
+   */
+  private isAncestorOrSelf = (candidate: vscode.TestItem | undefined, item: vscode.TestItem): boolean => {
+    if (!candidate) {
+      return false;
+    }
+    let current: vscode.TestItem | undefined = item;
+    while (current) {
+      if (current === candidate) {
+        return true;
+      }
+      current = current.parent;
+    }
+    return false;
+  };
+
+  /**
    * Walk the Jest JSON output and attribute results to matching TestItems.
+   *
+   * This method processes Jest test results and updates the VS Code Test Explorer with pass/fail/skip states.
+   * It includes logic to prevent overwriting crash-extracted errors that were already set when Jest failed
+   * before producing complete results.
+   *
    * @param run The test run to apply results to
-   * @param results Jest JSON results
-   * @param skipItem If provided, skip marking this item (already marked with crash error)
+   * @param results Jest JSON results to process
+   * @param skipItem If provided, skip marking this item and its entire ancestor chain (already marked with crash error).
+   *
+   * The skipItem parameter supports deeply nested test structures by using `isAncestorOrSelf` to walk up the
+   * entire parent chain. When a test case deep in the hierarchy has already been marked with a crash-extracted
+   * error (from pseudoterminal output), this prevents the generic Jest results file from overwriting that
+   * detailed error information. The check works for:
+   * - Direct file items (skipItem is the file itself)
+   * - Shallow descendants (skipItem is an immediate child of the file)
+   * - Deeply nested descendants (skipItem is several levels down through multiple describe blocks)
+   *
+   * @example
+   * // When Jest crashes and produces partial results:
+   * // 1. executeOne marks the file with crash-extracted error and passes it as skipItem
+   * // 2. applyResults processes the generic Jest results file
+   * // 3. For each file result, isAncestorOrSelf walks up from skipItem checking if fileItem is an ancestor
+   * // 4. If true, the file result is skipped, preserving the detailed crash error
    */
   private applyResults = (run: vscode.TestRun, results: LwcJestTestResults, skipItem?: vscode.TestItem): void => {
     for (const fileResult of results.testResults) {
@@ -663,8 +715,9 @@ class LwcTestController {
       const testUri = this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(fileResult.name)));
       const fileItem = this.fileItems.get(createFileId(testUri));
 
-      // Skip this file if it already has a crash-extracted error
-      if (skipItem && fileItem === skipItem) {
+      // Skip this file if it already has a crash-extracted error, or if skipItem is a descendant
+      // Walk up the parent chain to check if fileItem is an ancestor of skipItem
+      if (skipItem && this.isAncestorOrSelf(fileItem, skipItem)) {
         continue;
       }
 
@@ -770,7 +823,9 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
  * Jest may not flush output immediately after task completion, so we poll the file system.
  * @param filePath Path to the Jest results JSON file
  * @param token Cancellation token
- * @param expectNoResults If true, use a shorter timeout (no file expected on crash-before-results)
+ * @param expectNoResults If true, use a shorter timeout (2 seconds vs 5 minutes) and suppress the warning
+ * toast when the file doesn't appear. Used when Jest crashed before producing results
+ * to avoid a 5-minute hang and unhelpful timeout warnings.
  */
 const waitForResultFile = async (
   filePath: string,
@@ -791,7 +846,10 @@ const waitForResultFile = async (
       await delay(500);
     }
   }
-  void vscode.window.showWarningMessage(nls.localize('lwc_test_result_file_timeout_message'));
+  // Only show warning if we actually expected results
+  if (!expectNoResults) {
+    void vscode.window.showWarningMessage(nls.localize('lwc_test_result_file_timeout_message'));
+  }
 };
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
