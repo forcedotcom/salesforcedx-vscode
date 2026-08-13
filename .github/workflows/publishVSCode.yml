@@ -180,7 +180,6 @@ jobs:
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
       registries: 'all'
       pre-release: 'false'  # Stable releases (even minor versions)
-      nightly: 'false'
       version-bump: 'none'  # Version already set in release
       dry-run: false  # Publish to marketplace
       git-user-name: ${{ needs.get-git-identity.outputs.username }}
