@@ -156,22 +156,27 @@ jobs:
             echo '```'
           } > release_notes.md
 
-          # Delete existing release if it exists (for retry scenarios)
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists, deleting..."
-            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
-          fi
+          # Delete existing release and tag if they exist (for retry scenarios)
+          echo "Cleaning up any existing release $RELEASE_TAG..."
+          gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>/dev/null || echo "No existing release to delete"
+          git push origin :refs/tags/$RELEASE_TAG 2>/dev/null || echo "No existing tag to delete"
 
-          # Collect all VSIX files
-          VSIX_FILES=$(find . -name "*.vsix" -type f)
-
-          # Create pre-release
+          # Create pre-release first (without assets)
           gh release create "$RELEASE_TAG" \
             --title "Release $RELEASE_VERSION - Ready for Testing" \
             --notes-file release_notes.md \
-            --prerelease \
-            $VSIX_FILES \
-            SHA256.md
+            --prerelease
+
+          # Upload VSIX files
+          echo "Uploading VSIX files..."
+          for vsix in ./extensions/*.vsix; do
+            echo "Uploading $(basename "$vsix")..."
+            gh release upload "$RELEASE_TAG" "$vsix"
+          done
+
+          # Upload SHA256
+          echo "Uploading SHA256.md..."
+          gh release upload "$RELEASE_TAG" SHA256.md
 
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
