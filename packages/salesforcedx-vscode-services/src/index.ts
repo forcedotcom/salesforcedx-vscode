@@ -215,13 +215,18 @@ export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export {
   OrgCatalogObservationSchema,
+  OrgMetadataCatalogEntrySchema,
   OrgMetadataCatalogError,
   OrgSObjectDescriptionSchema,
   OrgSObjectSummarySchema,
   type OrgCatalogObservation,
   type OrgMetadataCatalog,
+  type OrgMetadataCatalogComponentEntry,
   type OrgMetadataCatalogComponentReference,
   type OrgMetadataCatalogEntry,
+  type OrgMetadataCatalogFieldEntry,
+  type OrgMetadataCatalogFolderEntry,
+  type OrgMetadataCatalogTypeEntry,
   type OrgMetadataCatalogReference,
   type OrgMetadataComponentResolution,
   type OrgMetadataConsistency,

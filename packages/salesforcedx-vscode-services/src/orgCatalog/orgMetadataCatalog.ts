@@ -7,14 +7,6 @@
 
 /* eslint-disable barrel-files/avoid-barrel-files -- temporary re-export layer during refactoring. Consider removing once consumers can import directly from source modules. */
 
-import type {
-  OrgMetadataCatalogComponentReference,
-  OrgMetadataCatalogEntry,
-  OrgMetadataCatalogInternalEntry,
-  OrgMetadataCatalogReference,
-  OrgMetadataConsistency,
-  OrgMetadataHierarchyConsistency
-} from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -27,21 +19,34 @@ import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
 import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
+import {
+  type OrgMetadataCatalogComponentReference,
+  type OrgMetadataCatalogEntry,
+  type OrgMetadataCatalogInternalEntry,
+  type OrgMetadataCatalogReference,
+  type OrgMetadataConsistency,
+  type OrgMetadataHierarchyConsistency
+} from './orgMetadataCatalogTypes';
 
 export {
   OrgCatalogObservationSchema,
+  OrgMetadataCatalogEntrySchema,
   OrgSObjectDescriptionSchema,
   OrgSObjectSummarySchema
 } from './orgMetadataCatalogTypes';
 export { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 export type {
   OrgCatalogObservation,
+  OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogComponentReference,
   OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFieldEntry,
+  OrgMetadataCatalogFolderEntry,
   OrgMetadataCatalogReference,
   OrgMetadataComponentResolution,
   OrgMetadataConsistency,
   OrgMetadataHierarchyConsistency,
+  OrgMetadataCatalogTypeEntry,
   OrgMetadataEntryKind,
   OrgMetadataFieldDetails,
   OrgMetadataPresence,
@@ -58,13 +63,10 @@ const toInternalComponentReference = (
   reference: OrgMetadataCatalogComponentReference
 ): OrgMetadataComponentReference => ({ xmlName: reference.type, fullName: reference.fullName });
 
-const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCatalogEntry => ({
-  ...entry,
-  reference: {
-    ...(entry.reference.xmlName ? { type: entry.reference.xmlName } : {}),
-    ...(entry.reference.fullName ? { fullName: entry.reference.fullName } : {})
-  }
-});
+const toCatalogEntry = (entry: OrgMetadataCatalogInternalEntry): OrgMetadataCatalogEntry =>
+  entry.kind === 'type'
+    ? { ...entry, reference: { type: entry.reference.xmlName } }
+    : { ...entry, reference: { type: entry.reference.xmlName, fullName: entry.reference.fullName } };
 
 /**
  * Canonical, services-owned inventory and content catalog for metadata in the

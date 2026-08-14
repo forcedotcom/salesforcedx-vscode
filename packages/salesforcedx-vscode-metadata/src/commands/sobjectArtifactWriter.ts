@@ -30,9 +30,9 @@ const WRITE_CONCURRENCY = 100;
 /**
  * Streaming write effect for the normal refresh path.
  *
- * Phase 1: catalog SObject discovery + reset the selected category output dirs (parallel)
+ * Phase 1: listSObjects + reset all 5 output dirs (parallel)
  * Phase 2: write typeNames.json (needs listSObjects result)
- * Phase 3: catalog describe stream (8 batches in flight) → 3 file writes per SObject
+ * Phase 3: describeCustomObjects stream (8 batches in flight) → toMinimal → 3 file writes per SObject
  * (100 concurrent writes). Fetch and write overlap via stream buffering.
  */
 const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArtifacts')(function* (
@@ -43,8 +43,8 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fs = yield* api.services.FsService;
   const project = yield* api.services.ProjectService;
-  const metadataDescribe = yield* api.services.MetadataDescribeService;
-  const transmogrifier = yield* api.services.TransmogrifierService;
+  const tx = yield* api.services.TransmogrifierService;
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
 
   const [fauxStandard, fauxCustom, typings, soqlMeta, soqlStandard, soqlCustom] = yield* Effect.all(
     [
@@ -58,43 +58,32 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
     { concurrency: 'unbounded' }
   );
 
-  const resetDirectory = (uri: typeof fauxStandard) =>
-    fs.safeDelete(uri, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(uri)));
-  const categoryDirectories =
-    category === 'ALL'
-      ? [fauxStandard, fauxCustom, typings, soqlStandard, soqlCustom]
-      : category === 'CUSTOM'
-        ? [fauxCustom, soqlCustom]
-        : [fauxStandard, soqlStandard];
-
-  // A scoped refresh replaces only that category. Typings share one flat directory, so scoped
-  // refreshes overwrite their selected files without removing the other category's definitions.
-  // An ALL refresh resets the shared directory as well, removing definitions no longer in the org.
-  if (source === 'manual') {
-    yield* Effect.all([metadataDescribe.invalidateListSObjects(), metadataDescribe.invalidateSObjectDescribes()], {
-      concurrency: 'unbounded',
-      discard: true
-    });
-  }
+  // Phase 1: listSObjects and dir resets run in parallel — saves ~0.5s
   const [allSObjects] = yield* Effect.all(
-    [metadataDescribe.listSObjects(), ...categoryDirectories.map(resetDirectory)],
+    [
+      metadataDescribeService.listSObjects(),
+      fs.safeDelete(fauxStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxStandard))),
+      fs.safeDelete(fauxCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(fauxCustom))),
+      fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
+      fs.safeDelete(soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlStandard))),
+      fs.safeDelete(soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlCustom)))
+    ],
     { concurrency: 'unbounded' }
   );
   const sobjectNames = allSObjects.filter(sobjectTypeFilter(category, source));
-  const allTypeNames = allSObjects.filter(sobjectTypeFilter('ALL', source));
   const total = sobjectNames.length;
   const incrementPer = total > 0 ? 100 / total : 0;
 
-  // typeNames.json is shared by both categories and must remain complete after a scoped refresh.
-  yield* fs.writeFile(Utils.joinPath(soqlMeta, 'typeNames.json'), JSON.stringify(allTypeNames, null, 2));
+  // Phase 2: typeNames.json — sobjectNames known, dirs ready
+  yield* fs.writeFile(Utils.joinPath(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2));
 
   // Phase 3: describe stream + file writes overlapped.
   const standardRef = yield* Ref.make(0);
   const customRef = yield* Ref.make(0);
   const processedRef = yield* Ref.make(0);
 
-  yield* (yield* metadataDescribe.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
-    Stream.mapEffect(transmogrifier.toMinimalSObject),
+  yield* (yield* metadataDescribeService.describeCustomObjects(sobjectNames.map(s => s.name))).pipe(
+    Stream.mapEffect(tx.toMinimalSObject),
     Stream.mapEffect(
       sobject => {
         const isCustom = sobject.custom;

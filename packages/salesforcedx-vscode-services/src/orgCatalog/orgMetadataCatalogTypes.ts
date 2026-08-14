@@ -10,11 +10,17 @@ import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { SObjectSchema } from '../core/transmogrifierService';
 
-export type OrgMetadataPresence = {
-  readonly inOrg: boolean;
-  readonly inWorkspace: boolean;
-  readonly workspaceUri?: URI;
-};
+const UriSchema = Schema.declare((value): value is URI => value instanceof URI, {
+  identifier: 'URI',
+  description: 'vscode-uri URI'
+});
+
+const OrgMetadataPresenceSchema = Schema.Struct({
+  inOrg: Schema.Boolean,
+  inWorkspace: Schema.Boolean,
+  workspaceUri: Schema.optional(UriSchema)
+});
+export type OrgMetadataPresence = typeof OrgMetadataPresenceSchema.Type;
 
 export type OrgMetadataConsistency = 'cache-first' | 'refresh';
 
@@ -26,10 +32,11 @@ export type OrgMetadataCatalogReference = {
   readonly fullName?: string;
 };
 
-export type OrgMetadataCatalogComponentReference = {
-  readonly type: string;
-  readonly fullName: string;
-};
+const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
+  type: Schema.String.pipe(Schema.minLength(1)),
+  fullName: Schema.String.pipe(Schema.minLength(1))
+});
+export type OrgMetadataCatalogComponentReference = typeof OrgMetadataCatalogComponentReferenceSchema.Type;
 
 /** Document resolution for a consumer-discovered org component. */
 export type OrgMetadataComponentResolution = {
@@ -71,21 +78,21 @@ export type OrgSObjectDescription = typeof OrgSObjectDescriptionSchema.Type;
 
 export type OrgMetadataEntryKind = 'type' | 'folder' | 'component';
 
-export type OrgMetadataFieldDetails = {
-  readonly name: string;
-  readonly type: string;
-  readonly length?: number;
-  readonly relationshipName?: string | null;
-  readonly scale?: number;
-  readonly precision?: number;
-};
+const OrgMetadataFieldDetailsSchema = Schema.Struct({
+  name: Schema.String,
+  type: Schema.String,
+  length: Schema.optional(Schema.Number),
+  relationshipName: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  scale: Schema.optional(Schema.Number),
+  precision: Schema.optional(Schema.Number)
+});
+export type OrgMetadataFieldDetails = typeof OrgMetadataFieldDetailsSchema.Type;
 
 type OrgMetadataCatalogEntryBase = OrgMetadataPresence & {
   readonly orgId: string;
   readonly observedAt: string;
   readonly provenance: OrgCatalogObservation['provenance'];
   readonly name: string;
-  readonly kind: OrgMetadataEntryKind;
   readonly documentUri: URI;
   readonly namespacePrefix?: string;
   readonly manageableState?: string;
@@ -97,11 +104,63 @@ type OrgMetadataCatalogEntryBase = OrgMetadataPresence & {
 };
 
 /** Services-internal entry shape used by catalog storage and projections. */
-export type OrgMetadataCatalogInternalEntry = OrgMetadataCatalogEntryBase & {
-  readonly reference: OrgMetadataReference;
+export type OrgMetadataCatalogInternalEntry = OrgMetadataCatalogEntryBase &
+  (
+    | { readonly kind: 'type'; readonly reference: OrgMetadataReference & { readonly xmlName: string } }
+    | {
+        readonly kind: 'folder' | 'component';
+        readonly reference: OrgMetadataReference & { readonly xmlName: string; readonly fullName: string };
+      }
+  );
+
+const OrgMetadataCatalogEntryBaseSchema = Schema.Struct({
+  ...OrgMetadataPresenceSchema.fields,
+  orgId: Schema.String,
+  observedAt: Schema.String,
+  provenance: OrgCatalogObservationSchema.fields.provenance,
+  name: Schema.String,
+  documentUri: UriSchema,
+  namespacePrefix: Schema.optional(Schema.String),
+  manageableState: Schema.optional(Schema.String),
+  fileName: Schema.optional(Schema.String),
+  lastModifiedByName: Schema.optional(Schema.String),
+  lastModifiedDate: Schema.optional(Schema.String),
+  remoteLastModifiedDate: Schema.optional(Schema.String)
+});
+
+/** Runtime schemas for the catalog entry refinements consumed by Org Browser. */
+const OrgMetadataCatalogFolderEntrySchema = Schema.Struct({
+  ...OrgMetadataCatalogEntryBaseSchema.fields,
+  kind: Schema.Literal('folder'),
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  field: Schema.optional(OrgMetadataFieldDetailsSchema)
+});
+export type OrgMetadataCatalogFolderEntry = typeof OrgMetadataCatalogFolderEntrySchema.Type;
+
+const OrgMetadataCatalogTypeEntrySchema = Schema.Struct({
+  ...OrgMetadataCatalogEntryBaseSchema.fields,
+  kind: Schema.Literal('type'),
+  reference: Schema.Struct({ type: Schema.String.pipe(Schema.minLength(1)) }),
+  field: Schema.optional(OrgMetadataFieldDetailsSchema)
+});
+export type OrgMetadataCatalogTypeEntry = typeof OrgMetadataCatalogTypeEntrySchema.Type;
+
+const OrgMetadataCatalogComponentEntrySchema = Schema.Struct({
+  ...OrgMetadataCatalogEntryBaseSchema.fields,
+  kind: Schema.Literal('component'),
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  field: Schema.optional(OrgMetadataFieldDetailsSchema)
+});
+export type OrgMetadataCatalogComponentEntry = typeof OrgMetadataCatalogComponentEntrySchema.Type;
+
+export type OrgMetadataCatalogFieldEntry = Omit<OrgMetadataCatalogComponentEntry, 'field'> & {
+  readonly field: OrgMetadataFieldDetails;
 };
 
-/** Consumer-facing entry shape. */
-export type OrgMetadataCatalogEntry = OrgMetadataCatalogEntryBase & {
-  readonly reference: OrgMetadataCatalogReference;
-};
+/** Consumer-facing entry shape and runtime contract. */
+export const OrgMetadataCatalogEntrySchema = Schema.Union(
+  OrgMetadataCatalogTypeEntrySchema,
+  OrgMetadataCatalogFolderEntrySchema,
+  OrgMetadataCatalogComponentEntrySchema
+);
+export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;

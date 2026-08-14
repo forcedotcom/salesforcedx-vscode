@@ -4,15 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalogFieldEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 
-export const createCustomFieldNode = (
-  entry: OrgMetadataCatalogEntry & {
-    readonly reference: { readonly type: string; readonly fullName: string };
-    readonly field: OrgMetadataFieldDetails;
-  }
-): OrgBrowserTreeItem =>
+export const createCustomFieldNode = (entry: OrgMetadataCatalogFieldEntry): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({
     kind: 'component',
     xmlName: 'CustomField',

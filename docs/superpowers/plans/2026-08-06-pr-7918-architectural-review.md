@@ -1,5 +1,8 @@
 # PR 7918 Architectural Review Response
 
+> Historical remediation plan. Public API preservation in this document was superseded by the consumer-shaped
+> boundary recorded in [ADR 0021](../../adr/0021-org-metadata-catalog.md).
+
 **Work Item:** W-23613533  
 **Date:** 2026-08-06  
 **Status:** Implemented; ready for review

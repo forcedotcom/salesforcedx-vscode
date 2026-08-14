@@ -17,6 +17,7 @@ import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCata
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Order from 'effect/Order';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import { metadataListingKey, sobjectDescriptionKey, typeCacheKey } from './orgCatalogKeys';
@@ -26,6 +27,20 @@ import {
   type PersistedTypeInventory
 } from './orgMetadataCatalogStore';
 import { isOrgMetadataComponentReference } from './orgMetadataReference';
+
+type PersistedTrackingObservation = OrgMetadataCatalogSnapshot['tracking'][number];
+type PersistedMetadataListingObservation = OrgMetadataCatalogSnapshot['metadataListings'][number];
+
+const byXmlName = Order.mapInput(Order.string, (value: PersistedTypeInventory) => value.xmlName);
+const byName = Order.mapInput(Order.string, (value: OrgSObjectDescription) => value.name);
+const byMetadataIdentity = Order.combine(
+  Order.mapInput(Order.string, (value: PersistedTrackingObservation) => value.xmlName),
+  Order.mapInput(Order.string, (value: PersistedTrackingObservation) => value.fullName)
+);
+const byMetadataListing = Order.combine(
+  Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.xmlName),
+  Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.folder ?? '')
+);
 
 export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatalogState', {
   accessors: true,
@@ -46,7 +61,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     const hydratedOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
     const persistedGenerations = yield* Ref.make<ReadonlyMap<string, number>>(new Map());
     const hydrateSemaphore = yield* Effect.makeSemaphore(1);
-    const persistenceRequests = yield* Queue.unbounded<string>();
+    const persistenceRequests = yield* Queue.unbounded<void>();
     const dirtyOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
 
     const persistOrg = Effect.fn('OrgCatalogState.persistOrg')(function* (orgId: string) {
@@ -101,13 +116,13 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         orgId,
         writtenAt: new Date().toISOString(),
         generation,
-        inventory: [...inventory.values()].toSorted((left, right) => left.xmlName.localeCompare(right.xmlName)),
+        inventory: [...inventory.values()].toSorted(byXmlName),
         sobjects: {
           list: sobjectLists.get(orgId),
           descriptions: [...sobjectDescriptions]
             .filter(([key]) => key.startsWith(`${orgId}\0`))
             .map(([, description]) => description)
-            .toSorted((left, right) => left.name.localeCompare(right.name))
+            .toSorted(byName)
         },
         tracking: [...(trackingByOrg.get(orgId) ?? new Map()).values()]
           .map(observation => ({
@@ -115,18 +130,12 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
             fullName: observation.reference.fullName,
             signature: observation.signature
           }))
-          .toSorted((left, right) => {
-            const typeComparison = left.xmlName.localeCompare(right.xmlName);
-            return typeComparison === 0 ? left.fullName.localeCompare(right.fullName) : typeComparison;
-          }),
+          .toSorted(byMetadataIdentity),
         metadataTypes: [...(metadataTypesByOrg.get(orgId) ?? [])],
         metadataListings: [...metadataListings]
           .filter(([key]) => key.startsWith(`${orgId}\0`))
           .map(([, observation]) => observation)
-          .toSorted((left, right) => {
-            const typeComparison = left.xmlName.localeCompare(right.xmlName);
-            return typeComparison === 0 ? (left.folder ?? '').localeCompare(right.folder ?? '') : typeComparison;
-          })
+          .toSorted(byMetadataListing)
       };
       yield* catalogStore
         .save(snapshot)
@@ -135,7 +144,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
 
     const queuePersist = Effect.fn('OrgCatalogState.queuePersist')(function* (orgId: string) {
       yield* Ref.update(dirtyOrgIds, current => HashSet.add(current, orgId));
-      yield* Queue.offer(persistenceRequests, orgId);
+      yield* Queue.offer(persistenceRequests, undefined);
     });
 
     /** Atomically claims and persists an org only when it has pending catalog changes. */

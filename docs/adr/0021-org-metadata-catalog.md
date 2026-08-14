@@ -1,6 +1,10 @@
 # Org metadata reads go through OrgMetadataCatalog
 
-Cross-extension consumers use the services-owned `OrgMetadataCatalog` for org metadata discovery, workspace presence, SObject schema, change status, and remote source materialization. The catalog owns stable projections and cache/invalidation policy; metadata describe, source tracking, Tooling, and Metadata API services remain internal providers, while deploy, retrieve, and delete remain explicit mutation services that publish successful outcomes to the catalog operation stream.
+Cross-extension consumers use the services-owned `OrgMetadataCatalog` for metadata hierarchy, workspace/org
+presence, and resolution of consumer-discovered components. The public facade exposes only `getChildren`, batch
+`getEntries`, and batch `resolveComponents`. Metadata describe, source tracking, Tooling, and Metadata API services
+retain their acquisition APIs and report successful observations to the catalog recorder; deploy, retrieve, and
+delete remain explicit mutation services that publish successful outcomes to the catalog operation stream.
 
 Editor documents retain the `sf-org-metadata:` identity needed by VS Code and language tooling, but remote source bodies are stored in revision-addressed snapshots. The catalog reuses current snapshots, retains a bounded number of recent revisions, protects revisions used by open documents, partitions all observations and artifacts by org, and emits deduplicated, targeted change notifications.
 
@@ -12,7 +16,13 @@ A general VS Code `FileSystemProvider` was rejected as the public discovery API:
 
 ## Consequences
 
-The catalog is the read gateway, not the owner of every metadata workflow: consumers continue to own presentation and generated artifacts, mutation services continue to own writes, and internal providers continue to speak their native APIs. Consumers choose consistency according to the operation: navigation may reuse catalog shadow content, while user-invoked correctness-sensitive operations such as diff and conflict detection request fresh materialization directly from the org. Multi-component commands retain their operation boundary by submitting the selected group to one catalog acquisition; the catalog performs one retrieve and publishes separate revision-addressed artifacts. Background source-tracking observations improve cache freshness but do not gate those explicit operations. A successful fresh materialization updates an already-loaded inventory revision without requiring inventory discovery first.
+The catalog is an index, not the owner of every metadata workflow: consumers continue to own presentation and
+generated artifacts, mutation services continue to own writes, and metadata services continue to speak their native
+APIs. Org Browser reads hierarchy and presence from the catalog. Apex Test Explorer reports its Tooling-discovered
+classes through one batch `resolveComponents` call and receives workspace-first document resolution, including an
+ephemeral org document for org-only tests. Metadata diff and retrieve stay in the metadata extension; their provider
+calls report successful discoveries back into the catalog. SObject artifact generation likewise remains with its
+existing consumer while `MetadataDescribeService` records its successful list and describe observations.
 
 New catalog operations and their maintenance work use Effect spans, public services API handles expose the catalog rather than its discovery providers, and the internal **SFDX: Show Org Metadata Catalog State** command opens the latest durable checkpoint for diagnosis.
 

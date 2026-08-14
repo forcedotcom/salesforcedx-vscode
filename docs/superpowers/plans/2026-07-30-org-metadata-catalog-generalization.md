@@ -1,11 +1,14 @@
 # Unified OrgMetadataCatalog Plan
 
-**Status:** In progress (foundation and initial consumer migrations proven)
+**Status:** Implemented with a consumer-shaped public boundary
 **Work item:** W-23613533
 
 ## Summary
 
-Make `OrgMetadataCatalog` the only cross-extension API for reading, discovering, and materializing org metadata. Consumers use purpose-specific catalog methods and catalog-owned projections; specialized services remain internal providers.
+Make `OrgMetadataCatalog` the shared index of metadata already observed through metadata-owning services. Its public
+surface is limited to the three operations required by current consumers: hierarchy reads, batch entry reads, and
+batch resolution of consumer-discovered components. Specialized services continue to own acquisition and report
+successful observations to the catalog.
 
 Deploy, retrieve-to-project, and delete remain mutation services. Their successful outcomes publish events that update the catalog.
 
@@ -23,7 +26,8 @@ Deploy, retrieve-to-project, and delete remain mutation services. Their successf
 - Metadata types absent from the local SDR registry remain navigable with an `.xml` document fallback.
 - Successful deploy, retrieve, and delete operations publish deduplicated operation envelopes and selectively invalidate catalog observations.
 - Workspace file bursts are coalesced, shadow-store changes are ignored, and Apex test presence changes use targeted tree updates.
-- Refresh SObjects, SOQL discovery, source-tracking status, metadata diff, and conflict reads have initial catalog-backed integrations.
+- Metadata describe, source tracking, Tooling, deploy, and retrieve services report successful discoveries and
+  mutations into the catalog without exposing their provider-shaped APIs on the catalog.
 - Remote artifacts can be stored in a revision-addressed, schema-validated shadow store while remaining editor-facing `sf-org-metadata:` documents.
 - Catalog contract tests cover:
   - concurrent equivalent request coalescing and cached reads;
@@ -35,26 +39,26 @@ Deploy, retrieve-to-project, and delete remain mutation services. Their successf
   - immediate rejection of document URIs belonging to the previously active org; and
   - concurrent reuse of an existing remote revision with separate materialization for a newer revision;
   - Custom Field operation notification through parent SObject invalidation and description reacquisition;
-  - manual Refresh SObjects using catalog refresh, startup generation using cached catalog discovery, and both
-    streaming catalog descriptions into generated artifacts;
+  - SObject describe observations recorded by `MetadataDescribeService` while existing artifact consumers retain
+    ownership of their generation workflow;
   - SOQL object and field placeholder expansion from catalog summaries and SObject descriptions;
-  - tracking conflicts using catalog change-status projections and non-tracking conflicts using catalog timestamps,
-    with both paths comparing catalog-materialized remote files;
+  - tracking conflicts using `SourceTrackingService` and non-tracking deploy conflicts using catalog timestamps,
+    with both paths retrieving comparison files through the metadata extension;
   - bounded shadow revision pruning, open-document preservation, and cleanup-failure tolerance.
 - Non-tracking deploy conflict detection now screens catalog timestamps before materialization and requests remote
   source only for candidate components; unchanged components produce no shadow retrieval.
-- Explicit diff and conflict operations request fresh catalog materialization, bypassing both cached shadow content and
-  stale inventory-presence gates; successful fresh acquisitions feed observed revisions back into loaded inventory.
-- Multi-component diff and conflict requests are materialized as one catalog batch and one Metadata API retrieve, then
-  split into component-specific shadow artifacts so command progress and cancellation retain their original scope.
+- Explicit diff and conflict operations request fresh materialization through `MetadataRetrieveService`; successful
+  provider calls report their observations back into the catalog.
+- Multi-component diff and conflict requests retain one metadata-extension operation boundary and one Metadata API
+  retrieve, then split results into component-specific comparison pairs.
 - Per-org/type inventory acquisition now coalesces concurrent equivalent requests.
 - Workspace notifications produced by metadata operations are correlated against the operation's complete source,
   sidecar, and bundle file set. Matching filesystem events are suppressed while unrelated and later manual changes
   remain visible to catalog consumers.
 - Source-tracking polling compares revision-bearing remote observations per org, invalidates only changed component
   references, publishes one catalog change batch, and suppresses unchanged polls and operation-covered removals.
-- `MetadataDescribeService` and `TransmogrifierService` remain internal catalog dependencies but are no longer
-  advertised as public extension API handles; mutation and workspace-assembly services remain public.
+- `MetadataDescribeService` retains its existing consumers and records successful SObject discovery into the catalog;
+  no duplicate SObject acquisition API is exposed on `OrgMetadataCatalog`.
 - Shadow publication retains the current and two newest prior revisions per org/component, preserves additional
   revisions used by open editor documents, and treats cleanup as observable best-effort maintenance.
 - [ADR 0021](../../adr/0021-org-metadata-catalog.md) records the catalog gateway, operation-stream, revision,
@@ -72,46 +76,30 @@ Deploy, retrieve-to-project, and delete remain mutation services. Their successf
 ## Public API and Data Model
 
 - Retain the public name `OrgMetadataCatalog`.
-- Provide purpose-specific methods for:
-  - metadata type/component inventory and presence;
-  - SObject listing and descriptions;
-  - local or remote document resolution;
-  - complete remote source materialization;
-  - local/remote change status.
-- Pair cached read methods with explicit refresh methods that invalidate, reacquire, and return the same projection.
+- Expose only methods exercised by current cross-extension consumers.
+- Keep local/remote selection inside catalog resolution. Consumers receive a preferred URI plus explicit workspace
+  and org URIs for presentation needs; they do not choose a remote-materialization API.
+- Use batch boundaries for component entry and resolution calls; callers pass an array of one for a single component.
 - Return catalog-owned Effect Schema projections rather than raw Connection, SDR, or source-tracking results.
 - Give projections common observation metadata: org ID, observation time, provenance, and remote modification timestamp when available.
 - Correlate Custom Object metadata and runtime SObject schema without treating their representations as interchangeable.
-- Preserve streaming for bulk SObject descriptions.
 
-Representative API:
+Current API:
 
 ```ts
-listMetadataTypes()
-listMetadataComponents(reference)
-getMetadataEntry(reference)
-getPresence(reference)
-
-listSObjects(filter?)
-describeSObject(apiName)
-describeSObjects(apiNames)
-
-getDocumentUri(reference)
-getRemoteDocument(reference)
-materializeRemoteSource(references)
-
-getChangeStatus(options)
-
-refreshMetadataTypes()
-refreshMetadataComponents(reference)
-refreshSObjects(filter?)
-refreshSObject(apiName)
-refreshChangeStatus(options)
+getChildren(reference?, options?)
+getEntries(references, options?)
+resolveComponents(references)
 ```
+
+`getChildren` returns workspace/org presence as part of each entry. `getEntries` is the batch lookup used by metadata
+conflict detection. `resolveComponents` is the reporting edge for discoveries made outside the catalog (currently
+Apex Test Explorer): it records the discovery and returns a workspace-first URI, materializing an org-only document
+when necessary.
 
 ## Catalog Internals
 
-- Keep specialized providers behind the catalog:
+- Keep specialized acquisition in the owning services:
   - Metadata API describe/list;
   - REST SObject global/individual/batch describe;
   - Tooling API tests and lightweight Apex source;
@@ -120,13 +108,13 @@ refreshChangeStatus(options)
   - Metadata API source-format retrieval.
 - Maintain per-org observations keyed by projection, identity, folder, API version, and applicable project configuration.
 - Coalesce concurrent equivalent requests and batch missing SObject descriptions.
-- Acquire only the projection requested:
+- Acquire only the hierarchy projection requested by `getChildren`:
   - org-browser roots fetch types only;
   - tree expansion fetches one type;
   - Custom Object expansion fetches one object schema;
-  - Refresh SObjects streams the selected descriptions;
-  - Apex Testing requests presence and a primary document;
-  - diff requests complete source-format artifacts.
+  - Apex Testing reports its Tooling discovery through `resolveComponents` and receives primary documents;
+  - metadata diff/retrieve remains owned by the metadata extension and reports successful results through the
+    metadata services' recorder integration.
 - Preserve `remoteLastModifiedDate` from Metadata API list/retrieve results.
 - Track the revision represented by a materialized shadow artifact separately from the newest known remote revision.
 

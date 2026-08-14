@@ -1,5 +1,9 @@
 # Org Catalog Service Decomposition
 
+> Historical decomposition plan. Its requirement to preserve the original facade API was superseded by the
+> consumer-shaped boundary recorded in [ADR 0021](../../adr/0021-org-metadata-catalog.md): `getChildren`, batch
+> `getEntries`, and batch `resolveComponents`.
+
 **Work Item:** W-23613533
 **Date:** 2026-08-03
 **Status:** Complete
