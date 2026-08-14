@@ -77,10 +77,24 @@ jobs:
           echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
 
+      - name: Preserve scripts before checkout
+        run: |
+          # Copy scripts to temp location (prerelease tag may not have them)
+          mkdir -p /tmp/release-scripts
+          cp scripts/calculate-release-version.js /tmp/release-scripts/
+          cp scripts/update-release-versions.js /tmp/release-scripts/
+
       - name: Checkout prerelease tag
         run: |
           echo "Checking out prerelease tag: ${{ steps.detect-tag.outputs.tag }}"
           git checkout ${{ steps.detect-tag.outputs.tag }}
+
+      - name: Restore scripts
+        run: |
+          # Restore scripts from temp location
+          mkdir -p scripts
+          cp /tmp/release-scripts/calculate-release-version.js scripts/
+          cp /tmp/release-scripts/update-release-versions.js scripts/
 
       - name: Configure git
         uses: ./.github/actions/gitConfig
