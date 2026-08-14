@@ -68,25 +68,10 @@ jobs:
 
       - name: Calculate release version
         id: calculate-version
-        env:
-          PRERELEASE_TAG: ${{ steps.detect-tag.outputs.tag }}
-          INPUT_VERSION: ${{ github.event.inputs.releaseVersion }}
         run: |
-          if [ -n "$INPUT_VERSION" ]; then
-            VERSION="$INPUT_VERSION"
-            echo "Using provided version: $VERSION"
-          else
-            # Extract version from tag: v67.11.1-nightly.develop.20260812 → 67.11.1
-            PRERELEASE_VERSION=$(echo "$PRERELEASE_TAG" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-
-            # Bump minor version: 67.11.1 → 67.12.0
-            MAJOR=$(echo "$PRERELEASE_VERSION" | cut -d. -f1)
-            MINOR=$(echo "$PRERELEASE_VERSION" | cut -d. -f2)
-            MINOR=$((MINOR + 1))
-            VERSION="$MAJOR.$MINOR.0"
-
-            echo "Calculated version from $PRERELEASE_VERSION: $VERSION"
-          fi
+          VERSION=$(node scripts/calculate-release-version.js \
+            "${{ steps.detect-tag.outputs.tag }}" \
+            "${{ github.event.inputs.releaseVersion }}")
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
@@ -106,54 +91,13 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       - name: Update package versions
-        env:
-          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
-        run: |
-          echo "Updating all package.json files to version $RELEASE_VERSION"
-
-          # Update version in all publishable packages
-          # Reusing logic from create-release-branch.js
-          find packages -name "package.json" -type f | while read pkg; do
-            # Check if package should be versioned (has vscode:publish or publishConfig)
-            HAS_PUBLISH=$(node -pe "
-              const pkg = require('./$pkg');
-              const hasVscodePublish = pkg.scripts?.['vscode:publish'];
-              const hasPublishConfig = pkg.publishConfig;
-              const versionedIndependently = pkg.versionedIndependently;
-              (!versionedIndependently && (hasVscodePublish || hasPublishConfig)) ? 'true' : 'false'
-            ")
-
-            if [ "$HAS_PUBLISH" = "true" ]; then
-              echo "Updating $(dirname $pkg)"
-              node -e "
-                const fs = require('fs');
-                const pkg = JSON.parse(fs.readFileSync('$pkg', 'utf8'));
-                pkg.version = '$RELEASE_VERSION';
-                fs.writeFileSync('$pkg', JSON.stringify(pkg, null, 2) + '\n');
-              "
-            fi
-          done
-
-          # Update package-lock.json
-          echo "Updating package-lock.json"
-          npm install --ignore-scripts --package-lock-only --no-audit
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
 
       - name: Build VSIXs
-        run: |
-          echo "Building VSIX files"
-          npm run vscode:package
+        run: npm run vscode:package
 
       - name: Generate SHA256 checksums
-        run: |
-          echo "Generating SHA256.md"
-          npm run vscode:sha256
-
-      - name: Display built VSIXs
-        run: |
-          echo "Built VSIX files:"
-          find . -name "*.vsix" -type f | while read vsix; do
-            echo "  - $(basename $vsix) ($(du -h "$vsix" | cut -f1))"
-          done
+        run: npm run vscode:sha256
 
       - name: Create GitHub pre-release
         env:

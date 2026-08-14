@@ -130,7 +130,7 @@ gh run list --workflow=testBuildAndRelease.yml -L 1 --json databaseId --repo for
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
-Confirm the release tag was created:
+This creates release tag + GitHub release with VSIX artifacts. Confirm:
 
 ```sh
 gh release view v<version> --repo forcedotcom/salesforcedx-vscode

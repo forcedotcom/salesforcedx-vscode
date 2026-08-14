@@ -23,33 +23,28 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-After promoting a prerelease to test candidates, build final release VSIXs locally before marketplace publish:
+Build release VSIXs from promoted prereleases for testing before marketplace publish:
 
 ```bash
-# Auto-detect latest prerelease, calculate version
+# Auto-detect latest nightly tag, auto-calculate version
 gh workflow run buildReleaseFromPrerelease.yml
 
-# Specify prerelease + version explicitly
+# Override tag and/or version
 gh workflow run buildReleaseFromPrerelease.yml \
   -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
   -f releaseVersion="67.12.0"
 ```
 
-Workflow:
-- Detects latest promoted prerelease tag or uses provided tag
-- Auto-bumps minor version (e.g., 67.11.1 → 67.12.0) or uses provided version
-- Checks out prerelease tag, updates `package.json` versions, builds VSIXs
-- Creates GitHub pre-release with testing checklist + VSIX artifacts
-- Download + test locally before triggering `publishVSCode.yml` for marketplace publish
+Creates GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally, then trigger [publishVSCode.yml](.github/workflows/publishVSCode.yml) for marketplace publish.
 
 ## Extension Discovery
 
-`build-extension-list` job runs `scripts/list-vscode-extensions.js` — scans `packages/` for VS Code extensions:
-- Filters: `engines.vscode`, `publisher`, `categories`; name starts `salesforcedx-vscode` (includes main bundle extension)
+Nightly builds use `scripts/list-vscode-extensions.js` — scans `packages/` for VS Code extensions:
+- Filters: `engines.vscode`, `publisher`, `categories`; name starts `salesforcedx-vscode` (includes main bundle)
 - Returns comma-separated list (sorted)
 - Auto-included without workflow changes
 
-For published releases, `scripts/parse-extension-names.js` dynamically extracts extension names from VSIX filenames in release artifacts. Supports both stable (`-1.2.3.vsix`) and prerelease (`-1.2.3-beta.vsix`, `-1.2.3-nightly.1.vsix`) version formats.
+Published releases extract extension names from VSIX filenames in release assets via `gh release view` + `sed`. Supports stable (`-1.2.3.vsix`) and prerelease (`-1.2.3-beta.vsix`, `-1.2.3-nightly.1.vsix`) formats.
 
 ## Architecture
 
