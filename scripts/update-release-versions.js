@@ -43,6 +43,11 @@ packageFiles.forEach(pkgPath => {
 
 console.log(`Updated ${updatedCount} packages`);
 
-// Update package-lock.json
-console.log('Updating package-lock.json');
-execSync('npm install --ignore-scripts --package-lock-only --no-audit', { stdio: 'inherit' });
+// Update package-lock.json (skip if --skip-lockfile flag provided)
+const skipLockfile = process.argv.includes('--skip-lockfile');
+if (skipLockfile) {
+  console.log('Skipping package-lock.json update (--skip-lockfile flag provided)');
+} else {
+  console.log('Updating package-lock.json');
+  execSync('npm install --ignore-scripts --package-lock-only --no-audit', { stdio: 'inherit' });
+}

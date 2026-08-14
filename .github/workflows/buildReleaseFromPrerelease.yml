@@ -105,7 +105,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       - name: Update package versions
-        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }} --skip-lockfile
 
       - name: Build VSIXs
         run: npm run vscode:package
