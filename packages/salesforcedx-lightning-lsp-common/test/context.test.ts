@@ -350,8 +350,8 @@ describe('WorkspaceContext', () => {
     const afterFirstContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
     const afterFirst = JSON.parse(Buffer.from(afterFirstContent).toString('utf8')) as JsconfigContent;
 
-    // Manually reformat the file with different spacing (2 spaces instead of 4) to simulate external formatting
-    const reformattedContent = JSON.stringify(afterFirst, null, 2);
+    // Manually reformat the file with different spacing to simulate external formatting
+    const reformattedContent = JSON.stringify(afterFirst, null, 4);
     await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
 
     // Track writes by spying on updateFileContent
@@ -365,7 +365,7 @@ describe('WorkspaceContext', () => {
     const writesToJsconfig = writeSpy.mock.calls.filter(call => call[0] === jsconfigPath);
     expect(writesToJsconfig).toHaveLength(0);
 
-    // Verify content remained reformatted (2-space indent)
+    // Verify content remained reformatted
     const finalContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
     expect(finalContent).toBe(reformattedContent);
 
@@ -391,6 +391,38 @@ describe('WorkspaceContext', () => {
       Buffer.from((await coreProjectFileSystemAccessor.getFileContent(settingsPath)) ?? '').toString('utf8')
     );
     verifyCoreSettings(settings);
+  });
+
+  it('configureProject() does not rewrite a semantically unchanged core jsconfig', async () => {
+    const freshAccessor = new LspFileSystemAccessor();
+    const freshMap = buildContentMap(CORE_PROJECT_ROOT, CORE_PARTIAL_WORKSPACE_STRUCTURE as Record<string, string>);
+    for (const [rel, content] of Object.entries(CORE_WORKSPACE_STRUCTURE as Record<string, string>)) {
+      if (rel.startsWith('.vscode/typings/')) {
+        freshMap.set(normalizePath(path.join(CORE_ALL_ROOT, rel)), content);
+      }
+    }
+    mockAccessorWithVirtualFs(freshAccessor, freshMap);
+
+    const context = new WorkspaceContext(CORE_PROJECT_ROOT, freshAccessor);
+    context.initialize('CORE_PARTIAL');
+    const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
+
+    await context.configureProject();
+    const generatedContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    const generatedConfig: unknown = JSON.parse(generatedContent);
+    const reformattedContent = JSON.stringify(generatedConfig, null, 4);
+    await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
+
+    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    writeSpy.mockClear();
+
+    await context.configureProject();
+
+    const writesToJsconfig = writeSpy.mock.calls.filter(call => call[0] === jsconfigPath);
+    expect(writesToJsconfig).toHaveLength(0);
+    expect(await freshAccessor.getFileContent(jsconfigPath)).toBe(reformattedContent);
+
+    writeSpy.mockRestore();
   });
 
   it('configureCoreMulti()', async () => {
