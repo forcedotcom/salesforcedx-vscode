@@ -21,7 +21,8 @@ jobs:
     name: 'Get Release Version'
     # Only run for extension releases (e.g. v66.7.0), not npm package releases
     # which use a <name>-v prefix (e.g. soql-common-v1.0.4, vscode-i18n-v66.7.0).
-    if: github.event_name != 'release' || !contains(github.event.release.tag_name, '-v')
+    # Also exclude nightly releases (e.g. v67.11.0-nightly.20260812).
+    if: github.event_name != 'release' || (!contains(github.event.release.tag_name, '-v') && !contains(github.event.release.tag_name, '-nightly'))
     runs-on: ubuntu-latest
     environment: publish
     outputs:
