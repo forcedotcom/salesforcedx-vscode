@@ -116,7 +116,10 @@ jobs:
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
 
       - name: Generate SHA256 checksums
-        run: npm run vscode:sha256
+        run: |
+          npm run vscode:sha256
+          scripts/concatenate-sha256.js
+          rm ./SHA256
 
       - name: Create GitHub pre-release
         env:
@@ -162,7 +165,7 @@ jobs:
             --notes-file release_notes.md \
             --prerelease \
             $VSIX_FILES \
-            packages/salesforcedx-vscode/SHA256.md
+            SHA256.md
 
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
