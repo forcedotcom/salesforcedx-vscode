@@ -42,51 +42,7 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
-
-/**
- * Debounced file writer using Effect to prevent rapid successive writes to the same file.
- * Uses a Ref to track pending writes and Effect.sleep for debouncing.
- */
-const createDebouncedWriter = (debounceMs = 500) => {
-  const pendingWrites = new Map<string, { content: string; timer: NodeJS.Timeout }>();
-
-  return {
-    /**
-     * Schedule a debounced write. If called multiple times for the same path,
-     * only the last write will execute after the debounce period.
-     */
-    write: (
-      filePath: string,
-      content: string,
-      writeImpl: (targetPath: string, data: string) => Promise<void>
-    ): Promise<void> => {
-      // Clear any pending write for this path
-      const existing = pendingWrites.get(filePath);
-      if (existing) {
-        clearTimeout(existing.timer);
-      }
-
-      // Schedule new write after debounce period
-      return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-          pendingWrites.delete(filePath);
-          writeImpl(filePath, content)
-            .then(() => resolve())
-            .catch(error => reject(error));
-        }, debounceMs);
-
-        pendingWrites.set(filePath, { content, timer });
-      });
-    },
-
-    /** Flush all pending writes immediately */
-    flush: (): void => {
-      const timers = Array.from(pendingWrites.values());
-      pendingWrites.clear();
-      timers.forEach(({ timer }) => clearTimeout(timer));
-    }
-  };
-};
+const JSON_INDENT = 2;
 
 /**
  * Schema for JSON-serializable values (primitives, arrays, nested objects).
@@ -121,6 +77,7 @@ type JsonValue =
  * Effect Schema's equivalence automatically handles recursive structures.
  */
 const jsonValueEquivalence = Schema.equivalence(JsonValueSchema);
+const decodeJsonValue = Schema.decodeUnknownSync(JsonValueSchema);
 
 /**
  * Compares two JSON-serializable values for deep structural equality using Effect Schema.
@@ -140,8 +97,8 @@ export const areJsonValuesEqual = (a: unknown, b: unknown): boolean => {
   try {
     // Decode both values through the schema to validate they're valid JSON
     // Then use the schema-derived equivalence to compare them
-    const decodedA = Schema.decodeUnknownSync(JsonValueSchema)(a);
-    const decodedB = Schema.decodeUnknownSync(JsonValueSchema)(b);
+    const decodedA = decodeJsonValue(a);
+    const decodedB = decodeJsonValue(b);
 
     return jsonValueEquivalence(decodedA, decodedB);
   } catch {
@@ -324,7 +281,6 @@ export abstract class BaseWorkspaceContext {
   public fileSystemAccessor: LspFileSystemAccessor;
   private readonly sfdxTypingsDir?: string;
   private _connection?: Connection;
-  private readonly debouncedWriter = createDebouncedWriter(500);
 
   /** The LSP connection. Setting this also propagates to the fileSystemAccessor. */
   public get connection(): Connection | undefined {
@@ -537,7 +493,7 @@ export abstract class BaseWorkspaceContext {
             continue;
           }
 
-          jsconfigContent = JSON.stringify(mergedConfig, null, 4);
+          jsconfigContent = JSON.stringify(mergedConfig, null, JSON_INDENT);
         } else {
           // Create new jsconfig from template
           if (this.workspaceRoots?.length === 0 || !this.workspaceRoots[0]) {
@@ -560,13 +516,10 @@ export abstract class BaseWorkspaceContext {
             ...jsconfigSfdx,
             include: [...jsconfigSfdx.include, typingsInclude]
           };
-          jsconfigContent = JSON.stringify(config, null, 2);
+          jsconfigContent = JSON.stringify(config, null, JSON_INDENT);
         }
 
-        // Use debounced writer to prevent rapid successive writes during git operations
-        await this.debouncedWriter.write(jsconfigPath, jsconfigContent, (filePath, fileContent) =>
-          this.fileSystemAccessor.updateFileContent(filePath, fileContent)
-        );
+        await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${isError(error) ? error.message : String(error)}`
@@ -605,11 +558,21 @@ export abstract class BaseWorkspaceContext {
             ...jsconfigCore,
             include: [...jsconfigCore.include, typingsInclude]
           };
-          const jsconfigContent = JSON.stringify(config, null, 2);
-          // Use debounced writer to prevent rapid successive writes
-          await this.debouncedWriter.write(jsconfigPath, jsconfigContent, (filePath, fileContent) =>
-            this.fileSystemAccessor.updateFileContent(filePath, fileContent)
-          );
+
+          const existingConfigContent = await this.fileSystemAccessor.getFileContent(jsconfigPath);
+          if (existingConfigContent) {
+            try {
+              const existingConfig: unknown = JSON.parse(existingConfigContent);
+              if (areJsonValuesEqual(config, existingConfig)) {
+                continue;
+              }
+            } catch {
+              // Invalid existing JSON should be replaced with the generated configuration.
+            }
+          }
+
+          const jsconfigContent = JSON.stringify(config, null, JSON_INDENT);
+          await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
         } catch (error) {
           console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
           throw error;
