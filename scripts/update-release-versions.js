@@ -20,8 +20,12 @@ if (!releaseVersion) {
 
 console.log(`Updating packages to version ${releaseVersion}`);
 
-// Find all package.json files
-const packageFiles = execSync('find packages -name "package.json" -type f', { encoding: 'utf8' }).trim().split('\n');
+// Find all package.json files (excluding node_modules)
+const packageFiles = execSync('find packages -name "package.json" -type f -not -path "*/node_modules/*"', {
+  encoding: 'utf8'
+})
+  .trim()
+  .split('\n');
 
 let updatedCount = 0;
 
