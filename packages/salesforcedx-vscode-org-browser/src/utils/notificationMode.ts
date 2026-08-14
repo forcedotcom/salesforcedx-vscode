@@ -8,7 +8,5 @@
 import type pkg from '../../package.json';
 
 /** Derive command keys from package.json schema at compile time */
-type CommandNotificationKey =
+export type ProgressAndSuccessCommandKey =
   keyof (typeof pkg)['contributes']['configuration']['properties']['salesforcedx-vscode-org-browser.commandLevelNotifications']['properties'];
-
-export type ProgressAndSuccessCommandKey = CommandNotificationKey;
