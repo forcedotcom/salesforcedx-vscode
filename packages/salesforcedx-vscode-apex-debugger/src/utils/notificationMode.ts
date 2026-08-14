@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session';
+import type pkg from '../../package.json';
+
+type CommandNotificationKey =
+  keyof (typeof pkg)['contributes']['configuration']['properties']['salesforcedx-vscode-apex-debugger.commandLevelNotifications']['properties'];
 
 export type ProgressOnlyCommandKey = 'SFDX: Create and Set Up Project for ISV Debugging';
+
+export type ProgressAndSuccessCommandKey = Exclude<CommandNotificationKey, ProgressOnlyCommandKey>;

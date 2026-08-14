@@ -5,4 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type ProgressAndSuccessCommandKey = 'Retrieve Metadata';
+import type pkg from '../../package.json';
+
+/** Derive command keys from package.json schema at compile time */
+export type ProgressAndSuccessCommandKey =
+  keyof (typeof pkg)['contributes']['configuration']['properties']['salesforcedx-vscode-org-browser.commandLevelNotifications']['properties'];
