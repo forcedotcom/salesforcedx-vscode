@@ -110,6 +110,11 @@ jobs:
       - name: Build VSIXs
         run: npm run vscode:package
 
+      - name: Collect VSIXs
+        run: |
+          mkdir -p extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+
       - name: Generate SHA256 checksums
         run: npm run vscode:sha256
 
