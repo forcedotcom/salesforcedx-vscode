@@ -136,7 +136,7 @@ jobs:
   publish:
     needs: ['ctc-open', 'prepare-release-metadata']
     if: always() && needs.prepare-release-metadata.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@sm/publish-release-vsix
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
       dry-run: ${{ inputs.dry-run }}
