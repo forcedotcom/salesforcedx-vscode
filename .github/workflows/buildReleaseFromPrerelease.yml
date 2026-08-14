@@ -156,6 +156,12 @@ jobs:
             echo '```'
           } > release_notes.md
 
+          # Delete existing release if it exists (for retry scenarios)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists, deleting..."
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+          fi
+
           # Collect all VSIX files
           VSIX_FILES=$(find . -name "*.vsix" -type f)
 
