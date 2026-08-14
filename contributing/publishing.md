@@ -80,14 +80,10 @@ Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/sa
 Then triggers `publishVSCode.yml`:
 - Verify release exists (required for manual workflow_dispatch triggers)
 - Download VSIX files; validate ≥1 present, exit if missing
-- Upload as artifact for validation
-- Validate VSIX OPC Part URIs (via artifact)
-- Call shared workflow [`vscode-publish-extensions`](https://github.com/salesforcecli/github-workflows/blob/main/.github/workflows/vscode-publish-extensions.yml) with `nightly: false` (boolean) to publish to VS Code Marketplace, Open VSX, and other configured registries
+- Call the shared release-asset publisher to publish every VSIX in the GitHub release to VS Code Marketplace
 - Send approval notification
 
-**Note:** Shared workflow defaults `nightly: true` (skips marketplace publishing). Pass `nightly: false` as boolean (not string) for proper YAML type handling.
-
-**Manual workflow_dispatch triggers:** If manually triggering `publishVSCode.yml`, ensure `testBuildAndRelease.yml` has already created the GitHub release with VSIX artifacts. The workflow validates the release exists before attempting downloads and will fail early with a clear error if the release is missing.
+**Manual workflow_dispatch triggers:** Specify the release tag (for example, `v67.10.0`) and ensure `testBuildAndRelease.yml` has already created that GitHub release with VSIX artifacts. The workflow validates the release exists before attempting downloads and will fail early with a clear error if the release is missing.
 
 Before approving marketplace publish, download VSIX files, install locally, verify functionality.
 
