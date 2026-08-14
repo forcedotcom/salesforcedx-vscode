@@ -17,6 +17,20 @@ export type PackageJson = {
   };
 };
 
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== undefined && value !== null;
+
+/** Read and parse a JSON file at a known path, returning it as a plain record. */
+export const readJsonRecord = (filePath: string): Record<string, unknown> | undefined => {
+  if (!fs.existsSync(filePath)) return undefined;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const packageJsonCache = new Map<string, PackageJson | undefined>();
 
 /** Find and parse the nearest package.json by walking up from the given file path. Result is cached per directory. */
