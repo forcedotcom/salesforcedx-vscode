@@ -575,7 +575,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     // Drain the detached Effect fiber after its final mocked lookup.
     await new Promise<void>(resolve => setImmediate(resolve));
 
-    const finalOrgInfo = await Effect.runPromise(SubscriptionRef.get(ref));
+    const finalOrgInfo = await ref.pipe(SubscriptionRef.get, Effect.runPromise);
 
     expect(finalOrgInfo).toMatchObject({
       orgId: ORG_B_ID,
