@@ -16,11 +16,13 @@ import { isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import * as Schema from 'effect/Schema';
 import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { SettingsService } from '../../../src/vscode/settingsService';
+import { CliId } from '../../../src/observability/cliTelemetry';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -32,6 +34,13 @@ const USERNAME = 'expired@test.com';
 const ALIAS = 'ExpiredOrg';
 const INSTANCE_URL = 'https://expired.my.salesforce.com';
 const LOGIN_BUTTON = 'Login';
+
+const ORG_A_USERNAME = 'org-a@example.com';
+const ORG_B_USERNAME = 'org-b@example.com';
+const ORG_A_ID = '00D00000000000A';
+const ORG_B_ID = '00D00000000000B';
+const makeDeferred = <A>() => Promise.withResolvers<A>();
+const TEST_CLI_ID = Schema.decodeSync(CliId)('123e4567-e89b-42d3-a456-426614174000');
 
 const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<ConfigService> =>
   Layer.succeed(
@@ -239,23 +248,41 @@ const getPropertyValueMock = jest.fn();
 const getTargetOrgMock = jest.fn();
 const getUsernameFromAliasMock = jest.fn();
 
+const getAliasesFromUsernameMock = jest.fn();
+
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
 // tracksSource is present so the ref-update path skips the Org.create-backed getTracksSourceFromOrg fallback.
-const makeDesktopConn = (username: string): Connection =>
-  ({
+type DesktopConnectionOptions = {
+  username: string;
+  orgId?: string;
+  instanceName?: string;
+  query?: jest.Mock;
+};
+
+const makeDesktopConn = (value: string | DesktopConnectionOptions): Connection => {
+  const options = typeof value === 'string' ? { username: value } : value;
+  const {
+    username,
+    orgId = '00Dxx',
+    instanceName = 'USA9S',
+    query = jest.fn().mockResolvedValue({ records: [], totalSize: 0 })
+  } = options;
+
+  return {
     getUsername: () => username,
     getAuthInfoFields: () => ({
       username,
-      orgId: '00Dxx',
-      instanceName: 'USA9S',
+      orgId,
+      instanceName,
       tracksSource: false,
       isScratch: false,
       isSandbox: false
     }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-    query: async () => ({ records: [], totalSize: 0 })
-  }) as unknown as Connection;
+    query
+  } as unknown as Connection;
+};
 
 const MockConfigServiceLayer = Layer.succeed(
   ConfigService,
@@ -277,7 +304,7 @@ const MockAliasServiceLayer = Layer.succeed(
   AliasService,
   AliasService.make({
     getAllAliases: () => Effect.succeed({}),
-    getAliasesFromUsername: () => Effect.succeed([]),
+    getAliasesFromUsername: (username: string) => getAliasesFromUsernameMock(username),
     getUsernameFromAlias: (alias: string) => getUsernameFromAliasMock(alias),
     unsetAliases: () => Effect.void
   } as unknown as AliasService)
@@ -294,6 +321,7 @@ const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
 
 describe('ConnectionService.getConnection (desktop)', () => {
   beforeEach(async () => {
+    getAliasesFromUsernameMock.mockReset().mockReturnValue(Effect.succeed([]));
     getPropertyValueMock.mockReset();
     getTargetOrgMock.mockReset().mockReturnValue(undefined);
     getUsernameFromAliasMock.mockReset().mockReturnValue(Effect.succeed(Option.none()));
@@ -361,10 +389,22 @@ describe('ConnectionService.getConnection (desktop)', () => {
     );
     connectionCreateMock.mockResolvedValue(makeDesktopConn('default@example.com'));
 
+    const ref = await Effect.runPromise(getDefaultOrgRef());
+    const enrichmentCompleted = Effect.runPromise(
+      ref.changes.pipe(
+        Stream.filter(info => info.username === 'default@example.com'),
+        Stream.runHead,
+        Effect.map(Option.getOrThrow)
+      )
+    );
+
     await run(ConnectionService.getConnection());
+    await enrichmentCompleted;
 
     expect(getPropertyValueMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
-    expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
+    expect(authInfoCreateMock).toHaveBeenCalledWith({
+      username: 'default@example.com'
+    });
   });
 
   it('caches the configured alias with the resolved default-org identity', async () => {
@@ -428,5 +468,121 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
+  });
+
+  it('keeps the newer org B state when the older org A enrichment finishes last', async () => {
+    let configuredTarget = ORG_A_USERNAME;
+
+    getPropertyValueMock.mockImplementation((property: string) =>
+      property === TARGET_ORG_KEY ? configuredTarget : undefined
+    );
+    getTargetOrgMock.mockImplementation(() => configuredTarget);
+    getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.none()));
+
+    const aQueryStarted = makeDeferred<void>();
+    const aQueryResult = makeDeferred<{
+      records: Array<{ Id: string; Username: string }>;
+      totalSize: number;
+    }>();
+    const aReachedFinalLookup = makeDeferred<void>();
+
+    const connectionA = makeDesktopConn({
+      username: ORG_A_USERNAME,
+      orgId: ORG_A_ID,
+      instanceName: 'ORG-A',
+      query: jest.fn(async () => {
+        aQueryStarted.resolve(undefined);
+        return aQueryResult.promise;
+      })
+    });
+
+    const connectionB = makeDesktopConn({
+      username: ORG_B_USERNAME,
+      orgId: ORG_B_ID,
+      instanceName: 'ORG-B',
+      query: jest.fn().mockResolvedValue({
+        records: [{ Id: '00500000000000B', Username: ORG_B_USERNAME }],
+        totalSize: 1
+      })
+    });
+
+    const authInfoA = {
+      getFields: () => ({ username: ORG_A_USERNAME })
+    } as unknown as AuthInfo;
+
+    const authInfoB = {
+      getFields: () => ({ username: ORG_B_USERNAME })
+    } as unknown as AuthInfo;
+
+    authInfoCreateMock.mockResolvedValueOnce(authInfoA).mockResolvedValueOnce(authInfoB);
+
+    connectionCreateMock.mockResolvedValueOnce(connectionA).mockResolvedValueOnce(connectionB);
+
+    getAliasesFromUsernameMock.mockImplementation((username: string) =>
+      Effect.sync(() => {
+        if (username === ORG_A_USERNAME) {
+          aReachedFinalLookup.resolve(undefined);
+        }
+        return [];
+      })
+    );
+
+    const ref = await Effect.runPromise(getDefaultOrgRef());
+
+    await Effect.runPromise(
+      SubscriptionRef.set(ref, {
+        cliId: TEST_CLI_ID
+      })
+    );
+
+    // Start A. getConnection() returns after starting its detached enrichment,
+    // while A's User query remains blocked by aQueryResult.
+    await run(ConnectionService.getConnection());
+    await aQueryStarted.promise;
+
+    expect(await Effect.runPromise(SubscriptionRef.get(ref))).toMatchObject({
+      orgId: ORG_A_ID
+    });
+
+    // Switch the configured target to B while A enrichment is still blocked.
+    configuredTarget = ORG_B_USERNAME;
+
+    const completeB = Effect.runPromise(
+      ref.changes.pipe(
+        Stream.filter(orgInfo => orgInfo.orgId === ORG_B_ID && orgInfo.username === ORG_B_USERNAME),
+        Stream.runHead,
+        Effect.map(Option.getOrThrow)
+      )
+    );
+
+    await run(ConnectionService.getConnection());
+    await completeB;
+
+    expect(await Effect.runPromise(SubscriptionRef.get(ref))).toMatchObject({
+      orgId: ORG_B_ID,
+      username: ORG_B_USERNAME,
+      instanceName: 'ORG-B'
+    });
+
+    // Let the older A lookup complete only after B has fully committed.
+    aQueryResult.resolve({
+      records: [{ Id: '00500000000000A', Username: ORG_A_USERNAME }],
+      totalSize: 1
+    });
+
+    await aReachedFinalLookup.promise;
+
+    // Drain the detached Effect fiber after its final mocked lookup.
+    await new Promise<void>(resolve => setImmediate(resolve));
+
+    const finalOrgInfo = await Effect.runPromise(SubscriptionRef.get(ref));
+
+    expect(finalOrgInfo).toMatchObject({
+      orgId: ORG_B_ID,
+      username: ORG_B_USERNAME,
+      instanceName: 'ORG-B',
+      tracksSource: false
+    });
+    expect(finalOrgInfo.alias).toBeUndefined();
   });
 });
