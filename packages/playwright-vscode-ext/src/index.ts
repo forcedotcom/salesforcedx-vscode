@@ -179,3 +179,18 @@ export { createAndOpenApexScript } from './utils/apexScript';
 // Config factories
 export { createWebConfig } from './config/createWebConfig';
 export { createDesktopConfig } from './config/createDesktopConfig';
+
+// Code Builder e2e — content/version gate + Manifest (see docs/plans/code-builder-e2e-toolkit.md)
+export {
+  computeExtensionDigest,
+  resolveEntrypoint,
+  resolveExtensionRoot,
+  UnresolvableEntrypointError
+} from './codeBuilder/digest';
+export type { ExtensionDigest } from './codeBuilder/digest';
+export { ManifestSchema, ManifestEntrySchema, makeManifest, readManifest, writeManifest } from './codeBuilder/manifest';
+export type { Manifest, ManifestEntry } from './codeBuilder/manifest';
+export { verifyExtensions, assertVerified, OVERRIDES_DIR } from './codeBuilder/verify';
+export type { VerifyOptions, VerifyResult, VerifyEntryResult } from './codeBuilder/verify';
+export { defaultRunner } from './codeBuilder/runner';
+export type { CommandRunner } from './codeBuilder/runner';

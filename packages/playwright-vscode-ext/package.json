@@ -35,7 +35,8 @@
   "dependencies": {
     "@playwright/test": "^1.60.0",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.81"
+    "@vscode/test-web": "^0.0.81",
+    "effect": "^3.21.2"
   },
   "devDependencies": {
     "@salesforce/core": "^8.32.2"
@@ -49,7 +50,8 @@
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:unit": "wireit"
   },
   "wireit": {
     "check:circular-deps": {
@@ -131,6 +133,18 @@
         "package*.json"
       ],
       "output": []
+    },
+    "test:unit": {
+      "command": "jest",
+      "files": [
+        "src/**/*.ts",
+        "test/jest/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
     }
   }
 }
