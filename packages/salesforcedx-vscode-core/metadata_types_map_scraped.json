@@ -39008,7 +39008,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -49245,6 +49245,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether unauthenticated guest users can access GraphQL API (true) or not (false). The default value is false.Available in API version 67.0 and later.",
+        "Field Name": "enableGraphQLApiGuestUserAccess",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the pages that Salesforce serves for this org include the Permissions-Policy HTTP header. This HTTP header controls access to browser features such as cameras and microphones. When this field is false, access to the browser features is always permitted. The default value is false.Available in API version 59.0 and later.",
         "Field Name": "enablePermissionsPolicy",
         "Field Type": "boolean"
@@ -52780,7 +52785,7 @@
         "Field Type": "TagProperty[]"
       }
     ],
-    "short_description": "Reserved for future use.",
+    "short_description": "Represents a named label that can be applied to Salesforce metadata records to categorize, describe, or classify them. Tags are organized within a TagSet, which defines the category they belong to. For example, a TagSet named DataDomain might contain Tags such as Financial, Operational, or Legal. Use Tag to define the individual classification values available in a category. Use the listMetadata() call to discover custom Tags and TagSets in your org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tag.htm",
     "parent": "Metadata"
   },
@@ -52851,7 +52856,7 @@
         "Field Type": "Tag[]"
       }
     ],
-    "short_description": "Reserved for future use.",
+    "short_description": "Represents a category that groups related Tag records. A TagSet defines the classification category, and its associated Tag records represent the individual values within that category. For example, a TagSet named DataDomain might group Tags such as Financial, Operational, or Legal. TagSets can be organized into a hierarchy, where a parent TagSet contains one or more child TagSets. This hierarchy allows you to make progressively granular classifications. Use the listMetadata() call to discover custom Tags and TagSets in your org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tagset.htm",
     "parent": "Metadata"
   },

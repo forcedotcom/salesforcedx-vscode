@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-08-02T13:39:14.109Z
+Generated on: 2026-08-17T01:45:23.318Z
 Total metadata types: 1590
 -->
 <xsd:schema
@@ -62640,7 +62640,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="crossFilters" minOccurs="0" maxOccurs="unbounded" type="ReportCrossFilter">
       <xsd:annotation>
-       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.</xsd:documentation>
+       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ReportCrossFilter[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -65763,6 +65763,12 @@ Total metadata types: 1590
      <xsd:element name="enableCrossOrgRedirects" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether redirections to other Salesforce orgs are allowed (true) or blocked (false). In Summer ’24 and later, this field is always false.This setting applies to user redirections to another Salesforce org via a direct link, a post-action URL, or a post-login URL in Salesforce. An example of a direct link with a redirection is &lt;a href=&quot;/?startURL=targetUrl&quot;&gt;linkText&quot;&gt;linkText&lt;/a&gt;. Post-action URLs and post-login URLs use a protected URL redirect parameter, such as retURL, startURL, saveURL, cancelURL, and targetURL. Subsequent redirections can’t be verified because they occur outside Salesforce. To allow cross-org redirections, add the URLs for the Salesforce orgs that you own to RedirectWhitelistUrl. Available in API version 59.0 to 60.0.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableGraphQLApiGuestUserAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether unauthenticated guest users can access GraphQL API (true) or not (false). The default value is false.Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -69997,7 +70003,7 @@ Total metadata types: 1590
  </xsd:complexType>
  <xsd:complexType name="Tag">
   <xsd:annotation>
-   <xsd:documentation>Reserved for future use.</xsd:documentation>
+   <xsd:documentation>Represents a named label that can be applied to Salesforce metadata records to categorize, describe, or classify them. Tags are organized within a TagSet, which defines the category they belong to. For example, a TagSet named DataDomain might contain Tags such as Financial, Operational, or Legal. Use Tag to define the individual classification values available in a category. Use the listMetadata() call to discover custom Tags and TagSets in your org.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tag.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -70090,7 +70096,7 @@ Total metadata types: 1590
  </xsd:complexType>
  <xsd:complexType name="TagSet">
   <xsd:annotation>
-   <xsd:documentation>Reserved for future use.</xsd:documentation>
+   <xsd:documentation>Represents a category that groups related Tag records. A TagSet defines the classification category, and its associated Tag records represent the individual values within that category. For example, a TagSet named DataDomain might group Tags such as Financial, Operational, or Legal. TagSets can be organized into a hierarchy, where a parent TagSet contains one or more child TagSets. This hierarchy allows you to make progressively granular classifications. Use the listMetadata() call to discover custom Tags and TagSets in your org.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tagset.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
