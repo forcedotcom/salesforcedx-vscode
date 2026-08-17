@@ -70,7 +70,9 @@ const assertSafeId = (id: string): void => {
  */
 const listOverrideDirs = (runner: CommandRunner, container: string, id: string): string[] => {
   assertSafeId(id);
-  return runner('docker', ['exec', container, 'bash', '-lc', `ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true`])
+  // `bash -c`, NOT `-lc`: a login shell sources profiles that may print a banner/MOTD to stdout,
+  // which would be parsed as an extra "dir" and turn 1 real match into a spurious "found 2".
+  return runner('docker', ['exec', container, 'bash', '-c', `ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true`])
     .split('\n')
     .map(l => l.trim())
     .filter(Boolean);
@@ -130,6 +132,24 @@ export const verifyExtensions = (container: string, manifest: Manifest, options:
           version,
           ok: false,
           reason: `expected exactly 1 override dir, found ${dirs.length}${dirs.length > 0 ? `: ${dirs.join(' ')}` : ''}`
+        });
+        continue;
+      }
+
+      /*
+       * Enforce the version explicitly. The glob `<id>-[0-9]*` is version-agnostic, so the single
+       * matched dir could be a different version than the manifest expects (e.g. the swap left a
+       * 67.0.0 dir but the manifest wants 67.4.0). The dir name is "<id>-<version>"; require its
+       * version segment to equal the expected one, so this is a true version gate — not merely
+       * transitive through the package.json digest.
+       */
+      const dirBasename = dirs[0].slice(dirs[0].lastIndexOf('/') + 1);
+      if (dirBasename !== `${id}-${version}`) {
+        entries.push({
+          id,
+          version,
+          ok: false,
+          reason: `installed dir "${dirBasename}" does not match expected version — wanted ${id}-${version}`
         });
         continue;
       }

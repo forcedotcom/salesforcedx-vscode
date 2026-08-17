@@ -51,7 +51,7 @@
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:unit": "wireit"
+    "test": "wireit"
   },
   "wireit": {
     "check:circular-deps": {
@@ -136,7 +136,7 @@
       ],
       "output": []
     },
-    "test:unit": {
+    "test": {
       "command": "jest",
       "files": [
         "src/**/*.ts",

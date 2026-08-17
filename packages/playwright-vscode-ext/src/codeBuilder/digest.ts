@@ -21,7 +21,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 
 /** The two-part content digest of one extension. `bundleDigest` is null for a declarative extension (no `main`). */
@@ -43,7 +43,35 @@ export class UnresolvableEntrypointError extends Error {
   }
 }
 
-const sha256 = (bytes: Buffer): string => createHash('sha256').update(bytes).digest('hex');
+const sha256 = (bytes: Buffer | string): string => createHash('sha256').update(bytes).digest('hex');
+
+/*
+ * Digest package.json by its CANONICAL content, not raw bytes. The swap side hashes bytes unzipped
+ * from the .vsix; the verify side hashes bytes docker-cp'd from the installed override dir — and the
+ * CB install path can legitimately rewrite the file (re-serialize JSON, normalize EOLs, inject a
+ * `__metadata` block). Hashing raw bytes would then mismatch on every run (permanent false-RED). So
+ * parse → drop install-injected keys → stably re-stringify, giving a byte-identical digest across
+ * both sides whenever the *meaningful* content is the same. A genuine version/content change still
+ * changes the canonical form, so the gate keeps its teeth.
+ */
+const INSTALL_INJECTED_KEYS = new Set(['__metadata']);
+const canonicalPackageJson = (raw: string): string => {
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const stableStringify = (value: unknown): string => {
+    if (value === null || typeof value !== 'object') {
+      return JSON.stringify(value);
+    }
+    if (Array.isArray(value)) {
+      return `[${value.map(stableStringify).join(',')}]`;
+    }
+    const entries = Object.keys(value as Record<string, unknown>)
+      .filter(k => !INSTALL_INJECTED_KEYS.has(k))
+      .toSorted()
+      .map(k => `${JSON.stringify(k)}:${stableStringify((value as Record<string, unknown>)[k])}`);
+    return `{${entries.join(',')}}`;
+  };
+  return stableStringify(parsed);
+};
 
 /*
  * Locate the directory that holds package.json directly. A raw .vsix unzip nests everything under
@@ -88,6 +116,14 @@ export const resolveEntrypoint = (extensionRoot: string): string | null => {
   if (!existsSync(entry) || !statSync(entry).isFile()) {
     throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
   }
+  // Re-check containment on the REAL path: an in-root symlink pointing outside the extension would
+  // pass the string check above but hash foreign bytes. realpath resolves the link, then we assert
+  // the resolved target is still inside the (real) root.
+  const realRoot = realpathSync(rootAbs);
+  const realEntry = realpathSync(entry);
+  if (realEntry !== realRoot && !realEntry.startsWith(realRoot + sep)) {
+    throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
+  }
   return entry;
 };
 
@@ -98,7 +134,7 @@ export const resolveEntrypoint = (extensionRoot: string): string | null => {
  */
 export const computeExtensionDigest = (dir: string): ExtensionDigest => {
   const root = resolveExtensionRoot(dir);
-  const pkgJsonDigest = sha256(readFileSync(join(root, 'package.json')));
+  const pkgJsonDigest = sha256(canonicalPackageJson(readFileSync(join(root, 'package.json'), 'utf-8')));
   const entry = resolveEntrypoint(root);
   const bundleDigest = entry === null ? null : sha256(readFileSync(entry));
   return { pkgJsonDigest, bundleDigest };
