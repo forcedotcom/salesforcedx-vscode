@@ -15,7 +15,6 @@ const PROGRESS_ONLY_VALUES = new Set(['progressToast', 'progressStatusBar']);
 /** Read commandLevelNotifications properties from nearest package.json */
 const getCommandLevelProps = (filePath: string): Record<string, { enum?: string[] }> => {
   const pkg = getNearestPackageJson(filePath);
-  if (!pkg) return {};
   const configProps = pkg.contributes?.configuration?.properties ?? {};
   const sectionKey = Object.keys(configProps).find(k => k.endsWith('.commandLevelNotifications'));
   if (!sectionKey) return {};

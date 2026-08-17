@@ -31,12 +31,12 @@ export const readJsonRecord = (filePath: string): Record<string, unknown> | unde
   }
 };
 
-const packageJsonCache = new Map<string, PackageJson | undefined>();
+const packageJsonCache = new Map<string, PackageJson>();
 
 /** Find and parse the nearest package.json by walking up from the given file path. Result is cached per directory. */
-export const getNearestPackageJson = (filePath: string): PackageJson | undefined => {
+export const getNearestPackageJson = (filePath: string): PackageJson => {
   const dir = path.dirname(filePath);
-  if (packageJsonCache.has(dir)) return packageJsonCache.get(dir);
+  if (packageJsonCache.has(dir)) return packageJsonCache.get(dir)!;
 
   const parts = dir.split(path.sep);
   for (let i = parts.length; i > 0; i--) {
@@ -50,6 +50,6 @@ export const getNearestPackageJson = (filePath: string): PackageJson | undefined
     }
   }
 
-  packageJsonCache.set(dir, undefined);
-  return undefined;
+  packageJsonCache.set(dir, {});
+  return {};
 };
