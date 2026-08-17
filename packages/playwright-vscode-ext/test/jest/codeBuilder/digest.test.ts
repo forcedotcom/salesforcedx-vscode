@@ -93,6 +93,18 @@ describe('digest', () => {
       );
       expect(resolveEntrypoint(d)).toBe(join(d, 'dist/node.js'));
     });
+
+    it('throws when main uses `..` to escape the extension root', () => {
+      // A traversing main would hash bytes outside the extension and could reconcile differently
+      // across the swap/verify temp dirs — reject it rather than silently hash the wrong file.
+      const d = track(makeExtension({ pkg: { name: 'x', version: '1.0.0', main: '../../../etc/hosts' } }));
+      expect(() => resolveEntrypoint(d)).toThrow(UnresolvableEntrypointError);
+    });
+
+    it('throws when main is an absolute path outside the root', () => {
+      const d = track(makeExtension({ pkg: { name: 'x', version: '1.0.0', main: '/etc/hosts' } }));
+      expect(() => resolveEntrypoint(d)).toThrow(UnresolvableEntrypointError);
+    });
   });
 
   describe('computeExtensionDigest', () => {

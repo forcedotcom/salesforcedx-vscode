@@ -54,6 +54,26 @@ const makeFakeRunner = (opts: {
   return { runner, calls };
 };
 
+/*
+ * A runner that actually models the container filesystem + the `ls -d <prefix>-[0-9]*` glob, so the
+ * "-[0-9] anchor stops a prefix id matching a longer sibling" claim is exercised for real (not just a
+ * preconfigured dir list). Parses the glob out of the bash script instead of trusting the caller.
+ */
+const makeGlobRunner =
+  (fsDirs: string[]): CommandRunner =>
+  (file, args) => {
+    const script = args.at(-1);
+    if (args[0] === 'exec' && typeof script === 'string' && script.includes('ls -d')) {
+      // Extract "<OVERRIDES_DIR>/<id>-[0-9]*" and translate the shell glob to a regex.
+      const m = script.match(/ls -d (\S+)-\[0-9\]\*/);
+      if (!m) return '';
+      const prefix = m[1]; // e.g. /base/extension-overrides/salesforce.foo
+      const re = new RegExp(`^${prefix.replaceAll('.', '\\.')}-[0-9].*$`);
+      return fsDirs.filter(d => re.test(d)).join('\n');
+    }
+    return '';
+  };
+
 describe('verifyExtensions', () => {
   const cleanup: string[] = [];
   const track = (d: string): string => {
@@ -136,5 +156,78 @@ describe('verifyExtensions', () => {
     const result = verifyExtensions(CONTAINER, manifest, { runner });
     expect(result.ok).toBe(false);
     expect(result.entries[0].reason).toMatch(/found 2/);
+  });
+
+  // An EMPTY manifest must not pass — every([]) is vacuously true, which would be the false-green.
+  it('fails loud on an empty manifest (does not pass vacuously)', () => {
+    const manifest = makeManifest([]);
+    const { runner } = makeFakeRunner({ dirsById: {}, treeByContainerDir: {} });
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(false);
+    expect(result.entries[0].reason).toMatch(/no entries/);
+  });
+
+  // The container hands back a docker-cp failure (dir vanished / container died) mid-run.
+  it('records a structured failure (not a throw) when docker cp fails', () => {
+    const manifest = makeManifest([{ id: CORE_ID, version: '67.4.0', pkgJsonDigest: 'x', bundleDigest: null }]);
+    const runner: CommandRunner = (file, args) => {
+      if (args[0] === 'exec') return CORE_DIR;
+      if (args[0] === 'cp') throw new Error('No such container:path');
+      return '';
+    };
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(false);
+    expect(result.entries[0].reason).toMatch(/could not read installed extension/);
+  });
+
+  // An id with shell/glob metacharacters must be rejected before it reaches the bash -lc string.
+  it('rejects an unsafe extension id before building the shell command', () => {
+    const manifest = makeManifest([
+      { id: 'salesforce.foo; rm -rf /', version: '1.0.0', pkgJsonDigest: 'x', bundleDigest: null }
+    ]);
+    const seen: string[][] = [];
+    const runner: CommandRunner = (file, args) => {
+      seen.push([file, ...args]);
+      return '';
+    };
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(false);
+    expect(result.entries[0].reason).toMatch(/unsafe extension id/);
+    // Never reached the runner (no command was built from the tainted id).
+    expect(seen).toHaveLength(0);
+  });
+
+  /*
+   * The core anti-substring-match claim, exercised against a REAL glob (makeGlobRunner), not a
+   * preconfigured list: `<id>-[0-9]*` for a shorter id must not match a longer sibling. A regression
+   * that widened the glob to `<id>-*` would make this fail.
+   */
+  describe('glob match isolation (-[0-9] anchor)', () => {
+    const ORG = 'salesforce.salesforcedx-vscode-org';
+    const BROWSER = 'salesforce.salesforcedx-vscode-org-browser';
+    // Both installed, in one container fs.
+    const fsDirs = [`${OVERRIDES_DIR}/${ORG}-67.4.0`, `${OVERRIDES_DIR}/${BROWSER}-67.4.0`];
+
+    it('does not match a longer sibling id (org vs org-browser)', () => {
+      // org-browser's char after "org-" is "b", not a digit, so org-[0-9]* must see exactly its own dir.
+      const manifest = makeManifest([{ id: ORG, version: '67.4.0', pkgJsonDigest: 'x', bundleDigest: null }]);
+      const result = verifyExtensions(CONTAINER, manifest, { runner: makeGlobRunner(fsDirs) });
+      // It finds exactly one dir (not two), so it proceeds to the digest step — the failure here is the
+      // stub digest 'x', NOT a "found 2" duplicate. That distinction is the whole point.
+      expect(result.entries[0].reason).not.toMatch(/found 2/);
+    });
+
+    it('DOES flag a genuine duplicate where a digit follows the boundary', () => {
+      // foo vs foo-2 both start "foo-<digit>", so foo-[0-9]* legitimately matches both → duplicate.
+      const dirs = [`${OVERRIDES_DIR}/salesforce.foo-1.0.0`, `${OVERRIDES_DIR}/salesforce.foo-2-1.0.0`];
+      const manifest = makeManifest([
+        { id: 'salesforce.foo', version: '1.0.0', pkgJsonDigest: 'x', bundleDigest: null }
+      ]);
+      const result = verifyExtensions(CONTAINER, manifest, { runner: makeGlobRunner(dirs) });
+      expect(result.entries[0].reason).toMatch(/found 2/);
+    });
   });
 });
