@@ -377,7 +377,7 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
   yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
     ignoreConflicts: true
   }).pipe(
-    Effect.map(getRetrievedFileUri),
+    Effect.flatMap(getRetrievedFileUri),
     Effect.flatMap(
       Effect.transposeMapOption(retrievedFileUri =>
         api.services.FsService.showTextDocument(retrievedFileUri, {
@@ -434,10 +434,12 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: RetrieveResult): Option.Option<URI> =>
-  Option.fromNullable(
+const getRetrievedFileUri = Effect.fn('ApexTesting.getRetrievedFileUri')(function* (result: RetrieveResult) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* Option.fromNullable(
     result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath
-  ).pipe(Option.map(URI.file));
+  ).pipe(Effect.transposeMapOption(filePath => api.services.FsService.toUri(filePath)));
+});
 
 // Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
 const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {
