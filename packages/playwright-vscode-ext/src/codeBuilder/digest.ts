@@ -22,7 +22,7 @@
 
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 
 /** The two-part content digest of one extension. `bundleDigest` is null for a declarative extension (no `main`). */
 export type ExtensionDigest = {
@@ -66,9 +66,12 @@ export const resolveExtensionRoot = (dir: string): string => {
  *
  * Policy (ADR 0022, plan §4.3):
  *   - missing `main`            → valid: declarative extension, no bundle to digest → null
- *   - `main` present, resolves  → absolute path to the bundle file
+ *   - `main` present, resolves  → absolute path to the bundle file, inside the extension root
  *   - `main` present, missing   → throw (strict): a declared entrypoint that isn't there is a real
  *                                  broken build/swap, never a silent pass
+ *   - `main` escapes the root    → throw: an absolute path or one with `..` that resolves outside the
+ *                                  extension would hash unrelated bytes and could reconcile
+ *                                  differently on the swap vs verify side (different parent temp dirs)
  * `browser` is ignored on purpose — CB runs the desktop/node build (ADR 0022, plan C2).
  */
 export const resolveEntrypoint = (extensionRoot: string): string | null => {
@@ -76,7 +79,12 @@ export const resolveEntrypoint = (extensionRoot: string): string | null => {
   if (pkg.main === undefined || pkg.main === '') {
     return null;
   }
-  const entry = join(extensionRoot, pkg.main);
+  const rootAbs = resolve(extensionRoot);
+  const entry = resolve(rootAbs, pkg.main);
+  // Must stay within the extension root (guards `..` traversal and absolute-path `main`).
+  if (entry !== rootAbs && !entry.startsWith(rootAbs + sep)) {
+    throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
+  }
   if (!existsSync(entry) || !statSync(entry).isFile()) {
     throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
   }

@@ -49,15 +49,32 @@ export type VerifyResult = {
 };
 
 /*
+ * An extension id is "<publisher>.<name>": publisher and name are npm-style, so only letters,
+ * digits, dots, underscores and dashes are legitimate. `id` is interpolated into the `bash -lc`
+ * glob below, so reject anything outside that charset up front — a stray shell/glob metacharacter
+ * (`;`, `$`, backtick, `*`, `?`, `[`, whitespace) would otherwise be interpreted by the shell or
+ * silently widen the match. Fail loud rather than build an unsafe command.
+ */
+const VALID_ID = /^[A-Za-z0-9._-]+$/;
+const assertSafeId = (id: string): void => {
+  if (!VALID_ID.test(id)) {
+    throw new Error(`unsafe extension id ${JSON.stringify(id)}: expected only [A-Za-z0-9._-]`);
+  }
+};
+
+/*
  * List the override dirs for an id. The dir is "<id>-<version>"; versions start with a digit, so
  * anchoring on "-[0-9]" stops a shorter id (…-org) prefix-matching a longer sibling (…-org-browser).
  * More or fewer than one match is itself a failure (a leftover dir is the false-green we guard).
+ * `id` is charset-validated (assertSafeId) before it reaches the shell string.
  */
-const listOverrideDirs = (runner: CommandRunner, container: string, id: string): string[] =>
-  runner('docker', ['exec', container, 'bash', '-lc', `ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true`])
+const listOverrideDirs = (runner: CommandRunner, container: string, id: string): string[] => {
+  assertSafeId(id);
+  return runner('docker', ['exec', container, 'bash', '-lc', `ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true`])
     .split('\n')
     .map(l => l.trim())
     .filter(Boolean);
+};
 
 const digestsMatch = (
   expected: { pkgJsonDigest: string; bundleDigest: string | null },
@@ -71,6 +88,26 @@ const digestsMatch = (
  */
 export const verifyExtensions = (container: string, manifest: Manifest, options: VerifyOptions = {}): VerifyResult => {
   const runner = options.runner ?? defaultRunner;
+
+  /*
+   * An empty manifest must NOT pass. `entries.every(...)` is vacuously true on [], so without this
+   * guard a gate over zero extensions would report "all present" — exactly the swap-silently-no-ops
+   * false-green this utility exists to close (a bug in swap that emits no entries would go green).
+   */
+  if (manifest.entries.length === 0) {
+    return {
+      ok: false,
+      entries: [
+        {
+          id: '(none)',
+          version: '',
+          ok: false,
+          reason: 'manifest has no entries — nothing to verify (swap likely emitted an empty manifest)'
+        }
+      ]
+    };
+  }
+
   const workDir = options.workDir ?? mkdtempSync(join(tmpdir(), 'cb-verify-'));
   const ownWorkDir = options.workDir === undefined;
 
@@ -78,7 +115,15 @@ export const verifyExtensions = (container: string, manifest: Manifest, options:
   try {
     for (const entry of manifest.entries) {
       const { id, version } = entry;
-      const dirs = listOverrideDirs(runner, container, id);
+      let dirs: string[];
+      try {
+        dirs = listOverrideDirs(runner, container, id);
+      } catch (err) {
+        // Unsafe id (assertSafeId) or a listing failure — a structured per-entry failure, consistent
+        // with the other modes, rather than an exception that skips the remaining entries.
+        entries.push({ id, version, ok: false, reason: (err as Error).message });
+        continue;
+      }
       if (dirs.length !== 1) {
         entries.push({
           id,
@@ -89,15 +134,21 @@ export const verifyExtensions = (container: string, manifest: Manifest, options:
         continue;
       }
 
-      // Copy the installed override tree out to the host and recompute the digest there.
+      // Copy the installed override tree out to the host and recompute the digest there. The cp is
+      // inside the try so a mid-run failure (dir vanished after the ls — TOCTOU — or the container
+      // died) becomes a structured per-entry failure, not an exception that skips the rest.
       const dest = join(workDir, `${id}-${version}`);
-      runner('docker', ['cp', `${container}:${dirs[0]}/.`, dest]);
-
       let actual;
       try {
+        runner('docker', ['cp', `${container}:${dirs[0]}/.`, dest]);
         actual = computeExtensionDigest(dest);
       } catch (err) {
-        entries.push({ id, version, ok: false, reason: `digest failed: ${(err as Error).message}` });
+        entries.push({
+          id,
+          version,
+          ok: false,
+          reason: `could not read installed extension: ${(err as Error).message}`
+        });
         continue;
       }
 
