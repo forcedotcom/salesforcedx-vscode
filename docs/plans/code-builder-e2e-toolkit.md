@@ -72,11 +72,11 @@ digest core** so a content check can prove *the bytes under test are the bytes i
 - **G2 — Close the false-green.** Verify proves the installed extension is the intended
   bytes (composite content digest), not merely the intended semver. Swap guarantees a clean
   slate so no stale dir can survive to be falsely green.
-- **G3 — Reuse-first for other Salesforce teams.** Every brick is generic to the CB image
+- **G3 — Reuse-first for other Salesforce teams.** Every utility is generic to the CB image
   and parameterized (publisher prefix, image ref, org, vsix list) so another Salesforce team
   adopts it with a thin wiring layer, not a fork. Build the generic case first; repo
   specifics are a top layer.
-- **G4 — Incremental delivery.** Each brick is independently useful and shippable before the
+- **G4 — Incremental delivery.** Each utility is independently useful and shippable before the
   full system exists. Shipping order is **verify → swap → lifecycle → auth/seed →
   orchestrator + CI**.
 - **G5 — Recycle #7718.** Preserve the proven pipeline shape (pull → swap → restart →
@@ -98,7 +98,7 @@ digest core** so a content check can prove *the bytes under test are the bytes i
 - **NG3 — The toolkit does not select/dedup VSIXes.** Swap takes an **explicit list**. The
   modern-vs-legacy (67.x) dedup is the consumer's job.
 - **NG4 — No forced Effect buy-in.** The core is consumable without Effect. This repo, being
-  Effect-native, wraps it; adopters not on Effect can still use every brick (see §15).
+  Effect-native, wraps it; adopters not on Effect can still use every utility (see §15).
 - **NG5 — IDEx is the first consumer.** This monorepo is the **first** consumer. Cross-team
   reuse is an explicit **goal** (G3) enabled by the delivery choice (§9 Option 3), not a
   first-milestone deliverable — IDEx coverage ships first, other teams adopt as they need it.
@@ -195,29 +195,29 @@ flowchart TB
 Everything threads through two typed objects (both **Effect Schema** — §4, §15):
 
 - **`ContainerHandle`** — returned by `run`, accepted by every other verb.
-  `{ name, imageRef, publishedUrl, publishedPort, bootEnv }`. Downstream bricks never
+  `{ name, imageRef, publishedUrl, publishedPort, bootEnv }`. Downstream utilities never
   re-derive the URL or the boot env.
 - **`Manifest`** — `name → version → { pkgJsonDigest, bundleDigest | null }`. **Emitted by
   swap, consumed by verify**, persisted to disk. It is both the swap→verify contract *and*
   the provenance artifact (the thing #7718 currently hand-rolls into log lines).
 
-### 3.3 Brick dependency graph (delivery order)
+### 3.3 Utility dependency graph (delivery order)
 
 ```
-  Digest core ──► Verify (brick #1, first shippable)
+  Digest core ──► Verify (utility 1, first shippable)
        │
-       └────────► Swap (brick #2)  ──emits──► Manifest ──► Verify
+       └────────► Swap (utility 2)  ──emits──► Manifest ──► Verify
                     │
-  Lifecycle (brick #3) ──ContainerHandle──► Swap, Seed, Verify
+  Lifecycle (utility 4) ──ContainerHandle──► Swap, Seed, Verify
        │
-  Auth/BootEnv (brick #4) ──► Lifecycle.run
-  Seed (brick #4) ──► (post-boot, on a handle)
+  Auth/BootEnv (utility 5) ──► Lifecycle.run
+  Seed (utility 5) ──► (post-boot, on a handle)
        │
   Repo orchestrator (§7) composes all of the above
 ```
 
 As a dependency graph (edge = "depends on / consumes"; the shaded node is the first
-externally-shippable brick):
+externally-shippable utility):
 
 ```mermaid
 flowchart LR
@@ -250,7 +250,7 @@ flowchart LR
 ```
 
 Verify ships first because it is independently useful (assert correctness after a *manual*
-swap) **and** it is the brick carrying the known correctness risk — getting its contract
+swap) **and** it is the utility carrying the known correctness risk — getting its contract
 right de-risks everything downstream.
 
 ### 3.4 Runtime pipeline (end-to-end sequence)
@@ -306,7 +306,7 @@ sequenceDiagram
 
 ## 4. The Manifest & Digest Contract
 
-This is *the* correctness knob for the whole system, so it is specified before any brick.
+This is *the* correctness knob for the whole system, so it is specified before any utility.
 
 ### 4.1 The reconciliation problem
 
@@ -385,7 +385,7 @@ code. Because the digest must match on both sides, they now **must** share:
   copied-out container dir — read `package.json`, resolve `main`, return path + bytes), and
 - the **digest function** (produce `{ pkgJsonDigest, bundleDigest }` from an extracted root).
 
-Factor both into **one internal digest-core module** both bricks depend on. Two copies would
+Factor both into **one internal digest-core module** both the Verify and Swap utilities depend on. Two copies would
 be a correctness bug waiting to happen.
 
 ### 4.5 Schema & persistence
@@ -399,7 +399,7 @@ be a correctness bug waiting to happen.
 
 ---
 
-## 5. Brick #1 — Verify (first shippable)
+## 5. Verify utility (first shippable)
 
 **Contract:** pure assertion. **No mutation, no memory, no `sf`, no docker beyond `docker cp`.**
 
@@ -456,7 +456,7 @@ Manifest** rather than re-deriving expectations from the built-vsix dir.
 
 ---
 
-## 6. Brick #2 — Swap
+## 6. Swap utility
 
 **Contract:** clean-slate install of an explicit VSIX list; emits the manifest.
 
@@ -516,7 +516,7 @@ unpack moves **host-side**; swap now **emits the manifest** using the shared dig
 
 ---
 
-## 7. Brick #3 — Lifecycle, and Brick #4 — Auth & Seed
+## 7. Lifecycle utility, and Auth & Seed utilities
 
 ### 7.1 Lifecycle (package owns docker)
 
@@ -528,7 +528,7 @@ teardown(handle): void
 ```
 
 - **Typed `ContainerHandle`** (§3.2) — returned by `run`, accepted by every verb. Not a bare
-  name string: the URL and boot env are facts downstream bricks must not re-derive.
+  name string: the URL and boot env are facts downstream utilities must not re-derive.
 - **Readiness folded into `run` and `restart`** — they return only once the workbench URL
   answers a health poll (params: timeout, interval, as options). You cannot obtain an
   unhealthy handle. Replaces #7718's two near-identical curl-poll loops.
@@ -561,7 +561,7 @@ stateDiagram-v2
 
 ### 7.2 Auth / BootEnv (generic-but-Salesforce, opt-in `sf`)
 
-**Two bricks, so the `sf` dependency is opt-in:**
+**Two utilities, so the `sf` dependency is opt-in:**
 
 - **Core (in `run`):** `bootEnv` is a **typed** input with the image's fixed known keys —
   `{ accessToken, instanceUrl }` — plus an `extraEnv: Record<string,string>` escape hatch.
@@ -580,9 +580,9 @@ stateDiagram-v2
 > so the connection steps should be close). Whether we keep pure token-injection or move to a
 > richer auth path (auth files, in-container scripting, or a test-ready image layer) is an
 > **open decision** — §16 OQ3 enumerates the candidates and their tradeoffs. `resolveOrgBootEnv`
-> is the brick *if* we keep injection; it may be superseded by whatever OQ3 resolves to.
+> is the utility *if* we keep injection; it may be superseded by whatever OQ3 resolves to.
 
-### 7.3 Seed (one brick, post-boot)
+### 7.3 Seed (one utility, post-boot)
 
 ```
 seedWorkspace(handle: ContainerHandle, opts: { fixturePath }): void
@@ -601,7 +601,7 @@ fixture (ADR 0022). The **mount** is a `run` param (§7.1); seed does only the e
 
 **Recycled from #7718:** `codeBuilderSeedWorkspace.ts` logic (coder.json + trust write),
 the mount-over-first-boot-generate decoupling.
-**Redesigned:** folded into one brick taking a `ContainerHandle`.
+**Redesigned:** folded into one utility taking a `ContainerHandle`.
 
 ---
 
@@ -619,7 +619,7 @@ Each milestone is independently useful and independently testable (§15).
 | M6 | **Repo orchestrator + CI** | `test:container:local` + `codeBuilderE2E.yml` recomposed on the package; VSIX sourcing/dedup wired in. | M2–M5 |
 
 M2 (verify) ships first per the Q3 decision. M1 is a prerequisite of M2, so it is the literal
-first code, but verify is the first **externally meaningful** brick.
+first code, but verify is the first **externally meaningful** utility.
 
 Milestone ordering and what unblocks what (M4 lifecycle runs in parallel with the
 M1→M2→M3 content track; both converge at M6):
@@ -668,14 +668,14 @@ maintenance; other teams' PRs are welcome.
 
 > **What this changes vs. earlier drafts:** references to "the package" throughout mean the
 > **`playwright-vscode-ext`** package, not a new `@salesforce/code-builder-e2e` artifact. The
-> brick design (§4–§7), manifest, digest core, and testing strategy are **unchanged** — only
+> utility design (§4–§7), manifest, digest core, and testing strategy are **unchanged** — only
 > the *home* of the code moves. `@salesforce/code-builder-e2e` remains the conceptual name for
 > the utility surface.
 
 ```mermaid
 flowchart TB
     subgraph MONO["salesforcedx-vscode monorepo"]
-        PVE["playwright-vscode-ext (published)<br/>CB utility bricks + container fixtures/config"]
+        PVE["playwright-vscode-ext (published)<br/>CB utility modules + container fixtures/config"]
         SPECS["*.container.spec.ts (per package)"]
         ORCH["thin orchestrator (§9.2)"]
         SPECS --> PVE
@@ -922,7 +922,7 @@ where it stays branch-free; otherwise duplicate. The fixture/capability layer (w
 shape, org presence, "skip on container") absorbs *incidental* differences; *structural*
 divergence is a signal to duplicate, not to branch.
 
-### 11.5 Rollout — parallel with the bricks, one boot, parity-tracked
+### 11.5 Rollout — parallel with the utilities, one boot, parity-tracked
 
 - **Author in parallel with M1–M6, against the #7718 pipeline (decision).** Spec authoring is
   **not** blocked on the package refactor. The #7718 pipeline already stands up a working
@@ -946,7 +946,7 @@ divergence is a signal to duplicate, not to branch.
 
 > **Scope note:** this section is roadmap-level. Per-spec triage (which of the 34 land in
 > which bucket), the shared-body refactors, and the all-packages CI wiring are **follow-up
-> implementation stories** under the epic — distinct from the framework-package bricks
+> implementation stories** under the epic — distinct from the framework utilities
 > (§5–§7). Authoring starts **now** against #7718 (above); only the final re-point and the
 > all-packages CI job depend on M6.
 
@@ -1114,9 +1114,9 @@ coder.json, boot-env keys, digest reconciliation) is **inside the toolkit**. No 
 
 | #7718 asset | Fate |
 |---|---|
-| `codeBuilderVerifyExtensions.ts` | → **package Verify brick** (+ content digest, typed Manifest). |
-| `codeBuilderSwapExtensions.ts` | → **package Swap brick** (wipe → unconditional-by-glob; unpack → host-side; emits Manifest). |
-| `codeBuilderSeedWorkspace.ts` | → **package Seed brick** (takes a handle). |
+| `codeBuilderVerifyExtensions.ts` | → **Verify utility in `playwright-vscode-ext`** (+ content digest, typed Manifest). |
+| `codeBuilderSwapExtensions.ts` | → **Swap utility in `playwright-vscode-ext`** (wipe → unconditional-by-glob; unpack → host-side; emits Manifest). |
+| `codeBuilderSeedWorkspace.ts` | → **Seed utility in `playwright-vscode-ext`** (takes a handle). |
 | `codeBuilderLocalE2E.ts` | → **repo orchestrator** (thin composition; also the integration test). |
 | Two curl-poll readiness loops | → **folded into `run`/`restart`**. |
 | Hand-rolled provenance log block | → **persisted `manifest.json`**. |
@@ -1131,9 +1131,9 @@ coder.json, boot-env keys, digest reconciliation) is **inside the toolkit**. No 
 
 **Layered (both), per Q12:**
 
-- **Injectable command-runner seam.** Every container-facing brick takes an injected "run a
+- **Injectable command-runner seam.** Every container-facing utility takes an injected "run a
   command" function; default = real `execFileSync` (arg arrays, no shell interpolation —
-  #7718 idiom). **Unit tests assert the exact argv** each brick builds (e.g. swap issues
+  #7718 idiom). **Unit tests assert the exact argv** each utility builds (e.g. swap issues
   `docker cp <host-tree> <name>:/base/extension-overrides/…`) plus the pure logic (digest
   math, manifest parse/serialize, strictness cases) — fast, hermetic, no docker.
 - **Real-docker integration suite.** A small suite exercises the true image contract
@@ -1141,12 +1141,12 @@ coder.json, boot-env keys, digest reconciliation) is **inside the toolkit**. No 
   essentially the repo orchestrator itself. Catches image-contract drift the fake seam can't.
 - **Seam shape (Q12 follow-up):** the runner is a **plain injected function parameter**, with
   an **Effect service/layer adapter available**. This keeps "reusability as a core value"
-  honest — a team **not** on Effect can still use every brick — while this Effect-native repo
+  honest — a team **not** on Effect can still use every utility — while this Effect-native repo
   wraps it as a layer. `Manifest`/`ContainerHandle` are Effect Schema regardless (validation
   at boundaries), which does not force Effect on the *runner*.
 
 The two test layers and what each covers (fast/hermetic on the left, high-fidelity on the
-right; the same brick code runs under both, differing only in which runner is injected):
+right; the same utility code runs under both, differing only in which runner is injected):
 
 ```mermaid
 flowchart LR
@@ -1166,9 +1166,9 @@ flowchart LR
         REAL --> I2
     end
 
-    BRICKS(["same brick code<br/>(swap / verify / lifecycle / seed)"])
-    BRICKS --> FAKE
-    BRICKS --> REAL
+    UTILS(["same utility code<br/>(swap / verify / lifecycle / seed)"])
+    UTILS --> FAKE
+    UTILS --> REAL
     INTEG -.->|"≈ the repo orchestrator itself"| ORCH["test:container:local"]
 
     classDef unit fill:#eef6ff,stroke:#4a90d9,color:#123;
