@@ -11,7 +11,7 @@ import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 /**
@@ -89,49 +89,56 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
     return new Map<string, URI>();
   }
 
-  return getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-      // Get package directories from the project
-      const sfProject = yield* api.services.ProjectService.getSfProject();
-      const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
+    // Build index from component name to file URI
+    const classNameSet = new Set(classNames);
+    const index = new Map<string, URI>();
 
-      // Build ComponentSet for all ApexClass files in the project
-      const componentSet = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(packageDirs, [
-        { type: 'ApexClass', fullName: '*' }
-      ]);
-
-      // Build index from component name to file URI
-      const classNameSet = new Set(classNames);
-      const index = new Map<string, URI>();
-
-      yield* Effect.forEach(
-        Array.fromIterable(componentSet.getSourceComponents()),
-        component =>
-          Effect.gen(function* () {
-            // component.content is the .cls file path
-            if (component.content && classNameSet.has(component.name)) {
-              // Prefer shorter paths (files closer to workspace root)
+    yield* api.services.ProjectService.getSfProject().pipe(
+      Effect.map(project => project.getPackageDirectories()),
+      Effect.map(Array.map(dir => dir.fullPath)),
+      Effect.flatMap(packageDirs =>
+        api.services.MetadataRetrieveService.buildComponentSetFromSource(packageDirs, [
+          { type: 'ApexClass', fullName: '*' }
+        ])
+      ),
+      Effect.map(componentSet => componentSet.getSourceComponents()),
+      Effect.map(Array.fromIterable),
+      Effect.map(
+        Array.filter(
+          (component): component is typeof component & { content: string } =>
+            isNotUndefined(component.content) && component.content.length > 0 && classNameSet.has(component.name)
+        )
+      ),
+      Effect.flatMap(
+        Effect.forEach(
+          component =>
+            Effect.gen(function* () {
               const existingUri = index.get(component.name);
               if (
-                !existingUri ||
-                component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
+                existingUri &&
+                component.content.length >= (yield* api.services.FsService.uriToPath(existingUri)).length
               ) {
-                index.set(component.name, URI.file(component.content));
+                return;
               }
-            }
-          }),
-        { concurrency: 1, discard: true }
-      );
-
-      return index;
-    }).pipe(
-      Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
-      Effect.catchAll(error =>
-        Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
+              yield* api.services.FsService.toUri(component.content).pipe(
+                Effect.tap(uri => Effect.sync(() => index.set(component.name, uri)))
+              );
+            }),
+          { concurrency: 1, discard: true }
+        )
       )
-    )
+    );
+
+    return index;
+  }).pipe(
+    Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
+    Effect.catchAll(error =>
+      Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
+    ),
+    getApexTestingRuntime().runPromise
   );
 };
 
