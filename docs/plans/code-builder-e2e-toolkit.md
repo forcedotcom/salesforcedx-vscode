@@ -1,27 +1,40 @@
 # Plan: A reusable Code Builder e2e toolkit
 
 **Status:** Draft for review
-**Author:** planning session (grill-me)
+**Author:** Kyle Walker
 **Related:** PR [#7718](https://github.com/forcedotcom/salesforcedx-vscode/pull/7718) (W-23385030) · ADR [0022](../adr/0022-code-builder-e2e-desktop-build-over-browser.md)
-**Working package name:** `@salesforce/code-builder-e2e`
+**Working initiative name:** `@salesforce/code-builder-e2e` (utilities land in `playwright-vscode-ext` — §9)
 
 ---
 
 ## 1. Context & Motivation
 
-Code Builder (Agentforce Vibes) serves a Salesforce-customized **code-server** with a
-**Node extension host** behind a browser UI. It runs the **desktop** extension build, and
-its e2e suite runs the existing desktop Playwright specs driven by a browser client pointed
-at the container URL (ADR 0022). PR #7718 proved this end-to-end: pull the published
-`workspace-manager/codebuilder` image, swap the unreleased monorepo VSIXes into the running
-container at runtime, restart to re-scan and re-auth, gate on installed versions, then run
-the specs — with **zero changes to `code-builder-images`**.
+Code Builder (aka Agentforce Vibes) serves a Salesforce-customized VS Code (**code-server**
+with a **Node extension host** behind a browser UI) in an AWS-hosted Linux environment. It
+runs the **desktop** extension build. Today CB requires the IDEx team to do **fully manual
+testing** every release — it is not wired up with Playwright.
 
-#7718 works, but it is **scripts, not a toolkit**. The swap, verify, seed, and lifecycle
-logic live as standalone `ts-node` scripts (`codeBuilderSwapExtensions.ts`,
-`codeBuilderVerifyExtensions.ts`, `codeBuilderSeedWorkspace.ts`, `codeBuilderLocalE2E.ts`)
-wired specifically to this repo's extension set. Two forces motivate turning that proven
-work into a reusable package:
+**Why this matters now:** after the IDEx team automated Windows, Linux, and macOS coverage,
+we still carry **~2–3 hours of manual testing per release, at a weekly cadence**. Code
+Builder is the **last remaining gap** in release automation: it is a distinct runtime, and
+several past releases were bitten by **CB-environment-specific bugs the desktop suites did
+not catch**. Closing that gap means treating CB as its own target with its own e2e specs.
+
+PR #7718 (Jonny's POC) gets this started: an e2e suite that runs the existing desktop
+Playwright specs via a browser client pointed at the container URL. It proved the pipeline
+end-to-end, with **zero changes to `code-builder-images`**:
+
+1. Pull the `workspace-manager/codebuilder` image.
+2. Swap the unreleased monorepo VSIXes into the running container.
+3. Restart the container to re-scan and re-auth.
+4. Gate on installed versions.
+5. Run the Playwright specs.
+
+#7718 works, but it is **a collection of scripts building an IDEx-specific POC**
+(`codeBuilderSwapExtensions.ts`, `codeBuilderVerifyExtensions.ts`,
+`codeBuilderSeedWorkspace.ts`, `codeBuilderLocalE2E.ts`). Where we want to go is a **fully
+VSIX-agnostic harness other teams can use to test their own extensions**, multiplying the
+value of this effort. Two forces drive the redesign:
 
 1. **Reusability.** Every capability that touches the Code Builder image — VSIX swap,
    container lifecycle, version/content gating, workspace seeding, org boot-env injection —
@@ -36,12 +49,13 @@ work into a reusable package:
    against the leftover baked copy). The ADR names the fix — **unconditional wipe by
    publisher glob + a content check** — but #7718 has not adopted it, and the swap/verify
    scripts share no code, so a content check *cannot* reconcile across the two sides as they
-   stand. Closing this is a structural change, and the package is where it lands.
+   stand. Closing this is a structural change, and the harness is where it lands.
 
-This plan turns #7718's proven pipeline into a layered, incrementally-delivered package,
-recycling what is sound and redesigning the two things that must change: **the swap wipe
-must be unconditional-by-publisher-glob** and **swap + verify must share a digest core** so
-a content check can prove *the bytes under test are the bytes intended*.
+This plan turns #7718's proven pipeline into a layered, incrementally-delivered harness
+(shipped as utilities in the existing `playwright-vscode-ext` package + external CI
+workflows — §9), recycling what is sound and redesigning the two things that must change:
+**the swap wipe must be unconditional-by-publisher-glob** and **swap + verify must share a
+digest core** so a content check can prove *the bytes under test are the bytes intended*.
 
 ---
 
@@ -49,13 +63,17 @@ a content check can prove *the bytes under test are the bytes intended*.
 
 ### Goals
 
-- **G1 — Importable TS library.** Ship `@salesforce/code-builder-e2e` exposing the pipeline
-  as importable functions. Consumers write their own thin orchestrator by composing them.
+- **G0 — Eliminate manual release testing.** The overriding goal: **cover 100% of the manual
+  CB release-test scenarios with Playwright e2e**, retiring the ~2–3h/release manual pass.
+  Windows/Linux/macOS are already automated; CB is the last gap (§1).
+- **G1 — Importable TS utilities.** Ship the pipeline as importable functions **inside the
+  existing `playwright-vscode-ext` package** (not a new standalone package — §9). Consumers
+  write their own thin orchestrator by composing them.
 - **G2 — Close the false-green.** Verify proves the installed extension is the intended
   bytes (composite content digest), not merely the intended semver. Swap guarantees a clean
   slate so no stale dir can survive to be falsely green.
 - **G3 — Reuse-first for other Salesforce teams.** Every brick is generic to the CB image
-  and parameterized (publisher prefix, image ref, org, fixture) so another Salesforce team
+  and parameterized (publisher prefix, image ref, org, vsix list) so another Salesforce team
   adopts it with a thin wiring layer, not a fork. Build the generic case first; repo
   specifics are a top layer.
 - **G4 — Incremental delivery.** Each brick is independently useful and shippable before the
@@ -73,22 +91,22 @@ a content check can prove *the bytes under test are the bytes intended*.
   `start.sh` boot semantics). "Other teams" means other *Salesforce* teams on the **same
   image**, not a different image family. The image layout is **not** an abstracted pluggable
   adapter.
-- **NG2 — The package does not source VSIXes.** Building (from working tree) and downloading
+- **NG2 — The toolkit does not source VSIXes.** Building (from working tree) and downloading
   (by Build All runId) are deeply repo-specific (`vscode:package`, the legacy/modern dance,
-  wireit). The package starts at "here are VSIX paths." Sourcing lives in the repo's thin
+  wireit). The toolkit starts at "here are VSIX paths." Sourcing lives in the repo's thin
   orchestrator.
-- **NG3 — The package does not select/dedup VSIXes.** Swap takes an **explicit list**. The
+- **NG3 — The toolkit does not select/dedup VSIXes.** Swap takes an **explicit list**. The
   modern-vs-legacy (67.x) dedup is the consumer's job.
 - **NG4 — No forced Effect buy-in.** The core is consumable without Effect. This repo, being
   Effect-native, wraps it; adopters not on Effect can still use every brick (see §15).
-- **NG5 — No second team shipping target yet.** This monorepo is the **first and only**
-  consumer. "Other Salesforce teams" is an honored **design constraint**, not a delivery
-  milestone.
+- **NG5 — IDEx is the first consumer.** This monorepo is the **first** consumer. Cross-team
+  reuse is an explicit **goal** (G3) enabled by the delivery choice (§9 Option 3), not a
+  first-milestone deliverable — IDEx coverage ships first, other teams adopt as they need it.
 
 ### Constraints
 
-- **C1 — Package owns the docker lifecycle.** `docker` is a package dependency; `pull`,
-  `run`, `restart`, `teardown` are package verbs (§7). This is a deliberate choice over
+- **C1 — The toolkit owns the docker lifecycle.** `docker` is a toolkit dependency; `pull`,
+  `run`, `restart`, `teardown` are toolkit verbs (§7). This is a deliberate choice over
   "operate on a container the consumer runs."
 - **C2 — Desktop build only.** The digest keys off `main`; `browser` is ignored (ADR 0022).
 - **C3 — Do not rely on contracts `code-builder-images` can move under us** without a loud
@@ -105,17 +123,18 @@ a content check can prove *the bytes under test are the bytes intended*.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  REPO ORCHESTRATOR LAYER  (thin, repo-specific — NOT in the package)  │
+│  REPO ORCHESTRATOR LAYER  (thin, repo-specific — NOT in the toolkit)  │
 │                                                                       │
 │  • VSIX sourcing:  build-from-working-tree  |  download-by-runId      │
 │  • VSIX selection/dedup:  modern vs legacy (67.x)                     │
 │  • local command:  test:container:local  (scripts/codeBuilderLocalE2E)│
-│  • CI workflow:  codeBuilderE2E.yml  (workflow_call into e2e.yml)     │
+│  • CI: codeBuilderE2E.yml → invokes github-workflows action (§9)      │
 │  • wiring: publisher prefix, image ref, org alias, fixture path       │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │ imports & composes
 ┌───────────────────────────────▼───────────────────────────────────────┐
-│  PACKAGE  @salesforce/code-builder-e2e  (generic CB-image toolkit)      │
+│  TOOLKIT  (ships in playwright-vscode-ext — §9;                        │
+│            conceptually "@salesforce/code-builder-e2e")                │
 │                                                                         │
 │   Lifecycle ── run/pull/restart/teardown ──► ContainerHandle (typed)    │
 │   Auth      ── resolveOrgBootEnv(alias) (opt, sf-aware) ──► BootEnv      │
@@ -143,7 +162,7 @@ flowchart TB
         WIRE["wiring: publisher prefix,<br/>image ref, org alias, fixture path"]
     end
 
-    subgraph PKG["PACKAGE @salesforce/code-builder-e2e (generic CB-image toolkit)"]
+    subgraph PKG["TOOLKIT (ships in playwright-vscode-ext §9 — generic CB-image utilities)"]
         direction TB
         LIFE["Lifecycle<br/>pull / run / restart / teardown"]
         AUTH["Auth<br/>resolveOrgBootEnv (opt, sf-aware)"]
@@ -554,6 +573,15 @@ stateDiagram-v2
   this to produce the env, or supply their own. This is where the redaction fix (from the
   current PR #7846 work) becomes reusable so the next team doesn't re-hit it.
 
+> **⚠ Open question — the org model is not fully settled (see §16 OQ3).** Token injection at
+> boot is **today's POC baseline** and it works, but it constrains what a spec can assert
+> (org-*backed behavior*, not a specific `target-org` — §12.4). The expectation is to reuse
+> the **same org connection as the other e2e tests** (CB is most similar to the Linux target,
+> so the connection steps should be close). Whether we keep pure token-injection or move to a
+> richer auth path (auth files, in-container scripting, or a test-ready image layer) is an
+> **open decision** — §16 OQ3 enumerates the candidates and their tradeoffs. `resolveOrgBootEnv`
+> is the brick *if* we keep injection; it may be superseded by whatever OQ3 resolves to.
+
 ### 7.3 Seed (one brick, post-boot)
 
 ```
@@ -613,23 +641,76 @@ flowchart LR
 
 ---
 
-## 9. Repo Integration Layer (thin, repo-specific)
+## 9. Where the Code Lives (placement decision)
 
-Lives in the repo, **not** the package (§2 NG2/NG3):
+### 9.1 Decision — Option 3: utilities in `playwright-vscode-ext`, workflows external
+
+Three homes were considered for the reusable CB utilities + their CI workflows:
+
+- **Option 1 — new standalone package in the monorepo** (`@salesforce/code-builder-e2e`) +
+  its GHA yml. Most self-contained; heaviest for other teams to adopt (they take on a new
+  dependency and reach across repos for image auth).
+- **Option 2 — action definitions in the Salesforce `github-workflows` repo**, called from
+  the monorepo with inputs (VSIX list, image ref). Easiest cross-team consumption; both code
+  and workflows live externally, marginally harder for us to stand up initially.
+- **Option 3 — *chosen*.** Fold the orchestration/setup utilities into the **already-published
+  `playwright-vscode-ext`** package in the monorepo; put the callable **GHA workflows in the
+  Salesforce `github-workflows` repo**. Cross-link examples in **both** places so a developer
+  who finds either is pointed at the other. An adopting team pulls the npm package **and** the
+  yml from the workflows repo.
+
+**Why Option 3:** `playwright-vscode-ext` is already the shared home for the container
+fixtures/config (`createContainerTest`, `createContainerConfig`) and the plain-`Page` page
+objects the specs reuse — the CB utilities belong beside them, with no *new* package to
+publish or maintain. Splitting the workflows out to `github-workflows` gives other teams the
+easy-consumption property of Option 2 without forcing our repo layout on them. We own
+maintenance; other teams' PRs are welcome.
+
+> **What this changes vs. earlier drafts:** references to "the package" throughout mean the
+> **`playwright-vscode-ext`** package, not a new `@salesforce/code-builder-e2e` artifact. The
+> brick design (§4–§7), manifest, digest core, and testing strategy are **unchanged** — only
+> the *home* of the code moves. `@salesforce/code-builder-e2e` remains the conceptual name for
+> the utility surface.
+
+```mermaid
+flowchart TB
+    subgraph MONO["salesforcedx-vscode monorepo"]
+        PVE["playwright-vscode-ext (published)<br/>CB utility bricks + container fixtures/config"]
+        SPECS["*.container.spec.ts (per package)"]
+        ORCH["thin orchestrator (§9.2)"]
+        SPECS --> PVE
+        ORCH --> PVE
+    end
+    subgraph GHW["Salesforce github-workflows repo"]
+        WF["reusable CB GHA workflow(s)<br/>inputs: vsix list, image ref, org"]
+    end
+    E2E["monorepo e2e.yml"] -->|calls| WF
+    WF -->|drives| ORCH
+    PVE -. cross-link examples .- WF
+
+    classDef ext fill:#eef6ff,stroke:#4a90d9,color:#123;
+    class WF,GHW ext;
+```
+
+### 9.2 The thin repo-specific layer (stays in the monorepo, not in the shared utilities)
+
+Regardless of where the *utilities* live, this wiring is IDEx-specific and stays in the
+monorepo (§2 NG2/NG3):
 
 - **VSIX sourcing** — `buildVsixes()` (from working tree, default; `vscode:package` + the
   modern/legacy build) and `downloadVsixes(runId)` (Build All artifact via `gh`, for
   reproducing a CI failure against shipping bytes). Produces the explicit path list.
 - **VSIX selection/dedup** — the modern-vs-legacy (67.x) filter that produces one VSIX per
   extension. This is the saga that motivated "swap takes an explicit list" — it stays out of
-  the package.
-- **Orchestrator** — `scripts/codeBuilderLocalE2E.ts` recomposed as a thin sequence of package
-  calls: `resolveOrgBootEnv → pull → run(bootEnv, mount) → seedWorkspace → swap → restart →
-  verify → run specs → teardown`. This *is* also the real-docker integration test (§15).
-- **CI workflow** — `codeBuilderE2E.yml` recomposed on the package; stays `workflow_call` /
-  `workflow_dispatch` until reliably green, then slots into `e2e.yml`'s fan-out (already
-  threads the build runId). The redaction fix already landed here (PR #7846) migrates into
-  `resolveOrgBootEnv`.
+  the shared utilities.
+- **Orchestrator** — `scripts/codeBuilderLocalE2E.ts` recomposed as a thin sequence of the
+  `playwright-vscode-ext` utility calls: `resolveOrgBootEnv → pull → run(bootEnv, mount) →
+  seedWorkspace → swap → restart → verify → run specs → teardown`. This *is* also the
+  real-docker integration test (§15).
+- **CI workflow** — the callable workflow lives in `github-workflows`; the monorepo's
+  `codeBuilderE2E.yml` (or an `e2e.yml` leaf) *invokes* it. Stays `workflow_call` /
+  `workflow_dispatch` (advisory — §10) and threads the build runId. The redaction fix already
+  landed in #7846 migrates into `resolveOrgBootEnv`.
 - **Wiring constants** — publisher prefix (`salesforce`), image ref, `MINIMAL_ORG_ALIAS`,
   fixture path.
 
@@ -637,24 +718,33 @@ Lives in the repo, **not** the package (§2 NG2/NG3):
 
 ## 10. CI Integration & Scheduling (when / where to run)
 
-### 10.1 Cadence decision — nightly + release, **not** per-PR
+### 10.1 Cadence decision — nightly + release flows
 
-The Code Builder suite is **deliberately not run on every PR.** One pass pulls a multi-GB
-image, creates a scratch org, boots a container, swaps + restarts, and drives a browser — far
-heavier and slower than a unit test, and its value (catch CB-runtime-specific breakage against
-the shipping bytes) is a *pre-release* signal, not a per-commit one. It runs exactly where the
-other e2e suites already run:
+Run CB e2e on the **nightly builds** and the **Build, Test, and Release** flow. One pass
+pulls the multi-GB `:latest` CB image, creates a scratch org, boots a container, swaps +
+restarts, and drives a browser to run each test — **too heavy for per-PR**, but far better
+than manually spinning up a CB instance to test each scenario by hand.
 
 | Trigger | Runs CB e2e? | Why |
 |---|---|---|
-| PR / push to a branch | **No** | Too heavy; CB breakage is not per-commit. Desktop unit + lint gate PRs. |
+| PR / push to a branch | **No (for now)** | Potentially heavy; **revisit after e2e is built** to see if per-PR is acceptable (§16 follow-up). Not a permanent "never." |
 | **Nightly Build Develop** | **Yes** | Catch drift against a rolling `:latest` CB image + latest develop bytes, daily. |
-| **Test, Build, and Release** | **Yes** | Gate the release — the VSIX about to ship is exercised on the real image. |
-| **Beta Release branch** | **Yes** | Same gate for the beta channel. |
-| `workflow_dispatch` | **Yes (manual)** | On-demand repro / debugging a specific `runId`. |
+| **Test, Build, and Release** | **Yes** | Test the VSIX about to ship, on the real image. |
+| **Beta Release branch** | **Yes** | Same for the beta channel. |
+| `workflow_dispatch` | **Yes (manual)** | On-demand repro of a specific `runId`. |
 
 This is the *same* trigger set the existing `e2e.yml` fan-out already uses — so "run it when
 we run the other e2e tests" means literally **adding CB as a leaf of `e2e.yml`**.
+
+**Accepted redundancy:** if a nightly passes and we then promote that same nightly, there is
+no code change, so we run the suite twice on identical bytes. The cost of a CB run is not
+onerous enough to engineer around — this double-run is **negligible/acceptable overhead**.
+
+**Which CB image version to run:** use whatever is **most recently published** (the
+`:latest` tag) from the CB image repo. Extension-release bugs we have historically caught are
+usually **not** CB-image-dependent, so running against **N (or at most N-1 for a short
+window)** is an acceptable risk — and we can always re-run against `:latest` after CB
+publishes a new image if a specific version is in question.
 
 ### 10.2 Where it wires up — a leaf of `e2e.yml`
 
@@ -680,12 +770,12 @@ flowchart TD
     TBR["Test, Build, and Release"] -->|workflow_run: completed| E2E
     BETA["Beta Release Branch"] -->|workflow_run: completed| E2E
     WD["workflow_dispatch (manual, runId)"] --> E2E
-    PR["PR / branch push"] -.->|NOT wired| E2E
+    PR["PR / branch push"] -.->|"not yet — revisit (§16)"| E2E
 
     E2E["e2e.yml (fan-out hub)<br/>threads build runId"]
     E2E --> D1["coreE2E (desktop 3-OS)"]
     E2E --> D2["apex / lwc / org / … desktop leaves"]
-    E2E ==>|NEW leaf| CB["codeBuilderE2E.yml<br/>(Linux-only, container)"]
+    E2E ==>|"NEW leaf (advisory)"| CB["codeBuilderE2E.yml<br/>invokes github-workflows action<br/>(Linux-only, container)"]
 
     classDef new fill:#fff3cd,stroke:#d9a441,color:#123,stroke-width:2px;
     classDef no fill:#fdecea,stroke:#d9534f,color:#123,stroke-dasharray:4 3;
@@ -701,38 +791,40 @@ runtime inside the Linux container is identical regardless of host OS, and conta
 Linux — so CB is a **single `ubuntu-latest` job** (as #7718 already declares). Testing it on 3
 host OSes would burn 3× the minutes to exercise the exact same runtime.
 
-### 10.4 Promotion & failure policy (decisions)
+### 10.4 Promotion & failure policy (decision)
 
-- **Promotion gate:** keep `codeBuilderE2E.yml` on `workflow_dispatch` / `workflow_call` only
-  until it is **reliably green across ~2 weeks of nightlies**; *then* add the `e2e.yml` leaf
-  above. Don't gate the release on a flaky new suite.
-- **Advisory → blocking, everywhere (decision):** wire CB **advisory** (non-blocking:
-  `continue-on-error` at the leaf / required=false status) on **both** nightly and release
-  paths at first, so a CB-image hiccup or a rolling-`:latest` shift can't block a release —
-  or a nightly — while confidence builds. Once the suite proves stable, flip it to
-  **blocking everywhere** (nightly *and* release) in one step. We deliberately do **not**
-  split the policy by trigger: same suite, same bar, promoted together.
-- **Avoiding advisory-rot:** the known risk of an advisory check is that it goes red and
-  nobody looks. We accept that risk without a dedicated notifier — **the team already
-  monitors nightly CI runs**, so a red CB nightly is seen through the normal nightly-watching
-  workflow. No Slack hook or auto-filed bug is added (§10.5).
-- **Rolling `:latest` is intentional (C4):** the image tag is rolling on **every** trigger,
-  including release — we want to test against **whatever CB is live**, not a pinned snapshot.
-  A nightly/release red can therefore mean "CB image changed under us," not "our code broke";
-  the provenance banner (§4.5 manifest) + fail-loud version gate distinguish the two. We do
-  **not** pin or record the image digest: **artifacts are timestamped**, so a stale/for-a-
-  different-image result is identifiable by its timestamp alone.
+**CB e2e runs advisory on both nightly and release — permanently, not as a phase.** It should
+**not block** nightly builds, and it should **not block** release either. Given our history
+with e2e flakiness, a CB red is a **signal to investigate, not an automatic stop.**
+
+- **Advisory everywhere (`continue-on-error` / non-required status), on both nightly and
+  release.** A failure *informs* us that something needs addressing; it does **not**
+  auto-delay a release.
+- **Manual confirmation before any release delay.** On a red, a human confirms whether it is a
+  **real regression** before letting it hold a release. **Use the new MCP setup to do that
+  manual verification** of the flagged issue. Only a human-confirmed real regression delays a
+  release — the check stays override-able.
+- **No scheduled flip to blocking.** Unlike an earlier draft, we are **not** planning to
+  promote CB to release-blocking on a timer. It stays advisory-with-manual-confirmation
+  unless and until we deliberately decide otherwise (a separate, explicit decision — not
+  baked into this plan). Revisiting per-PR (§10.1) is the shift-left follow-up (§16), and is
+  independent of blocking policy.
+- **Rolling `:latest` is intentional, and this is LOW RISK (C4):** because we test against
+  whatever CB is **live** rather than a pinned snapshot, a red can mean "CB image changed
+  under us" rather than "our code broke." The **fail-loud version gate** distinguishes the
+  two, and artifacts are **timestamped** so a stale result is identifiable by timestamp
+  alone. We therefore do **not** pin or record the image digest.
 
 ### 10.5 What we explicitly are NOT adding
 
-To keep the surface honest, these were considered and **rejected** for this plan:
+To keep the surface honest, these were considered and **rejected**:
 
-- **No per-trigger blocking split** (e.g. block nightly, advisory release) — one policy,
-  promoted together (§10.4).
+- **No release-blocking (now or on a timer)** — advisory + manual confirmation is the policy
+  (§10.4). Any future move to blocking is a separate, explicit decision.
 - **No image-digest pinning or recording** — rolling `:latest` everywhere; timestamps flag
-  staleness (§10.4, 2a).
-- **No dedicated failure notifier** (Slack / auto-bug) — nightly CI is already monitored
-  (§10.4, 2b).
+  staleness (§10.4).
+- **No dedicated failure notifier** (Slack / auto-bug) — the team already monitors nightly CI
+  runs; manual verification uses the MCP setup (§10.4).
 - **No 3-OS matrix** — one Linux job; the container runtime is host-OS-independent (§10.3).
 
 ---
@@ -1000,19 +1092,21 @@ The three #7718-proven categories, by effort:
 
 ## 13. Reusability Guide (second Salesforce team)
 
-A second team on the same CB image adopts the package by writing **only** the §9 thin layer,
-parameterized to them:
+A second team on the same CB image adopts the toolkit by writing **only** the §9.2 thin
+layer, parameterized to them (per the Option-3 placement, §9.1):
 
-1. `npm i @salesforce/code-builder-e2e`.
-2. Provide **their** VSIX paths (their build/download — the package never builds).
+1. `npm i @salesforce/playwright-vscode-ext` (the CB utilities ship here) **and** pull the
+   reusable CB workflow from the `github-workflows` repo (cross-linked from both — §9.1).
+2. Provide **their** VSIX paths (their build/download — the toolkit never builds).
 3. Call `swap(handle, theirVsixPaths, { publisherPrefix: 'theirPublisher' })`.
-4. Call `resolveOrgBootEnv(theirAlias)` (or supply their own `{ accessToken, instanceUrl }`).
+4. Call `resolveOrgBootEnv(theirAlias)` (or supply their own `{ accessToken, instanceUrl }`) —
+   subject to whatever OQ3 (§16) settles for the org model.
 5. Point `seedWorkspace` at **their** fixture project.
 6. Bring their own Playwright specs (reusing `playwright-vscode-ext` page objects, which take
    a plain `Page` — ADR 0022 keeps them Electron-decoupled).
 
 Everything image-specific (override dir layout, runtime-symlink wipe, restart-rescan,
-coder.json, boot-env keys, digest reconciliation) is **inside the package**. No fork.
+coder.json, boot-env keys, digest reconciliation) is **inside the toolkit**. No fork.
 
 ---
 
@@ -1100,9 +1194,9 @@ flowchart LR
 - **R4 — `docker cp` of extracted trees vs. permissions/ownership.** Confirm cp'd trees land
   with ownership the host re-scan accepts (the `chown codebuilder:codebuilder` concern seen in
   the trust-write step may extend to swapped dirs). Validate in M3 integration.
-- **R5 — Package boundary creep.** Pressure to pull VSIX sourcing/dedup into the package
-  (NG2/NG3) will recur. Hold the line: the explicit-list contract is what keeps the package
-  generic.
+- **R5 — Package boundary creep.** Pressure to pull VSIX sourcing/dedup into the shared
+  utilities (NG2/NG3) will recur. Hold the line: the explicit-list contract is what keeps the
+  toolkit generic.
 - **R6 — Parity maintenance cost.** Parity (§11.1) means the container spec set grows with the
   desktop set *forever* — a new desktop spec now implies a triage decision (twin or
   exclusion). Mitigated by the ledger (a missing twin is visible), but it is ongoing cost, not
@@ -1114,15 +1208,46 @@ flowchart LR
   specs, and serial execution makes the job long. Accepted as the cost of the interaction
   coverage; mitigate with per-spec isolation hygiene (no shared mutable workspace state) and
   the allow-listed non-critical-noise patterns (ADR 0022).
-- **R8 — Advisory-rot during the un-proven window.** Policy (b) runs CB advisory until proven
-  (§10.4). If the team's nightly monitoring lapses, a red CB can sit unnoticed and the
-  eventual flip-to-blocking surfaces a backlog. Accepted per Q2b (no dedicated notifier);
-  revisit if the un-proven window drags.
-- **OQ1 — Package location & publish.** Internal monorepo package vs. independently published
-  to npm. First consumer is in-repo; publishing is only needed when a real second team arrives
-  (NG5). Recommend **in-repo package now, publish-ready structure**, defer actual publish.
+- **R8 — Advisory-rot (permanent advisory posture).** CB is advisory on both paths
+  **indefinitely** (§10.4), relying on manual confirmation + team monitoring of nightly CI. A
+  red can sit unnoticed if monitoring lapses; there is no dedicated notifier. Accepted given
+  our flakiness history — a blocking suite would be worse. Mitigation is the MCP-assisted
+  manual verification loop, not automation.
+- **OQ1 — [RESOLVED] Where the code lives.** Settled as **Option 3** (§9): utilities in
+  `playwright-vscode-ext`, workflows in the `github-workflows` repo, cross-linked. No new
+  standalone package; no separate publish step (`playwright-vscode-ext` already ships).
 - **OQ2 — Manifest persistence path & format** — where the orchestrator writes `manifest.json`
   and whether CI uploads it as an artifact (recommended: yes, it's the provenance record).
+- **OQ3 — The org model (how the container authenticates to an org).** Token injection at boot
+  is today's POC baseline (§7.2) and constrains assertions to org-*backed behavior* (§12.4).
+  Expectation: reuse the **same org connection as the other e2e tests** (CB ≈ Linux target).
+  Candidate approaches, to settle before porting org-dependent specs at scale:
+  1. **Create CLI auth files on the host, push them into the container.** *Risk:* CB has its
+     own generated CLI key, so auth files created elsewhere are mis-crypted — CLI auth files
+     are generally **not portable** without the matching key.
+  2. **Create the auth inside the container at test time** (run CLI/bash via the container's
+     terminal — e.g. GHA `docker exec`, or an opened SSH path). *Cost:* helpers grow a CB
+     branch (e.g. `createMinimalOrg` gains an "is this CB? then…" path).
+  3. **Bake a test-ready image** — layer auth + project files (maybe a deploy) onto the base
+     image so it boots test-ready. *Variant:* make CB **generically test-friendly** (a way to
+     inject auth/project, an auto-run-on-startup script slot, or an opened SSH pathway) — a CB
+     conversation (§16 follow-up), and infra-team territory.
+  Decision pending; the token-injection baseline works today and is sufficient to keep
+  authoring specs (§11.5) while OQ3 is resolved.
+
+### 16.1 Follow-up stories to file
+
+- **Revisit the verify version-ID protocol.** Explore replacing the hashed-`dist`-file digest
+  (§4) with **unique IDs / SHAs** surfaced by the monorepo and the apex-ls packages at build
+  time (a build stamp baked into the VSIX), which the gate could read directly — cheaper and
+  less brittle than hashing files. (See R1.)
+- **Post-epic: evaluate CB e2e per-PR (shift-left).** Once the epic is complete, decide
+  whether to enable the CB flows on **every PR** like the other suites — shifting the testing
+  burden left and notifying developers of a breaking change *before* merge to develop
+  (§10.1). Depends on observed run cost/flakiness.
+- **CB-team release gating.** Follow up with the Code Builder team on whether these e2e flows
+  could/should gate **their** release process too, to stop breaking CB-image changes from
+  propagating to us.
 
 ---
 
