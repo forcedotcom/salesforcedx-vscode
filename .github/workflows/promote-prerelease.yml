@@ -20,9 +20,8 @@ on:
         default: false
         type: boolean
 
-concurrency:
-  group: promote-prerelease
-  cancel-in-progress: false
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-prerelease.yml)
+# Do not define it here to avoid deadlock
 
 permissions:
   contents: write

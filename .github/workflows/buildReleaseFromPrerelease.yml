@@ -1,6 +1,11 @@
 name: Build Release from Prerelease
 
 on:
+  schedule:
+    # Mondays at 8 AM UTC (5 days after Wednesday pre-release promotion)
+    # Builds stable release from pre-release that has been tested by customers
+    # Gives ~5 day baking period (Wed pre-release → Mon stable release)
+    - cron: '0 8 * * 1'
   workflow_dispatch:
     inputs:
       prereleaseTag:
@@ -43,6 +48,13 @@ jobs:
           INPUT_TAG: ${{ github.event.inputs.prereleaseTag }}
         run: |
           if [ -n "$INPUT_TAG" ]; then
+            # Validate input tag format to prevent command injection
+            if ! echo "$INPUT_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$'; then
+              echo "::error::Invalid tag format: $INPUT_TAG"
+              echo "::error::Expected format: v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}"
+              echo "::error::Example: v67.11.1-nightly.develop.20260812"
+              exit 1
+            fi
             TAG="$INPUT_TAG"
             echo "Using provided tag: $TAG"
           else
@@ -58,7 +70,7 @@ jobs:
             echo "Auto-detected latest nightly tag: $TAG"
           fi
 
-          # Verify tag exists
+          # Verify tag exists (use double quotes for safety)
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "::error::Tag $TAG does not exist"
             exit 1
@@ -84,28 +96,49 @@ jobs:
           cp scripts/calculate-release-version.js /tmp/release-scripts/
           cp scripts/update-release-versions.js /tmp/release-scripts/
 
+          # Generate checksums for integrity verification
+          sha256sum scripts/calculate-release-version.js scripts/update-release-versions.js > /tmp/release-scripts/checksums.txt
+          echo "Generated checksums:"
+          cat /tmp/release-scripts/checksums.txt
+
       - name: Checkout prerelease tag
         run: |
           echo "Checking out prerelease tag: ${{ steps.detect-tag.outputs.tag }}"
-          git checkout ${{ steps.detect-tag.outputs.tag }}
+          git checkout "${{ steps.detect-tag.outputs.tag }}"
 
       - name: Restore scripts
         run: |
           # Restore scripts from temp location
           mkdir -p scripts
+
+          # Verify scripts exist in temp
+          if [ ! -f /tmp/release-scripts/calculate-release-version.js ] || [ ! -f /tmp/release-scripts/update-release-versions.js ]; then
+            echo "::error::Scripts not found in /tmp/release-scripts/"
+            exit 1
+          fi
+
           cp /tmp/release-scripts/calculate-release-version.js scripts/
           cp /tmp/release-scripts/update-release-versions.js scripts/
+
+          # Verify integrity with checksums
+          cd scripts
+          if ! sha256sum -c /tmp/release-scripts/checksums.txt 2>/dev/null; then
+            echo "::error::Script integrity check failed - checksums do not match"
+            exit 1
+          fi
+          cd ..
+          echo "✓ Script integrity verified"
 
       - name: Configure git
         uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
       - name: Update package versions
-        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }} --skip-lockfile
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+
+      - name: Install dependencies with updated versions
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       - name: Build VSIXs
         run: npm run vscode:package
@@ -114,6 +147,14 @@ jobs:
         run: |
           mkdir -p extensions
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+
+          # Validate that VSIXs were built
+          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
+          if [ "$VSIX_COUNT" -eq 0 ]; then
+            echo "::error::No VSIX files found after build. Build may have failed silently."
+            exit 1
+          fi
+          echo "✓ Found $VSIX_COUNT VSIX files"
 
       - name: Generate SHA256 checksums
         run: |
@@ -156,10 +197,34 @@ jobs:
             echo '```'
           } > release_notes.md
 
-          # Delete existing release and tag if they exist (for retry scenarios)
-          echo "Cleaning up any existing release $RELEASE_TAG..."
-          gh release delete "$RELEASE_TAG" --yes --cleanup-tag 2>/dev/null || echo "No existing release to delete"
-          git push origin :refs/tags/$RELEASE_TAG 2>/dev/null || echo "No existing tag to delete"
+          # Check if release already exists (for retry scenarios)
+          if gh release view "$RELEASE_TAG" &> /dev/null; then
+            echo "⚠️  Release $RELEASE_TAG already exists. Deleting for retry..."
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+
+            # Wait for GitHub API to propagate the deletion (eventual consistency)
+            echo "Waiting for deletion to propagate..."
+            sleep 5
+
+            # Verify deletion completed with timeout
+            DELETED=false
+            for i in {1..5}; do
+              if ! gh release view "$RELEASE_TAG" &> /dev/null; then
+                echo "✓ Release deleted successfully"
+                DELETED=true
+                break
+              fi
+              echo "Waiting for deletion to complete (attempt $i/5)..."
+              sleep 3
+            done
+
+            # Fail if deletion didn't complete
+            if [ "$DELETED" = false ]; then
+              echo "::error::Release deletion timed out after 20 seconds"
+              echo "::error::GitHub API may be experiencing delays. Please try again later."
+              exit 1
+            fi
+          fi
 
           # Create pre-release first (without assets)
           gh release create "$RELEASE_TAG" \

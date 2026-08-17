@@ -20,12 +20,31 @@ if (!releaseVersion) {
 
 console.log(`Updating packages to version ${releaseVersion}`);
 
+// Verify packages directory exists
+if (!fs.existsSync('packages')) {
+  console.error('Error: packages/ directory not found');
+  console.error('Current directory:', process.cwd());
+  console.error('This script must be run from the repository root');
+  process.exit(1);
+}
+
 // Find all package.json files (excluding node_modules)
-const packageFiles = execSync('find packages -name "package.json" -type f -not -path "*/node_modules/*"', {
-  encoding: 'utf8'
-})
-  .trim()
-  .split('\n');
+let packageFiles;
+try {
+  const output = execSync('find packages -name "package.json" -type f -not -path "*/node_modules/*"', {
+    encoding: 'utf8'
+  }).trim();
+
+  if (!output) {
+    console.error('Error: No package.json files found in packages/');
+    process.exit(1);
+  }
+
+  packageFiles = output.split('\n');
+} catch (error) {
+  console.error('Error running find command:', error.message);
+  process.exit(1);
+}
 
 let updatedCount = 0;
 
@@ -47,11 +66,14 @@ packageFiles.forEach(pkgPath => {
 
 console.log(`Updated ${updatedCount} packages`);
 
-// Update package-lock.json (skip if --skip-lockfile flag provided)
-const skipLockfile = process.argv.includes('--skip-lockfile');
-if (skipLockfile) {
-  console.log('Skipping package-lock.json update (--skip-lockfile flag provided)');
-} else {
-  console.log('Updating package-lock.json');
+// Always update package-lock.json to maintain dependency graph integrity
+// Note: This ensures package-lock.json versions match package.json after version bumps
+console.log('Updating package-lock.json to match new versions');
+try {
   execSync('npm install --ignore-scripts --package-lock-only --no-audit', { stdio: 'inherit' });
+  console.log('✓ package-lock.json updated successfully');
+} catch (error) {
+  console.error('Error updating package-lock.json:', error.message);
+  console.error('This may cause version mismatches during build. Please fix manually.');
+  process.exit(1);
 }

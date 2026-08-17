@@ -23,7 +23,7 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Build release VSIXs from promoted prereleases for testing before marketplace publish:
+Automated Wed 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest nightly tag, builds release VSIXs. Manual trigger for on-demand:
 
 ```bash
 # Auto-detect latest nightly tag, auto-calculate version
@@ -35,7 +35,7 @@ gh workflow run buildReleaseFromPrerelease.yml \
   -f releaseVersion="67.12.0"
 ```
 
-Creates GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally, then trigger [publishVSCode.yml](.github/workflows/publishVSCode.yml) for marketplace publish.
+Creates GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
 
 ## Extension Discovery
 
