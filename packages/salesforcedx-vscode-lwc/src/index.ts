@@ -13,10 +13,13 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import { ExtensionContext, workspace } from 'vscode';
+import type { BaseLanguageClient } from 'vscode-languageclient';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';
 import { createLwcCommand } from './commands/createLwc';
@@ -34,6 +37,11 @@ import { startLwcFileWatcher } from './util/lwcFileWatcher';
 class LwcLanguageServerError extends Schema.TaggedError<LwcLanguageServerError>()('LwcLanguageServerError', {
   message: Schema.String
 }) {}
+
+// Module-level state to allow the sfdx-project.json watcher to restart the client
+let languageClient: BaseLanguageClient | undefined;
+let extensionUri: URI;
+let initializationOptions: { workspaceType: WorkspaceType; sfdxTypingsDir: string };
 
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
@@ -96,9 +104,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
     Effect.orElseSucceed(() => undefined)
   );
 
+  // Store initialization options for restart
+  extensionUri = extensionContext.extensionUri;
+  initializationOptions = { workspaceType, sfdxTypingsDir };
+
   const client = yield* Effect.tryPromise({
-    try: () =>
-      createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir }, packageDirectories),
+    try: () => createLanguageClient(extensionUri, initializationOptions, packageDirectories),
     catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.tapError(error =>
@@ -107,6 +118,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
       )
     )
   );
+
+  // Store client reference for restart capability
+  languageClient = client;
 
   // Create language status item to show indexing progress
   const statusBarItem = new LwcLspStatusBarItem();
@@ -150,6 +164,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
     createLwcCommand(sourceUri, { internal: true })
   );
   yield* Effect.forkDaemon(startLwcFileWatcher());
+  // Watch sfdx-project.json for changes and restart the client to pick up new packageDirectories
+  yield* Effect.forkDaemon(watchSfProjectForLwcClient());
   // Creates resources for js-meta.xml to work
   yield* activateMetaSupport(extensionContext.extensionUri);
 
@@ -167,6 +183,68 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   }
 
   yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activation_complete'));
+});
+
+/**
+ * Watches sfdx-project.json for changes and restarts the LWC language client to pick up
+ * new or modified packageDirectories. This ensures file watchers remain scoped to the
+ * current package directories even when they change mid-session.
+ */
+const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  const channelSvc = yield* api.services.ChannelService;
+
+  yield* Stream.fromPubSub(fileChangePubSub).pipe(
+    Stream.filter(event => Utils.basename(event.uri) === 'sfdx-project.json'),
+    Stream.debounce(Duration.millis(500)),
+    Stream.runForEach(() =>
+      Effect.gen(function* () {
+        if (!languageClient) {
+          return;
+        }
+
+        yield* channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server'));
+
+        // Fetch updated package directories
+        const packageDirectories: string[] | undefined = yield* api.services.ProjectService.getSfProject().pipe(
+          Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
+          Effect.orElseSucceed(() => undefined)
+        );
+
+        // Stop the current client
+        yield* Effect.tryPromise({
+          try: () => languageClient!.stop(),
+          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+        });
+
+        // Create and start a new client with updated package directories
+        const newClient = yield* Effect.tryPromise({
+          try: () => createLanguageClient(extensionUri, initializationOptions, packageDirectories),
+          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+        });
+
+        // Register workspace read file handler before start
+        registerWorkspaceReadFileHandler(newClient, channelAdapter);
+
+        yield* Effect.tryPromise({
+          try: () => newClient.start(),
+          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+        });
+
+        // Update the module-level reference
+        languageClient = newClient;
+
+        yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_restarted'));
+      }).pipe(
+        Effect.catchAll(error =>
+          channelSvc.appendToChannel(
+            nls.localize('lwc_language_server_restart_failed', isError(error) ? error.message : String(error))
+          )
+        )
+      )
+    )
+  );
 });
 
 export const deactivate = () => {
