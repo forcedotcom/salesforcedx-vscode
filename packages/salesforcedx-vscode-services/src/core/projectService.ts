@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import { Global, SfProject } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
@@ -13,6 +14,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
@@ -61,6 +63,16 @@ const globalSfProjectCache = Effect.runSync(
     lookup: resolveSfProject
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
+
+// Project cache state and its notifications share module-level lifetime so every services API consumer
+// observes the same ordered stream, just as every ProjectService instance uses the same project cache.
+const projectConfigChangePubSub = Effect.runSync(PubSub.sliding<FileChangeEvent>(100));
+
+/** Read-only stream of root sfdx-project.json events published after project cache invalidation. */
+export const projectConfigChanges = Stream.fromPubSub(projectConfigChangePubSub);
+
+/** Internal publisher used by sfProjectFileWatcher after it has invalidated all project caches. */
+export const publishProjectConfigChange = (event: FileChangeEvent) => PubSub.publish(projectConfigChangePubSub, event);
 
 /**
  * Invalidate the SfProject cache so the next `getSfProject` re-reads sfdx-project.json from disk.
@@ -261,6 +273,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     return {
       isSalesforceProject,
       getSfProject,
+      projectConfigChanges,
       isInPackageDirectories,
       ensureInPackageDirectories,
       getSoqlMetadataPath,

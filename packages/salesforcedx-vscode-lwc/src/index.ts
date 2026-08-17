@@ -192,11 +192,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
  */
 const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  const projectService = yield* api.services.ProjectService;
   const channelSvc = yield* api.services.ChannelService;
 
-  yield* Stream.fromPubSub(fileChangePubSub).pipe(
-    Stream.filter(event => Utils.basename(event.uri) === 'sfdx-project.json'),
+  yield* projectService.projectConfigChanges.pipe(
     Stream.debounce(Duration.millis(500)),
     Stream.runForEach(() =>
       Effect.gen(function* () {
@@ -207,7 +206,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         yield* channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server'));
 
         // Fetch updated package directories
-        const packageDirectories: string[] | undefined = yield* api.services.ProjectService.getSfProject().pipe(
+        const packageDirectories: string[] | undefined = yield* projectService.getSfProject().pipe(
           Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
           Effect.orElseSucceed(() => undefined)
         );
