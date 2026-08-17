@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -150,6 +150,46 @@ describe('digest', () => {
         })
       );
       expect(computeExtensionDigest(flat)).toEqual(computeExtensionDigest(nested));
+    });
+  });
+
+  /** Write raw package.json bytes verbatim (bypasses makeExtension's JSON.stringify) to model install-time rewrites. */
+  const makeExtensionRaw = (packageJsonRaw: string): string => {
+    const dir = mkdtempSync(join(tmpdir(), 'cb-digest-raw-'));
+    writeFileSync(join(dir, 'package.json'), packageJsonRaw);
+    return dir;
+  };
+
+  describe('canonical package.json digest (install-invariance)', () => {
+    it('is identical despite key reordering + whitespace/indentation differences', () => {
+      const swapSide = track(makeExtensionRaw('{"name":"x","version":"1.0.0"}'));
+      const verifySide = track(makeExtensionRaw('{\n  "version": "1.0.0",\n  "name": "x"\n}\n'));
+      expect(computeExtensionDigest(swapSide).pkgJsonDigest).toBe(computeExtensionDigest(verifySide).pkgJsonDigest);
+    });
+
+    it('ignores an install-injected __metadata block', () => {
+      const swapSide = track(makeExtensionRaw('{"name":"x","version":"1.0.0"}'));
+      const installed = track(
+        makeExtensionRaw('{"name":"x","version":"1.0.0","__metadata":{"installedTimestamp":123,"id":"abc"}}')
+      );
+      expect(computeExtensionDigest(swapSide).pkgJsonDigest).toBe(computeExtensionDigest(installed).pkgJsonDigest);
+    });
+
+    it('still differs when the meaningful content (version) changes', () => {
+      const a = track(makeExtensionRaw('{"name":"x","version":"1.0.0"}'));
+      const b = track(makeExtensionRaw('{"name":"x","version":"1.0.1"}'));
+      expect(computeExtensionDigest(a).pkgJsonDigest).not.toBe(computeExtensionDigest(b).pkgJsonDigest);
+    });
+  });
+
+  describe('symlink escape', () => {
+    it('throws when main is an in-root symlink pointing outside the extension root', () => {
+      const outside = track(mkdtempSync(join(tmpdir(), 'cb-outside-')));
+      writeFileSync(join(outside, 'secret.js'), 'foreign-bytes');
+      const d = track(makeExtension({ pkg: { name: 'x', version: '1.0.0', main: 'link.js' } }));
+      // link.js lives inside the root (passes the string containment check) but resolves outside it.
+      symlinkSync(join(outside, 'secret.js'), join(d, 'link.js'));
+      expect(() => resolveEntrypoint(d)).toThrow(UnresolvableEntrypointError);
     });
   });
 });

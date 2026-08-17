@@ -158,6 +158,23 @@ describe('verifyExtensions', () => {
     expect(result.entries[0].reason).toMatch(/found 2/);
   });
 
+  // A single dir of the WRONG version must fail — the glob is version-agnostic, so version is gated explicitly.
+  it('fails when the only installed dir is a different version than the manifest', () => {
+    const tree = track(
+      makeExtensionTree({ name: 'c', version: '67.0.0', main: 'm.js' }, { path: 'm.js', content: 'old' })
+    );
+    const WRONG_DIR = `${OVERRIDES_DIR}/${CORE_ID}-67.0.0`; // installed 67.0.0…
+    const manifest = makeManifest([{ id: CORE_ID, version: '67.4.0', ...computeExtensionDigest(tree) }]); // …manifest wants 67.4.0
+    const { runner } = makeFakeRunner({
+      dirsById: { [CORE_ID]: [WRONG_DIR] },
+      treeByContainerDir: { [WRONG_DIR]: tree }
+    });
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(false);
+    expect(result.entries[0].reason).toMatch(/does not match expected version/);
+  });
+
   // An EMPTY manifest must not pass — every([]) is vacuously true, which would be the false-green.
   it('fails loud on an empty manifest (does not pass vacuously)', () => {
     const manifest = makeManifest([]);
