@@ -9,7 +9,7 @@ import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import { getNearestPackageJson } from './packageJsonUtils';
 
-const SUCCESS_ONLY_ENUM = new Set(['successToast', 'successStatusBar', 'successOff']);
+const SUCCESS_ONLY_VALUES = new Set(['successToast', 'successStatusBar', 'successOff']);
 const PROGRESS_ONLY_ENUM = new Set(['progressToast', 'progressStatusBar']);
 
 /** Read commandLevelNotifications properties from nearest package.json */
@@ -88,7 +88,7 @@ export const notificationSlotMatchesPackageJson = RuleCreator.withoutDocs<
         if (!enumValues || enumValues.length === 0) continue;
 
         const enumSet = new Set(enumValues);
-        const isSuccess = setsEqual(enumSet, SUCCESS_ONLY_ENUM);
+        const isSuccess = enumSet.size > 0 && [...enumSet].every(v => SUCCESS_ONLY_VALUES.has(v));
         const isProgress = setsEqual(enumSet, PROGRESS_ONLY_ENUM);
 
         if (!isSuccess && !isProgress) {

@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
@@ -16,6 +15,9 @@ import {
   removeExpiredAndDeletedOrgs,
   updateConfigAndStateAggregatorsEffect
 } from '../util/orgUtil';
+import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
+
+const COMMAND: SuccessOnlyCommandKey = 'SFDX: Remove Deleted and Expired Orgs';
 
 /** @ExportTaggedError */
 export class OrgListCleanError extends Schema.TaggedError<OrgListCleanError>()('OrgListCleanError', {
@@ -38,12 +40,12 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
     )
   );
 
+  const notificationMode = yield* api.services.NotificationModeService;
+
   // Nothing to remove: tell the user instead of asking them to confirm a no-op.
   if (removable.length === 0) {
     yield* channel.appendToChannel(nls.localize('org_list_clean_no_orgs_message'));
-    yield* Effect.sync(
-      () => void notificationService.showInformationMessage(nls.localize('org_list_clean_no_orgs_message'))
-    );
+    yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('org_list_clean_no_orgs_message'), true);
     return;
   }
 
@@ -62,7 +64,7 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
 
   const successMessage = nls.localize('org_list_clean_success_message', removedOrgs.length, removedOrgs.join(', '));
   yield* channel.appendToChannel(successMessage);
-  yield* Effect.sync(() => void notificationService.showInformationMessage(successMessage));
+  yield* notificationMode.showSuccessNotification(COMMAND, successMessage, true);
 
   // Flush ConfigAggregator + StateAggregator so the org picker doesn't show just-removed orgs,
   // and so the table below reflects post-flush state.

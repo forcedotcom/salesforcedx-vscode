@@ -82,6 +82,10 @@ const buildServicesLayer = (listMock: jest.Mock) =>
         ChannelService: Effect.succeed({
           appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
           showChannel: Effect.sync(() => showChannelMock())
+        }),
+        NotificationModeService: Effect.succeed({
+          getProgressLocation: () => Effect.succeed(1),
+          showSuccessNotification: () => Effect.void
         })
       }
     } as unknown as SalesforceVSCodeServicesApi)

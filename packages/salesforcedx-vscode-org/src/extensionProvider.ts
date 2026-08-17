@@ -5,15 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type { ExtensionContext } from 'vscode';
 
 /**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Uses ExtensionContextService.Default (fails if getContext is called).
- * Use buildAllServicesLayer(context) to provide a working ExtensionContextService.
+ * Layer providing all services from SalesforceVSCodeServicesApi plus NotificationModeService
+ * for notification configuration.
  */
+export const buildAllServicesLayer = (context: ExtensionContext) =>
+  Layer.unwrapEffect(
+    Effect.map(getServicesApi, api =>
+      Layer.mergeAll(
+        buildSharedServicesLayer(context, 'Salesforce Org Management'),
+        api.services.NotificationModeService.Default(
+          'salesforcedx-vscode-org',
+          'sf-org-notifications',
+          'Salesforce: Org Notifications'
+        )
+      )
+    )
+  );
 
 let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
@@ -34,6 +48,13 @@ type OrgRuntime = ManagedRuntime.ManagedRuntime<
 >;
 let _orgRuntime: OrgRuntime | undefined;
 export const getOrgRuntime = () => (_orgRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeOrgRuntime = async (): Promise<void> => {
+  if (_orgRuntime) {
+    await _orgRuntime.dispose();
+    _orgRuntime = undefined;
+  }
+};
 
 /** Reset cached runtime. Used by tests when AllServicesLayer changes between tests. */
 export const resetOrgRuntimeForTesting = (): void => {
