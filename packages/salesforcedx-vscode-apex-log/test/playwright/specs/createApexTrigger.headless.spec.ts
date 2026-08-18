@@ -46,15 +46,49 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
+    // Enter trigger name
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 5000 });
     await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
-
     await page.keyboard.type(triggerName);
-    await saveScreenshot(page, 'step1.after-type-name.png');
     await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'step1.after-type-name.png');
 
+    // Select sObject — QuickPick when org is connected, text input fallback otherwise
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await saveScreenshot(page, 'step1.sobject-prompt-visible.png');
+    await page.keyboard.type('Case');
+    const hasSObjectList = await page.locator('.quick-input-list').isVisible();
+    if (hasSObjectList) {
+      await waitForQuickInputFirstOption(page);
+    }
+    await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'step1.after-select-sobject.png');
+
+    // Select trigger events (multi-select QuickPick)
+    // Default pre-checked: "before insert". Deselect it, then select "after insert" and "after update".
+    await waitForQuickInputFirstOption(page);
+    await saveScreenshot(page, 'step1.events-prompt-visible.png');
+
+    // "before insert" is first and focused — deselect it
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Space');
+
+    // Navigate down to "after insert" (4th item: before insert, before update, before delete, after insert)
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Space');
+
+    // Navigate down to "after update" (5th item)
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Space');
+
+    await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'step1.after-select-events.png');
+
+    // Select output directory
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
     await page.keyboard.press('Enter');
@@ -81,7 +115,9 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     ).toBeVisible({ timeout: 2000 });
 
     const editorText = page.locator('.view-lines').first();
-    await expect(editorText).toContainText(`trigger ${triggerName} on SOBJECT (before insert)`, { timeout: 100 });
+    await expect(editorText).toContainText(`trigger ${triggerName} on Case (after insert, after update)`, {
+      timeout: 100
+    });
     await expect(editorText).toContainText('}', { timeout: 100 });
     await saveScreenshot(page, 'step2.trigger-content-verified.png');
   });

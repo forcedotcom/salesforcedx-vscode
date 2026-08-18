@@ -49,7 +49,7 @@ const ListMetadataKeySchema = S.Data(
 );
 
 /** Subset of the full SObject global describe result */
-export type SObjectGlobalDescribeItem = { name: string; custom: boolean; queryable: boolean };
+export type SObjectGlobalDescribeItem = { name: string; custom: boolean; queryable: boolean; triggerable: boolean };
 
 export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>()('MetadataDescribeError', {
   cause: S.Unknown,
@@ -152,7 +152,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       }).pipe(
         Effect.map(result =>
           result.sobjects.map(
-            s => ({ name: s.name, custom: s.custom, queryable: s.queryable }) satisfies SObjectGlobalDescribeItem
+            s =>
+              ({
+                name: s.name,
+                custom: s.custom,
+                queryable: s.queryable,
+                triggerable: s.triggerable
+              }) satisfies SObjectGlobalDescribeItem
           )
         ),
         Effect.withSpan('listSObjects (API call)')

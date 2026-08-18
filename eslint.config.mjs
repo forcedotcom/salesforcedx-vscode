@@ -580,6 +580,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-services-types/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/drivable-vscode/**/*.ts',
       'packages/salesforcedx-vscode-visualforce/**/*.ts'
     ],
     ignores: [
@@ -747,6 +748,7 @@ export default [
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
+      'packages/drivable-vscode/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
@@ -818,6 +820,16 @@ export default [
   {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-utils (inline to avoid no-duplicate-imports; W-23371027)
+    files: ['packages/salesforcedx-utils/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

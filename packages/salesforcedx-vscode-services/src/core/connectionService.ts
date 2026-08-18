@@ -344,14 +344,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return desktopConn;
           });
 
-      // update the org ref in the background — ONLY for the default org (no explicit username)
+      // Update the org ref in the background only for the default org (no explicit username).
       if (isUndefined(username)) {
         const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
         const instanceName = rawInstanceName?.trim();
         const defaultOrgRef = yield* getDefaultOrgRef();
         const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
-          Effect.provide(AliasService.Default),
+          Effect.provideService(AliasService, aliasService),
+          Effect.provideService(ConfigService, configService),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void),
           Effect.forkDaemon
@@ -431,6 +432,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   previousOrgId?: string
 ) {
   const aliasService = yield* AliasService;
+  const configService = yield* ConfigService;
   const {
     orgId,
     instanceName: rawInstanceName,
@@ -466,6 +468,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const authUsername = resolveUsername(conn);
   const username = queriedUsername ?? authUsername ?? undefined;
   const userId = queriedUserId;
+  const targetOrg = yield* configService.getTargetOrg();
+  const alias = targetOrg && targetOrg !== username ? targetOrg : undefined;
 
   const aliases =
     username && (orgIdChanged || existingOrgInfo.username !== username)
@@ -479,6 +483,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     isSandbox,
     tracksSource,
     username,
+    alias,
     userId,
     devHubOrgId,
     aliases
@@ -505,12 +510,14 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
+      alias,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const updated = { ...existingOrgInfo, ...updates };
+  const updated = { ...existingOrgInfo, ...updates, alias };
+
   // Check if objects have the same content (deep equality using schema)
   // otherwise, calling set on the ref counts as a change but it's really not one.
   if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {

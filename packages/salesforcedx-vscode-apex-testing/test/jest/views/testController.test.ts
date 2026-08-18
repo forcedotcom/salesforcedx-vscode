@@ -50,6 +50,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
     safeDelete: () => EffectLib.void,
     safeWriteFile: () => EffectLib.void,
     writeFile: () => EffectLib.void,
+    toUri: (filePath: string) => EffectLib.succeed(UriClass.parse(`memfs:${filePath}`)),
     // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
     HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
@@ -761,7 +762,7 @@ describe('ApexTestController', () => {
 
   describe('retrieveOrgOnlyClass', () => {
     it('retrieves org-only class for apex-testing class items', async () => {
-      const orgOnlyClassFileUri = URI.file('/workspace/force-app/main/default/classes/OrgOnlyClass.cls');
+      const orgOnlyClassFileUri = URI.parse('memfs:/workspace/force-app/main/default/classes/OrgOnlyClass.cls');
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
@@ -793,7 +794,7 @@ describe('ApexTestController', () => {
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
       ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], { ignoreConflicts: true });
       expect(vscode.window.showTextDocument).toHaveBeenCalledWith(
-        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath }),
+        expect.objectContaining({ scheme: 'memfs', path: orgOnlyClassFileUri.path }),
         expect.anything()
       );
       expect(refreshSpy).not.toHaveBeenCalled();
