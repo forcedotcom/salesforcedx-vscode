@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- **SFDX: Create Apex Class** and **SFDX: Create Apex Trigger** now support custom templates. The built-in template list for **SFDX: Create Apex Class** is now populated dynamically, **SFDX: Create Apex Trigger** prompts you for the sObject and trigger events up front, and the separate **SFDX: Create Apex Unit Test Class** command has been folded into **SFDX: Create Apex Class**. ([PR #7960](https://github.com/forcedotcom/salesforcedx-vscode/pull/7960))
+- **SFDX: Create Apex Class** and **SFDX: Create Apex Trigger** now support custom templates. The template list for **SFDX: Create Apex Class** is now populated dynamically, **SFDX: Create Apex Trigger** prompts you for the sObject and trigger events up front, and the separate **SFDX: Create Apex Unit Test Class** command has been folded into **SFDX: Create Apex Class**. ([PR #7960](https://github.com/forcedotcom/salesforcedx-vscode/pull/7960))
 
 ## Fixed
 
