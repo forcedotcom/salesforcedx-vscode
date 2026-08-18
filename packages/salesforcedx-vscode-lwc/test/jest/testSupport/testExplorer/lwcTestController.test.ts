@@ -930,8 +930,8 @@ describe('LwcTestController public run API', () => {
 
     await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
 
-    expect(mockRun.failed).toHaveBeenCalled();
-    const [, message] = (mockRun.failed as jest.Mock).mock.calls[0];
+    expect(mockRun.errored).toHaveBeenCalled();
+    const [, message] = (mockRun.errored as jest.Mock).mock.calls[0];
     expect(message.location).toBeDefined();
     // Compare URIs rather than fsPath to avoid platform-specific path separators
     expect(message.location.uri.toString()).toBe(testUri.toString());
@@ -1079,12 +1079,12 @@ describe('LwcTestController public run API', () => {
     await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
 
     // The crash-extracted error should be preserved, not overwritten by Jest's generic message
-    expect(mockRun.failed).toHaveBeenCalled();
-    const failedCalls = (mockRun.failed as jest.Mock).mock.calls;
+    expect(mockRun.errored).toHaveBeenCalled();
+    const erroredCalls = (mockRun.errored as jest.Mock).mock.calls;
 
     // Find the call with the crash-extracted error (should contain "SyntaxError" in the message field)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const crashErrorCall = failedCalls.find((call: any[]) => {
+    const crashErrorCall = erroredCalls.find((call: any[]) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const testMessage = call[1];
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -1258,20 +1258,20 @@ describe('LwcTestController public run API', () => {
     // Run a file-level test that crashes
     await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
 
-    // The file should have been marked as failed with the crash error
-    expect(mockRun.failed).toHaveBeenCalled();
+    // The file should have been marked as errored with the crash error
+    expect(mockRun.errored).toHaveBeenCalled();
 
     // Verify that the crash error message is preserved (contains "ReferenceError")
     // and NOT overwritten by the generic Jest message from the results file
-    const failedCalls = (mockRun.failed as jest.Mock).mock.calls;
+    const erroredCalls = (mockRun.errored as jest.Mock).mock.calls;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const fileFailedCall = failedCalls.find((call: any[]) => call[1]?.message?.includes('ReferenceError'));
+    const fileErroredCall = erroredCalls.find((call: any[]) => call[1]?.message?.includes('ReferenceError'));
 
-    expect(fileFailedCall).toBeDefined();
+    expect(fileErroredCall).toBeDefined();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(fileFailedCall[1].message).toContain('ReferenceError: foo is not defined');
+    expect(fileErroredCall[1].message).toContain('ReferenceError: foo is not defined');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(fileFailedCall[1].message).not.toContain('Generic Jest error');
+    expect(fileErroredCall[1].message).not.toContain('Generic Jest error');
   });
 
   it('runByExecutionInfo reveals Test Results panel when starting a run', async () => {
