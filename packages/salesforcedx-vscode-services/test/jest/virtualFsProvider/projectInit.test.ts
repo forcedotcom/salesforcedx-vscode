@@ -51,7 +51,7 @@ describe('projectFiles', () => {
 
     await runProjectFiles(provider);
 
-    expect(writeFile.mock.calls.map(([uri]) => uri.toString()).toSorted()).toEqual([
+    const expectedPaths = [
       'memfs:/dx-project/.forceignore',
       'memfs:/dx-project/.gitignore',
       'memfs:/dx-project/.vscode/launch.json',
@@ -62,9 +62,10 @@ describe('projectFiles', () => {
       'memfs:/dx-project/jest.config.js',
       'memfs:/dx-project/sfdx-project.json',
       'memfs:/dx-project/tsconfig.json'
-    ]);
+    ];
+    expect(writeFile.mock.calls.map(([uri]) => uri.toString()).toSorted()).toEqual(expectedPaths);
     expect(writeFile.mock.calls.map(([, , options]) => options)).toEqual(
-      Array.from({ length: 10 }, () => ({ create: true, overwrite: true }))
+      expectedPaths.map(() => ({ create: true, overwrite: true }))
     );
   });
 

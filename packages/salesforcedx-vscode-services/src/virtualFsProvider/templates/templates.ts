@@ -7,7 +7,6 @@
 import { forceignore } from './forceignore';
 import { gitignore } from './gitignore';
 import { jestConfig } from './jestConfig';
-
 import { readme } from './readme';
 import { sfdxProjectJson } from './sfdxProject';
 import { tsconfig } from './tsconfig';
