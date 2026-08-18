@@ -7,7 +7,7 @@
   ],
   "overrides": {
     "wireit": {
-      "brace-expansion": "4.0.1"
+      "brace-expansion": "^5.0.6"
     },
     "playwright-core": "1.60.0"
   },
@@ -113,7 +113,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.65.0",
     "util": "0.12.5",
-    "wireit": "^0.14.12",
+    "wireit": "^0.14.13",
     "xml2js": "0.6.2",
     "yaml": "^2.9.0"
   },
