@@ -63,6 +63,8 @@ packageFiles.forEach(pkgPath => {
   }
 
   // Check if package should be versioned
+  // TODO: Extract this logic to shared module (scripts/lib/package-utils.js)
+  // This is duplicated from create-release-branch.js shouldUpdateVersion()
   const hasVscodePublish = pkg.scripts?.['vscode:publish'];
   const hasPublishConfig = pkg.publishConfig;
   const versionedIndependently = pkg.versionedIndependently;

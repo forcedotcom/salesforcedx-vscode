@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       startFromRef:
-        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. For emergency releases from specific commits/branches.'
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation - ensure ref is reviewed/merged to develop before using.'
         required: false
         type: string
       prereleaseTag:
@@ -174,6 +174,8 @@ jobs:
 
       - name: Collect VSIXs
         run: |
+          # TODO: Extract to reusable composite action (.github/actions/collect-vsix)
+          # This pattern is duplicated in build-patch-release.yml and other workflows
           mkdir -p extensions
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
 
@@ -234,6 +236,9 @@ jobs:
             EXISTING_BODY=$(gh release view "$RELEASE_TAG" --json body --jq '.body')
 
             # Check if release was created by this workflow (contains our marker)
+            # NOTE: This uses text matching on release body which is fragile - if release notes
+            # format changes, this check may break. Future improvement: use GitHub release labels
+            # or custom metadata for more reliable workflow-created marker.
             if echo "$EXISTING_BODY" | grep -q "Built from promoted prerelease:"; then
               echo "✓ Release was created by buildReleaseFromPrerelease.yml - safe to delete for retry"
               gh release delete "$RELEASE_TAG" --yes --cleanup-tag
@@ -278,16 +283,9 @@ jobs:
             --notes-file release_notes.md \
             --prerelease
 
-          # Upload VSIX files
-          echo "Uploading VSIX files..."
-          for vsix in ./extensions/*.vsix; do
-            echo "Uploading $(basename "$vsix")..."
-            gh release upload "$RELEASE_TAG" "$vsix"
-          done
-
-          # Upload SHA256
-          echo "Uploading SHA256.md..."
-          gh release upload "$RELEASE_TAG" SHA256.md
+          # Upload VSIX files and SHA256 in batch (more efficient than loop)
+          echo "Uploading VSIX files and SHA256.md..."
+          gh release upload "$RELEASE_TAG" ./extensions/*.vsix SHA256.md
 
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"

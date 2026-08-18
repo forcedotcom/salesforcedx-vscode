@@ -75,8 +75,24 @@ jobs:
 
           echo "Latest tag: $LATEST_TAG"
 
+          # Validate that latest tag is a stable release (not prerelease like v67.12.0-beta.1)
+          if ! echo "$LATEST_TAG" | grep -qE "^v${MAJOR_MINOR}\.[0-9]+$"; then
+            echo "::error::Latest tag $LATEST_TAG is not a stable release version"
+            echo "::error::Expected format: v${MAJOR_MINOR}.{patch} (e.g., v${MAJOR_MINOR}.0)"
+            echo "::error::Found prerelease or malformed tag. Cannot create patch from non-stable release."
+            exit 1
+          fi
+
           # Extract patch number and increment
           CURRENT_PATCH=$(echo "$LATEST_TAG" | sed -E "s/^v${MAJOR_MINOR}\.([0-9]+)$/\1/")
+
+          # Validate extraction succeeded
+          if [ -z "$CURRENT_PATCH" ] || ! echo "$CURRENT_PATCH" | grep -qE '^[0-9]+$'; then
+            echo "::error::Failed to extract numeric patch version from $LATEST_TAG"
+            echo "::error::Extracted value: '$CURRENT_PATCH'"
+            exit 1
+          fi
+
           NEW_PATCH=$((CURRENT_PATCH + 1))
           NEW_VERSION="${MAJOR_MINOR}.${NEW_PATCH}"
           NEW_TAG="v${NEW_VERSION}"
@@ -95,6 +111,7 @@ jobs:
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "prev_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Configure git
         uses: ./.github/actions/gitConfig
@@ -102,23 +119,7 @@ jobs:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
       - name: Update package versions
-        env:
-          VERSION: ${{ steps.calculate-version.outputs.version }}
-        run: |
-          # Find all package.json files and update versions
-          find packages -name "package.json" -type f -not -path "*/node_modules/*" | while read pkgPath; do
-            pkg=$(cat "$pkgPath")
-
-            # Check if package should be versioned (has vscode:publish or publishConfig)
-            if echo "$pkg" | jq -e '.scripts["vscode:publish"] // .publishConfig' >/dev/null 2>&1; then
-              # Check if it's independently versioned
-              if ! echo "$pkg" | jq -e '.versionedIndependently' >/dev/null 2>&1; then
-                echo "Updating $(dirname "$pkgPath")"
-                echo "$pkg" | jq ".version = \"$VERSION\"" > "$pkgPath.tmp"
-                mv "$pkgPath.tmp" "$pkgPath"
-              fi
-            fi
-          done
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
 
       - name: Update package-lock.json
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
@@ -165,12 +166,13 @@ jobs:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VERSION: ${{ steps.calculate-version.outputs.version }}
           TAG: ${{ steps.calculate-version.outputs.tag }}
+          PREV_TAG: ${{ steps.calculate-version.outputs.prev_tag }}
           BRANCH: ${{ github.event.inputs.releaseBranch }}
         run: |
           echo "Creating GitHub pre-release: $TAG"
 
-          # Get commit messages since last tag for release notes
-          PREV_TAG=$(git tag -l "v${VERSION%.*}.*" --sort=-v:refname | sed -n '2p')
+          # Get commit messages since previous tag for release notes
+          # Use PREV_TAG from calculate-version step instead of deriving from VERSION
           COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG..$TAG" 2>/dev/null || echo "- Initial patch release")
 
           # Create release notes
@@ -223,14 +225,9 @@ jobs:
             --notes-file release_notes.md \
             --prerelease
 
-          # Upload VSIX files
-          for vsix in ./extensions/*.vsix; do
-            echo "Uploading $(basename "$vsix")..."
-            gh release upload "$TAG" "$vsix"
-          done
-
-          # Upload SHA256
-          gh release upload "$TAG" SHA256.md
+          # Upload VSIX files and SHA256 in batch (more efficient than loop)
+          echo "Uploading VSIX files and SHA256.md..."
+          gh release upload "$TAG" ./extensions/*.vsix SHA256.md
 
           echo "Pre-release created: $TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$TAG"
