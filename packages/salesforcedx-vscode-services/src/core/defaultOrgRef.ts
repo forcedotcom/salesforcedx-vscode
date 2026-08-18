@@ -14,6 +14,8 @@ export type TelemetryIdentitySnapshot = Readonly<
   Omit<typeof DefaultOrgInfoSchema.Type, 'instanceName'> & { telemetryClassification: TelemetryClassification }
 >;
 
+const GOV_POD_PATTERN = /^(?:usa|stg)(?:90|94|99)\d\d/;
+
 // eslint-disable-next-line functional/no-let
 let defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type> | undefined;
 
@@ -24,7 +26,7 @@ export const getDefaultOrgRef = Effect.fn('getDefaultOrgRef')(function* () {
 export const getTelemetryIdentitySnapshot = (): TelemetryIdentitySnapshot => {
   const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
   const telemetryClassification =
-    identity.orgId && instanceName ? (/^usa9/i.test(instanceName) ? 'gov' : 'nonGov') : 'unknown';
+    identity.orgId && instanceName ? (GOV_POD_PATTERN.test(instanceName) ? 'gov' : 'nonGov') : 'unknown';
   return Object.freeze({ ...identity, telemetryClassification });
 };
 
