@@ -525,9 +525,9 @@ class LwcTestController {
 
       const { command, args, workspaceFolder, testResultFsPath } = shellInfo;
 
-      // Track whether we've marked items as failed due to a crash error.
-      // This prevents applyResults from overwriting the crash-extracted error with generic messages.
-      let capturedCrashError = false;
+      // Track task failure independently of whether this run has a selected source item.
+      // This also prevents partial results from overwriting a crash-extracted error.
+      let taskCrashed = false;
       let exitCode: number | undefined;
 
       if (isDebug) {
@@ -556,9 +556,10 @@ class LwcTestController {
           command,
           args
         );
-        // execute() sets taskExecution synchronously, returns promise for completion
+        // Subscribe before starting the task so a fast task cannot finish before its completion listeners exist.
+        const taskEndPromise = awaitTaskEnd(sfTask, token);
         void sfTask.execute();
-        const taskEnd = await awaitTaskEnd(sfTask, token);
+        const taskEnd = await taskEndPromise;
         exitCode = taskEnd.exitCode;
 
         // Capture error details if Jest crashed, but don't return early.
@@ -566,9 +567,11 @@ class LwcTestController {
         // of a multi-file run). We'll attempt to read results and show both captured error and
         // any partial test results Jest produced.
         if (exitCode === undefined || exitCode > 0) {
+          taskCrashed = true;
           let errorMessage = `Jest test suite failed to run (exit code ${exitCode})`;
           let errorDetail = 'The test suite crashed before producing results.';
 
+          // Prefer the captured Jest error over the generic crash message when task output is available.
           if (sfTask.pseudoterminal) {
             const capturedError = sfTask.pseudoterminal.extractErrorSummary();
             if (capturedError) {
@@ -578,6 +581,7 @@ class LwcTestController {
             }
           }
 
+          // If this execution targets a specific test item, attach the error to it.
           if (sourceItem) {
             const message = new vscode.TestMessage(errorDetail);
             message.actualOutput = errorMessage;
@@ -594,13 +598,13 @@ class LwcTestController {
             sourceItem.children.forEach(child => {
               run.failed(child, message);
             });
-            appendLine(run, errorMessage);
-            appendLine(run, '');
-            // Split multi-line error detail into individual lines for proper formatting
-            const errorLines = errorDetail.split('\n');
-            errorLines.forEach(line => appendLine(run, line));
-            capturedCrashError = true;
           }
+
+          appendLine(run, errorMessage);
+          appendLine(run, '');
+          // Split multi-line error detail into individual lines for proper formatting
+          const errorLines = errorDetail.split('\n');
+          errorLines.forEach(line => appendLine(run, line));
         }
       }
 
@@ -612,8 +616,7 @@ class LwcTestController {
       // Poll for the file's existence with a short timeout before attempting to read.
       // If we captured a crash error and the exit code suggests no results file will exist,
       // use a shorter timeout to avoid hanging for 5 minutes.
-      const expectNoResults = capturedCrashError && (exitCode === undefined || exitCode > 0);
-      await waitForResultFile(testResultFsPath, token, expectNoResults);
+      await waitForResultFile(testResultFsPath, token, taskCrashed);
 
       if (token.isCancellationRequested) {
         return;
@@ -623,9 +626,9 @@ class LwcTestController {
       if (results) {
         // Don't let applyResults overwrite crash-extracted errors.
         // Pass the crash state so it can skip items already marked as failed.
-        this.applyResults(run, results, capturedCrashError ? sourceItem : undefined);
+        this.applyResults(run, results, taskCrashed ? sourceItem : undefined);
         appendTestResultsOutput(run, results, this.testItemLookup);
-      } else if (sourceItem && !capturedCrashError) {
+      } else if (sourceItem && !taskCrashed) {
         // Only show generic "no results" error if we didn't already capture a specific crash error
         run.failed(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
         appendLine(run, nls.localize('no_test_results_produced_message'));
@@ -802,7 +805,7 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
     };
 
     const endHandler = vscode.tasks.onDidEndTaskProcess(e => {
-      if (e.execution === sfTask.taskExecution) {
+      if (sfTask.matchesExecution(e.execution)) {
         safeResolve({ exitCode: e.exitCode });
       }
     });

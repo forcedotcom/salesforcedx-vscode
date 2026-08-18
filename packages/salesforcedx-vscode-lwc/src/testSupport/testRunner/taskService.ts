@@ -19,6 +19,7 @@ type SfTaskDefinition = vscode.TaskDefinition & {
  */
 export class SfTask {
   private task: vscode.Task;
+  private taskId: string;
   /**
    * The vscode.TaskExecution for this task, set after execute() resolves.
    * Use to correlate with task process events (e.g., onDidEndTaskProcess).
@@ -34,8 +35,9 @@ export class SfTask {
 
   private onDidStartEventEmitter: vscode.EventEmitter<SfTask>;
   private onDidEndEventEmitter: vscode.EventEmitter<SfTask>;
-  constructor(task: vscode.Task, pseudoterminal?: JestPseudoterminal) {
+  constructor(task: vscode.Task, taskId: string, pseudoterminal?: JestPseudoterminal) {
     this.task = task;
+    this.taskId = taskId;
     this.pseudoterminal = pseudoterminal;
     this.onDidStartEventEmitter = new vscode.EventEmitter<SfTask>();
     this.onDidEndEventEmitter = new vscode.EventEmitter<SfTask>();
@@ -54,6 +56,15 @@ export class SfTask {
   public async execute() {
     this.taskExecution = await vscode.tasks.executeTask(this.task);
     return this;
+  }
+
+  /**
+   * Correlates a VS Code task execution without relying on execute() having resolved.
+   */
+  public matchesExecution(execution: vscode.TaskExecution): boolean {
+    const { definition } = execution.task;
+    const executionTaskId = isString(definition.sfTaskId) ? definition.sfTaskId : undefined;
+    return this.taskId === executionTaskId;
   }
 
   public terminate() {
@@ -179,7 +190,7 @@ class TaskService {
       showReuseMessage: false
     };
 
-    const sfTask = new SfTask(task, pseudoterminal);
+    const sfTask = new SfTask(task, taskId, pseudoterminal);
     this.createdTasks.set(taskId, sfTask);
     return sfTask;
   }

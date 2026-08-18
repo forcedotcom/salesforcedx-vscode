@@ -627,10 +627,8 @@ describe('LwcTestController public run API', () => {
         testResultFsPath: '/c/Users/RUNNER~1/work/proj/.sfdx/tools/testresults/lwc/test-result-1.json'
       });
 
-    // Fake task that ends right after execute resolves, so awaitTaskEnd resolves. The real SfTask fires onDidEnd
-    // asynchronously via the task-end event; fire on the next tick here too, otherwise awaitTaskEnd's
-    // endDisposable isn't assigned yet when the handler runs (its .dispose() would throw).
-    // Also mock onDidEndTaskProcess to fire the callback with the task execution info.
+    // Fire the process-end event before execute() assigns taskExecution. Completion must be correlated by the
+    // stable sfTaskId, and the listener must already exist before execution starts.
     let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
     const mockOnDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
       taskEndProcessCallback = cb;
@@ -638,29 +636,27 @@ describe('LwcTestController public run API', () => {
     });
     const vscodeMock = require('vscode');
     vscodeMock.tasks.onDidEndTaskProcess = mockOnDidEndTaskProcess;
+    vscodeMock.workspace.getWorkspaceFolder = jest.fn().mockReturnValue({
+      uri: URI.file('/c/Users/RUNNER~1/work/proj'),
+      name: 'project',
+      index: 0
+    });
 
     const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
     jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
-      let endCb: (() => void) | undefined;
       const mockTaskExecution: vscode.TaskExecution = {
         task: {} as vscode.Task,
         terminate: jest.fn()
       } as vscode.TaskExecution;
       return {
-        onDidEnd: (cb: () => void) => {
-          endCb = cb;
-          return { dispose: jest.fn() };
-        },
+        onDidEnd: jest.fn(() => ({ dispose: jest.fn() })),
         execute: jest.fn().mockImplementation(function (this: any) {
+          taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 0 });
           this.taskExecution = mockTaskExecution;
-          // Fire onDidEndTaskProcess with exit code 0 (success)
-          setImmediate(() => {
-            taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 0 });
-            endCb?.();
-          });
           return Promise.resolve();
         }),
         terminate: jest.fn(),
+        matchesExecution: jest.fn((execution: vscode.TaskExecution) => execution === mockTaskExecution),
         taskExecution: undefined,
         pseudoterminal: undefined
       };
@@ -703,6 +699,115 @@ describe('LwcTestController public run API', () => {
     // ...and applyResults must mark that SAME discovery item passed despite the aliased jest path.
     expect(mockRun.passed).toHaveBeenCalledWith(treeItem);
     expect(mockRun.skipped).not.toHaveBeenCalledWith(treeItem);
+  });
+
+  it('reports a run-all crash and bounds result polling when no source item exists', async () => {
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: { replace: jest.fn(), forEach: jest.fn() },
+      createTestItem: jest.fn(),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue({
+        command: 'node',
+        args: [],
+        workspaceFolder: { uri: URI.file('/project') },
+        testResultFsPath: '/project/.sfdx/tools/testresults/lwc/test-result-1.json'
+      });
+
+    const vscodeMock = require('vscode');
+    const statSpy = jest.spyOn(vscodeMock.workspace.fs, 'stat').mockRejectedValue(new Error('no result file'));
+    const warningSpy = jest.spyOn(vscodeMock.window, 'showWarningMessage');
+    const EffectLib = jest.requireActual('effect/Effect');
+    mockFsReadFile.mockImplementation(() => EffectLib.fail(new Error('no result file')));
+
+    let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
+    vscodeMock.tasks.onDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
+      taskEndProcessCallback = cb;
+      return { dispose: jest.fn() };
+    });
+
+    const capturedStackTrace =
+      'SyntaxError: Unexpected token\n    at Object.<anonymous> (/project/force-app/lwc/foo/__tests__/foo.test.js:15:3)';
+    const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
+    jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
+      const mockTaskExecution: vscode.TaskExecution = {
+        task: {} as vscode.Task,
+        terminate: jest.fn()
+      } as vscode.TaskExecution;
+      return {
+        onDidEnd: jest.fn(() => ({ dispose: jest.fn() })),
+        execute: jest.fn().mockImplementation(function (this: any) {
+          taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 1 });
+          this.taskExecution = mockTaskExecution;
+          return Promise.resolve();
+        }),
+        terminate: jest.fn(),
+        matchesExecution: jest.fn((execution: vscode.TaskExecution) => execution === mockTaskExecution),
+        taskExecution: undefined,
+        pseudoterminal: { extractErrorSummary: jest.fn(() => capturedStackTrace) }
+      };
+    });
+
+    const timeoutSpy = jest.spyOn(globalThis, 'setTimeout').mockImplementation((callback: TimerHandler) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+      return undefined as unknown as ReturnType<typeof setTimeout>;
+    });
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const ctrl = getLwcTestController();
+      const controllerWithExecuteOne = ctrl as unknown as {
+        executeOne: (
+          run: typeof mockRun,
+          executionInfo: { kind: 'testDirectory'; testUri: URI },
+          sourceItem: vscode.TestItem | undefined,
+          isDebug: boolean,
+          token: vscode.CancellationToken
+        ) => Promise<void>;
+      };
+      const token = {
+        isCancellationRequested: false,
+        onCancellationRequested: jest.fn(() => ({ dispose: jest.fn() }))
+      } as unknown as vscode.CancellationToken;
+
+      // Exercise executeOne directly with no source item, matching the implicit run-all path.
+      await controllerWithExecuteOne.executeOne(
+        mockRun,
+        { kind: 'testDirectory', testUri: URI.file('/project') },
+        undefined,
+        false,
+        token
+      );
+
+      expect(statSpy).toHaveBeenCalledTimes(4);
+      expect(warningSpy).not.toHaveBeenCalled();
+      const output = mockRun.appendOutput.mock.calls.flat().join('');
+      expect(output).toContain('Jest test suite failed to run');
+      expect(output).toContain('SyntaxError: Unexpected token');
+    } finally {
+      timeoutSpy.mockRestore();
+    }
   });
 
   it('runByExecutionInfo sets error location on crash message when pseudoterminal captures a stack trace', async () => {
@@ -809,6 +914,7 @@ describe('LwcTestController public run API', () => {
           return Promise.resolve();
         }),
         terminate: jest.fn(),
+        matchesExecution: jest.fn((execution: vscode.TaskExecution) => execution === mockTaskExecution),
         taskExecution: undefined,
         pseudoterminal: {
           extractErrorSummary: jest.fn(() => capturedStackTrace)
@@ -956,6 +1062,7 @@ describe('LwcTestController public run API', () => {
           return Promise.resolve();
         }),
         terminate: jest.fn(),
+        matchesExecution: jest.fn((execution: vscode.TaskExecution) => execution === mockTaskExecution),
         taskExecution: undefined,
         pseudoterminal: {
           extractErrorSummary: jest.fn(() => capturedStackTrace)
@@ -1134,6 +1241,7 @@ describe('LwcTestController public run API', () => {
           return Promise.resolve();
         }),
         terminate: jest.fn(),
+        matchesExecution: jest.fn((execution: vscode.TaskExecution) => execution === mockTaskExecution),
         taskExecution: undefined,
         pseudoterminal: {
           extractErrorSummary: jest.fn(() => capturedStackTrace)
