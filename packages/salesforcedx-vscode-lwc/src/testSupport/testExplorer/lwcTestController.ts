@@ -594,9 +594,9 @@ class LwcTestController {
               message.location = new vscode.Location(errorUri, position);
             }
 
-            run.failed(sourceItem, message);
+            run.errored(sourceItem, message);
             sourceItem.children.forEach(child => {
-              run.failed(child, message);
+              run.skipped(child);
             });
           }
 
@@ -625,7 +625,7 @@ class LwcTestController {
       const results = await readJestResults(testResultFsPath);
       if (results) {
         // Don't let applyResults overwrite crash-extracted errors.
-        // Pass the crash state so it can skip items already marked as failed.
+        // Pass the crash state so it can skip items already marked as errored.
         this.applyResults(run, results, taskCrashed ? sourceItem : undefined);
         appendTestResultsOutput(run, results, this.testItemLookup);
       } else if (sourceItem && !taskCrashed) {
@@ -689,8 +689,8 @@ class LwcTestController {
    * Walk the Jest JSON output and attribute results to matching TestItems.
    *
    * This method processes Jest test results and updates the VS Code Test Explorer with pass/fail/skip states.
-   * It includes logic to prevent overwriting crash-extracted errors that were already set when Jest failed
-   * before producing complete results.
+   * It includes logic to prevent overwriting crash-extracted errors that were already marked as errored
+   * when Jest crashed before producing complete results.
    *
    * @param run The test run to apply results to
    * @param results Jest JSON results to process

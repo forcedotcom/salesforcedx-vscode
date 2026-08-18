@@ -111,7 +111,7 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
    - Exit check: `> 0` (skips signals like SIGTERM=143)
 
 5. **Crash error tracking via `capturedCrashError` flag** (`lwcTestController.ts`)
-   - Set `true` post-`run.failed()` on crash
+   - Set `true` post-`run.errored()` on crash
    - Flows to `waitForResultFile()` & `applyResults()` for timeout/result coordination
 
 6. **Optimized `waitForResultFile` timeout** (`lwcTestController.ts`)
@@ -138,7 +138,7 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 8. **Crash error extraction & formatting** (`lwcTestController.ts`)
    - On `exitCode > 0`/undefined: call `extractErrorSummary()`
    - Strip ANSI via `replaceAll(/\x1b\[[0-9;]*m/g, '')`
-   - Use `run.failed()` for consistency
+   - Use `run.errored()` for crashed tests (couldn't execute, not failed assertions)
    - Build `TestMessage` w/ `actualOutput` (exit code) + `location` from stack
    - Handle multi-line via split/append
 
@@ -165,7 +165,7 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 **Crash error handling flow:**
 1. Task completion, `exitCode > 0` or undefined: extract via `sfTask.pseudoterminal.extractErrorSummary()`
-2. Strip ANSI, mark source + children `failed` w/ message + location
+2. Strip ANSI, mark source `errored` w/ message + location; mark children `skipped()` (never ran)
 3. Set `capturedCrashError = true`
 4. `expectNoResults = true` to `waitForResultFile()` → 2s timeout (avoid 5m hang)
 5. `applyResults(run, results, sourceItem)` → skip re-mark via `skipItem` check
