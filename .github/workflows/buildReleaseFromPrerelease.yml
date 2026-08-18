@@ -123,8 +123,10 @@ jobs:
           cp scripts/calculate-release-version.js /tmp/release-scripts/
           cp scripts/update-release-versions.js /tmp/release-scripts/
 
-          # Generate checksums for integrity verification
-          sha256sum scripts/calculate-release-version.js scripts/update-release-versions.js > /tmp/release-scripts/checksums.txt
+          # Generate checksums for integrity verification (without directory prefix)
+          cd scripts
+          sha256sum calculate-release-version.js update-release-versions.js > /tmp/release-scripts/checksums.txt
+          cd ..
           echo "Generated checksums:"
           cat /tmp/release-scripts/checksums.txt
 
@@ -226,8 +228,25 @@ jobs:
 
           # Check if release already exists (for retry scenarios)
           if gh release view "$RELEASE_TAG" &> /dev/null; then
-            echo "⚠️  Release $RELEASE_TAG already exists. Deleting for retry..."
-            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+            echo "⚠️  Release $RELEASE_TAG already exists"
+
+            # Get release body to check if it was created by this workflow
+            EXISTING_BODY=$(gh release view "$RELEASE_TAG" --json body --jq '.body')
+
+            # Check if release was created by this workflow (contains our marker)
+            if echo "$EXISTING_BODY" | grep -q "Built from promoted prerelease:"; then
+              echo "✓ Release was created by buildReleaseFromPrerelease.yml - safe to delete for retry"
+              gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+            else
+              echo "::error::Release $RELEASE_TAG exists but was NOT created by this workflow"
+              echo "::error::This may be a manually created emergency release"
+              echo "::error::Release body does not contain expected marker: 'Built from promoted prerelease:'"
+              echo "::error::"
+              echo "::error::To proceed, either:"
+              echo "::error::  1. Manually delete the release: gh release delete $RELEASE_TAG --yes --cleanup-tag"
+              echo "::error::  2. Use a different releaseVersion input to avoid conflict"
+              exit 1
+            fi
 
             # Wait for GitHub API to propagate the deletion (eventual consistency)
             echo "Waiting for deletion to propagate..."

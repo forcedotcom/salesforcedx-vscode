@@ -47,9 +47,20 @@ try {
 }
 
 let updatedCount = 0;
+let errorCount = 0;
 
 packageFiles.forEach(pkgPath => {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  let pkg;
+
+  // Parse package.json with error handling
+  try {
+    const content = fs.readFileSync(pkgPath, 'utf8');
+    pkg = JSON.parse(content);
+  } catch (error) {
+    console.error(`✗ Error parsing ${pkgPath}: ${error.message}`);
+    errorCount++;
+    return; // Skip this file, continue with others
+  }
 
   // Check if package should be versioned
   const hasVscodePublish = pkg.scripts?.['vscode:publish'];
@@ -63,6 +74,12 @@ packageFiles.forEach(pkgPath => {
     updatedCount++;
   }
 });
+
+// Report results
+if (errorCount > 0) {
+  console.error(`\n⚠️  Warning: ${errorCount} package.json file(s) had parse errors and were skipped`);
+  console.error('Please fix the JSON syntax in the files listed above');
+}
 
 console.log(`Updated ${updatedCount} packages`);
 

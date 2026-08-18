@@ -59,6 +59,14 @@ if (majorNum > 9999 || minorNum > 9999 || patchNum > 9999) {
 
 // Bump minor version: 67.11.1 → 67.12.0
 const newMinor = minorNum + 1;
+
+// Validate result doesn't overflow
+if (newMinor > 9999) {
+  console.error(`Error: Minor version overflow. ${minorNum} + 1 = ${newMinor} exceeds maximum 9999`);
+  console.error(`Cannot bump minor version from ${prereleaseVersion}`);
+  process.exit(1);
+}
+
 const releaseVersion = `${majorNum}.${newMinor}.0`;
 
 console.log(releaseVersion);

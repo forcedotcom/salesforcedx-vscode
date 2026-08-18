@@ -143,11 +143,26 @@ jobs:
           # Get VSIX filenames from release assets
           VSIX_FILES=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name | endswith(".vsix")) | .name')
 
+          # Validate at least one VSIX file exists
+          if [ -z "$VSIX_FILES" ]; then
+            echo "::error::No VSIX files found in release $RELEASE_TAG"
+            echo "::error::Release exists but contains no .vsix assets"
+            echo "::error::This may indicate buildReleaseFromPrerelease.yml failed to upload VSIXs"
+            exit 1
+          fi
+
           # Extract extension names (strip version suffix)
           EXTENSIONS=$(echo "$VSIX_FILES" | sed -E 's/-[0-9]+\.[0-9]+\.[0-9]+.*\.vsix$//' | sort -u | tr '\n' ',' | sed 's/,$//')
 
+          # Validate extensions list is not empty after extraction
+          if [ -z "$EXTENSIONS" ]; then
+            echo "::error::Extension name extraction failed from VSIX files"
+            echo "::error::VSIX files found but could not extract extension names"
+            exit 1
+          fi
+
           echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
-          echo "Extensions: $EXTENSIONS"
+          echo "✓ Found extensions: $EXTENSIONS"
 
       - name: Generate dispatch token
         id: dispatch-token
