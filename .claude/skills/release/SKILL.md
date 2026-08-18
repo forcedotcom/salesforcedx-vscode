@@ -123,15 +123,120 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 
 ## Release timeline
 
-- **Daily 4 AM UTC:** nightly builds → pre-release
-- **Wed 7 AM UTC:** promote-prerelease.yml → promotes nightly tag ≥7 days old to pre-release (customer testing begins)
-- **Wed-Mon:** ~5-day baking period (customer validation)
-- **Mon 8 AM UTC:** buildReleaseFromPrerelease.yml → builds stable release from Wed pre-release
-- **After test approval:** publishVSCode.yml → marketplace (Microsoft + Open VSX)
+- **Daily 4 AM UTC** — nightly builds → pre-release
+- **Wed 7 AM UTC** — promote-prerelease.yml → nightly tag ≥7 days old to pre-release (customer testing begins)
+- **Wed–Mon** — ~5-day baking (customer validation)
+- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → builds stable release from Wed pre-release
+- **After test approval** — publishVSCode.yml → marketplace (Microsoft + Open VSX)
+
+## Emergency Patch Releases
+
+Critical hotfixes bypass normal cycle.
+
+### When to use
+
+- Security vulnerabilities
+- Critical production bugs
+- Showstoppers
+
+### Steps
+
+**1. Create release-base branch**
+
+```sh
+gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
+```
+
+Creates `release-base/v67.12.x` from tag.
+
+**2. Apply fixes**
+
+```sh
+git fetch origin && git checkout release-base/v67.12.x
+git commit -m "fix: <message>"
+git push origin release-base/v67.12.x
+```
+
+**3. Build patch**
+
+```sh
+gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
+```
+
+Auto-calculates patch version, tags, builds VSIX.
+
+**4. Test VSIX**
+
+```sh
+gh release download v67.12.1 --dir ~/Downloads/v67.12.1 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v67.12.1 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
+
+**5. Publish**
+
+```sh
+gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom/salesforcedx-vscode
+```
+
+**6. Cherry-pick to develop**
+
+Merge fixes back for future releases (commands in release notes).
+
+```sh
+git checkout develop && git pull origin develop
+git cherry-pick <commit-sha>
+git push origin develop
+```
+
+**7. Cleanup**
+
+```sh
+git push origin --delete release-base/v67.12.x
+```
+
+### Multiple patches
+
+Reuse release-base branch:
+1. Push more fixes
+2. Run build-patch-release.yml (auto-increments to v67.12.2, etc.)
+
+## Alternative: Build from Arbitrary Ref
+
+For emergency releases without formal release-base branches, use `buildReleaseFromPrerelease.yml` with `startFromRef`:
+
+```sh
+# Build from hotfix branch
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="hotfix/security-fix" \
+  -f releaseVersion="67.12.1" \
+  --repo forcedotcom/salesforcedx-vscode
+
+# Build from specific commit
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="abc123def456" \
+  -f releaseVersion="67.12.1" \
+  --repo forcedotcom/salesforcedx-vscode
+
+# Build from old prerelease tag
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="v67.11.0-nightly.develop.20260805" \
+  -f releaseVersion="67.12.1" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+**When to use:**
+- Time-critical fixes without formal patch workflow
+- Building from experimental branches for validation
+- Rebuilding from historical commits
+- Emergency releases without branch creation overhead
+
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
 
 ## Conventions
 
-- All `gh` commands: `--repo forcedotcom/salesforcedx-vscode`
-- createReleaseBranch.yml: deprecated (replaced by buildReleaseFromPrerelease.yml)
-- Never approve marketplace publishes until manual testing complete
+- All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
+- `createReleaseBranch.yml` — deprecated (replaced by buildReleaseFromPrerelease.yml)
+- Never approve marketplace publishes until manual testing done
 - 5-day gap (Wed pre-release → Mon stable) intentional for customer validation
+- Patch releases bypass normal timeline for emergencies only
+- Always cherry-pick patch fixes to develop after publishing

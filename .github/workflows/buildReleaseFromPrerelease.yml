@@ -8,8 +8,12 @@ on:
     - cron: '0 8 * * 1'
   workflow_dispatch:
     inputs:
+      startFromRef:
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. For emergency releases from specific commits/branches.'
+        required: false
+        type: string
       prereleaseTag:
-        description: 'Promoted prerelease tag (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest.'
+        description: 'Promoted prerelease tag (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest. Ignored if startFromRef is provided.'
         required: false
         type: string
       releaseVersion:
@@ -42,38 +46,61 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
-      - name: Detect promoted prerelease tag
+      - name: Detect source ref
         id: detect-tag
         env:
+          START_FROM_REF: ${{ github.event.inputs.startFromRef }}
           INPUT_TAG: ${{ github.event.inputs.prereleaseTag }}
         run: |
-          if [ -n "$INPUT_TAG" ]; then
+          if [ -n "$START_FROM_REF" ]; then
+            # Priority 1: Use startFromRef if provided (any git ref: tag/branch/SHA)
+            # This bypasses nightly tag validation for emergency releases
+            echo "Using startFromRef: $START_FROM_REF"
+
+            # Verify ref exists
+            if ! git rev-parse "$START_FROM_REF" >/dev/null 2>&1; then
+              echo "::error::Git ref '$START_FROM_REF' does not exist"
+              echo "::error::Ensure the tag, branch, or commit SHA is valid"
+              exit 1
+            fi
+
+            TAG="$START_FROM_REF"
+            echo "✓ Verified ref exists: $TAG"
+
+          elif [ -n "$INPUT_TAG" ]; then
+            # Priority 2: Use prereleaseTag if provided (must match nightly pattern)
             # Validate input tag format to prevent command injection
             if ! echo "$INPUT_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$'; then
-              echo "::error::Invalid tag format: $INPUT_TAG"
+              echo "::error::Invalid prereleaseTag format: $INPUT_TAG"
               echo "::error::Expected format: v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}"
               echo "::error::Example: v67.11.1-nightly.develop.20260812"
+              echo "::error::"
+              echo "::error::💡 TIP: For non-nightly refs, use startFromRef instead of prereleaseTag"
               exit 1
             fi
             TAG="$INPUT_TAG"
-            echo "Using provided tag: $TAG"
+            echo "Using provided prereleaseTag: $TAG"
+
+            # Verify tag exists
+            if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+              echo "::error::Tag $TAG does not exist"
+              exit 1
+            fi
+
           else
+            # Priority 3: Auto-detect latest promoted nightly tag
             # Find latest nightly tag (promoted prereleases use this pattern)
             # Sort by version, take most recent
             TAG=$(git tag -l 'v*-nightly.develop.*' --sort=-v:refname | head -1)
 
             if [ -z "$TAG" ]; then
               echo "::error::No nightly prerelease tags found. Expected pattern: v*-nightly.develop.*"
+              echo "::error::"
+              echo "::error::💡 TIP: Use startFromRef input to build from a specific tag/branch/commit"
               exit 1
             fi
 
             echo "Auto-detected latest nightly tag: $TAG"
-          fi
-
-          # Verify tag exists (use double quotes for safety)
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "::error::Tag $TAG does not exist"
-            exit 1
           fi
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT

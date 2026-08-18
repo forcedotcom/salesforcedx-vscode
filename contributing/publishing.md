@@ -15,21 +15,50 @@ References:
 
 ## Build Release from Prerelease
 
-Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/buildReleaseFromPrerelease.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Runs after 5-day baking period (Wed pre-release → Mon stable build). Trigger manually for on-demand builds.
+Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/buildReleaseFromPrerelease.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Runs after 5-day baking period (Wed pre-release → Mon stable). Trigger manually for on-demand.
 
 **Inputs:**
-- `prereleaseTag`: e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
-- `releaseVersion`: e.g. `67.12.0` (auto-calculated if empty)
+- `startFromRef` — git ref (tag/branch/SHA) to build from (optional)
+- `prereleaseTag` — prerelease tag e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
+- `releaseVersion` — e.g. `67.12.0` (auto-calculated if empty)
+
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
+
+**Use `startFromRef` for emergency scenarios:**
+- Build from hotfix branch: `-f startFromRef="hotfix/security-fix"`
+- Build from specific commit: `-f startFromRef="abc123def456"`
+- Build from old tag: `-f startFromRef="v67.11.0-nightly.develop.20260805"`
+
+**Examples:**
+
+```sh
+# Standard: auto-detect latest promoted prerelease
+gh workflow run buildReleaseFromPrerelease.yml
+
+# Emergency: build from hotfix branch
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="hotfix/security-fix" \
+  -f releaseVersion="67.12.1"
+
+# Emergency: build from specific commit
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="abc123def" \
+  -f releaseVersion="67.12.1"
+
+# Legacy: specify prerelease tag explicitly
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f prereleaseTag="v67.11.1-nightly.develop.20260812"
+```
 
 **Scripts:**
-- [`calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease, bump minor, or override; validates semver X.Y.Z + integer bounds (max 9999)
-- [`update-release-versions.js`](../scripts/update-release-versions.js) — update all publishable `package.json` versions + `package-lock.json`
+- [`calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease, bump minor, or override; validates semver + bounds (max 9999)
+- [`update-release-versions.js`](../scripts/update-release-versions.js) — update all publishable `package.json` + `package-lock.json`
 
 **Security measures:**
-- Command injection protection: regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
-- VSIX validation: confirms ≥1 VSIX created after build
-- Script integrity: SHA256 checksums verify scripts weren't tampered (preserved/restored across tag checkout)
-- Deletion timeout: fails if release cleanup exceeds 20s (GitHub API eventual consistency)
+- Command injection protection — regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+- VSIX validation — confirms ≥1 VSIX created after build
+- Script integrity — SHA256 checksums verify scripts weren't tampered (preserved/restored across tag checkout)
+- Deletion timeout — fails if cleanup exceeds 20s (GitHub API eventual consistency)
 
 Test locally; trigger `publishVSCode.yml` if tests pass.
 
@@ -39,7 +68,7 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 **Wed pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC) → nightly tags ≥7 days old + passing CI to pre-release. Enables 5+ days customer testing.
 
-**Mon stable release build:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → auto-detects latest promoted tag from Wed, builds stable release VSIXs (5-day baking period). Release engineer approves + publishes.
+**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted Wed tag, builds stable VSIXs (5-day baking). Release engineer approves + publishes.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds).
 
@@ -48,12 +77,12 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 ### Standard Path: Nightly → Wed Pre-release → Mon Stable → Marketplace
 
 1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes nightly tag ≥7 days old + passing CI to pre-release (customer testing begins)
-2. **Wed 7 AM - Mon 8 AM:** Customers test pre-release for ~5 days (baking period)
-3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects promoted pre-release tag, builds stable release VSIXs
+2. **Wed–Mon:** ~5 days baking (customer validation)
+3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects promoted tag, builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
-5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g., `67.12.0`)
+5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
 6. Approve marketplace publish gates
-7. Marketplace updates within minutes
+7. Marketplace updates within min
 
 ### Merge to main (Automated)
 
@@ -77,7 +106,7 @@ After marketplace publish, trigger Web Console release → auto-get updated exte
 
 **Automatic (default):** `publishVSCode.yml` extracts extensions → `code-builder-web` via `repository_dispatch` → polls marketplace → Web Console release w/ auto-promote to `prd`. No manual steps.
 
-Disable: set repo var `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables).
+**Disable:** set repo var `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables).
 
 **Manual (if auto-promote broken/disabled):**
 
@@ -87,15 +116,98 @@ Disable: set repo var `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and vari
 4. **auto-promote** = `prd`
 5. Run → builds, versions, dispatches `promote.yml` → syncs `/latest/` in production
 
-Re-promote existing: use [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) directly.
+**Re-promote:** use [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) directly.
 
 Details: [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
 
 ## Closing Shipped GitHub Issues
 
-After marketplace publish, `closePendingReleaseIssues.yml` auto-closes issues + discussions in `CHANGELOG.md`. Parses changelog, extracts numbers, posts comment, closes open items.
+After marketplace publish, `closePendingReleaseIssues.yml` auto-closes issues + discussions in `CHANGELOG.md`.
 
-Or run [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) skill to close GitHub issues w/ closed GUS work items in published `CHANGELOG.md`.
+Or run [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) to close GitHub issues w/ closed GUS work items in published `CHANGELOG.md`.
+
+## Emergency Patch Releases
+
+Critical hotfixes bypass normal cycle.
+
+### When to use
+
+- Security vulnerabilities
+- Critical production bugs
+- Showstoppers
+
+### Steps
+
+**1. Create release-base branch**
+
+```sh
+gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
+```
+
+Creates `release-base/v67.12.x` from tag. See [`create-patch-release-branch.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/create-patch-release-branch.yml).
+
+**2. Apply fixes**
+
+```sh
+git fetch origin && git checkout release-base/v67.12.x
+git commit -m "fix: <message>"
+git push origin release-base/v67.12.x
+```
+
+**3. Build patch**
+
+```sh
+gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
+```
+
+Auto-calculates patch version, tags, builds VSIX.
+
+**4. Test VSIX**
+
+```sh
+gh release download v67.12.1 --dir ~/Downloads/v67.12.1 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v67.12.1 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
+
+**5. Publish**
+
+```sh
+gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom/salesforcedx-vscode
+```
+
+**6. Cherry-pick to develop**
+
+Merge fixes back for future releases (commands in release notes).
+
+```sh
+git checkout develop && git pull origin develop
+git cherry-pick <commit-sha>
+git push origin develop
+```
+
+**7. Cleanup**
+
+```sh
+git push origin --delete release-base/v67.12.x
+```
+
+### Multiple patches
+
+Reuse release-base branch for additional patches on same major.minor:
+
+1. Push more fixes
+2. Run build-patch-release.yml (auto-increments to v67.12.2, v67.12.3, etc.)
+
+### Comparison: patch vs. normal release
+
+| Aspect | Normal | Patch |
+|--------|--------|-------|
+| Source | develop | release-base/vX.Y.x |
+| Timeline | Wed → 5d → Mon | Hours |
+| Version | X.Y+1.0 | X.Y.Z+1 |
+| Workflows | promote-prerelease → buildReleaseFromPrerelease | create-patch-release-branch → build-patch-release |
+| Cherry-pick | — | Required |
+| Use case | Regular features/fixes | Emergencies |
 
 ## Troubleshooting
 

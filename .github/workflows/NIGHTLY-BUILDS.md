@@ -23,19 +23,31 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Wed 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest nightly tag, builds release VSIXs. Manual trigger for on-demand:
+Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` detects latest promoted tag, builds release VSIXs. Manual trigger for on-demand:
 
 ```bash
-# Auto-detect latest nightly tag, auto-calculate version
+# Auto-detect latest promoted prerelease
 gh workflow run buildReleaseFromPrerelease.yml
 
-# Override tag and/or version
+# Specify prerelease tag
 gh workflow run buildReleaseFromPrerelease.yml \
   -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
   -f releaseVersion="67.12.0"
+
+# Emergency: build from hotfix branch
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="hotfix/security-fix" \
+  -f releaseVersion="67.12.1"
+
+# Emergency: build from specific commit
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f startFromRef="abc123def456" \
+  -f releaseVersion="67.12.1"
 ```
 
-Creates GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
+
+Creates GitHub pre-release w/ VSIX + SHA256. Test, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
 
 ## Extension Discovery
 
@@ -71,6 +83,34 @@ Published releases extract extension names from VSIX filenames in release assets
 - `package:packages:prerelease` — Prerelease packaging (calls `vscode:package:prerelease`)
   - Modern extensions: adds `--pre-release` flag to vsce
   - Legacy extensions: sets `VSCE_PRE_RELEASE=true` env var
+
+## Emergency Patch Releases
+
+For critical hotfixes, use patch workflows instead of normal cycle.
+
+### Patch workflows
+
+**Create patch branch:** [`create-patch-release-branch.yml`](./create-patch-release-branch.yml)
+- Creates `release-base/vX.Y.x` from existing release tag
+- `gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0"`
+
+**Build patch:** [`build-patch-release.yml`](./build-patch-release.yml)
+- Tags and builds from release-base branch
+- Auto-increments patch version (v67.12.0 → v67.12.1)
+- Creates GitHub pre-release with VSIX
+- `gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x"`
+
+### Patch release flow
+
+1. Run `create-patch-release-branch.yml` with base version (e.g., 67.12.0)
+2. Push fixes to `release-base/v67.12.x`
+3. Run `build-patch-release.yml` to tag and build
+4. Test VSIX from pre-release
+5. Trigger `publishVSCode.yml` to publish
+6. Cherry-pick fixes to develop
+7. Delete release-base branch
+
+See [publishing.md](../../contributing/publishing.md#emergency-patch-releases) for details.
 
 ## Implementation Details
 
