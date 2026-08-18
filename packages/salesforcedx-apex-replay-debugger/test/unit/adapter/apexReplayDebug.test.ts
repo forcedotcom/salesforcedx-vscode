@@ -853,6 +853,25 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendEventSpy.mock.calls[0][0].body.subject).toBe('setBreakPointsRequest - path or breakpoints invalid');
     });
 
+    it('Should verify all breakpoints for .apex files without calling canSetLineBreakpoint', () => {
+      const apexFilePath = '/path/to/script.apex';
+      args.source.path = apexFilePath;
+      args.lines = [3, 7];
+      args.breakpoints = [{ line: 3 }, { line: 7 }];
+      canSetLineBreakpointStub = jest.spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint');
+
+      adapter.setBreakPointsRequest(response, args);
+
+      expect(sendResponseSpy).toHaveBeenCalledTimes(1);
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.mock.calls[0][0];
+      expect(actualResponse.success).toBe(true);
+      expect(actualResponse.body.breakpoints).toEqual([
+        { verified: true, source: { path: apexFilePath }, line: 3 },
+        { verified: true, source: { path: apexFilePath }, line: 7 }
+      ]);
+      expect(canSetLineBreakpointStub).not.toHaveBeenCalled();
+    });
+
     it('Should return breakpoints', () => {
       const expectedPath = process.platform.startsWith('win32')
         ? 'C:\\space in path\\foo.cls'

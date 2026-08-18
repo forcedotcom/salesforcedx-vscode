@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
@@ -21,14 +22,15 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
     'salesforce.salesforcedx-vscode-apex'
   );
-  public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
+  public static getConfig(logFile?: string, stopOnEntry: boolean = true, anonApexFilePath?: string): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
       logFile: logFile ?? '${command:AskForLogFileName}',
       stopOnEntry,
-      trace: true
+      trace: true,
+      ...(anonApexFilePath ? { anonApexFilePath } : {})
     };
   }
 
@@ -106,8 +108,23 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       }
     }
 
-    if (typeof config.logFileContents === 'string' && config.logFileContents.includes('|HEAP_DUMP|')) {
-      config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
+    if (typeof config.logFileContents === 'string') {
+      if (config.logFileContents.includes('|HEAP_DUMP|')) {
+        config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
+      }
+      if (!config.anonApexFilePath) {
+        const anonSource = extractAnonApexSource(config.logFileContents);
+        if (anonSource !== undefined) {
+          const matched = await findMatchingApexFile(anonSource);
+          if (matched) {
+            config.anonApexFilePath = matched;
+          } else {
+            const apexFilePath = URI.file(config.logFilePath.replace(/\.log$/, '.apex'));
+            await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
+            config.anonApexFilePath = apexFilePath.fsPath;
+          }
+        }
+      }
     }
 
     return config;
@@ -174,4 +191,43 @@ const getBasename = (filePath: string): string => {
   const normalizedPath = filePath.replaceAll('\\', '/');
   const parts = normalizedPath.split('/');
   return parts.at(-1) ?? filePath;
+};
+
+const EXEC_ANON_HEADER_PREFIX = 'Execute Anonymous: ';
+
+const extractAnonApexSource = (logContents: string): string | undefined => {
+  const lines = logContents.split(/\r?\n/);
+  const sourceLines: string[] = [];
+  for (const line of lines) {
+    if (line.startsWith(EXEC_ANON_HEADER_PREFIX)) {
+      sourceLines.push(line.slice(EXEC_ANON_HEADER_PREFIX.length));
+    } else if (sourceLines.length > 0) {
+      break;
+    }
+  }
+  return sourceLines.length > 0 ? sourceLines.join('\n') : undefined;
+};
+
+const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(function* (
+  filePath: URI,
+  contents: string
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.FsService.safeWriteFile(filePath, contents);
+});
+
+const findMatchingApexFile = async (source: string): Promise<string | undefined> => {
+  const candidates = await vscode.workspace.findFiles('**/*.apex');
+  return getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      for (const candidate of candidates) {
+        const contents = yield* Effect.option(api.services.FsService.readFile(candidate.fsPath));
+        if (contents._tag === 'Some' && contents.value.trimEnd() === source.trimEnd()) {
+          return candidate.fsPath;
+        }
+      }
+      return undefined;
+    })
+  );
 };

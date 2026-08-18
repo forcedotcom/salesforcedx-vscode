@@ -89,9 +89,9 @@ const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(functi
 
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile.path',
-    async logFilePath => {
+    async (logFilePath, anonApexFilePath?: string) => {
       if (logFilePath) {
-        await launchFromLogFile(logFilePath, true);
+        await launchFromLogFile(logFilePath, true, anonApexFilePath);
       }
     }
   );

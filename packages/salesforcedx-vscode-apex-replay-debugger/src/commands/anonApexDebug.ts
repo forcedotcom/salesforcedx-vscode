@@ -26,12 +26,13 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
 /** safeWriteFile creates the parent directory, so no separate createDirectory call is needed. */
 const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (
   logFilePath: URI,
-  logs: string
+  logs: string,
+  anonApexFilePath: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
   yield* Effect.promise(() =>
-    vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath)
+    vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath, anonApexFilePath)
   );
 });
 
@@ -52,7 +53,7 @@ export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.Command.anonAp
         yield* api.services.ProjectService.getDebugLogsFolder(),
         `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
       );
-      yield* launchReplayDebugger(logFilePath, logBody);
+      yield* launchReplayDebugger(logFilePath, logBody, context.documentUri.fsPath);
     }
     return result;
   }).pipe(promptService.withProgress(nls.localize('apex_execute_text')));

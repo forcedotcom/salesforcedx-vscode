@@ -449,8 +449,14 @@ describe('LogContext', () => {
       if (getTyperefMappingSpy) getTyperefMappingSpy.mockRestore();
     });
 
-    it('Should return debug log fs path for execute anonymous signature', () => {
+    it('Should return debug log fs path for execute anonymous signature when no apex file path set', () => {
       expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).toBe(context.getLogFilePath());
+    });
+
+    it('Should return apex file path for execute anonymous signature when anonApexFilePath is set', () => {
+      const anonApexFilePath = '/path/to/script.apex';
+      const contextWithApexPath = new LogContext({ ...launchRequestArgs, anonApexFilePath }, {} as ApexReplayDebug);
+      expect(contextWithApexPath.getUriFromSignature(EXEC_ANON_SIGNATURE)).toBe(anonApexFilePath);
     });
 
     it('Should return URI for inner class', () => {

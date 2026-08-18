@@ -52,12 +52,25 @@ describe('Statement execute event', () => {
     expect(context.getFrames()[0].line).toBe(2);
   });
 
-  it('Should update execute anonymous specific frame', () => {
+  it('Should update execute anonymous specific frame using log line position when no apex file path', () => {
     context.getFrames().push({ name: EXEC_ANON_SIGNATURE } as StackFrame);
     context.getExecAnonScriptMapping().set(2, 5);
     const state = new StatementExecuteState(['2']);
 
     expect(state.handle(context)).toBe(true);
     expect(context.getFrames()[0].line).toBe(5);
+  });
+
+  it('Should update execute anonymous frame using script line directly when apex file path is set', () => {
+    const contextWithApexPath = new LogContext(
+      { ...launchRequestArgs, anonApexFilePath: '/path/to/script.apex' },
+      new ApexReplayDebug()
+    );
+    contextWithApexPath.getFrames().push({ name: EXEC_ANON_SIGNATURE } as StackFrame);
+    contextWithApexPath.getExecAnonScriptMapping().set(2, 5);
+    const state = new StatementExecuteState(['2']);
+
+    expect(state.handle(contextWithApexPath)).toBe(true);
+    expect(contextWithApexPath.getFrames()[0].line).toBe(2);
   });
 });

@@ -392,8 +392,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
         } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
+      const isAnonApex = args.source.path?.endsWith('.apex') ?? false;
       for (const bp of args.breakpoints) {
-        const isVerified = breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
+        const isVerified =
+          isAnonApex || breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
         response.body.breakpoints.push({
           verified: isVerified,
           source: args.source,

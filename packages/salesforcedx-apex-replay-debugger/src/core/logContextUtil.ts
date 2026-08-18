@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+const EXEC_ANON_HEADER_PREFIX = 'Execute Anonymous: ';
+
 export class LogContextUtil {
   public getFileSizeFromContents(contents: string): number {
     return contents.length;
@@ -18,6 +20,25 @@ export class LogContextUtil {
       .trim()
       .split(/\r?\n/)
       .map(line => line.trim());
+  }
+
+  /**
+   * Extracts the anonymous Apex source lines embedded in a debug log.
+   * Returns the source as a string if the log contains Execute Anonymous headers,
+   * or undefined if it does not.
+   */
+  public extractAnonApexSource(logContents: string): string | undefined {
+    const lines = logContents.split(/\r?\n/);
+    const sourceLines: string[] = [];
+    for (const line of lines) {
+      if (line.startsWith(EXEC_ANON_HEADER_PREFIX)) {
+        sourceLines.push(line.slice(EXEC_ANON_HEADER_PREFIX.length));
+      } else if (sourceLines.length > 0) {
+        // Headers are always contiguous at the top of the log; stop at the first non-header line
+        break;
+      }
+    }
+    return sourceLines.length > 0 ? sourceLines.join('\n') : undefined;
   }
 
   public stripBrackets(value: string): string {
