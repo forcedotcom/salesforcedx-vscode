@@ -266,14 +266,14 @@ describe('Extension', () => {
     expect(externalSdkContext).toBeDefined();
 
     const defaultOrgRef = await Effect.runPromise(getDefaultOrgRef());
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'usa9s' }));
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'USA9402' }));
     expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({
       orgId: 'gov-org',
       telemetryClassification: 'gov'
     });
     expect(api.services.TelemetryIdentitySnapshot()).not.toHaveProperty('instanceName');
 
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'na123' }));
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'usa9s' }));
     expect(api.services.TelemetryIdentitySnapshot().telemetryClassification).toBe('nonGov');
   });
 
