@@ -474,7 +474,14 @@ class LwcTestController {
         for (const target of targets) {
           this.markRunning(run, target.item);
         }
-        await this.executeOne(run, dirInfo, undefined, isDebug, token);
+        await this.executeOne(
+          run,
+          dirInfo,
+          undefined,
+          isDebug,
+          token,
+          targets.map(target => target.item)
+        );
         return;
       }
 
@@ -506,12 +513,20 @@ class LwcTestController {
     item.children.forEach(child => this.markRunning(run, child));
   };
 
+  private markDescendantsSkipped = (run: vscode.TestRun, item: vscode.TestItem): void => {
+    item.children.forEach(child => {
+      run.skipped(child);
+      this.markDescendantsSkipped(run, child);
+    });
+  };
+
   private executeOne = async (
     run: vscode.TestRun,
     exec: TestExecutionInfo,
     sourceItem: vscode.TestItem | undefined,
     isDebug: boolean,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
+    runAllItems: readonly vscode.TestItem[] = []
   ): Promise<void> => {
     const testRunner = new TestRunner(exec, isDebug ? 'debug' : 'run');
     try {
@@ -581,8 +596,7 @@ class LwcTestController {
             }
           }
 
-          // If this execution targets a specific test item, attach the error to it.
-          if (sourceItem) {
+          const createCrashMessage = (): vscode.TestMessage => {
             const message = new vscode.TestMessage(errorDetail);
             message.actualOutput = errorMessage;
 
@@ -594,9 +608,19 @@ class LwcTestController {
               message.location = new vscode.Location(errorUri, position);
             }
 
-            run.errored(sourceItem, message);
-            sourceItem.children.forEach(child => {
-              run.skipped(child);
+            return message;
+          };
+
+          // If this execution targets a specific test item, attach the error to it. For an implicit run-all,
+          // give every item that was marked running a terminal state; partial Jest results can still replace
+          // these provisional crash states below.
+          if (sourceItem) {
+            run.errored(sourceItem, createCrashMessage());
+            this.markDescendantsSkipped(run, sourceItem);
+          } else {
+            runAllItems.forEach(item => {
+              run.errored(item, createCrashMessage());
+              this.markDescendantsSkipped(run, item);
             });
           }
 

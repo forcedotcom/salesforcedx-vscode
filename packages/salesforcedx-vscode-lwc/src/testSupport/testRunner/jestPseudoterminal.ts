@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 const MAX_ERROR_STACK_LINES = 30; // Typical stack traces are 10-20 lines
 const MAX_FAIL_CONTEXT_LINES = 50; // FAIL blocks can include test output
 const MAX_CAPTURED_OUTPUT_KB = 100; // Prevent unbounded memory growth on verbose tests
+const CAPTURE_TRUNCATION_MARKER = '\n... Jest output truncated ...\n';
 
 /**
  * Pseudoterminal that spawns Jest, displays output, and captures it for error extraction.
@@ -89,19 +90,48 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
     return this.capturedOutput;
   }
 
-  /**
-   * Append text to captured output with memory limit. Keeps most recent output if limit exceeded.
-   */
+  /** Append text while retaining both the beginning and end of oversized output. */
   private appendWithLimit(current: string, text: string): string {
     const combined = current + text;
     const maxBytes = MAX_CAPTURED_OUTPUT_KB * 1024;
-    const byteLength = Buffer.byteLength(combined, 'utf8');
-    if (byteLength > maxBytes) {
-      // Slice by chars (~1.5 bytes/char avg, /2 for safety margin)
-      const targetChars = Math.floor(maxBytes / 2);
-      return combined.slice(-targetChars);
+    if (Buffer.byteLength(combined, 'utf8') <= maxBytes) {
+      return combined;
     }
-    return combined;
+
+    const markerBytes = Buffer.byteLength(CAPTURE_TRUNCATION_MARKER, 'utf8');
+    const availableBytes = maxBytes - markerBytes;
+    const headBytes = Math.floor(availableBytes / 2);
+    const tailBytes = availableBytes - headBytes;
+    const markerIndex = current.indexOf(CAPTURE_TRUNCATION_MARKER);
+    const headSource = markerIndex >= 0 ? current.slice(0, markerIndex) : combined;
+    const tailSource =
+      markerIndex >= 0 ? current.slice(markerIndex + CAPTURE_TRUNCATION_MARKER.length) + text : combined;
+
+    return this.utf8Prefix(headSource, headBytes) + CAPTURE_TRUNCATION_MARKER + this.utf8Suffix(tailSource, tailBytes);
+  }
+
+  private utf8Prefix(value: string, maxBytes: number): string {
+    const buffer = Buffer.from(value, 'utf8');
+    if (buffer.length <= maxBytes) {
+      return value;
+    }
+    let end = maxBytes;
+    while (end > 0 && end < buffer.length && (buffer[end] & 0xc0) === 0x80) {
+      end--;
+    }
+    return buffer.subarray(0, end).toString('utf8');
+  }
+
+  private utf8Suffix(value: string, maxBytes: number): string {
+    const buffer = Buffer.from(value, 'utf8');
+    if (buffer.length <= maxBytes) {
+      return value;
+    }
+    let start = buffer.length - maxBytes;
+    while (start < buffer.length && (buffer[start] & 0xc0) === 0x80) {
+      start++;
+    }
+    return buffer.subarray(start).toString('utf8');
   }
 
   /**

@@ -32,6 +32,12 @@ describe('matchJestStackTraceLocation', () => {
     expect(location).toEqual({ file: '/path/Program Files (x86)/file.js', line: 10, column: 5 });
   });
 
+  it('extracts a Windows drive-letter path containing literal parentheses', () => {
+    const location = matchJestStackTraceLocation('at new Foo (C:\\Program Files (x86)\\project\\foo.test.js:10:5)');
+
+    expect(location).toEqual({ file: 'C:\\Program Files (x86)\\project\\foo.test.js', line: 10, column: 5 });
+  });
+
   it('picks the first stack frame out of a multi-line message', () => {
     const location = matchJestStackTraceLocation(
       'TypeError: Cannot read properties of undefined\n' +
