@@ -19,7 +19,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.merge(buildSharedServicesLayer(context, 'Salesforce Org Browser'), OrgBrowserRetrieveService.Default);
 
 // eslint-disable-next-line functional/no-let
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;

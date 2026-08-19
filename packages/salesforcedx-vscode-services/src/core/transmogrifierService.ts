@@ -29,11 +29,14 @@ export const SObjectFieldSchema = S.Struct({
   groupable: S.Boolean,
   inlineHelpText: S.NullOr(S.String),
   label: S.String,
+  length: S.optional(S.Number),
   name: S.String,
   nillable: S.Boolean,
   picklistValues: S.Array(PicklistValueSchema),
+  precision: S.optional(S.Number),
   referenceTo: S.Array(S.String),
   relationshipName: S.NullOr(S.String),
+  scale: S.optional(S.Number),
   sortable: S.Boolean,
   type: S.String
 });
@@ -71,6 +74,7 @@ const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
     groupable: f.groupable,
     inlineHelpText: f.inlineHelpText ?? null,
     label: f.label,
+    length: f.length,
     name: f.name,
     nillable: f.nillable,
     picklistValues: (f.picklistValues ?? []).map(pv => ({
@@ -78,8 +82,10 @@ const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
       label: pv.label ?? null,
       value: pv.value
     })),
+    precision: f.precision,
     referenceTo: [...(f.referenceTo ?? [])],
     relationshipName: f.relationshipName ?? null,
+    scale: f.scale,
     sortable: f.sortable,
     type: f.type
   })),

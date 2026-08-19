@@ -11,7 +11,7 @@ import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 /**
@@ -80,58 +80,6 @@ export const getMethodLocationsFromSymbols = async (
     Array.dedupe(methodNames)
       .map(methodName => [methodName, findMethodInSymbols(documentSymbols ?? [], methodName, uri)] as const)
       .filter((entry): entry is [string, vscode.Location] => isNotUndefined(entry[1]))
-  );
-};
-
-/** Build an index of class baseName -> file URI using ComponentSet (works on web and desktop) */
-export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<string, URI>> => {
-  if (classNames.length === 0) {
-    return new Map<string, URI>();
-  }
-
-  return getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-
-      // Get package directories from the project
-      const sfProject = yield* api.services.ProjectService.getSfProject();
-      const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
-
-      // Build ComponentSet for all ApexClass files in the project
-      const componentSet = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(packageDirs, [
-        { type: 'ApexClass', fullName: '*' }
-      ]);
-
-      // Build index from component name to file URI
-      const classNameSet = new Set(classNames);
-      const index = new Map<string, URI>();
-
-      yield* Effect.forEach(
-        Array.fromIterable(componentSet.getSourceComponents()),
-        component =>
-          Effect.gen(function* () {
-            // component.content is the .cls file path
-            if (component.content && classNameSet.has(component.name)) {
-              // Prefer shorter paths (files closer to workspace root)
-              const existingUri = index.get(component.name);
-              if (
-                !existingUri ||
-                component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
-              ) {
-                index.set(component.name, URI.file(component.content));
-              }
-            }
-          }),
-        { concurrency: 1, discard: true }
-      );
-
-      return index;
-    }).pipe(
-      Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
-      Effect.catchAll(error =>
-        Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
-      )
-    )
   );
 };
 
