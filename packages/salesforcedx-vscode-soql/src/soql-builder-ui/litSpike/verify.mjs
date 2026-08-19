@@ -59,65 +59,76 @@ page.setDefaultTimeout(10_000);
 try {
   await page.goto(`http://127.0.0.1:${address.port}/`, { waitUntil: 'networkidle' });
 
+  const packageBoundary = await page.evaluate(() => {
+    const app = document.querySelector('soql-builder-app');
+    return {
+      hasVscodeApi: typeof globalThis.acquireVsCodeApi === 'function',
+      hostKind: app?.host?.kind
+    };
+  });
+  if (packageBoundary.hasVscodeApi || packageBoundary.hostKind !== 'standalone') {
+    throw new Error(`Unexpected standalone package boundary: ${JSON.stringify(packageBoundary)}`);
+  }
+
   await page.waitForFunction(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-single-select');
     return Boolean(select?.shadowRoot?.querySelector('.face'));
   });
   await page.evaluate(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-single-select');
     select?.shadowRoot?.querySelector('.face')?.click();
   });
   await page.waitForFunction(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-single-select');
     return Array.from(select?.shadowRoot?.querySelectorAll('li.option') ?? []).some(option => option.textContent?.trim() === 'Account');
   });
   await page.evaluate(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-single-select');
     const option = Array.from(select?.shadowRoot?.querySelectorAll('li.option') ?? []).find(item => item.textContent?.trim() === 'Account');
     option?.click();
   });
 
   await page.waitForFunction(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-multi-select');
     return Boolean(select && !select.hasAttribute('disabled') && select.querySelector('vscode-option[value="Name"]'));
   });
   await page.evaluate(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-multi-select');
     select?.shadowRoot?.querySelector('.face')?.click();
   });
   for (const fieldName of ['Id', 'Name']) {
     await page.waitForFunction(name => {
-      const app = document.querySelector('soql-builder-lit-spike');
+      const app = document.querySelector('soql-builder-app');
       const select = app?.shadowRoot?.querySelector('vscode-multi-select');
       return Array.from(select?.shadowRoot?.querySelectorAll('li.option') ?? []).some(option => option.textContent?.trim() === name);
     }, fieldName);
     await page.evaluate(name => {
-      const app = document.querySelector('soql-builder-lit-spike');
+      const app = document.querySelector('soql-builder-app');
       const select = app?.shadowRoot?.querySelector('vscode-multi-select');
       const option = Array.from(select?.shadowRoot?.querySelectorAll('li.option') ?? []).find(item => item.textContent?.trim() === name);
       option?.click();
     }, fieldName);
   }
   await page.evaluate(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const select = app?.shadowRoot?.querySelector('vscode-multi-select');
     select?.shadowRoot?.querySelector('vscode-button.button-accept')?.click();
   });
 
   await page.waitForFunction(() => {
-    const app = document.querySelector('soql-builder-lit-spike');
+    const app = document.querySelector('soql-builder-app');
     const previewText = app?.shadowRoot?.querySelector('[data-testid="query-preview"]')?.textContent;
     return previewText?.replace(/\s+/g, ' ').trim() === 'SELECT Id, Name FROM Account';
   });
   const previewText = await page.evaluate(() => {
     const text = document
-      .querySelector('soql-builder-lit-spike')
+      .querySelector('soql-builder-app')
       ?.shadowRoot?.querySelector('[data-testid="query-preview"]')?.textContent;
     return text?.replace(/\s+/g, ' ').trim();
   });
@@ -132,16 +143,14 @@ try {
 } catch (error) {
   const bodyText = await page.locator('body').innerText().catch(() => '<body unavailable>');
   const diagnostics = await page.evaluate(() => {
-    const host = document.querySelector('soql-builder-lit-spike');
+    const host = document.querySelector('soql-builder-app');
     return {
-      customElementRegistered: Boolean(customElements.get('soql-builder-lit-spike')),
+      customElementRegistered: Boolean(customElements.get('soql-builder-app')),
       hostConnected: host?.isConnected,
-      hostFields: host?.fields,
-      hostHasModelService: Boolean(host?.modelService),
-      hostHasRuntime: Boolean(host?.runtime),
-      hostHasToolingSdk: Boolean(host?.toolingSDK),
-      hostIsObjectsLoading: host?.isObjectsLoading,
-      hostObjects: host?.sObjects,
+      hostKind: host?.host?.kind,
+      hostIsObjectsLoading: host?.viewState?.isObjectsLoading,
+      hostObjects: host?.viewState?.sObjects,
+      hostState: host?.viewState,
       hostShadowMarkup: host?.shadowRoot?.innerHTML ?? '<missing>',
       selectRegistered: Boolean(customElements.get('vscode-single-select')),
       selectShadowMarkup:

@@ -5,14 +5,35 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import './litSpikeApp';
-import { installStandaloneVscodeApi } from './standaloneVscodeApi';
+import {
+  defaultSoqlBuilderLabels,
+  SoqlBuilderApp,
+  type SoqlBuilderHost
+} from '@salesforce/soql-builder-ui';
+import { messages } from '../modules/querybuilder/messages/i18n';
+import { StandaloneSoqlBuilderHost } from './standaloneSoqlBuilderHost';
+import { VscodeSoqlBuilderHost } from './vscodeSoqlBuilderHost';
 
-installStandaloneVscodeApi();
+declare global {
+  var acquireVsCodeApi: (() => unknown) | undefined;
+}
 
 const main = document.querySelector('#main');
 if (!main) {
   throw new Error('SOQL Builder Lit spike requires a #main mount point.');
 }
 
-main.append(document.createElement('soql-builder-lit-spike'));
+const host: SoqlBuilderHost =
+  typeof globalThis.acquireVsCodeApi === 'function'
+    ? new VscodeSoqlBuilderHost()
+    : new StandaloneSoqlBuilderHost();
+const app = new SoqlBuilderApp();
+app.host = host;
+app.labels = {
+  ...defaultSoqlBuilderLabels,
+  fields: messages.label_fields,
+  from: messages.label_from,
+  noDefaultOrg: messages.label_no_default_org,
+  query: messages.label_soql_query
+};
+main.append(app);

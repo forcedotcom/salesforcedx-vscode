@@ -1,0 +1,85 @@
+{
+  "name": "@salesforce/soql-builder-web-example",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone browser and Node server example for @salesforce/soql-builder-ui",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "out/src/main.js",
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
+    "start": "node out/src/main.js",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty && node esbuild.config.mjs",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../soql-builder-ui:compile"
+      ],
+      "files": [
+        "src/**",
+        "esbuild.config.mjs",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "dist/**",
+        "out/**"
+      ]
+    },
+    "test": {
+      "command": "node --test test/**/*.test.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "out/**",
+        "test/**/*.test.mjs"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.mjs",
+        "esbuild.config.mjs",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/server.ts src/client.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    }
+  },
+  "dependencies": {
+    "@salesforce/core": "^9.0.0",
+    "@salesforce/soql-builder-ui": "*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "playwright": "^1.60.0"
+  }
+}

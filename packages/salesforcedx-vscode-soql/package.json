@@ -37,14 +37,13 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/soql-common": "*",
+    "@salesforce/soql-builder-ui": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/soql-model": "*",
     "@salesforce/vscode-i18n": "*",
-    "@vscode-elements/elements": "2.5.1",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "effect": "^3.21.2",
-    "lit": "3.3.3",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -134,6 +133,7 @@
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
       "dependencies": [
+        "../soql-builder-ui:compile",
         "../soql-model:compile"
       ],
       "files": [

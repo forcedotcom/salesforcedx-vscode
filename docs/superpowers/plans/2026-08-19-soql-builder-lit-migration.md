@@ -4,13 +4,14 @@
 
 **Goal:** Replace the LWC-based SOQL Builder webview with a Lit application using `@vscode-elements/elements`, while preserving the extension-host protocol, SOQL model behavior, saved webview state, telemetry, accessibility, and desktop/web-extension support.
 
-**Recommendation:** Proceed with Lit. The spike demonstrated that Lit and VSCode Elements work within the current Rollup/CSP pipeline and can reuse the existing Effect services without changing the extension host.
+**Recommendation:** Proceed with Lit and keep the application in the publishable `@salesforce/soql-builder-ui` workspace package introduced by the spike. Lit and VSCode Elements work within the current Rollup/CSP pipeline, while a small host contract allows the same application to reuse the existing Effect services in VS Code or run behind a different adapter in a normal browser.
 
 ## Scope
 
 In scope:
 
 - The visual SOQL Builder under `packages/salesforcedx-vscode-soql/src/soql-builder-ui`.
+- The framework-driven application package under `packages/soql-builder-ui`.
 - All current builder features: From, Fields, Where, Order By, Limit, All Rows, query preview, notifications, Run Query, and Get Query Plan.
 - LWC build, dependency, test, lint, and template removal after feature parity.
 - A production-quality Lit test strategy and accessible VS Code-native styling.
@@ -20,23 +21,28 @@ Out of scope:
 - The separate query-results webview under `src/soql-data-view`.
 - Changes to SOQL execution, query-plan execution, metadata retrieval, or the extension-host/webview message contract unless a proven incompatibility requires one.
 - A bundler migration. Keep Rollup until the Lit cutover is complete.
+- Publishing the new package to the npm registry. The spike makes the workspace package packable; release ownership, versioning, and publication automation require a separate decision.
 
 ## Spike Results
 
 The spike validates the critical framework boundary:
 
 - A Lit root component runs in the real VS Code webview.
+- The Lit root and its public host contract compile as the independent, publishable `@salesforce/soql-builder-ui` npm package.
+- The UI package contains no VS Code API, extension-service, Effect, or extension-message imports.
+- The extension consumes the package through a VS Code/Effect host adapter; the standalone smoke test consumes the same package through an in-memory browser adapter without emulating `acquireVsCodeApi()`.
+- `packages/soql-builder-web-example` demonstrates a real standalone deployment boundary: a browser HTTP adapter consumes the UI package while a loopback Node server resolves an explicit org alias or username to its CLI-managed `AuthInfo` record and uses `@salesforce/core` to retrieve object and field metadata.
 - `vscode-single-select` and `vscode-multi-select` receive real org metadata and follow VS Code theme variables.
 - `ToolingSDK`, `ToolingModelService`, `VscodeMessageServiceLive`, saved state, and document synchronization work unchanged.
 - A standalone Chromium smoke test selects Account, Id, and Name and verifies the production model emits `SELECT Id, Name FROM Account`.
-- Direct component imports produce an 825,149-byte minified spike bundle (209,824 bytes gzip), compared with the current 880,931-byte LWC bundle (230,171 bytes gzip). This is directional only because the spike implements fewer features.
+- Consuming the independent package produces an 826,612-byte minified spike bundle (209,675 bytes gzip), compared with the current 880,931-byte LWC bundle (230,171 bytes gzip). This is directional only because the spike implements fewer features.
 
 Important findings:
 
 - Reactive TypeScript fields must use Lit's `declare` plus constructor initialization pattern; emitted class fields shadow Lit accessors.
 - Babel must enable `allowDeclareFields` for the Lit entry.
 - VSCode Elements uses nested shadow roots, so browser tests should favor roles and public control APIs; targeted shadow-root traversal is acceptable in low-level component verification.
-- The legacy builder service graph is currently bundled through Babel type erasure and is excluded from the package TypeScript compile. A full migration should introduce a type-checkable webview boundary rather than carrying this debt forward indefinitely.
+- The independent UI package and host contract are type-checked. The legacy builder service graph and thin VS Code adapter are still bundled through Babel type erasure and excluded from the extension package TypeScript compile. A full migration should make the remaining adapter boundary type-checkable rather than carrying this debt forward indefinitely.
 - The existing LWC Jest suite has baseline failures and an engine/compiler version warning. Establishing a trustworthy parity baseline is an early migration task.
 
 ## Target Architecture
@@ -45,28 +51,40 @@ Important findings:
 SOQLEditorInstance (extension host)
               ↕ existing messages
 VscodeMessageService / ToolingSDK / ToolingModelService
-              ↓ reactive state
-Lit root application
-  ├─ application shell and notifications
-  ├─ From and Fields controls
-  ├─ Where editor
-  ├─ Order By editor
-  ├─ Limit and All Rows controls
-  └─ query preview and actions
               ↓
-@vscode-elements/elements + semantic HTML
+VscodeSoqlBuilderHost (extension-owned adapter)
+              ↓ public host contract
+@salesforce/soql-builder-ui (browser-safe npm package)
+  ├─ Lit root application
+  │   ├─ application shell and notifications
+  │   ├─ From and Fields controls
+  │   ├─ Where editor
+  │   ├─ Order By editor
+  │   ├─ Limit and All Rows controls
+  │   └─ query preview and actions
+  └─ @vscode-elements/elements + semantic HTML
+
+Standalone browser shell
+              ↓
+HTTP/mock/in-memory SoqlBuilderHost adapter
+              ↓ same public host contract
+@salesforce/soql-builder-ui
+              ↕ same-origin JSON
+Node server using @salesforce/core
+              ↕ CLI-managed auth + Salesforce APIs
+Salesforce org
 ```
 
-Keep business and protocol behavior in framework-neutral services. Lit components should translate state into UI and translate user events into service calls; they should not duplicate SOQL conversion or extension messaging logic.
+Keep business and protocol behavior in framework-neutral services and host adapters. Lit components should translate host state into UI and user events into host calls; they should not duplicate SOQL conversion or extension messaging logic. The extension must bundle the package into the VSIX rather than loading application code remotely.
 
 ## Proposed File Structure
 
 ```text
-src/soql-builder-ui/
-  lit/
-    index.ts
-    soqlBuilderApp.ts
-    controller/soqlBuilderController.ts
+packages/soql-builder-ui/
+  src/
+    index.ts                    # public npm entry and custom-element registration
+    contracts.ts                # browser-safe host/state/label contracts
+    soqlBuilderApp.ts           # Lit root
     components/
       appHeader.ts
       fromFields.ts
@@ -79,8 +97,20 @@ src/soql-builder-ui/
     styles/
       layout.ts
       shared.ts
-  modules/querybuilder/services/   # retained initially, moved when type-safe
-  index.html                       # points to Lit after cutover
+
+packages/salesforcedx-vscode-soql/src/soql-builder-ui/
+  lit/
+    index.ts                     # webview composition root
+    vscodeSoqlBuilderHost.ts     # existing Effect/message-service adapter
+  modules/querybuilder/services/ # retained initially
+  index.html                     # points to Lit after cutover
+
+packages/soql-builder-web-example/
+  src/
+    client.ts                    # standalone browser composition root
+    httpSoqlBuilderHost.ts       # JSON-backed UI host adapter
+    server.ts                    # loopback static/API server
+    salesforceOrgDataSource.ts   # @salesforce/core metadata access
 ```
 
 Do not preserve the current LWC component boundaries mechanically. Group controls by cohesive user workflow and keep the root component focused on orchestration.
@@ -99,9 +129,12 @@ Do not preserve the current LWC component boundaries mechanically. Group control
 
 ### Task 2: Promote the spike into a production Lit foundation
 
-- [ ] Move `litSpike` into the proposed `lit` structure and remove standalone-demo concerns from the production entry.
-- [ ] Introduce a framework-neutral controller that owns runtime setup, subscriptions, loading states, and cleanup.
-- [ ] Add a dedicated webview TypeScript configuration. Address service typing defects required to make the Lit entry type-check without disabling diagnostics.
+- [x] Extract the Lit application and public host contract into `@salesforce/soql-builder-ui`.
+- [x] Move VS Code/Effect runtime setup, subscriptions, loading states, and cleanup behind an extension-owned host adapter.
+- [x] Replace VS Code API emulation with a separate in-memory browser host for standalone verification.
+- [x] Add a standalone Node/browser example backed by `@salesforce/core` and CLI-managed org authorization.
+- [ ] Move `litSpike` into the proposed production `lit` structure after the experimental phase.
+- [ ] Add a dedicated type-checkable configuration for the extension-owned adapter and address the legacy service typing defects without disabling diagnostics.
 - [ ] Add browser-based component tests suitable for `ElementInternals`, popovers, and shadow DOM.
 - [ ] Keep the experimental setting and LWC default during migration.
 
@@ -171,6 +204,12 @@ From the repository root:
 
 ```bash
 npm run compile --workspace salesforcedx-vscode-soql
+npm run compile --workspace @salesforce/soql-builder-ui
+npm run lint --workspace @salesforce/soql-builder-ui
+npm test --workspace @salesforce/soql-builder-ui
+npm run compile --workspace @salesforce/soql-builder-web-example
+npm run lint --workspace @salesforce/soql-builder-web-example
+npm test --workspace @salesforce/soql-builder-web-example
 npm run lint --workspace salesforcedx-vscode-soql
 npm test --workspace salesforcedx-vscode-soql
 npm run test:lit-spike --workspace salesforcedx-vscode-soql
@@ -189,6 +228,7 @@ The last two commands are release-gate checks and may require the repository's n
 - No regression in document round-tripping, saved state, telemetry, query execution, or query-plan execution.
 - Large object/field lists remain responsive and do not materially regress memory or first-render time.
 - Production bundle size has an agreed budget and is measured using the same minified/gzip method as the baseline.
+- `@salesforce/soql-builder-ui` can be packed as an npm artifact and consumed without importing VS Code APIs.
 - LWC dependencies, templates, tests, build plugins, and compatibility workarounds are removed.
 - The Lit webview and its framework-neutral controller are type-checked by repository quality gates.
 
