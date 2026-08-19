@@ -1,0 +1,21 @@
+diff --git a/node_modules/wireit/lib/caching/github-actions-cache.js b/node_modules/wireit/lib/caching/github-actions-cache.js
+index 3df72db..5d35547 100644
+--- a/node_modules/wireit/lib/caching/github-actions-cache.js
++++ b/node_modules/wireit/lib/caching/github-actions-cache.js
+@@ -647,6 +647,16 @@ ${blockIds.map((blockId) => `  <Uncommitted>${blockId}</Uncommitted>`).join('\n'
+             const response = result.value;
+             if (isOk(response)) {
+                 const resData = JSON.parse(await readBody(response));
++                // wireit patch (salesforcedx-vscode): GitHub's Cache Service v2 can
++                // return HTTP 200 with ok:false and a blank signed_upload_url when an
++                // entry can't be reserved (e.g. key+version already exists). Upstream
++                // passes that empty string straight into `new URL(blobUrl)`, throwing a
++                // fatal `TypeError: Invalid URL`. Treat it as "not reserved" (undefined)
++                // so the caller (line ~300) skips caching this entry gracefully.
++                // Mirrors actions/toolkit's `if (!response.ok)` handling.
++                if (!resData.ok || !resData.signed_upload_url) {
++                    return undefined;
++                }
+                 return resData.signed_upload_url;
+             }
+             throw new Error(`GitHub Cache reserve HTTP ${String(response.statusCode)} error: ${await readBody(response)}`);

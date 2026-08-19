@@ -97,6 +97,7 @@
     "nyc": "18.0.0",
     "os-browserify": "0.3.0",
     "ovsx": "0.10.12",
+    "patch-package": "8.0.1",
     "path-browserify": "^1.0.1",
     "playwright": "^1.60.0",
     "prettier": "3.8.3",
@@ -397,6 +398,9 @@
         ".github/actions/*/lib/**"
       ]
     },
+    "apply-patches": {
+      "command": "patch-package"
+    },
     "check:peer-deps": {
       "command": "check-peer-dependencies --ignore picomatch",
       "files": [
@@ -491,6 +495,7 @@
     },
     "postinstall": {
       "dependencies": [
+        "apply-patches",
         "check:peer-deps"
       ]
     }

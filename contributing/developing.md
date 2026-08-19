@@ -49,8 +49,9 @@ You would only do this once after you cloned the repository.
     this point, you should do initiate a `git checkout -t origin/develop` unless
     you are working on releasing.
 1.  `npm install` to bring in all the top-level dependencies. `postinstall` runs
-    wireit (`check:peer-deps`). Run `npm run bootstrap` to reinstall deps if
-    you change package.json.
+    `wireit`, whose `postinstall` target applies any `patches/*.patch` files
+    (via the `apply-patches` target, which runs `patch-package`) and checks peer
+    deps. Run `npm run bootstrap` to reinstall deps if you change package.json.
 1.  Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
