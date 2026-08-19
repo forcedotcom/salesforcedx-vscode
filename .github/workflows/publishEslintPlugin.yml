@@ -102,6 +102,8 @@ jobs:
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
       packageManager: npm
+      # npmPublish.yml defaults cacheDependencyPath to yarn.lock; this repo uses npm, so override it or setup-node's cache step fails.
+      cacheDependencyPath: package-lock.json
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/eslint-local-rules
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}
