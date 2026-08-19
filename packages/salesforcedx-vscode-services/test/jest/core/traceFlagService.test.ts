@@ -45,6 +45,7 @@ const buildConnectionServiceLayer = (connection: unknown): Layer.Layer<Connectio
     ConnectionService,
     ConnectionService.make({
       getConnection: () => Effect.succeed(connection as Connection),
+      getConnectionForOrg: () => Effect.succeed(connection as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])

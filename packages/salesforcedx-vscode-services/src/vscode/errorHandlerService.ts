@@ -36,6 +36,14 @@ const isMetadataCompletedWithErrorsSummaryError = (error: unknown): boolean => {
   return tag === 'DeployCompletedWithErrorsError' || tag === 'RetrieveCompletedWithErrorsError';
 };
 
+/**
+ * An operation scoped to the former target org is intentionally stopped when
+ * the target changes. This protects against committing results to the wrong
+ * org, but does not indicate a broken extension or lost user data.
+ */
+const isRecoverableOrgChangeInterruption = (error: unknown): boolean =>
+  isRecord(error) && '_tag' in error && Reflect.get(error, '_tag') === 'InactiveOrgOperationError';
+
 const getBaseMessage = (error: unknown): string => {
   if (isError(error)) {
     const innerCause = hasCause(error) ? error.cause : undefined;
@@ -77,6 +85,14 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
           const actions = getActions(error);
           const tag = isRecord(error) && '_tag' in error ? Reflect.get(error, '_tag') : undefined;
           const channelPrefix = isString(tag) ? `[${tag}] ` : '';
+
+          if (isRecoverableOrgChangeInterruption(error)) {
+            yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
+            yield* Effect.sync(
+              () => void vscode.window.showInformationMessage(nls.localize('org_operation_superseded'))
+            );
+            return;
+          }
 
           if (actions.length > 0) {
             const fullMessage = `${channelPrefix}Error: ${baseMessage}\n\n${actions.join('\n')}`;

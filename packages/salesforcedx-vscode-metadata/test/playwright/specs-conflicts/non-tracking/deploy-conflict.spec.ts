@@ -50,7 +50,7 @@ test.describe('Deploy Conflict Detection (Non-Source Tracking)', () => {
 
     await test.step('4. Trigger deploy - conflict modal appears', async () => {
       await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
-      await modal.waitForVisible(10_000);
+      await modal.waitForVisible('deploy');
       await saveScreenshot(page, 'non-tracking-deploy-4-conflict-modal.png');
     });
 
@@ -69,7 +69,7 @@ test.describe('Deploy Conflict Detection (Non-Source Tracking)', () => {
     await test.step('6. Override conflicts and deploy successfully', async () => {
       await openFileByName(page, `${className}.cls`);
       await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
-      await modal.waitForVisible(10_000);
+      await modal.waitForVisible('deploy');
       await modal.clickOverride('deploy');
       await saveScreenshot(page, 'non-tracking-deploy-8-override-clicked.png');
 

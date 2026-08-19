@@ -13,6 +13,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
@@ -30,8 +31,16 @@ export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToRe
   }
 ) {}
 
-const setProjectOpenedContext = Effect.fn('setProjectOpenedContext')(function* (value: boolean, reason: string) {
-  yield* Effect.annotateCurrentSpan({ value, reason });
+export const setProjectOpenedContext = Effect.fn('setProjectOpenedContext')(function* (
+  previousValue: Ref.Ref<boolean | undefined>,
+  value: boolean,
+  reason: string
+) {
+  const changed = yield* Ref.modify(previousValue, previous =>
+    previous === value ? [false, previous] : [true, value]
+  );
+  yield* Effect.annotateCurrentSpan({ value, reason, changed });
+  if (!changed) return;
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value));
   yield* Effect.logInfo(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
 });
@@ -141,26 +150,27 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
   dependencies: [WorkspaceService.Default],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
+    const projectOpenedContext = yield* Ref.make<boolean | undefined>(undefined);
 
     /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
     const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
       const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
 
       if (workspaceDescription.isEmpty) {
-        yield* setProjectOpenedContext(false, 'workspace_empty');
+        yield* setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty');
         return false;
       }
 
       const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
 
       return yield* globalSfProjectCache.get(cacheKey).pipe(
-        Effect.tap(() => setProjectOpenedContext(true, 'workspace_non_empty')),
-        Effect.tapError(() => setProjectOpenedContext(false, 'workspace_empty')),
+        Effect.tap(() => setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty')),
+        Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')),
         Effect.map(() => true),
         Effect.catchTag('FailedToResolveSfProjectError', () =>
           Effect.gen(function* () {
             const viaVscodeFs = yield* workspaceRootSalesforceManifestExistsViaVscodeFs;
-            yield* setProjectOpenedContext(viaVscodeFs, 'workspace_non_empty');
+            yield* setProjectOpenedContext(projectOpenedContext, viaVscodeFs, 'workspace_non_empty');
             return viaVscodeFs;
           })
         )
@@ -173,8 +183,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       const cacheKey = yield* sfProjectCacheKey(workspacePath);
       const project = yield* globalSfProjectCache
         .get(cacheKey)
-        .pipe(Effect.tapError(() => setProjectOpenedContext(false, 'workspace_empty')));
-      yield* setProjectOpenedContext(true, 'workspace_non_empty');
+        .pipe(Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')));
+      yield* setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty');
       return project;
     });
 

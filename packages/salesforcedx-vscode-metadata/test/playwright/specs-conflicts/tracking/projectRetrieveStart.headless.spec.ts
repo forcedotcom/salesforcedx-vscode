@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { test } from '../../fixtures';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -23,10 +23,12 @@ import {
   ensureSecondarySideBarHidden,
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
-import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import packageNls from '../../../package.nls.json';
-import { RETRIEVE_TIMEOUT } from '../../constants';
+import { SourceTrackingStatusBarPage } from '../../pages/sourceTrackingStatusBarPage';
+import packageNls from '../../../../package.nls.json';
+import { RETRIEVE_TIMEOUT } from '../../../constants';
 
+// Whole-project retrieve consumes every outstanding remote source-tracking change. Keep this test in
+// the dedicated single-worker tracking suite so parallel metadata tests cannot mutate its scratch org.
 test.setTimeout(RETRIEVE_TIMEOUT);
 test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
   // Desktop has 60s timeout by default, but retrieve can take up to 4 minutes

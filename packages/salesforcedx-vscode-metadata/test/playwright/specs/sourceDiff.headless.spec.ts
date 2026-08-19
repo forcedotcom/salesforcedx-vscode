@@ -41,9 +41,6 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   // Wait for retrieving message
   await waitForOutputChannelText(page, { expectedText: 'Retrieving 1 component for diff...', timeout: 30_000 });
 
-  // Wait for retrieve output (optional, only for explorer)
-  await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: DEPLOY_TIMEOUT });
-
   // Verify retrieve succeeded
   expect(
     await outputChannelContains(page, '0 components retrieved', { timeout: 100 }),
@@ -112,6 +109,11 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+
+    // The command can finish writing output before source tracking has applied the
+    // deploy result. Editing sooner lets that late update reset the new local
+    // change to zero, which is most visible on slower Windows runners.
+    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
   });
 
   await test.step('create local change and diff via command palette', async () => {
