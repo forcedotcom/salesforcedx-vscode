@@ -43,6 +43,20 @@ let languageClient: BaseLanguageClient | undefined;
 let extensionUri: URI;
 let initializationOptions: { workspaceType: WorkspaceType; sfdxTypingsDir: string };
 
+/**
+ * Wraps createLanguageClient as an Effect to avoid duplicated try-catch blocks.
+ * Returns Either the language client or a LwcLanguageServerError.
+ */
+const createLanguageClientEffect = (
+  extUri: URI,
+  initOptions: { workspaceType: WorkspaceType; sfdxTypingsDir: string },
+  packageDirs?: string[]
+) =>
+  Effect.tryPromise({
+    try: () => createLanguageClient(extUri, initOptions, packageDirs),
+    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+  });
+
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
@@ -99,7 +113,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   ).toString();
 
   // Get package directories from sfdx-project.json to scope file watchers (performance optimization)
-  const packageDirectories: string[] | undefined = yield* api.services.ProjectService.getSfProject().pipe(
+  const packageDirectories = yield* api.services.ProjectService.getSfProject().pipe(
     Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
     Effect.orElseSucceed(() => undefined)
   );
@@ -108,10 +122,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   extensionUri = extensionContext.extensionUri;
   initializationOptions = { workspaceType, sfdxTypingsDir };
 
-  const client = yield* Effect.tryPromise({
-    try: () => createLanguageClient(extensionUri, initializationOptions, packageDirectories),
-    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
-  }).pipe(
+  const client = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectories).pipe(
     Effect.tapError(error =>
       channelSvc.appendToChannel(
         nls.localize('lwc_language_server_start_failed', isError(error) ? error.message : String(error))
@@ -196,13 +207,10 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
   const channelSvc = yield* api.services.ChannelService;
 
   yield* projectService.projectConfigChanges.pipe(
+    Stream.filter(() => !!languageClient),
     Stream.debounce(Duration.millis(500)),
     Stream.runForEach(() =>
       Effect.gen(function* () {
-        if (!languageClient) {
-          return;
-        }
-
         yield* channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server'));
 
         // Fetch updated package directories
@@ -218,10 +226,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         });
 
         // Create and start a new client with updated package directories
-        const newClient = yield* Effect.tryPromise({
-          try: () => createLanguageClient(extensionUri, initializationOptions, packageDirectories),
-          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
-        });
+        const newClient = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectories);
 
         // Register workspace read file handler before start
         registerWorkspaceReadFileHandler(newClient, channelAdapter);

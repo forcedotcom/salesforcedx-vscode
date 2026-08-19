@@ -35,8 +35,7 @@ const getSynchronizeFileEvents = (packageDirectories?: string[]) => {
   // If we have package directories, scope watchers to only those paths for better performance
   if (packageDirectories && packageDirectories.length > 0 && workspaceRoot) {
     return packageDirectories.flatMap(pkgDir => {
-      const workspaceRootUri = URI.parse(workspaceRoot.uri.toString());
-      const computedPackageUri = Utils.joinPath(workspaceRootUri, ...pkgDir.split(/[\\/]+/));
+      const computedPackageUri = Utils.joinPath(workspaceRoot.uri, ...pkgDir.split(/[\\/]+/));
       const packageUri = workspaceRoot.uri.with({ path: computedPackageUri.path });
       const relativePattern = (pattern: string): RelativePattern => new RelativePattern(packageUri, pattern);
 
@@ -48,8 +47,9 @@ const getSynchronizeFileEvents = (packageDirectories?: string[]) => {
         workspace.createFileSystemWatcher(relativePattern('**/lwc/*/*.js')),
         workspace.createFileSystemWatcher(relativePattern('**/modules/*/*/*.js')),
         workspace.createFileSystemWatcher(relativePattern('**/modules/*/*/*.ts')),
-        // need to watch for directory deletions as no events are created for contents or deleted directories
-        workspace.createFileSystemWatcher(relativePattern('**/'), false, true, false)
+        workspace.createFileSystemWatcher(relativePattern('**/*.js-meta.xml')),
+        // Watch for directory deletions only (ignore creates) - .js-meta.xml watcher handles needed creates
+        workspace.createFileSystemWatcher(relativePattern('**/'), true, true, false)
       ];
     });
   }
@@ -63,8 +63,9 @@ const getSynchronizeFileEvents = (packageDirectories?: string[]) => {
     workspace.createFileSystemWatcher('**/lwc/*/*.js'),
     workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
     workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
-    // need to watch for directory deletions as no events are created for contents or deleted directories
-    workspace.createFileSystemWatcher('**/', false, true, false)
+    workspace.createFileSystemWatcher('**/*.js-meta.xml'),
+    // Watch for directory deletions only (ignore creates) - .js-meta.xml watcher handles needed creates
+    workspace.createFileSystemWatcher('**/', true, true, false)
   ];
 };
 

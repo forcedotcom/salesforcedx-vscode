@@ -41,7 +41,7 @@ describe('clientOptions', () => {
       // createFileSystemWatcher(pattern, ignoreCreateEvents, ignoreChangeEvents, ignoreDeleteEvents)
       const [pattern, ignoreCreateEvents, ignoreChangeEvents, ignoreDeleteEvents] = directoryCalls[0];
       expect(pattern).toBe('**/');
-      expect(ignoreCreateEvents).toBe(false); // Watch for directory creation
+      expect(ignoreCreateEvents).toBe(true); // Ignore creates - specific watchers handle lwc/ and .js-meta.xml
       expect(ignoreChangeEvents).toBe(true); // Ignore directory changes
       expect(ignoreDeleteEvents).toBe(false); // Watch for directory deletion
 
@@ -70,7 +70,7 @@ describe('clientOptions', () => {
       expect(fileEvents).toBeDefined();
       expect(Array.isArray(fileEvents)).toBe(true);
 
-      // Should have multiple watchers (resources, labels, lwc files, etc., plus directory watcher)
+      // Should have multiple watchers (resources, labels, lwc files, .js-meta.xml, plus directory watcher)
       expect(createFileSystemWatcherSpy.mock.calls.length).toBeGreaterThan(5);
 
       // Verify specific patterns are watched
@@ -116,8 +116,9 @@ describe('clientOptions', () => {
           ['packages\\force-app']
         );
 
-        expect(options.synchronize?.fileEvents).toHaveLength(8);
+        expect(options.synchronize?.fileEvents).toHaveLength(9);
         expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/lwc/*/*.js');
+        expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/*.js-meta.xml');
         expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/');
 
         const directoryCall = createFileSystemWatcherSpy.mock.calls.find(
@@ -125,7 +126,7 @@ describe('clientOptions', () => {
         );
         expect(directoryCall).toEqual([
           expect.objectContaining({ baseUri: packageUri, pattern: '**/' }),
-          false,
+          true, // ignoreCreateEvents: true - .js-meta.xml watcher handles needed creates
           true,
           false
         ]);

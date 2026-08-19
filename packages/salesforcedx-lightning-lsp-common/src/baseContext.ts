@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError, isString, isUndefined } from 'effect/Predicate';
+import { isError, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
@@ -36,12 +36,10 @@ export interface Indexer {
 }
 
 const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirectoryConfig => {
-  if (typeof value !== 'object' || value === null) return false;
-  const obj = value;
-  return 'path' in obj && isString(obj.path);
+  if (!isRecord(value)) return false;
+  return 'path' in value && isString(value.path);
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 const JSON_INDENT = 2;
 
 /**
@@ -72,14 +70,6 @@ type JsonValue =
   | { readonly [key: string]: JsonValue };
 
 /**
- * Equivalence relation for JSON values created from the schema.
- * This provides deep structural equality that handles nested objects and arrays correctly.
- * Effect Schema's equivalence automatically handles recursive structures.
- */
-const jsonValueEquivalence = Schema.equivalence(JsonValueSchema);
-const decodeJsonValue = Schema.decodeUnknownSync(JsonValueSchema);
-
-/**
  * Compares two JSON-serializable values for deep structural equality using Effect Schema.
  *
  * Uses Schema.equivalence() which provides proper structural equality for:
@@ -97,10 +87,10 @@ export const areJsonValuesEqual = (a: unknown, b: unknown): boolean => {
   try {
     // Decode both values through the schema to validate they're valid JSON
     // Then use the schema-derived equivalence to compare them
-    const decodedA = decodeJsonValue(a);
-    const decodedB = decodeJsonValue(b);
+    const decodedA = Schema.decodeUnknownSync(JsonValueSchema)(a);
+    const decodedB = Schema.decodeUnknownSync(JsonValueSchema)(b);
 
-    return jsonValueEquivalence(decodedA, decodedB);
+    return Schema.equivalence(JsonValueSchema)(decodedA, decodedB);
   } catch {
     // If schema validation fails, values are not equal
     return false;
