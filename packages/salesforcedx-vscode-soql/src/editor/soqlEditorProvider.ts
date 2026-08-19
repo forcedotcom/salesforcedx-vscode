@@ -9,7 +9,14 @@ import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
+import {
+  BUILDER_VIEW_TYPE,
+  HTML_FILE,
+  LIT_SPIKE_HTML_FILE,
+  SOQL_BUILDER_UI_PATH,
+  SOQL_CONFIGURATION_NAME,
+  SOQL_LIT_SPIKE_CONFIG
+} from '../constants';
 import { nls } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
@@ -58,10 +65,14 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const soqlBuilderUri = getSoqlBuilderLocation(this.extensionContext);
+    const useLitSpike = vscode.workspace
+      .getConfiguration(SOQL_CONFIGURATION_NAME)
+      .get<boolean>(SOQL_LIT_SPIKE_CONFIG, false);
+    const htmlFile = useLitSpike ? LIT_SPIKE_HTML_FILE : HTML_FILE;
     const htmlContent = await getSoqlRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* getServicesApi;
-        return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
+        return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, htmlFile));
       })
     );
     return transformHtml(htmlContent, soqlBuilderUri, webview);

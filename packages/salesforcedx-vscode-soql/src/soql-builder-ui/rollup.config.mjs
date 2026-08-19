@@ -80,16 +80,17 @@ const fixLwcEmptyCss = {
   }
 };
 
-/** Copies index.html to dist/ after the bundle is written. */
+/** Copies both production and spike HTML entry points to dist/. */
 const copyHtml = {
   name: 'copy-html',
   writeBundle() {
     mkdirSync('dist', { recursive: true });
     copyFileSync('index.html', 'dist/index.html');
+    copyFileSync('lit-spike.html', 'dist/lit-spike.html');
   }
 };
 
-export default {
+const lwcConfig = {
   input: 'index.ts',
   plugins: [
     nodeShims,
@@ -145,3 +146,27 @@ export default {
     name: 'SoqlBuilderUI'
   }
 };
+
+const litSpikeConfig = {
+  input: 'litSpike/index.ts',
+  plugins: [
+    nodeShims,
+    alias({ entries: [{ find: 'os', replacement: 'os-browserify/browser' }] }),
+    babel({
+      extensions: ['.ts'],
+      babelHelpers: 'bundled',
+      presets: [['@babel/preset-typescript', { allExtensions: true, allowDeclareFields: true }]]
+    }),
+    resolve({ browser: true, extensions: ['.ts', '.mjs', '.js', '.json'] }),
+    commonjs(),
+    inject({ process: 'process/browser' }),
+    terser({ format: { comments: false }, maxWorkers: 1 })
+  ],
+  output: {
+    file: 'dist/lit-spike.app.js',
+    format: 'iife',
+    name: 'SoqlBuilderLitSpike'
+  }
+};
+
+export default [lwcConfig, litSpikeConfig];

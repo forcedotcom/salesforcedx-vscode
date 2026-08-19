@@ -8,6 +8,7 @@ import { nls } from './messages';
 
 /* ==== SOQL BUILDER ==== */
 export const HTML_FILE = 'index.html';
+export const LIT_SPIKE_HTML_FILE = 'lit-spike.html';
 export const IMAGES_DIR_NAME = 'images';
 export const BUILDER_VIEW_TYPE = 'soqlCustom.soql';
 export const EDITOR_VIEW_TYPE = 'default';
@@ -31,4 +32,5 @@ export const DATA_JSON_EXT = 'json';
 
 /* ==== SOQL Extension ==== */
 export const SOQL_CONFIGURATION_NAME = 'salesforcedx-vscode-soql';
+export const SOQL_LIT_SPIKE_CONFIG = 'experimental.useLitSpike';
 export const SOQL_VALIDATION_CONFIG = 'experimental.validateQueries';

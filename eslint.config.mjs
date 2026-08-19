@@ -76,6 +76,7 @@ export default [
       // Lint *.html and querybuilder/messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/*.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/litSpike/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',

@@ -36,13 +36,15 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
+    "@salesforce/soql-model": "*",
     "@salesforce/vscode-i18n": "*",
+    "@vscode-elements/elements": "2.5.1",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
+    "effect": "^3.21.2",
+    "lit": "3.3.3",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -84,6 +86,7 @@
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "test:lit-spike": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
@@ -135,6 +138,7 @@
       ],
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
+        "src/soql-builder-ui/litSpike/**",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/rollup.config.mjs"
       ],
@@ -152,6 +156,16 @@
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
         "test/jest/soql-builder-ui/**"
+      ],
+      "output": []
+    },
+    "test:lit-spike": {
+      "command": "node src/soql-builder-ui/litSpike/verify.mjs",
+      "dependencies": [
+        "build:soql-builder-ui"
+      ],
+      "files": [
+        "src/soql-builder-ui/litSpike/verify.mjs"
       ],
       "output": []
     },
@@ -469,6 +483,11 @@
           "type": "boolean",
           "default": false,
           "description": "%soql_validation_flag%"
+        },
+        "salesforcedx-vscode-soql.experimental.useLitSpike": {
+          "type": "boolean",
+          "default": false,
+          "description": "%soql_lit_spike_flag%"
         },
         "salesforcedx-vscode-soql.maxQueryLimit": {
           "type": "integer",
