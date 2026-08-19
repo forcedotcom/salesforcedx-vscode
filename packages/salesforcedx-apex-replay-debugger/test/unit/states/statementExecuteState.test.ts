@@ -73,4 +73,16 @@ describe('Statement execute event', () => {
     expect(state.handle(contextWithApexPath)).toBe(true);
     expect(contextWithApexPath.getFrames()[0].line).toBe(2);
   });
+
+  it('Should offset execute anonymous frame line by anonApexLineOffset when set', () => {
+    const contextWithOffset = new LogContext(
+      { ...launchRequestArgs, anonApexFilePath: '/path/to/script.apex', anonApexLineOffset: 8 },
+      new ApexReplayDebug()
+    );
+    contextWithOffset.getFrames().push({ name: EXEC_ANON_SIGNATURE } as StackFrame);
+    const state = new StatementExecuteState(['1']);
+
+    expect(state.handle(contextWithOffset)).toBe(true);
+    expect(contextWithOffset.getFrames()[0].line).toBe(9);
+  });
 });

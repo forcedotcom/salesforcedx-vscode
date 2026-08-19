@@ -22,7 +22,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
     'salesforce.salesforcedx-vscode-apex'
   );
-  public static getConfig(logFile?: string, stopOnEntry: boolean = true, anonApexFilePath?: string): vscode.DebugConfiguration {
+  public static getConfig(
+    logFile?: string,
+    stopOnEntry: boolean = true,
+    anonApexFilePath?: string,
+    anonApexLineOffset?: number
+  ): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -30,7 +35,8 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       logFile: logFile ?? '${command:AskForLogFileName}',
       stopOnEntry,
       trace: true,
-      ...(anonApexFilePath ? { anonApexFilePath } : {})
+      ...(anonApexFilePath ? { anonApexFilePath } : {}),
+      ...(anonApexLineOffset !== undefined ? { anonApexLineOffset } : {})
     };
   }
 
@@ -115,9 +121,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       if (!config.anonApexFilePath) {
         const anonSource = extractAnonApexSource(config.logFileContents);
         if (anonSource !== undefined) {
-          const matched = await findMatchingApexFile(anonSource);
+          const matched = await findMatchingSourceFile(anonSource);
           if (matched) {
-            config.anonApexFilePath = matched;
+            config.anonApexFilePath = matched.filePath;
+            if (matched.lineOffset > 0) {
+              config.anonApexLineOffset = matched.lineOffset;
+            }
           } else {
             const apexFilePath = URI.file(config.logFilePath.replace(/\.log$/, '.apex'));
             await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
@@ -216,15 +225,31 @@ const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(func
   yield* api.services.FsService.safeWriteFile(filePath, contents);
 });
 
-const findMatchingApexFile = async (source: string): Promise<string | undefined> => {
-  const candidates = await vscode.workspace.findFiles('**/*.apex');
+type SourceMatch = { filePath: string; lineOffset: number };
+
+const findMatchingSourceFile = async (source: string): Promise<SourceMatch | undefined> => {
+  const candidates = await vscode.workspace.findFiles('**/*.{apex,cls,trigger}', '**/{.sf,.sfdx,.git,node_modules}/**');
   return getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const sourceLines = source.trimEnd().split(/\r?\n/);
       for (const candidate of candidates) {
-        const contents = yield* Effect.option(api.services.FsService.readFile(candidate.fsPath));
-        if (contents._tag === 'Some' && contents.value.trimEnd() === source.trimEnd()) {
-          return candidate.fsPath;
+        const result = yield* Effect.option(api.services.FsService.readFile(candidate.fsPath));
+        if (result._tag !== 'Some') {
+          continue;
+        }
+        const fileLines = result.value.split(/\r?\n/);
+        // Exact match (whole file is the source, e.g. a .apex file)
+        if (result.value.trimEnd() === source.trimEnd()) {
+          return { filePath: candidate.fsPath, lineOffset: 0 };
+        }
+        // Subsequence match: find sourceLines as a contiguous block within fileLines
+        if (sourceLines.length < fileLines.length) {
+          for (let i = 0; i <= fileLines.length - sourceLines.length; i++) {
+            if (sourceLines.every((line, j) => fileLines[i + j].trim() === line.trim())) {
+              return { filePath: candidate.fsPath, lineOffset: i };
+            }
+          }
         }
       }
       return undefined;

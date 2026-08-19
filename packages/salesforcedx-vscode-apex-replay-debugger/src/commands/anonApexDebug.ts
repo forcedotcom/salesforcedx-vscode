@@ -27,12 +27,18 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
 const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (
   logFilePath: URI,
   logs: string,
-  anonApexFilePath: string
+  anonApexFilePath: string,
+  anonApexLineOffset: number
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
   yield* Effect.promise(() =>
-    vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath, anonApexFilePath)
+    vscode.commands.executeCommand(
+      'sf.launch.replay.debugger.logfile.path',
+      logFilePath.fsPath,
+      anonApexFilePath,
+      anonApexLineOffset
+    )
   );
 });
 
@@ -53,7 +59,12 @@ export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.Command.anonAp
         yield* api.services.ProjectService.getDebugLogsFolder(),
         `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
       );
-      yield* launchReplayDebugger(logFilePath, logBody, context.documentUri.fsPath);
+      yield* launchReplayDebugger(
+        logFilePath,
+        logBody,
+        context.documentUri.fsPath,
+        context.selectionRange?.startLine ?? 0
+      );
     }
     return result;
   }).pipe(promptService.withProgress(nls.localize('apex_execute_text')));

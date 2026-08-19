@@ -21,7 +21,7 @@ export class StatementExecuteState implements DebugLogState {
     if (frame) {
       if (frame.name === EXEC_ANON_SIGNATURE) {
         frame.line = logContext.getAnonApexFilePath()
-          ? this.line
+          ? this.line + logContext.getAnonApexLineOffset()
           : logContext.getExecAnonScriptLocationInDebugLog(this.line);
       } else {
         frame.line = this.line;

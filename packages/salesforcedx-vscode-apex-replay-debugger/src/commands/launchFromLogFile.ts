@@ -8,9 +8,14 @@
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
-export const launchFromLogFile = async (logFile?: string, stopOnEntry: boolean = true, anonApexFilePath?: string) => {
+export const launchFromLogFile = async (
+  logFile?: string,
+  stopOnEntry: boolean = true,
+  anonApexFilePath?: string,
+  anonApexLineOffset?: number
+) => {
   if (!vscode.debug.activeDebugSession && vscode.workspace.workspaceFolders?.[0]) {
-    const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath);
+    const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
     await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], config);
   }
 };

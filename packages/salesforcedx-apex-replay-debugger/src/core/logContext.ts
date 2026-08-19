@@ -292,6 +292,10 @@ export class LogContext {
     return this.launchArgs.anonApexFilePath;
   }
 
+  public getAnonApexLineOffset(): number {
+    return this.launchArgs.anonApexLineOffset ?? 0;
+  }
+
   public getUriFromSignature(signature: string): string {
     if (signature === EXEC_ANON_SIGNATURE) {
       return this.launchArgs.anonApexFilePath ?? this.getLogFilePath();
