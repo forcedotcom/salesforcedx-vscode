@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import * as stdValueSetRegistry from '@salesforce/source-deploy-retrieve/lib/src/registry/stdValueSetRegistry.json';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
@@ -172,7 +172,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       // StandardValueSet does not support wildcard retrieval via metadata.list — use the
       // static registry from SDR which lists all known StandardValueSet names.
       if (type === 'StandardValueSet' && !folder) {
-        return stdValueSetRegistry.fullnames
+        return standardValueSet.fullnames
           .map(fullName => ({ fullName, type: 'StandardValueSet' as const }))
           .toSorted((a, b) => a.fullName.localeCompare(b.fullName));
       }

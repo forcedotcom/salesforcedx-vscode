@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import * as stdValueSetRegistry from '@salesforce/source-deploy-retrieve/lib/src/registry/stdValueSetRegistry.json';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -129,7 +129,7 @@ describe('MetadataDescribeService.listMetadata (StandardValueSet)', () => {
     const { listMock, result } = runListMetadataWithMock([], 'StandardValueSet');
     const items = await result;
 
-    expect(items).toHaveLength(stdValueSetRegistry.fullnames.length);
+    expect(items).toHaveLength(standardValueSet.fullnames.length);
     expect(items.every(i => i.type === 'StandardValueSet')).toBe(true);
     expect(listMock).not.toHaveBeenCalled();
   });
