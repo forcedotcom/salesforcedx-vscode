@@ -20,6 +20,7 @@ import {
   setupMinimalOrgAndAuth,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
+  upsertSettings,
   validateNoCriticalErrors,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
@@ -27,7 +28,7 @@ import {
 import { trackingTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { expandTreeRow, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
-import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
+import { createApexTestSuiteViaPalette, createLocalApexTestSuiteFile } from '../helpers/apexTestSuiteHelpers';
 
 test('Apex Test Suite: delete suite and verify it disappears from Testing sidebar without refresh', async ({
   page
@@ -91,20 +92,14 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
-  await test.step('pull source from org to get test suite file locally', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Pull Source from Default Org and Ignore Conflicts');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Retrieved Source',
-      timeout: 120_000
-    });
-    await saveScreenshot(page, 'step.pull-source-done.png');
+  await test.step('create the test suite metadata file locally', async () => {
+    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
+    await createLocalApexTestSuiteFile(page, testSuiteName, testClassName);
+    await saveScreenshot(page, 'step.local-suite-file-created.png');
   });
 
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
-    // Open the test suite file via the Explorer tree (Quick Open can't find newly-pulled files on web).
+    // Open the test suite file via the Explorer tree (Quick Open can't find newly-created files on web).
     // force-app/main/default is already expanded by default; just expand testSuites to reach the file.
     await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, ['testSuites']);
     await saveScreenshot(page, 'step.suite-file-opened.png');
@@ -142,11 +137,10 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     const panel = page.locator(TEST_EXPLORER_PANEL);
     await panel.waitFor({ state: 'visible', timeout: 10_000 });
 
-    // The suite should disappear from the tree without manual refresh.
-    // Wait for the "Apex Test Suites" parent to become hidden (tree rebuild removes it
-    // because populateSuiteItems returns no suites from the org).
-    const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
-    await expect(suiteParent).toBeHidden({ timeout: 60_000 });
+    // The deleted suite should disappear without manual refresh. Other suites can legitimately
+    // remain in the shared org, including suites left by a previous failed test attempt.
+    const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+    await expect(suiteItem).toBeHidden({ timeout: 60_000 });
     await saveScreenshot(page, 'step.suite-gone-from-sidebar.png');
   });
 

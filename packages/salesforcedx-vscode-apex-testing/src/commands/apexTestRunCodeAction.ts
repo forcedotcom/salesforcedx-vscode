@@ -12,7 +12,7 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
@@ -91,64 +91,56 @@ const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(f
   }
 
   const packageDirectories = maybeProject.value.getUniquePackageDirectories();
-  const correlatedArtifacts = yield* Effect.promise(() =>
-    mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories)
-  );
+  const correlatedArtifacts = yield* mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories);
 
-  testsWithDiagnostics.forEach(test => {
-    const diagnostic = test.diagnostic;
-    const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
-
-    if (componentPath) {
+  yield* Effect.forEach(
+    testsWithDiagnostics,
+    test => {
+      const diagnostic = test.diagnostic;
+      const componentUri = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
+      if (!componentUri) {
+        return Effect.void;
+      }
       const vscDiagnostic: vscode.Diagnostic = {
         message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
         severity: vscode.DiagnosticSeverity.Error,
-        source: componentPath,
+        source: componentUri.toString(),
         range: getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
       };
-
-      apexTestingDiagnostics.set(URI.file(componentPath), [vscDiagnostic]);
-    }
-  });
+      return Effect.sync(() => apexTestingDiagnostics.set(componentUri, [vscDiagnostic]));
+    },
+    { concurrency: 1, discard: true }
+  );
 });
 
-const mapApexArtifactToFilesystem = async (
+const mapApexArtifactToFilesystem = Effect.fn('apexTestRunCodeAction.mapApexArtifactToFilesystem')(function* (
   tests: ApexTestResultData[],
   packageDirectories: NamedPackageDir[]
-): Promise<Map<string, string>> => {
-  const correlatedArtifacts: Map<string, string> = new Map(
-    tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
-  );
-
-  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (!workspaceFolder) {
-    return correlatedArtifacts;
-  }
-
-  Array.from(
-    new Set(
-      (
-        await Promise.all(
-          packageDirectories
-            .map(pkgDir => new vscode.RelativePattern(URI.file(pkgDir.fullPath), '**/*.cls'))
-            .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const classNames = new Set(tests.map(test => test.apexClass.fullName ?? test.apexClass.name));
+  return yield* Effect.forEach(
+    packageDirectories,
+    pkgDir =>
+      api.services.FsService.toUri(pkgDir.fullPath).pipe(
+        Effect.map(packageDirUri => new vscode.RelativePattern(packageDirUri, '**/*.cls')),
+        Effect.flatMap(pattern => api.services.FsService.findFiles(pattern, '**/node_modules/**'))
+      ),
+    { concurrency: 'unbounded' }
+  ).pipe(
+    Effect.map(matches => matches.flat()),
+    Effect.map(matches => [...new Map(matches.map(uri => [uri.toString(), uri])).values()]),
+    Effect.map(
+      matches =>
+        new Map(
+          matches.flatMap(uri => {
+            const fileName = Utils.basename(uri).slice(0, -'.cls'.length);
+            return classNames.has(fileName) ? [[fileName, uri] as const] : [];
+          })
         )
-      )
-        .flat()
-        // parsing to string for set to dedupe, then back to URI
-        .map(uri => uri.toString())
     )
-  )
-    .map(filePath => URI.parse(filePath))
-    .map(file => {
-      const fileName = Utils.basename(file).slice(0, -'.cls'.length);
-      if (correlatedArtifacts.has(fileName)) {
-        correlatedArtifacts.set(fileName, file.fsPath);
-      }
-    });
-
-  return correlatedArtifacts;
-};
+  );
+});
 
 const getTempFolder = Effect.fn('apexTestRunCodeAction.getTempFolder')(function* () {
   return yield* getTestResultsFolder().pipe(

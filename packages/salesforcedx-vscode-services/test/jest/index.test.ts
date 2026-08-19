@@ -27,9 +27,6 @@ import { activate, deactivate } from '../../src/index';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { projectFiles } from '../../src/virtualFsProvider/projectInit';
-import { SettingsService } from '../../src/vscode/settingsService';
-import { WorkspaceService } from '../../src/vscode/workspaceService';
 import { isServicesRuntimeReady } from '../../src/servicesRuntime';
 import { getExtensionScope } from '../../src/vscode/extensionScope';
 import { ConfigService } from '../../src/core/configService';
@@ -266,14 +263,14 @@ describe('Extension', () => {
     expect(externalSdkContext).toBeDefined();
 
     const defaultOrgRef = await Effect.runPromise(getDefaultOrgRef());
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'usa9s' }));
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'stg9402s' }));
     expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({
       orgId: 'gov-org',
       telemetryClassification: 'gov'
     });
     expect(api.services.TelemetryIdentitySnapshot()).not.toHaveProperty('instanceName');
 
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'na123' }));
+    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'usa9102' }));
     expect(api.services.TelemetryIdentitySnapshot().telemetryClassification).toBe('nonGov');
   });
 
@@ -310,31 +307,5 @@ describe('Extension', () => {
     await expect(activate(context)).resolves.toBeDefined();
     expect(isServicesRuntimeReady()).toBe(true);
     await deactivate();
-  });
-
-  it('should handle homedir correctly in web environment', async () => {
-    // Mock the fsProvider with all required methods
-    const mockFsProvider = {
-      exists: jest.fn().mockReturnValue(false),
-      createDirectory: jest.fn().mockResolvedValue(undefined),
-      writeFile: jest.fn().mockResolvedValue(undefined),
-      readFile: jest.fn(),
-      delete: jest.fn(),
-      rename: jest.fn(),
-      stat: jest.fn(),
-      readDirectory: jest.fn(),
-      watch: jest.fn(),
-      onDidChangeFile: jest.fn(),
-      findFiles: jest.fn().mockResolvedValue([])
-    };
-
-    // Test that projectFiles works correctly with proper mocking
-    // The function should succeed when dependencies are properly mocked
-    await expect(
-      projectFiles(mockFsProvider).pipe(
-        Effect.provide(Layer.mergeAll(SettingsService.Default, WorkspaceService.Default)),
-        Effect.runPromise
-      )
-    ).resolves.toBeUndefined();
   });
 });

@@ -19,12 +19,14 @@
 
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
-  prepareNoFolderOpenForPaletteTests,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { debuggerEmptyWorkspaceDesktopTest as test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
@@ -34,9 +36,15 @@ import packageNls from '../../../package.nls.json';
   async ({ page }) => {
     test.setTimeout(60_000);
 
-    await test.step('reach empty-workspace palette state', async () => {
-      await prepareNoFolderOpenForPaletteTests(page);
-      await saveScreenshot(page, 'isvBootstrap.01-empty-workspace.png');
+    await test.step('reach non-project workspace palette state', async () => {
+      // Services intentionally requires an open workspace folder. The fixture is
+      // empty (no sfdx-project.json), which keeps the bootstrap command eligible
+      // without closing the folder and invalidating that dependency contract.
+      await waitForVSCodeWorkbench(page);
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      await expect(page.getByRole('tree', { name: /Files Explorer/i })).toBeVisible({ timeout: 30_000 });
+      await saveScreenshot(page, 'isvBootstrap.01-non-project-workspace.png');
     });
 
     await test.step('verify ISV bootstrap command available', async () => {
