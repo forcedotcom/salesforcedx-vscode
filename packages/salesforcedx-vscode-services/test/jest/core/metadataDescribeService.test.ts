@@ -13,6 +13,7 @@ import { ChannelService } from '../../../src/vscode/channelService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 
 type ListItem = {
   fullName: string;
@@ -21,11 +22,20 @@ type ListItem = {
   lastModifiedDate?: string;
 };
 
+const recordMetadataListing = jest.fn(() => Effect.void);
+
 const createMockConnectionService = (listResult: ListItem | ListItem[]): Layer.Layer<ConnectionService> =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
       getConnection: () =>
+        Effect.succeed({
+          version: '60.0',
+          metadata: {
+            list: jest.fn().mockResolvedValue(listResult)
+          }
+        } as unknown as Connection),
+      getConnectionForOrg: () =>
         Effect.succeed({
           version: '60.0',
           metadata: {
@@ -43,23 +53,38 @@ const seedDefaultOrg = Effect.gen(function* () {
   yield* SubscriptionRef.update(ref, () => ({ orgId: 'test-org' }));
 });
 
-const runListMetadata = (listResult: ListItem | ListItem[], type = 'ApexClass') =>
+const runListMetadata = (listResult: ListItem | ListItem[], type = 'ApexClass', calls = 1) =>
   Effect.runPromise(
     Effect.gen(function* () {
       yield* seedDefaultOrg;
       const service = yield* MetadataDescribeService;
-      return yield* service.listMetadata(type);
+      return yield* Effect.all(Array.from({ length: calls }, () => service.listMetadata(type))).pipe(
+        Effect.map(results => results.at(-1) ?? [])
+      );
     }).pipe(
       Effect.provide(
         Layer.provide(
           MetadataDescribeService.DefaultWithoutDependencies,
-          Layer.mergeAll(createMockConnectionService(listResult), ChannelService.Default)
+          Layer.mergeAll(
+            createMockConnectionService(listResult),
+            ChannelService.Default,
+            Layer.succeed(OrgMetadataCatalogRecorder, {
+              recordMetadataListing,
+              recordMetadataTypes: () => Effect.void,
+              recordOperation: () => Effect.void,
+              recordSObjectDescription: () => Effect.void,
+              recordSObjectList: () => Effect.void,
+              recordTrackingStatus: () => Effect.succeed([])
+            } as unknown as InstanceType<typeof OrgMetadataCatalogRecorder>)
+          )
         )
       )
     )
   );
 
 describe('MetadataDescribeService.listMetadata', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   it('sorts an out-of-order array by fullName', async () => {
     const result = await runListMetadata([
       { fullName: 'Charlie', type: 'ApexClass' },
@@ -85,6 +110,15 @@ describe('MetadataDescribeService.listMetadata', () => {
     ]);
 
     expect(result.map(r => r.fullName)).toEqual(['Dup', 'Unique']);
+  });
+
+  it('records both cache misses and cache hits under the resolved org', async () => {
+    await runListMetadata([{ fullName: 'Foo', type: 'ApexClass' }], 'ApexClass', 2);
+
+    expect(recordMetadataListing).toHaveBeenCalledTimes(2);
+    expect(recordMetadataListing).toHaveBeenNthCalledWith(1, 'test-org', 'ApexClass', undefined, [
+      expect.objectContaining({ fullName: 'Foo' })
+    ]);
   });
 
   it('handles out-of-order, duplicate, and single-fullName entries together', async () => {

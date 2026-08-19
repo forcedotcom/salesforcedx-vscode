@@ -7,21 +7,14 @@
 
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, FileProperties } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import { URI } from 'vscode-uri';
-import {
-  filesAreNotIdentical,
-  matchUrisToComponents,
-  retrieveToCacheDirectory,
-  sourceComponentToPaths
-} from '../shared/diff/diffHelpers';
+import { filesAreNotIdentical, materializeRemoteComponents } from '../shared/diff/diffHelpers';
 import { buildTimestampIndex } from './resultStorage';
-import { getFileProperties } from './shared';
 
 const componentKey = (type: string, fullName: string) => `${type}:${fullName}`;
 
@@ -29,14 +22,18 @@ const dateIsNewer = (remote: string, stored: DateTime.Utc) =>
   new Date(remote).getTime() > DateTime.toEpochMillis(stored);
 
 const computePotentialConflictKeys = Effect.fn('conflictDetection.computePotentialConflictKeys')(function* (
-  fileProperties: FileProperties[]
+  entries: readonly {
+    readonly reference: { readonly type?: string; readonly fullName?: string };
+    readonly lastModifiedDate?: string;
+  }[]
 ) {
   const timestampIndex = yield* buildTimestampIndex();
-  return fileProperties.reduce<Set<string>>((acc, fp) => {
-    const key = componentKey(fp.type, fp.fullName);
+  return entries.reduce<Set<string>>((acc, entry) => {
+    if (!entry.reference.type || !entry.reference.fullName) return acc;
+    const key = componentKey(entry.reference.type, entry.reference.fullName);
     const stored = timestampIndex.get(key);
-    if (!fp.lastModifiedDate) return acc;
-    const isConflict = !stored || dateIsNewer(fp.lastModifiedDate, stored);
+    if (!entry.lastModifiedDate) return acc;
+    const isConflict = !stored || dateIsNewer(entry.lastModifiedDate, stored);
     if (isConflict) acc.add(key);
     return acc;
   }, new Set());
@@ -52,24 +49,15 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
   operationType: 'deploy' | 'retrieve'
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSetService = yield* api.services.ComponentSetService;
-  const nonEmpty = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
-
-  const retrieveResult = yield* retrieveToCacheDirectory(nonEmpty);
-  if (!retrieveResult) {
-    return [] satisfies DiffFilePair[];
-  }
-
   const projectComponents = componentSet.getSourceComponents().toArray();
 
   if (projectComponents.length === 0) {
     return [] satisfies DiffFilePair[];
   }
 
-  const pairsSet = yield* matchUrisToComponents(componentSet, retrieveResult.components);
-
   if (operationType === 'retrieve') {
-    return yield* pairsSet.pipe(
+    const retrievePairs = yield* materializeRemoteComponents(componentSet);
+    return yield* retrievePairs.pipe(
       Stream.fromIterable,
       Stream.filterEffect(filesAreNotIdentical),
       Stream.runCollect,
@@ -77,21 +65,25 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
     );
   }
 
-  const potentialConflictKeys = yield* computePotentialConflictKeys(getFileProperties(retrieveResult));
+  const entries = (yield* api.services.OrgMetadataCatalog.getEntries(
+    projectComponents.map(component => ({
+      type: component.type.name,
+      fullName: component.fullName
+    })),
+    { consistency: 'refresh' }
+  )).filter(isNotUndefined);
+  const potentialConflictKeys = yield* computePotentialConflictKeys(entries);
 
   if (potentialConflictKeys.size === 0) return [] satisfies DiffFilePair[];
 
-  const conflictingPaths = new Set(
-    projectComponents
-      .filter(c => potentialConflictKeys.has(componentKey(c.type.name, c.fullName)))
-      .flatMap(sourceComponentToPaths)
-      .map(p => URI.file(p).path)
+  const deployPairs = yield* materializeRemoteComponents(componentSet, undefined, component =>
+    potentialConflictKeys.has(componentKey(component.type.name, component.fullName))
   );
 
-  if (conflictingPaths.size === 0) return [] satisfies DiffFilePair[];
-
-  const conflictPairs = HashSet.filter(pairsSet, pair => conflictingPaths.has(pair.localUri.uri.path));
-  const deployDiffering = yield* conflictPairs.pipe(
+  // materializeRemoteComponents already received the potential-conflict component
+  // predicate. Avoid filtering the resulting URIs again as plain strings: Windows
+  // paths are case-insensitive and may arrive with different segment casing.
+  const deployDiffering = yield* deployPairs.pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
     Stream.runCollect

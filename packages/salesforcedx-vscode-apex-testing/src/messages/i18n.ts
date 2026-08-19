@@ -45,9 +45,6 @@ export const messages = {
   run_stale_org_tests_title: 'Re-run Stale Org Tests',
   test_view_name: 'Apex Tests',
   apex_test_suites_parent_text: 'Apex Test Suites',
-  apex_testing_vfs_org_badge_text: 'ORG',
-  apex_testing_vfs_org_file_tooltip_text: 'Org virtual file (read-only)',
-  apex_testing_vfs_readonly_prefix_text: 'apex-testing is read-only',
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
@@ -79,8 +76,6 @@ export const messages = {
   apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
   apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
   apex_test_retrieve_canceled: 'Retrieve canceled',
-  apex_discovery_vfs_class_body_placeholder: '// Source unavailable for %s',
-  apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
   apex_test_report_open_action: 'Open Report',
@@ -90,8 +85,6 @@ export const messages = {
     'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_failed_execution_message: '%s failed to run',
-  apex_class_source_hidden:
-    "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
   test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',
