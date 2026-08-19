@@ -8,6 +8,20 @@
 import { URI } from 'vscode-uri';
 import { getApexTestingClassUri, isForeignOrgClassUri } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
 
+describe('getApexTestingClassUri', () => {
+  it('maps a fully qualified class name to nested path segments', () => {
+    expect(getApexTestingClassUri('00DAAA', 'namespace.MyTest').toString()).toBe(
+      'apex-testing:/orgs/00daaa/classes/namespace/MyTest.cls'
+    );
+  });
+
+  it('maps every dot-separated name segment to a directory', () => {
+    expect(getApexTestingClassUri('00DAAA', 'my.domain.com').toString()).toBe(
+      'apex-testing:/orgs/00daaa/classes/my/domain/com.cls'
+    );
+  });
+});
+
 describe('isForeignOrgClassUri', () => {
   // org keys are sanitized (trim + lower-case + encodeURIComponent) into the path segment.
   const orgAUri = getApexTestingClassUri('00DAAA', 'MyTest');
