@@ -369,5 +369,23 @@ Error: Module not found
       const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
       expect(pty.getCapturedOutput()).toBe('');
     });
+
+    it('bounds multibyte output while preserving error context at both ends', () => {
+      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+      pty.open();
+
+      const earlyError = 'SyntaxError: early failure\n    at /project/early.test.js:2:3\n';
+      const lateError = 'ReferenceError: late failure\n    at /project/late.test.js:4:5\n';
+      mockStdout.emit('data', Buffer.from(earlyError + '界'.repeat(80_000)));
+      mockStdout.emit('data', Buffer.from(lateError));
+
+      const captured = pty.getCapturedOutput();
+      expect(Buffer.byteLength(captured, 'utf8')).toBeLessThanOrEqual(100 * 1024);
+      expect(captured).toContain(earlyError);
+      expect(captured).toContain('... Jest output truncated ...');
+      expect(captured).toContain(lateError);
+      expect(captured).not.toContain('\uFFFD');
+      expect(pty.extractErrorSummary()).toContain('SyntaxError: early failure');
+    });
   });
 });
