@@ -58,6 +58,25 @@ describe('HashableUri', () => {
       };
       expect(Equal.equals(a, fake)).toBe(false);
     });
+
+    it('compares URI fields instead of bundle-specific serialization', () => {
+      const a = HashableUri.fromUri(URI.file('/x/y.ts'));
+      const uri = {
+        scheme: a.uri.scheme,
+        authority: a.uri.authority,
+        path: a.uri.path,
+        query: a.uri.query,
+        fragment: a.uri.fragment,
+        toString: () => 'bundle-specific-serialization'
+      } as URI;
+      const structurallyEqual = {
+        uri,
+        [Equal.symbol]: () => true,
+        [Hash.symbol]: () => Hash.hash(a)
+      };
+
+      expect(Equal.equals(a, structurallyEqual)).toBe(true);
+    });
   });
 
   describe('Hash contract', () => {
@@ -114,6 +133,14 @@ describe('HashableUri', () => {
         HashableUri.fromUri(URI.parse('file:///c:/proj/file.ts'))
       );
       expect(HashSet.size(set)).toBe(1);
+    });
+
+    it('treats Windows path-segment case differences as the same key', () => {
+      const set = HashSet.make(HashableUri.fromUri(URI.parse('file:///C:/Users/Runner/Project/File.ts')));
+      const lookup = HashableUri.fromUri(URI.parse('file:///c:/users/RUNNER/project/file.ts'));
+
+      expect(HashSet.has(set, lookup)).toBe(true);
+      expect([...HashSet.toValues(set)][0].uri.path).toBe('/c:/Users/Runner/Project/File.ts');
     });
   });
 

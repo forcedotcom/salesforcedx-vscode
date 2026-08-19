@@ -1,6 +1,7 @@
 {
   "displayName": "Salesforce VSCode Services",
   "description": "Core services and APIs for Salesforce VS Code extensions.",
+  "orgMetadataCatalog.showState": "SFDX: Show Org Metadata Catalog State",
   "configuration.title": "Salesforce Services Configuration",
   "configuration.protectedOrg.description": "Org is a production org. Applies only to web console. Changing this value has no effect",
   "configuration.instanceUrl.description": "Salesforce instance URL for web extensions. Only valid in browser",

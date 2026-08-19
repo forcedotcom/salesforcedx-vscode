@@ -35,6 +35,18 @@ type WebConnectionKey = {
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
+export const updateDefaultOrgIdentity = Effect.fn('updateDefaultOrgIdentity')(function* (
+  defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>,
+  orgId: string | undefined,
+  instanceName: string | undefined
+) {
+  const current = yield* SubscriptionRef.get(defaultOrgRef);
+  if (current.orgId === orgId && current.instanceName === instanceName) return current.orgId;
+
+  yield* SubscriptionRef.set(defaultOrgRef, { ...current, orgId, instanceName });
+  return current.orgId;
+});
+
 export class FailedToCreateAuthInfoError extends Schema.TaggedError<FailedToCreateAuthInfoError>()(
   'FailedToCreateAuthInfoError',
   {
@@ -78,6 +90,15 @@ export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpir
   message: Schema.String,
   username: Schema.optional(Schema.String)
 }) {}
+
+export class InactiveOrgOperationError extends Schema.TaggedError<InactiveOrgOperationError>()(
+  'InactiveOrgOperationError',
+  {
+    message: Schema.String,
+    expectedOrgId: Schema.String,
+    observedOrgId: Schema.optional(Schema.String)
+  }
+) {}
 
 class FailedToGetTracksSourceError extends Schema.TaggedError<FailedToGetTracksSourceError>()(
   'FailedToGetTracksSourceError',
@@ -328,8 +349,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
         const instanceName = rawInstanceName?.trim();
         const defaultOrgRef = yield* getDefaultOrgRef();
-        const previousOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
-        yield* SubscriptionRef.update(defaultOrgRef, current => ({ ...current, orgId, instanceName }));
+        const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
           Effect.provideService(AliasService, aliasService),
           Effect.provideService(ConfigService, configService),
@@ -339,6 +359,17 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         );
       }
       return conn;
+    });
+
+    const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
+      const connection = yield* getConnection();
+      const observedOrgId = connection.getAuthInfoFields().orgId;
+      if (observedOrgId === expectedOrgId) return connection;
+      return yield* new InactiveOrgOperationError({
+        message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
+        expectedOrgId,
+        ...(observedOrgId ? { observedOrgId } : {})
+      });
     });
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
@@ -370,6 +401,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     return {
       getConnection,
+      getConnectionForOrg,
       validateAccessTokenOrPromptReauth,
       invalidateCachedConnections,
       listAllAuthorizations

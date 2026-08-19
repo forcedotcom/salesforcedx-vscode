@@ -52,7 +52,6 @@ import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connect
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
 import { MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
-import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
 import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
@@ -63,6 +62,7 @@ import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src
 import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
+import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -174,6 +174,7 @@ const MockConnectionServiceLayer = Layer.succeed(
   ConnectionService,
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
+    getConnectionForOrg: () => Effect.sync(() => mockConnection),
     validateAccessTokenOrPromptReauth: () => Effect.void,
     invalidateCachedConnections: () => Effect.void,
     listAllAuthorizations: () => Effect.succeed([])
@@ -230,10 +231,10 @@ const mockServicesApi = {
     EditorService: {} as typeof EditorService,
     FsService: {} as typeof FsService,
     MetadataDeleteService: {} as typeof MetadataDeleteService,
-    MetadataDescribeService: {} as typeof MetadataDescribeService,
     MetadataDeployService: {} as typeof MetadataDeployService,
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
+    OrgMetadataCatalogChangePubSub,
     ProjectService: {} as typeof ProjectService,
     registerCommandWithLayer: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
@@ -274,6 +275,7 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
+            OrgMetadataCatalogChangePubSub.Default,
             MockOrgBrowserRetrieveServiceLayer
           )
         )

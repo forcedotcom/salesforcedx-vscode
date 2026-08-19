@@ -1,5 +1,4 @@
 {
-  "enableWorkflows": true,
   "permissions": {
     "allow": [
       "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
@@ -27,7 +26,11 @@
       "Bash(npm install)",
       "Bash(npm install --no-audit --no-fund)",
       "Bash(ls .claude/skills*)",
-      "mcp__slack__slack_send_message"
+      "mcp__slack__slack_send_message",
+      "Bash(git diff *)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   },
   "hooks": {
@@ -75,5 +78,6 @@
         ]
       }
     ]
-  }
+  },
+  "enableWorkflows": true
 }

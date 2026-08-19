@@ -19,10 +19,11 @@
 - `ApexTestController` OO class wrapping `vscode.tests.createTestController`
 - class shell forced by the Test API object model
 
-### discovery VFS
+### org catalog documents
 
-- `apex-testing:` scheme; `/orgs/<orgKey>/classes/<FullName>.cls`
-- read-only virtual editor backing org-only classes
+- Services owns metadata presence, source resolution, and the `sf-org-metadata:` text-document scheme.
+- Apex Testing owns the Test Explorer projection and retrieve CodeLens.
+- Org-only source is fetched lazily when VS Code opens a catalog document.
 
 ### delegate command
 

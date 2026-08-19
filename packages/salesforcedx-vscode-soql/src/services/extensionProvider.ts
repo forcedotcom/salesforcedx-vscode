@@ -24,9 +24,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
 
 /**
  * Single persistent runtime for all SOQL extension Effect executions.
- * Built once on first use to avoid rebuilding TransmogrifierService and other
- * stateful services across sobject_metadata_request, sobjects_request, and
- * code-completion calls
+ * Built once on first use to avoid rebuilding catalog dependencies and other
+ * stateful services across sobject_metadata_request, sobjects_request, and code-completion calls.
  */
 type SoqlRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,

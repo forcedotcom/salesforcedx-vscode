@@ -10,7 +10,7 @@ import { nls } from '../messages';
 
 const ORG_ONLY_APEX_SELECTOR: vscode.DocumentSelector = {
   language: 'apex',
-  scheme: 'apex-testing'
+  scheme: 'sf-org-metadata'
 };
 
 export const provideOrgOnlyRetrieveCodeLenses = (document: vscode.TextDocument): vscode.CodeLens[] => {

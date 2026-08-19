@@ -73,6 +73,17 @@ const vscode = {
   TreeItem: jest.fn(),
   Disposable: jest.fn(),
   EventEmitter,
+  TabInputText: class {
+    constructor(uri) {
+      this.uri = uri;
+    }
+  },
+  TabInputTextDiff: class {
+    constructor(original, modified) {
+      this.original = original;
+      this.modified = modified;
+    }
+  },
   ExtensionMode: { Production: 1, Development: 2, Test: 3 },
 
   // Uri implementation with actual file path support

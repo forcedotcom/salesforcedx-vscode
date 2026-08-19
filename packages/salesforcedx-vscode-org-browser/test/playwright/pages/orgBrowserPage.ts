@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot, typingSpeed, waitForWorkspaceReady, TAB } from '@salesforce/playwright-vscode-ext';
-import * as Effect from 'effect/Effect';
-import * as Schedule from 'effect/Schedule';
+import {
+  activeQuickInputTextField,
+  saveScreenshot,
+  typingSpeed,
+  waitForWorkspaceReady,
+  TAB
+} from '@salesforce/playwright-vscode-ext';
 
 /**
  * Exact tree-item name match, tolerant of VS Code's `"<label>, has actions"` suffix
@@ -38,7 +42,7 @@ export class OrgBrowserPage {
 
   /** Wait for the project file system to be loaded in Explorer */
   public async waitForProject(): Promise<void> {
-    await waitForWorkspaceReady(this.page, 15_000);
+    await waitForWorkspaceReady(this.page, 60_000);
   }
 
   /** Open the Org Browser by clicking its activity bar item */
@@ -93,58 +97,62 @@ export class OrgBrowserPage {
     return this.getRootTypeCount();
   }
 
+  /** Open the text-filter prompt and fill it, retrying if VS Code replaces the Quick Input widget. */
+  public async fillTextFilter(value: string): Promise<void> {
+    const input = activeQuickInputTextField(this.page);
+
+    await expect(async () => {
+      if (!(await input.isVisible().catch(() => false))) {
+        const filterButton = this.page
+          .locator('[aria-label="Filter by Type/Component"], [aria-label="Edit Filter (active)"]')
+          .filter({ visible: true })
+          .first();
+        await expect(filterButton).toBeVisible({ timeout: 5000 });
+        await filterButton.click();
+      }
+
+      await expect(input).toBeVisible({ timeout: 5000 });
+      await input.fill(value, { force: true });
+      await expect(input).toHaveValue(value, { timeout: 5000 });
+    }).toPass({ timeout: 30_000, intervals: [250, 500, 1000] });
+  }
+
+  /** Fill and commit the text filter, retrying the complete interaction if its prompt closes early. */
+  public async applyTextFilter(value: string): Promise<void> {
+    const input = activeQuickInputTextField(this.page);
+
+    await expect(async () => {
+      await this.fillTextFilter(value);
+      await this.page.keyboard.press('Enter');
+      await expect(input).toBeHidden({ timeout: 5000 });
+    }).toPass({ timeout: 30_000, intervals: [250, 500, 1000] });
+  }
+
   public async expandFolder(folderName: string, level?: number): Promise<void> {
-    const folderItem = level
-      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
-      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
-    const twistie = folderItem.locator('.monaco-tl-twistie');
-    await Promise.all([
-      folderItem.click({ timeout: 5000, delay: 100 }),
-      // we need it to go from loading to expanded state
-      [
-        expect(twistie, 'Went to loading state')
-          .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
-          .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
-      ]
-    ]);
-    // ensure it's done loading
-    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
-    if (await twistie.evaluate(el => el.classList.contains('collapsed'))) {
-      await folderItem.click();
-    }
-    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+    const folderItem = (
+      level
+        ? this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+        : this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName) })
+    ).first();
 
-    await expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
-      'codicon-tree-item-expanded',
-      { timeout: 6000 }
-    );
+    // A catalog-backed expansion can briefly collapse again when its first discovery
+    // snapshot is empty. Re-drive the twistie until a completed discovery leaves the
+    // node expanded instead of waiting forever on the result of a single click.
+    await expect(async () => {
+      await expect(folderItem, `${folderName} should be visible`).toBeVisible({ timeout: 5000 });
+      if ((await folderItem.getAttribute('aria-expanded')) !== 'true') {
+        await folderItem.locator('.monaco-tl-twistie').click({ timeout: 5000 });
+      }
+      await expect(folderItem, `${folderName} should be expanded`).toHaveAttribute('aria-expanded', 'true', {
+        timeout: 5000
+      });
+      await expect(folderItem.locator('.monaco-tl-twistie'), `${folderName} should finish loading`).not.toContainClass(
+        'codicon-tree-item-loading',
+        { timeout: 10_000 }
+      );
+    }).toPass({ timeout: 60_000, intervals: [1000, 2000, 3000] });
 
-    // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
-    await this.page.mouse.wheel(0, 50);
-    await this.page.waitForTimeout(50);
-
-    // locators get messed up because of the scroll
-    const folderItemAgain = level
-      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
-      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
-    const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
-
-    // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
-    await Promise.all([
-      folderItemAgain.click(),
-      expect(twistieAgain, 'should be collapsed after scrolling').toContainClass('collapsed')
-    ]);
-
-    await expect(twistieAgain, 'should not be loading after collapse loading').not.toContainClass(
-      'codicon-tree-item-loading'
-    );
-
-    await Promise.all([
-      folderItemAgain.click(),
-      expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed')
-    ]);
-
-    await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
+    await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
   }
 
   /**
@@ -198,28 +206,28 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page) =>
-      Effect.gen(function* () {
-        yield* Effect.promise(() => page.waitForTimeout(1000));
-        yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
-        yield* Effect.tryPromise({
-          try: () =>
-            expect(metadataItem.first()).toBeVisible({
-              timeout: 500
-            }),
-          catch: () => new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`)
-        });
-      });
-
-    // Limit retries to prevent infinite loops (30 retries = ~15 seconds)
-    await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.recurs(30)));
+    // Focus the expanded parent before type-ahead. Catalog refreshes can replace the
+    // focused row, so retry both expansion and navigation until the requested child
+    // is present in the virtualized tree.
+    await expect(async () => {
+      await this.expandFolder(metadataType, level - 1);
+      const parent = this.sidebar
+        .getByRole('treeitem', { level: level - 1, name: exactTreeItemName(metadataType) })
+        .first();
+      await parent.focus();
+      await this.page.waitForTimeout(1000);
+      await this.page.keyboard.type(itemName, { delay: typingSpeed });
+      await expect(
+        metadataItem.first(),
+        `Metadata item "${itemName}" should be available under "${metadataType}" after discovery`
+      ).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 60_000, intervals: [1000, 2000, 3000] });
     await saveScreenshot(this.page, `getMetadataItem.${metadataType}.${itemName}.png`, true);
     return metadataItem.first();
   }
 
   /**
    * Click the retrieve metadata button for a tree item
-   * Uses both Playwright click and JavaScript click for reliability
    * @param item The locator for the tree item
    * @returns True if the button was clicked successfully, false otherwise
    */
@@ -233,8 +241,9 @@ export class OrgBrowserPage {
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
     await saveScreenshot(this.page, 'clickRetrieveButton.png', true);
-    // Click the retrieve button
-    await retrieveButton.click({ force: true });
+    // Keep Playwright's actionability checks: a forced click can target a row while VS Code is replacing
+    // it during a tree refresh, causing the menu command to be invoked without its tree-item argument.
+    await retrieveButton.click();
     return true;
   }
 

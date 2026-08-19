@@ -10,8 +10,10 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
+import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ProjectService } from '../../../src/core/projectService';
+import { ProjectService, setProjectOpenedContext } from '../../../src/core/projectService';
 import { NoWorkspaceOpenError, WorkspaceService } from '../../../src/vscode/workspaceService';
 
 const workspaceLayer = (uri: URI | undefined) =>
@@ -70,4 +72,22 @@ describe('ProjectService folder URIs', () => {
       );
     }
   );
+});
+
+describe('ProjectService opened context', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('updates VS Code only when the project-opened value changes', async () => {
+    const previousValue = await Effect.runPromise(Ref.make<boolean | undefined>(undefined));
+
+    await Effect.runPromise(setProjectOpenedContext(previousValue, true, 'workspace_non_empty'));
+    await Effect.runPromise(setProjectOpenedContext(previousValue, true, 'workspace_non_empty'));
+    await Effect.runPromise(setProjectOpenedContext(previousValue, false, 'workspace_empty'));
+
+    expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(1, 'setContext', 'sf:project_opened', true);
+    expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(2, 'setContext', 'sf:project_opened', false);
+    expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(2);
+  });
 });

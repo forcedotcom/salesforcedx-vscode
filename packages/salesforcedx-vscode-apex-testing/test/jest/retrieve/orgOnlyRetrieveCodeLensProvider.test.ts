@@ -18,9 +18,9 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
       jest.fn(() => ({ dispose: jest.fn() }));
   });
 
-  it('provides a retrieve codelens for apex-testing documents', () => {
+  it('provides a retrieve codelens for org metadata documents', () => {
     const document = {
-      uri: URI.parse('apex-testing:/orgs/org123/classes/ns/MyClass.cls')
+      uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/ns%2FMyClass.cls')
     } as unknown as vscode.TextDocument;
 
     const lenses = provideOrgOnlyRetrieveCodeLenses(document);
@@ -29,7 +29,7 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
     expect(lenses[0].command?.arguments).toEqual([document.uri]);
   });
 
-  it('registers codelens provider with apex-testing apex selector', () => {
+  it('registers codelens provider with the org metadata apex selector', () => {
     const context = {
       subscriptions: [] as vscode.Disposable[]
     } as unknown as vscode.ExtensionContext;
@@ -39,7 +39,7 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
     expect(
       (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: jest.Mock }).registerCodeLensProvider
     ).toHaveBeenCalledWith(
-      { language: 'apex', scheme: 'apex-testing' },
+      { language: 'apex', scheme: 'sf-org-metadata' },
       expect.objectContaining({ provideCodeLenses: expect.any(Function) })
     );
     expect(context.subscriptions).toHaveLength(1);

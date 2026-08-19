@@ -143,4 +143,28 @@ describe('FsProvider read-only checks', () => {
       expect(stat.permissions).toBe(vscode.FilePermission.Readonly);
     });
   });
+
+  describe('file change events', () => {
+    it('emits Created when writeFile creates a file', async () => {
+      const provider = new FsProvider();
+      const listener = jest.fn();
+      provider.onDidChangeFile(listener);
+      const uri = URI.file(`${workspaceDir}/created.txt`);
+
+      await provider.writeFile(uri, new TextEncoder().encode('new'), { create: true, overwrite: true });
+
+      expect(listener).toHaveBeenCalledWith([{ type: vscode.FileChangeType.Created, uri }]);
+    });
+
+    it('emits Changed when writeFile overwrites a file', async () => {
+      const provider = new FsProvider();
+      const listener = jest.fn();
+      provider.onDidChangeFile(listener);
+      const uri = txtUri();
+
+      await provider.writeFile(uri, new TextEncoder().encode('updated'), { create: true, overwrite: true });
+
+      expect(listener).toHaveBeenCalledWith([{ type: vscode.FileChangeType.Changed, uri }]);
+    });
+  });
 });

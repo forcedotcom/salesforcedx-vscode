@@ -4,48 +4,33 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as Effect from 'effect/Effect';
+import type { OrgMetadataCatalogFieldEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
-import { CustomObjectField } from './types';
 
-export const createCustomFieldNode = (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
-  Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
-    return yield* Effect.sync(() => {
-      const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
-      const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
-        fullName: fieldFullName,
-        type: 'CustomField'
-      });
-      return new OrgBrowserTreeItem({
-        kind: 'component',
-        xmlName: 'CustomField',
-        componentName: `${element.componentName}.${field.name}`,
-        label: getFieldLabel(removeNamespacePrefix(element)(field)),
-        filePresent: filePaths.length > 0
-      });
-    });
+export const createCustomFieldNode = (entry: OrgMetadataCatalogFieldEntry): OrgBrowserTreeItem =>
+  new OrgBrowserTreeItem({
+    kind: 'component',
+    xmlName: 'CustomField',
+    componentName: entry.reference.fullName,
+    label: getFieldLabel(entry.field),
+    filePresent: entry.inWorkspace,
+    orgPresent: entry.inOrg
   });
 
 /** build out the label for a CustomField */
-const getFieldLabel = (f: CustomObjectField): string => {
-  switch (f.type) {
+const getFieldLabel = (field: OrgMetadataFieldDetails): string => {
+  switch (field.type) {
     case 'string':
     case 'textarea':
     case 'email':
-      return `${f.name} | ${f.type} | length: ${f.length?.toLocaleString()}`;
+      return `${field.name} | ${field.type} | length: ${field.length?.toLocaleString()}`;
     case 'reference':
-      return `${f.relationshipName} | reference`;
+      return `${field.relationshipName} | reference`;
     case 'double':
     case 'currency':
     case 'percent':
-      return `${f.name} | ${f.type} | scale: ${f.scale} | precision: ${f.precision}`;
+      return `${field.name} | ${field.type} | scale: ${field.scale} | precision: ${field.precision}`;
     default:
-      return `${f.name} | ${f.type}`;
+      return `${field.name} | ${field.type}`;
   }
 };
-
-const removeNamespacePrefix =
-  (element: OrgBrowserTreeItem) =>
-  (f: CustomObjectField): CustomObjectField =>
-    element.namespace ? { ...f, name: f.name.replace(`${element.namespace}__`, '') } : f;

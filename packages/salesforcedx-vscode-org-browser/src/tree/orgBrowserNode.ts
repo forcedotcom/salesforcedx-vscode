@@ -29,6 +29,8 @@ type OrgBrowserTreeItemInputs = {
   label: string;
   /** Whether the file is present in the local workspace */
   filePresent?: boolean;
+  /** Whether the component is present in the active org */
+  orgPresent?: boolean;
   namespace?: string;
 };
 
@@ -45,6 +47,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly componentName?: string;
   public readonly namespace?: string;
   public readonly filePresent?: boolean;
+  public readonly orgPresent?: boolean;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
     super(
@@ -57,6 +60,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
     this.filePresent = inputs.filePresent;
+    this.orgPresent = inputs.orgPresent;
 
     // not defined intentionally results in no icon.
     if (isNotUndefined(inputs.filePresent)) {
@@ -77,10 +81,6 @@ export const isFolderNode = (
   n: OrgBrowserTreeItem
 ): n is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
   n.kind === 'folder' && Boolean(n.xmlName) && Boolean(n.folderName);
-
-/** customObject node with the componentName needed to describe it */
-export const isCustomObjectNode = (n: OrgBrowserTreeItem): n is OrgBrowserTreeItem & { componentName: string } =>
-  n.kind === 'customObject' && Boolean(n.componentName);
 
 /** node whose children are folders (a folderType, or a type that happens to be a folder type) */
 export const isFolderListingNode = (n: OrgBrowserTreeItem): boolean =>

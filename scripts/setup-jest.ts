@@ -334,6 +334,14 @@ const getMockVSCode = () => {
         this.uri = uri;
       }
     },
+    TabInputTextDiff: class {
+      public original: unknown;
+      public modified: unknown;
+      constructor(original: unknown, modified: unknown) {
+        this.original = original;
+        this.modified = modified;
+      }
+    },
     DocumentLink: class {
       constructor(range: Range, target?: Uri) {}
     },

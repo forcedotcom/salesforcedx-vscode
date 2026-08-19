@@ -50,7 +50,7 @@ test.describe('Retrieve Conflict Detection (Non-Source Tracking)', () => {
 
     await test.step('4. Trigger retrieve - conflict modal appears', async () => {
       await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
-      await modal.waitForVisible(10_000);
+      await modal.waitForVisible('retrieve');
       await saveScreenshot(page, 'non-tracking-retrieve-4-conflict-modal.png');
     });
 
@@ -69,7 +69,7 @@ test.describe('Retrieve Conflict Detection (Non-Source Tracking)', () => {
     await test.step('6. Override conflicts and retrieve successfully', async () => {
       await openFileByName(page, `${className}.cls`);
       await executeCommandWithCommandPalette(page, packageNls.retrieve_this_source_text);
-      await modal.waitForVisible(10_000);
+      await modal.waitForVisible('retrieve');
       await modal.clickOverride('retrieve');
       await saveScreenshot(page, 'non-tracking-retrieve-8-override-clicked.png');
 

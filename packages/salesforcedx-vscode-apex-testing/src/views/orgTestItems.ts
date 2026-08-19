@@ -12,7 +12,6 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
-import { getApexTestingClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { createClassId, createMethodId, createPackageId } from '../utils/testItemUtils';
 import { getFullClassName } from '../utils/toolingTestClassHelpers';
@@ -133,7 +132,7 @@ export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list
  * Resolves package info for an Option-wrapped class id against the id→package map.
  * `none` id or missing map entry → `undefined`.
  */
-export const resolvePackageInfoForClassId = (
+const resolvePackageInfoForClassId = (
   id: Option.Option<string>,
   classIdToPackage: Map<string, ResolvedPackageInfo>
 ): ResolvedPackageInfo | undefined =>
@@ -181,10 +180,14 @@ type CreateClassAndMethodsContext = {
   controller: vscode.TestController;
   classItems: Map<string, vscode.TestItem>;
   methodItems: Map<string, vscode.TestItem>;
-  classNameToUri: Map<string, URI>;
-  orgKey: string;
+  classResolutions: ReadonlyMap<string, ApexClassResolution>;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
+};
+
+export type ApexClassResolution = {
+  readonly uri: URI;
+  readonly inWorkspace: boolean;
 };
 
 /**
@@ -195,13 +198,13 @@ type CreateClassAndMethodsContext = {
 export const createClassAndMethodsFactory = (
   ctx: CreateClassAndMethodsContext
 ): ((fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>) => vscode.TestItem) => {
-  const { controller, classItems, methodItems, classNameToUri, orgKey, orgOnlyTag, inWorkspaceTag } = ctx;
+  const { controller, classItems, methodItems, classResolutions, orgOnlyTag, inWorkspaceTag } = ctx;
 
   return (fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>): vscode.TestItem => {
     const baseClassName = classEntries[0].name;
-    const localUri = classNameToUri.get(baseClassName);
-    const uri = localUri ?? getApexTestingClassUri(orgKey, fullClassName);
-    const isOrgOnly = !localUri;
+    const resolution = classResolutions.get(fullClassName);
+    const uri = resolution?.uri;
+    const isOrgOnly = !resolution?.inWorkspace;
 
     const classItem = controller.createTestItem(createClassId(fullClassName), baseClassName, uri);
     classItem.canResolveChildren = true;

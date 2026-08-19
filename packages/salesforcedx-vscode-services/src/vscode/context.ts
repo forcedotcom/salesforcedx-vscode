@@ -8,7 +8,6 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { ChannelService } from './channelService';
 
 /** Set VS Code context keys derived from the default org snapshot. Exported for unit testing. */
 export const updateContext = (orgInfo: {
@@ -40,9 +39,5 @@ export const updateContext = (orgInfo: {
 /** Update VS Code context variables when the default org changes */
 export const watchDefaultOrgContext = Effect.fn('watchDefaultOrgContext')(function* () {
   const ref = yield* getDefaultOrgRef();
-  const channelService = yield* ChannelService;
-  return yield* ref.changes.pipe(
-    Stream.tap(orgInfo => channelService.appendToChannel(`watchDefaultOrgContext: ${JSON.stringify(orgInfo)}`)),
-    Stream.runForEach(updateContext)
-  );
+  return yield* ref.changes.pipe(Stream.runForEach(updateContext));
 });

@@ -148,14 +148,32 @@ export const executeCommandWithCommandPalette = async (
   }).toPass({ timeout: 30_000 });
 };
 
+export type ExecuteCommandByIdOptions = {
+  /** Observable assertion that proves the shortcut invoked the command. Retried with the shortcut when provided. */
+  verifyExecution?: () => Promise<void>;
+  timeout?: number;
+};
+
 /** Execute a registered command by ID without requiring a visible command-palette contribution. */
-export const executeCommandById = async (page: Page, commandId: string): Promise<void> => {
+export const executeCommandById = async (
+  page: Page,
+  commandId: string,
+  options?: ExecuteCommandByIdOptions
+): Promise<void> => {
   await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
   await page.keyboard.press('Control+a');
   await page.keyboard.insertText(JSON.stringify([{ key: 'ctrl+shift+9', command: commandId }]));
   await executeCommandWithCommandPalette(page, 'File: Save');
   await executeCommandWithCommandPalette(page, 'View: Close Editor');
-  await page.keyboard.press('Control+Shift+9');
+
+  if (options?.verifyExecution) {
+    await expect(async () => {
+      await page.keyboard.press('Control+Shift+9');
+      await options.verifyExecution!();
+    }).toPass({ timeout: options.timeout ?? 30_000, intervals: [250, 500, 1000] });
+  } else {
+    await page.keyboard.press('Control+Shift+9');
+  }
 };
 
 /** Shared helper: closes command palette */

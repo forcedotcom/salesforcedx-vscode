@@ -13,7 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory } from '../shared/diff/diffHelpers';
+import { filesAreNotIdentical, materializeRemoteComponents } from '../shared/diff/diffHelpers';
 
 /**
  * Detect conflicts for tracking orgs: get conflicts from SourceTracking,
@@ -25,18 +25,20 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   componentSet?: ComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [sourceTrackingService, componentSetService, HashableUri] = yield* Effect.all(
+  const [sourceTracking, componentSetService, HashableUri] = yield* Effect.all(
     [api.services.SourceTrackingService, api.services.ComponentSetService, api.services.FsService.HashableUri],
     { concurrency: 'unbounded' }
   );
 
-  const uris = yield* sourceTrackingService.getConflicts().pipe(
+  const uris = yield* sourceTracking.getStatus({ local: true, remote: true }).pipe(
     Stream.fromIterableEffect,
     Stream.filter(
       c =>
-        !componentSet || (isString(c.type) && isString(c.name) && componentSet.has({ type: c.type, fullName: c.name }))
+        Boolean(c.conflict) &&
+        (!componentSet ||
+          (isString(c.type) && isString(c.fullName) && componentSet.has({ type: c.type, fullName: c.fullName })))
     ),
-    Stream.mapConcat(c => c.filenames ?? []),
+    Stream.mapConcat(c => (c.filePath ? [c.filePath] : [])),
     Stream.filter(isString),
     Stream.mapEffect(p => api.services.FsService.toUri(p)),
     Stream.runCollect,
@@ -48,13 +50,9 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
     .getComponentSetFromUris(uris)
     .pipe(Effect.flatMap(componentSetService.ensureNonEmptyComponentSet));
 
-  const retrieveResult = yield* retrieveToCacheDirectory(localComponentSet);
-
-  if (!retrieveResult) return [] satisfies DiffFilePair[];
-
   const localUriFilter = HashSet.fromIterable(uris.map(uri => HashableUri.fromUri(uri)));
 
-  return yield* (yield* matchUrisToComponents(localComponentSet, retrieveResult.components, localUriFilter)).pipe(
+  return yield* (yield* materializeRemoteComponents(localComponentSet, localUriFilter)).pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
     Stream.runCollect,

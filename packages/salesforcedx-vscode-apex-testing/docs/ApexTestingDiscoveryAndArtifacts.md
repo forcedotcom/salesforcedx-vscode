@@ -16,7 +16,7 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## In-Memory Runtime State
 
 - `ApexTestController` holds maps for suite/class/method items and suite membership.
-- Org-only class source text is cached in `src/utils/orgApexClassProvider.ts`.
+- Services' `OrgMetadataCatalog` caches metadata inventory and resolves source on demand.
 - Discovery data is fetched from org each refresh; class/method UI state is rebuilt in memory.
 
 ## Test Run Artifact Persistence
@@ -45,12 +45,12 @@ This note documents how Apex Testing currently handles test discovery data and t
   - seeds current editor so active editor repaints on subscribe
   - torn down on deactivation via scope
 
-## VFS For Discovered Classes
+## Org Catalog Integration
 
-- Test run artifact persistence (`.sfdx/tools/testresults/apex`) unchanged.
-- `apex-testing:` VFS serves per-org discovered Apex class `.cls` bodies (virtual files, write-only):
-  - On discovery refresh, `ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, classes, bodies)` writes per-class `.cls` files to `apex-testing:/orgs/<orgKey>/classes/<namespace>/<className>.cls`.
-  - Enables org-only TestItems to open class source for inspection (read-only in editor).
-  - `clearOrg(orgKey)` removes the org directory on org removal.
-  - Index persistence removed (dead code; test tree always rebuilt from live Tooling API queries).
-- Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the `apex-testing:` VFS.
+- Test run artifact persistence (`.sfdx/tools/testresults/apex`) is unchanged.
+- Test discovery queries services-owned `OrgMetadataCatalog` presence for each Apex class.
+- Workspace classes use their existing `file:` URI.
+- Org-only classes use a read-only `sf-org-metadata:` text document supplied by services.
+- Source bodies are fetched lazily when the document is opened; discovery does not fetch or persist bodies.
+- Apex Testing owns the Test Explorer hierarchy, tags, commands, and retrieve CodeLens.
+- Services owns catalog state, org/workspace invalidation, and closing stale catalog documents after an org change.

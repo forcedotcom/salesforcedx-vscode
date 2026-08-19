@@ -7,8 +7,12 @@
 
 import type { Page } from '@playwright/test';
 import {
+  EDITOR_WITH_URI,
   executeCommandWithCommandPalette,
+  executeExplorerContextMenuCommand,
+  EXPLORER_INLINE_INPUT,
   QUICK_INPUT_WIDGET,
+  saveFile,
   selectQuickInputOptionByTyping
 } from '@salesforce/playwright-vscode-ext';
 
@@ -36,4 +40,30 @@ export const createApexTestSuiteViaPalette = async (
 
   // Press Enter to confirm selection
   await page.keyboard.press('Enter');
+};
+
+/** Create a suite metadata file through VS Code's workspace filesystem (disk or web memfs). */
+export const createLocalApexTestSuiteFile = async (
+  page: Page,
+  testSuiteName: string,
+  testClassName: string
+): Promise<void> => {
+  await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
+  const input = page.locator(EXPLORER_INLINE_INPUT);
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
+  await input.fill(`main/default/testSuites/${testSuiteName}.testSuite-meta.xml`, { force: true });
+  await page.keyboard.press('Enter');
+
+  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${testSuiteName}.testSuite-meta.xml"]`);
+  await editor.waitFor({ state: 'visible', timeout: 30_000 });
+  await editor.click();
+  await page.keyboard.type(
+    [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<ApexTestSuite xmlns="http://soap.sforce.com/2006/04/metadata">',
+      `    <testClassName>${testClassName}</testClassName>`,
+      '</ApexTestSuite>'
+    ].join('\n')
+  );
+  await saveFile(page);
 };

@@ -69,6 +69,11 @@ jobs:
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
+      # Playwright loads this workspace package before it can discover tests. Compile it directly so a
+      # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
+      - name: Compile shared Playwright utilities
+        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
+
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
       # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
@@ -245,6 +250,11 @@ jobs:
 
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      # Playwright loads this workspace package before it can discover tests. Compile it directly so a
+      # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
+      - name: Compile shared Playwright utilities
+        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config

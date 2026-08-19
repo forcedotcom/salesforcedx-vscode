@@ -83,65 +83,6 @@ export const getMethodLocationsFromSymbols = async (
   );
 };
 
-/** Build an index of class baseName -> file URI using ComponentSet (works on web and desktop) */
-export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<string, URI>> => {
-  if (classNames.length === 0) {
-    return new Map<string, URI>();
-  }
-
-  return Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-
-    // Build index from component name to file URI
-    const classNameSet = new Set(classNames);
-    const index = new Map<string, URI>();
-
-    yield* api.services.ProjectService.getSfProject().pipe(
-      Effect.map(project => project.getPackageDirectories()),
-      Effect.map(Array.map(dir => dir.fullPath)),
-      Effect.flatMap(packageDirs =>
-        api.services.MetadataRetrieveService.buildComponentSetFromSource(packageDirs, [
-          { type: 'ApexClass', fullName: '*' }
-        ])
-      ),
-      Effect.map(componentSet => componentSet.getSourceComponents()),
-      Effect.map(Array.fromIterable),
-      Effect.map(
-        Array.filter(
-          (component): component is typeof component & { content: string } =>
-            isNotUndefined(component.content) && component.content.length > 0 && classNameSet.has(component.name)
-        )
-      ),
-      Effect.flatMap(
-        Effect.forEach(
-          component =>
-            Effect.gen(function* () {
-              const existingUri = index.get(component.name);
-              if (
-                existingUri &&
-                component.content.length >= (yield* api.services.FsService.uriToPath(existingUri)).length
-              ) {
-                return;
-              }
-              yield* api.services.FsService.toUri(component.content).pipe(
-                Effect.tap(uri => Effect.sync(() => index.set(component.name, uri)))
-              );
-            }),
-          { concurrency: 1, discard: true }
-        )
-      )
-    );
-
-    return index;
-  }).pipe(
-    Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
-    Effect.catchAll(error =>
-      Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
-    ),
-    getApexTestingRuntime().runPromise
-  );
-};
-
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
 const writeTestResultJson = Effect.fn('testUtils.writeTestResultJson')(function* (result: TestResult, outputDir: URI) {
   const testRunId = result.summary?.testRunId;

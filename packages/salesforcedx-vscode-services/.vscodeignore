@@ -28,6 +28,7 @@ tsconfig.json
 
 # unique to this package
 scripts/**
+docs/**
 
 # do not reach outside the package
 ../../**

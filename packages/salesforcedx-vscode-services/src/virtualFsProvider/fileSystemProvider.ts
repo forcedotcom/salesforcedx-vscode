@@ -134,11 +134,12 @@ export class FsProvider implements vscode.FileSystemProvider {
     if (isItReadOnly(this.readOnly, uri)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
+    const fileExisted = this.exists(uri);
     const program = Effect.sync(() => {
-      if (!options.create && !this.exists(uri)) {
+      if (!options.create && !fileExisted) {
         return Effect.fail(vscode.FileSystemError.FileNotFound(uri));
       }
-      if (!options.overwrite && this.exists(uri)) {
+      if (!options.overwrite && fileExisted) {
         return Effect.fail(vscode.FileSystemError.FileExists(uri));
       }
       return Effect.void;
@@ -154,7 +155,7 @@ export class FsProvider implements vscode.FileSystemProvider {
 
     await program.pipe(Effect.scoped, Effect.runPromise);
 
-    emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+    emitter.fire([{ type: fileExisted ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
   }
 
   public async delete(uri: URI, options: { recursive: boolean }): Promise<void> {

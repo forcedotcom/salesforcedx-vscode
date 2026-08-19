@@ -36,19 +36,28 @@ const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, obj
 const isHashableUriShape = (u: unknown): u is HashableUri =>
   hasObjectProp(u, 'uri') && isString(Object(u.uri).scheme) && typeof Object(u)[Equal.symbol] === 'function';
 
+const comparisonKey = (uri: URI): string => {
+  const path = uri.scheme === 'file' && /^\/[a-z]:/i.test(uri.path) ? uri.path.toLowerCase() : uri.path;
+  // Use URI fields instead of toString(): VS Code and vscode-uri objects can
+  // serialize the same URI differently across extension bundle boundaries.
+  return JSON.stringify([uri.scheme, uri.authority, path, uri.query, uri.fragment]);
+};
+
 const fromUri = (uri: URI): HashableUri => {
-  // Normalize Windows drive letters to lowercase — VS Code URIs may have /C:/ or /c:/
-  // depending on the source (context menu, readDirectory, workspace folder, etc.).
-  // Consistent lowercase ensures HashSet comparisons work regardless of origin.
-  // Gated on file scheme; non-file URIs do not use drive letters.
+  // Preserve path-segment casing for reads and display, but normalize the drive
+  // letter exposed through .uri for compatibility with existing callers.
   const normalized =
     uri.scheme === 'file' && /^\/[A-Z]:/.test(uri.path)
-      ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) })
+      ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, match => match.toLowerCase()) })
       : uri;
+  // Windows file paths are case-insensitive. VS Code and filesystem-backed
+  // services can report different casing for any path segment, so use a
+  // case-insensitive key without changing the URI consumers operate on.
+  const key = comparisonKey(normalized);
   const self: HashableUri = {
     uri: normalized,
-    [Hash.symbol]: () => Hash.string(normalized.toString()),
-    [Equal.symbol]: (that: unknown) => isHashableUriShape(that) && normalized.toString() === that.uri.toString()
+    [Hash.symbol]: () => Hash.string(key),
+    [Equal.symbol]: (that: unknown) => isHashableUriShape(that) && key === comparisonKey(that.uri)
   };
   return self;
 };

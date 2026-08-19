@@ -7,14 +7,15 @@
 
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
   executeCommandWithCommandPalette,
-  prepareNoFolderOpenForPaletteTests,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   isDesktop,
   saveScreenshot,
   verifyCommandExists,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -30,9 +31,14 @@ const PROJECT_NAME = `TestProject${Date.now()}`;
 
     const targetDir = path.dirname(workspaceDir);
 
-    await test.step('close workspace to reach empty state', async () => {
-      await prepareNoFolderOpenForPaletteTests(page);
-      await saveScreenshot(page, 'createProject.01-empty-workspace.png');
+    await test.step('open a non-project workspace', async () => {
+      // Salesforce Services requires a workspace folder. The fixture has no
+      // sfdx-project.json, so project-generation commands remain eligible while
+      // their shared dependency can activate normally.
+      await waitForVSCodeWorkbench(page);
+      await closeWelcomeTabs(page);
+      await expect(page.getByRole('tree', { name: /Files Explorer/i })).toBeVisible({ timeout: 30_000 });
+      await saveScreenshot(page, 'createProject.01-non-project-workspace.png');
     });
 
     await test.step('verify Create Project command available', async () => {

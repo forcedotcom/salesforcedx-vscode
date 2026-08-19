@@ -13,7 +13,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
+import type { HashableUri, NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { MissingDefaultOrgError } from './diffErrors';
@@ -22,16 +22,12 @@ import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 export const sourceComponentToPaths = (component: SourceComponent) =>
   [component.content, component.xml, ...component.walkContent()].filter(isString);
 
-/** Get cache directory URI for retrieved metadata */
-const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
+const getCacheDirectory = Effect.fn('getCacheDirectory')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
     [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
-    {
-      concurrency: 'unbounded'
-    }
+    { concurrency: 'unbounded' }
   );
-
   const orgId = yield* defaultOrgRef().pipe(
     Effect.flatMap(SubscriptionRef.get),
     Effect.map(orgInfo => orgInfo.orgId),
@@ -40,69 +36,100 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
       () => new MissingDefaultOrgError({ message: nls.localize('missing_default_org') })
     )
   );
-
-  return Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'remoteMetadata');
+  return { orgId, uri: Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'remoteMetadata') };
 });
 
-/** Retrieve ComponentSet to cache directory */
-export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (
-  componentSet: NonEmptyComponentSet
-) {
+const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const cacheDirUri = yield* getCacheDirectoryUri();
-
-  yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
-
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
-
-  return result;
+  const cache = yield* getCacheDirectory();
+  yield* api.services.FsService.safeDelete(cache.uri, { recursive: true });
+  return yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
+    componentSet,
+    cache.uri,
+    cache.orgId
+  );
 });
 
 /**
- * Match project SourceComponents to retrieved remote paths using ComponentSet identity.
- * Uses getComponentFilenamesByNameAndType so local directory name is irrelevant —
- * remote paths are looked up by type+fullName, not by path heuristics.
+ * Retrieve remote source into metadata's diff cache and match it to project files.
  *
  * @param localUriFilter - allowlist of local URIs to include in the result. Use when the caller already knows
  * which files the user acted on (e.g. right-click → diff on specific files) and wants to suppress pairs
  * for other files in the same component. Omit to include all files.
+ * @param componentFilter - optional predicate applied before remote materialization. Use when the caller has
+ * already narrowed candidate components through catalog metadata such as remote timestamps.
  */
-export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function* (
+export const materializeRemoteComponents = Effect.fn('materializeRemoteComponents')(function* (
   projectComponentSet: ComponentSet,
-  retrievedComponentSet: ComponentSet,
-  localUriFilter?: HashSet.HashSet<HashableUri>
+  localUriFilter?: HashSet.HashSet<HashableUri>,
+  componentFilter?: (component: SourceComponent) => boolean
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
 
-  const projectComponents = projectComponentSet.getSourceComponents().toArray();
+  const allProjectComponents = projectComponentSet.getSourceComponents().toArray();
+  const projectComponents = componentFilter ? allProjectComponents.filter(componentFilter) : allProjectComponents;
 
   yield* Effect.annotateCurrentSpan({
+    projectComponentCount: allProjectComponents.length,
+    selectedProjectComponentCount: projectComponents.length,
     projectComponents: projectComponents.map(c => `${c.type.name}:${c.fullName}`)
   });
 
+  if (projectComponents.length === 0) return HashSet.empty<DiffFilePair>();
+  const remoteComponentSet = yield* api.services.MetadataRetrieveService.buildComponentSet(
+    projectComponents.map(component => ({ type: component.type.name, fullName: component.fullName }))
+  );
+  const nonEmptyRemoteComponentSet =
+    yield* api.services.ComponentSetService.ensureNonEmptyComponentSet(remoteComponentSet);
+  const retrieved = yield* retrieveToCacheDirectory(nonEmptyRemoteComponentSet);
+
+  return yield* matchUrisToComponents(projectComponentSet, retrieved.components, localUriFilter, componentFilter);
+});
+
+export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function* (
+  projectComponentSet: ComponentSet,
+  retrievedComponentSet: ComponentSet,
+  localUriFilter?: HashSet.HashSet<HashableUri>,
+  componentFilter?: (component: SourceComponent) => boolean
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
+  const allProjectComponents = projectComponentSet.getSourceComponents().toArray();
+  const projectComponents = componentFilter ? allProjectComponents.filter(componentFilter) : allProjectComponents;
+
   return yield* Stream.fromIterable(projectComponents).pipe(
     Stream.flatMap(projectComp => {
-      // basename → remote path, built once per component pair so we never cross-match
-      // between components that share filenames (e.g. two LWCs both having helper.js).
       const remotePaths = retrievedComponentSet.getComponentFilenamesByNameAndType({
-        fullName: projectComp.fullName,
-        type: projectComp.type.name
+        type: projectComp.type.name,
+        fullName: projectComp.fullName
       });
       if (remotePaths.length === 0) return Stream.empty;
-      const byBasename = new Map(remotePaths.map(p => [Utils.basename(URI.file(p)), p]));
+      // basename → remote path, built once per component pair so we never cross-match
+      // between components that share filenames (e.g. two LWCs both having helper.js).
+      const byBasename = new Map(remotePaths.map(path => [Utils.basename(URI.file(path)), path]));
       return Stream.fromIterable(sourceComponentToPaths(projectComp)).pipe(
-        Stream.mapEffect(p => fsService.toUri(p).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri)))),
-        Stream.filter(u => !localUriFilter || HashSet.has(localUriFilter, u)),
-        Stream.filterMap(localUri =>
+        Stream.mapEffect(p =>
+          fsService.toUri(p).pipe(
+            Effect.map(uri => ({
+              localUri: fsService.HashableUri.fromUri(uri)
+            }))
+          )
+        ),
+        Stream.filter(({ localUri }) => !localUriFilter || HashSet.has(localUriFilter, localUri)),
+        Stream.filterMap(({ localUri }) =>
           Option.fromNullable(byBasename.get(Utils.basename(localUri.uri))).pipe(
             Option.map(remotePath => ({ localUri, remotePath }))
           )
         ),
         Stream.mapEffect(({ localUri, remotePath }) =>
           fsService.toUri(remotePath).pipe(
-            Effect.map(uri => fsService.HashableUri.fromUri(uri)),
-            Effect.map(remoteUri => createDiffFilePair({ localUri, remoteUri, fileName: Utils.basename(localUri.uri) }))
+            Effect.map(remoteUri =>
+              createDiffFilePair({
+                localUri,
+                remoteUri: fsService.HashableUri.fromUri(remoteUri),
+                fileName: Utils.basename(localUri.uri)
+              })
+            )
           )
         )
       );
