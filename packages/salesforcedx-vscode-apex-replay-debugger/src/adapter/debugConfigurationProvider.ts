@@ -114,26 +114,14 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       }
     }
 
-    if (typeof config.logFileContents === 'string') {
-      if (config.logFileContents.includes('|HEAP_DUMP|')) {
-        config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
-      }
-      if (!config.anonApexFilePath) {
-        const anonSource = extractAnonApexSource(config.logFileContents);
-        if (anonSource !== undefined) {
-          const matched = await findMatchingSourceFile(anonSource);
-          if (matched) {
-            config.anonApexFilePath = matched.filePath;
-            if (matched.lineOffset > 0) {
-              config.anonApexLineOffset = matched.lineOffset;
-            }
-          } else {
-            const apexFilePath = URI.file(config.logFilePath.replace(/\.log$/, '.apex'));
-            await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
-            config.anonApexFilePath = apexFilePath.fsPath;
-          }
-        }
-      }
+    if (typeof config.logFileContents !== 'string') {
+      return config;
+    }
+    if (config.logFileContents.includes('|HEAP_DUMP|')) {
+      config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
+    }
+    if (!config.anonApexFilePath) {
+      await resolveAnonApexFilePath(config);
     }
 
     return config;
@@ -200,6 +188,26 @@ const getBasename = (filePath: string): string => {
   const normalizedPath = filePath.replaceAll('\\', '/');
   const parts = normalizedPath.split('/');
   return parts.at(-1) ?? filePath;
+};
+
+/** Populates config.anonApexFilePath (and lineOffset) from an Execute Anonymous log, matching it against
+ * workspace source when possible and falling back to a synthetic .apex file written next to the log. */
+const resolveAnonApexFilePath = async (config: vscode.DebugConfiguration): Promise<void> => {
+  const anonSource = extractAnonApexSource(config.logFileContents);
+  if (anonSource === undefined) {
+    return;
+  }
+  const matched = await findMatchingSourceFile(anonSource);
+  if (!matched) {
+    const apexFilePath = URI.file(config.logFilePath.replace(/\.log$/, '.apex'));
+    await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
+    config.anonApexFilePath = apexFilePath.fsPath;
+    return;
+  }
+  config.anonApexFilePath = matched.filePath;
+  if (matched.lineOffset > 0) {
+    config.anonApexLineOffset = matched.lineOffset;
+  }
 };
 
 const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(function* (
