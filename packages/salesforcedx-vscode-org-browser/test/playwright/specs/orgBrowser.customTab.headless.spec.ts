@@ -8,16 +8,14 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  clickModalDialogButton,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
-  NOTIFICATION_LIST_ITEM,
   TAB,
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { overwriteAndWaitForCompletion, retrieveAndHandleOverwrite } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 test.setTimeout(RETRIEVE_TIMEOUT_MS);
@@ -64,13 +62,14 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
     return item;
   });
 
-  await test.step('trigger retrieval', async () => {
-    const clicked = await orgBrowserPage.clickRetrieveButton(brokerItem);
+  await test.step('trigger retrieval and observe progress', async () => {
+    const clicked = await retrieveAndHandleOverwrite(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(brokerItem),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
     expect(clicked).toBe(true);
-  });
-
-  await test.step('wait for retrieval progress to appear', async () => {
-    await waitForRetrieveProgressNotificationToAppear(page, 60_000);
   });
 
   await test.step('wait for editor file to open (completion signal)', async () => {
@@ -99,37 +98,23 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   });
 
   await test.step('override confirmation for a single file', async () => {
-    await orgBrowserPage.clickRetrieveButton(brokerItem);
-
-    const dialog = page.locator('.monaco-dialog-box');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
-
-    await clickModalDialogButton(page, 'Yes');
-
-    const retrieving = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Retrieving\s+CustomTab/i })
-      .first();
-    await expect(retrieving).toBeVisible({ timeout: 60_000 });
+    await overwriteAndWaitForCompletion(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(brokerItem),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
   });
 
   await test.step('download all customTabs from the type-level retrieve icon', async () => {
     const originalTabTexts = await page.locator(TAB).allTextContents();
     const typeLocator = await orgBrowserPage.findMetadataType('CustomTab');
-    await orgBrowserPage.clickRetrieveButton(typeLocator);
-
-    const dialog = page.locator('.monaco-dialog-box');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
-
-    await clickModalDialogButton(page, 'Yes');
-
-    const retrieving = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Retrieving\s+CustomTab/i })
-      .first();
-    await expect(retrieving).toBeVisible({ timeout: 60_000 });
+    await overwriteAndWaitForCompletion(
+      page,
+      () => orgBrowserPage.clickRetrieveButton(typeLocator),
+      /Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i,
+      RETRIEVE_TIMEOUT_MS
+    );
 
     // we didn't open any additional files on a "retrieve all"
     expect(await page.locator(TAB).allTextContents()).toEqual(originalTabTexts);

@@ -192,9 +192,7 @@ describe('O11yReporter', () => {
         throw error;
       });
 
-      expect(() =>
-        o11yReporter.sendTelemetryEvent('commandExecution', { commandName: 'test.command' })
-      ).not.toThrow();
+      expect(() => o11yReporter.sendTelemetryEvent('commandExecution', { commandName: 'test.command' })).not.toThrow();
       await new Promise<void>(resolve => process.nextTick(resolve));
       expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter sendPftEvent failed:', error);
     });
