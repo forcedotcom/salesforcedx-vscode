@@ -29,4 +29,7 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   anonApexFilePath?: string;
   /** 0-based line offset into anonApexFilePath where the executed selection starts. Added to script line numbers so breakpoints align with the source file. */
   anonApexLineOffset?: number;
-};
+} & (
+  | { anonApexFilePath: string; anonApexLineOffset?: number }
+  | { anonApexFilePath?: never; anonApexLineOffset?: never }
+);
