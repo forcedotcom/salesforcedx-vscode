@@ -15,13 +15,21 @@ import { messages } from '../messages/i18n';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { isMemberPresentInProject } from './componentPresence';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_metadata_text;
 
+export const hasRetrieveTreeItem = (node: OrgBrowserTreeItem | undefined): node is OrgBrowserTreeItem =>
+  isNotUndefined(node);
+
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
-  node: OrgBrowserTreeItem,
+  node: OrgBrowserTreeItem | undefined,
   treeProvider: MetadataTypeTreeProvider
 ) {
+  if (!hasRetrieveTreeItem(node)) {
+    yield* Effect.logWarning('Retrieve Metadata was invoked without an Org Browser tree item');
+    return yield* Effect.void;
+  }
   const members = yield* getRetrieveMembers(node, treeProvider);
   if (members.length === 0) {
     return yield* Effect.void;
@@ -76,19 +84,6 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     ),
     Match.orElse(() => Effect.succeed([]))
   );
-
-/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
-const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
-  if (projectComponentSet.has(m)) return true;
-  if (m.type === 'CustomField') {
-    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
-      fullName: m.fullName,
-      type: 'CustomField'
-    });
-    return fieldPaths.length > 0;
-  }
-  return false;
-};
 
 const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
   members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
