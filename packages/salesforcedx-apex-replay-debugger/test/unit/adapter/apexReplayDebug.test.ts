@@ -64,21 +64,12 @@ export class MockApexReplayDebug extends ApexReplayDebug {
   public shouldStopForBreakpoint(): boolean {
     return super.shouldStopForBreakpoint();
   }
-
-  public setProjectPath(projectPath: string | undefined): void {
-    this.projectPath = projectPath;
-  }
-
-  public getProjectPath(): string | undefined {
-    return this.projectPath;
-  }
 }
 
 describe('Replay debugger adapter - unit', () => {
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
-  const projectPath = 'path/project';
 
   describe('Launch', () => {
     let sendResponseSpy: jest.SpyInstance;
@@ -109,8 +100,7 @@ describe('Replay debugger adapter - unit', () => {
         logFilePath,
         logFileName,
         stopOnEntry: true,
-        trace: false,
-        projectPath
+        trace: false
       };
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Mock console methods to prevent them from calling sendEvent
@@ -223,21 +213,6 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.success).toBe(true);
     });
 
-    it('Should not scan for log lines if projectPath is undefined', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(false);
-
-      adapter.setProjectPath(undefined);
-      await adapter.launchRequest(response, args);
-
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(scanLogForHeapDumpLinesStub).toHaveBeenCalledTimes(0);
-    });
-
     it('Should not apply heap dump results if no heap dumps are found in the logs', async () => {
       hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
       meetsLogLevelRequirementsStub = jest
@@ -318,8 +293,7 @@ describe('Replay debugger adapter - unit', () => {
       logFileContents: 'test log content',
       logFilePath,
       logFileName,
-      trace: true,
-      projectPath
+      trace: true
     };
 
     beforeEach(() => {
@@ -428,8 +402,7 @@ describe('Replay debugger adapter - unit', () => {
       logFileContents: 'test log content',
       logFilePath,
       logFileName,
-      trace: true,
-      projectPath
+      trace: true
     };
 
     beforeEach(() => {
@@ -471,8 +444,7 @@ describe('Replay debugger adapter - unit', () => {
       logFileContents: 'test log content',
       logFilePath,
       logFileName,
-      trace: true,
-      projectPath
+      trace: true
     };
     const sampleStackFrames: StackFrame[] = [
       {
@@ -535,8 +507,7 @@ describe('Replay debugger adapter - unit', () => {
       logFileContents: 'test log content',
       logFilePath,
       logFileName,
-      trace: true,
-      projectPath
+      trace: true
     };
 
     beforeEach(() => {
@@ -765,8 +736,7 @@ describe('Replay debugger adapter - unit', () => {
       logFileContents: 'test log content',
       logFilePath,
       logFileName,
-      trace: true,
-      projectPath
+      trace: true
     };
 
     beforeEach(() => {
@@ -991,8 +961,7 @@ describe('Replay debugger adapter - unit', () => {
           lineBreakpointInfo: [],
           logFileContents: 'test log content',
           logFilePath,
-          logFileName,
-          projectPath: undefined
+          logFileName
         };
 
         await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
@@ -1001,7 +970,6 @@ describe('Replay debugger adapter - unit', () => {
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.mock.calls[0][0];
         expect(actualResponse.success).toBe(true);
         expect(actualResponse).toEqual(initializedResponse);
-        expect(adapter.getProjectPath()).toBeUndefined();
       });
 
       it('Should save line number mapping', async () => {
@@ -1015,11 +983,8 @@ describe('Replay debugger adapter - unit', () => {
           ['file:///foo.cls', [1, 2, 3, 4, 5, 6]],
           ['file:///bar.cls', [1, 2, 3, 4, 5, 6]]
         ]);
-        const projectPathArg = 'some path';
-
         const config = {
           lineBreakpointInfo: info,
-          projectPath: projectPathArg,
           logFileContents: 'test log content',
           logFilePath,
           logFileName
@@ -1034,7 +999,6 @@ describe('Replay debugger adapter - unit', () => {
         expect(actualResponse).toEqual(initializedResponse);
         // Verify that the line number mapping is the expected line number mapping
         expect(breakpointUtil.getLineNumberMapping()).toEqual(expectedLineNumberMapping);
-        expect(adapter.getProjectPath()).toBe(projectPathArg);
       });
     });
   });

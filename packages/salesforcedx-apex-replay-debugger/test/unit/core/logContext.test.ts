@@ -55,8 +55,7 @@ describe('LogContext', () => {
     logFileContents: 'test log content',
     logFilePath: '/path/foo.log',
     logFileName: 'foo.log',
-    trace: true,
-    projectPath: 'path/project'
+    trace: true
   };
 
   beforeEach(() => {

@@ -24,7 +24,6 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
   lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];
-  projectPath: string | undefined;
   heapDumpResults?: HeapDumpResult[];
   /** Path to Anonymous Apex script file. When set, frame lines use script line numbers directly; otherwise they map via debug log. */
   anonApexFilePath?: string;

@@ -29,8 +29,7 @@ describe('Statement execute event', () => {
     logFileContents: 'test log content',
     logFilePath,
     logFileName,
-    trace: true,
-    projectPath: undefined
+    trace: true
   };
 
   beforeEach(() => {
