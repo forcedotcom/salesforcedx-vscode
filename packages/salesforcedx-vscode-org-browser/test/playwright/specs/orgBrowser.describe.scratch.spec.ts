@@ -41,7 +41,7 @@ test('Org Browser high-level validation: a few types from describe', async ({ pa
   const tabType = await orgBrowserPage.findMetadataType('CustomTab');
 
   await test.step('CustomTab UI (not expanded)', async () => {
-    await tabType.hover({ timeout: 500 });
+    await tabType.hover();
     await expect(tabType).toBeVisible();
     // Expected structure: treeitem at level 1 with toolbar containing both Refresh Type and Retrieve Metadata buttons
     await expect(tabType).toHaveRole('treeitem');

@@ -287,50 +287,37 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   await activeQuickInputWidget(page).waitFor({ state: 'visible', timeout: 1000 });
 
   // Find the result that matches the filename
-  const results = page.locator(QUICK_INPUT_LIST_ROW);
-  const resultCount = await results.count();
-  let foundMatch = false;
-  let matchIndex = 0;
-  for (let i = 0; i < resultCount; i++) {
-    const resultText = await results.nth(i).textContent();
-    // Check if the result contains the filename (Quick Open results include path info)
-    // Match if filename appears as a complete word (not part of another filename)
-    if (
-      resultText &&
-      (resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName))
-    ) {
-      matchIndex = i;
-      foundMatch = true;
-      break;
-    }
-  }
+  const results = activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW);
+  const matchesFileName = (resultText: string): boolean =>
+    resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName);
 
-  if (!foundMatch) {
+  await expect
+    .poll(async () => (await results.allTextContents()).some(matchesFileName), { timeout: 10_000 })
+    .toBe(true);
+
+  const resultTexts = await results.allTextContents();
+  const matchingIndex = resultTexts.findIndex(matchesFileName);
+
+  if (matchingIndex < 0) {
     // Log all available results for debugging
-    const allResults: string[] = [];
-    for (let i = 0; i < Math.min(resultCount, 10); i++) {
-      const text = await results.nth(i).textContent();
-      if (text) allResults.push(text.trim());
-    }
+    const allResults = resultTexts.slice(0, 10).map(text => text.trim());
     // Check if Quick Open might be showing command palette results instead of files
     const firstResult = allResults[0] || '';
     if (firstResult.toLowerCase().includes('similar commands') || firstResult.toLowerCase().includes('no matching')) {
       throw new Error(
-        `Quick Open appears to be showing command palette results instead of files. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+        `Quick Open appears to be showing command palette results instead of files. Found ${resultTexts.length} results. First few: ${allResults.join(' | ')}`
       );
     }
     throw new Error(
-      `No exact match found for "${fileName}" in Quick Open. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+      `No exact match found for "${fileName}" in Quick Open. Found ${resultTexts.length} results. First few: ${allResults.join(' | ')}`
     );
   }
 
-  // Navigate to the matching result using arrow keys
-  for (let i = 0; i < matchIndex; i++) {
-    await page.keyboard.press('ArrowDown');
-  }
-
-  // Press Enter to open the selected result
-  await page.keyboard.press('Enter');
+  // Click the matching row directly. Keyboard indexes are unstable while Quick Open streams results.
+  const matchingText = resultTexts[matchingIndex];
+  const matchingResult = results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
+  await expect(matchingResult).toBeVisible({ timeout: 5000 });
+  await matchingResult.click({ force: true });
 
   // Wait for editor to open with the file
   await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
