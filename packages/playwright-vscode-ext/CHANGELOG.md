@@ -1,3 +1,12 @@
+## [1.3.11](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.10...playwright-vscode-ext-v1.3.11) (2026-08-20)
+
+
+### Bug Fixes
+
+* **org-browser:** support StandardValueSet by getting the values from @salesforce/source-deploy-retrieve - W-23802414 ([#8006](https://github.com/forcedotcom/salesforcedx-vscode/issues/8006)) ([8b9579a](https://github.com/forcedotcom/salesforcedx-vscode/commit/8b9579ac8a0bb032f6c9728eca6976f5b375b9f0))
+
+
+
 ## [1.3.10](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.9...playwright-vscode-ext-v1.3.10) (2026-07-31)
 
 
