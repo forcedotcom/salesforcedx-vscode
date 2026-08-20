@@ -1,26 +1,39 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import {
   InvalidSoqlBuilderMetadataError,
+  SoqlBuilderActionSchema,
   createInitialSoqlBuilderState,
   decodeSoqlBuilderMetadata
 } from '../out/src/domain.js';
+
+const accountField = {
+  aggregatable: false,
+  custom: false,
+  defaultValue: null,
+  extraTypeInfo: null,
+  filterable: true,
+  groupable: true,
+  inlineHelpText: null,
+  label: 'Account ID',
+  name: 'Id',
+  nillable: false,
+  picklistValues: [],
+  referenceTo: [],
+  relationshipName: null,
+  sortable: true,
+  type: 'id'
+};
 
 test('decodes the browser-safe metadata DTO', async () => {
   const metadata = await Effect.runPromise(
     decodeSoqlBuilderMetadata({
       objects: [{ name: 'Account', label: 'Account', queryable: true }],
-      fields: [
-        {
-          name: 'Id',
-          label: 'Account ID',
-          type: 'id',
-          filterable: true,
-          groupable: true,
-          sortable: true
-        }
-      ]
+      fields: [accountField],
+      childRelationships: [],
+      selectedObjectName: 'Account'
     })
   );
 
@@ -33,7 +46,8 @@ test('rejects invalid metadata with the typed boundary error', async () => {
     Effect.flip(
       decodeSoqlBuilderMetadata({
         objects: [{ name: '', label: 'Account', queryable: true }],
-        fields: []
+        fields: [],
+        childRelationships: []
       })
     )
   );
@@ -48,4 +62,42 @@ test('creates independent initial states', () => {
   assert.notEqual(first, second);
   assert.notEqual(first.metadata, second.metadata);
   assert.notEqual(first.query, second.query);
+  assert.deepEqual(first.query.where.conditions, []);
+  assert.equal(first.isQueryRunning, false);
+  assert.equal(first.isQueryPlanRunning, false);
+});
+
+test('the public action Schema covers all builder operations', () => {
+  const actions = [
+    { _tag: 'ObjectSelected', objectName: 'Account' },
+    { _tag: 'FieldsSelected', fieldNames: ['Id'] },
+    { _tag: 'AllFieldsSelected' },
+    { _tag: 'AllFieldsCleared' },
+    {
+      _tag: 'WhereConditionUpserted',
+      condition: {
+        index: 0,
+        condition: {
+          field: { fieldName: 'Name' },
+          operator: '=',
+          compareValue: { type: 'STRING', value: "'Acme'" }
+        }
+      },
+      andOr: 'AND'
+    },
+    { _tag: 'WhereConditionRemoved', index: 0 },
+    { _tag: 'WhereConjunctionChanged', andOr: 'OR' },
+    { _tag: 'OrderByUpserted', orderBy: { field: 'Name', order: 'ASC', nulls: 'NULLS LAST' } },
+    { _tag: 'OrderByRemoved', fieldName: 'Name' },
+    { _tag: 'LimitChanged', limit: '25' },
+    { _tag: 'AllRowsChanged', allRows: true },
+    { _tag: 'NotificationsDismissed' },
+    { _tag: 'SetDefaultOrgRequested' },
+    { _tag: 'RunQueryRequested' },
+    { _tag: 'QueryPlanRequested' }
+  ];
+
+  for (const action of actions) {
+    assert.equal(Schema.is(SoqlBuilderActionSchema)(action), true, action._tag);
+  }
 });

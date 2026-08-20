@@ -191,9 +191,11 @@
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
       "dependencies": [
+        "../soql-builder-ui:compile",
         "../soql-model:compile"
       ],
       "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
