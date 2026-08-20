@@ -16,6 +16,7 @@ on:
 
 jobs:
   ci-complete:
+    name: CI Complete
     runs-on: ubuntu-latest
     steps:
       - name: Mark CI as Complete
