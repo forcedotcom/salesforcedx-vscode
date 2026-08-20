@@ -15,11 +15,9 @@ import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
-import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -37,17 +35,17 @@ import {
   isMethod,
   isSuite
 } from '../utils/testItemUtils';
-import { buildClassToUriIndex, getMethodLocationsFromSymbols } from '../utils/testUtils';
+import { getMethodLocationsFromSymbols } from '../utils/testUtils';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
+  type ApexClassResolution,
   createClassAndMethodsFactory,
   getNamespaceDisplayLabel,
   getPackageKeysOrdered,
   getPackageLabelAndId,
   isNonEmptyClassEntriesList,
-  resolvePackageInfoForClassId,
   sortNamespaceKeys
 } from './orgTestItems';
 
@@ -178,15 +176,6 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
         ? vscode.window.showWarningMessage(friendlyMessage)
         : vscode.window.showErrorMessage(friendlyMessage))
   );
-});
-
-/**
- * Read the current default org info ({ orgId, username }) inline from the Services TargetOrgRef.
- * Mirrors pathHelpers.getTestResultsFolder; avoids a file read for cache keys.
- */
-const getDefaultOrgInfo = Effect.fn('ApexTestTreeService.getDefaultOrgInfo')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 });
 
 /**
@@ -440,6 +429,26 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       });
     });
 
+    const resolveApexClasses = Effect.fn('ApexTestTreeService.resolveApexClasses')(function* (
+      classes: readonly ToolingTestClass[]
+    ) {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const catalog = yield* api.services.OrgMetadataCatalog;
+      const classNames = classes.map(getFullClassName);
+      const resolutions = yield* catalog.resolveComponents(
+        classNames.map(fullName => ({ type: 'ApexClass', fullName }))
+      );
+      return new Map(
+        resolutions.map((resolution, index) => [
+          classNames[index],
+          {
+            uri: resolution.preferredUri,
+            inWorkspace: resolution.presence === 'both'
+          } satisfies ApexClassResolution
+        ])
+      );
+    });
+
     /**
      * Build the org test tree (Namespace → Package → Class → Method) from Tooling API classes.
      * The resolvePackage2Members boundary maps any rejection to PackageResolutionError.
@@ -454,17 +463,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         return;
       }
 
-      const classNameToUri = yield* Effect.tryPromise({
-        try: () => buildClassToUriIndex(apexClasses.map(cls => cls.name)),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
-
-      const orgInfo = yield* getDefaultOrgInfo().pipe(
+      const classResolutions = yield* resolveApexClasses(apexClasses).pipe(
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
-      // No default org → no org-scoped tree to build.
-      if (!orgInfo.orgId) return;
-      const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* PackageResolutionService.resolve(
         Array.getSomes(apexClasses.map(cls => cls.id)),
         buildClassIdToNamespace(apexClasses)
@@ -478,8 +479,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         controller: ctx.controller,
         classItems: currentClassItems,
         methodItems: currentMethodItems,
-        classNameToUri,
-        orgKey,
+        classResolutions,
         orgOnlyTag: ctx.orgOnlyTag,
         inWorkspaceTag: ctx.inWorkspaceTag
       });
@@ -515,79 +515,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           packageItem.children.add(createClassAndMethods(fullClassName, entries));
           currentClassToParent.set(fullClassName, packageItem);
         }).pipe(Effect.zipRight((index + 1) % BATCH_SIZE === 0 ? Effect.yieldNow() : Effect.void))
-      );
-    });
-
-    /**
-     * Query the Tooling API for the source body of each discovered class (chunked, IN-clause), keyed by full
-     * class name. Missing bodies fall back to a localized placeholder so the VFS snapshot always has an entry.
-     */
-    const fetchClassBodiesByFullName = Effect.fn('ApexTestTreeService.fetchClassBodiesByFullName')(function* (
-      classes: ToolingTestClass[]
-    ) {
-      const classIds = Array.getSomes(classes.map(cls => cls.id)).toSorted();
-      const bodyByFullName = new Map<string, string>();
-      if (classIds.length === 0) {
-        return bodyByFullName;
-      }
-
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection();
-      const chunkSize = 200;
-      yield* Effect.forEach(
-        Array.chunksOf(classIds, chunkSize),
-        chunkIds =>
-          Effect.gen(function* () {
-            const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-            const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
-            const queryResult = yield* Effect.promise(() =>
-              connection.tooling.query<{ Name: string; NamespacePrefix?: string | null; Body?: string | null }>(query)
-            );
-            queryResult.records.forEach(record => {
-              const fullClassName = record.NamespacePrefix?.trim()
-                ? `${record.NamespacePrefix}.${record.Name}`
-                : record.Name;
-              bodyByFullName.set(
-                fullClassName,
-                record.Body ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName)
-              );
-            });
-          }),
-        { concurrency: 1, discard: true }
-      );
-
-      classes.forEach(cls => {
-        const fullClassName = getFullClassName(cls);
-        if (!bodyByFullName.has(fullClassName)) {
-          bodyByFullName.set(fullClassName, nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName));
-        }
-      });
-      return bodyByFullName;
-    });
-
-    const logPersistWarning = (error: unknown) =>
-      Effect.logWarning('failed to persist discovered Apex classes', { error });
-
-    /**
-     * Persist the discovered classes to the org-keyed VFS snapshot (best-effort optimization). Org-info
-     * lookup, body fetch, and the write are recovered on failure so persistence never fails the discovery run.
-     */
-    const persistDiscoveredClasses = Effect.fn('ApexTestTreeService.persistDiscoveredClasses')(function* (
-      classes: ToolingTestClass[]
-    ) {
-      const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-      yield* Effect.gen(function* () {
-        const { orgId } = yield* getDefaultOrgInfo();
-        // No default org → nothing to key the snapshot by; persistence is best-effort, so skip.
-        if (!orgId) return;
-        const classBodiesByFullName = yield* fetchClassBodiesByFullName(apexClasses);
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
-      }).pipe(
-        Effect.catchTags({
-          DiscoveryClearError: logPersistWarning,
-          ServicesExtensionNotFoundError: logPersistWarning,
-          InvalidServicesApiError: logPersistWarning
-        })
       );
     });
 
@@ -780,8 +707,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
 
-      yield* persistDiscoveredClasses(discoveryResult.classes);
-
       if (discoveryResult.classes.length > 0) {
         yield* populateTestItemsFromOrg(ctx, discoveryResult.classes);
       }
@@ -886,8 +811,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     const addClassToTree = Effect.fn('ApexTestTreeService.addClassToTree')(function* (
       ctx: TreeMutationContext,
       cls: ToolingTestClass,
-      classNameToUri: Map<string, URI>,
-      orgKey: string
+      classResolutions: ReadonlyMap<string, ApexClassResolution>
     ) {
       const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
       const classIdToPackage = yield* PackageResolutionService.resolve(classIds, buildClassIdToNamespace([cls])).pipe(
@@ -904,8 +828,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         controller: ctx.controller,
         classItems: currentClassItems,
         methodItems: currentMethodItems,
-        classNameToUri,
-        orgKey,
+        classResolutions,
         orgOnlyTag: ctx.orgOnlyTag,
         inWorkspaceTag: ctx.inWorkspaceTag
       });
@@ -913,6 +836,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       yield* Effect.sync(() => {
         structure.forEach((pkMap, nsKey) => {
           pkMap.forEach((classEntriesList, pkgKey) => {
+            if (!isNonEmptyClassEntriesList(classEntriesList)) {
+              return;
+            }
+            const { packageLabel, packageId } = getPackageLabelAndId(nsKey, pkgKey, classEntriesList, classIdToPackage);
             classEntriesList.forEach(({ fullClassName: fcn, entries }) => {
               const nsId = createNamespaceId(nsKey);
               const namespaceItem = findOrCreateChild(
@@ -921,14 +848,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                 () => ctx.controller.createTestItem(nsId, getNamespaceDisplayLabel(nsKey), undefined)
               );
 
-              const classEntry = classEntriesList[0];
-              const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
-              const packageLabel = info?.packageName ?? pkgKey;
-              const pkgNodeId = `${nsKey}/${pkgKey}`;
               const packageItem = findOrCreateChild(
                 namespaceItem.children,
-                item => item.id === pkgNodeId || item.label === packageLabel,
-                () => ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined)
+                item => item.id === packageId,
+                () => ctx.controller.createTestItem(packageId, packageLabel, undefined)
               );
 
               const classItem = createClassAndMethods(fcn, entries);
@@ -946,14 +869,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       fullClassName: string,
       classItem: vscode.TestItem,
       discoveredClass: ToolingTestClass,
-      classNameToUri: Map<string, URI>
+      classResolutions: ReadonlyMap<string, ApexClassResolution>
     ) {
       // Tooling API is authoritative for which methods are test methods (@isTest)
       const discoveredMethodNames = new Set((discoveredClass.testMethods ?? []).map(m => m.name));
 
-      const localUri = classNameToUri.get(discoveredClass.name);
-      const uri = localUri ?? classItem.uri;
-      const isOrgOnly = !localUri;
+      const resolution = classResolutions.get(fullClassName);
+      const localUri = resolution?.inWorkspace ? resolution.uri : undefined;
+      const uri = resolution?.uri ?? classItem.uri;
+      const isOrgOnly = !resolution?.inWorkspace;
 
       // Use LSP for positions (accurate after deploy), fall back to Tooling API positions
       const methodPositions = new Map<string, { line: number; column: number }>();
@@ -1040,10 +964,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const apexClasses = discoveredClasses.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
       const discoveryMap = new Map(apexClasses.map(cls => [getFullClassName(cls), cls]));
 
-      const classNameToUri = yield* Effect.promise(() => buildClassToUriIndex(apexClasses.map(cls => cls.name)));
-      const { orgId } = yield* getDefaultOrgInfo();
-      // No default org → no org-scoped tree to diff against.
-      if (!orgId) return;
+      const classResolutions = yield* resolveApexClasses(apexClasses);
 
       const currentClassItems = yield* Ref.get(classItems);
       yield* Effect.forEach(
@@ -1053,9 +974,16 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
             const discoveredClass = discoveryMap.get(fullName);
             const existingClassItem = currentClassItems.get(fullName);
 
-            if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
+            if (
+              changeType === 'created' ||
+              changeType === 'workspacePresence' ||
+              (!existingClassItem && discoveredClass)
+            ) {
               if (discoveredClass) {
-                yield* addClassToTree(ctx, discoveredClass, classNameToUri, orgId);
+                if (existingClassItem) {
+                  yield* removeClassFromTree(ctx, fullName);
+                }
+                yield* addClassToTree(ctx, discoveredClass, classResolutions);
               }
             } else if (changeType === 'changed' && existingClassItem && discoveredClass) {
               // Always apply stale tags for filtering (remove active tags)
@@ -1069,7 +997,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                 // Invalidate existing results before diffing (so new methods aren't marked stale)
                 ctx.controller.invalidateTestResults(existingClassItem);
               });
-              yield* diffClassMethods(ctx, fullName, existingClassItem, discoveredClass, classNameToUri);
+              yield* diffClassMethods(ctx, fullName, existingClassItem, discoveredClass, classResolutions);
             } else if (existingClassItem && !discoveredClass) {
               // Class no longer in discovery (e.g. @isTest removed) — remove it
               yield* removeClassFromTree(ctx, fullName);
@@ -1101,7 +1029,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
         if (nonDeleteChanges.size > 0) {
           const discoveryResult = yield* discoverTests();
-          yield* persistDiscoveredClasses(discoveryResult.classes);
           yield* applyIncrementalDiff(ctx, discoveryResult.classes, nonDeleteChanges);
         }
 

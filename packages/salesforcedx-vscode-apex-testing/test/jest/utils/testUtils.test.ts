@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { buildClassToUriIndex, findMethodInSymbols, getMethodLocationsFromSymbols } from '../../../src/utils/testUtils';
+import { findMethodInSymbols, getMethodLocationsFromSymbols } from '../../../src/utils/testUtils';
 
 describe('testUtils', () => {
   // Use path.join for cross-platform compatibility
@@ -199,14 +199,6 @@ describe('testUtils', () => {
       const result = await getMethodLocationsFromSymbols(mockUri, ['testMethod1', 'testMethod1']);
       expect(result).toBeDefined();
       expect(result?.size).toBe(1);
-    });
-  });
-
-  describe('buildClassToUriIndex', () => {
-    it('should return empty map when classNames array is empty', async () => {
-      // No need to mock services - empty array returns immediately
-      const result = await buildClassToUriIndex([]);
-      expect(result.size).toBe(0);
     });
   });
 });

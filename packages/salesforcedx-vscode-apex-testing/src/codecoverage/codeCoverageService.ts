@@ -227,13 +227,9 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
       if (isCodeCoverageItem(codeCovItem)) {
         const [uncovered, covered] = Record.partition(codeCovItem.lines, value => value === 1);
         return {
-          coveredLines: yield* Effect.forEach(
-            Object.entries(covered),
-            ([key]) => getLineRange(document, Number(key))
-          ),
-          uncoveredLines: yield* Effect.forEach(
-            Object.entries(uncovered),
-            ([key]) => getLineRange(document, Number(key))
+          coveredLines: yield* Effect.forEach(Object.entries(covered), ([key]) => getLineRange(document, Number(key))),
+          uncoveredLines: yield* Effect.forEach(Object.entries(uncovered), ([key]) =>
+            getLineRange(document, Number(key))
           )
         };
       }
