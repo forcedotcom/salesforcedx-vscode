@@ -2,14 +2,15 @@ name: Promote Nightly to Pre-release
 
 on:
   schedule:
-    # Daily at 6 AM UTC (2h after nightly build at 4 AM)
-    # Promotes last night's nightly + passing E2E tests to prerelease
-    # Enables fast iteration: if issues found, patch prerelease immediately instead of waiting
-    - cron: '0 6 * * *'
+    # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
+    # Rationale: Weekly promotion on Wed, then 5-day baking period (Wed → Mon)
+    # before stable release, aligning with team review cycles
+    # Stability criteria: latest nightly + all CI checks passed on the tag's commit
+    - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
       min-tag-age-days:
-        description: 'Minimum nightly age in days before eligible for promotion (default: 0)'
+        description: 'Minimum nightly age in days before eligible for promotion (default: 0 for latest nightly)'
         required: false
         default: '0'
         type: string

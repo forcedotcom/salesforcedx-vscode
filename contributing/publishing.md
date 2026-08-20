@@ -27,7 +27,7 @@ Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedo
 **How detection works:**
 1. If `startFromRef` provided, use that ref (any git ref: tag/branch/SHA) — bypasses nightly validation, for emergency releases only
 2. Else if `prereleaseTag` provided, validate nightly format (`v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`), use that tag
-3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks daily 6 AM UTC promotion (point where nightly tested + promoted to prerelease)
+3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks Wed 7 AM UTC promotion (latest nightly + passing CI)
 
 **Use `startFromRef` for emergency scenarios (any git ref):**
 - Build from hotfix branch: `-f startFromRef="hotfix/security-fix"`
@@ -79,17 +79,19 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 **Nightly builds:** `nightly.yml` → all extensions to pre-release daily (4 AM UTC) + on-demand. Auto-discovers via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
 
-**Daily pre-release promotion:** `promote-prerelease.yml` (daily 6 AM UTC, 2h after nightly) → promotes last night's nightly tag + passing E2E tests to pre-release immediately. Can patch if issues arise.
+**Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → promotes latest nightly + passing E2E tests to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
 
-**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted tag, builds stable VSIXs. Release engineer approves + publishes.
+**5-day baking period:** Wed pre-release → Mon stable (customer validation).
+
+**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds).
 
 ## Publishing to Marketplace
 
-### Standard Path: Nightly → Daily Pre-release → Mon Stable → Marketplace
+### Standard Path: Nightly → Weekly Pre-release → Mon Stable → Marketplace
 
-1. **Daily 6 AM UTC (Wed):** `promote-prerelease.yml` auto-runs → promotes last night's nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
+1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes latest nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
 2. **5-day baking:** Wed → Mon (customer validation)
 3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release

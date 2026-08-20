@@ -23,7 +23,7 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml daily 6 AM UTC after E2E tests pass), builds stable VSIXs from that tested candidate. Manual trigger for on-demand:
+Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml Wed 7 AM UTC after E2E tests pass), builds stable VSIXs from that tested candidate. Manual trigger for on-demand:
 
 ```bash
 # Auto-detect latest promoted prerelease
