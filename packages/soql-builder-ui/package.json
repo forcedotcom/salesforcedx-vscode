@@ -10,28 +10,26 @@
     "directory": "packages/soql-builder-ui"
   },
   "type": "module",
-  "main": "out/src/index.js",
-  "types": "out/src/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./out/src/index.d.ts",
-      "default": "./out/src/index.js"
-    },
-    "./testing": {
-      "types": "./out/src/testing/index.d.ts",
-      "default": "./out/src/testing/index.js"
-    },
     "./application": {
       "types": "./out/src/application.d.ts",
       "default": "./out/src/application.js"
+    },
+    "./components/soqlBuilderApp": {
+      "types": "./out/src/components/soqlBuilderApp.d.ts",
+      "default": "./out/src/components/soqlBuilderApp.js"
     },
     "./domain": {
       "types": "./out/src/domain.d.ts",
       "default": "./out/src/domain.js"
     },
-    "./driver": {
-      "types": "./out/src/effect/soqlBuilderDriver.d.ts",
-      "default": "./out/src/effect/soqlBuilderDriver.js"
+    "./register": {
+      "types": "./out/src/register.d.ts",
+      "default": "./out/src/register.js"
+    },
+    "./service": {
+      "types": "./out/src/effect/soqlBuilderService.d.ts",
+      "default": "./out/src/effect/soqlBuilderService.js"
     }
   },
   "sideEffects": true,
@@ -58,13 +56,13 @@
       ]
     },
     "bundle": {
-      "command": "rollup --config rollup.config.mjs",
+      "command": "node esbuild.config.mjs",
       "dependencies": [
         "compile"
       ],
       "files": [
         "out/**",
-        "rollup.config.mjs",
+        "esbuild.config.mjs",
         "package.json"
       ],
       "output": [
@@ -95,14 +93,14 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.mjs",
-        "rollup.config.mjs",
+        "esbuild.config.mjs",
         "../../eslint.config.mjs",
         "package.json"
       ],
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/register.ts",
       "dependencies": [
         "compile"
       ],
@@ -119,10 +117,5 @@
     "@vscode-elements/elements": "2.5.1",
     "effect": "^3.21.2",
     "lit": "3.3.3"
-  },
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-terser": "^1.0.0",
-    "rollup": "^4.0.0"
   }
 }

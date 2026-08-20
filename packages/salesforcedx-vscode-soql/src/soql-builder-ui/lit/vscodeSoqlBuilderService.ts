@@ -6,21 +6,20 @@
  */
 
 import {
-  SoqlBuilderDriverError,
-  SoqlBuilderStateSchema,
+  SoqlBuilderServiceError,
   createInitialSoqlBuilderState,
   decodeSoqlBuilderMetadata,
   type SoqlBuilderAction,
-  type SoqlBuilderDriverError as DriverError,
-  type SoqlBuilderQuery,
+  type SoqlBuilderServiceError as ServiceError,
   type SoqlBuilderState
 } from '@salesforce/soql-builder-ui/domain';
 import {
-  SoqlBuilderDriver,
-  type SoqlBuilderDriver as SoqlBuilderDriverService
-} from '@salesforce/soql-builder-ui/driver';
+  SoqlBuilderService,
+  type SoqlBuilderService as SoqlBuilderServiceShape
+} from '@salesforce/soql-builder-ui/service';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Match from 'effect/Match';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
@@ -35,18 +34,18 @@ import {
   type SoqlEditorEvent
 } from '../modules/querybuilder/services/message/soqlEditorEvent';
 
-type DriverOperation = DriverError['operation'];
+type ServiceOperation = ServiceError['operation'];
 
-const toDriverError = (operation: DriverOperation, error: unknown): DriverError =>
-  new SoqlBuilderDriverError({
+const toServiceError = (operation: ServiceOperation, error: unknown): ServiceError =>
+  new SoqlBuilderServiceError({
     details: String(error),
     operation
   });
 
-const tryDriverOperation = (operation: DriverOperation, evaluate: () => void) =>
+const tryServiceOperation = (operation: ServiceOperation, evaluate: () => void) =>
   Effect.try({
     try: evaluate,
-    catch: error => toDriverError(operation, error)
+    catch: error => toServiceError(operation, error)
   });
 
 const toObjectMetadata = (names: unknown): unknown =>
@@ -72,7 +71,27 @@ const toFieldMetadata = (metadata: unknown): unknown => {
 };
 
 const validateMetadata = (metadata: unknown) =>
-  decodeSoqlBuilderMetadata(metadata).pipe(Effect.mapError(error => toDriverError('subscribe', error)));
+  decodeSoqlBuilderMetadata(metadata).pipe(Effect.mapError(error => toServiceError('subscribe', error)));
+
+const SavedStateSchema = Schema.Struct({
+  errorMessage: Schema.optional(Schema.String),
+  hasNoDefaultOrg: Schema.Boolean,
+  isFieldsLoading: Schema.Boolean,
+  isObjectsLoading: Schema.Boolean,
+  metadata: Schema.Unknown,
+  query: Schema.Struct({
+    fields: Schema.Array(Schema.NonEmptyTrimmedString),
+    originalSoqlStatement: Schema.String,
+    sObject: Schema.String
+  })
+});
+
+const decodeSavedState = (input: unknown) =>
+  Schema.decodeUnknown(SavedStateSchema)(input).pipe(
+    Effect.flatMap(saved =>
+      validateMetadata(saved.metadata).pipe(Effect.map(metadata => ({ ...saved, metadata })))
+    )
+  );
 
 const formatQuery = (sObject: string, fields: readonly string[]): string => {
   if (sObject.length === 0) return '';
@@ -80,7 +99,7 @@ const formatQuery = (sObject: string, fields: readonly string[]): string => {
   return `SELECT ${selection}\n    FROM ${sObject}`;
 };
 
-const parseFoundationQuery = (statement: string): SoqlBuilderQuery => {
+const parseFoundationQuery = (statement: string): SoqlBuilderState['query'] => {
   const match = /^\s*SELECT\s+([\s\S]+?)\s+FROM\s+([A-Za-z_][\w.]*)/iu.exec(statement);
   if (!match) return { fields: [], originalSoqlStatement: statement, sObject: '' };
 
@@ -96,7 +115,7 @@ const parseFoundationQuery = (statement: string): SoqlBuilderQuery => {
 };
 
 const saveViewState = (messageService: IMessageService, state: SoqlBuilderState) =>
-  tryDriverOperation('dispatch', () => {
+  tryServiceOperation('dispatch', () => {
     messageService.setState({
       ...state,
       metadata: {
@@ -107,14 +126,12 @@ const saveViewState = (messageService: IMessageService, state: SoqlBuilderState)
     });
   });
 
-const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
+const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const messageService = yield* MessageService;
-  const savedState = yield* Schema.decodeUnknown(SoqlBuilderStateSchema)(messageService.getState()).pipe(
-    Effect.orElseSucceed(createInitialSoqlBuilderState)
-  );
+  const savedState = yield* decodeSavedState(messageService.getState()).pipe(Effect.orElseSucceed(createInitialSoqlBuilderState));
   const state = yield* SubscriptionRef.make(savedState);
   const messages = yield* Queue.unbounded<SoqlEditorEvent>();
-  const errors = yield* PubSub.unbounded<DriverError>();
+  const errors = yield* PubSub.unbounded<ServiceError>();
   const removeMessageListener = messageService.onMessage(event => {
     messages.unsafeOffer(event);
   });
@@ -125,48 +142,57 @@ const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
     )
   );
 
-  const reportMessageError = <A>(handler: Effect.Effect<A, DriverError>) =>
-    handler.pipe(Effect.catchAll(error => PubSub.publish(errors, error).pipe(Effect.asVoid)));
+  const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
+    handler.pipe(
+      Effect.catchTag('SoqlBuilderServiceError', error => PubSub.publish(errors, error).pipe(Effect.asVoid))
+    );
 
-  const setQuery = (query: SoqlBuilderQuery) =>
+  const setQuery = (query: SoqlBuilderState['query']) =>
     SubscriptionRef.update(state, current => ({ ...current, query }));
 
-  const handleMessage = (event: SoqlEditorEvent) => {
-    switch (event.type) {
-      case MessageType.SOBJECTS_RESPONSE:
-        return Effect.gen(function* () {
+  const handleMessage = Match.type<SoqlEditorEvent>().pipe(
+    Match.discriminatorsExhaustive('type')({
+      [MessageType.SOBJECTS_RESPONSE]: event =>
+        Effect.gen(function* () {
           const current = yield* SubscriptionRef.get(state);
           const metadata = yield* validateMetadata({
             fields: current.metadata.fields,
             objects: toObjectMetadata(event.payload)
           });
           yield* SubscriptionRef.set(state, { ...current, isObjectsLoading: false, metadata });
-        });
-      case MessageType.SOBJECT_METADATA_RESPONSE:
-        return Effect.gen(function* () {
+        }),
+      [MessageType.SOBJECT_METADATA_RESPONSE]: event =>
+        Effect.gen(function* () {
           const current = yield* SubscriptionRef.get(state);
           const metadata = yield* validateMetadata({
             fields: toFieldMetadata(event.payload),
             objects: current.metadata.objects
           });
           yield* SubscriptionRef.set(state, { ...current, isFieldsLoading: false, metadata });
-        });
-      case MessageType.TEXT_SOQL_CHANGED:
-        return setQuery(parseFoundationQuery(event.payload));
-      case MessageType.NO_DEFAULT_ORG:
-        return SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: true }));
-      case MessageType.CONNECTION_CHANGED:
-        return SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: false })).pipe(
+        }),
+      [MessageType.TEXT_SOQL_CHANGED]: event => setQuery(parseFoundationQuery(event.payload)),
+      [MessageType.NO_DEFAULT_ORG]: () =>
+        SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: true })),
+      [MessageType.CONNECTION_CHANGED]: () =>
+        SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: false })).pipe(
           Effect.andThen(
-            tryDriverOperation('subscribe', () =>
+            tryServiceOperation('subscribe', () =>
               messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST })
             )
           )
-        );
-      default:
-        return Effect.void;
-    }
-  };
+        ),
+      [MessageType.UI_ACTIVATED]: () => Effect.void,
+      [MessageType.UI_SOQL_CHANGED]: () => Effect.void,
+      [MessageType.UI_TELEMETRY]: () => Effect.void,
+      [MessageType.SOBJECT_METADATA_REQUEST]: () => Effect.void,
+      [MessageType.SOBJECTS_REQUEST]: () => Effect.void,
+      [MessageType.RUN_SOQL_QUERY]: () => Effect.void,
+      [MessageType.RUN_SOQL_QUERY_DONE]: () => Effect.void,
+      [MessageType.GET_QUERY_PLAN]: () => Effect.void,
+      [MessageType.GET_QUERY_PLAN_DONE]: () => Effect.void,
+      [MessageType.SET_DEFAULT_ORG]: () => Effect.void
+    })
+  );
 
   yield* Stream.fromQueue(messages).pipe(
     Stream.runForEach(event => reportMessageError(handleMessage(event))),
@@ -174,11 +200,11 @@ const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
   );
 
   yield* SubscriptionRef.update(state, current => ({ ...current, isObjectsLoading: true }));
-  yield* tryDriverOperation('initialize', () =>
+  yield* tryServiceOperation('initialize', () =>
     messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST })
   );
 
-  const dispatch: SoqlBuilderDriverService['dispatch'] = (action: SoqlBuilderAction) =>
+  const dispatch: SoqlBuilderServiceShape['dispatch'] = (action: SoqlBuilderAction) =>
     Effect.gen(function* () {
       const current = yield* SubscriptionRef.get(state);
       const query =
@@ -202,7 +228,7 @@ const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
       };
 
       yield* SubscriptionRef.set(state, nextState);
-      yield* tryDriverOperation('dispatch', () => {
+      yield* tryServiceOperation('dispatch', () => {
         if (action._tag === 'ObjectSelected') {
           messageService.sendMessage({
             payload: action.objectName,
@@ -217,7 +243,7 @@ const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
       yield* saveViewState(messageService, nextState);
     });
 
-  return SoqlBuilderDriver.of({
+  return SoqlBuilderService.of({
     dispatch,
     initialState: SubscriptionRef.get(state),
     stateChanges: Stream.merge(
@@ -227,4 +253,4 @@ const makeVscodeSoqlBuilderDriver = Effect.gen(function* () {
   });
 });
 
-export const VscodeSoqlBuilderDriverLive = Layer.scoped(SoqlBuilderDriver, makeVscodeSoqlBuilderDriver);
+export const VscodeSoqlBuilderServiceLive = Layer.scoped(SoqlBuilderService, makeVscodeSoqlBuilderService);

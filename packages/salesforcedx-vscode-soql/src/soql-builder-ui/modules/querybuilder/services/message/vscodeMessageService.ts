@@ -7,22 +7,16 @@
 
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import { getVscode } from '../globals';
 import { MessageService, IMessageService } from './iMessageService';
-import { SoqlEditorEvent, MessageType } from './soqlEditorEvent';
+import { MessageType, SoqlEditorEventSchema, type SoqlEditorEvent } from './soqlEditorEvent';
 
 export type VscodeMessageService = IMessageService & {
   readonly dispose: () => void;
 };
 
-const messageTypes: ReadonlySet<string> = new Set(Object.values(MessageType));
-
-const isSoqlEditorEvent = (input: unknown): input is SoqlEditorEvent =>
-  typeof input === 'object' &&
-  input !== null &&
-  'type' in input &&
-  typeof input.type === 'string' &&
-  messageTypes.has(input.type);
+const isSoqlEditorEvent = Schema.is(SoqlEditorEventSchema);
 
 export const makeVscodeMessageService = (): VscodeMessageService => {
   const vscode = getVscode();

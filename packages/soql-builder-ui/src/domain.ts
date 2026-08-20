@@ -9,15 +9,13 @@ import * as Effect from 'effect/Effect';
 import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 
-export const SoqlObjectMetadataSchema = Schema.Struct({
+const SoqlObjectMetadataSchema = Schema.Struct({
   name: Schema.NonEmptyTrimmedString,
   label: Schema.NonEmptyTrimmedString,
   queryable: Schema.Boolean
 });
 
-export type SoqlObjectMetadata = typeof SoqlObjectMetadataSchema.Type;
-
-export const SoqlFieldMetadataSchema = Schema.Struct({
+const SoqlFieldMetadataSchema = Schema.Struct({
   name: Schema.NonEmptyTrimmedString,
   label: Schema.NonEmptyTrimmedString,
   type: Schema.NonEmptyTrimmedString,
@@ -26,33 +24,23 @@ export const SoqlFieldMetadataSchema = Schema.Struct({
   sortable: Schema.Boolean
 });
 
-export type SoqlFieldMetadata = typeof SoqlFieldMetadataSchema.Type;
-
-export const SoqlBuilderMetadataSchema = Schema.Struct({
+const SoqlBuilderMetadataSchema = Schema.Struct({
   objects: Schema.Array(SoqlObjectMetadataSchema),
   fields: Schema.Array(SoqlFieldMetadataSchema)
 });
 
-export type SoqlBuilderMetadata = typeof SoqlBuilderMetadataSchema.Type;
-
-export const SoqlBuilderQuerySchema = Schema.Struct({
-  fields: Schema.Array(Schema.NonEmptyTrimmedString),
-  originalSoqlStatement: Schema.String,
-  sObject: Schema.String
-});
-
-export type SoqlBuilderQuery = typeof SoqlBuilderQuerySchema.Type;
-
-export const SoqlBuilderStateSchema = Schema.Struct({
-  metadata: SoqlBuilderMetadataSchema,
-  errorMessage: Schema.optional(Schema.String),
-  hasNoDefaultOrg: Schema.Boolean,
-  isFieldsLoading: Schema.Boolean,
-  isObjectsLoading: Schema.Boolean,
-  query: SoqlBuilderQuerySchema
-});
-
-export type SoqlBuilderState = typeof SoqlBuilderStateSchema.Type;
+export type SoqlBuilderState = {
+  readonly metadata: typeof SoqlBuilderMetadataSchema.Type;
+  readonly errorMessage?: string;
+  readonly hasNoDefaultOrg: boolean;
+  readonly isFieldsLoading: boolean;
+  readonly isObjectsLoading: boolean;
+  readonly query: {
+    readonly fields: readonly string[];
+    readonly originalSoqlStatement: string;
+    readonly sObject: string;
+  };
+};
 
 export const SoqlBuilderActionSchema = Schema.Union(
   Schema.TaggedStruct('ObjectSelected', {
@@ -78,7 +66,7 @@ export class InvalidSoqlBuilderMetadataError extends Schema.TaggedError<InvalidS
   }
 }
 
-export class SoqlBuilderDriverError extends Schema.TaggedError<SoqlBuilderDriverError>()('SoqlBuilderDriverError', {
+export class SoqlBuilderServiceError extends Schema.TaggedError<SoqlBuilderServiceError>()('SoqlBuilderServiceError', {
   operation: Schema.Literal('initialize', 'subscribe', 'dispatch'),
   details: Schema.String
 }) {

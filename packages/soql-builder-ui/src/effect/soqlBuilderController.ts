@@ -5,41 +5,41 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SoqlBuilderAction, SoqlBuilderDriverError, SoqlBuilderState } from '../domain.js';
+import type { SoqlBuilderAction, SoqlBuilderServiceError, SoqlBuilderState } from '../domain.js';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { SoqlBuilderDriver } from './soqlBuilderDriver.js';
+import { SoqlBuilderService } from './soqlBuilderService.js';
 
 export type SoqlBuilderController = {
   readonly states: Stream.Stream<SoqlBuilderState>;
-  readonly dispatch: (action: SoqlBuilderAction) => Effect.Effect<void, SoqlBuilderDriverError>;
+  readonly dispatch: (action: SoqlBuilderAction) => Effect.Effect<void, SoqlBuilderServiceError>;
 };
 
 export const SoqlBuilderController = Context.GenericTag<SoqlBuilderController>(
   '@salesforce/soql-builder-ui/controller'
 );
 
-const stateWithDriverError = (state: SoqlBuilderState, error: SoqlBuilderDriverError): SoqlBuilderState => ({
+const stateWithServiceError = (state: SoqlBuilderState, error: SoqlBuilderServiceError): SoqlBuilderState => ({
   ...state,
   errorMessage: error.message
 });
 
 const makeSoqlBuilderController = Effect.gen(function* () {
-  const driver = yield* SoqlBuilderDriver;
-  const initialState = yield* driver.initialState;
+  const service = yield* SoqlBuilderService;
+  const initialState = yield* service.initialState;
   const state = yield* SubscriptionRef.make(initialState);
 
-  yield* driver.stateChanges.pipe(
+  yield* service.stateChanges.pipe(
     Stream.runForEach(nextState => SubscriptionRef.set(state, nextState)),
-    Effect.catchAll(error => SubscriptionRef.update(state, current => stateWithDriverError(current, error))),
+    Effect.catchAll(error => SubscriptionRef.update(state, current => stateWithServiceError(current, error))),
     Effect.forkScoped
   );
 
   return SoqlBuilderController.of({
-    dispatch: driver.dispatch,
+    dispatch: service.dispatch,
     states: state.changes
   });
 });

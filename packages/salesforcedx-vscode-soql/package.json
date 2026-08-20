@@ -169,7 +169,7 @@
       ]
     },
     "build:soql-builder-lit": {
-      "command": "rollup -c src/soql-builder-ui/rollup.lit.config.mjs",
+      "command": "node src/soql-builder-ui/esbuild.lit.config.mjs",
       "dependencies": [
         "compile:lit-ui",
         "../soql-builder-ui:compile"
@@ -179,7 +179,8 @@
         "src/soql-builder-ui/modules/querybuilder/messages/i18n.ts",
         "src/soql-builder-ui/modules/querybuilder/services/globals.ts",
         "src/soql-builder-ui/modules/querybuilder/services/message/**",
-        "src/soql-builder-ui/rollup.lit.config.mjs",
+        "src/soql-builder-ui/esbuild.lit.config.mjs",
+        "../../scripts/bundling/web.mjs",
         "../soql-builder-ui/out/**",
         "package.json"
       ],

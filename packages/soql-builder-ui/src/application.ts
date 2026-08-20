@@ -5,18 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SoqlBuilderDriver } from './effect/soqlBuilderDriver.js';
+import type { SoqlBuilderService } from './effect/soqlBuilderService.js';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Queue from 'effect/Queue';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import {
   SOQL_BUILDER_ACTION_EVENT,
+  SoqlBuilderActionSchema,
   createInitialSoqlBuilderState,
   type SoqlBuilderAction,
-  type SoqlBuilderDriverError,
+  type SoqlBuilderServiceError,
   type SoqlBuilderState
 } from './domain.js';
 import { SoqlBuilderController, SoqlBuilderControllerLive } from './effect/soqlBuilderController.js';
@@ -27,23 +29,23 @@ export type SoqlBuilderView = {
   readonly removeEventListener: (type: string, listener: EventListener) => void;
 };
 
-type SoqlBuilderActionEvent = Event & {
-  readonly detail: SoqlBuilderAction;
-};
+const SoqlBuilderActionEventSchema = Schema.Struct({
+  type: Schema.Literal(SOQL_BUILDER_ACTION_EVENT),
+  detail: SoqlBuilderActionSchema
+});
 
-const isSoqlBuilderActionEvent = (event: Event): event is SoqlBuilderActionEvent =>
-  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event;
+const isSoqlBuilderActionEvent = Schema.is(SoqlBuilderActionEventSchema);
 
 export class SoqlBuilderApplication {
-  private connection: Fiber.RuntimeFiber<void, SoqlBuilderDriverError> | undefined;
+  private connection: Fiber.RuntimeFiber<void, SoqlBuilderServiceError> | undefined;
   private disposed = false;
-  private readonly runtime: ManagedRuntime.ManagedRuntime<SoqlBuilderController, SoqlBuilderDriverError>;
+  private readonly runtime: ManagedRuntime.ManagedRuntime<SoqlBuilderController, SoqlBuilderServiceError>;
 
   constructor(
     private readonly view: SoqlBuilderView,
-    driverLayer: Layer.Layer<SoqlBuilderDriver, SoqlBuilderDriverError>
+    serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
   ) {
-    this.runtime = ManagedRuntime.make(SoqlBuilderControllerLive.pipe(Layer.provide(driverLayer)));
+    this.runtime = ManagedRuntime.make(SoqlBuilderControllerLive.pipe(Layer.provide(serviceLayer)));
   }
 
   public readonly connect = (): void => {
@@ -79,7 +81,7 @@ export class SoqlBuilderApplication {
         );
       }).pipe(
         Effect.scoped,
-        Effect.catchAll(error =>
+        Effect.catchTag('SoqlBuilderServiceError', error =>
           Effect.sync(() => {
             this.view.viewState = {
               ...createInitialSoqlBuilderState(),

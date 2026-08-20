@@ -8,9 +8,9 @@ import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import { createInitialSoqlBuilderState } from '../out/src/domain.js';
 import { SoqlBuilderController, SoqlBuilderControllerLive } from '../out/src/effect/soqlBuilderController.js';
-import { makeFakeSoqlBuilderDriver } from '../out/src/testing/fakeSoqlBuilderDriver.js';
+import { makeFakeSoqlBuilderService } from '../out/src/testing/fakeSoqlBuilderService.js';
 
-test('the scoped controller streams driver state and records actions deterministically', async () => {
+test('the scoped controller streams service state and records actions deterministically', async () => {
   const initialState = createInitialSoqlBuilderState();
   const nextState = {
     ...initialState,
@@ -22,7 +22,7 @@ test('the scoped controller streams driver state and records actions determinist
 
   const result = await Effect.runPromise(
     Effect.gen(function* () {
-      const fake = yield* makeFakeSoqlBuilderDriver(initialState);
+      const fake = yield* makeFakeSoqlBuilderService(initialState);
       const controllerLayer = SoqlBuilderControllerLive.pipe(Layer.provide(fake.layer));
 
       return yield* Effect.gen(function* () {

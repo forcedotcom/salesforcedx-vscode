@@ -5,15 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '@salesforce/ts-types';
-import type { Field } from 'jsforce/lib/types/common';
-
-type SObjectField = Pick<Field, 'name' | 'type' | 'nillable' | 'picklistValues'> &
-  Partial<Pick<Field, 'filterable' | 'groupable' | 'label' | 'sortable'>>;
-
-export type SObjectMetadata = {
-  fields: SObjectField[];
-};
+import * as Schema from 'effect/Schema';
 
 export const MessageType = {
   UI_ACTIVATED: 'ui_activated',
@@ -35,19 +27,44 @@ export const MessageType = {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
-export type SoqlEditorEvent =
-  | { type: 'ui_activated' }
-  | { type: 'ui_soql_changed'; payload: string }
-  | { type: 'ui_telemetry'; payload: JsonMap }
-  | { type: 'sobject_metadata_request'; payload: string }
-  | { type: 'sobject_metadata_response'; payload: SObjectMetadata }
-  | { type: 'sobjects_request' }
-  | { type: 'sobjects_response'; payload: string[] }
-  | { type: 'text_soql_changed'; payload: string }
-  | { type: 'run_query' }
-  | { type: 'connection_changed' }
-  | { type: 'run_query_done' }
-  | { type: 'no_default_org' }
-  | { type: 'get_query_plan' }
-  | { type: 'get_query_plan_done' }
-  | { type: 'set_default_org' };
+const SObjectFieldSchema = Schema.Struct({
+  name: Schema.String,
+  type: Schema.String,
+  nillable: Schema.Boolean,
+  picklistValues: Schema.optional(Schema.NullOr(Schema.Array(Schema.Unknown))),
+  filterable: Schema.optional(Schema.Boolean),
+  groupable: Schema.optional(Schema.Boolean),
+  label: Schema.optional(Schema.String),
+  sortable: Schema.optional(Schema.Boolean)
+});
+
+const SObjectMetadataSchema = Schema.Struct({
+  fields: Schema.Array(SObjectFieldSchema)
+});
+
+export type SObjectMetadata = typeof SObjectMetadataSchema.Type;
+
+const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
+
+export const SoqlEditorEventSchema = Schema.Union(
+  eventWithoutPayload(MessageType.UI_ACTIVATED),
+  eventWithoutPayload(MessageType.SOBJECTS_REQUEST),
+  eventWithoutPayload(MessageType.RUN_SOQL_QUERY),
+  eventWithoutPayload(MessageType.CONNECTION_CHANGED),
+  eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE),
+  eventWithoutPayload(MessageType.NO_DEFAULT_ORG),
+  eventWithoutPayload(MessageType.GET_QUERY_PLAN),
+  eventWithoutPayload(MessageType.GET_QUERY_PLAN_DONE),
+  eventWithoutPayload(MessageType.SET_DEFAULT_ORG),
+  Schema.Struct({ type: Schema.Literal(MessageType.UI_SOQL_CHANGED), payload: Schema.String }),
+  Schema.Struct({
+    type: Schema.Literal(MessageType.UI_TELEMETRY),
+    payload: Schema.Record({ key: Schema.String, value: Schema.Unknown })
+  }),
+  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST), payload: Schema.String }),
+  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE), payload: SObjectMetadataSchema }),
+  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECTS_RESPONSE), payload: Schema.Array(Schema.String) }),
+  Schema.Struct({ type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED), payload: Schema.String })
+);
+
+export type SoqlEditorEvent = typeof SoqlEditorEventSchema.Type;

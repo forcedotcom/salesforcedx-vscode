@@ -3,7 +3,7 @@ import test from 'node:test';
 import * as Effect from 'effect/Effect';
 import { SoqlBuilderApplication } from '../out/src/application.js';
 import { SOQL_BUILDER_ACTION_EVENT, createInitialSoqlBuilderState } from '../out/src/domain.js';
-import { makeFakeSoqlBuilderDriver } from '../out/src/testing/fakeSoqlBuilderDriver.js';
+import { makeFakeSoqlBuilderService } from '../out/src/testing/fakeSoqlBuilderService.js';
 
 const waitForEffectWork = () => new Promise(resolve => setImmediate(resolve));
 
@@ -17,7 +17,7 @@ test('one application lifecycle owns subscriptions, actions, finalizers, and run
       if (listeners.get(type) === listener) listeners.delete(type);
     }
   };
-  const fake = Effect.runSync(makeFakeSoqlBuilderDriver(initialState));
+  const fake = Effect.runSync(makeFakeSoqlBuilderService(initialState));
   const application = new SoqlBuilderApplication(view, fake.layer);
 
   application.connect();

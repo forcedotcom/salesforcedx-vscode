@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SoqlBuilderApplication } from '@salesforce/soql-builder-ui/application';
 import {
   SoqlBuilderApp,
-  SoqlBuilderApplication,
-  defaultSoqlBuilderLabels,
-  registerSoqlBuilderElements
-} from '@salesforce/soql-builder-ui';
+  defaultSoqlBuilderLabels
+} from '@salesforce/soql-builder-ui/components/soqlBuilderApp';
+import { registerSoqlBuilderElements } from '@salesforce/soql-builder-ui/register';
 import * as Layer from 'effect/Layer';
 import { messages } from '../modules/querybuilder/messages/i18n';
 import { VscodeMessageServiceLive } from '../modules/querybuilder/services/message/vscodeMessageService';
-import { VscodeSoqlBuilderDriverLive } from './vscodeSoqlBuilderDriver';
+import { VscodeSoqlBuilderServiceLive } from './vscodeSoqlBuilderService';
 
 registerSoqlBuilderElements();
 
-const driverLayer = VscodeSoqlBuilderDriverLive.pipe(Layer.provide(VscodeMessageServiceLive));
+const serviceLayer = VscodeSoqlBuilderServiceLive.pipe(Layer.provide(VscodeMessageServiceLive));
 
 const main = document.querySelector('#main') ?? document.body.appendChild(document.createElement('main'));
 const app = new SoqlBuilderApp();
@@ -29,5 +29,5 @@ app.labels = {
   noDefaultOrg: messages.label_no_default_org,
   query: messages.label_soql_query
 };
-app.lifecycle = new SoqlBuilderApplication(app, driverLayer);
+app.lifecycle = new SoqlBuilderApplication(app, serviceLayer);
 main.append(app);

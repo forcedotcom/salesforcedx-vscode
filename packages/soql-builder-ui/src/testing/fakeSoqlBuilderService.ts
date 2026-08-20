@@ -12,23 +12,26 @@ import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { SoqlBuilderDriver, type SoqlBuilderDriver as SoqlBuilderDriverService } from '../effect/soqlBuilderDriver.js';
+import {
+  SoqlBuilderService,
+  type SoqlBuilderService as SoqlBuilderServiceShape
+} from '../effect/soqlBuilderService.js';
 
-export type FakeSoqlBuilderDriver = {
-  readonly layer: Layer.Layer<SoqlBuilderDriver>;
+type FakeSoqlBuilderService = {
+  readonly layer: Layer.Layer<SoqlBuilderService>;
   readonly emit: (state: SoqlBuilderState) => Effect.Effect<void>;
   readonly isFinalized: Effect.Effect<boolean>;
   readonly nextAction: Effect.Effect<SoqlBuilderAction>;
   readonly recordedActions: Effect.Effect<readonly SoqlBuilderAction[]>;
 };
 
-export const makeFakeSoqlBuilderDriver = (initialState: SoqlBuilderState) =>
+export const makeFakeSoqlBuilderService = (initialState: SoqlBuilderState) =>
   Effect.gen(function* () {
     const state = yield* SubscriptionRef.make(initialState);
     const actions = yield* Ref.make<readonly SoqlBuilderAction[]>([]);
     const actionQueue = yield* Queue.unbounded<SoqlBuilderAction>();
     const finalized = yield* Ref.make(false);
-    const service: SoqlBuilderDriverService = {
+    const service: SoqlBuilderServiceShape = {
       dispatch: action =>
         Ref.update(actions, current => [...current, action]).pipe(Effect.andThen(Queue.offer(actionQueue, action))),
       initialState: SubscriptionRef.get(state),
@@ -39,12 +42,12 @@ export const makeFakeSoqlBuilderDriver = (initialState: SoqlBuilderState) =>
       emit: nextState => SubscriptionRef.set(state, nextState),
       isFinalized: Ref.get(finalized),
       layer: Layer.scoped(
-        SoqlBuilderDriver,
+        SoqlBuilderService,
         Effect.acquireRelease(Effect.succeed(service), () =>
           Ref.set(finalized, true).pipe(Effect.andThen(Queue.shutdown(actionQueue)))
         )
       ),
       nextAction: Queue.take(actionQueue),
       recordedActions: Ref.get(actions)
-    } satisfies FakeSoqlBuilderDriver;
+    } satisfies FakeSoqlBuilderService;
   });
