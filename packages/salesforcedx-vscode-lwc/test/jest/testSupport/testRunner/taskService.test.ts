@@ -24,6 +24,18 @@ describe('TaskService', () => {
         clear: true,
         showReuseMessage: false
       });
+
+      const matchingExecution = { task: internalTask } as vscode.TaskExecution;
+      const otherExecution = {
+        task: new vscode.Task(
+          { type: 'sfLwcTest', sfTaskId: 'other-task-id' },
+          vscode.TaskScope.Workspace,
+          'Other Task',
+          'SFDX'
+        )
+      } as vscode.TaskExecution;
+      expect(task.matchesExecution(matchingExecution)).toBe(true);
+      expect(task.matchesExecution(otherExecution)).toBe(false);
     });
   });
 });

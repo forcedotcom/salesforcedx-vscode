@@ -24,7 +24,7 @@ import {
   TestResultStatus,
   isTestCaseInfo
 } from '../types';
-import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
+import { LWC_TEST_RUN_LOG_NAME, matchJestStackTraceLocation } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace, workspaceService } from '../workspace';
@@ -474,7 +474,14 @@ class LwcTestController {
         for (const target of targets) {
           this.markRunning(run, target.item);
         }
-        await this.executeOne(run, dirInfo, undefined, isDebug, token);
+        await this.executeOne(
+          run,
+          dirInfo,
+          undefined,
+          isDebug,
+          token,
+          targets.map(target => target.item)
+        );
         return;
       }
 
@@ -506,12 +513,20 @@ class LwcTestController {
     item.children.forEach(child => this.markRunning(run, child));
   };
 
+  private markDescendantsSkipped = (run: vscode.TestRun, item: vscode.TestItem): void => {
+    item.children.forEach(child => {
+      run.skipped(child);
+      this.markDescendantsSkipped(run, child);
+    });
+  };
+
   private executeOne = async (
     run: vscode.TestRun,
     exec: TestExecutionInfo,
     sourceItem: vscode.TestItem | undefined,
     isDebug: boolean,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
+    runAllItems: readonly vscode.TestItem[] = []
   ): Promise<void> => {
     const testRunner = new TestRunner(exec, isDebug ? 'debug' : 'run');
     try {
@@ -524,6 +539,11 @@ class LwcTestController {
       }
 
       const { command, args, workspaceFolder, testResultFsPath } = shellInfo;
+
+      // Track task failure independently of whether this run has a selected source item.
+      // This also prevents partial results from overwriting a crash-extracted error.
+      let taskCrashed = false;
+      let exitCode: number | undefined;
 
       if (isDebug) {
         await vscode.debug.startDebugging(workspaceFolder, {
@@ -542,9 +562,8 @@ class LwcTestController {
         });
         await waitForResultFile(testResultFsPath, token);
       } else {
-        // Results surface in the Test Results tab. The Task API always allocates a terminal for a
-        // ShellExecution; createTask's default presentation (reveal:Never, shared panel) keeps it
-        // hidden and reused across runs rather than spawning a new terminal each run.
+        // Results surface in the Test Results tab. CustomExecution wraps a pseudoterminal
+        // that captures output for error reporting. Default presentation keeps terminal hidden.
         const sfTask = taskService.createTask(
           globalThis.crypto.randomUUID(),
           nls.localize('run_test_task_name'),
@@ -552,10 +571,76 @@ class LwcTestController {
           command,
           args
         );
-        const ended = awaitTaskEnd(sfTask, token);
-        await sfTask.execute();
-        await ended;
+        // Subscribe before starting the task so a fast task cannot finish before its completion listeners exist.
+        const taskEndPromise = awaitTaskEnd(sfTask, token);
+        void sfTask.execute();
+        const taskEnd = await taskEndPromise;
+        exitCode = taskEnd.exitCode;
+
+        // Capture error details if Jest crashed, but don't return early.
+        // Jest may write partial results even with exitCode > 0 (e.g., syntax error in one file
+        // of a multi-file run). We'll attempt to read results and show both captured error and
+        // any partial test results Jest produced.
+        if (exitCode === undefined || exitCode > 0) {
+          taskCrashed = true;
+          let errorMessage = `Jest test suite failed to run (exit code ${exitCode})`;
+          let errorDetail = 'The test suite crashed before producing results.';
+
+          // Prefer the captured Jest error over the generic crash message when task output is available.
+          if (sfTask.pseudoterminal) {
+            const capturedError = sfTask.pseudoterminal.extractErrorSummary();
+            if (capturedError) {
+              errorMessage = 'Jest test suite failed to run';
+              // Strip ANSI escape codes from crash-path error message
+              errorDetail = capturedError.replaceAll(/\x1b\[[0-9;]*m/g, '');
+            }
+          }
+
+          const createCrashMessage = (): vscode.TestMessage => {
+            const message = new vscode.TestMessage(errorDetail);
+            message.actualOutput = errorMessage;
+
+            // Extract error location from stack trace for editor highlighting
+            const location = matchJestStackTraceLocation(errorDetail);
+            if (location) {
+              const errorUri = URI.file(normalizeJestFsPath(location.file));
+              const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
+              message.location = new vscode.Location(errorUri, position);
+            }
+
+            return message;
+          };
+
+          // If this execution targets a specific test item, attach the error to it. For an implicit run-all,
+          // give every item that was marked running a terminal state; partial Jest results can still replace
+          // these provisional crash states below.
+          if (sourceItem) {
+            run.errored(sourceItem, createCrashMessage());
+            this.markDescendantsSkipped(run, sourceItem);
+          } else {
+            runAllItems.forEach(item => {
+              run.errored(item, createCrashMessage());
+              this.markDescendantsSkipped(run, item);
+            });
+          }
+
+          appendLine(run, errorMessage);
+          appendLine(run, '');
+          // Split multi-line error detail into individual lines for proper formatting
+          const errorLines = errorDetail.split('\n');
+          errorLines.forEach(line => appendLine(run, line));
+        }
       }
+
+      if (token.isCancellationRequested) {
+        return;
+      }
+
+      // Jest may not have flushed the output file to disk immediately when the task completes.
+      // Poll for the file's existence with a short timeout before attempting to read.
+      // If we captured a crash error and the exit code suggests no results file will exist,
+      // use a shorter timeout to avoid hanging for 5 minutes.
+      await waitForResultFile(testResultFsPath, token, taskCrashed);
 
       if (token.isCancellationRequested) {
         return;
@@ -563,10 +648,13 @@ class LwcTestController {
 
       const results = await readJestResults(testResultFsPath);
       if (results) {
-        this.applyResults(run, results);
+        // Don't let applyResults overwrite crash-extracted errors.
+        // Pass the crash state so it can skip items already marked as errored.
+        this.applyResults(run, results, taskCrashed ? sourceItem : undefined);
         appendTestResultsOutput(run, results, this.testItemLookup);
-      } else if (sourceItem) {
-        run.errored(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
+      } else if (sourceItem && !taskCrashed) {
+        // Only show generic "no results" error if we didn't already capture a specific crash error
+        run.failed(sourceItem, new vscode.TestMessage(nls.localize('no_test_results_produced_message')));
         appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
@@ -589,23 +677,94 @@ class LwcTestController {
       )
   };
 
-  /** Walk the Jest JSON output and attribute results to matching TestItems. */
-  private applyResults = (run: vscode.TestRun, results: LwcJestTestResults): void => {
+  /**
+   * Check if candidate is an ancestor of item or is item itself.
+   *
+   * Walks up the entire parent chain from item to the root, checking at each level whether
+   * candidate appears anywhere in that ancestry. This supports deeply nested test structures
+   * where test cases may be wrapped in multiple describe blocks.
+   *
+   * @param candidate The potential ancestor or self item to check for
+   * @param item The starting test item whose ancestry chain will be walked
+   * @returns true if candidate is found anywhere in item's parent chain (or is item itself), false otherwise
+   *
+   * @example
+   * // Given a nested structure: fileItem -> describeItem -> testCaseItem
+   * isAncestorOrSelf(fileItem, testCaseItem) // returns true
+   * isAncestorOrSelf(describeItem, testCaseItem) // returns true
+   * isAncestorOrSelf(testCaseItem, testCaseItem) // returns true
+   * isAncestorOrSelf(unrelatedItem, testCaseItem) // returns false
+   */
+  private isAncestorOrSelf = (candidate: vscode.TestItem | undefined, item: vscode.TestItem): boolean => {
+    if (!candidate) {
+      return false;
+    }
+    let current: vscode.TestItem | undefined = item;
+    while (current) {
+      if (current === candidate) {
+        return true;
+      }
+      current = current.parent;
+    }
+    return false;
+  };
+
+  /**
+   * Walk the Jest JSON output and attribute results to matching TestItems.
+   *
+   * This method processes Jest test results and updates the VS Code Test Explorer with pass/fail/skip states.
+   * It includes logic to prevent overwriting crash-extracted errors that were already marked as errored
+   * when Jest crashed before producing complete results.
+   *
+   * @param run The test run to apply results to
+   * @param results Jest JSON results to process
+   * @param skipItem If provided, skip marking this item and its entire ancestor chain (already marked with crash error).
+   *
+   * The skipItem parameter supports deeply nested test structures by using `isAncestorOrSelf` to walk up the
+   * entire parent chain. When a test case deep in the hierarchy has already been marked with a crash-extracted
+   * error (from pseudoterminal output), this prevents the generic Jest results file from overwriting that
+   * detailed error information. The check works for:
+   * - Direct file items (skipItem is the file itself)
+   * - Shallow descendants (skipItem is an immediate child of the file)
+   * - Deeply nested descendants (skipItem is several levels down through multiple describe blocks)
+   *
+   * @example
+   * // When Jest crashes and produces partial results:
+   * // 1. executeOne marks the file with crash-extracted error and passes it as skipItem
+   * // 2. applyResults processes the generic Jest results file
+   * // 3. For each file result, isAncestorOrSelf walks up from skipItem checking if fileItem is an ancestor
+   * // 4. If true, the file result is skipped, preserving the detailed crash error
+   */
+  private applyResults = (run: vscode.TestRun, results: LwcJestTestResults, skipItem?: vscode.TestItem): void => {
     for (const fileResult of results.testResults) {
       // Strip /private prefix on macOS so URI matches findFiles (symlink, not realpath), then reconcile any
       // remaining short/long (8.3) path divergence back to the discovery URI that keys the items.
       const testUri = this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(fileResult.name)));
       const fileItem = this.fileItems.get(createFileId(testUri));
 
-      // When assertionResults is empty and there's a runtime error message, mark file and all its children as errored
+      // Skip this file if it already has a crash-extracted error, or if skipItem is a descendant
+      // Walk up the parent chain to check if fileItem is an ancestor of skipItem
+      if (skipItem && this.isAncestorOrSelf(fileItem, skipItem)) {
+        continue;
+      }
+
+      // When assertionResults is empty and there's a runtime error message, mark file and all its children as failed
       if (fileResult.assertionResults.length === 0 && fileResult.message && fileItem) {
         // Strip ANSI escape codes from Jest's error message
         const cleanMessage = fileResult.message.replaceAll(/\x1b\[[0-9;]*m/g, '');
         const errorMessage = new vscode.TestMessage(cleanMessage);
-        run.errored(fileItem, errorMessage);
-        // Mark all child test items as errored since the suite failed to run
+
+        // Extract error location from stack trace in message for red highlight
+        const location = matchJestStackTraceLocation(cleanMessage);
+        if (location && fileItem.uri) {
+          const errorUri = URI.file(normalizeJestFsPath(location.file));
+          const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
+          errorMessage.location = new vscode.Location(errorUri, position);
+        }
+
+        run.failed(fileItem, errorMessage);
         fileItem.children.forEach(child => {
-          run.errored(child, errorMessage);
+          run.failed(child, errorMessage);
         });
         continue;
       }
@@ -620,14 +779,22 @@ class LwcTestController {
         if (status === 'passed') {
           run.passed(caseItem);
         } else if (status === 'failed') {
-          const message = new vscode.TestMessage(
-            assertion.failureMessages?.join('\n') ?? nls.localize('lwc_test_failed_message')
-          );
+          const failureText = assertion.failureMessages?.join('\n') ?? nls.localize('lwc_test_failed_message');
+          const message = new vscode.TestMessage(failureText);
+
           if (caseItem.uri && assertion.location) {
             message.location = new vscode.Location(
               caseItem.uri,
               new vscode.Position(Math.max(0, assertion.location.line - 1), Math.max(0, assertion.location.column - 1))
             );
+          } else {
+            // Extract error location from stack trace in failure message
+            const location = matchJestStackTraceLocation(failureText);
+            if (location) {
+              const errorUri = URI.file(normalizeJestFsPath(location.file));
+              const position = new vscode.Position(Math.max(0, location.line - 1), Math.max(0, location.column - 1));
+              message.location = new vscode.Location(errorUri, position);
+            }
           }
           run.failed(caseItem, message);
         } else {
@@ -648,25 +815,54 @@ class LwcTestController {
   };
 }
 
-const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<void> =>
-  new Promise<void>(resolve => {
+const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<{ exitCode?: number }> =>
+  new Promise<{ exitCode?: number }>(resolve => {
+    let resolved = false;
+    const safeResolve = (result: { exitCode?: number }) => {
+      if (!resolved) {
+        resolved = true;
+        endHandler.dispose();
+        endDisposable.dispose();
+        cancelDisposable.dispose();
+        resolve(result);
+      }
+    };
+
+    const endHandler = vscode.tasks.onDidEndTaskProcess(e => {
+      if (sfTask.matchesExecution(e.execution)) {
+        safeResolve({ exitCode: e.exitCode });
+      }
+    });
     const endDisposable = sfTask.onDidEnd(() => {
-      endDisposable.dispose();
-      cancelDisposable.dispose();
-      resolve();
+      // Fallback if onDidEndTaskProcess doesn't fire quickly
+      setTimeout(() => {
+        safeResolve({ exitCode: undefined });
+      }, 250);
     });
     const cancelDisposable = token.onCancellationRequested(() => {
       sfTask.terminate();
+      safeResolve({ exitCode: undefined });
     });
   });
 
 /**
- * Waits for the jest test-result file to appear on disk, signaling the debug run has finished writing output.
- * Jest debug runs don't emit task end events, so we poll the file system with vscode.workspace.fs.
+ * Waits for the jest test-result file to appear on disk before reading.
+ * Jest may not flush output immediately after task completion, so we poll the file system.
+ * @param filePath Path to the Jest results JSON file
+ * @param token Cancellation token
+ * @param expectNoResults If true, use a shorter timeout (2 seconds vs 5 minutes) and suppress the warning
+ * toast when the file doesn't appear. Used when Jest crashed before producing results
+ * to avoid a 5-minute hang and unhelpful timeout warnings.
  */
-const waitForResultFile = async (filePath: string, token: vscode.CancellationToken): Promise<void> => {
+const waitForResultFile = async (
+  filePath: string,
+  token: vscode.CancellationToken,
+  expectNoResults = false
+): Promise<void> => {
   const uri = URI.file(filePath);
-  for (let attempt = 0; attempt < 600; attempt++) {
+  // On crash-before-results, use shorter timeout to avoid 5-minute hang
+  const maxAttempts = expectNoResults ? 4 : 600; // 2 seconds vs 5 minutes
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     if (token.isCancellationRequested) {
       return;
     }
@@ -677,7 +873,10 @@ const waitForResultFile = async (filePath: string, token: vscode.CancellationTok
       await delay(500);
     }
   }
-  void vscode.window.showWarningMessage(nls.localize('lwc_test_result_file_timeout_message'));
+  // Only show warning if we actually expected results
+  if (!expectNoResults) {
+    void vscode.window.showWarningMessage(nls.localize('lwc_test_result_file_timeout_message'));
+  }
 };
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));

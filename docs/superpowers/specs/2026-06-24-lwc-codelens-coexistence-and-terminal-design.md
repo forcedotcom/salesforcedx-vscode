@@ -32,12 +32,12 @@ Files: `src/testSupport/codeLens/provideLwcTestCodeLens.ts`, `src/testSupport/co
 
 ## Part B — Suppress the redundant run terminal
 
-Files: `src/testSupport/testRunner/taskService.ts`, `src/testSupport/testExplorer/lwcTestController.ts`.
+Files: `src/testSupport/testRunner/taskService.ts`, `src/testSupport/testExplorer/lwcTestController.ts`, `src/testSupport/testRunner/jestPseudoterminal.ts`.
 
 - Keep the `vscode.Task` (writes the JSON result file the controller reads). Hide its terminal.
-- Add an OPTIONAL presentation parameter to `taskService.createTask` (default preserves current behavior, so the WATCH caller is unaffected). The controller run path passes a "hidden terminal" presentation.
-- First attempt: presentation with `reveal: Never` (already), `panel: TaskPanelKind.Dedicated`, `echo: false`, `focus: false`, `showReuseMessage: false`, `clear: true`.
-- Contingency if VS Code still surfaces a visible terminal: use a `CustomExecution` with a no-output pseudoterminal (still task-based, web-safe). Document if used.
+- Use `CustomExecution` with `JestPseudoterminal` to capture Jest stdout/stderr (hidden terminal). Enables error extraction when Jest crashes before JSON output.
+- Presentation: `reveal: Never`, `panel: Shared`, `echo: false`, `focus: false`, `showReuseMessage: false`, `clear: true`.
+- `JestPseudoterminal` exposes `extractErrorSummary()` for Test Explorer error reporting.
 
 ## Testing
 
@@ -82,24 +82,95 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 ## Implementation Notes (Part B)
 
-**Commits:** 379161eda (initial), f33fac77b (refinement)
+**Approach:** `CustomExecution` w/ hidden `JestPseudoterminal` captures Jest output (stdout/stderr) for error extraction on crash-before-JSON.
 
-**Initial approach (379161eda):** Added optional `presentationOverride` parameter to `taskService.createTask` for callers to customize terminal presentation.
+**Key changes:**
 
-**Refined approach (f33fac77b):** Reverted to simpler design using default shared panels.
+1. **New `JestPseudoterminal` class** (`jestPseudoterminal.ts`)
+   - Implements `vscode.Pseudoterminal`; spawns Jest via `node:child_process`
+   - Captures stdout/stderr (100KB limit); exposes `extractErrorSummary()`
+   - Error priority: JS types (TypeError, ReferenceError, etc.) w/ stack → FAIL → last 10 lines
+   - Stack traces: 30 lines; FAIL context: 50 lines
+   - Windows: `cmd.exe /d /c` (bypass GH#2097); non-Windows: `shell: true`
+   - `'close'` event ensures stderr flushed before extraction; prevents truncated crash messages
 
-**Changes made:**
+2. **`taskService.createTask` refactored** (`taskService.ts`)
+   - Wraps `JestPseudoterminal` via `CustomExecution` (not `ShellExecution`)
+   - Presentation: `reveal: Never`; `panel: Shared`; `echo/focus/showReuseMessage: false`; `clear: true`
+   - Passes pseudoterminal to `SfTask` for extraction
 
-1. **`taskService.createTask` defaults** (`taskService.ts`)
-   - Removed `presentationOverride` parameter
-   - Default presentation: `Shared` panel (reused across runs, not spawned per-run), `reveal: Never`, `echo: false`, `focus: false`, `clear: true`, `showReuseMessage: false`
+3. **`SfTask` extended** (`taskService.ts`)
+   - Added `taskExecution?: vscode.TaskExecution` (set post-`execute()`)
+   - Added `pseudoterminal?: JestPseudoterminal` for output access
+   - Enables `onDidEndTaskProcess` correlation
 
-2. **Controller-driven run path** (`lwcTestController.ts`)
-   - In `executeOne` method (non-debug branch), removed custom presentation override
-   - Uses default presentation from `createTask` — terminal hidden yet shared, avoiding redundant terminals spawned per run
-   - Real feedback surface is Test Results tab
+4. **`awaitTaskEnd` enhanced w/ race fix** (`lwcTestController.ts`)
+   - Returns `Promise<{ exitCode?: number }>` (was `Promise<void>`)
+   - Guard `resolved` prevents double resolution
+   - Primary: `onDidEndTaskProcess`; fallback: `onDidEnd` + 250ms timeout
+   - Exit check: `> 0` (skips signals like SIGTERM=143)
 
-3. **Test coverage** (`taskService.test.ts`)
-   - Single test verifies default presentation includes hidden shared panel
+5. **Crash error tracking via `capturedCrashError` flag** (`lwcTestController.ts`)
+   - Set `true` post-`run.errored()` on crash
+   - Flows to `waitForResultFile()` & `applyResults()` for timeout/result coordination
 
-**Behavior:** Controller-driven test runs reuse a single shared terminal (hidden from user) across multiple runs, eliminating redundant terminals. Test output flows to JSON result file, which the controller reads and populates into Test Results tab. Watch mode unaffected.
+6. **Optimized `waitForResultFile` timeout** (`lwcTestController.ts`)
+   - Accepts `expectNoResults` param (default `false`)
+   - Crash + no results: 4 × 500ms = 2s (suppresses warning toast)
+   - Normal: 600 × 500ms = 5m (shows warning toast on timeout)
+   - Avoids hang on crash-before-results; enables quick failure reporting
+   - Warning suppression prevents unhelpful "timeout waiting for results" toasts when Jest crashed before writing results
+
+6a. **New `isAncestorOrSelf` helper** (`lwcTestController.ts`)
+   - Private method that walks entire parent chain from item to root
+   - Enables ancestor detection for deeply nested test structures
+   - Supports file items, immediate children, and descendants multiple levels deep
+   - Used by `applyResults` to validate `skipItem` relationships
+
+7. **`applyResults` safeguard w/ `skipItem` param** (`lwcTestController.ts`)
+   - Optional `skipItem` (defaults `undefined`)
+   - Skips JSON processing for file item when skipItem is an ancestor or the file item itself
+   - Uses new `isAncestorOrSelf` helper (walks entire parent chain to root)
+   - Supports deeply nested test structures (multiple nested describe blocks)
+   - Prevents overwriting crash-extracted errors w/ generic partial-result messages
+   - Pass `sourceItem` on crash; `undefined` on normal flow
+
+8. **Crash error extraction & formatting** (`lwcTestController.ts`)
+   - On `exitCode > 0`/undefined: call `extractErrorSummary()`
+   - Strip ANSI via `replaceAll(/\x1b\[[0-9;]*m/g, '')`
+   - Use `run.errored()` for crashed tests (couldn't execute, not failed assertions)
+   - Build `TestMessage` w/ `actualOutput` (exit code) + `location` from stack
+   - Handle multi-line via split/append
+
+9. **Controller error reporting** (`lwcTestController.ts`)
+   - Normal runs: `applyResults()` w/ `skipItem: undefined`
+   - Assertion failures (no `assertion.location`): extract from `failureMessages`
+   - Crash flow: extract → fail → set flag → short timeout → `applyResults(undefined, sourceItem)` to skip re-mark
+
+10. **New constant/utility** (`constants.ts`)
+    - Private `JEST_STACK_TRACE_PATTERN`: regex for "at Function (/path:line:col)" & bare formats; preserves literal parens
+    - Exported `matchJestStackTraceLocation()`: skip `node_modules`; prefer test files; fallback 1st non-`node_modules` or 1st if all in `node_modules`
+
+11. **Mock support** (`config/__mocks__/vscode.js`, `scripts/setup-jest.ts`)
+    - Added `Location`, `TestMessage`, `Task`, `CustomExecution`, `TaskScope`, `TaskRevealKind`, `TaskPanelKind`
+    - Added `tasks.onDidEndTaskProcess` mock
+
+12. **Test coverage** (`lwcTestController.test.ts`, `jestPseudoterminal.test.ts`)
+    - 373 lines: spawn (Windows vs non-Windows), capture, extraction patterns
+    - Controller tests mock `onDidEndTaskProcess`; verify exit codes
+    - Crash extraction, ANSI stripping, `skipItem` filter validated
+
+13. **Testing docs** (`contributing/tests.md`)
+    - Use VS Code types for mocks; cast w/ `as` to avoid `any`
+
+**Crash error handling flow:**
+1. Task completion, `exitCode > 0` or undefined: extract via `sfTask.pseudoterminal.extractErrorSummary()`
+2. Strip ANSI, mark source `errored` w/ message + location; mark children `skipped()` (never ran)
+3. Set `capturedCrashError = true`
+4. `expectNoResults = true` to `waitForResultFile()` → 2s timeout (avoid 5m hang)
+5. `applyResults(run, results, sourceItem)` → skip re-mark via `skipItem` check
+6. Result: clean error display w/ location, no overwrites
+
+**Event handling:** `'close'` ensures stderr fully flushed before extraction; prevents truncated messages.
+
+**Behavior:** Hidden pseudoterminal captures Jest output. Success: JSON → Test Results tab. Failure (exit > 0): extract error + location in 2s. Terminal hidden, reused. Watch unaffected.

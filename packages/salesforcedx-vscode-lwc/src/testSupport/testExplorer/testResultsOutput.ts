@@ -79,7 +79,11 @@ export const appendTestResultsOutput = (
 
     // When assertionResults is empty but message exists, show the runtime error
     if (fileResult.assertionResults.length === 0 && fileResult.message) {
-      run.appendOutput(toCrlf(`  ${fileResult.message}`), undefined, fileItem);
+      // Split multi-line error messages to ensure proper formatting in xterm
+      const lines = fileResult.message.split('\n');
+      for (const line of lines) {
+        run.appendOutput(toCrlf(`  ${line}`), undefined, fileItem);
+      }
     } else {
       const tree = buildDescribeTree(fileResult.assertionResults);
       renderDescribeNode(run, testUri, tree, 1, fileItem, lookup);
