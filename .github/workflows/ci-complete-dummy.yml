@@ -11,8 +11,7 @@ name: CI Complete
 
 on:
   push:
-    branches:
-      - develop
+  pull_request:
   workflow_dispatch:
 
 jobs:
