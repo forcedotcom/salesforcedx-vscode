@@ -17,6 +17,9 @@ export const EDITOR_WITH_URI = `${EDITOR}[data-uri]`;
 /** Editor with unsaved changes */
 export const DIRTY_EDITOR = `${EDITOR}.dirty`;
 
+/** Editor showing an org metadata catalog document (sf-org-metadata: scheme) */
+export const ORG_METADATA_EDITOR = `${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`;
+
 /** Quick Open/Quick Pick widget (Ctrl+P, F1, etc) */
 export const QUICK_INPUT_WIDGET = '.quick-input-widget';
 

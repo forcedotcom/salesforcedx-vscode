@@ -7,14 +7,15 @@
 
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
   executeCommandWithCommandPalette,
-  prepareNoFolderOpenForPaletteTests,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   isDesktop,
   saveScreenshot,
   verifyCommandExists,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -30,9 +31,11 @@ const PROJECT_NAME = `TestManifestProject${Date.now()}`;
 
     const targetDir = path.dirname(workspaceDir);
 
-    await test.step('close workspace to reach empty state', async () => {
-      await prepareNoFolderOpenForPaletteTests(page);
-      await saveScreenshot(page, 'createProjectWithManifest.01-empty-workspace.png');
+    await test.step('open a non-project workspace', async () => {
+      await waitForVSCodeWorkbench(page);
+      await closeWelcomeTabs(page);
+      await expect(page.getByRole('tree', { name: /Files Explorer/i })).toBeVisible({ timeout: 30_000 });
+      await saveScreenshot(page, 'createProjectWithManifest.01-non-project-workspace.png');
     });
 
     await test.step('verify Create Project with Manifest command available', async () => {

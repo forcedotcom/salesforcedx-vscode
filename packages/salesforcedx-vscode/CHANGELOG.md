@@ -1,45 +1,25 @@
-# 67.10.0 - August 12, 2026
+# 67.12.0 - August 19, 2026
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- We added an option to automatically terminate orphaned Apex Language Server
-  processes without prompting. Enable the new
-  `salesforcedx-vscode-apex.autoTerminateOrphanedProcesses` setting to silently
-  kill orphaned processes on activation, or click **Always Auto-Terminate** in
-  the orphan-detection prompt to enable it with confirmation.
-  ([PR #7643](https://github.com/forcedotcom/salesforcedx-vscode/pull/7643))
-
-#### salesforcedx-vscode-apex-log
-
-- The trace flag user picker now groups results by user type — Standard,
-  Automated Process, Partner, Customer/Portal, Guest, and Other — making it
-  easier to find the right user when setting a trace flag.
-  ([PR #7958](https://github.com/forcedotcom/salesforcedx-vscode/pull/7958))
+- **SFDX: Create Apex Class** and **SFDX: Create Apex Trigger** now support custom templates. The template list for **SFDX: Create Apex Class** is now populated dynamically, **SFDX: Create Apex Trigger** prompts you for the sObject and trigger events up front, and the separate **SFDX: Create Apex Unit Test Class** command has been folded into **SFDX: Create Apex Class**. ([PR #7960](https://github.com/forcedotcom/salesforcedx-vscode/pull/7960))
 
 ## Fixed
 
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where opening a `.cls` file in a non-Salesforce workspace could start the Apex language server and create `.sfdx/tools/*` files. The Apex language server now starts only in Salesforce projects. ([PR #7976](https://github.com/forcedotcom/salesforcedx-vscode/pull/7976), [ISSUE #7886](https://github.com/forcedotcom/salesforcedx-vscode/issues/7886))
+
 #### salesforcedx-vscode-core
 
-- We fixed a bug where `NODE_EXTRA_CA_CERTS`, `SF_LOG_LEVEL`, and
-  `SF_DISABLE_TELEMETRY` were not passed to `sf` CLI commands. Settings changes
-  now take effect on the next command without requiring a VS Code window reload.
-  ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
+- We fixed a bug where `xml.preferences.showSchemaDocumentationType` was rewritten to `none` in your workspace settings on every activation, suppressing hover documentation in all XML files. We now respect an existing value, and added the **salesforcedx-vscode-core.metadata.doNotSuppressRedhatSchemaDocumentation** setting (default `false`) to always leave the preference untouched. ([PR #7983](https://github.com/forcedotcom/salesforcedx-vscode/pull/7983), [ISSUE #7967](https://github.com/forcedotcom/salesforcedx-vscode/issues/7967))
 
-- We updated the `@salesforce/templates` dependency to prevent a vulnerability
-  that could allow malicious template execution.
-  ([PR #7935](https://github.com/forcedotcom/salesforcedx-vscode/pull/7935))
+#### salesforcedx-vscode-org-browser
 
-#### salesforcedx-vscode-org
+- We fixed a bug where the Org Browser's **Retrieve Metadata**, **Org Browser: Refresh Type**, and **Org Browser: Collapse All** commands appeared in the command palette even outside a Salesforce project. ([PR #7987](https://github.com/forcedotcom/salesforcedx-vscode/pull/7987))
 
-- We fixed a bug where a malformed or unsafe `sfdcLoginUrl` in
-  `sfdx-project.json` could be offered as the **Project Default** login URL.
-  Malformed URLs are now rejected and a warning is shown.
-  ([PR #7945](https://github.com/forcedotcom/salesforcedx-vscode/pull/7945))
+## Under the Hood
 
-#### salesforcedx-vscode-services
-
-- We improved output-channel error messages to include the error type, making
-  failures easier to identify.
-  ([PR #7920](https://github.com/forcedotcom/salesforcedx-vscode/pull/7920))
+- We made some under the hood changes. ([PR #7975](https://github.com/forcedotcom/salesforcedx-vscode/pull/7975), [PR #7981](https://github.com/forcedotcom/salesforcedx-vscode/pull/7981))

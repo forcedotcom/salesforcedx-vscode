@@ -20,15 +20,19 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { normalize } from 'node:path';
+import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
+import { releaseSourceTrackingShadowRepo } from './sourceTrackingShadowRepoLifecycle';
 
 export type SourceTrackingOptions = { ignoreConflicts?: boolean };
 export class SourceTrackingError extends Schema.TaggedError<SourceTrackingError>()('SourceTrackingError', {
@@ -51,8 +55,9 @@ export class SourceTrackingConflictError extends Schema.TaggedError<SourceTracki
 const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ cause: unknownToErrorCause(error).cause });
 
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
-type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
-const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
+type SourceTrackingRemoteChange = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
+const isResolvedChangeResult = (c: ChangeResult): c is SourceTrackingRemoteChange =>
+  Schema.is(ResolvedChangeResultSchema)(c);
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
@@ -62,50 +67,70 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ConfigService.Default,
     SettingsService.Default,
     WorkspaceService.Default,
-    MetadataRegistryService.Default
+    MetadataRegistryService.Default,
+    MetadataDescribeService.Default,
+    OrgMetadataCatalogRecorder.Default
   ],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
+    const metadataDescribeService = yield* MetadataDescribeService;
+    const catalogRecorder = yield* OrgMetadataCatalogRecorder;
 
     // Semaphores for concurrency control (1 permit each for sequential access)
     const localSemaphore = yield* Effect.makeSemaphore(1);
     const remoteSemaphore = yield* Effect.makeSemaphore(1);
+    const trackingCreationSemaphore = yield* Effect.makeSemaphore(1);
 
     // Lazy singleton for SourceTracking instance with org ID validation
     const trackingRef = yield* Ref.make<Option.Option<{ tracking: SourceTracking; orgId: string }>>(Option.none());
 
     /** Gets or creates the SourceTracking singleton. Validates cached instance matches current org. Throws SourceTrackingNotEnabledError if tracking is not enabled. */
-    const getOrCreateTracking = Effect.fn('SourceTrackingService.getOrCreateTracking')(function* () {
-      const cached = yield* Ref.get(trackingRef);
-      const ref = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      const currentOrgId = ref.orgId;
+    const getOrCreateTracking = Effect.fn('SourceTrackingService.getOrCreateTracking')(function* (
+      expectedOrgId?: string
+    ) {
+      return yield* trackingCreationSemaphore.withPermits(1)(
+        Effect.gen(function* () {
+          const cached = yield* Ref.get(trackingRef);
+          const ref = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+          const currentOrgId = expectedOrgId ?? ref.orgId;
 
-      // Check if cached instance matches current org
-      if (Option.isSome(cached) && cached.value.orgId === currentOrgId) {
-        return cached.value.tracking;
-      }
+          // Check if cached instance matches current org
+          if (Option.isSome(cached) && cached.value.orgId === currentOrgId) {
+            return cached.value.tracking;
+          }
 
-      // Different org or no cache - create new instance
-      const tracking = yield* getTracking();
-      if (!tracking) {
-        return yield* new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' });
-      }
+          // Source Tracking's local ShadowRepo singleton is keyed only by project
+          // path. Release it before constructing tracking for a different org.
+          const projectPath = normalize((yield* projectService.getSfProject()).getPath());
+          const releasedShadowRepo = yield* Effect.sync(() => releaseSourceTrackingShadowRepo(projectPath));
+          yield* Effect.annotateCurrentSpan({ currentOrgId, releasedShadowRepo });
 
-      // Cache it with current org ID
-      if (currentOrgId) {
-        yield* Ref.set(trackingRef, Option.some({ tracking, orgId: currentOrgId }));
-      }
-      return tracking;
+          // Different org or no cache - create new instance
+          const tracking = yield* getTracking(undefined, expectedOrgId);
+          if (!tracking) {
+            return yield* new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' });
+          }
+
+          // Cache it with current org ID
+          if (currentOrgId) {
+            yield* Ref.set(trackingRef, Option.some({ tracking, orgId: currentOrgId }));
+          }
+          return tracking;
+        })
+      );
     });
 
     /** Creates a SourceTracking instance with optional configuration.  Returns undefined if source tracking is not enabled */
-    const getTracking = Effect.fn('SourceTrackingService.getTracking')(function* (options?: SourceTrackingOptions) {
+    const getTracking = Effect.fn('SourceTrackingService.getTracking')(function* (
+      options?: SourceTrackingOptions,
+      expectedOrgId?: string
+    ) {
       const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
         [
-          connectionService.getConnection(),
+          expectedOrgId ? connectionService.getConnectionForOrg(expectedOrgId) : connectionService.getConnection(),
           projectService.getSfProject(),
           metadataRegistryService.getRegistryAccess(),
           SubscriptionRef.get(yield* getDefaultOrgRef()),
@@ -146,7 +171,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     });
 
     /** Checks if source tracking is enabled without creating an instance */
-    const hasTracking = Effect.fn('SourceTrackingService.hasTracking')(function* () {
+    const hasTracking = Effect.fn('SourceTrackingService.hasTracking')(function* (expectedOrgId?: string) {
+      if (expectedOrgId) yield* connectionService.getConnectionForOrg(expectedOrgId);
       const ref = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       return ref.tracksSource === true;
     });
@@ -238,9 +264,10 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       );
     });
 
-    /** Get status of local and/or remote changes (acquires semaphores based on options) */
-    const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
-      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
+    /** Read status and revision-bearing remote observations from one tracking refresh. */
+    const getStatusWithRemoteChanges = Effect.fn('SourceTrackingService.getStatusWithRemoteChanges')(function* (
+      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true },
+      expectedOrgId?: string
     ) {
       // Take only the permits we need, concurrently
       yield* Effect.all(
@@ -248,7 +275,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         { concurrency: 'unbounded' }
       );
 
-      const tracking = yield* getOrCreateTracking();
+      const tracking = yield* getOrCreateTracking(expectedOrgId);
 
       return yield* Effect.gen(function* () {
         yield* Effect.all(
@@ -256,12 +283,27 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           { concurrency: 'unbounded' }
         );
 
-        const rows = yield* Effect.tryPromise({
+        const status = yield* Effect.tryPromise({
           try: () => tracking.getStatus({ local: options.local === true, remote: options.remote === true }),
           catch: toSourceTrackingError
         }).pipe(Effect.withSpan('STL.GetStatus'));
-        yield* Effect.annotateCurrentSpan({ statusRows: rows.length });
-        return rows;
+        const remoteChanges = yield* options.remote
+          ? Effect.all(
+              [
+                Effect.tryPromise({
+                  try: () => tracking.getChanges({ origin: 'remote', state: 'nondelete', format: 'ChangeResult' }),
+                  catch: toSourceTrackingError
+                }),
+                Effect.tryPromise({
+                  try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+                  catch: toSourceTrackingError
+                })
+              ],
+              { concurrency: 1 }
+            ).pipe(Effect.map(changes => changes.flat().filter(isResolvedChangeResult)))
+          : Effect.succeed<SourceTrackingRemoteChange[]>([]);
+        yield* Effect.annotateCurrentSpan({ remoteChangeRows: remoteChanges.length, statusRows: status.length });
+        return { remoteChanges, status };
       }).pipe(
         Effect.ensuring(
           Effect.all(
@@ -273,6 +315,28 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           )
         )
       );
+    });
+
+    /** Get status of local and/or remote changes (acquires semaphores based on options). */
+    const getStatus = Effect.fn('SourceTrackingService.getStatus')(function* (
+      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true },
+      expectedOrgId?: string
+    ) {
+      const result = yield* getStatusWithRemoteChanges(options, expectedOrgId);
+      if (options.remote) {
+        const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+        const orgId =
+          expectedOrgId ?? activeOrgId ?? (yield* connectionService.getConnection()).getAuthInfoFields().orgId;
+        if (orgId) {
+          const changedReferences = yield* catalogRecorder.recordTrackingStatus(
+            orgId,
+            result.status,
+            result.remoteChanges
+          );
+          yield* metadataDescribeService.invalidateForMetadataChanges(orgId, changedReferences);
+        }
+      }
+      return result.status;
     });
 
     /** Apply remote deletes to local and get non-deletes component set (both tracking files).
@@ -335,8 +399,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     );
 
     /** Get conflicts without UI side effects (both tracking files) */
-    const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* () {
-      const tracking = yield* getOrCreateTracking();
+    const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* (expectedOrgId?: string) {
+      const tracking = yield* getOrCreateTracking(expectedOrgId);
 
       return yield* Effect.gen(function* () {
         yield* rereadBoth(tracking);
@@ -348,8 +412,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     });
 
     /** Check for conflicts and display them in the channel, failing if conflicts are found (both tracking files) */
-    const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* () {
-      const conflicts = yield* getConflicts();
+    const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* (expectedOrgId?: string) {
+      const conflicts = yield* getConflicts(expectedOrgId);
 
       if (!conflicts?.length) {
         return yield* Effect.void;
@@ -376,16 +440,16 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
 
     /** Maybe update tracking from retrieve result (both tracking files). No-op if tracking is not enabled. */
     const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
-      function* (result: RetrieveResult) {
+      function* (result: RetrieveResult, expectedOrgId?: string) {
         yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
 
         // Check if tracking is enabled before attempting to get instance
-        const enabled = yield* hasTracking();
+        const enabled = yield* hasTracking(expectedOrgId);
         if (!enabled) {
           return yield* Effect.void;
         }
 
-        const tracking = yield* getOrCreateTracking();
+        const tracking = yield* getOrCreateTracking(expectedOrgId);
         return yield* Effect.tryPromise({
           try: () => tracking.updateTrackingFromRetrieve(result),
           catch: toSourceTrackingError

@@ -62,7 +62,7 @@ test.describe('Deploy Conflict Detection (Source Tracking)', () => {
     await test.step('6. Trigger deploy - conflict modal appears', async () => {
       await openFileByName(page, `${className}.cls`);
       await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-      await modal.waitForVisible();
+      await modal.waitForVisible('deploy');
       await saveScreenshot(page, 'deploy-conflict-5-modal.png');
     });
 
@@ -81,7 +81,7 @@ test.describe('Deploy Conflict Detection (Source Tracking)', () => {
     await test.step('8. Override conflicts and deploy successfully', async () => {
       await openFileByName(page, `${className}.cls`);
       await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-      await modal.waitForVisible();
+      await modal.waitForVisible('deploy');
       await modal.clickOverride('deploy');
       await saveScreenshot(page, 'deploy-conflict-9-override-clicked.png');
 

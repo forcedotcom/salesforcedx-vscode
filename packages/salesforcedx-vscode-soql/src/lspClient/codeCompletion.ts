@@ -197,9 +197,10 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
   return getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const metadataDescribeService = yield* api.services.MetadataDescribeService;
-      return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(
-        Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
+      const metadataDescribe = yield* api.services.MetadataDescribeService;
+      const transmogrifier = yield* api.services.TransmogrifierService;
+      return yield* metadataDescribe.describeCustomObject(sobjectName).pipe(
+        Effect.flatMap(transmogrifier.toMinimalSObject),
         Effect.orElseSucceed(() => undefined)
       );
     })

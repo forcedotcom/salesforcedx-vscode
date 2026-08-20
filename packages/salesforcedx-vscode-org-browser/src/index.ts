@@ -6,229 +6,26 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as Queue from 'effect/Queue';
-import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { openFilterTextPicker } from './commands/filterMetadata';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
-import { nls } from './messages';
 import {
   buildAllServicesLayer,
   disposeOrgBrowserRuntime,
   getOrgBrowserRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { coalesceTreeRefreshes } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
-import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
-
-/**
- * Parse a single pattern (type or component) and return the pattern + regex flag.
- * Handles /pattern/ regex syntax, returns pattern without delimiters.
- */
-const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
-  if (input.startsWith('/')) {
-    const closeIdx = input.indexOf('/', 1);
-    if (closeIdx !== -1) {
-      return { pattern: input.substring(1, closeIdx), isRegex: true };
-    }
-  }
-  return { pattern: input, isRegex: false };
-};
-
-const parseFilterValue = (
-  value: string
-): {
-  typeFilter: string | undefined;
-  componentFilter: string | undefined;
-  typeIsRegex: boolean;
-  componentIsRegex: boolean;
-} => {
-  if (value.length === 0)
-    return { typeFilter: undefined, componentFilter: undefined, typeIsRegex: false, componentIsRegex: false };
-
-  // Convenience pattern: :component (empty type defaults to *)
-  if (value.startsWith(':')) {
-    const input = value.substring(1);
-    const { pattern, isRegex } = parsePattern(input);
-    return { typeFilter: '*', componentFilter: pattern, typeIsRegex: false, componentIsRegex: isRegex };
-  }
-
-  // Split at first unescaped colon
-  const colonIdx = value.indexOf(':');
-  if (colonIdx === -1) {
-    // Type-only pattern
-    const { pattern, isRegex } = parsePattern(value.trim());
-    return { typeFilter: pattern, componentFilter: undefined, typeIsRegex: isRegex, componentIsRegex: false };
-  }
-
-  // Type:component pattern
-  const typeInput = value.substring(0, colonIdx).trim();
-  const componentInput = value.substring(colonIdx + 1).trim();
-
-  const typeParsed = parsePattern(typeInput);
-  const componentParsed = parsePattern(componentInput);
-
-  // Empty type defaults to * (match all types)
-  const typeFilter = typeParsed.pattern === '' ? '*' : typeParsed.pattern;
-
-  return {
-    typeFilter,
-    componentFilter: componentParsed.pattern,
-    typeIsRegex: typeParsed.isRegex,
-    componentIsRegex: componentParsed.isRegex
-  };
-};
-
-type FilterQuickPickItem = vscode.QuickPickItem;
-
-const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(function* (
-  treeProvider: MetadataTypeTreeProvider,
-  context: vscode.ExtensionContext
-) {
-  const previousTypeFilter = treeProvider.typeFilter;
-  const previousComponentFilter = treeProvider.componentFilter;
-  const previousTypeIsRegex = treeProvider.typeIsRegex;
-  const previousComponentIsRegex = treeProvider.componentIsRegex;
-
-  // Resolve services once for reuse in commit
-  const svcProvider = yield* ExtensionProviderService;
-  const api = yield* svcProvider.getServicesApi;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
-
-  const runtime = yield* Effect.runtime();
-  const run = Runtime.runFork(runtime);
-
-  const queue = yield* Queue.unbounded<string>();
-  const deferred = yield* Deferred.make<void>();
-  const acceptedRef = yield* Ref.make(false);
-
-  const picker = vscode.window.createQuickPick<FilterQuickPickItem>();
-  picker.placeholder = nls.localize('filter_text_placeholder');
-  picker.matchOnDescription = false;
-
-  // Reconstruct filter value with regex delimiters if needed
-  picker.value = previousTypeFilter
-    ? isNotUndefined(previousComponentFilter)
-      ? previousTypeIsRegex
-        ? `/${previousTypeFilter}/:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
-        : `${previousTypeFilter}:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
-      : previousTypeIsRegex
-        ? `/${previousTypeFilter}/`
-        : previousTypeFilter
-    : '';
-  picker.items = []; // Suggestions populated by live filtering as user types
-
-  const commit = (value: string) =>
-    Effect.gen(function* () {
-      yield* Ref.set(acceptedRef, true);
-      const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-
-      // Check if we should prompt for broad component fetch
-      const userApprovedBroadFetch =
-        componentFilter && componentFilter !== '' && typeFilter
-          ? yield* Effect.gen(function* () {
-              const types = yield* metadataDescribeService.describe();
-              const matchedCount = types.filter(t => matchesPattern(t.xmlName, typeFilter, typeIsRegex)).length;
-
-              if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
-                return yield* Effect.promise(async () => {
-                  const result = await vscode.window.showInformationMessage(
-                    nls.localize('filter_fetch_confirmation', matchedCount.toString()),
-                    nls.localize('yes_button'),
-                    nls.localize('no_button')
-                  );
-                  return result === nls.localize('yes_button');
-                });
-              }
-              return false;
-            })
-          : false;
-
-      treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex, userApprovedBroadFetch);
-      yield* Effect.all(
-        [
-          Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', componentFilter)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', typeIsRegex)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', componentIsRegex)),
-          Effect.promise(() =>
-            vscode.commands.executeCommand(
-              'setContext',
-              'sf:orgBrowser.textFilterActive',
-              isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
-            )
-          )
-        ],
-        { concurrency: 'unbounded' }
-      );
-      picker.dispose();
-      yield* Deferred.succeed(deferred, undefined);
-    });
-
-  picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
-  picker.onDidAccept(() => {
-    // Accept whatever the user typed, not just selected items
-    const valueToCommit = picker.value;
-    run(commit(valueToCommit));
-  });
-  picker.onDidHide(() =>
-    run(
-      Effect.gen(function* () {
-        const accepted = yield* Ref.get(acceptedRef);
-        if (!accepted) {
-          treeProvider.setTextFilter(
-            previousTypeFilter,
-            previousComponentFilter,
-            previousTypeIsRegex,
-            previousComponentIsRegex
-          );
-          // Restore context key to match restored filter state
-          yield* Effect.promise(() =>
-            vscode.commands.executeCommand(
-              'setContext',
-              'sf:orgBrowser.textFilterActive',
-              isNotUndefined(previousTypeFilter) || isNotUndefined(previousComponentFilter)
-            )
-          );
-        }
-        picker.dispose();
-        yield* Deferred.succeed(deferred, undefined);
-      })
-    )
-  );
-
-  // Live filtering: update tree as user types
-  yield* Stream.fromQueue(queue).pipe(
-    Stream.debounce(Duration.millis(150)),
-    Stream.runForEach(value =>
-      Effect.gen(function* () {
-        const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-        treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
-        yield* Effect.promise(() =>
-          vscode.commands.executeCommand(
-            'setContext',
-            'sf:orgBrowser.textFilterActive',
-            isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
-          )
-        );
-      })
-    ),
-    Effect.fork
-  );
-
-  picker.show();
-  yield* Deferred.await(deferred);
-});
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -257,6 +54,16 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const treeProvider = new MetadataTypeTreeProvider();
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
+  const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(
+    orgMetadataChanges.pipe(
+      changes => Stream.fromPubSub(changes),
+      coalesceTreeRefreshes,
+      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
+    ),
+    extensionScope
+  );
 
   // --- Filter state: persistence, migration, and initial context keys ---
   // Legacy migration: convert old viewMode to boolean flags
@@ -325,7 +132,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
         Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
       ),
-      registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
+      registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem | undefined) =>
         retrieveEffect(node, treeProvider)
       ),
       registerCommand(`${TREE_VIEW_ID}.showLocal.on`, () =>

@@ -8,7 +8,6 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  activeQuickInputTextField,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -36,9 +35,7 @@ test('Org Browser - text filter: toolbar icon visible and swaps to filled state 
     timeout: 10_000
   });
 
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('ApexClass');
 
   const activeFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
   await expect(activeFilterButton, 'filled filter icon should appear once a filter is committed').toBeVisible({
@@ -50,17 +47,12 @@ test('Org Browser - text filter: exact type name filters tree on commit', async 
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('ApexClass');
 
   const narrowedItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(narrowedItems).toHaveCount(1, { timeout: 10_000 });
+  await orgBrowserPage.waitForRootTypeCount(1);
   await expect(narrowedItems.first()).toHaveAccessibleName(/^ApexClass/);
   expect(beforeCount).toBeGreaterThan(1);
 });
@@ -69,35 +61,28 @@ test('Org Browser - text filter: Type:component filters expanded children', asyn
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('CustomObject:');
 
-  await orgBrowserPage.expandFolder('ApexClass');
+  await orgBrowserPage.expandFolder('CustomObject');
   const componentsBeforeLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
   await expect(componentsBeforeLocator.first()).toBeVisible({ timeout: 10_000 });
   const componentsBefore = await componentsBeforeLocator.count();
   expect(componentsBefore).toBeGreaterThan(0);
 
-  const secondFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
-  await secondFilterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:Broker');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('CustomObject:Broker__c');
 
   const componentsAfter = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
   await expect(componentsAfter.first()).toBeVisible({ timeout: 10_000 });
   const afterCount = await componentsAfter.count();
   expect(afterCount).toBeLessThanOrEqual(componentsBefore);
+  await expect(componentsAfter.first()).toHaveAccessibleName(/Broker__c/i);
 });
 
 test('Org Browser - text filter: unresolved type name empties the tree', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('NotARealType:Whatever');
+  await orgBrowserPage.fillTextFilter('NotARealType:Whatever');
 
   await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(0, { timeout: 10_000 });
 
@@ -108,19 +93,13 @@ test('Org Browser - text filter: Escape cancels without applying filter', async 
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await orgBrowserPage.fillTextFilter('ApexClass');
   await page.keyboard.press('Escape');
 
   // Tree should remain unfiltered since we cancelled
-  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(beforeCount, {
-    timeout: 10_000
-  });
+  await orgBrowserPage.waitForRootTypeCount(beforeCount);
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
 });
 
@@ -128,26 +107,17 @@ test('Org Browser - text filter: clearing the text and pressing Enter clears the
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('ApexClass');
 
   const activeFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
   await expect(activeFilterButton).toBeVisible({ timeout: 10_000 });
 
-  await activeFilterButton.click();
-  await activeQuickInputTextField(page).fill('');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('');
 
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
-  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(beforeCount, {
-    timeout: 10_000
-  });
+  await orgBrowserPage.waitForRootTypeCount(beforeCount);
 });
 
 test('Org Browser - text filter: composes with an active showLocal/showOrg toggle', async ({ page }) => {
@@ -159,13 +129,10 @@ test('Org Browser - text filter: composes with an active showLocal/showOrg toggl
   await hideLocalButton.click();
   await expect(page.locator('[aria-label="Show Local Types"]').first()).toBeVisible({ timeout: 10_000 });
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('ApexClass');
 
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(items).toHaveCount(1, { timeout: 10_000 });
+  await orgBrowserPage.waitForRootTypeCount(1);
   await expect(items.first()).toHaveAccessibleName(/^ApexClass/);
 });
 
@@ -173,26 +140,21 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const beforeItemsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(beforeItemsLocator.first()).toBeVisible({ timeout: 10_000 });
-  const beforeCount = await beforeItemsLocator.count();
+  const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('Apex*');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('Apex*');
 
+  await expect(page.locator('[aria-label="Edit Filter (active)"]').first()).toBeVisible({ timeout: 10_000 });
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  const afterCount = await items.count();
+  await expect.poll(() => orgBrowserPage.getRootTypeCount(), { timeout: 10_000 }).toBeLessThan(beforeCount);
+  const afterCount = await orgBrowserPage.getStableRootTypeCount();
 
   // Should have fewer items than before (filtered) but more than 1 (multiple Apex* types)
-  expect(afterCount).toBeLessThan(beforeCount);
   expect(afterCount).toBeGreaterThanOrEqual(1);
 
-  // All visible items should start with "Apex"
-  for (let i = 0; i < afterCount; i++) {
-    const item = items.nth(i);
-    await expect(item).toHaveAccessibleName(/^Apex/);
+  // Virtualized trees may retain rows outside the current model. Assert only rendered rows.
+  for (const item of await items.all()) {
+    if (await item.isVisible()) await expect(item).toHaveAccessibleName(/^Apex/);
   }
 });
 
@@ -200,10 +162,7 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:*Test*');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('ApexClass:*Test*');
 
   await orgBrowserPage.expandFolder('ApexClass');
   const componentsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
@@ -219,33 +178,18 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
   }
 });
 
-test('Org Browser - text filter: combined wildcard *Class:*Broker* works', async ({ page }) => {
+test('Org Browser - text filter: combined wildcard *Object:*Broker* works', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
-  await filterButton.click();
-  await activeQuickInputTextField(page).fill('*Class:*Broker*');
-  await page.keyboard.press('Enter');
+  await orgBrowserPage.applyTextFilter('*Object:*Broker*');
 
-  // Should see types ending with "Class"
   const typesLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(typesLocator.first()).toBeVisible({ timeout: 10_000 });
+  await expect(typesLocator).toHaveCount(1, { timeout: 10_000 });
+  await expect(typesLocator.first()).toHaveAccessibleName(/^CustomObject/);
 
-  // Expand first matching type to see filtered components
-  const firstType = typesLocator.first();
-  const typeName = await firstType.getAttribute('aria-label');
-  if (typeName?.endsWith('Class')) {
-    await firstType.click();
-
-    const componentsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
-    if ((await componentsLocator.count()) > 0) {
-      // All visible components should contain "Broker"
-      const count = await componentsLocator.count();
-      for (let i = 0; i < count; i++) {
-        const item = componentsLocator.nth(i);
-        await expect(item).toHaveAccessibleName(/Broker/i);
-      }
-    }
-  }
+  await orgBrowserPage.expandFolder('CustomObject');
+  const componentsLocator = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
+  await expect(componentsLocator).toHaveCount(1, { timeout: 10_000 });
+  await expect(componentsLocator.first()).toHaveAccessibleName(/Broker__c/i);
 });
