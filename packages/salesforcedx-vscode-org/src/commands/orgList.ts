@@ -64,7 +64,6 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
 
   const successMessage = nls.localize('org_list_clean_success_message', removedOrgs.length, removedOrgs.join(', '));
   yield* channel.appendToChannel(successMessage);
-  yield* notificationMode.showSuccessNotification(COMMAND, successMessage, true);
 
   // Flush ConfigAggregator + StateAggregator so the org picker doesn't show just-removed orgs,
   // and so the table below reflects post-flush state.
@@ -76,4 +75,6 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
   );
 
   yield* displayRemainingOrgs();
+
+  yield* notificationMode.showSuccessNotification(COMMAND, successMessage, true);
 });
