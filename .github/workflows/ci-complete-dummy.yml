@@ -13,6 +13,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["develop Nightly Release"]
+    types:
+      - completed
 
 jobs:
   ci-complete:
