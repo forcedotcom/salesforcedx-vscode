@@ -12,7 +12,6 @@ import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
@@ -199,9 +198,8 @@ const resolveAnonApexFilePath = async (config: vscode.DebugConfiguration): Promi
   }
   const matched = await findMatchingSourceFile(anonSource);
   if (!matched) {
-    const apexFilePath = URI.file(config.logFilePath.replace(/\.log$/, '.apex'));
-    await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
-    config.anonApexFilePath = apexFilePath.fsPath;
+    const apexFilePath = config.logFilePath.replace(/\.log$/, '.apex');
+    config.anonApexFilePath = await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
     return;
   }
   config.anonApexFilePath = matched.filePath;
@@ -211,11 +209,13 @@ const resolveAnonApexFilePath = async (config: vscode.DebugConfiguration): Promi
 };
 
 const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(function* (
-  filePath: URI,
+  filePath: string,
   contents: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.FsService.safeWriteFile(filePath, contents);
+  const uri = yield* api.services.FsService.toUri(filePath);
+  yield* api.services.FsService.safeWriteFile(uri, contents);
+  return uri.fsPath;
 });
 
 type SourceMatch = { filePath: string; lineOffset: number };
