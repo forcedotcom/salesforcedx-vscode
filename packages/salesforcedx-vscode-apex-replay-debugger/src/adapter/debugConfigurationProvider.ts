@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
@@ -200,21 +200,6 @@ const getBasename = (filePath: string): string => {
   const normalizedPath = filePath.replaceAll('\\', '/');
   const parts = normalizedPath.split('/');
   return parts.at(-1) ?? filePath;
-};
-
-const EXEC_ANON_HEADER_PREFIX = 'Execute Anonymous: ';
-
-const extractAnonApexSource = (logContents: string): string | undefined => {
-  const lines = logContents.split(/\r?\n/);
-  const sourceLines: string[] = [];
-  for (const line of lines) {
-    if (line.startsWith(EXEC_ANON_HEADER_PREFIX)) {
-      sourceLines.push(line.slice(EXEC_ANON_HEADER_PREFIX.length));
-    } else if (sourceLines.length > 0) {
-      break;
-    }
-  }
-  return sourceLines.length > 0 ? sourceLines.join('\n') : undefined;
 };
 
 const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(function* (
