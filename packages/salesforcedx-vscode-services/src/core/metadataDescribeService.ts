@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
@@ -199,6 +200,15 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       folder: string | undefined
     ) {
       yield* Effect.annotateCurrentSpan({ orgId, type, folder });
+
+      // StandardValueSet does not support wildcard retrieval via metadata.list — use the
+      // static registry from SDR which lists all known StandardValueSet names.
+      if (type === 'StandardValueSet' && !folder) {
+        return standardValueSet.fullnames
+          .map(fullName => ({ fullName, type: 'StandardValueSet' as const }))
+          .toSorted((a, b) => a.fullName.localeCompare(b.fullName));
+      }
+
       const conn = yield* getConnection(orgId);
       return yield* Effect.tryPromise({
         try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),

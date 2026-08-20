@@ -330,6 +330,11 @@
                 "pattern": "^PlatformEventsPerDay:[0-9]+$"
               },
               {
+                "title": "ServiceCloudVoicePartnerTelephony:<value>",
+                "type": "string",
+                "pattern": "^ServiceCloudVoicePartnerTelephony:[0-9]+$"
+              },
+              {
                 "title": "StreamingEventsPerDay:<value>",
                 "type": "string",
                 "pattern": "^StreamingEventsPerDay:[0-9]+$"
@@ -357,10 +362,13 @@
               "AdmissionsConnectUser",
               "AdvisorLinkFeature",
               "AdvisorLinkPathwaysFeature",
+              "AgentforceVibesIDEForDE",
+              "AgentforceVibesUnmeteredAccess",
               "AllUserIdServiceAccess",
               "AnalyticsAdminPerms",
               "AnalyticsAppEmbedded",
               "ApexGuruCodeAnalyzer",
+              "ApexIntegrationTests (Developer Preview)",
               "ApexUserModeWithPermSet",
               "ArcGraphCommunity",
               "Assessments",
@@ -395,6 +403,7 @@
               "ChatterEmailFooterLogo",
               "ChatterEmailFooterText",
               "ChatterEmailSenderName",
+              "CleanEnergyProgramManagement",
               "CloneApplication",
               "Communities",
               "CompareReportsOrgPerm",
@@ -437,6 +446,12 @@
               "DynamicClientCreationLimit",
               "EAOutputConnectors",
               "EASyncOut",
+              "EAndUAgentforce",
+              "EAndUCoreSales",
+              "EAndUCoreSelfServicePortal",
+              "EAndUCoreService",
+              "EAndUCoreTimeSheetService",
+              "EAndUDataKits",
               "EAndUDigitalSales",
               "EAndUSelfServicePortal",
               "ERMAnalytics",
@@ -457,6 +472,7 @@
               "EinsteinVisits",
               "EinsteinVisitsED",
               "EmbeddedLoginForIE",
+              "EmergencyManagement",
               "EnableManageIdConfUI",
               "EnablePRM",
               "EnableSetPasswordInApi",
@@ -511,6 +527,7 @@
               "IntelligentDocumentReader",
               "Interaction",
               "InvestigativeCaseManagement",
+              "InvocableActionExt",
               "InvoiceManagement",
               "IoT",
               "JigsawUser",
@@ -686,6 +703,14 @@
         },
         "addressSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "agentforceAccountManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforceaccountmanagementsettings.htm",
           "type": "object",
           "propertyNames": {
             "type": "string"
