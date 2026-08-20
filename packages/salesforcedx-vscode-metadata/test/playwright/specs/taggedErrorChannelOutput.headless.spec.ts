@@ -8,6 +8,7 @@
 import {
   closeAllEditors,
   closeWelcomeTabs,
+  clearOutputChannel,
   ensureSecondarySideBarHidden,
   executeCommandById,
   selectOutputChannel,
@@ -27,10 +28,11 @@ test('tagged command errors include the tag only in channel output', async ({ pa
   await verifyCommandExists(page, packageNls.project_info_text, 60_000);
   await closeAllEditors(page);
 
-  await executeCommandById(page, 'sf.metadata.deploy.in.manifest');
-
   await selectOutputChannel(page, 'Salesforce Metadata');
-  await waitForOutputChannelText(page, {
-    expectedText: `[ManifestSelectionRequiredError] ${messages.deploy_select_manifest}`
+  await clearOutputChannel(page);
+
+  const expectedText = `[ManifestSelectionRequiredError] ${messages.deploy_select_manifest}`;
+  await executeCommandById(page, 'sf.metadata.deploy.in.manifest', {
+    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 5000 })
   });
 });

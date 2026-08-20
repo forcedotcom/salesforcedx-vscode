@@ -62,6 +62,16 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core').expor
 
 > **einstein-gpt ships from a non-default branch.** The published extension `salesforce.agentforce-vibes-autocomplete` is built from **`afv-v3.0-iac`**, not `main`; `main:.github/workflows/iac-release.yml` checks out that branch. It hard-depends on core and throws at activation when `CommandEventDispatcher` is absent. `SalesforceProjectConfig` differs: `CoreExtensionService` reads and stores it, accepts its absence, and only its unit test calls `getSalesforceProjectConfig()`. It is not a behavioral contract. **Do not restore `services.SalesforceProjectConfig` to core based on this reference.** Code search skips non-default branches; inspect `afv-v3.0-iac` directly.
 
+## Direct services API consumers (`SalesforceVSCodeServicesApi`)
+
+Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
+
+| Repo | Visibility | Consumed |
+|------|-----------|----------|
+| [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private** | `services.ConnectionService.getConnection`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
+
+> **einstein-gpt directly consumes the services extension API** (separate from its core dependency and its `@salesforce/vscode-service-provider` telemetry use). `packages/extension/src/services/auth/org-service.ts` (on the actively-shipping `main` branch, which now builds `afv-v4` via `release.yml`) resolves `salesforce.salesforcedx-vscode-services`, duplicates a local `SalesforceVSCodeServicesApi` type, and calls `api.services.ConnectionService.getConnection()`, `api.services.TargetOrgRef()`, and reads `api.services.prebuiltServicesDependencies`. **Check changes to `ConnectionService.getConnection`, `TargetOrgRef`, or `prebuiltServicesDependencies` against this consumer** — breaking any of them is a breaking change even though code search on `main` may not surface the duplicated type.
+
 ## `@salesforce/vscode-service-provider` consumers
 
 [Repo](https://github.com/forcedotcom/salesforcedx-vscode-service-provider) (public) — abstraction bridging to core services. Still depends on core being active.
