@@ -25,11 +25,12 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   trace?: boolean | string;
   lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];
   heapDumpResults?: HeapDumpResult[];
-  /** Path to Anonymous Apex script file. When set, frame lines use script line numbers directly; otherwise they map via debug log. */
-  anonApexFilePath?: string;
-  /** 0-based line offset into anonApexFilePath where the executed selection starts. Added to script line numbers so breakpoints align with the source file. */
-  anonApexLineOffset?: number;
 } & (
-  | { anonApexFilePath: string; anonApexLineOffset?: number }
-  | { anonApexFilePath?: never; anonApexLineOffset?: never }
-);
+    | {
+        /** Path to Anonymous Apex script file. When set, frame lines use script line numbers directly; otherwise they map via debug log. */
+        anonApexFilePath: string;
+        /** 0-based line offset into anonApexFilePath where the executed selection starts. Added to script line numbers so breakpoints align with the source file. */
+        anonApexLineOffset?: number;
+      }
+    | { anonApexFilePath?: never; anonApexLineOffset?: never }
+  );
