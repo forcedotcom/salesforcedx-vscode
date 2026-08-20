@@ -33,10 +33,15 @@ describe('VscodeMessageService', () => {
     vscodeMessageService.onMessage(listener);
   });
 
+  afterEach(() => {
+    vscodeMessageService.dispose();
+  });
+
   it('calls postMessage with activated type immediately when created', () => {
     jest.spyOn(vsCodeApi, 'postMessage');
-    makeVscodeMessageService();
+    const service = makeVscodeMessageService();
     expect(vsCodeApi.postMessage).toHaveBeenCalledWith({ type: MessageType.UI_ACTIVATED });
+    service.dispose();
   });
 
   it('sets and gets state', () => {
@@ -56,6 +61,12 @@ describe('VscodeMessageService', () => {
   it('filters out malformed SOQL event messages', () => {
     const messageEvent = new MessageEvent(messageType, { data: { no_type_specified: 'xyz' } });
     window.dispatchEvent(messageEvent);
+    expect(listener).toHaveBeenCalledTimes(0);
+  });
+
+  it('removes its window listener when disposed', () => {
+    vscodeMessageService.dispose();
+    window.dispatchEvent(new MessageEvent(messageType, postMessagePayload()));
     expect(listener).toHaveBeenCalledTimes(0);
   });
 });

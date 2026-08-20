@@ -31,6 +31,7 @@ const makeTestMessageLayer = () => {
   const service: IMessageService = {
     onMessage: cb => {
       listeners.push(cb);
+      return () => undefined;
     },
     sendMessage,
     setState,

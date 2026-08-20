@@ -1,7 +1,15 @@
-import type { Field } from 'jsforce/lib/types/common';
-import type { JsonMap } from '@salesforce/ts-types';
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-type SObjectField = Pick<Field, 'name' | 'type' | 'nillable' | 'picklistValues'>;
+import type { JsonMap } from '@salesforce/ts-types';
+import type { Field } from 'jsforce/lib/types/common';
+
+type SObjectField = Pick<Field, 'name' | 'type' | 'nillable' | 'picklistValues'> &
+  Partial<Pick<Field, 'filterable' | 'groupable' | 'label' | 'sortable'>>;
 
 export type SObjectMetadata = {
   fields: SObjectField[];

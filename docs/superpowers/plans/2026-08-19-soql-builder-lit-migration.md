@@ -217,6 +217,7 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 - Presentation components do not create runtimes, call global `Effect.runPromise`/`Effect.runFork`, or start unowned daemon fibers; the composition root and controller own Effect execution.
 - `packages/soql-builder-ui/package.json` contains `"private": true`; public `publishConfig` and unnecessary independent-publication metadata from the spike are removed, and the repository's package-selection/release tooling verifies that publication jobs skip the package.
 - The CSP and Rollup outputs bundle all application code into the VSIX; no runtime code is loaded remotely.
+- The normal release bundle and VSIX continue to contain only the legacy LWC builder during parallel development. A separately named migration bundle/VSIX packages the production-shaped Lit entry for demonstrations and integration testing, preventing unreleased Lit dependencies from increasing the release artifact.
 - A deterministic fake Effect driver layer used by UI tests is updated when the public contract changes.
 
 **Depends on:** Story 1.
@@ -551,12 +552,13 @@ npm test --workspace salesforcedx-vscode-soql
 npm run test:soql-builder-ui --workspace salesforcedx-vscode-soql
 npm run test:query-results-ui --workspace salesforcedx-vscode-soql
 npm run test:ui-bundle-budgets --workspace salesforcedx-vscode-soql
-npm run test:lit-spike --workspace salesforcedx-vscode-soql
+npm run test:lit-foundation --workspace salesforcedx-vscode-soql
+npm run vscode:package:migration --workspace salesforcedx-vscode-soql
 npm run test:web --workspace salesforcedx-vscode-soql
 npm run test:desktop --workspace salesforcedx-vscode-soql
 ```
 
-`test:soql-builder-ui` is the LWC parity command until Story 16. `test:query-results-ui` locks down the legacy results protocol until the Lit test variants are added. `test:ui-bundle-budgets` measures the builder, first-party results shell, and retained Tabulator assets independently. Story 2 or Story 4 should rename `test:lit-spike` to a production Lit component/integration test command, and Story 12 should extend the results command with the Lit entry. The last two E2E commands are release-gate checks; Story 14 makes the Lit-targeted builder and results variants mandatory, and they may require the repository's normal browser/desktop test environment. Detailed thresholds and capture procedures live in `packages/salesforcedx-vscode-soql/docs/soql-ui-migration-baseline.md`.
+`test:soql-builder-ui` is the LWC parity command until Story 16. `test:query-results-ui` locks down the legacy results protocol until the Lit test variants are added. `test:ui-bundle-budgets` measures the builder, first-party results shell, and retained Tabulator assets independently. `test:lit-foundation` verifies the production-named Lit bundle and its local-only CSP contract, while `vscode:package:migration` produces the separately named demonstration artifact without changing the normal release bundle. Story 12 should extend the results command with the Lit entry. The last two E2E commands are release-gate checks; Story 14 makes the Lit-targeted builder and results variants mandatory, and they may require the repository's normal browser/desktop test environment. Detailed thresholds and capture procedures live in `packages/salesforcedx-vscode-soql/docs/soql-ui-migration-baseline.md`.
 
 ## Definition of Done
 
