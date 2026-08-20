@@ -8,6 +8,7 @@ import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { appendToChannel } from '../../channel';
 import { nls } from '../../messages';
+import { JestPseudoterminal } from './jestPseudoterminal';
 
 type SfTaskDefinition = vscode.TaskDefinition & {
   sfTaskId: string;
@@ -18,14 +19,26 @@ type SfTaskDefinition = vscode.TaskDefinition & {
  */
 export class SfTask {
   private task: vscode.Task;
-  private taskExecution?: vscode.TaskExecution;
+  private taskId: string;
+  /**
+   * The vscode.TaskExecution for this task, set after execute() resolves.
+   * Use to correlate with task process events (e.g., onDidEndTaskProcess).
+   */
+  public taskExecution?: vscode.TaskExecution;
+  /**
+   * The pseudoterminal instance (when using CustomExecution).
+   * Provides access to captured output for error reporting.
+   */
+  public pseudoterminal?: JestPseudoterminal;
   public onDidStart: vscode.Event<SfTask>;
   public onDidEnd: vscode.Event<SfTask>;
 
   private onDidStartEventEmitter: vscode.EventEmitter<SfTask>;
   private onDidEndEventEmitter: vscode.EventEmitter<SfTask>;
-  constructor(task: vscode.Task) {
+  constructor(task: vscode.Task, taskId: string, pseudoterminal?: JestPseudoterminal) {
     this.task = task;
+    this.taskId = taskId;
+    this.pseudoterminal = pseudoterminal;
     this.onDidStartEventEmitter = new vscode.EventEmitter<SfTask>();
     this.onDidEndEventEmitter = new vscode.EventEmitter<SfTask>();
     this.onDidStart = this.onDidStartEventEmitter.event;
@@ -43,6 +56,15 @@ export class SfTask {
   public async execute() {
     this.taskExecution = await vscode.tasks.executeTask(this.task);
     return this;
+  }
+
+  /**
+   * Correlates a VS Code task execution without relying on execute() having resolved.
+   */
+  public matchesExecution(execution: vscode.TaskExecution): boolean {
+    const { definition } = execution.task;
+    const executionTaskId = isString(definition.sfTaskId) ? definition.sfTaskId : undefined;
+    return this.taskId === executionTaskId;
   }
 
   public terminate() {
@@ -129,20 +151,36 @@ class TaskService {
       sfTaskId: taskId
     };
     const taskSource = 'SFDX';
+
+    // Convert args to plain strings for pseudoterminal
+    const stringArgs = args.map(arg => (typeof arg === 'string' ? arg : arg.value));
+
+    const cwd = typeof taskScope === 'object' && 'uri' in taskScope ? taskScope.uri.fsPath : process.cwd();
+
     // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
     // Git Bash shell doesn't handle command paths correctly.
     // Always launch with command prompt (cmd.exe) in Windows.
     const isWin32 = process.platform.startsWith('win32');
-    let taskShellExecutionOptions: vscode.ShellExecutionOptions | undefined;
+    let shellOptions: { executable: string; shellArgs: string[] } | undefined;
     if (isWin32) {
       appendToChannel(nls.localize('task_windows_command_prompt_messaging'));
-      taskShellExecutionOptions = {
+      shellOptions = {
         executable: 'cmd.exe',
         shellArgs: ['/d', '/c']
       };
     }
-    const taskShellExecution = new vscode.ShellExecution(cmd, args, taskShellExecutionOptions);
-    const task = new vscode.Task(taskDefinition, taskScope, taskName, taskSource, taskShellExecution);
+
+    // Create pseudoterminal to capture output
+    const pseudoterminal = new JestPseudoterminal(cmd, stringArgs, {
+      cwd,
+      shellOptions
+    });
+
+    // Use CustomExecution to run our pseudoterminal
+    const taskExecution = new vscode.CustomExecution(() => Promise.resolve(pseudoterminal));
+    const task = new vscode.Task(taskDefinition, taskScope, taskName, taskSource, taskExecution);
+
+    // Task presentation: shared panel hidden from user (results surface in Test Results tab).
     task.presentationOptions = {
       reveal: vscode.TaskRevealKind.Never,
       focus: false,
@@ -152,7 +190,7 @@ class TaskService {
       showReuseMessage: false
     };
 
-    const sfTask = new SfTask(task);
+    const sfTask = new SfTask(task, taskId, pseudoterminal);
     this.createdTasks.set(taskId, sfTask);
     return sfTask;
   }
