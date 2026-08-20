@@ -10,21 +10,21 @@ Full doc: [contributing/publishing.md](../../../contributing/publishing.md)
 
 ## Scripts in this skill
 
-Run from repo root via `npx ts-node` (no global `ts-node`):
+From repo root (no global `ts-node`):
 
 - `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
 
 ## Step 0 — Verify Monday stable build
 
-Run `detect-state.ts` first to capture all context for subsequent steps.
+Run `detect-state.ts` first.
 
-Check that the scheduled `buildReleaseFromPrerelease.yml` ran on Monday:
+Check scheduled `buildReleaseFromPrerelease.yml` ran Monday:
 
 ```sh
 gh run list --workflow=buildReleaseFromPrerelease.yml -L 5 --repo forcedotcom/salesforcedx-vscode
 ```
 
-Report status + timestamp. If run shows **failure**, inspect logs:
+Report status + timestamp. On **failure**, inspect logs:
 
 ```sh
 gh run view <runId> --repo forcedotcom/salesforcedx-vscode
@@ -33,18 +33,18 @@ gh run view <runId> --repo forcedotcom/salesforcedx-vscode
 Decision matrix:
 
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
-- **Build failed** → check logs. Common issues: auto-detect found no promoted tag (wait for daily 6 AM UTC promotion), or build script error. Re-run manually:
+- **Build failed** → check logs. Issues: no promoted tag (wait Wed 7 AM UTC) or build script error. Re-run:
   ```sh
   gh workflow run buildReleaseFromPrerelease.yml --repo forcedotcom/salesforcedx-vscode
   ```
-- **No run this week** → Monday build hasn't run yet. Either:
-  - Wait for scheduled run (Mon 8 AM UTC)
-  - Manually trigger to test on-demand:
+- **No run this week** → Either:
+  - Wait (Mon 8 AM UTC)
+  - Trigger manually:
   ```sh
   gh workflow run buildReleaseFromPrerelease.yml --repo forcedotcom/salesforcedx-vscode
   ```
 
-After any re-dispatch, watch until complete:
+After re-dispatch, watch until complete:
 
 ```sh
 gh run list --workflow=buildReleaseFromPrerelease.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
@@ -65,17 +65,17 @@ gh release download v<version> \
 
 ## Step 2 — Install and test locally
 
-Ask user: `code` or `code-insiders`? (default `code`)
+Ask: `code` or `code-insiders`? (default `code`)
 
 ```sh
 find ~/Downloads/v<version> -type f -name "*.vsix" -exec <binary> --install-extension {} \;
 ```
 
-User should reload VS Code and run smoke checks.
+Reload VS Code, run smoke checks.
 
 ## Step 3 — Confirm manual testing is complete
 
-Tell user: "Log testing in Slack template, then let me know when ready to publish to marketplaces."
+Tell user: "Log testing in Slack, confirm when ready to publish."
 
 Suggested smoke checks:
 
@@ -85,17 +85,17 @@ Suggested smoke checks:
 - Open SOQL Builder, run query
 - Open Org Browser
 
-Do not proceed until user confirms testing done.
+Don't proceed until user confirms testing done.
 
 ## Step 4 — Approve marketplace publishes
 
-Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g., `67.12.0`):
+Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`):
 
 ```sh
 gh workflow run publishVSCode.yml -f releaseVersion=<version> --repo forcedotcom/salesforcedx-vscode
 ```
 
-Also triggers `publishOpenVSX.yml` for Open VSX. Both gated by `publish` environment — user approves in GitHub UI (Actions → run → Review pending deployments → Approve and deploy).
+Triggers `publishOpenVSX.yml`. Both gated by `publish` environment — approve in GitHub UI (Actions → run → Review pending → Approve + deploy).
 
 Monitor runs:
 
@@ -119,19 +119,19 @@ Compose from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 - Subsections (`#### foo`) → blockquote (`> foo`)
 - Drop PR/issue trailers
 
-Show composed post. If Slack MCP available → offer to post/draft to `#platform-dev-tools`. Wait for explicit approval before sending.
+Show composed post. If Slack MCP available → offer to post/draft to `#platform-dev-tools`. Wait for approval before sending.
 
 ## Release timeline
 
 - **Daily 4 AM UTC** — nightly.yml → all extensions as prerelease
-- **Wed 7 AM UTC** — promote-prerelease.yml → promotes latest nightly + passing E2E tests to prerelease; creates `marketplace-prerelease-*` tracking tag
+- **Wed 7 AM UTC** — promote-prerelease.yml → promotes latest nightly (passing E2E), creates `marketplace-prerelease-*` tracking tag
 - **5-day baking** — Wed → Mon (customer validation)
-- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → auto-detects promoted tag via tracking tag, builds stable VSIXs from tested candidate
-- **After test approval** — publishVSCode.yml → detects release type, publishes to marketplaces (Microsoft + Open VSX)
+- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → auto-detects promoted tag, builds stable VSIXs
+- **After test approval** — publishVSCode.yml → publishes to Microsoft + Open VSX
 
 ## Emergency Patch Releases
 
-Critical hotfixes bypass normal cycle.
+Bypass normal cycle for critical hotfixes.
 
 ### When to use
 
@@ -147,7 +147,7 @@ Critical hotfixes bypass normal cycle.
 gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates `release-base/v67.12.x` from tag; auto-copies latest version helper scripts from develop.
+Creates `release-base/v67.12.x` from tag; copies latest version helpers from develop.
 
 **2. Apply fixes**
 
@@ -163,7 +163,7 @@ git push origin release-base/v67.12.x
 gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Auto-calculates patch version (filters stable tags only, excludes nightly/prerelease), tags with `--target` to ensure exact commit, builds VSIX.
+Auto-calculates patch (stable tags only), tags exact commit, builds VSIX.
 
 **4. Test VSIX**
 
@@ -180,7 +180,7 @@ gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom
 
 **6. Cherry-pick to develop**
 
-Merge fixes back for future releases. Release notes provide filtered cherry-pick commands (exclude version-bump commits).
+Merge fixes back. Release notes provide cherry-pick commands.
 
 ```sh
 git checkout develop && git pull origin develop
@@ -196,13 +196,11 @@ git push origin --delete release-base/v67.12.x
 
 ### Multiple patches
 
-Reuse release-base branch:
-1. Push more fixes
-2. Run build-patch-release.yml (auto-increments to v67.12.2, etc.)
+Reuse release-base branch; run build-patch-release.yml (auto-increments v67.12.2, etc.)
 
 ## Alternative: Build from Arbitrary Ref
 
-For emergency releases without formal release-base branches, use `buildReleaseFromPrerelease.yml` with `startFromRef`:
+Emergency releases without formal branches use `buildReleaseFromPrerelease.yml` + `startFromRef`:
 
 ```sh
 # Build from hotfix branch
@@ -226,17 +224,17 @@ gh workflow run buildReleaseFromPrerelease.yml \
 
 **When to use:**
 - Time-critical fixes without formal patch workflow
-- Building from experimental branches for validation
-- Rebuilding from historical commits
-- Emergency releases without branch creation overhead
+- Experimental branches for validation
+- Historical commits
+- Emergency without branch overhead
 
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
+**Priority:** `startFromRef` → `prereleaseTag` → auto-detect latest nightly
 
 ## Conventions
 
 - All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
-- `createReleaseBranch.yml` — deprecated (replaced by buildReleaseFromPrerelease.yml)
-- Never approve marketplace publishes until manual testing done
-- 5-day gap (Wed pre-release → Mon stable) intentional for customer validation
-- Patch releases bypass normal timeline for emergencies only
-- Always cherry-pick patch fixes to develop after publishing
+- `createReleaseBranch.yml` deprecated (use buildReleaseFromPrerelease.yml)
+- Don't approve publishes until manual testing done
+- 5-day gap (Wed → Mon) intentional for validation
+- Patch releases bypass timeline for emergencies only
+- Always cherry-pick fixes to develop after publishing

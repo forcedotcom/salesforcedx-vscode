@@ -50,7 +50,7 @@ After configuration:
 
 1. Create test branch with failing test
 2. Create nightly from that branch
-3. Wait for scheduled promotion (daily 6 AM UTC)
+3. Wait for scheduled promotion (Wed 7 AM UTC)
 4. Verify promotion blocked due to failing checks
 5. Fix test
 6. Verify promotion succeeds on next scheduled run
