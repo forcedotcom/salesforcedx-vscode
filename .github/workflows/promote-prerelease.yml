@@ -2,10 +2,9 @@ name: Promote Nightly to Pre-release
 
 on:
   schedule:
-    # Daily at 6 AM UTC (2 hours after nightly build completes at 4 AM UTC)
-    # Rationale: Promote last night's build to pre-release after E2E tests pass.
-    # If issues arise, we can patch pre-release and push out fixes.
-    # Stability criteria: nightly tag + all CI checks passed on the tag's commit
+    # Daily at 6 AM UTC (2h after nightly build at 4 AM)
+    # Promotes last night's nightly + passing E2E tests to prerelease
+    # Enables fast iteration: if issues found, patch prerelease immediately instead of waiting
     - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:

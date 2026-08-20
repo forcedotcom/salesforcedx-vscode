@@ -22,12 +22,19 @@ Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedo
 - `prereleaseTag` — prerelease tag e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
 - `releaseVersion` — e.g. `67.12.0` (auto-calculated if empty)
 
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect via `marketplace-prerelease-*` tracking tags (finds promoted Wed candidate tested by customers)
 
-**Use `startFromRef` for emergency scenarios:**
+**How detection works:**
+1. If `startFromRef` provided, use that ref (any git ref: tag/branch/SHA) — bypasses nightly validation, for emergency releases only
+2. Else if `prereleaseTag` provided, validate nightly format (`v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`), use that tag
+3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks daily 6 AM UTC promotion (point where nightly tested + promoted to prerelease)
+
+**Use `startFromRef` for emergency scenarios (any git ref):**
 - Build from hotfix branch: `-f startFromRef="hotfix/security-fix"`
 - Build from specific commit: `-f startFromRef="abc123def456"`
 - Build from old tag: `-f startFromRef="v67.11.0-nightly.develop.20260805"`
+
+⚠️ Bypasses nightly validation — ensure ref is reviewed/merged to develop before using.
 
 **Examples:**
 
@@ -51,8 +58,14 @@ gh workflow run buildReleaseFromPrerelease.yml \
 ```
 
 **Scripts:**
-- [`calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease, bump minor, or override; validates semver + bounds (max 9999)
+- [`calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease, bump minor, or override; validates semver + bounds (max 9999); accepts prerelease versions like `67.12.0-beta.1`
 - [`update-release-versions.js`](../scripts/update-release-versions.js) — update all publishable `package.json` + `package-lock.json`
+
+**Isolated branch materialization:**
+- Creates `release-staging/v{version}` branch from source ref (not merged to develop)
+- Commits version changes to isolated branch
+- Creates release tag from that branch's commit
+- Release notes instruct deletion of branch after publish
 
 **Security measures:**
 - Command injection protection — regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
@@ -76,11 +89,13 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 ### Standard Path: Nightly → Daily Pre-release → Mon Stable → Marketplace
 
-1. **Daily 6 AM UTC:** `promote-prerelease.yml` auto-runs → promotes last night's nightly + passing E2E tests to pre-release immediately
-2. **Any day Mon:** ~24h baking (customer validation)
-3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects promoted tag, builds stable VSIXs
+1. **Daily 6 AM UTC (Wed):** `promote-prerelease.yml` auto-runs → promotes last night's nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
+2. **5-day baking:** Wed → Mon (customer validation)
+3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
 5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
+   - Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
+   - Query release metadata to determine whether to publish as stable or prerelease
 6. Approve marketplace publish gates
 7. Marketplace updates within min
 
@@ -144,7 +159,12 @@ Critical hotfixes bypass normal cycle.
 gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates `release-base/v67.12.x` from tag. See [`create-patch-release-branch.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/create-patch-release-branch.yml).
+Creates `release-base/v67.12.x` from tag. Auto-copies latest version helper scripts from develop:
+- Restores `scripts/calculate-release-version.js` + `scripts/update-release-versions.js` from develop (old tags may lack them)
+- Verifies integrity via checksums
+- Commits script updates to branch if needed
+
+See [`create-patch-release-branch.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/create-patch-release-branch.yml).
 
 **2. Apply fixes**
 
@@ -160,7 +180,11 @@ git push origin release-base/v67.12.x
 gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Auto-calculates patch version, tags, builds VSIX.
+Auto-calculates patch version:
+- Filters existing tags for stable only (`v{major}.{minor}.{patch}` — excludes `v*-nightly*`, `v*-beta*`, etc.) before sorting
+- Finds latest stable tag, increments patch
+- Creates and tags commit with `--target "$TAG"` to ensure release points to exact tag commit
+- Builds VSIX from that commit
 
 **4. Test VSIX**
 
@@ -177,11 +201,18 @@ gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom
 
 **6. Cherry-pick to develop**
 
-Merge fixes back for future releases (commands in release notes).
+Merge fixes back for future releases. Release notes provide cherry-pick commands.
+
+**Filter out version-bump commits** — only cherry-pick functional fixes:
 
 ```sh
 git checkout develop && git pull origin develop
-git cherry-pick <commit-sha>
+
+# Release notes list commits; copy only non-version-bump ones:
+git cherry-pick <commit-sha-1>  # fix: actual bug
+git cherry-pick <commit-sha-2>  # feat: new feature
+# SKIP: chore: bump versions for patch release (release-only commit)
+
 git push origin develop
 ```
 
@@ -197,6 +228,70 @@ Reuse release-base branch for additional patches on same major.minor:
 
 1. Push more fixes
 2. Run build-patch-release.yml (auto-increments to v67.12.2, v67.12.3, etc.)
+
+## Rollback to Previous Version
+
+If a published release has critical issues and you need to roll back to a previous stable version:
+
+### VS Code Marketplace Rollback Behavior
+
+**Important:** VS Code Marketplace does NOT support true version rollback/downgrade. Once a version is published, republishing a lower version number does NOT replace the higher version for users.
+
+**What happens when you republish a lower version:**
+- The Marketplace shows both versions in the version history
+- Users who already installed the newer version will NOT auto-downgrade
+- New users installing the extension will get the LATEST published version (not necessarily the highest version number)
+- The `--skip-duplicate` flag only skips if the exact version already exists; it does not prevent publishing older versions
+
+### Recommended Rollback Strategy
+
+Instead of true rollback, create a **patch release** with the fixes:
+
+**Option 1: Quick patch from stable base (Recommended)**
+
+```sh
+# 1. Create patch branch from last known-good version
+gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0"
+
+# 2. Cherry-pick or apply fixes
+git fetch origin && git checkout release-base/v67.12.x
+# Apply fixes...
+git push origin release-base/v67.12.x
+
+# 3. Build patch (creates v67.12.1)
+gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x"
+
+# 4. Test and publish
+gh workflow run publishVSCode.yml -f version="v67.12.1"
+```
+
+**Option 2: Republish existing stable version**
+
+If the last known-good version's VSIXs are still available and unmodified:
+
+```sh
+# Republish v67.12.0 to marketplace
+gh workflow run publishVSCode.yml -f version="v67.12.0"
+```
+
+⚠️ **Caveat:** Users on v67.13.0 will NOT auto-downgrade to v67.12.0. They must manually:
+1. Uninstall the extension
+2. Reinstall to get v67.12.0
+
+### User Communication During Rollback
+
+When rolling back, immediately notify users:
+
+1. **VS Code Marketplace description:** Update extension description to warn about v67.13.0 issues
+2. **GitHub Release:** Mark v67.13.0 release as "This release has issues - use v67.12.1 instead"
+3. **Slack/Email:** Notify customers to uninstall v67.13.0 and install v67.12.1
+
+### Prevention
+
+To minimize rollback scenarios:
+- Test stable VSIXs thoroughly before publishing
+- Monitor telemetry/error reports closely after marketplace publish
+- Keep the baking period for customer validation
 
 ### Comparison: patch vs. normal release
 

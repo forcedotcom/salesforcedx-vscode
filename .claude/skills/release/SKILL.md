@@ -33,7 +33,7 @@ gh run view <runId> --repo forcedotcom/salesforcedx-vscode
 Decision matrix:
 
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
-- **Build failed** → check logs. Common issues: auto-detect found no promoted tag (wait for Wed promotion to complete), or build script error. Re-run manually:
+- **Build failed** → check logs. Common issues: auto-detect found no promoted tag (wait for daily 6 AM UTC promotion), or build script error. Re-run manually:
   ```sh
   gh workflow run buildReleaseFromPrerelease.yml --repo forcedotcom/salesforcedx-vscode
   ```
@@ -123,11 +123,10 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 
 ## Release timeline
 
-- **Daily 4 AM UTC** — nightly builds → pre-release
-- **Daily 6 AM UTC** — promote-prerelease.yml → promotes last night's nightly to pre-release (after E2E tests pass)
-- **Any day Mon** — ~24h baking (customer validation)
-- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → builds stable release from promoted nightly
-- **After test approval** — publishVSCode.yml → marketplace (Microsoft + Open VSX)
+- **Daily 4 AM UTC** — nightly.yml → all extensions as prerelease
+- **Daily 6 AM UTC** — promote-prerelease.yml → promotes last night's nightly + passing E2E tests to prerelease; creates `marketplace-prerelease-*` tracking tag
+- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → auto-detects promoted tag via tracking tag, builds stable VSIXs from tested candidate
+- **After test approval** — publishVSCode.yml → detects release type, publishes to marketplaces (Microsoft + Open VSX)
 
 ## Emergency Patch Releases
 
@@ -147,7 +146,7 @@ Critical hotfixes bypass normal cycle.
 gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates `release-base/v67.12.x` from tag.
+Creates `release-base/v67.12.x` from tag; auto-copies latest version helper scripts from develop.
 
 **2. Apply fixes**
 
@@ -163,7 +162,7 @@ git push origin release-base/v67.12.x
 gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Auto-calculates patch version, tags, builds VSIX.
+Auto-calculates patch version (filters stable tags only, excludes nightly/prerelease), tags with `--target` to ensure exact commit, builds VSIX.
 
 **4. Test VSIX**
 
@@ -180,11 +179,11 @@ gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom
 
 **6. Cherry-pick to develop**
 
-Merge fixes back for future releases (commands in release notes).
+Merge fixes back for future releases. Release notes provide filtered cherry-pick commands (exclude version-bump commits).
 
 ```sh
 git checkout develop && git pull origin develop
-git cherry-pick <commit-sha>
+git cherry-pick <commit-sha>  # functional fixes only
 git push origin develop
 ```
 

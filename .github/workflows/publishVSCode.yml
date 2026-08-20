@@ -31,6 +31,7 @@ jobs:
     environment: publish
     outputs:
       RELEASE_TAG: ${{ steps.getReleaseTag.outputs.tag }}
+      IS_PRERELEASE: ${{ steps.detectReleaseType.outputs.is_prerelease }}
       CBW_RELEASE_VERSION: ${{ steps.cbwReleaseType.outputs.version }}
       CBW_RELEASE_TYPE: ${{ steps.cbwReleaseType.outputs.type }}
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild }}
@@ -47,6 +48,23 @@ jobs:
         run: |
           echo "tag=${INPUT_VERSION:-$RELEASE_TAG}" >> $GITHUB_OUTPUT
       - run: echo "Release tag is ${{ steps.getReleaseTag.outputs.tag }}"
+      - id: detectReleaseType
+        env:
+          RELEASE_TAG: ${{ steps.getReleaseTag.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Detect whether this is a prerelease or stable release
+          # When triggered by workflow_dispatch, query the GitHub release
+          # When triggered by release event, use event data
+          if [ "${{ github.event_name }}" = "release" ]; then
+            IS_PRERELEASE="${{ github.event.release.prerelease }}"
+          else
+            # Query the release to determine its type
+            IS_PRERELEASE=$(gh release view "$RELEASE_TAG" --json isPrerelease --jq '.isPrerelease')
+          fi
+
+          echo "is_prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+          echo "Release type: $([ "$IS_PRERELEASE" = "true" ] && echo "prerelease" || echo "stable")"
       - id: cbwReleaseType
         run: |
           VERSION="${{ steps.getReleaseTag.outputs.tag }}"
@@ -104,6 +122,8 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+      # TODO: Add pre-release input to upstream workflow
+      # pre-release: ${{ needs.prepare-release-metadata.outputs.IS_PRERELEASE }}
       dry-run: ${{ inputs.dry-run }}
     secrets: inherit
 

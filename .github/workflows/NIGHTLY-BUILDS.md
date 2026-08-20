@@ -23,7 +23,7 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` detects latest promoted prerelease tag (promoted daily at 6 AM UTC), builds release VSIXs. Manual trigger for on-demand:
+Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml daily 6 AM UTC after E2E tests pass), builds stable VSIXs from that tested candidate. Manual trigger for on-demand:
 
 ```bash
 # Auto-detect latest promoted prerelease
@@ -45,9 +45,24 @@ gh workflow run buildReleaseFromPrerelease.yml \
   -f releaseVersion="67.12.1"
 ```
 
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted nightly
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted prerelease via tracking tag
 
-Creates GitHub pre-release w/ VSIX + SHA256. Test, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
+**How it works:**
+- Queries `marketplace-prerelease-*` tracking tags (newest first)
+- Extracts version from tracking tag
+- Finds nightly tag with that version (points to tested candidate)
+- Creates isolated `release-staging/v{version}` branch from nightly tag
+- Commits version changes to isolated branch
+- Builds stable release from that branch
+
+Creates GitHub pre-release w/ VSIX + SHA256. Isolated branch prevents merge to develop. Test, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
+
+**After publish, delete isolated branch:**
+```bash
+git push origin --delete release-staging/v{version}
+```
+
+Do NOT cherry-pick the version-bump commit to develop.
 
 ## Extension Discovery
 
@@ -92,12 +107,14 @@ For critical hotfixes, use patch workflows instead of normal cycle.
 
 **Create patch branch:** [`create-patch-release-branch.yml`](./create-patch-release-branch.yml)
 - Creates `release-base/vX.Y.x` from existing release tag
+- Auto-copies + verifies version helper scripts from develop (old tags may lack them)
 - `gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0"`
 
 **Build patch:** [`build-patch-release.yml`](./build-patch-release.yml)
-- Tags and builds from release-base branch
+- Filters for stable tags only (excludes nightly/prerelease before sorting)
 - Auto-increments patch version (v67.12.0 → v67.12.1)
-- Creates GitHub pre-release with VSIX
+- Tags with `--target "$TAG"` to ensure release points to exact commit
+- Creates GitHub pre-release with VSIX + cherry-pick instructions (filters out version-bump commits)
 - `gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x"`
 
 ### Patch release flow

@@ -22,9 +22,12 @@ if (!prereleaseTag) {
 
 // Validate override version format if provided
 if (overrideVersion) {
-  const semverRegex = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+  // Accept both stable (X.Y.Z) and prerelease (X.Y.Z-prerelease) versions
+  // Prerelease examples: 67.12.0-beta.1, 67.12.0-rc.2, 67.13.0-alpha
+  const semverRegex = /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$/;
   if (!semverRegex.test(overrideVersion)) {
-    console.error(`Error: Invalid version format '${overrideVersion}'. Expected format: X.Y.Z (e.g., 67.12.0)`);
+    console.error(`Error: Invalid version format '${overrideVersion}'`);
+    console.error('Expected format: X.Y.Z or X.Y.Z-prerelease (e.g., 67.12.0 or 67.12.0-beta.1)');
     process.exit(1);
   }
   console.log(overrideVersion);

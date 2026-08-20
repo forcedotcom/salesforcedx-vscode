@@ -88,19 +88,41 @@ jobs:
             fi
 
           else
-            # Priority 3: Auto-detect latest promoted nightly tag
-            # Find latest nightly tag (promoted prereleases use this pattern)
-            # Sort by version, take most recent
-            TAG=$(git tag -l 'v*-nightly.develop.*' --sort=-v:refname | head -1)
+            # Priority 3: Auto-detect latest promoted prerelease via tracking tag
+            # The promote-prerelease workflow creates marketplace-prerelease-* tracking tags
+            # that point to the vetted Wednesday candidate commit
+            TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
 
-            if [ -z "$TAG" ]; then
-              echo "::error::No nightly prerelease tags found. Expected pattern: v*-nightly.develop.*"
+            if [ -z "$TRACKING_TAG" ]; then
+              echo "::error::No marketplace-prerelease tracking tags found"
+              echo "::error::Expected pattern: marketplace-prerelease-salesforcedx-vscode-v{version}"
               echo "::error::"
+              echo "::error::This means no nightly has been promoted to prerelease yet."
               echo "::error::💡 TIP: Use startFromRef input to build from a specific tag/branch/commit"
               exit 1
             fi
 
-            echo "Auto-detected latest nightly tag: $TAG"
+            # Extract the nightly tag from the tracking tag
+            # Tracking tag format: marketplace-prerelease-salesforcedx-vscode-v{version}
+            # We need to find the nightly tag with matching version
+            VERSION=$(echo "$TRACKING_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+
+            if [ -z "$VERSION" ]; then
+              echo "::error::Could not extract version from tracking tag: $TRACKING_TAG"
+              exit 1
+            fi
+
+            # Find the nightly tag with this version
+            TAG=$(git tag -l "v${VERSION}-nightly.develop.*" --sort=-v:refname | head -1)
+
+            if [ -z "$TAG" ]; then
+              echo "::error::No nightly tag found matching version $VERSION from tracking tag $TRACKING_TAG"
+              exit 1
+            fi
+
+            echo "Auto-detected promoted prerelease via tracking tag: $TRACKING_TAG"
+            echo "Resolved to nightly tag: $TAG"
+            echo "This is the Wednesday candidate that was promoted and tested"
           fi
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -130,10 +152,21 @@ jobs:
           echo "Generated checksums:"
           cat /tmp/release-scripts/checksums.txt
 
-      - name: Checkout prerelease tag
+      - name: Create isolated release branch
+        env:
+          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
         run: |
-          echo "Checking out prerelease tag: ${{ steps.detect-tag.outputs.tag }}"
-          git checkout "${{ steps.detect-tag.outputs.tag }}"
+          # Create an isolated branch from the source ref
+          # This branch will contain the release-only version commits
+          # and will NOT be merged back to develop
+          BRANCH_NAME="release-staging/v${RELEASE_VERSION}"
+
+          echo "Creating isolated release branch: $BRANCH_NAME"
+          echo "Source: $SOURCE_REF"
+
+          git checkout -b "$BRANCH_NAME" "$SOURCE_REF"
+          echo "✓ Created isolated branch at $(git rev-parse HEAD)"
 
       - name: Restore scripts
         run: |
@@ -165,6 +198,36 @@ jobs:
 
       - name: Update package versions
         run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+
+      - name: Commit release-only version changes
+        env:
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+        run: |
+          # Commit the version changes to the isolated branch
+          # This is a release-only commit that will NOT be merged to develop
+          git add packages/*/package.json package-lock.json
+
+          git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
+
+          This is a release-only version commit created on an isolated branch.
+          It should NOT be cherry-picked to develop.
+
+          Source: ${{ steps.detect-tag.outputs.tag }}"
+
+          echo "✓ Committed version changes at $(git rev-parse HEAD)"
+
+      - name: Create and push release tag
+        env:
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+        run: |
+          # Create the release tag at the current HEAD (version commit)
+          # This ensures the tag points to the exact commit with release versions
+          git tag "$RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+
+          echo "✓ Created and pushed tag: $RELEASE_TAG"
+          echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
 
       - name: Install dependencies with updated versions
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
@@ -208,6 +271,8 @@ jobs:
             echo ""
             echo "Built from promoted prerelease: \`$PRERELEASE_TAG\`"
             echo ""
+            echo "**⚠️ IMPORTANT:** This release was built on isolated branch \`release-staging/v${RELEASE_VERSION}\`"
+            echo ""
             echo "### Testing Required"
             echo ""
             echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
@@ -226,6 +291,15 @@ jobs:
             echo "gh release download $RELEASE_TAG"
             echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
             echo '```'
+            echo ""
+            echo "### After Publishing"
+            echo ""
+            echo "Delete the isolated release branch (it should NOT be merged to develop):"
+            echo '```bash'
+            echo "git push origin --delete release-staging/v${RELEASE_VERSION}"
+            echo '```'
+            echo ""
+            echo "Note: Only functional fixes should be cherry-picked to develop, NOT the version-bump commit."
           } > release_notes.md
 
           # Check if release already exists (for retry scenarios)
@@ -278,6 +352,8 @@ jobs:
           fi
 
           # Create pre-release first (without assets)
+          # Note: No --target needed here as we're on the checked-out commit
+          # The release will be created at the current HEAD which is the correct commit
           gh release create "$RELEASE_TAG" \
             --title "Release $RELEASE_VERSION - Ready for Testing" \
             --notes-file release_notes.md \

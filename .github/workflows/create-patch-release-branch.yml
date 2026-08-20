@@ -86,6 +86,30 @@ jobs:
 
           # Create release-base branch from tag
           git checkout -b "$BRANCH_NAME" "$BASE_TAG"
+
+          # Preserve current scripts from develop for version tooling
+          # Historical tags may not have update-release-versions.js or calculate-release-version.js
+          git checkout origin/develop -- scripts/calculate-release-version.js scripts/update-release-versions.js 2>/dev/null || {
+            echo "::warning::Could not restore version helper scripts from develop"
+            echo "::warning::Branch will use scripts from the base tag (may be outdated)"
+          }
+
+          # Commit the updated scripts if they changed
+          if ! git diff --quiet --cached; then
+            git commit -m "chore: update version helper scripts from develop
+
+          Historical release tags may not have the latest version tooling.
+          This commit brings in the current scripts for version management.
+
+          Scripts updated:
+          - scripts/calculate-release-version.js
+          - scripts/update-release-versions.js"
+
+            echo "✓ Updated version helper scripts from develop"
+          else
+            echo "✓ Version helper scripts are up-to-date"
+          fi
+
           git push origin "$BRANCH_NAME"
 
           echo "✅ Created branch: $BRANCH_NAME from tag $BASE_TAG"
