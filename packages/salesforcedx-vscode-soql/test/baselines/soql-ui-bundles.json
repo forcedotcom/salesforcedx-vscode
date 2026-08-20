@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "measurement": "Concatenate files in listed order and gzip the result at level 9.",
+  "artifacts": [
+    {
+      "name": "legacy builder application",
+      "files": ["src/soql-builder-ui/dist/app.js"],
+      "baseline": {
+        "rawBytes": 880931,
+        "gzipBytes": 231443
+      },
+      "budget": {
+        "rawBytes": 925000,
+        "gzipBytes": 242000
+      }
+    },
+    {
+      "name": "query-results first-party shell",
+      "files": [
+        "src/soql-data-view/index.html",
+        "src/soql-data-view/queryDataViewController.js",
+        "src/soql-data-view/queryDataView.css"
+      ],
+      "baseline": {
+        "rawBytes": 14293,
+        "gzipBytes": 4856
+      },
+      "budget": {
+        "rawBytes": 16000,
+        "gzipBytes": 5500
+      }
+    },
+    {
+      "name": "retained Tabulator vendor assets",
+      "files": ["src/soql-data-view/tabulator.min.js", "src/soql-data-view/tabulator.min.css"],
+      "baseline": {
+        "rawBytes": 377590,
+        "gzipBytes": 80815
+      },
+      "budget": {
+        "rawBytes": 378000,
+        "gzipBytes": 81000
+      }
+    }
+  ]
+}

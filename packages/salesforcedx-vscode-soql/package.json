@@ -84,6 +84,8 @@
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "test:query-results-ui": "wireit",
+    "test:ui-bundle-budgets": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
@@ -152,6 +154,35 @@
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
         "test/jest/soql-builder-ui/**"
+      ],
+      "output": []
+    },
+    "test:query-results-ui": {
+      "command": "jest --config jest.query-results.config.js --runInBand",
+      "files": [
+        "src/soql-data-view/index.html",
+        "src/soql-data-view/queryDataViewController.js",
+        "test/jest/queryDataView/queryDataViewController.test.ts",
+        "jest.query-results.config.js",
+        "../../config/jest.base.config.js",
+        "../../scripts/setup-jest.ts"
+      ],
+      "output": []
+    },
+    "test:ui-bundle-budgets": {
+      "command": "node scripts/check-ui-bundle-budgets.mjs",
+      "dependencies": [
+        "build:soql-builder-ui"
+      ],
+      "files": [
+        "scripts/check-ui-bundle-budgets.mjs",
+        "test/baselines/soql-ui-bundles.json",
+        "src/soql-builder-ui/dist/app.js",
+        "src/soql-data-view/index.html",
+        "src/soql-data-view/queryDataViewController.js",
+        "src/soql-data-view/queryDataView.css",
+        "src/soql-data-view/tabulator.min.js",
+        "src/soql-data-view/tabulator.min.css"
       ],
       "output": []
     },

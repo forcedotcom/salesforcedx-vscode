@@ -17,7 +17,7 @@
 
 import { createElement } from 'lwc';
 import WhereModifierGroup from 'querybuilder/whereModifierGroup';
-import { debounce } from 'debounce';
+import debounce from 'debounce';
 
 jest.mock('debounce');
 // @ts-ignore

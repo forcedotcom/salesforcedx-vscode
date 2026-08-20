@@ -24,6 +24,7 @@ describe('Header', () => {
   });
 
   it('emits a run event', () => {
+    header.isQueryValid = true;
     document.body.appendChild(header);
 
     const handler = jest.fn();
