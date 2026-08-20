@@ -1135,9 +1135,9 @@ describe('LwcTestController public run API', () => {
     expect(mockRun.passed).not.toHaveBeenCalledWith(item);
   });
 
-  it('preserves a case-level crash error when the fallback resolves without an exit code and partial results exist', async () => {
+  it('reports failed assertions instead of a crash when Jest exits with code 1 and writes valid results', async () => {
     const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
-    const testName = 'does not overwrite the crash error';
+    const testName = 'fails an assertion';
 
     const mockRun = {
       started: jest.fn(),
@@ -1242,11 +1242,12 @@ describe('LwcTestController public run API', () => {
       index: 0
     });
 
-    // Jest wrote a partial results file that would overwrite the case-level crash without the ancestor guard.
+    // Jest writes valid assertion results for ordinary test failures even though it exits with code 1.
     const EffectLib = jest.requireActual('effect/Effect');
     mockFsReadFile.mockImplementation(() =>
       EffectLib.succeed(
         JSON.stringify({
+          numRuntimeErrorTestSuites: 0,
           testResults: [
             {
               name: '/project/force-app/lwc/foo/__tests__/foo.test.js',
@@ -1256,7 +1257,7 @@ describe('LwcTestController public run API', () => {
                   title: testName,
                   ancestorTitles: ['outer', 'inner'],
                   status: 'failed',
-                  failureMessages: ['Generic Jest error that should NOT overwrite crash error']
+                  failureMessages: ['Expected true to be false']
                 }
               ]
             }
@@ -1265,7 +1266,11 @@ describe('LwcTestController public run API', () => {
       )
     );
 
-    vscodeMock.tasks.onDidEndTaskProcess = jest.fn(() => ({ dispose: jest.fn() }));
+    let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
+    vscodeMock.tasks.onDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
+      taskEndProcessCallback = cb;
+      return { dispose: jest.fn() };
+    });
 
     const capturedStackTrace =
       'ReferenceError: foo is not defined\n    at Object.<anonymous> (/project/force-app/lwc/foo/__tests__/foo.test.js:20:5)';
@@ -1284,7 +1289,10 @@ describe('LwcTestController public run API', () => {
         },
         execute: jest.fn().mockImplementation(function (this: any) {
           this.taskExecution = mockTaskExecution;
-          setImmediate(() => endCb?.());
+          setImmediate(() => {
+            taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 1 });
+            endCb?.();
+          });
           return Promise.resolve();
         }),
         terminate: jest.fn(),
@@ -1296,36 +1304,25 @@ describe('LwcTestController public run API', () => {
       };
     });
 
-    const timeoutSpy = jest.spyOn(globalThis, 'setTimeout').mockImplementation((callback: TimerHandler) => {
-      if (typeof callback === 'function') {
-        callback();
-      }
-      return undefined as unknown as ReturnType<typeof setTimeout>;
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const ctrl = getLwcTestController();
-      await ctrl.refresh();
+    await ctrl.runByExecutionInfo(
+      { kind: 'testCase' as const, testUri, testName, ancestorTitles: ['outer', 'inner'] },
+      false
+    );
 
-      await ctrl.runByExecutionInfo(
-        { kind: 'testCase' as const, testUri, testName, ancestorTitles: ['outer', 'inner'] },
-        false
-      );
-
-      expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 250);
-      const caseItem = expect.objectContaining({ id: expect.stringContaining(`::outer > inner > ${testName}`) });
-      expect(mockRun.errored).toHaveBeenCalledWith(
-        caseItem,
-        expect.objectContaining({ message: expect.stringContaining('ReferenceError: foo is not defined') })
-      );
-      expect(mockRun.failed).not.toHaveBeenCalledWith(caseItem, expect.anything());
-      expect(mockRun.passed).not.toHaveBeenCalledWith(caseItem);
-    } finally {
-      timeoutSpy.mockRestore();
-    }
+    const caseItem = expect.objectContaining({ id: expect.stringContaining(`::outer > inner > ${testName}`) });
+    expect(mockRun.failed).toHaveBeenCalledWith(
+      caseItem,
+      expect.objectContaining({ message: 'Expected true to be false' })
+    );
+    expect(mockRun.errored).not.toHaveBeenCalled();
+    const output = mockRun.appendOutput.mock.calls.flat().join('');
+    expect(output).not.toContain(capturedStackTrace);
   });
 
   it('runByExecutionInfo reveals Test Results panel when starting a run', async () => {
