@@ -24,7 +24,8 @@ import {
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 import {
   MessageType,
-  SoqlEditorEvent
+  type HostToUiSoqlEditorEvent,
+  type SoqlEditorEvent
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import {
   MessageService,
@@ -32,7 +33,7 @@ import {
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
 
 const makeTestMessageLayer = () => {
-  const listeners: Array<(e: SoqlEditorEvent) => void> = [];
+  const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
   const sendMessage = jest.fn();
   const service: IMessageService = {
     onMessage: cb => {
@@ -43,7 +44,7 @@ const makeTestMessageLayer = () => {
     setState: jest.fn(),
     getState: jest.fn()
   };
-  const emit = (event: SoqlEditorEvent) => listeners.forEach(l => l(event));
+  const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);
   return { layer, emit, sendMessage };
 };
@@ -63,16 +64,19 @@ class TestApp extends App {
 
 describe('App should', () => {
   let app: TestApp;
-  let emitMessage: (e: SoqlEditorEvent) => void;
+  let emitMessage: (e: HostToUiSoqlEditorEvent) => void;
   let sendMessage: jest.Mock;
   const accountQuery = 'SELECT Id FROM Account';
-  const soqlEditorEvent: SoqlEditorEvent = { type: MessageType.TEXT_SOQL_CHANGED, payload: accountQuery };
+  const soqlEditorEvent: HostToUiSoqlEditorEvent = {
+    type: MessageType.TEXT_SOQL_CHANGED,
+    payload: accountQuery
+  };
   const querybuilderFromSelector = 'querybuilder-from';
 
   const createSoqlEditorEvent = (
     queryOverride = accountQuery,
-    eventOverride?: Partial<SoqlEditorEvent>
-  ): SoqlEditorEvent => ({
+    eventOverride?: Partial<HostToUiSoqlEditorEvent>
+  ): HostToUiSoqlEditorEvent => ({
     ...soqlEditorEvent,
     ...eventOverride,
     payload: queryOverride

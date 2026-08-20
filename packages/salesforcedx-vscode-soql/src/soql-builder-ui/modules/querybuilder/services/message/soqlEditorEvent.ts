@@ -46,25 +46,63 @@ export type SObjectMetadata = typeof SObjectMetadataSchema.Type;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
-export const SoqlEditorEventSchema = Schema.Union(
-  eventWithoutPayload(MessageType.UI_ACTIVATED),
-  eventWithoutPayload(MessageType.SOBJECTS_REQUEST),
-  eventWithoutPayload(MessageType.RUN_SOQL_QUERY),
-  eventWithoutPayload(MessageType.CONNECTION_CHANGED),
-  eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE),
-  eventWithoutPayload(MessageType.NO_DEFAULT_ORG),
-  eventWithoutPayload(MessageType.GET_QUERY_PLAN),
-  eventWithoutPayload(MessageType.GET_QUERY_PLAN_DONE),
-  eventWithoutPayload(MessageType.SET_DEFAULT_ORG),
-  Schema.Struct({ type: Schema.Literal(MessageType.UI_SOQL_CHANGED), payload: Schema.String }),
-  Schema.Struct({
-    type: Schema.Literal(MessageType.UI_TELEMETRY),
-    payload: Schema.Record({ key: Schema.String, value: Schema.Unknown })
-  }),
-  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST), payload: Schema.String }),
-  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE), payload: SObjectMetadataSchema }),
-  Schema.Struct({ type: Schema.Literal(MessageType.SOBJECTS_RESPONSE), payload: Schema.Array(Schema.String) }),
-  Schema.Struct({ type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED), payload: Schema.String })
+const UiActivatedEventSchema = eventWithoutPayload(MessageType.UI_ACTIVATED);
+const SObjectsRequestEventSchema = eventWithoutPayload(MessageType.SOBJECTS_REQUEST);
+const RunSoqlQueryEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY);
+const RunSoqlQueryDoneEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE);
+const ConnectionChangedEventSchema = eventWithoutPayload(MessageType.CONNECTION_CHANGED);
+const NoDefaultOrgEventSchema = eventWithoutPayload(MessageType.NO_DEFAULT_ORG);
+const GetQueryPlanEventSchema = eventWithoutPayload(MessageType.GET_QUERY_PLAN);
+const GetQueryPlanDoneEventSchema = eventWithoutPayload(MessageType.GET_QUERY_PLAN_DONE);
+const SetDefaultOrgEventSchema = eventWithoutPayload(MessageType.SET_DEFAULT_ORG);
+const UiSoqlChangedEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.UI_SOQL_CHANGED),
+  payload: Schema.String
+});
+const UiTelemetryEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.UI_TELEMETRY),
+  payload: Schema.Record({ key: Schema.String, value: Schema.Unknown })
+});
+const SObjectMetadataRequestEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST),
+  payload: Schema.String
+});
+const SObjectMetadataResponseEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
+  payload: SObjectMetadataSchema
+});
+const SObjectsResponseEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.SOBJECTS_RESPONSE),
+  payload: Schema.Array(Schema.String)
+});
+const TextSoqlChangedEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED),
+  payload: Schema.String
+});
+
+export const UiToHostSoqlEditorEventSchema = Schema.Union(
+  UiActivatedEventSchema,
+  SObjectsRequestEventSchema,
+  RunSoqlQueryEventSchema,
+  GetQueryPlanEventSchema,
+  SetDefaultOrgEventSchema,
+  UiSoqlChangedEventSchema,
+  UiTelemetryEventSchema,
+  SObjectMetadataRequestEventSchema
 );
 
-export type SoqlEditorEvent = typeof SoqlEditorEventSchema.Type;
+export type UiToHostSoqlEditorEvent = typeof UiToHostSoqlEditorEventSchema.Type;
+
+export const HostToUiSoqlEditorEventSchema = Schema.Union(
+  SObjectMetadataResponseEventSchema,
+  SObjectsResponseEventSchema,
+  TextSoqlChangedEventSchema,
+  ConnectionChangedEventSchema,
+  NoDefaultOrgEventSchema,
+  RunSoqlQueryDoneEventSchema,
+  GetQueryPlanDoneEventSchema
+);
+
+export type HostToUiSoqlEditorEvent = typeof HostToUiSoqlEditorEventSchema.Type;
+
+export type SoqlEditorEvent = UiToHostSoqlEditorEvent | HostToUiSoqlEditorEvent;

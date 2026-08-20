@@ -14,11 +14,11 @@ import {
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
 import {
   MessageType,
-  SoqlEditorEvent
+  type HostToUiSoqlEditorEvent
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 const makeTestMessageLayer = () => {
-  const listeners: Array<(e: SoqlEditorEvent) => void> = [];
+  const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
   const sendMessage = jest.fn();
   const service: IMessageService = {
     onMessage: cb => {
@@ -29,7 +29,7 @@ const makeTestMessageLayer = () => {
     setState: jest.fn(),
     getState: jest.fn()
   };
-  const emit = (event: SoqlEditorEvent) => listeners.forEach(l => l(event));
+  const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);
   return { layer, emit, sendMessage };
 };

@@ -10,21 +10,28 @@ import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import { getVscode } from '../globals';
 import { MessageService, IMessageService } from './iMessageService';
-import { MessageType, SoqlEditorEventSchema, type SoqlEditorEvent } from './soqlEditorEvent';
+import {
+  HostToUiSoqlEditorEventSchema,
+  MessageType,
+  UiToHostSoqlEditorEventSchema,
+  type HostToUiSoqlEditorEvent,
+  type UiToHostSoqlEditorEvent
+} from './soqlEditorEvent';
 
 export type VscodeMessageService = IMessageService & {
   readonly dispose: () => void;
 };
 
-const isSoqlEditorEvent = Schema.is(SoqlEditorEventSchema);
+const isHostToUiSoqlEditorEvent = Schema.is(HostToUiSoqlEditorEventSchema);
+const isUiToHostSoqlEditorEvent = Schema.is(UiToHostSoqlEditorEventSchema);
 
 export const makeVscodeMessageService = (): VscodeMessageService => {
   const vscode = getVscode();
-  const listeners: ((event: SoqlEditorEvent) => void)[] = [];
+  const listeners: ((event: HostToUiSoqlEditorEvent) => void)[] = [];
 
   const handleWindowMessage = (e: MessageEvent): void => {
     const data: unknown = e.data;
-    if (isSoqlEditorEvent(data)) {
+    if (isHostToUiSoqlEditorEvent(data)) {
       listeners.forEach(listener => listener(data));
     }
   };
@@ -32,7 +39,7 @@ export const makeVscodeMessageService = (): VscodeMessageService => {
 
   vscode.postMessage({ type: MessageType.UI_ACTIVATED });
 
-  const onMessage = (listener: (event: SoqlEditorEvent) => void): (() => void) => {
+  const onMessage = (listener: (event: HostToUiSoqlEditorEvent) => void): (() => void) => {
     listeners.push(listener);
     return () => {
       const index = listeners.indexOf(listener);
@@ -40,8 +47,8 @@ export const makeVscodeMessageService = (): VscodeMessageService => {
     };
   };
 
-  const sendMessage = (event: SoqlEditorEvent): void => {
-    vscode.postMessage(event);
+  const sendMessage = (event: UiToHostSoqlEditorEvent): void => {
+    if (isUiToHostSoqlEditorEvent(event)) vscode.postMessage(event);
   };
 
   const setState = (state: unknown): void => {

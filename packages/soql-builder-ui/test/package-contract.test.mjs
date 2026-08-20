@@ -23,7 +23,10 @@ test('source stays browser-safe and presentation stays Effect-runtime-free', asy
   const sourceFiles = (await readdir(sourceRoot, { recursive: true })).filter(file => file.endsWith('.ts'));
   const sources = await Promise.all(sourceFiles.map(file => readFile(new URL(file, sourceRoot), 'utf8')));
   const allSource = sources.join('\n');
-  const presentationSource = await readFile(new URL('../src/components/soqlBuilderApp.ts', import.meta.url), 'utf8');
+  const presentationSource = await readFile(
+    new URL('../src/components/soqlBuilderElement.ts', import.meta.url),
+    'utf8'
+  );
 
   assert.doesNotMatch(allSource, /from\s+['"](?:vscode|jsforce|salesforcedx-vscode-services)(?:\/[^'"]*)?['"]/u);
   assert.doesNotMatch(presentationSource, /ManagedRuntime|Effect\.(?:runFork|runPromise|runSync)/u);

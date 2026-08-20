@@ -10,10 +10,10 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { AndOr } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { MessageService } from './message/iMessageService';
-import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
+import { MessageType, type HostToUiSoqlEditorEvent } from './message/soqlEditorEvent';
 import { ToolingModelJson, ModelProps } from './model';
 import { createQueryTelemetry } from './telemetryUtils';
 
@@ -76,7 +76,7 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       sendMessageToBackend(newSoqlQuery);
     };
 
-    messageService.onMessage((event: SoqlEditorEvent): void => {
+    messageService.onMessage((event: HostToUiSoqlEditorEvent): void => {
       if (event && event.type === MessageType.TEXT_SOQL_CHANGED) {
         const originalSoqlStatement = event.payload as string;
         const soqlJSModel = convertSoqlToUiModel(originalSoqlStatement);

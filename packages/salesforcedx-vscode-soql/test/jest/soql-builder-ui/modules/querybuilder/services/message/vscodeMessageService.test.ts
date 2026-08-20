@@ -72,6 +72,14 @@ describe('VscodeMessageService', () => {
     expect(listener).toHaveBeenCalledTimes(0);
   });
 
+  it('does not publish UI-to-host messages to host-message listeners', () => {
+    const messageEvent = new MessageEvent(messageType, {
+      data: { type: MessageType.UI_ACTIVATED }
+    });
+    window.dispatchEvent(messageEvent);
+    expect(listener).toHaveBeenCalledTimes(0);
+  });
+
   it('removes its window listener when disposed', () => {
     vscodeMessageService.dispose();
     window.dispatchEvent(new MessageEvent(messageType, postMessagePayload()));

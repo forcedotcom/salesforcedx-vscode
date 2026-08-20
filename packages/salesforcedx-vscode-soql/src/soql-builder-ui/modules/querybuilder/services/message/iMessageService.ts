@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { HostToUiSoqlEditorEvent, UiToHostSoqlEditorEvent } from './soqlEditorEvent';
 import * as Context from 'effect/Context';
-import { SoqlEditorEvent } from './soqlEditorEvent';
 
 export type IMessageService = {
-  onMessage(listener: (event: SoqlEditorEvent) => void): () => void;
-  sendMessage(message: SoqlEditorEvent): void;
+  onMessage(listener: (event: HostToUiSoqlEditorEvent) => void): () => void;
+  sendMessage(message: UiToHostSoqlEditorEvent): void;
   setState(state: unknown): void;
   getState(): unknown;
 };

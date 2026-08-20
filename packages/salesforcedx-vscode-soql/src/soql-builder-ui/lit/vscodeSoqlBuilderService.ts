@@ -31,10 +31,22 @@ import {
 } from '../modules/querybuilder/services/message/iMessageService';
 import {
   MessageType,
-  type SoqlEditorEvent
+  type HostToUiSoqlEditorEvent
 } from '../modules/querybuilder/services/message/soqlEditorEvent';
 
 type ServiceOperation = ServiceError['operation'];
+
+type DeferredSoqlBuilderHostEvent = Extract<
+  HostToUiSoqlEditorEvent,
+  { readonly type: typeof MessageType.RUN_SOQL_QUERY_DONE | typeof MessageType.GET_QUERY_PLAN_DONE }
+>;
+
+type SoqlBuilderHostToUiEvent = Exclude<HostToUiSoqlEditorEvent, DeferredSoqlBuilderHostEvent>;
+
+const isSoqlBuilderHostToUiEvent = (
+  event: HostToUiSoqlEditorEvent
+): event is SoqlBuilderHostToUiEvent =>
+  event.type !== MessageType.RUN_SOQL_QUERY_DONE && event.type !== MessageType.GET_QUERY_PLAN_DONE;
 
 const toServiceError = (operation: ServiceOperation, error: unknown): ServiceError =>
   new SoqlBuilderServiceError({
@@ -130,10 +142,10 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const messageService = yield* MessageService;
   const savedState = yield* decodeSavedState(messageService.getState()).pipe(Effect.orElseSucceed(createInitialSoqlBuilderState));
   const state = yield* SubscriptionRef.make(savedState);
-  const messages = yield* Queue.unbounded<SoqlEditorEvent>();
+  const messages = yield* Queue.unbounded<SoqlBuilderHostToUiEvent>();
   const errors = yield* PubSub.unbounded<ServiceError>();
   const removeMessageListener = messageService.onMessage(event => {
-    messages.unsafeOffer(event);
+    if (isSoqlBuilderHostToUiEvent(event)) messages.unsafeOffer(event);
   });
   yield* Effect.addFinalizer(() =>
     Effect.sync(removeMessageListener).pipe(
@@ -150,7 +162,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const setQuery = (query: SoqlBuilderState['query']) =>
     SubscriptionRef.update(state, current => ({ ...current, query }));
 
-  const handleMessage = Match.type<SoqlEditorEvent>().pipe(
+  const handleMessage = Match.type<SoqlBuilderHostToUiEvent>().pipe(
     Match.discriminatorsExhaustive('type')({
       [MessageType.SOBJECTS_RESPONSE]: event =>
         Effect.gen(function* () {
@@ -180,17 +192,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
               messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST })
             )
           )
-        ),
-      [MessageType.UI_ACTIVATED]: () => Effect.void,
-      [MessageType.UI_SOQL_CHANGED]: () => Effect.void,
-      [MessageType.UI_TELEMETRY]: () => Effect.void,
-      [MessageType.SOBJECT_METADATA_REQUEST]: () => Effect.void,
-      [MessageType.SOBJECTS_REQUEST]: () => Effect.void,
-      [MessageType.RUN_SOQL_QUERY]: () => Effect.void,
-      [MessageType.RUN_SOQL_QUERY_DONE]: () => Effect.void,
-      [MessageType.GET_QUERY_PLAN]: () => Effect.void,
-      [MessageType.GET_QUERY_PLAN_DONE]: () => Effect.void,
-      [MessageType.SET_DEFAULT_ORG]: () => Effect.void
+        )
     })
   );
 

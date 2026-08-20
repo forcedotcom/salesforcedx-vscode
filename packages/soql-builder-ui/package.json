@@ -15,9 +15,9 @@
       "types": "./out/src/application.d.ts",
       "default": "./out/src/application.js"
     },
-    "./components/soqlBuilderApp": {
-      "types": "./out/src/components/soqlBuilderApp.d.ts",
-      "default": "./out/src/components/soqlBuilderApp.js"
+    "./components/soqlBuilderElement": {
+      "types": "./out/src/components/soqlBuilderElement.d.ts",
+      "default": "./out/src/components/soqlBuilderElement.js"
     },
     "./domain": {
       "types": "./out/src/domain.d.ts",
@@ -32,7 +32,6 @@
       "default": "./out/src/effect/soqlBuilderService.js"
     }
   },
-  "sideEffects": true,
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "compile": "wireit",
@@ -114,7 +113,7 @@
     }
   },
   "dependencies": {
-    "@vscode-elements/elements": "2.5.1",
+    "@vscode-elements/elements": "^2.5.1",
     "effect": "^3.21.2",
     "lit": "3.3.3"
   }

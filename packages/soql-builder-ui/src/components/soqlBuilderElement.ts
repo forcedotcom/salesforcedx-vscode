@@ -8,13 +8,14 @@
 import { VscodeMultiSelect } from '@vscode-elements/elements/dist/vscode-multi-select/index.js';
 import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
 import '@vscode-elements/elements/dist/vscode-option/index.js';
-import { css, html, LitElement, nothing } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import {
   SOQL_BUILDER_ACTION_EVENT,
   createInitialSoqlBuilderState,
   type SoqlBuilderAction,
   type SoqlBuilderState
 } from '../domain.js';
+import { soqlBuilderElementStyles } from './soqlBuilderElement.styles.js';
 
 export type SoqlBuilderLabels = {
   readonly fields: string;
@@ -22,14 +23,6 @@ export type SoqlBuilderLabels = {
   readonly inputs: string;
   readonly noDefaultOrg: string;
   readonly query: string;
-};
-
-export const defaultSoqlBuilderLabels: SoqlBuilderLabels = {
-  fields: 'Fields',
-  from: 'From',
-  inputs: 'SOQL query inputs',
-  noDefaultOrg: 'SOQL Builder requires a default org. Set a default org before using the builder.',
-  query: 'SOQL Query'
 };
 
 export type SoqlBuilderLifecycle = {
@@ -47,79 +40,13 @@ export class SoqlBuilderActionEvent extends CustomEvent<SoqlBuilderAction> {
   }
 }
 
-export class SoqlBuilderApp extends LitElement {
+export class SoqlBuilderElement extends LitElement {
   public static properties = {
     labels: { attribute: false },
     viewState: { attribute: false }
   };
 
-  public static styles = css`
-    :host {
-      display: block;
-      max-width: 960px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    .content {
-      display: grid;
-      gap: 24px;
-      grid-template-columns: minmax(360px, 1fr) minmax(300px, 1fr);
-    }
-
-    .form {
-      display: grid;
-      gap: 16px;
-    }
-
-    .control {
-      display: grid;
-      gap: 6px;
-      grid-template-columns: 72px minmax(0, 1fr);
-    }
-
-    label,
-    .preview-title {
-      font-weight: 600;
-      padding-top: 4px;
-    }
-
-    vscode-single-select,
-    vscode-multi-select {
-      width: 100%;
-    }
-
-    .preview {
-      min-width: 0;
-    }
-
-    pre {
-      background: var(--vscode-textCodeBlock-background, rgba(10, 10, 10, 0.4));
-      border: 1px solid var(--vscode-widget-border, transparent);
-      color: var(--vscode-editor-foreground, inherit);
-      font-family: var(--vscode-editor-font-family, monospace);
-      margin: 6px 0 0;
-      min-height: 76px;
-      overflow: auto;
-      padding: 12px;
-      white-space: pre-wrap;
-    }
-
-    .warning {
-      background: var(--vscode-inputValidation-warningBackground, #352a05);
-      border: 1px solid var(--vscode-inputValidation-warningBorder, #b89500);
-      color: var(--vscode-inputValidation-warningForeground, inherit);
-      padding: 10px;
-    }
-
-    @media (max-width: 750px) {
-      .content {
-        grid-template-columns: 1fr;
-      }
-    }
-  `;
+  public static styles = soqlBuilderElementStyles;
 
   declare public labels: SoqlBuilderLabels;
   public lifecycle: SoqlBuilderLifecycle | undefined;
@@ -127,7 +54,6 @@ export class SoqlBuilderApp extends LitElement {
 
   constructor() {
     super();
-    this.labels = defaultSoqlBuilderLabels;
     this.viewState = createInitialSoqlBuilderState();
   }
 
@@ -224,6 +150,6 @@ declare global {
   }
 
   interface HTMLElementTagNameMap {
-    'soql-builder-app': SoqlBuilderApp;
+    'soql-builder-app': SoqlBuilderElement;
   }
 }

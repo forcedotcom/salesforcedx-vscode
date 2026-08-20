@@ -5,12 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SoqlBuilderApp } from './components/soqlBuilderApp.js';
+import { SoqlBuilderElement } from './components/soqlBuilderElement.js';
 
 export const registerSoqlBuilderElements = (): void => {
   if (!customElements.get('soql-builder-app')) {
-    customElements.define('soql-builder-app', SoqlBuilderApp);
+    customElements.define('soql-builder-app', SoqlBuilderElement);
   }
 };
-
-registerSoqlBuilderElements();

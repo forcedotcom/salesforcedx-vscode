@@ -20,11 +20,11 @@ import {
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
 import {
   MessageType,
-  SoqlEditorEvent
+  type HostToUiSoqlEditorEvent
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 const makeTestMessageLayer = () => {
-  const listeners: Array<(e: SoqlEditorEvent) => void> = [];
+  const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
   const sendMessage = jest.fn();
   const setState = jest.fn();
   const getState = jest.fn();
@@ -37,7 +37,7 @@ const makeTestMessageLayer = () => {
     setState,
     getState
   };
-  const emit = (event: SoqlEditorEvent) => listeners.forEach(l => l(event));
+  const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);
   return { layer, emit, sendMessage, setState, getState };
 };
@@ -71,7 +71,7 @@ describe('Tooling Model Service', () => {
   });
   const jimmyQuery = 'SELECT Hey, Joe from JimmyHendrixCatalog';
   const accountQuery = 'SELECT Id from Account';
-  const soqlEditorEvent: SoqlEditorEvent = {
+  const soqlEditorEvent: HostToUiSoqlEditorEvent = {
     type: MessageType.TEXT_SOQL_CHANGED,
     payload: accountQuery
   };

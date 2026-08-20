@@ -6,10 +6,7 @@
  */
 
 import { SoqlBuilderApplication } from '@salesforce/soql-builder-ui/application';
-import {
-  SoqlBuilderApp,
-  defaultSoqlBuilderLabels
-} from '@salesforce/soql-builder-ui/components/soqlBuilderApp';
+import { SoqlBuilderElement } from '@salesforce/soql-builder-ui/components/soqlBuilderElement';
 import { registerSoqlBuilderElements } from '@salesforce/soql-builder-ui/register';
 import * as Layer from 'effect/Layer';
 import { messages } from '../modules/querybuilder/messages/i18n';
@@ -21,11 +18,11 @@ registerSoqlBuilderElements();
 const serviceLayer = VscodeSoqlBuilderServiceLive.pipe(Layer.provide(VscodeMessageServiceLive));
 
 const main = document.querySelector('#main') ?? document.body.appendChild(document.createElement('main'));
-const app = new SoqlBuilderApp();
+const app = new SoqlBuilderElement();
 app.labels = {
-  ...defaultSoqlBuilderLabels,
   fields: messages.label_fields,
   from: messages.label_from,
+  inputs: messages.label_soql_query_inputs,
   noDefaultOrg: messages.label_no_default_org,
   query: messages.label_soql_query
 };
