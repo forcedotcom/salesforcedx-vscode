@@ -43,7 +43,7 @@
     "@salesforce/core": "^9.0.0",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/source-deploy-retrieve": "^13.0.0",
+    "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
     "@salesforce/templates": "^66.13.8",
     "@salesforce/vscode-i18n": "*",
