@@ -231,12 +231,12 @@ const findMatchingSourceFile = async (source: string): Promise<SourceMatch | und
         if (result._tag !== 'Some') {
           continue;
         }
-        const fileLines = result.value.split(/\r?\n/);
         // Exact match (whole file is the source, e.g. a .apex file)
         if (result.value.trimEnd() === source.trimEnd()) {
           return { filePath: candidate.fsPath, lineOffset: 0 };
         }
         // Subsequence match: find sourceLines as a contiguous block within fileLines
+        const fileLines = result.value.split(/\r?\n/);
         if (sourceLines.length < fileLines.length) {
           for (let i = 0; i <= fileLines.length - sourceLines.length; i++) {
             if (sourceLines.every((line, j) => fileLines[i + j].trim() === line.trim())) {
