@@ -24,7 +24,7 @@
 
 - We fixed a bug where the Org Browser's **Retrieve Metadata**, **Org Browser: Refresh Type**, and **Org Browser: Collapse All** commands appeared in the command palette even outside a Salesforce project. ([PR #7987](https://github.com/forcedotcom/salesforcedx-vscode/pull/7987))
 
-- We fixed a bug where the **Org Browser** showed no values for the **StandardValueSet** metadata type. It now populates the list from `@salesforce/source-deploy-retrieve` instead of querying the org. ([PR #8006](https://github.com/forcedotcom/salesforcedx-vscode/pull/8006))
+- We fixed a bug where the **Org Browser** showed no values for the **StandardValueSet** metadata type. It now populates the list from `@salesforce/source-deploy-retrieve` instead of querying the org. ([PR #8006](https://github.com/forcedotcom/salesforcedx-vscode/pull/8006), [ISSUE #7974](https://github.com/forcedotcom/salesforcedx-vscode/issues/7974))
 
 #### salesforcedx-vscode-services
 
