@@ -124,9 +124,9 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 ## Release timeline
 
 - **Daily 4 AM UTC** — nightly builds → pre-release
-- **Wed 7 AM UTC** — promote-prerelease.yml → nightly tag ≥7 days old to pre-release (customer testing begins)
-- **Wed–Mon** — ~5-day baking (customer validation)
-- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → builds stable release from Wed pre-release
+- **Daily 6 AM UTC** — promote-prerelease.yml → promotes last night's nightly to pre-release (after E2E tests pass)
+- **Any day Mon** — ~24h baking (customer validation)
+- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → builds stable release from promoted nightly
 - **After test approval** — publishVSCode.yml → marketplace (Microsoft + Open VSX)
 
 ## Emergency Patch Releases

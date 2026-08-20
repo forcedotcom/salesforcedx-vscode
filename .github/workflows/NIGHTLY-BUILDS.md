@@ -23,7 +23,7 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` detects latest promoted tag, builds release VSIXs. Manual trigger for on-demand:
+Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` detects latest promoted prerelease tag (promoted daily at 6 AM UTC), builds release VSIXs. Manual trigger for on-demand:
 
 ```bash
 # Auto-detect latest promoted prerelease

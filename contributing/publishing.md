@@ -66,18 +66,18 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 **Nightly builds:** `nightly.yml` → all extensions to pre-release daily (4 AM UTC) + on-demand. Auto-discovers via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
 
-**Wed pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC) → nightly tags ≥7 days old + passing CI to pre-release. Enables 5+ days customer testing.
+**Daily pre-release promotion:** `promote-prerelease.yml` (daily 6 AM UTC, 2h after nightly) → promotes last night's nightly tag + passing E2E tests to pre-release immediately. Can patch if issues arise.
 
-**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted Wed tag, builds stable VSIXs (5-day baking). Release engineer approves + publishes.
+**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted tag, builds stable VSIXs. Release engineer approves + publishes.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds).
 
 ## Publishing to Marketplace
 
-### Standard Path: Nightly → Wed Pre-release → Mon Stable → Marketplace
+### Standard Path: Nightly → Daily Pre-release → Mon Stable → Marketplace
 
-1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes nightly tag ≥7 days old + passing CI to pre-release (customer testing begins)
-2. **Wed–Mon:** ~5 days baking (customer validation)
+1. **Daily 6 AM UTC:** `promote-prerelease.yml` auto-runs → promotes last night's nightly + passing E2E tests to pre-release immediately
+2. **Any day Mon:** ~24h baking (customer validation)
 3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects promoted tag, builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
 5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
