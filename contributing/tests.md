@@ -64,6 +64,7 @@ Best Practices around the mocked vscode modules.
 - If you find a property that is not currently available in the mock please add it.
 - The mocked module should only mock the high level properties. Resolving/returning values should be left to the individual test suite setup so that we can avoid having to adhere to particular behavior across tests.
 - Be aware that the mock call is only executed once during test execution and then resolves for all imports executed during the test run. Individual mocked properties on the module are reset after each test.
+- Use proper VS Code types when creating mock objects (e.g., `vscode.TaskExecution`, `vscode.TaskProcessEndEvent`). This ensures type safety and prevents `any` types from hiding issues. Cast mock properties using `as` where needed (e.g., `task: {} as vscode.Task`).
 
 #### Singleton Test Isolation
 
@@ -80,9 +81,9 @@ describe('my singleton tests', () => {
 
 This ensures each test gets a fresh singleton bound to its own mocks.
 
-**URI Normalization:** Test controllers may normalize URIs to handle platform-specific paths. LWC test controller strips `/private` prefix on macOS (via `normalizeJestFsPath`) to match discovery keying, preventing test runs from targeting detached tree items. When testing URI resolution, supply paths matching both symlinks and realpaths.
+**URI Normalization:** Test controllers normalize URIs for platform-specific paths. LWC test controller on macOS (via `normalizeJestFsPath`): strips `/private` prefix (symlink resolution); normalizes `/users/` → `/Users/` case. Matches discovery keying, prevents test runs targeting detached tree items. When testing URI resolution, supply paths matching both symlinks and realpaths.
 
-**Test Results Panel Auto-Reveal:** LWC test controller auto-reveals the Test Results panel when running tests from command palette, editor code lenses, or editor-title buttons (via `runByExecutionInfo`). Native Test Explorer run-profile clicks call `runTests` directly and don't trigger reveal. Test the feature by mocking `vscode.commands.executeCommand` and verifying it receives `'workbench.panel.testResults.view.focus'`.
+**Test Results Panel Auto-Reveal:** LWC test controller auto-reveals panel when running tests from command palette, code lenses, or editor-title buttons (via `runByExecutionInfo`). Native Test Explorer run-profile clicks call `runTests` directly, don't trigger reveal. Test by mocking `vscode.commands.executeCommand`, verify it receives `'workbench.panel.testResults.view.focus'`.
 
 **Native Test Controller Assertions:** E2E tests verify native surfaces:
 - Test Results panel displays Pass Rate text after runs
