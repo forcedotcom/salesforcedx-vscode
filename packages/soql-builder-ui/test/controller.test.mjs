@@ -6,7 +6,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
-import { createInitialSoqlBuilderState } from '../out/src/domain.js';
+import { SoqlBuilderServiceError, createInitialSoqlBuilderState } from '../out/src/domain.js';
 import { SoqlBuilderController, SoqlBuilderControllerLive } from '../out/src/effect/soqlBuilderController.js';
 import { makeFakeSoqlBuilderService } from '../out/src/testing/fakeSoqlBuilderService.js';
 
@@ -46,4 +46,29 @@ test('the scoped controller streams service state and records actions determinis
     ['', 'Account']
   );
   assert.deepEqual(result.actions, [{ _tag: 'ObjectSelected', objectName: 'Account' }]);
+});
+
+test('the fake service propagates typed failures through controller state', async () => {
+  const initialState = createInitialSoqlBuilderState();
+  const states = await Effect.runPromise(
+    Effect.gen(function* () {
+      const fake = yield* makeFakeSoqlBuilderService(initialState);
+      const controllerLayer = SoqlBuilderControllerLive.pipe(Layer.provide(fake.layer));
+
+      return yield* Effect.gen(function* () {
+        const controller = yield* SoqlBuilderController;
+        const stateFiber = yield* controller.states.pipe(Stream.take(2), Stream.runCollect, Effect.fork);
+        yield* Effect.sleep(Duration.millis(10));
+        yield* fake.fail(
+          new SoqlBuilderServiceError({
+            details: 'metadata subscription failed',
+            operation: 'subscribe'
+          })
+        );
+        return Chunk.toReadonlyArray(yield* Fiber.join(stateFiber));
+      }).pipe(Effect.provide(controllerLayer), Effect.scoped);
+    })
+  );
+
+  assert.equal(states.at(-1)?.errorMessage, 'metadata subscription failed');
 });

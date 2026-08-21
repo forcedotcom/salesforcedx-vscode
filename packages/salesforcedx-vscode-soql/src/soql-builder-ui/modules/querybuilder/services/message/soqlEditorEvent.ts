@@ -28,26 +28,56 @@ export const MessageType = {
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 const SObjectFieldSchema = Schema.Struct({
+  aggregatable: Schema.Boolean,
+  custom: Schema.Boolean,
+  defaultValue: Schema.NullOr(Schema.Unknown),
+  extraTypeInfo: Schema.NullOr(Schema.String),
+  filterable: Schema.Boolean,
+  groupable: Schema.Boolean,
+  inlineHelpText: Schema.NullOr(Schema.String),
+  label: Schema.String,
+  length: Schema.optional(Schema.Number),
   name: Schema.String,
-  type: Schema.String,
   nillable: Schema.Boolean,
-  picklistValues: Schema.optional(Schema.NullOr(Schema.Array(Schema.Unknown))),
-  filterable: Schema.optional(Schema.Boolean),
-  groupable: Schema.optional(Schema.Boolean),
-  label: Schema.optional(Schema.String),
-  sortable: Schema.optional(Schema.Boolean)
+  picklistValues: Schema.Array(
+    Schema.Struct({
+      active: Schema.Boolean,
+      label: Schema.NullOr(Schema.String),
+      value: Schema.String
+    })
+  ),
+  precision: Schema.optional(Schema.Number),
+  referenceTo: Schema.Array(Schema.String),
+  relationshipName: Schema.NullOr(Schema.String),
+  scale: Schema.optional(Schema.Number),
+  sortable: Schema.Boolean,
+  type: Schema.String
 });
 
 const SObjectMetadataSchema = Schema.Struct({
+  name: Schema.String,
+  label: Schema.String,
+  custom: Schema.Boolean,
+  queryable: Schema.Boolean,
+  childRelationships: Schema.Array(
+    Schema.Struct({
+      childSObject: Schema.String,
+      field: Schema.String,
+      relationshipName: Schema.NullOr(Schema.String)
+    })
+  ),
   fields: Schema.Array(SObjectFieldSchema)
 });
 
-export type SObjectMetadata = typeof SObjectMetadataSchema.Type;
+export type SObjectMetadata = Pick<typeof SObjectMetadataSchema.Type, 'fields'>;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
 const UiActivatedEventSchema = eventWithoutPayload(MessageType.UI_ACTIVATED);
-const SObjectsRequestEventSchema = eventWithoutPayload(MessageType.SOBJECTS_REQUEST);
+const SObjectsRequestEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.SOBJECTS_REQUEST),
+  requestId: Schema.optional(Schema.String)
+});
 const RunSoqlQueryEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY);
 const RunSoqlQueryDoneEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE);
 const ConnectionChangedEventSchema = eventWithoutPayload(MessageType.CONNECTION_CHANGED);
@@ -65,15 +95,18 @@ const UiTelemetryEventSchema = Schema.Struct({
 });
 const SObjectMetadataRequestEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST),
-  payload: Schema.String
+  payload: Schema.String,
+  requestId: Schema.optional(Schema.String)
 });
 const SObjectMetadataResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
-  payload: SObjectMetadataSchema
+  payload: SObjectMetadataSchema,
+  requestId: Schema.optional(Schema.String)
 });
 const SObjectsResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECTS_RESPONSE),
-  payload: Schema.Array(Schema.String)
+  payload: Schema.Array(Schema.String),
+  requestId: Schema.optional(Schema.String)
 });
 const TextSoqlChangedEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED),
