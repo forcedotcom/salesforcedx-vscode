@@ -76,12 +76,10 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     catch: e => new ConfigRefreshError({ message: isError(e) ? e.message : String(e) })
   });
 
-  // The CLI delete unsets target-org, but updateConfigAndStateAggregators swallows the post-delete
-  // getConnection failure and never clears the in-process defaultOrgRef; clear it here deterministically
-  // so reactive consumers (e.g. the source tracking status bar icons) reset instead of lingering on the
-  // now-deleted org. (W-23950821, same root cause as the logout fix W-23069610.) The CLI already unset
-  // config, so we only need to clear the reactive ref (not re-write config). The deleted org is the
-  // default by definition here, so the clear is unconditional.
+  // updateConfigAndStateAggregators swallows its post-delete getConnection failure, so the in-process
+  // defaultOrgRef is never cleared and reactive consumers (e.g. the source tracking status bar) linger on
+  // the deleted org. The CLI already unset config, so reset only the reactive ref here; unconditional
+  // because this command deletes the default org by definition. (W-23950821; cf. logout fix W-23069610.)
   yield* api.services.ClearDefaultOrgRef();
 });
 
