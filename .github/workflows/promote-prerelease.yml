@@ -9,8 +9,12 @@ on:
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
+      releaseTag:
+        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Use for emergency pre-releases. Overrides min-tag-age-days.'
+        required: false
+        type: string
       min-tag-age-days:
-        description: 'Minimum nightly age in days before eligible for promotion (default: 0 for latest nightly)'
+        description: 'Minimum nightly age in days before eligible for promotion (default: 0 for latest nightly). Ignored if releaseTag provided.'
         required: false
         default: '0'
         type: string
@@ -30,8 +34,10 @@ permissions:
 
 jobs:
   promote:
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    # TODO: Change back to @main after upstream PR is merged
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/add-release-tag-input-to-vscode-promote-prerelease
     with:
+      release-tag: ${{ inputs.releaseTag || '' }}
       min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
