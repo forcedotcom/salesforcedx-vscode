@@ -262,7 +262,7 @@ find ~/Downloads/v67.12.1 -type f -name "*.vsix" -exec code --install-extension 
 **5. Publish**
 
 ```sh
-gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishVSCode.yml -f version="67.12.1" --repo forcedotcom/salesforcedx-vscode
 ```
 
 **6. Cherry-pick to develop**

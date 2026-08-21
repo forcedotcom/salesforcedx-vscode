@@ -143,7 +143,8 @@ jobs:
           if [ "$PUBLISH_AS_PRERELEASE" = "true" ]; then
             # Pre-release mode: Use provided version as-is or derive from source tag
             if [ -n "$INPUT_VERSION" ]; then
-              VERSION="$INPUT_VERSION"
+              # Strip leading 'v' if present to avoid double prefix
+              VERSION="${INPUT_VERSION#v}"
               echo "Using provided pre-release version: $VERSION"
             else
               # Extract version from source tag if it's a nightly/prerelease tag
@@ -164,6 +165,8 @@ jobs:
             IS_PRERELEASE="false"
           fi
 
+          # Normalize: ensure VERSION has no leading 'v' before adding prefix
+          VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT

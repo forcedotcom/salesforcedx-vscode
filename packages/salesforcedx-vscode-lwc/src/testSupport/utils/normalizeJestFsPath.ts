@@ -7,5 +7,10 @@
 
 // Jest on macOS resolves symlinks so workspace paths under /var/folders appear
 // as /private/var/folders. Strip the /private prefix so URIs match VS Code's view.
-export const normalizeJestFsPath = (fsPath: string): string =>
-  process.platform === 'darwin' ? fsPath.replace(/^\/private\//, '/') : fsPath;
+// Also normalize /users/ to /Users/ case mismatch that can occur in stack traces.
+export const normalizeJestFsPath = (fsPath: string): string => {
+  if (process.platform !== 'darwin') {
+    return fsPath;
+  }
+  return fsPath.replace(/^\/private\//, '/').replace(/^\/users\//, '/Users/');
+};
