@@ -198,11 +198,45 @@ git push origin --delete release-base/v67.12.x
 
 Reuse release-base branch; run build-patch-release.yml (auto-increments v67.12.2, etc.)
 
-## Alternative: Build from Arbitrary Ref
+## Emergency Pre-release Hotfix (Hotfix → Marketplace in ~5 min)
 
-Two modes for emergency builds with `build-release.yml`:
+Two-step process: build VSIXs, then publish to marketplace.
 
-### Stable Release Mode (version bump, isolated branch)
+### Step 1: Build emergency pre-release VSIXs
+
+```sh
+# From hotfix branch
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix" \
+  --repo forcedotcom/salesforcedx-vscode
+
+# From specific commit
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Outputs: GitHub pre-release w/ VSIX + SHA256. No version bump — tags source directly.
+
+### Step 2: Publish to marketplace as pre-release
+
+```sh
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Publishes Step 1's VSIXs to marketplace (Microsoft + Open VSX) as pre-release.
+
+**Nightly tag format:** `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+
+**Timeline:** ~3 min build + ~2 min promote = ~5 min total to marketplace.
+
+## Alternative: Build from Arbitrary Ref (Stable Mode)
+
+Formal version bump + isolated branch — for time-critical fixes requiring version tracking.
 
 ```sh
 # Build from hotfix branch with version bump
@@ -224,33 +258,12 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-### Emergency Pre-release Mode (no version bump, direct tag)
-
-```sh
-# Emergency pre-release from hotfix branch
-gh workflow run build-release.yml \
-  -f publishAsPrerelease=true \
-  -f startFromRef="hotfix/security-fix" \
-  --repo forcedotcom/salesforcedx-vscode
-
-# Emergency pre-release from specific commit
-gh workflow run build-release.yml \
-  -f publishAsPrerelease=true \
-  -f startFromRef="abc123def456" \
-  --repo forcedotcom/salesforcedx-vscode
-```
-
-**Use stable mode when:**
+**When to use:**
 - Time-critical fixes with formal version increment
-- Experimental branches requiring version management
-- Historical commits needing version tracking
+- Experimental branches needing version management
+- Historical commits requiring version tracking
 
-**Use emergency pre-release when:**
-- Critical hotfixes that cannot wait
-- Need immediate testing without version complexity
-- Multiple releases per day (e.g., security patches)
-
-**Priority:** `startFromRef` → `prereleaseTag` → auto-detect latest nightly
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest nightly
 
 ## Conventions
 

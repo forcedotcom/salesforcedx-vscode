@@ -23,7 +23,9 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Mon 8 AM UTC: `build-release.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml Wed 7 AM UTC post-E2E tests), builds stable VSIXs from tested candidate. Supports emergency pre-releases via `publishAsPrerelease` flag. Manual trigger:
+Automated Mon 8 AM UTC: `build-release.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created Wed 7 AM UTC post-E2E), builds stable VSIXs from tested candidate. Supports emergency pre-releases via 2-step workflow.
+
+Manual trigger:
 
 ```bash
 # Auto-detect → stable release
@@ -34,10 +36,14 @@ gh workflow run build-release.yml \
   -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
   -f releaseVersion="67.12.0"
 
-# Emergency pre-release (no version bump)
+# Step 1: Build emergency pre-release VSIXs (no version bump)
 gh workflow run build-release.yml \
   -f publishAsPrerelease=true \
   -f startFromRef="hotfix/security-fix"
+
+# Step 2: Publish to marketplace as pre-release
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820"
 
 # Stable from arbitrary ref (version bump)
 gh workflow run build-release.yml \
@@ -58,12 +64,19 @@ gh workflow run build-release.yml \
   git push origin --delete release-staging/v{version}
   ```
 
-**Emergency pre-release mode (`publishAsPrerelease=true`):**
-- Tags source ref directly (no version bump)
-- Creates "Emergency Pre-release" release w/ VSIX + SHA256
-- Skips isolated branch
+**Emergency pre-release mode — 2-step workflow:**
 
-Both: test VSIX, then trigger [publishVSCode.yml](./publishVSCode.yml). Do NOT cherry-pick version-bump commits to develop.
+1. **build-release.yml with `publishAsPrerelease=true`**
+   - Tags source ref directly (no version bump)
+   - Creates "Emergency Pre-release" GitHub release w/ VSIX + SHA256
+   - Skips isolated branch
+
+2. **promote-prerelease.yml with `releaseTag=...`**
+   - Publishes Step 1's VSIXs to marketplace (Microsoft + Open VSX) as pre-release
+   - Uses nightly tag format: `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+   - Timeline: ~5 min total (build + promote)
+
+Both modes: test VSIX, then trigger [publishVSCode.yml](./publishVSCode.yml). Do NOT cherry-pick version-bump commits to develop.
 
 ## Extension Discovery
 

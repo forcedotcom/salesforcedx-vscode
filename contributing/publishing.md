@@ -160,17 +160,64 @@ After marketplace publish, `closePendingReleaseIssues.yml` auto-closes issues + 
 
 Or run [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) to close GitHub issues w/ closed GUS work items in published `CHANGELOG.md`.
 
-## Emergency Patch Releases
+## Emergency Pre-release (Hotfix → Marketplace in Minutes)
 
-Critical hotfixes bypass normal cycle.
+Immediate marketplace publication of hotfixes using 2-step process: **build VSIXs** + **publish pre-release**.
 
 ### When to use
 
 - Security vulnerabilities
 - Critical production bugs
-- Showstoppers
+- Showstoppers requiring immediate marketplace availability
 
-### Steps
+### Two-step workflow
+
+**Step 1: Build emergency pre-release VSIXs**
+
+```sh
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Creates GitHub pre-release w/ VSIX + SHA256 from any git ref (tag/branch/SHA). No version bump — tags source directly.
+
+**Step 2: Promote to marketplace as pre-release**
+
+```sh
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Publishes Step 1's VSIXs to VS Code Marketplace + Open VSX as pre-release.
+
+**Emergency pre-release nightly tag format:** `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+- Example: `v67.13.7-nightly.develop.20260820`
+- Use actual build date (not future date)
+
+### Examples
+
+```sh
+# Hotfix from branch
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix"
+
+# Hotfix from specific commit
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456"
+
+# Promote built VSIXs to marketplace
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820"
+```
+
+### Traditional patch releases (still available)
+
+For patches requiring formal version tracking:
 
 **1. Create release-base branch**
 
@@ -312,16 +359,17 @@ To minimize rollback scenarios:
 - Monitor telemetry/error reports closely after marketplace publish
 - Keep the baking period for customer validation
 
-### Comparison: patch vs. normal release
+### Comparison: release paths
 
 | Aspect | Normal | Patch | Emergency Pre-release |
 |--------|--------|-------|----------------------|
 | Source | develop | release-base/vX.Y.x | Any git ref |
-| Timeline | Wed → 5d → Mon | Hours | Minutes |
-| Version | X.Y+1.0 | X.Y.Z+1 | No bump |
-| Workflows | promote-prerelease → build-release | create-patch-release-branch → build-patch-release | build-release w/ publishAsPrerelease=true |
+| Timeline | Wed → 5d → Mon | Hours | ~5 min |
+| Version | X.Y+1.0 | X.Y.Z+1 | Nightly format |
+| Stable? | After baking | Immediate | Pre-release only |
+| Workflows | promote → build-release | create-patch → build-patch | build-release + promote-prerelease |
 | Cherry-pick | — | Required | Optional |
-| Use case | Regular features/fixes | Critical hotfixes | Emergency pre-release hotfixes |
+| Use case | Regular cycle | Formal patch | Hotfix → marketplace NOW |
 
 ## Troubleshooting
 
