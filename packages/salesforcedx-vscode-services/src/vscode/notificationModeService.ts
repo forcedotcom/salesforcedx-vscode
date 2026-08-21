@@ -136,6 +136,13 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
         message: string,
         actions: ToastAction[]
       ) {
+        // No buttons: nothing to react to, so fire-and-forget instead of awaiting VS Code's dismissal
+        // Thenable — awaiting it would block the caller until the user dismisses the toast (or forever
+        // in a headless/E2E session where nothing ever dismisses it).
+        if (actions.length === 0) {
+          yield* Effect.sync(() => void vscode.window.showInformationMessage(message));
+          return;
+        }
         const selection = yield* Effect.promise(() =>
           vscode.window.showInformationMessage(message, ...actions.map(candidate => candidate.label))
         );

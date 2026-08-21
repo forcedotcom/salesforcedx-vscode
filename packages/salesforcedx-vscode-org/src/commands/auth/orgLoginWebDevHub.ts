@@ -8,8 +8,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { nls } from '../../messages';
+import { messages } from '../../messages/i18n';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 import { promptForAlias } from './authParamsGatherer';
 import { executeOrgLoginWeb } from './orgLoginWebExec';
+
+const COMMAND: ProgressOnlyCommandKey = messages.org_login_web_authorize_dev_hub_text;
 
 /**
  * Effect command for `sf.org.login.web.dev.hub`: prompt for an alias, then run
@@ -36,5 +40,9 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
   // FORCE_COLOR=0 for the `sf ` prefix.
   const command = `sf org login web --alias "${alias}" --set-default-dev-hub`;
 
-  yield* executeOrgLoginWeb({ command, progressMessage: nls.localize('org_login_web_dev_hub_progress') });
+  yield* executeOrgLoginWeb({
+    command,
+    progressMessage: nls.localize('org_login_web_dev_hub_progress'),
+    notificationCommand: COMMAND
+  });
 });

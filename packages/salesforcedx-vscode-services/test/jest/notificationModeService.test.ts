@@ -137,4 +137,14 @@ describe('NotificationModeService.Default', () => {
     expect(commandDisposable.dispose).toHaveBeenCalledTimes(1);
     expect(item.dispose).toHaveBeenCalledTimes(1);
   });
+
+  it('fires an action-less success toast without awaiting dismissal', async () => {
+    makeConfig({ extGlobal: 'progressToastSuccessToast' });
+    // Never resolves: if showSuccessNotification awaited this, the test would hang/timeout.
+    (vscode.window.showInformationMessage as jest.Mock).mockReturnValue(new Promise(() => {}));
+
+    await NotificationModeService.showSuccessNotification('Command', 'done').pipe(runWithService);
+
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('done');
+  });
 });

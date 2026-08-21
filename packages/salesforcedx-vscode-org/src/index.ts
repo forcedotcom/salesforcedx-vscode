@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  buildAllServicesLayer,
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
@@ -34,8 +29,7 @@ import {
   ORG_LOGOUT_DEFAULT_COMMAND,
   ORG_OPEN_COMMAND
 } from './constants';
-import { getOrgRuntime, setAllServicesLayer } from './extensionProvider';
-import { nls } from './messages';
+import { buildAllServicesLayer, disposeOrgRuntime, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
@@ -54,8 +48,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
-  // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
-  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 
   const api: SalesforceVSCodeOrgApi = {
@@ -92,8 +85,9 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   yield* initializeStatusBarItems;
 });
 
-export const deactivate = (): void => {
+export const deactivate = async (): Promise<void> => {
   Effect.runSync(closeExtensionScope());
+  await disposeOrgRuntime();
   console.log('Salesforce Org Management extension deactivated');
 };
 
