@@ -123,7 +123,7 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 
 ## Release timeline
 
-- **Daily 4 AM UTC** — nightly.yml → all extensions as prerelease
+- **Daily 4 AM UTC** — nightly.yml → extensions as prerelease
 - **Wed 7 AM UTC** — promote-prerelease.yml → promotes latest nightly (passing E2E), creates `marketplace-prerelease-*` tracking tag
 - **5-day baking** — Wed → Mon (customer validation)
 - **Mon 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
@@ -232,7 +232,7 @@ Publishes Step 1's VSIXs to marketplace (Microsoft + Open VSX) as pre-release.
 
 **Nightly tag format:** `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
 
-**Timeline:** ~3 min build + ~2 min promote = ~5 min total to marketplace.
+**Timeline:** ~3 min build + ~2 min promote = ~5 min total.
 
 ## Alternative: Build from Arbitrary Ref (Stable Mode)
 
