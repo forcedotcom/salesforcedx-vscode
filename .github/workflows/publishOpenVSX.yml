@@ -93,7 +93,7 @@ jobs:
           gh release download "$RELEASE_TAG" -D ./extensions
       - name: Verify published versions landed on OpenVSX
         run: |
-          TIMEOUT="${POLL_TIMEOUT:-600}"
+          TIMEOUT="${POLL_TIMEOUT:-1200}"
           INTERVAL="${POLL_INTERVAL:-30}"
           deadline=$(( $(date +%s) + TIMEOUT ))
           pending=()
