@@ -29,9 +29,12 @@ const SoqlFieldMetadataSchema = Schema.Struct({
   filterable: Schema.Boolean,
   groupable: Schema.Boolean,
   inlineHelpText: Schema.NullOr(Schema.String),
-  label: Schema.NonEmptyTrimmedString,
+  // Host describe payloads (see salesforcedx-vscode-services SObjectFieldSchema) allow empty
+  // strings here; keep these as plain String so a single sparse field cannot fail the whole
+  // metadata decode and blank the UI.
+  label: Schema.String,
   length: Schema.optional(Schema.Number),
-  name: Schema.NonEmptyTrimmedString,
+  name: Schema.String,
   nillable: Schema.Boolean,
   picklistValues: Schema.Array(SoqlPicklistValueSchema),
   precision: Schema.optional(Schema.Number),
@@ -39,7 +42,7 @@ const SoqlFieldMetadataSchema = Schema.Struct({
   relationshipName: Schema.NullOr(Schema.String),
   scale: Schema.optional(Schema.Number),
   sortable: Schema.Boolean,
-  type: Schema.NonEmptyTrimmedString
+  type: Schema.String
 });
 
 const SoqlChildRelationshipSchema = Schema.Struct({

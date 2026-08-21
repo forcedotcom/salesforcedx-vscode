@@ -34,7 +34,9 @@ const makeSoqlBuilderController = Effect.gen(function* () {
 
   yield* service.stateChanges.pipe(
     Stream.runForEach(nextState => SubscriptionRef.set(state, nextState)),
-    Effect.catchAll(error => SubscriptionRef.update(state, current => stateWithServiceError(current, error))),
+    Effect.catchTag('SoqlBuilderServiceError', error =>
+      SubscriptionRef.update(state, current => stateWithServiceError(current, error))
+    ),
     Effect.forkScoped
   );
 

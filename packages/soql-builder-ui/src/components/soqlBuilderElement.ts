@@ -64,7 +64,11 @@ export class SoqlBuilderElement extends LitElement {
 
   public override disconnectedCallback(): void {
     super.disconnectedCallback();
-    void this.lifecycle?.disconnect();
+    // disconnectedCallback must stay synchronous (Custom Elements contract); attach a catch
+    // so a rejected teardown does not surface as a silent unhandled rejection.
+    void Promise.resolve(this.lifecycle?.disconnect()).catch(() => {
+      // disconnect rejections during teardown are non-actionable
+    });
   }
 
   protected override render() {
