@@ -51,8 +51,7 @@ jobs:
     env:
       OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
       GH_TOKEN: ${{ github.token }}
-      # This job doesn't check out the repo, so `gh release download` can't infer the
-      # repo from a .git dir. GH_REPO gives the gh CLI its repo context directly.
+      # No checkout, so give the gh CLI its repo context for `gh release download`.
       GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
@@ -66,9 +65,7 @@ jobs:
           gh release download "$RELEASE_TAG" -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      # The shared release-vsix workflow only publishes to the VS Code Marketplace (vsce); Open VSX
-      # must be published inline via `ovsx`, matching the verify-published job below which polls Open
-      # VSX. Skipped on dry-run so a manual run can download/inspect the VSIXs without publishing.
+      # Open VSX has no shared publisher workflow, so publish inline via `ovsx`.
       - name: Publish to Open VSX
         if: inputs.dry-run != true
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -82,8 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      # This job doesn't check out the repo, so `gh release download` can't infer the
-      # repo from a .git dir. GH_REPO gives the gh CLI its repo context directly.
+      # No checkout, so give the gh CLI its repo context for `gh release download`.
       GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
