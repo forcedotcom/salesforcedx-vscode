@@ -27,8 +27,7 @@ describe('NoOp event', () => {
         logFilePath: '/path/foo.log',
         logFileName: 'foo.log',
         stopOnEntry: true,
-        trace: true,
-        projectPath: undefined
+        trace: true
       } as LaunchRequestArguments,
       new ApexReplayDebug()
     );

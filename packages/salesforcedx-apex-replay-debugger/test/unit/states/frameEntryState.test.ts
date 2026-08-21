@@ -32,8 +32,7 @@ describe('Frame entry event', () => {
     logFileContents: 'test log content',
     logFilePath,
     logFileName,
-    trace: true,
-    projectPath: undefined
+    trace: true
   };
   let map: Map<string, Map<string, ApexVariableContainer>>;
 

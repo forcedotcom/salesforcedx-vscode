@@ -82,8 +82,7 @@ describe('Replay debugger adapter - integration', () => {
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
-      lineBreakpointInfo: lineBpInfo,
-      projectPath: undefined
+      lineBreakpointInfo: lineBpInfo
     });
     expect(launchResponse.success).toBe(true);
 
@@ -147,8 +146,7 @@ describe('Replay debugger adapter - integration', () => {
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
-      lineBreakpointInfo: lineBpInfo,
-      projectPath: undefined
+      lineBreakpointInfo: lineBpInfo
     });
     expect(launchResponse.success).toBe(true);
 

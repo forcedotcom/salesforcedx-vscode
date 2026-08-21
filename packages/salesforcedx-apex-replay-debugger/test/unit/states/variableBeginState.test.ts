@@ -33,8 +33,7 @@ describe('Variable begin scope event', () => {
     logFileContents: 'test log content',
     logFilePath,
     logFileName,
-    trace: true,
-    projectPath: undefined
+    trace: true
   };
   const STATIC_VARIABLE_LOG_LINE = 'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|Integer|false|true';
   const LOCAL_VARIABLE_LOG_LINE = 'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|localInteger|Integer|false|false';
