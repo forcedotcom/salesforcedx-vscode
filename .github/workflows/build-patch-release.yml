@@ -220,15 +220,16 @@ jobs:
           # Check if release already exists
           if gh release view "$TAG" &> /dev/null; then
             echo "::warning::Release $TAG already exists. Deleting for retry..."
-            gh release delete "$TAG" --yes --cleanup-tag
+            # Delete release but keep the tag (don't use --cleanup-tag)
+            gh release delete "$TAG" --yes
             sleep 5
           fi
 
-          # Create pre-release, explicitly targeting the tag's commit
+          # Create pre-release from the existing tag
+          # The tag already points to the correct commit, so no need for --target
           gh release create "$TAG" \
             --title "Patch Release $VERSION - Ready for Testing" \
             --notes-file release_notes.md \
-            --target "$TAG" \
             --prerelease
 
           # Upload VSIX files and SHA256 in batch (more efficient than loop)
