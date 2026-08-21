@@ -47,11 +47,31 @@ jobs:
   publish:
     needs: ['ctc-open', 'prepare-release-metadata']
     if: always() && needs.prepare-release-metadata.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
-    with:
-      release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    env:
+      OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
+      GH_TOKEN: ${{ github.token }}
+      PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
+      RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Download VSIXs from release
+        run: |
+          mkdir ./extensions
+          gh release download "$RELEASE_TAG" -D ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
+      # The shared release-vsix workflow only publishes to the VS Code Marketplace (vsce); Open VSX
+      # must be published inline via `ovsx`, matching the verify-published job below which polls Open
+      # VSX. Skipped on dry-run so a manual run can download/inspect the VSIXs without publishing.
+      - name: Publish to Open VSX
+        if: inputs.dry-run != true
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: |
+            cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   verify-published:
     needs: ['prepare-release-metadata', 'publish']

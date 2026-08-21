@@ -139,7 +139,10 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run }}
+      # `release`-triggered runs have an empty `inputs` context, so `${{ inputs.dry-run }}`
+      # yields "" — an invalid value for the reusable workflow's typed `boolean` input, which
+      # fails the job at instantiation. Coerce to a real boolean (empty/false -> false).
+      dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
 
   ctcCloseSuccess:
