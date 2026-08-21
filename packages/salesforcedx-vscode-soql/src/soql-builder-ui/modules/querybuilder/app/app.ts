@@ -7,7 +7,7 @@
  */
 
 import { LightningElement, api, track } from 'lwc';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { messages } from 'querybuilder/messages';
@@ -21,7 +21,7 @@ import { MessageService, IMessageService } from '../services/message/iMessageSer
 import { VscodeMessageServiceLive } from '../services/message/vscodeMessageService';
 import {
   MessageType,
-  SoqlEditorEvent
+  type UiToHostSoqlEditorEvent
 } from '../services/message/soqlEditorEvent';
 import { IndexableArray } from '../services/lwcUtils';
 import {
@@ -314,7 +314,7 @@ export default class App extends LightningElement {
   }
 
   public handleSetDefaultOrg(): void {
-    const setDefaultOrgEvent: SoqlEditorEvent = { type: MessageType.SET_DEFAULT_ORG };
+    const setDefaultOrgEvent: UiToHostSoqlEditorEvent = { type: MessageType.SET_DEFAULT_ORG };
     this._messageService?.sendMessage(setDefaultOrgEvent);
   }
 
@@ -328,13 +328,13 @@ export default class App extends LightningElement {
 
   public handleRunQuery(): void {
     this.isQueryRunning = true;
-    const runQueryEvent: SoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };
+    const runQueryEvent: UiToHostSoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };
     this._messageService?.sendMessage(runQueryEvent);
   }
 
   public handleGetQueryPlan(): void {
     this.isQueryPlanRunning = true;
-    const planEvent: SoqlEditorEvent = { type: MessageType.GET_QUERY_PLAN };
+    const planEvent: UiToHostSoqlEditorEvent = { type: MessageType.GET_QUERY_PLAN };
     this._messageService?.sendMessage(planEvent);
   }
 }

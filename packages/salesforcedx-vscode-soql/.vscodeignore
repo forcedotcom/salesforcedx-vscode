@@ -25,6 +25,7 @@ scripts/**
 esbuild.config.mjs
 jest.config.js
 tsconfig.json
+tsconfig.lit.json
 .eslint.json
 
 # do not reach outside the package

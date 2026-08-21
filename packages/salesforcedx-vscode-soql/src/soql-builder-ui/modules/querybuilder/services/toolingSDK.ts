@@ -10,7 +10,11 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { MessageService } from './message/iMessageService';
-import { MessageType, SObjectMetadata, SoqlEditorEvent } from './message/soqlEditorEvent';
+import {
+  MessageType,
+  type HostToUiSoqlEditorEvent,
+  type SObjectMetadata
+} from './message/soqlEditorEvent';
 
 export class ToolingSDK extends Effect.Service<ToolingSDK>()('ToolingSDK', {
   accessors: true,
@@ -35,7 +39,7 @@ export class ToolingSDK extends Effect.Service<ToolingSDK>()('ToolingSDK', {
     };
 
     // onMessage fires synchronously — Effect.runSync is acceptable at this sync/async boundary
-    const handleMessage = Match.type<SoqlEditorEvent>().pipe(
+    const handleMessage = Match.type<HostToUiSoqlEditorEvent>().pipe(
       Match.when({ type: MessageType.SOBJECTS_RESPONSE }, e => {
         Effect.runSync(SubscriptionRef.set(sobjects, e.payload));
       }),

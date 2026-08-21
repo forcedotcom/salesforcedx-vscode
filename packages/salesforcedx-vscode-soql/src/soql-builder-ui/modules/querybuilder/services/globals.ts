@@ -1,28 +1,29 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const getWindow = (): Window => {
-  return window;
+export type VSCodeWebviewApi = {
+  readonly getState: () => unknown;
+  readonly postMessage: (message: unknown) => void;
+  readonly setState: (state: unknown) => void;
 };
 
-export const getBodyClass = (): string | null => {
-  return window.document.body.getAttribute('class');
-};
+declare global {
+  var acquireVsCodeApi: () => VSCodeWebviewApi;
+}
 
-/* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call */
+export const getWindow = (): Window => window;
 
-let vsCode;
+export const getBodyClass = (): string | null => window.document.body.getAttribute('class');
 
-export const getVscode = (): unknown => {
-  if (!vsCode) {
-    // @ts-ignore
-    // eslint-disable-next-line no-undef
-    vsCode = acquireVsCodeApi();
+let vsCode: VSCodeWebviewApi | undefined;
+
+export const getVscode = (): VSCodeWebviewApi => {
+  if (vsCode === undefined) {
+    vsCode = globalThis.acquireVsCodeApi();
   }
   return vsCode;
 };

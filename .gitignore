@@ -4,6 +4,7 @@
 
 # TypeScript generated files
 dist/
+dist-lit/
 out/
 
 # Logs

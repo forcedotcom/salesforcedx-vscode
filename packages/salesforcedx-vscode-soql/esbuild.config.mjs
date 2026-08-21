@@ -11,6 +11,8 @@ import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 const require = createRequire(import.meta.url);
+const isLitMigration = process.argv.includes('--lit-migration');
+const soqlBuilderUiSource = isLitMigration ? './src/soql-builder-ui/dist-lit/**' : './src/soql-builder-ui/dist/**';
 
 const commonConfig = {
   external: ['vscode']
@@ -25,7 +27,7 @@ await build({
   plugins: [
     copy({
       assets: {
-        from: [`./src/soql-builder-ui/dist/**`],
+        from: [soqlBuilderUiSource],
         to: ['./soql-builder-ui']
       }
     }),

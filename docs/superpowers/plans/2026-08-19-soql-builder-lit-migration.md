@@ -23,7 +23,7 @@ Out of scope:
 
 - Changes to SOQL execution, query-plan execution, metadata retrieval, query-result flattening, CSV/JSON file formats, or extension-host/webview message contracts unless a proven incompatibility requires one.
 - A second metadata discovery, caching, or invalidation implementation in either webview. The extension-side catalog-backed `MetadataDescribeService` merged in PR #7918 remains the metadata authority.
-- A bundler migration. Keep Rollup until the Lit cutover is complete.
+- A migration of the legacy LWC bundle. Use esbuild for new Lit browser bundles, and keep the existing Rollup path only until the LWC cutover is complete.
 - Publishing the new package to the npm registry. `@salesforce/soql-builder-ui` must remain a private workspace package and be excluded from publication jobs.
 
 ## Spike Results
@@ -63,8 +63,8 @@ SOQLEditorInstance (extension host)
               ↕ existing messages
 VscodeMessageService / ToolingSDK / ToolingModelService
               ↓
-VscodeSoqlBuilderDriver (extension-owned Effect layer)
-              ↓ public Effect driver contract
+VscodeSoqlBuilderService (extension-owned Effect layer)
+              ↓ public Effect service contract
 @salesforce/soql-builder-ui (browser-safe private workspace package)
   ├─ one managed Effect runtime and scoped application controller
   ├─ Effect-native state stream, typed actions, and typed UI errors
@@ -79,25 +79,25 @@ VscodeSoqlBuilderDriver (extension-owned Effect layer)
 
 QueryDataViewService (extension host)
               ↕ existing activate/update/save_records messages
-VscodeQueryResultsDriver (extension-owned Effect layer)
+VscodeQueryResultsService (extension-owned Effect layer)
               ↓ typed state and actions
 QueryResultsApp (extension-owned Lit entry)
-  ├─ one managed Effect runtime and scoped QueryResultsDriver
+  ├─ one managed Effect runtime and scoped QueryResultsService
   ├─ results header, record count, and max-row guidance
   ├─ Lit-managed Tabulator results-grid wrapper
   ├─ CSV and JSON actions
   └─ @vscode-elements/elements + semantic HTML
 ```
 
-Keep business and protocol behavior in framework-neutral Effect services and driver layers. Lit components should render immutable state and dispatch typed actions through one composition-root-owned Effect runtime per webview; they should not create component-local runtimes or duplicate SOQL conversion, result flattening, export behavior, or extension messaging logic. Both applications must be bundled into the VSIX rather than loading application code remotely.
+Keep business and protocol behavior in framework-neutral Effect services. Lit components should render immutable state and dispatch typed actions through one composition-root-owned Effect runtime per webview; they should not create component-local runtimes or duplicate SOQL conversion, result flattening, export behavior, or extension messaging logic. Both applications must be bundled into the VSIX rather than loading application code remotely.
 
 ## Proposed File Structure
 
 ```text
 packages/soql-builder-ui/
   src/
-    index.ts                    # public npm entry and custom-element registration
-    contracts.ts                # browser-safe Effect driver/state/action/error contracts
+    register.ts                 # explicit custom-element registration module
+    contracts.ts                # browser-safe Effect service/state/action/error contracts
     metadata.ts                 # browser-safe metadata DTO and Effect Schema
     controller.ts               # Effect state transitions and action orchestration
     runtime.ts                  # one scoped browser runtime per mounted application
@@ -118,7 +118,7 @@ packages/soql-builder-ui/
 packages/salesforcedx-vscode-soql/src/soql-builder-ui/
   lit/
     index.ts                     # webview composition root
-    vscodeSoqlBuilderDriver.ts   # VS Code Effect layer using existing services/messages
+    vscodeSoqlBuilderService.ts  # VS Code Effect layer using existing services/messages
   modules/querybuilder/services/ # retained initially
   index.html                     # points to Lit after cutover
 
@@ -128,7 +128,7 @@ packages/salesforcedx-vscode-soql/src/soql-data-view/
     index.ts                     # results webview composition root
     queryResultsApp.ts           # Lit root
     queryResultsContracts.ts     # Effect-native state/action/error boundary
-    vscodeQueryResultsDriver.ts  # acquireVsCodeApi/message/state Effect layer
+    vscodeQueryResultsService.ts # acquireVsCodeApi/message/state Effect layer
     components/
       resultsHeader.ts
       resultsGrid.ts
@@ -168,7 +168,7 @@ Do not preserve the current LWC component boundaries mechanically. Group control
 ### Delivery constraints
 
 - Keep the legacy builder and results entries available while their Lit replacements are under parity testing; make Lit the default only in the cutover story.
-- Keep Rollup for the migration; a bundler change is a separate effort.
+- Use esbuild for new Lit browser bundles. Keep the legacy LWC Rollup build unchanged until cutover, then remove it with the remaining LWC-only tooling.
 - Keep `@salesforce/soql-builder-ui` private. Its `package.json` must contain `"private": true`, must not advertise public publication, and must be skipped by repository release/publish automation.
 - Reuse `ToolingModelService`, `ToolingSDK`, SOQL model converters, `extendQueryData`, `QueryDataFileService`, and current extension messages unless a story identifies and documents an incompatibility.
 - Treat the extension-side `MetadataDescribeService` and its catalog integration as the sole builder metadata authority. Normalize raw describes with `TransmogrifierService`, then validate/map the message payload to a browser-safe UI contract; do not import JSforce or `salesforcedx-vscode-services` into `@salesforce/soql-builder-ui`.
@@ -204,40 +204,42 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 
 **Type / size:** Enabler / M
 
-**Story:** As a maintainer, I want the spike's Lit application, Effect runtime, and driver to become supported production code so that feature stories build on stable lifecycle, packaging, and type-checking boundaries.
+**Story:** As a maintainer, I want the spike's Lit application, Effect runtime, and host integration service to become supported production code so that feature stories build on stable lifecycle, packaging, and type-checking boundaries.
 
 **Acceptance criteria:**
 
 - `litSpike` and spike-only names, copy, banner content, and file paths are replaced with the intended production `lit` composition root without changing the LWC default.
-- The browser-safe UI package depends directly on `effect` and defines the shared typed state, action, error, stream, and scoped-lifecycle primitives used by the Lit application and its drivers.
+- The browser-safe UI package depends directly on `effect` and defines the shared typed state, action, error, stream, and scoped-lifecycle primitives used by the Lit application and its host services.
 - The webview composition root creates exactly one `ManagedRuntime` for the mounted application; Lit connection starts scoped subscriptions and disconnection interrupts fibers, runs finalizers, and disposes the runtime without leaking listeners across reloads.
 - The extension-owned adapter and retained framework-neutral services are included in a repository TypeScript project and pass compile and lint without blanket diagnostics suppression.
-- `@salesforce/soql-builder-ui` has no imports from VS Code, extension-owned services, or extension message modules. Its Effect imports use browser-compatible entry points and remain independently bundleable for VS Code webviews and test/browser drivers.
-- The UI package owns a browser-safe object/field DTO and Effect Schema for inbound metadata. It has no JSforce or `salesforcedx-vscode-services` dependency, and invalid metadata becomes a typed driver error rather than unvalidated component state.
+- Package consumers import the concrete application, component, domain, registration, and service modules they use; the package does not add barrel entry points solely for re-exporting implementation or test symbols.
+- `@salesforce/soql-builder-ui` has no imports from VS Code, extension-owned services, or extension message modules. Its Effect imports use browser-compatible entry points and remain independently bundleable for VS Code webviews and test/browser services.
+- The UI package owns a browser-safe object/field DTO and Effect Schema for inbound metadata. It has no JSforce or `salesforcedx-vscode-services` dependency, and invalid metadata becomes a typed service error rather than unvalidated component state.
 - Presentation components do not create runtimes, call global `Effect.runPromise`/`Effect.runFork`, or start unowned daemon fibers; the composition root and controller own Effect execution.
 - `packages/soql-builder-ui/package.json` contains `"private": true`; public `publishConfig` and unnecessary independent-publication metadata from the spike are removed, and the repository's package-selection/release tooling verifies that publication jobs skip the package.
-- The CSP and Rollup outputs bundle all application code into the VSIX; no runtime code is loaded remotely.
-- A deterministic fake Effect driver layer used by UI tests is updated when the public contract changes.
+- The CSP and esbuild outputs bundle all application code into the migration VSIX; no runtime code is loaded remotely.
+- The normal release bundle and VSIX continue to contain only the legacy LWC builder during parallel development. A separately named migration bundle/VSIX packages the production-shaped Lit entry for demonstrations and integration testing, preventing unreleased Lit dependencies from increasing the release artifact.
+- A deterministic fake Effect service layer used by UI tests is updated when the public contract changes.
 
 **Depends on:** Story 1.
 
-### Story 3 — Expand the Effect driver contract to cover the complete builder state and actions
+### Story 3 — Expand the Effect service contract to cover the complete builder state and actions
 
 **Type / size:** Enabler / L
 
-**Story:** As a UI developer, I want a typed, browser-safe Effect driver contract for the full builder so that Lit components can render immutable state and dispatch actions without knowing about VS Code messages or extension-owned services.
+**Story:** As a UI developer, I want a typed, browser-safe Effect service contract for the full builder so that Lit components can render immutable state and dispatch actions without knowing about VS Code messages or extension-owned services.
 
 **Acceptance criteria:**
 
 - The public state represents the complete `ToolingModelJson` behavior needed by the UI: object metadata, selected fields, Where conditions and AND/OR, Order By entries, Limit, All Rows, original SOQL, parse errors, unsupported syntax, loading flags, missing-default-org state, and query/query-plan progress.
-- The driver exposes immutable builder state as an Effect `Stream` and accepts a discriminated union of typed UI actions whose execution returns `Effect<void, SoqlBuilderError>` or an equivalently typed Effect result.
+- The service exposes immutable builder state as an Effect `Stream` and accepts a discriminated union of typed UI actions whose execution returns `Effect<void, SoqlBuilderError>` or an equivalently typed Effect result.
 - The public actions cover object and field selection, select all, clear all, Where upsert/remove/AND-OR changes, Order By add/update/remove, Limit, All Rows, notification dismissal, setting a default org, running a query, and requesting a query plan.
-- `VscodeSoqlBuilderDriver` is an extension-owned Effect `Layer` that maps those actions to the existing services and preserves `ui_soql_changed`, `ui_telemetry`, metadata, connection, run-query, query-plan, and default-org message behavior.
-- Object discovery and describes remain extension-host operations executed through the persistent `getSoqlRuntime()`, catalog-backed `MetadataDescribeService`, and `TransmogrifierService.toMinimalSObject`; the browser driver does not open an org connection or implement another metadata cache.
-- The existing `sobjects_request`/`sobjects_response` and `sobject_metadata_request`/`sobject_metadata_response` message names remain compatible. The driver decodes normalized payloads at the boundary into the UI-owned browser DTO before publishing state.
+- `VscodeSoqlBuilderService` is an extension-owned Effect `Layer` that maps those actions to the existing services and preserves `ui_soql_changed`, `ui_telemetry`, metadata, connection, run-query, query-plan, and default-org message behavior.
+- Object discovery and describes remain extension-host operations executed through the persistent `getSoqlRuntime()`, catalog-backed `MetadataDescribeService`, and `TransmogrifierService.toMinimalSObject`; the browser service does not open an org connection or implement another metadata cache.
+- The existing `sobjects_request`/`sobjects_response` and `sobject_metadata_request`/`sobject_metadata_response` message names remain compatible. The service decodes normalized payloads at the boundary into the UI-owned browser DTO before publishing state.
 - The metadata contract covers every field attribute required by Fields, Where, and Order By—including name, type, nillability, picklist values, filtering/sorting capabilities, and relationship information—without exposing the services-owned `SObject` type to the UI package.
 - Request correlation or an equivalent selected-object guard prevents a late describe response from a prior object or org from replacing current metadata; connection changes clear incompatible state and reload through the extension authority.
-- A browser/test driver implements the same Effect service contract without VS Code APIs, message types, or extension-owned Effect services.
+- A browser/test implementation provides the same Effect service contract without VS Code APIs, message types, or extension-owned Effect services.
 - Saved state and an external `text_soql_changed` event repopulate every supported Lit control without emitting a duplicate document update.
 - Changing the selected object preserves header comments and resets dependent model state exactly as the current `ToolingModelService` does.
 - Contract tests exercise immutable state publication, typed error propagation, initialization, cancellation, disposal/finalization, and each action mapping using deterministic Effect layers.
@@ -253,11 +255,11 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 **Acceptance criteria:**
 
 - A repository-owned test command runs Lit component tests in Chromium and is part of the relevant package test workflow.
-- Tests mount components with deterministic fake `SoqlBuilderDriver` and `QueryResultsDriver` layers and can drive state changes and assert actions without `acquireVsCodeApi()` emulation.
-- Fake builder and results drivers are provided as Effect layers with deterministic state streams, typed failures, controllable latency, and test-clock support where timing affects behavior.
+- Tests mount components with deterministic fake `SoqlBuilderService` and `QueryResultsService` layers and can drive state changes and assert actions without `acquireVsCodeApi()` emulation.
+- Fake builder and results services are provided as Effect layers with deterministic state streams, typed failures, controllable latency, and test-clock support where timing affects behavior.
 - User-flow tests prefer accessible roles, names, labels, and public component APIs; any shadow-root traversal is isolated in documented helpers.
 - The harness includes keyboard navigation, focus movement, form association, disabled/loading state, alert/status announcement, and component cleanup coverage.
-- Lifecycle tests prove that reconnect/disconnect, action cancellation, and driver failure do not leave running fibers, duplicate subscriptions, or acquired resources.
+- Lifecycle tests prove that reconnect/disconnect, action cancellation, and service failure do not leave running fibers, duplicate subscriptions, or acquired resources.
 - The existing vertical-slice smoke test remains green or is replaced by equivalent coverage in the production harness.
 
 **Depends on:** Story 2. Can proceed in parallel with Story 3.
@@ -384,25 +386,25 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 
 **Depends on:** Stories 3, 4, and 6.
 
-### Story 12 — Migrate the query-results shell and Effect driver boundary to Lit
+### Story 12 — Migrate the query-results shell and Effect service boundary to Lit
 
 **Type / size:** Feature / L
 
-**Story:** As a Salesforce developer, I want query results presented in a VS Code-native Lit shell backed by an Effect driver so that inspecting and exporting records feels consistent with the Lit builder and remains reliable across webview lifecycle changes.
+**Story:** As a Salesforce developer, I want query results presented in a VS Code-native Lit shell backed by an Effect service so that inspecting and exporting records feels consistent with the Lit builder and remains reliable across webview lifecycle changes.
 
 **Acceptance criteria:**
 
 - An extension-owned, type-checked `QueryResultsApp` replaces the Lit path's static DOM manipulation and is emitted as a separate bundled webview entry under the existing CSP.
-- A typed `QueryResultsDriver` exposes immutable result state as an Effect `Stream` and CSV/JSON save actions as typed Effect operations; `acquireVsCodeApi()`, window message listeners, `getState`, `setState`, and `postMessage` are isolated in the extension-owned `VscodeQueryResultsDriver` layer rather than presentation components.
+- A typed `QueryResultsService` exposes immutable result state as an Effect `Stream` and CSV/JSON save actions as typed Effect operations; `acquireVsCodeApi()`, window message listeners, `getState`, `setState`, and `postMessage` are isolated in the extension-owned `VscodeQueryResultsService` layer rather than presentation components.
 - The results composition root owns exactly one managed Effect runtime. Mount starts scoped message/state subscriptions, and unmount interrupts them and runs finalizers without component-local runners or unowned fibers.
-- The driver preserves the existing `activate`, `update`, and `save_records` messages, including `csv`/`json` format values and extension-host OpenTelemetry spans.
+- The service preserves the existing `activate`, `update`, and `save_records` messages, including `csv`/`json` format values and extension-host OpenTelemetry spans.
 - State represents the document title, returned count, total count, max-row guidance, flattened fields/rows, and any empty/error state required by the UI without duplicating `extendQueryData` or export logic.
 - The title, returned/total summary, and max-row guidance match current behavior; guidance is keyboard and screen-reader accessible rather than hover-only.
 - Save as CSV and Save as JSON use `vscode-button` or `vscode-button-group` with accessible names and optional `vscode-icon`, and continue to invoke `QueryDataFileService` through the host.
 - Saved webview state restores immediately after context recreation, the activation response can refresh it, and initialization, cancellation, failure, and disposal do not duplicate message or resize listeners or leave running fibers.
-- The legacy results entry remains available during parity testing, while the Lit entry has component and driver tests with a deterministic fake Effect layer.
-- Component and driver tests use a deterministic fake Effect layer to cover initial state, updates, export success/failure, cancellation, reconnection, and disposal.
-- A repository-owned `test:query-results-ui` command or clearly named equivalent runs the results component and driver tests in the package quality workflow.
+- The legacy results entry remains available during parity testing, while the Lit entry has component and service tests with a deterministic fake Effect layer.
+- Component and service tests use a deterministic fake Effect layer to cover initial state, updates, export success/failure, cancellation, reconnection, and disposal.
+- A repository-owned `test:query-results-ui` command or clearly named equivalent runs the results component and service tests in the package quality workflow.
 
 **Depends on:** Stories 1 and 4. Can proceed in parallel with builder Stories 5–11.
 
@@ -464,7 +466,7 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 - Both layouts remain usable at narrow webview widths and supported zoom levels without hiding actions or causing avoidable two-dimensional scrolling; horizontal grid scrolling remains available when the result shape requires it.
 - Desktop and web Playwright suites cover the complete builder flow, restoration, external text updates, connection changes, query execution, results inspection/restoration, CSV/JSON export, and query-plan execution using Lit entries.
 - Large object/field lists, large and wide result sets, first render, tab restoration, memory behavior, and minified/gzip bundle sizes meet the Story 1 budgets or have an approved exception with measurements.
-- Repeated mount, hide/restore, driver failure, and disposal scenarios demonstrate one Effect runtime per webview, bounded fiber counts, interruption of obsolete work, and execution of all scoped finalizers.
+- Repeated mount, hide/restore, service failure, and disposal scenarios demonstrate one Effect runtime per webview, bounded fiber counts, interruption of obsolete work, and execution of all scoped finalizers.
 - Multi-org tests prove that catalog-backed object/field metadata is isolated by org, relevant invalidation reaches the builder, stale prior-org responses cannot update the Lit state, and the webview performs no direct metadata network request.
 - The UI package, builder adapter, and results entry/adapter pass compile, lint, unit/component tests, package checks, and CSP verification.
 
@@ -484,7 +486,7 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 - `queryDataViewController.js`, the save SVG if no longer needed, and obsolete results CSS/HTML scaffolding are removed. Tabulator runtime and base style assets remain packaged for the Lit wrapper.
 - Remaining framework-neutral services and tests are placed in production-owned locations with no stale `querybuilder` LWC module aliases; Tabulator-specific access is confined to the typed results-grid adapter and asset wiring.
 - JSforce-derived webview metadata aliases and duplicate metadata acquisition/cache code are removed. The final builder retains one browser DTO/Schema at the message boundary and the extension retains the catalog-backed metadata authority.
-- Transitional callback host facades, component-local Effect runners, and duplicate runtime wiring are removed; each production webview has one composition-root-owned managed runtime and Effect driver layer.
+- Transitional callback host facades, component-local Effect runners, and duplicate runtime wiring are removed; each production webview has one composition-root-owned managed runtime and Effect service layer.
 - `retainContextWhenHidden` is retained only if measurements show it remains necessary for the Lit grid, with the reason documented; otherwise it is removed.
 - Contributor documentation, architecture notes, verification commands, screenshots, package metadata, and release notes describe both Lit webviews as the supported implementations.
 - The VSIX includes only production Lit assets plus the required Tabulator runtime/styles, desktop and web release gates pass, and a clean dependency/install/build verifies that no generated LWC artifact is masking a missing source.
@@ -494,12 +496,12 @@ Stories are ordered by dependency. Relative sizes are planning guidance and shou
 
 ## Recommended Delivery Slices
 
-1. Stories 1–4: parity gates, production builder/Effect foundation, full Effect driver contract, and browser test harness.
+1. Stories 1–4: parity gates, production builder/Effect foundation, full Effect service contract, and browser test harness.
 2. Stories 5–7: From, Fields, Limit, and All Rows.
 3. Stories 8–9: actions, progress, notifications, and query preview.
 4. Story 10: Where editor as a dedicated high-risk pull request or short sequence of stacked pull requests.
 5. Story 11: Order By plus full query restoration coverage.
-6. Story 12: typed Lit query-results shell, Effect driver, state restoration, and export actions.
+6. Story 12: typed Lit query-results shell, Effect service, state restoration, and export actions.
 7. Story 13: typed Lit Tabulator wrapper, VS Code-token styling, lifecycle, performance, and grid parity.
 8. Story 14: migrate desktop/web E2E workflows and styling coverage away from LWC and Tabulator DOM contracts.
 9. Story 15: cross-cutting accessibility, theme, performance, desktop, and web hardening.
@@ -516,7 +518,7 @@ A user story is a planning outcome, not necessarily one PR. Large stories may sp
 | Stack | PR layers, bottom to top | Stories | Boundary or demo |
 | --- | --- | --- | --- |
 | 1. Baseline and production foundation | Baselines and migration gates; lift the private UI package and production/migration packaging without the example Node server; production naming plus scoped Effect runtime/lifecycle | 1–2 | Mergeable foundation with no default UI change |
-| 2. Effect driver and browser harness | Browser-safe state/action/error and metadata DTO/Schema contracts; VS Code driver plus catalog-backed metadata authority; deterministic browser harness and fake Effect layers | 3–4 | Stable contract and test boundary for all feature work |
+| 2. Effect service and browser harness | Browser-safe state/action/error and metadata DTO/Schema contracts; VS Code service plus catalog-backed metadata authority; deterministic browser harness and fake Effect layers | 3–4 | Stable contract and test boundary for all feature work |
 | 3. Builder core-controls demo | From; Fields; Limit and All Rows | 5–7 | First management-ready Lit builder demo |
 | 4. Builder actions and feedback | Run Query and Query Plan actions/progress; notifications and query preview | 8–9 | First end-to-end Lit builder demo using the legacy results view |
 | 5. Builder clauses | Where typed-value/operator foundation; repeatable Where rows, AND/OR, restoration, and cancellation; Order By | 10–11 | Complete builder feature parity before hardening |
@@ -551,12 +553,13 @@ npm test --workspace salesforcedx-vscode-soql
 npm run test:soql-builder-ui --workspace salesforcedx-vscode-soql
 npm run test:query-results-ui --workspace salesforcedx-vscode-soql
 npm run test:ui-bundle-budgets --workspace salesforcedx-vscode-soql
-npm run test:lit-spike --workspace salesforcedx-vscode-soql
+npm run test:lit-foundation --workspace salesforcedx-vscode-soql
+npm run vscode:package:migration --workspace salesforcedx-vscode-soql
 npm run test:web --workspace salesforcedx-vscode-soql
 npm run test:desktop --workspace salesforcedx-vscode-soql
 ```
 
-`test:soql-builder-ui` is the LWC parity command until Story 16. `test:query-results-ui` locks down the legacy results protocol until the Lit test variants are added. `test:ui-bundle-budgets` measures the builder, first-party results shell, and retained Tabulator assets independently. Story 2 or Story 4 should rename `test:lit-spike` to a production Lit component/integration test command, and Story 12 should extend the results command with the Lit entry. The last two E2E commands are release-gate checks; Story 14 makes the Lit-targeted builder and results variants mandatory, and they may require the repository's normal browser/desktop test environment. Detailed thresholds and capture procedures live in `packages/salesforcedx-vscode-soql/docs/soql-ui-migration-baseline.md`.
+`test:soql-builder-ui` is the LWC parity command until Story 16. `test:query-results-ui` locks down the legacy results protocol until the Lit test variants are added. `test:ui-bundle-budgets` measures the builder, first-party results shell, and retained Tabulator assets independently. `test:lit-foundation` verifies the production-named Lit bundle and its local-only CSP contract, while `vscode:package:migration` produces the separately named demonstration artifact without changing the normal release bundle. Story 12 should extend the results command with the Lit entry. The last two E2E commands are release-gate checks; Story 14 makes the Lit-targeted builder and results variants mandatory, and they may require the repository's normal browser/desktop test environment. Detailed thresholds and capture procedures live in `packages/salesforcedx-vscode-soql/docs/soql-ui-migration-baseline.md`.
 
 ## Definition of Done
 
@@ -572,7 +575,7 @@ npm run test:desktop --workspace salesforcedx-vscode-soql
 - `@salesforce/soql-builder-ui` is consumed as a private workspace dependency without importing VS Code APIs, and its `package.json` contains `"private": true` so CI publication jobs skip it.
 - LWC dependencies, templates, tests, build plugins, and compatibility workarounds are removed.
 - The plain JavaScript query-results controller and obsolete styling are removed; Tabulator is retained only behind the typed Lit wrapper and a VS Code-token theme layer.
-- Both Lit webviews, their Effect drivers, scoped runtimes, and framework-neutral controllers are type-checked by repository quality gates.
+- Both Lit webviews, their Effect services, scoped runtimes, and framework-neutral controllers are type-checked by repository quality gates.
 
 ## Rollback Strategy
 

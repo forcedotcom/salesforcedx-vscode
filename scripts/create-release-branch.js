@@ -4,14 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
+const { shouldUpdateVersion } = require('./release-package-selection');
 const logger = require('./logger-util');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
-
-// Check if package publishes (extension via vscode:publish, or npm via publishConfig),
-// but skip packages that manage their own version independently.
-const shouldUpdateVersion = pkgJson =>
-  !pkgJson.versionedIndependently && (pkgJson.scripts?.['vscode:publish'] || pkgJson.publishConfig);
 
 // Update version only in packages that publish (extensions + npm packages)
 const updatePackageVersions = nextVersion => {
