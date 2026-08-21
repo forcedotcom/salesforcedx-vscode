@@ -16,7 +16,7 @@ describe('VscodeMessageService', () => {
   let vscodeMessageService;
   const window = getWindow();
   const messageType = 'message';
-  const accountQuery = { sObject: 'Account', fields: [] };
+  const accountQuery = 'SELECT Id FROM Account';
 
   const postMessagePayload = (type?: string, payload?: unknown) => ({
     data: {
@@ -33,10 +33,15 @@ describe('VscodeMessageService', () => {
     vscodeMessageService.onMessage(listener);
   });
 
+  afterEach(() => {
+    vscodeMessageService.dispose();
+  });
+
   it('calls postMessage with activated type immediately when created', () => {
     jest.spyOn(vsCodeApi, 'postMessage');
-    makeVscodeMessageService();
+    const service = makeVscodeMessageService();
     expect(vsCodeApi.postMessage).toHaveBeenCalledWith({ type: MessageType.UI_ACTIVATED });
+    service.dispose();
   });
 
   it('sets and gets state', () => {
@@ -50,12 +55,34 @@ describe('VscodeMessageService', () => {
     window.dispatchEvent(messageEvent);
     expect(listener).toHaveBeenCalled();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(listener.mock.calls[0][0].payload.sObject).toEqual(accountQuery.sObject);
+    expect(listener.mock.calls[0][0].payload).toEqual(accountQuery);
   });
 
   it('filters out malformed SOQL event messages', () => {
     const messageEvent = new MessageEvent(messageType, { data: { no_type_specified: 'xyz' } });
     window.dispatchEvent(messageEvent);
+    expect(listener).toHaveBeenCalledTimes(0);
+  });
+
+  it('filters out known message types with invalid payloads', () => {
+    const messageEvent = new MessageEvent(messageType, {
+      data: { type: MessageType.TEXT_SOQL_CHANGED, payload: { soql: accountQuery } }
+    });
+    window.dispatchEvent(messageEvent);
+    expect(listener).toHaveBeenCalledTimes(0);
+  });
+
+  it('does not publish UI-to-host messages to host-message listeners', () => {
+    const messageEvent = new MessageEvent(messageType, {
+      data: { type: MessageType.UI_ACTIVATED }
+    });
+    window.dispatchEvent(messageEvent);
+    expect(listener).toHaveBeenCalledTimes(0);
+  });
+
+  it('removes its window listener when disposed', () => {
+    vscodeMessageService.dispose();
+    window.dispatchEvent(new MessageEvent(messageType, postMessagePayload()));
     expect(listener).toHaveBeenCalledTimes(0);
   });
 });

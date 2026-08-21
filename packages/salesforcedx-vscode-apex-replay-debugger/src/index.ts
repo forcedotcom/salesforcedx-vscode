@@ -84,9 +84,9 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
 
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile.path',
-    async logFilePath => {
+    async (logFilePath, anonApexFilePath?: string, anonApexLineOffset?: number) => {
       if (logFilePath) {
-        await launchFromLogFile(logFilePath, true);
+        await launchFromLogFile(logFilePath, true, anonApexFilePath, anonApexLineOffset);
       }
     }
   );

@@ -28,13 +28,20 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
 /** safeWriteFile creates the parent directory, so no separate createDirectory call is needed. */
 const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (
   logFilePath: URI,
-  logs?: string
+  logs?: string,
+  anonApexFilePath?: string,
+  anonApexLineOffset?: number
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   if (!logs) return false;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
   yield* Effect.promise(() =>
-    vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath)
+    vscode.commands.executeCommand(
+      'sf.launch.replay.debugger.logfile.path',
+      logFilePath.fsPath,
+      anonApexFilePath,
+      anonApexLineOffset
+    )
   );
   return true;
 });
@@ -89,7 +96,12 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
     yield* api.services.ProjectService.getDebugLogsFolder(),
     `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
   );
-  const success = yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
+  const success = yield* launchReplayDebugger(
+    logFilePath,
+    logBody ?? undefined,
+    ctx.kind === 'code' ? ctx.documentUri.fsPath : ctx.filePath,
+    ctx.kind === 'code' ? (ctx.selectionRange?.start.line ?? 0) : 0
+  );
   if (success) {
     yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false);
   }
