@@ -139,8 +139,7 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      # `inputs` is empty on release runs; coerce to a real boolean for the typed input.
-      dry-run: ${{ inputs.dry-run || false }}
+      dry-run: ${{ inputs.dry-run == true }}
     secrets: inherit
 
   ctcCloseSuccess:
