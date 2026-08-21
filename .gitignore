@@ -160,3 +160,4 @@ graphify-out/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
 .claude/backlog-grooming-*.md
+/.fastcontext
