@@ -267,7 +267,6 @@
       "dependencies": [
         "compile",
         "copy:grammars",
-        "build:soql-builder-lit",
         "test:lit-foundation"
       ],
       "files": [

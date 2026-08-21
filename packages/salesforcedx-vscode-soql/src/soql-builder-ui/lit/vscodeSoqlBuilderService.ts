@@ -23,6 +23,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
@@ -106,8 +107,8 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const errors = yield* PubSub.unbounded<ServiceError>();
 
   const requestSequence = yield* Ref.make(0);
-  const activeMetadataRequestId = yield* Ref.make<string | undefined>(undefined);
-  const activeObjectsRequestId = yield* Ref.make<string | undefined>(undefined);
+  const activeMetadataRequestId = yield* Ref.make<Option.Option<string>>(Option.none());
+  const activeObjectsRequestId = yield* Ref.make<Option.Option<string>>(Option.none());
 
   const removeMessageListener = messageService.onMessage(event => {
     messages.unsafeOffer(event);
@@ -124,32 +125,37 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       Effect.catchTag('SoqlBuilderServiceError', error => PubSub.publish(errors, error).pipe(Effect.asVoid))
     );
 
-  const requestObjects = (operation: ServiceOperation) =>
-    Effect.gen(function* () {
-      const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
-      const requestId = `objects-${sequence}`;
-      yield* Ref.set(activeObjectsRequestId, requestId);
-      yield* tryServiceOperation(operation, () =>
-        messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST, requestId })
-      );
-    });
+  const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(function* (
+    operation: ServiceOperation
+  ) {
+    const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
+    const requestId = `objects-${sequence}`;
+    yield* Ref.set(activeObjectsRequestId, Option.some(requestId));
+    yield* tryServiceOperation(operation, () =>
+      messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST, requestId })
+    );
+  });
 
-  const requestMetadata = (objectName: string, operation: ServiceOperation) =>
-    Effect.gen(function* () {
-      const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
-      const requestId = `metadata-${sequence}`;
-      yield* Ref.set(activeMetadataRequestId, requestId);
-      yield* tryServiceOperation(operation, () =>
-        messageService.sendMessage({
-          payload: objectName,
-          requestId,
-          type: MessageType.SOBJECT_METADATA_REQUEST
-        })
-      );
-    });
+  const requestMetadata = Effect.fn('VscodeSoqlBuilderService.requestMetadata')(function* (
+    objectName: string,
+    operation: ServiceOperation
+  ) {
+    const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
+    const requestId = `metadata-${sequence}`;
+    yield* Ref.set(activeMetadataRequestId, Option.some(requestId));
+    yield* tryServiceOperation(operation, () =>
+      messageService.sendMessage({
+        payload: objectName,
+        requestId,
+        type: MessageType.SOBJECT_METADATA_REQUEST
+      })
+    );
+  });
 
-  const publishQuery = (current: SoqlBuilderState, query: SoqlBuilderQuery) =>
-    Effect.gen(function* () {
+  const publishQuery = Effect.fn('VscodeSoqlBuilderService.publishQuery')(function* (
+    current: SoqlBuilderState,
+    query: SoqlBuilderQuery
+  ) {
       const originalSoqlStatement = yield* serializeQuery(query);
       const nextState: SoqlBuilderState = {
         ...current,
@@ -173,12 +179,15 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       return nextState;
     });
 
+  const modifyQuery = (update: (current: SoqlBuilderState) => SoqlBuilderQuery) =>
+    SubscriptionRef.get(state).pipe(Effect.flatMap(current => publishQuery(current, update(current))));
+
   const handleMessage = Match.type<HostToUiSoqlEditorEvent>().pipe(
     Match.discriminatorsExhaustive('type')({
       [MessageType.SOBJECTS_RESPONSE]: event =>
         Effect.gen(function* () {
           const activeRequestId = yield* Ref.get(activeObjectsRequestId);
-          if (event.requestId !== activeRequestId) return;
+          if (Option.getOrUndefined(activeRequestId) !== event.requestId) return;
           const current = yield* SubscriptionRef.get(state);
           const metadata = yield* validateMetadata({
             ...current.metadata,
@@ -189,7 +198,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       [MessageType.SOBJECT_METADATA_RESPONSE]: event =>
         Effect.gen(function* () {
           const activeRequestId = yield* Ref.get(activeMetadataRequestId);
-          if (event.requestId !== activeRequestId) return;
+          if (Option.getOrUndefined(activeRequestId) !== event.requestId) return;
           const current = yield* SubscriptionRef.get(state);
           if (event.payload.name !== current.query.sObject) return;
           const metadata = yield* validateMetadata({
@@ -307,93 +316,58 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
           );
           yield* requestMetadata(action.objectName, 'dispatch');
         }),
-      FieldsSelected: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, { ...current.query, fields: [...action.fieldNames] });
-        }),
+      FieldsSelected: action => modifyQuery(({ query }) => ({ ...query, fields: [...action.fieldNames] })),
       AllFieldsSelected: () =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, {
-            ...current.query,
-            fields: current.metadata.fields.map(field => field.name)
-          });
-        }),
-      AllFieldsCleared: () =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, { ...current.query, fields: [] });
-        }),
+        modifyQuery(({ metadata, query }) => ({ ...query, fields: metadata.fields.map(field => field.name) })),
+      AllFieldsCleared: () => modifyQuery(({ query }) => ({ ...query, fields: [] })),
       WhereConditionUpserted: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          const existingIndex = current.query.where.conditions.findIndex(
+        modifyQuery(({ query }) => {
+          const existingIndex = query.where.conditions.findIndex(
             condition => condition.index === action.condition.index
           );
           const conditions =
             existingIndex < 0
-              ? [...current.query.where.conditions, action.condition]
-              : current.query.where.conditions.map((condition, index) =>
+              ? [...query.where.conditions, action.condition]
+              : query.where.conditions.map((condition, index) =>
                   index === existingIndex ? action.condition : condition
                 );
-          yield* publishQuery(current, {
-            ...current.query,
+          return {
+            ...query,
             where: {
               conditions,
               ...(action.andOr === undefined ? {} : { andOr: action.andOr })
             }
-          });
+          };
         }),
       WhereConditionRemoved: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, {
-            ...current.query,
-            where: {
-              ...current.query.where,
-              conditions: current.query.where.conditions.filter(condition => condition.index !== action.index)
-            }
-          });
-        }),
+        modifyQuery(({ query }) => ({
+          ...query,
+          where: {
+            ...query.where,
+            conditions: query.where.conditions.filter(condition => condition.index !== action.index)
+          }
+        })),
       WhereConjunctionChanged: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, {
-            ...current.query,
-            where: { ...current.query.where, andOr: action.andOr }
-          });
-        }),
+        modifyQuery(({ query }) => ({
+          ...query,
+          where: { ...query.where, andOr: action.andOr }
+        })),
       OrderByUpserted: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          const existingIndex = current.query.orderBy.findIndex(item => item.field === action.orderBy.field);
+        modifyQuery(({ query }) => {
+          const existingIndex = query.orderBy.findIndex(item => item.field === action.orderBy.field);
           const orderBy =
             existingIndex < 0
-              ? [...current.query.orderBy, action.orderBy]
-              : current.query.orderBy.map((item, index) =>
-                  index === existingIndex ? action.orderBy : item
-                );
-          yield* publishQuery(current, { ...current.query, orderBy });
+              ? [...query.orderBy, action.orderBy]
+              : query.orderBy.map((item, index) => (index === existingIndex ? action.orderBy : item));
+          return { ...query, orderBy };
         }),
       OrderByRemoved: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, {
-            ...current.query,
-            orderBy: current.query.orderBy.filter(orderBy => orderBy.field !== action.fieldName)
-          });
-        }),
-      LimitChanged: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, { ...current.query, limit: action.limit });
-        }),
-      AllRowsChanged: action =>
-        Effect.gen(function* () {
-          const current = yield* SubscriptionRef.get(state);
-          yield* publishQuery(current, { ...current.query, allRows: action.allRows });
-        }),
+        modifyQuery(({ query }) => ({
+          ...query,
+          orderBy: query.orderBy.filter(orderBy => orderBy.field !== action.fieldName)
+        })),
+      LimitChanged: action => modifyQuery(({ query }) => ({ ...query, limit: action.limit })),
+      AllRowsChanged: action => modifyQuery(({ query }) => ({ ...query, allRows: action.allRows })),
       NotificationsDismissed: () =>
         Effect.gen(function* () {
           const current = yield* SubscriptionRef.get(state);
