@@ -1,256 +1,482 @@
 # Publishing
 
-> For an automated, agent-assisted walkthrough of these steps, see [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
+> Automated walkthrough: [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
 
-This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
-
-# Goal
-
-Bundle extensions under `/packages` as .vsix files, push to [VS Code Marketplace](https://marketplace.visualstudio.com/vscode) and [Open VSX Registry](https://open-vsx.org/).
+Bundle extensions as .vsix files → [VS Code Marketplace](https://marketplace.visualstudio.com/vscode) + [Open VSX Registry](https://open-vsx.org/).
 
 References:
 - [Publishing VS Code Extensions][publish_vscode_ext]
 - [Managing Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 - [Publishing Extensions on Open VSX Registry](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)
 
-# Prerequisites
+## Prerequisites
 
-1. Publisher is a part of the GitHub team 'IDE Experience'.
+- GitHub team 'IDE Experience' membership
 
-# Steps
+## Build Release from Prerelease
 
-## Create a Release Branch
+Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases (after 5-day baking period: Wed pre-release → Mon stable) and emergency pre-releases. Trigger manually for on-demand.
 
-Scheduled [Github Action](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/createReleaseBranch.yml) creates release branch from `develop` Mondays 1PM GMT. Format: `release/vXX.YY.ZZ`.
+**Inputs:**
+- `publishAsPrerelease` — boolean flag (default: `false`). When `true`: emergency pre-release mode (no version bump, tags source ref, creates "Emergency Pre-release"). When `false`: standard mode (version bump, isolated branch, stable release).
+- `startFromRef` — git ref (tag/branch/SHA) to build from (optional)
+- `prereleaseTag` — prerelease tag e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
+- `releaseVersion` — e.g. `67.12.0` (auto-calculated if empty)
 
-For code changes post-creation, run `Create Release Branch` workflow with `patch` to create new branch.
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect via `marketplace-prerelease-*` tracking tags (finds promoted Wed candidate tested by customers)
 
-## Compare Changes in the Release
+**How detection works:**
+1. If `startFromRef` provided, use that ref (any git ref: tag/branch/SHA) — bypasses nightly validation, for emergency releases only
+2. Else if `prereleaseTag` provided, validate nightly format (`v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`), use that tag
+3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks Wed 7 AM UTC promotion (latest nightly + passing CI)
 
-Verify release contains changes via diff URL: `https://github.com/forcedotcom/salesforcedx-vscode/compare/release/vX.Y.Z...release/vX.Y.(Z+1)`
+**Emergency Pre-release Mode (`publishAsPrerelease=true`):**
+- Use for critical hotfixes that cannot wait for normal release cycle
+- No version bumping — tags source ref directly
+- Creates "Emergency Pre-release" GitHub release w/ VSIX + SHA256
+- Example: security hotfix from hotfix branch or specific commit
+- ⚠️ Bypasses nightly validation — ensure ref is reviewed/tested before using
 
-No changes? Skip release.
+**Standard Mode (`publishAsPrerelease=false`, default):**
+- Use for regular weekly releases
+- Creates isolated `release-staging/v{version}` branch
+- Bumps version in isolated branch
+- Creates stable release after 5-day baking period
 
-## Updating the Changelog
+**Examples:**
 
-Create Release Branch workflow auto-generates changelog: gathers `feat`/`fix` commits, writes to `CHANGELOG.md`. If only `chore`/`ci` commits, skip changelog. Pushed as `chore: generated CHANGELOG for vXX.YY.ZZ`.
+```sh
+# Standard: auto-detect latest promoted prerelease
+gh workflow run build-release.yml
 
-Edit changelog; team/doc writer reviews. Browser edits: switch to `release/vXX.YY.ZZ`, click pencil on `CHANGELOG.md`.
+# Standard: build from hotfix branch with version bump
+gh workflow run build-release.yml \
+  -f startFromRef="hotfix/security-fix" \
+  -f releaseVersion="67.12.1"
 
-See [.claude/skills/changelog/SKILL.md](../.claude/skills/changelog/SKILL.md) for format/rules.
+# Standard: build from specific commit with version bump
+gh workflow run build-release.yml \
+  -f startFromRef="abc123def" \
+  -f releaseVersion="67.12.1"
 
-## Merging the Release Branch into Main
+# Emergency pre-release: hotfix branch, no version bump
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix"
 
-Use [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow (not manual merge) to apply release commits on top of `main`.
+# Emergency pre-release: specific commit, no version bump
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456"
 
-1. GitHub Actions tab → [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow
-2. 'Run Workflow' dropdown
-3. Set branch to `develop`, 'branch to be released' to release name (e.g., `release/v58.0.0`)
-4. 'Run Workflow'
+# Legacy: specify prerelease tag explicitly
+gh workflow run build-release.yml \
+  -f prereleaseTag="v67.11.1-nightly.develop.20260812"
+```
 
-Verifies release version is newer than `main`, updates `main` with release commits.
+**Scripts:**
+- [`calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease, bump minor, or override; validates semver + bounds (max 9999); accepts prerelease versions like `67.12.0-beta.1`
+- [`update-release-versions.js`](../scripts/update-release-versions.js) — update all publishable `package.json` + `package-lock.json`
 
-### Potential Errors
+**Isolated branch materialization:**
+- Creates `release-staging/v{version}` branch from source ref (not merged to develop)
+- Commits version changes to isolated branch
+- Creates release tag from that branch's commit
+- Release notes instruct deletion of branch after publish
 
-If you get `error: failed to push some refs to 'https://github.com/forcedotcom/salesforcedx-vscode'` on the merge step
+**Security measures:**
+- Command injection protection — regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+- VSIX validation — confirms ≥1 VSIX created after build
+- Script integrity — SHA256 checksums verify scripts weren't tampered (preserved/restored across tag checkout)
+- Deletion timeout — fails if cleanup exceeds 20s (GitHub API eventual consistency)
 
-1. check out the merge branch locally
-2. `git merge` main into it
-3. push
-4. run `PreRelease` workflow again
+Test locally; trigger `publishVSCode.yml` if tests pass.
 
 ## Nightly Builds & Pre-release Promotion
 
-**Nightly builds:** `nightly.yml` publishes all extensions to pre-release channels daily (4 AM UTC) + on-demand. Auto-discovers extensions via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
+**Nightly builds:** `nightly.yml` → all extensions to pre-release daily (4 AM UTC) + on-demand. Auto-discovers via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
 
-**Pre-release promotion:** `promote-prerelease.yml` (Wednesdays 7 AM UTC) promotes nightly builds to pre-release channels when stability criteria met: nightly tag ≥7 days old + all CI checks passed on tag's commit. Allows safe rollback window before general release.
+**Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → promotes latest nightly + passing E2E tests to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
 
-**Artifact retention:** Nightly builds retain artifacts 30 days (vs. 5 days for PR builds) to support promotion workflows accessing build artifacts for stability verification.
+**5-day baking period:** Wed pre-release → Mon stable (customer validation).
 
-## Publishing Main
+**Mon stable release:** `build-release.yml` (Mon 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
 
-Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
-- Run tests
-- Build VSIX files
-- Send Slack notification
-- Create git tag + GitHub release
+**Artifact retention:** 30 days (vs. 5 for PR builds).
 
-Then triggers `publishVSCode.yml`:
-- Verify release exists (required for manual workflow_dispatch triggers)
-- Download VSIX files; validate ≥1 present, exit if missing
-- Call the shared release-asset publisher to publish every VSIX in the GitHub release to VS Code Marketplace
-- Send approval notification
+## Publishing to Marketplace
 
-**Manual workflow_dispatch triggers:** Specify the release tag (for example, `v67.10.0`) and ensure `testBuildAndRelease.yml` has already created that GitHub release with VSIX artifacts. The workflow validates the release exists before attempting downloads and will fail early with a clear error if the release is missing.
+### Standard Path: Nightly → Weekly Pre-release → Mon Stable → Marketplace
 
-Before approving marketplace publish, download VSIX files, install locally, verify functionality.
+1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes latest nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
+2. **5-day baking:** Wed → Mon (customer validation)
+3. **Mon 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
+4. Download + test VSIX files from GitHub pre-release
+5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
+   - Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
+   - Query release metadata to determine whether to publish as stable or prerelease
+6. Approve marketplace publish gates
+7. Marketplace updates within min
 
-Use [gh cli](https://cli.github.com/) (replace `v64.8.0` with your tag; `code` → `code-insiders` as needed):
+### Merge to main (Automated)
+
+`main` merge triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
+- Tests, build VSIXs, git tag + GitHub release, Slack notification
+
+Then auto-triggers `publishVSCode.yml` when release marked "released" (not pre-release).
+
+**Before approval:** Download + test VSIX locally:
 
 ```sh
 gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
 find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
 ```
 
-After testing (per internal template), approve "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" jobs.
+After testing, approve "Publish in Microsoft Marketplace" + "Publish in Open VSX Registry" jobs.
 
 ### Web Console Release
 
-After extensions are published to the MS Marketplace, Web Console needs a new release so customers get the updated extensions. There are two paths:
+After marketplace publish, trigger Web Console release → auto-get updated extensions.
 
-**Automatic (default):** The `publishVSCode.yml` workflow dispatches to `code-builder-web/release-on-extension-publish.yml` via `workflow_call`. That workflow polls the marketplace until the published extensions are available at the new version, then triggers a Web Console release with auto-promote to production. No manual steps needed.
+**Automatic (default):** `publishVSCode.yml` extracts extensions → `code-builder-web` via `repository_dispatch` → polls marketplace → Web Console release w/ auto-promote to `prd`. No manual steps.
 
-To disable the automatic trigger, set repo variable `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables). Default (unset) enables the trigger.
+**Disable:** set repo var `CBW_TRIGGER_ENABLED=false` (Settings → Secrets and variables → Actions → Variables).
 
-**Manual (when auto-promote is broken or disabled):** If the automatic flow fails or is disabled, you need to manually release and promote Web Console after confirming extensions are live in the marketplace:
+**Manual (if auto-promote broken/disabled):**
 
-1. Go to the [release.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/release.yml) workflow in `code-builder-web`
-2. Click **Run workflow** from the `main` branch
-3. Set **release-type** to `patch` (or `minor` if the extension version bumped minor)
-4. Set **auto-promote** to `prd`
-5. Run the workflow — this builds, creates a new version, and dispatches `promote.yml` to sync to `/latest/` in production
+1. Go to [release.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/release.yml) in `code-builder-web`
+2. **Run workflow** from `main`
+3. **release-type** = `patch` (or `minor` if extension bumped minor)
+4. **auto-promote** = `prd`
+5. Run → builds, versions, dispatches `promote.yml` → syncs `/latest/` in production
 
-If you need to promote without a new release (e.g., re-promoting an existing version), use the [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) workflow directly and select the version to promote to `prd`.
+**Re-promote:** use [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) directly.
 
-Full details on the CBW release lifecycle, CDN caching, and rollback procedures are in [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
+Details: [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
 
 ## Closing Shipped GitHub Issues
 
-After successful publish to MS Marketplace, the `closePendingReleaseIssues.yml` workflow automatically closes issues and discussions referenced in `CHANGELOG.md`. It parses the changelog for the current release version, extracts issue and discussion numbers, posts a comment with the release version, and closes any still-open items (leaving already-closed ones with the comment only). Trigger manually via **Close Pending Release Issues** workflow if needed.
+After marketplace publish, `closePendingReleaseIssues.yml` auto-closes issues + discussions in `CHANGELOG.md`.
 
-After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) Claude skill to close open GitHub issues whose linked GUS work items are closed and whose issue numbers appear in the published `CHANGELOG.md`.
+Or run [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) to close GitHub issues w/ closed GUS work items in published `CHANGELOG.md`.
+
+## Emergency Pre-release (Hotfix → Marketplace in Minutes)
+
+Immediate marketplace publication of hotfixes using 2-step process: **build VSIXs** + **publish pre-release**.
+
+### When to use
+
+- Security vulnerabilities
+- Critical production bugs
+- Showstoppers requiring immediate marketplace availability
+
+### Two-step workflow
+
+**Step 1: Build emergency pre-release VSIXs**
+
+```sh
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Creates GitHub pre-release w/ VSIX + SHA256 from any git ref (tag/branch/SHA). No version bump — tags source directly.
+
+**Step 2: Promote to marketplace as pre-release**
+
+```sh
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Publishes Step 1's VSIXs to VS Code Marketplace + Open VSX as pre-release.
+
+**Emergency pre-release nightly tag format:** `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
+- Example: `v67.13.7-nightly.develop.20260820`
+- Use actual build date (not future date)
+
+### Examples
+
+```sh
+# Hotfix from branch
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix"
+
+# Hotfix from specific commit
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456"
+
+# Promote built VSIXs to marketplace
+gh workflow run promote-prerelease.yml \
+  -f releaseTag="v67.13.7-nightly.develop.20260820"
+```
+
+### Traditional patch releases (still available)
+
+For patches requiring formal version tracking:
+
+**1. Create release-base branch**
+
+```sh
+gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo forcedotcom/salesforcedx-vscode
+```
+
+Creates `release-base/v67.12.x` from tag. Auto-copies latest version helper scripts from develop:
+- Restores `scripts/calculate-release-version.js` + `scripts/update-release-versions.js` from develop (old tags may lack them)
+- Verifies integrity via checksums
+- Commits script updates to branch if needed
+
+See [`create-patch-release-branch.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/create-patch-release-branch.yml).
+
+**2. Apply fixes**
+
+```sh
+git fetch origin && git checkout release-base/v67.12.x
+git commit -m "fix: <message>"
+git push origin release-base/v67.12.x
+```
+
+**3. Build patch**
+
+```sh
+gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
+```
+
+Auto-calculates patch version:
+- Filters existing tags for stable only (`v{major}.{minor}.{patch}` — excludes `v*-nightly*`, `v*-beta*`, etc.) before sorting
+- Finds latest stable tag, increments patch
+- Creates and tags commit with `--target "$TAG"` to ensure release points to exact tag commit
+- Builds VSIX from that commit
+
+**4. Test VSIX**
+
+```sh
+gh release download v67.12.1 --dir ~/Downloads/v67.12.1 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v67.12.1 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
+
+**5. Publish**
+
+```sh
+gh workflow run publishVSCode.yml -f version="67.12.1" --repo forcedotcom/salesforcedx-vscode
+```
+
+**6. Cherry-pick to develop**
+
+Merge fixes back for future releases. Release notes provide cherry-pick commands.
+
+**Filter out version-bump commits** — only cherry-pick functional fixes:
+
+```sh
+git checkout develop && git pull origin develop
+
+# Release notes list commits; copy only non-version-bump ones:
+git cherry-pick <commit-sha-1>  # fix: actual bug
+git cherry-pick <commit-sha-2>  # feat: new feature
+# SKIP: chore: bump versions for patch release (release-only commit)
+
+git push origin develop
+```
+
+**7. Cleanup**
+
+```sh
+git push origin --delete release-base/v67.12.x
+```
+
+### Multiple patches
+
+Reuse release-base branch for additional patches on same major.minor:
+
+1. Push more fixes
+2. Run build-patch-release.yml (auto-increments to v67.12.2, v67.12.3, etc.)
+
+## Rollback to Previous Version
+
+If a published release has critical issues and you need to roll back to a previous stable version:
+
+### VS Code Marketplace Rollback Behavior
+
+**Important:** VS Code Marketplace does NOT support true version rollback/downgrade. Once a version is published, republishing a lower version number does NOT replace the higher version for users.
+
+**What happens when you republish a lower version:**
+- The Marketplace shows both versions in the version history
+- Users who already installed the newer version will NOT auto-downgrade
+- New users installing the extension will get the LATEST published version (not necessarily the highest version number)
+- The `--skip-duplicate` flag only skips if the exact version already exists; it does not prevent publishing older versions
+
+### Recommended Rollback Strategy
+
+Instead of true rollback, create a **patch release** with the fixes:
+
+**Option 1: Quick patch from stable base (Recommended)**
+
+```sh
+# 1. Create patch branch from last known-good version
+gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0"
+
+# 2. Cherry-pick or apply fixes
+git fetch origin && git checkout release-base/v67.12.x
+# Apply fixes...
+git push origin release-base/v67.12.x
+
+# 3. Build patch (creates v67.12.1)
+gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x"
+
+# 4. Test and publish
+gh workflow run publishVSCode.yml -f version="v67.12.1"
+```
+
+**Option 2: Republish existing stable version**
+
+If the last known-good version's VSIXs are still available and unmodified:
+
+```sh
+# Republish v67.12.0 to marketplace
+gh workflow run publishVSCode.yml -f version="v67.12.0"
+```
+
+⚠️ **Caveat:** Users on v67.13.0 will NOT auto-downgrade to v67.12.0. They must manually:
+1. Uninstall the extension
+2. Reinstall to get v67.12.0
+
+### User Communication During Rollback
+
+When rolling back, immediately notify users:
+
+1. **VS Code Marketplace description:** Update extension description to warn about v67.13.0 issues
+2. **GitHub Release:** Mark v67.13.0 release as "This release has issues - use v67.12.1 instead"
+3. **Slack/Email:** Notify customers to uninstall v67.13.0 and install v67.12.1
+
+### Prevention
+
+To minimize rollback scenarios:
+- Test stable VSIXs thoroughly before publishing
+- Monitor telemetry/error reports closely after marketplace publish
+- Keep the baking period for customer validation
+
+### Comparison: release paths
+
+| Aspect | Normal | Patch | Emergency Pre-release |
+|--------|--------|-------|----------------------|
+| Source | develop | release-base/vX.Y.x | Any git ref |
+| Timeline | Wed → 5d → Mon | Hours | ~5 min |
+| Version | X.Y+1.0 | X.Y.Z+1 | Nightly format |
+| Stable? | After baking | Immediate | Pre-release only |
+| Workflows | promote → build-release | create-patch → build-patch | build-release + promote-prerelease |
+| Cherry-pick | — | Required | Optional |
+| Use case | Regular cycle | Formal patch | Hotfix → marketplace NOW |
 
 ## Troubleshooting
 
-- 401 errors on publish? You probably need to update the VSCE PAT. https://salesforce.quip.com/E8GWA5TuI8jp
+- 401 errors? Update VSCE PAT: https://salesforce.quip.com/E8GWA5TuI8jp
 
-## Post-Publishing the .vsix
+## Post-Publishing
 
-1. Update the Salesforce Extension Pack to the version you just published. Either go to the Extensions tab, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install. The publish may take a few minutes to register in the marketplace.
-2. Restart Visual Studio Code
-3. Test & validate the application - verify all the extensions are running, and run a command or two.
-4. Once validated, post an announcement in #platform-dev-tools
+1. Update Extension Pack: Extensions tab → Salesforce Extension Pack → update, or download from [marketplace](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode). (May take min to register.)
+2. Restart VS Code
+3. Validate: extensions running, commands work
+4. Post announcement in #platform-dev-tools
 
 ---
 
 # Publishing a Beta Pre-Release
 
-For high-risk or large-scale changes, publish a pre-release to allow advanced users to test early. VSIX artifacts uploaded to GitHub release (no NPM or VS Code Marketplace publish yet).
+High-risk changes → pre-release for early testing. VSIX artifacts → GitHub release (no npm/marketplace yet).
 
-## Steps
+**Steps:**
 
-1. Create release branch, increment version per `create-release-branch.js`
-2. Version format: keep minor, set patch to `YYYYMMDDHHMM` (e.g., v55.11.202208260522)
+1. Create release branch, bump version per `create-release-branch.js`
+2. Format: keep minor, patch = `YYYYMMDDHHMM` (e.g., v55.11.202208260522)
 3. Push to remote
-4. GitHub Actions tab → 'Publish Beta Release to GitHub Only' workflow
-5. Select 'Run Workflow' from beta branch (requires write access)
-6. Workflow creates git tag, release, and attaches individual VSIX files for download/test
+4. Actions → 'Publish Beta Release to GitHub Only' workflow
+5. **Run Workflow** from beta branch
+6. Creates git tag, release, VSIX files for download/test
 
-Note: beta branch (unique versioning) should not merge back to develop; use regular release process when ready.
+**Note:** Beta branch (unique versioning) → do NOT merge to develop. Use regular release when ready.
 
 ---
 
 # Manual Publish
 
-The steps used to publish to the VS Code Marketplace can be found in the associated GitHub Actions.
+Steps in associated GitHub Actions.
 
-## Generating a Major Release
+## Major Release Versioning
 
-The versioning we follow is intentionally mapped with Salesforce Core. When a major version bump occurs, such as 53.0 -> 54.0, we release a major version update as well.
+Versioning mapped to Salesforce Core: e.g., 53.0 → 54.0 bump.
 
-## Downloading the .vsix from GitHub Action
+## Downloading VSIX from GitHub Action
 
-### Options
+**Options:**
+- GitHub Actions run → summary screen → artifacts
+- `gh run download --dir /path 3746978326` (job ID from UI or `gh run list`)
 
-- Download directly from the GitHub Action run. You will find artifacts that are associated with a run at the bottom of the summary screen
-- Use the gh cli to download artifacts. `gh run download --dir /dir/where/you/want/the/vsix/files/ 3746978326`. The last arg is the GHA job id. This can be found in the UI or by executing `gh run list`.
-
-**At this stage, it is possible to share the .vsix directly for manual
-installation.**
-
-To manually install vsix files you can use the `code` or `code-insiders` cli.
-
-- `code-insiders --install-extension /path/to/the/vsix/iama.vsix`
-- or install all downloaded vsix files `find ./vsix/download/path -type f -name "*.vsix" -exec code --install-extension {} \;`
+**Manual install:**
+- `code --install-extension /path/to.vsix`
+- `find ./vsix -type f -name "*.vsix" -exec code --install-extension {} \;`
 
 ## Generating SHA256
 
-Due to [vscode-vsce#191](https://github.com/Microsoft/vscode-vsce/issues/191)
-the .vsix are neither signed nor verified. To ensure that they have not been
-tampered with, we generate a SHA256 of the contents and publish that to the
-Salesforce developer site (see `vscode:sha256` script).
+VSIX files unsigned/unverified ([vscode-vsce#191](https://github.com/Microsoft/vscode-vsce/issues/191)). SHA256 checksums verify integrity.
 
-### Steps
+**Steps:**
+1. `npm run vscode:sha256` → compute SHA256 for built VSIX
+2. Append to top-level SHA256 file
+3. Commit to git
 
-1. `npm run vscode:sha256` will compute the SHA256 for the .vsix generated in
-   the previous stage.
-1. The SHA256 are appended to the top-level SHA256 file.
-1. Finally the file is added to git so that it can be committed.
+## Publishing VSIX to Marketplace
 
-## Pushing .vsix to Visual Studio Marketplace
+**Prerequisites:**
+- VSCE PAT exported as `VSCE_PERSONAL_ACCESS_TOKEN` ([Publishing VS Code Extensions][publish_vscode_ext])
+- vsce installed + configured w/ Salesforce publisher
+- Verify access: `vsce login (publisher name)`
 
-### Prerequisite
+**Steps:**
+1. `npm run vscode:publish` → upload pre-built VSIX
 
-- You have a personal access token that for the salesforce publisher id that is
-  exported as `VSCE_PERSONAL_ACCESS_TOKEN`. Go to [Publishing VS Code Extensions][publish_vscode_ext] for steps on getting your personal access token.
-- Or, you have vsce installed and configured with the salesforce publisher id.
-- Verify you have access to publish:
+**Critical:** Publish the same VSIX (don't repackage) so SHA256 checksums match.
 
+## Merge Release Branch Back
+
+**After:** Artifacts published.
+
+See [Atlassian gitflow](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow). Manual due to merge conflicts.
+
+```sh
+git checkout main && git pull
+git merge release/vxx.y.z && git push
+git checkout develop && git pull
+git merge release/vxx.y.z && git push
 ```
-$ vsce login (publisher name)
-```
 
-### Steps
+## Manual Publish in Open VSX
 
-1. `npm run vscode:publish` takes the .vsix that you had _before_ and uploads
-   it to the Visual Studio Code Marketplace.
+**Option 1: Web UI**
+1. Log in [Open VSX](https://open-vsx.org/) w/ svc-idee-bot GitHub account
+2. Settings → Account avatar
+3. Extensions → publish extensions → drag + drop VSIX
 
-It's **crucial** that you publish the .vsix that you had before so that the
-SHA256 match. If you were to repackage, the SHA256 would be different.
+**Option 2: CLI**
+1. Get publish token from LastPass shared folder
+2. `npx ovsx publish <vsix-file> -p <token>`
 
-## Merging Back From the Release Branch Into Develop and Main
+# Tips: Make Extension Publishable
 
-### Prerequisite
+Add to `extensionDependencies` in `packages/salesforcedx-vscode/package.json`.
 
-- Artifacts have been published.
+In extension's `package.json`:
+- `bugs`: `https://github.com/forcedotcom/salesforcedx-vscode/issues`
+- `repository`: `https://github.com/forcedotcom/salesforcedx-vscode`
 
-### Steps
+Add scripts:
+- Modern: wireit ([Build](../docs/Build.md), [vsce-direct-use](../docs/adr/0017-vsce-package-directly.md))
+- Legacy: `vscode:prepublish`, `vscode:package:legacy`
+- All need: `vscode:sha256`, `vscode:publish`
 
-See this
-[guide](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow)
-from Atlassian on the flow. These steps are manual because you might encounter merge conflicts.
-
-1. `git checkout main`
-1. `git pull` to get the latest changes (there shouldn't be any since you are
-   the person releasing).
-1. `git merge release/vxx.y.z`
-1. `git push`
-1. `git checkout develop`
-1. `git pull` to get the latest changes.
-1. `git merge release/vxx.y.z`
-1. `git push`
-
-## Manual Publish in Open VSX Registry
-
-### Option 1: Using the Open VSX Website UI
-
-1. Log in [Open VSX](https://open-vsx.org/) with the svc-idee-bot github account username and password.
-2. In the Open VSX main page, find the settings by clicking the account avatar.
-3. Go to the "Extensions" section under settings. Click the "publish extensions" button to drag and drop the vsix file to publish it.
-
-### Option 2: Using the CLI Tool
-
-1. Get the publish token from the LastPass shared folder.
-2. Run `npx ovsx publish <vsix-file> -p <token>` locally to publish the vsix file on Open VSX.
-
-# Tips
-
-1. To make a previously unpublished extension publishable:
-   1. Add extension to `extensionDependencies` list in `packages/salesforcedx-vscode/package.json`
-   2. In extension's `package.json`, set `bugs` and `repository` URLs:
-      - `bugs`: `https://github.com/forcedotcom/salesforcedx-vscode/issues`
-      - `repository`: `https://github.com/forcedotcom/salesforcedx-vscode`
-   3. Add required scripts — modern packages use wireit (see [Build](../docs/Build.md) and [vsce-direct-use](../docs/adr/0017-vsce-package-directly.md)); legacy need `vscode:prepublish`, `vscode:package:legacy`. All need `vscode:sha256`, `vscode:publish`.
-   4. Ensure `package.json` has `engines.vscode`, `publisher`, `categories` — nightly builds auto-discover via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) (main bundle first, then alphabetical; no workflow updates needed).
+Add to `package.json`: `engines.vscode`, `publisher`, `categories` — auto-discovered by nightly builds via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) (main first, then alphabetical; no workflow updates).
 
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension

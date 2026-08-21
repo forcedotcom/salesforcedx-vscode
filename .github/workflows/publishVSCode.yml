@@ -1,5 +1,7 @@
-name: Publish in Microsoft Marketplace
+name: Publish Stable Release to Marketplace
 
+# Publishes stable releases to VS Code Marketplace and Open VSX Registry.
+# For pre-release publishing, use promote-prerelease.yml instead.
 # Publishing uses the shared release-asset publisher workflow.
 
 on:
@@ -31,6 +33,7 @@ jobs:
     environment: publish
     outputs:
       RELEASE_TAG: ${{ steps.getReleaseTag.outputs.tag }}
+      IS_PRERELEASE: ${{ steps.detectReleaseType.outputs.is_prerelease }}
       CBW_RELEASE_VERSION: ${{ steps.cbwReleaseType.outputs.version }}
       CBW_RELEASE_TYPE: ${{ steps.cbwReleaseType.outputs.type }}
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild }}
@@ -38,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'main'
+          ref: 'develop'
       - run: git fetch --tags --quiet
       - id: getReleaseTag
         env:
@@ -47,6 +50,23 @@ jobs:
         run: |
           echo "tag=${INPUT_VERSION:-$RELEASE_TAG}" >> $GITHUB_OUTPUT
       - run: echo "Release tag is ${{ steps.getReleaseTag.outputs.tag }}"
+      - id: detectReleaseType
+        env:
+          RELEASE_TAG: ${{ steps.getReleaseTag.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Detect whether this is a prerelease or stable release
+          # When triggered by workflow_dispatch, query the GitHub release
+          # When triggered by release event, use event data
+          if [ "${{ github.event_name }}" = "release" ]; then
+            IS_PRERELEASE="${{ github.event.release.prerelease }}"
+          else
+            # Query the release to determine its type
+            IS_PRERELEASE=$(gh release view "$RELEASE_TAG" --json isPrerelease --jq '.isPrerelease')
+          fi
+
+          echo "is_prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+          echo "Release type: $([ "$IS_PRERELEASE" = "true" ] && echo "prerelease" || echo "stable")"
       - id: cbwReleaseType
         run: |
           VERSION="${{ steps.getReleaseTag.outputs.tag }}"
@@ -75,20 +95,11 @@ jobs:
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.cbwReleaseType.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"
 
-  # Build list of extensions from release
-  build-extension-list:
+  # Verify release exists (used by both publish and CBW trigger)
+  verify-release:
     needs: [prepare-release-metadata]
     runs-on: ubuntu-latest
-    outputs:
-      extensions: ${{ steps.list.outputs.extensions }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: 'main'
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Verify release exists
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
@@ -96,36 +107,10 @@ jobs:
         run: |
           if ! gh release view "$RELEASE_TAG" &> /dev/null; then
             echo "::error::Release $RELEASE_TAG does not exist. Cannot proceed with publish."
-            echo "::notice::If triggered manually via workflow_dispatch, ensure the release has been created by testBuildAndRelease.yml first."
+            echo "::notice::If triggered manually via workflow_dispatch, ensure the release has been created first."
             exit 1
           fi
-          echo "Release $RELEASE_TAG exists, proceeding with download..."
-      - name: Download VSIXs from release
-        env:
-          RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir ./extensions
-          gh release download "$RELEASE_TAG" -D ./extensions || {
-            echo "::error::Failed to download release $RELEASE_TAG"
-            exit 1
-          }
-
-          # Validate: ≥1 VSIX file present
-          if ! ls ./extensions/*.vsix 1> /dev/null 2>&1; then
-            echo "::error::No VSIX files found in release $RELEASE_TAG"
-            exit 1
-          fi
-
-          echo "Downloaded VSIX files:"
-          ls -lh ./extensions/*.vsix
-      - name: Build extension list
-        id: list
-        run: |
-          # Dynamically discover extensions from downloaded VSIXs
-          EXTENSIONS=$(node scripts/parse-extension-names.js ./extensions)
-          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
-          echo "Publishing extensions: $EXTENSIONS"
+          echo "✅ Release $RELEASE_TAG exists"
 
   ctc-open:
     needs: [prepare-release-metadata]
@@ -134,11 +119,13 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata']
-    if: always() && needs.prepare-release-metadata.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
+    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release']
+    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+      # TODO: Add pre-release input to upstream workflow
+      # pre-release: ${{ needs.prepare-release-metadata.outputs.IS_PRERELEASE }}
       dry-run: ${{ inputs.dry-run }}
     secrets: inherit
 
@@ -164,11 +151,41 @@ jobs:
   # Uses repository_dispatch (not workflow_call) because GitHub Actions blocks
   # public repos from calling reusable workflows in private repos.
   trigger-cbw-release:
-    needs: [publish, prepare-release-metadata, build-extension-list]
+    needs: [publish, prepare-release-metadata]
     if: needs.publish.result == 'success' && !inputs.dry-run && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
+      - name: Extract extensions from release
+        id: extensions
+        env:
+          RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get VSIX filenames from release assets
+          VSIX_FILES=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name | endswith(".vsix")) | .name')
+
+          # Validate at least one VSIX file exists
+          if [ -z "$VSIX_FILES" ]; then
+            echo "::error::No VSIX files found in release $RELEASE_TAG"
+            echo "::error::Release exists but contains no .vsix assets"
+            echo "::error::This may indicate build-release.yml failed to upload VSIXs"
+            exit 1
+          fi
+
+          # Extract extension names (strip version suffix)
+          EXTENSIONS=$(echo "$VSIX_FILES" | sed -E 's/-[0-9]+\.[0-9]+\.[0-9]+.*\.vsix$//' | sort -u | tr '\n' ',' | sed 's/,$//')
+
+          # Validate extensions list is not empty after extraction
+          if [ -z "$EXTENSIONS" ]; then
+            echo "::error::Extension name extraction failed from VSIX files"
+            echo "::error::VSIX files found but could not extract extension names"
+            exit 1
+          fi
+
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+          echo "✓ Found extensions: $EXTENSIONS"
+
       - name: Generate dispatch token
         id: dispatch-token
         uses: actions/create-github-app-token@v1
@@ -177,12 +194,13 @@ jobs:
           private-key: ${{ secrets.CBW_DISPATCH_APP_PRIVATE_KEY }}
           owner: forcedotcom
           repositories: code-builder-web
+
       - name: Trigger Code Builder Web release
         env:
           GH_TOKEN: ${{ steps.dispatch-token.outputs.token }}
           VERSION: ${{ needs.prepare-release-metadata.outputs.CBW_RELEASE_VERSION }}
           RELEASE_TYPE: ${{ needs.prepare-release-metadata.outputs.CBW_RELEASE_TYPE }}
-          EXTENSIONS: ${{ needs.build-extension-list.outputs.extensions }}
+          EXTENSIONS: ${{ steps.extensions.outputs.extensions }}
         run: |
           echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE, extensions: $EXTENSIONS)"
           gh api repos/forcedotcom/code-builder-web/dispatches \

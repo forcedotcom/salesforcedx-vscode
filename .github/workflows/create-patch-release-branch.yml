@@ -1,0 +1,144 @@
+name: Create Patch Release Branch
+
+# Creates a release-base/v{major}.{minor}.x branch from an existing release tag
+# for iterative patching. After fixes are pushed, run build-patch-release.yml
+# to tag and release the patch version.
+#
+# Usage:
+#   1. Run this workflow with baseVersion (e.g., 67.12.0)
+#   2. Workflow creates release-base/v67.12.x from tag v67.12.0
+#   3. Push your fixes to release-base/v67.12.x
+#   4. Run build-patch-release.yml to tag v67.12.1 and create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseVersion:
+        description: 'Base version to patch (e.g., 67.12.0). Must be an existing release tag.'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Validate and create release-base branch
+        env:
+          BASE_VERSION: ${{ github.event.inputs.baseVersion }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          # Validate semver format
+          if ! echo "$BASE_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format: $BASE_VERSION"
+            echo "::error::Expected format: X.Y.Z (e.g., 67.12.0)"
+            exit 1
+          fi
+
+          # Extract major.minor for branch name
+          MAJOR_MINOR=$(echo "$BASE_VERSION" | sed -E 's/^([0-9]+\.[0-9]+)\.[0-9]+$/\1/')
+          BRANCH_NAME="release-base/v${MAJOR_MINOR}.x"
+          BASE_TAG="v${BASE_VERSION}"
+
+          echo "Base version: $BASE_VERSION"
+          echo "Base tag: $BASE_TAG"
+          echo "Branch name: $BRANCH_NAME"
+
+          # Verify base tag exists
+          if ! git rev-parse "$BASE_TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $BASE_TAG does not exist"
+            echo "::error::Available tags:"
+            git tag -l "v${MAJOR_MINOR}.*" --sort=-v:refname | head -10
+            exit 1
+          fi
+
+          # Verify tag has a GitHub release
+          if ! gh release view "$BASE_TAG" &> /dev/null; then
+            echo "::error::GitHub release $BASE_TAG does not exist"
+            echo "::error::This tag may not have been properly released"
+            exit 1
+          fi
+
+          # Check if branch already exists
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "::warning::Branch $BRANCH_NAME already exists"
+            echo "Existing branch details:"
+            git fetch origin "$BRANCH_NAME"
+            git log "origin/$BRANCH_NAME" --oneline -5
+
+            echo ""
+            echo "::notice::To continue using the existing branch:"
+            echo "::notice::  git checkout $BRANCH_NAME"
+            echo "::notice::  git pull"
+            echo "::notice::To recreate from $BASE_TAG (DESTRUCTIVE):"
+            echo "::notice::  git push origin --delete $BRANCH_NAME"
+            echo "::notice::  Re-run this workflow"
+            exit 1
+          fi
+
+          # Create release-base branch from tag
+          git checkout -b "$BRANCH_NAME" "$BASE_TAG"
+
+          # Preserve current scripts from develop for version tooling
+          # Historical tags may not have update-release-versions.js or calculate-release-version.js
+          git checkout origin/develop -- scripts/calculate-release-version.js scripts/update-release-versions.js 2>/dev/null || {
+            echo "::warning::Could not restore version helper scripts from develop"
+            echo "::warning::Branch will use scripts from the base tag (may be outdated)"
+          }
+
+          # Commit the updated scripts if they changed
+          if ! git diff --quiet --cached; then
+            git commit -m "chore: update version helper scripts from develop
+
+          Historical release tags may not have the latest version tooling.
+          This commit brings in the current scripts for version management.
+
+          Scripts updated:
+          - scripts/calculate-release-version.js
+          - scripts/update-release-versions.js"
+
+            echo "✓ Updated version helper scripts from develop"
+          else
+            echo "✓ Version helper scripts are up-to-date"
+          fi
+
+          git push origin "$BRANCH_NAME"
+
+          echo "✅ Created branch: $BRANCH_NAME from tag $BASE_TAG"
+          echo ""
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Check out the branch locally:**" >> $GITHUB_STEP_SUMMARY
+          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
+          echo "   git fetch origin" >> $GITHUB_STEP_SUMMARY
+          echo "   git checkout $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Apply your fixes:**" >> $GITHUB_STEP_SUMMARY
+          echo "   - Make code changes" >> $GITHUB_STEP_SUMMARY
+          echo "   - Commit with conventional commit messages (fix:, feat:, etc.)" >> $GITHUB_STEP_SUMMARY
+          echo "   - Push to this branch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Create patch release:**" >> $GITHUB_STEP_SUMMARY
+          echo "   - Run the \`build-patch-release.yml\` workflow" >> $GITHUB_STEP_SUMMARY
+          echo "   - It will tag v${MAJOR_MINOR}.{patch+1} from branch HEAD" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "4. **Cherry-pick fixes to develop:**" >> $GITHUB_STEP_SUMMARY
+          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
+          echo "   git checkout develop" >> $GITHUB_STEP_SUMMARY
+          echo "   git cherry-pick <commit-sha>" >> $GITHUB_STEP_SUMMARY
+          echo "   git push origin develop" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "5. **After patch is published, delete the branch:**" >> $GITHUB_STEP_SUMMARY
+          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
+          echo "   git push origin --delete $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY

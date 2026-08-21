@@ -2,17 +2,21 @@ name: Promote Nightly to Pre-release
 
 on:
   schedule:
-    # Wednesdays at 7 AM UTC
-    # Rationale: Weekly promotion on Wed gives 7+ days of nightly testing
-    # before weekend/Monday releases, aligning with team review cycles
-    # Stability criteria: nightly tag ≥7 days old + all CI checks passed on the tag's commit
+    # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
+    # Rationale: Weekly promotion on Wed, then 5-day baking period (Wed → Mon)
+    # before stable release, aligning with team review cycles
+    # Stability criteria: latest nightly + all CI checks passed on the tag's commit
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
-      min-tag-age-days:
-        description: 'Minimum nightly age in days before eligible for promotion (default: 7)'
+      releaseTag:
+        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Use for emergency pre-releases. Overrides min-tag-age-days.'
         required: false
-        default: '7'
+        type: string
+      min-tag-age-days:
+        description: 'Minimum nightly age in days before eligible for promotion (default: 0 for latest nightly). Ignored if releaseTag provided.'
+        required: false
+        default: '0'
         type: string
       dry-run:
         description: 'Run in dry-run mode (no actual publishing or tagging)'
@@ -20,9 +24,8 @@ on:
         default: false
         type: boolean
 
-concurrency:
-  group: promote-prerelease
-  cancel-in-progress: false
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-prerelease.yml)
+# Do not define it here to avoid deadlock
 
 permissions:
   contents: write
@@ -31,9 +34,11 @@ permissions:
 
 jobs:
   promote:
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    # TODO: Change back to @main after upstream PR is merged
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/add-release-tag-input-to-vscode-promote-prerelease
     with:
-      min-tag-age-days: ${{ inputs.min-tag-age-days || '7' }}
+      release-tag: ${{ inputs.releaseTag || '' }}
+      min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
       extension-name: 'salesforcedx-vscode'

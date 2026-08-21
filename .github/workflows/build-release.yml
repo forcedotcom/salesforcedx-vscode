@@ -1,0 +1,477 @@
+name: Build Release
+
+on:
+  schedule:
+    # Mondays at 8 AM UTC (5 days after Wednesday pre-release promotion)
+    # Builds stable release from pre-release that has been tested by customers
+    # Gives ~5 day baking period (Wed pre-release → Mon stable release)
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      startFromRef:
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation - ensure ref is reviewed/merged to develop before using.'
+        required: false
+        type: string
+      prereleaseTag:
+        description: 'Promoted prerelease tag (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest. Ignored if startFromRef is provided.'
+        required: false
+        type: string
+      releaseVersion:
+        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate (bump minor from prerelease).'
+        required: false
+        type: string
+      publishAsPrerelease:
+        description: 'Publish as pre-release instead of stable? Use for emergency pre-release hotfixes. When true, releaseVersion is used as-is without bumping.'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  build-release:
+    name: 'Build Release'
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.calculate-version.outputs.version }}
+      prerelease_tag: ${{ steps.detect-tag.outputs.tag }}
+      release_tag: ${{ steps.calculate-version.outputs.release_tag }}
+      is_prerelease: ${{ steps.calculate-version.outputs.is_prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for tags
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Detect source ref
+        id: detect-tag
+        env:
+          START_FROM_REF: ${{ github.event.inputs.startFromRef }}
+          INPUT_TAG: ${{ github.event.inputs.prereleaseTag }}
+        run: |
+          if [ -n "$START_FROM_REF" ]; then
+            # Priority 1: Use startFromRef if provided (any git ref: tag/branch/SHA)
+            # This bypasses nightly tag validation for emergency releases
+            echo "Using startFromRef: $START_FROM_REF"
+
+            # Verify ref exists
+            if ! git rev-parse "$START_FROM_REF" >/dev/null 2>&1; then
+              echo "::error::Git ref '$START_FROM_REF' does not exist"
+              echo "::error::Ensure the tag, branch, or commit SHA is valid"
+              exit 1
+            fi
+
+            TAG="$START_FROM_REF"
+            echo "✓ Verified ref exists: $TAG"
+
+          elif [ -n "$INPUT_TAG" ]; then
+            # Priority 2: Use prereleaseTag if provided (must match nightly pattern)
+            # Validate input tag format to prevent command injection
+            if ! echo "$INPUT_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$'; then
+              echo "::error::Invalid prereleaseTag format: $INPUT_TAG"
+              echo "::error::Expected format: v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}"
+              echo "::error::Example: v67.11.1-nightly.develop.20260812"
+              echo "::error::"
+              echo "::error::💡 TIP: For non-nightly refs, use startFromRef instead of prereleaseTag"
+              exit 1
+            fi
+            TAG="$INPUT_TAG"
+            echo "Using provided prereleaseTag: $TAG"
+
+            # Verify tag exists
+            if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+              echo "::error::Tag $TAG does not exist"
+              exit 1
+            fi
+
+          else
+            # Priority 3: Auto-detect latest promoted prerelease via tracking tag
+            # The promote-prerelease workflow creates marketplace-prerelease-* tracking tags
+            # that point to the vetted Wednesday candidate commit
+            TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
+
+            if [ -z "$TRACKING_TAG" ]; then
+              echo "::error::No marketplace-prerelease tracking tags found"
+              echo "::error::Expected pattern: marketplace-prerelease-salesforcedx-vscode-v{version}"
+              echo "::error::"
+              echo "::error::This means no nightly has been promoted to prerelease yet."
+              echo "::error::💡 TIP: Use startFromRef input to build from a specific tag/branch/commit"
+              exit 1
+            fi
+
+            # Extract the nightly tag from the tracking tag
+            # Tracking tag format: marketplace-prerelease-salesforcedx-vscode-v{version}
+            # We need to find the nightly tag with matching version
+            VERSION=$(echo "$TRACKING_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+
+            if [ -z "$VERSION" ]; then
+              echo "::error::Could not extract version from tracking tag: $TRACKING_TAG"
+              exit 1
+            fi
+
+            # Find the nightly tag with this version
+            TAG=$(git tag -l "v${VERSION}-nightly.develop.*" --sort=-v:refname | head -1)
+
+            if [ -z "$TAG" ]; then
+              echo "::error::No nightly tag found matching version $VERSION from tracking tag $TRACKING_TAG"
+              exit 1
+            fi
+
+            echo "Auto-detected promoted prerelease via tracking tag: $TRACKING_TAG"
+            echo "Resolved to nightly tag: $TAG"
+            echo "This is the Wednesday candidate that was promoted and tested"
+          fi
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Calculate release version
+        id: calculate-version
+        env:
+          PUBLISH_AS_PRERELEASE: ${{ github.event.inputs.publishAsPrerelease }}
+          INPUT_VERSION: ${{ github.event.inputs.releaseVersion }}
+          SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          if [ "$PUBLISH_AS_PRERELEASE" = "true" ]; then
+            # Pre-release mode: Use provided version as-is or derive from source tag
+            if [ -n "$INPUT_VERSION" ]; then
+              # Strip leading 'v' if present to avoid double prefix
+              VERSION="${INPUT_VERSION#v}"
+              echo "Using provided pre-release version: $VERSION"
+            else
+              # Extract version from source tag if it's a nightly/prerelease tag
+              VERSION=$(echo "$SOURCE_TAG" | grep -oP '\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?' || echo "")
+              if [ -z "$VERSION" ]; then
+                echo "::error::Cannot derive version from source tag: $SOURCE_TAG"
+                echo "::error::Please provide releaseVersion input for pre-release mode"
+                exit 1
+              fi
+              echo "Derived pre-release version from source: $VERSION"
+            fi
+            IS_PRERELEASE="true"
+          else
+            # Stable mode: Calculate using script (bumps version)
+            VERSION=$(node scripts/calculate-release-version.js \
+              "$SOURCE_TAG" \
+              "$INPUT_VERSION")
+            IS_PRERELEASE="false"
+          fi
+
+          # Normalize: ensure VERSION has no leading 'v' before adding prefix
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION (prerelease: $IS_PRERELEASE)"
+
+      - name: Preserve scripts before checkout
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        run: |
+          # Copy scripts to temp location (prerelease tag may not have them)
+          mkdir -p /tmp/release-scripts
+          cp scripts/calculate-release-version.js /tmp/release-scripts/
+          cp scripts/update-release-versions.js /tmp/release-scripts/
+
+          # Generate checksums for integrity verification (without directory prefix)
+          cd scripts
+          sha256sum calculate-release-version.js update-release-versions.js > /tmp/release-scripts/checksums.txt
+          cd ..
+          echo "Generated checksums:"
+          cat /tmp/release-scripts/checksums.txt
+
+      - name: Create isolated release branch
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        env:
+          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+        run: |
+          # Create an isolated branch from the source ref
+          # This branch will contain the release-only version commits
+          # and will NOT be merged back to develop
+          BRANCH_NAME="release-staging/v${RELEASE_VERSION}"
+
+          echo "Creating isolated release branch: $BRANCH_NAME"
+          echo "Source: $SOURCE_REF"
+
+          git checkout -b "$BRANCH_NAME" "$SOURCE_REF"
+          echo "✓ Created isolated branch at $(git rev-parse HEAD)"
+
+      - name: Restore scripts
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        run: |
+          # Restore scripts from temp location
+          mkdir -p scripts
+
+          # Verify scripts exist in temp
+          if [ ! -f /tmp/release-scripts/calculate-release-version.js ] || [ ! -f /tmp/release-scripts/update-release-versions.js ]; then
+            echo "::error::Scripts not found in /tmp/release-scripts/"
+            exit 1
+          fi
+
+          cp /tmp/release-scripts/calculate-release-version.js scripts/
+          cp /tmp/release-scripts/update-release-versions.js scripts/
+
+          # Verify integrity with checksums
+          cd scripts
+          if ! sha256sum -c /tmp/release-scripts/checksums.txt 2>/dev/null; then
+            echo "::error::Script integrity check failed - checksums do not match"
+            exit 1
+          fi
+          cd ..
+          echo "✓ Script integrity verified"
+
+      - name: Configure git
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Update package versions
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+
+      - name: Commit release-only version changes
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+        run: |
+          # Commit the version changes to the isolated branch
+          # This is a release-only commit that will NOT be merged to develop
+          git add packages/*/package.json package-lock.json
+
+          git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
+
+          This is a release-only version commit created on an isolated branch.
+          It should NOT be cherry-picked to develop.
+
+          Source: ${{ steps.detect-tag.outputs.tag }}"
+
+          echo "✓ Committed version changes at $(git rev-parse HEAD)"
+
+      - name: Checkout source ref for pre-release
+        if: steps.calculate-version.outputs.is_prerelease == 'true'
+        env:
+          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          # For emergency pre-release, just checkout the source ref directly
+          # No isolated branch or version bumping needed
+          echo "Checking out source ref for emergency pre-release: $SOURCE_REF"
+          git checkout "$SOURCE_REF"
+          echo "✓ Checked out source at $(git rev-parse HEAD)"
+
+      - name: Create and push release tag
+        env:
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            # For emergency pre-release, tag the source ref directly
+            echo "Creating emergency pre-release tag at source ref"
+            git tag "$RELEASE_TAG" "$SOURCE_REF"
+          else
+            # For stable release, tag the current HEAD (version commit)
+            # This ensures the tag points to the exact commit with release versions
+            git tag "$RELEASE_TAG"
+          fi
+
+          git push origin "$RELEASE_TAG"
+
+          echo "✓ Created and pushed tag: $RELEASE_TAG"
+          echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
+
+      - name: Install dependencies with updated versions
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Build VSIXs
+        run: npm run vscode:package
+
+      - name: Collect VSIXs
+        run: |
+          # TODO: Extract to reusable composite action (.github/actions/collect-vsix)
+          # This pattern is duplicated in build-patch-release.yml and other workflows
+          mkdir -p extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+
+          # Validate that VSIXs were built
+          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
+          if [ "$VSIX_COUNT" -eq 0 ]; then
+            echo "::error::No VSIX files found after build. Build may have failed silently."
+            exit 1
+          fi
+          echo "✓ Found $VSIX_COUNT VSIX files"
+
+      - name: Generate SHA256 checksums
+        run: |
+          npm run vscode:sha256
+          scripts/concatenate-sha256.js
+          rm ./SHA256
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+          PRERELEASE_TAG: ${{ steps.detect-tag.outputs.tag }}
+          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+        run: |
+          echo "Creating GitHub pre-release: $RELEASE_TAG"
+
+          # Create release notes
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            # Emergency pre-release mode
+            {
+              echo "## Emergency Pre-release $RELEASE_VERSION"
+              echo ""
+              echo "Built from source ref: \`$PRERELEASE_TAG\`"
+              echo ""
+              echo "**⚠️ EMERGENCY HOTFIX:** This is an expedited pre-release for urgent fixes"
+              echo ""
+              echo "### Testing Required"
+              echo ""
+              echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
+              echo ""
+              echo "### Testing Checklist"
+              echo ""
+              echo "1. Download VSIX files from this release"
+              echo "2. Install extensions locally"
+              echo "3. Run manual QA tests"
+              echo "4. If tests PASS - Use promote-prerelease.yml to publish to marketplace as pre-release"
+              echo ""
+              echo "### Installation"
+              echo ""
+              echo '```bash'
+              echo "gh release download $RELEASE_TAG"
+              echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
+              echo '```'
+            } > release_notes.md
+          else
+            # Stable release mode
+            {
+              echo "## Release $RELEASE_VERSION"
+              echo ""
+              echo "Built from promoted prerelease: \`$PRERELEASE_TAG\`"
+              echo ""
+              echo "**⚠️ IMPORTANT:** This release was built on isolated branch \`release-staging/v${RELEASE_VERSION}\`"
+              echo ""
+              echo "### Testing Required"
+              echo ""
+              echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
+              echo ""
+              echo "### Testing Checklist"
+              echo ""
+              echo "1. Download VSIX files from this release"
+              echo "2. Install extensions locally"
+              echo "3. Run manual QA tests"
+              echo "4. If tests PASS - Trigger publishVSCode.yml workflow with version $RELEASE_VERSION"
+              echo "5. If tests FAIL - Create immediate prerelease, bump version, and retry"
+              echo ""
+              echo "### Installation"
+              echo ""
+              echo '```bash'
+              echo "gh release download $RELEASE_TAG"
+              echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
+              echo '```'
+              echo ""
+              echo "### After Publishing"
+              echo ""
+              echo "Delete the isolated release branch (it should NOT be merged to develop):"
+              echo '```bash'
+              echo "git push origin --delete release-staging/v${RELEASE_VERSION}"
+              echo '```'
+              echo ""
+              echo "Note: Only functional fixes should be cherry-picked to develop, NOT the version-bump commit."
+            } > release_notes.md
+          fi
+
+          # Check if release already exists (for retry scenarios)
+          if gh release view "$RELEASE_TAG" &> /dev/null; then
+            echo "⚠️  Release $RELEASE_TAG already exists"
+
+            # Get release body to check if it was created by this workflow
+            EXISTING_BODY=$(gh release view "$RELEASE_TAG" --json body --jq '.body')
+
+            # Check if release was created by this workflow (contains our marker)
+            # NOTE: This uses text matching on release body which is fragile - if release notes
+            # format changes, this check may break. Future improvement: use GitHub release labels
+            # or custom metadata for more reliable workflow-created marker.
+            if echo "$EXISTING_BODY" | grep -qE "(Built from promoted prerelease:|Built from source ref:)"; then
+              echo "✓ Release was created by build-release.yml - safe to delete for retry"
+              gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+            else
+              echo "::error::Release $RELEASE_TAG exists but was NOT created by this workflow"
+              echo "::error::This may be a manually created emergency release"
+              echo "::error::Release body does not contain expected markers: 'Built from promoted prerelease:' or 'Built from source ref:'"
+              echo "::error::"
+              echo "::error::To proceed, either:"
+              echo "::error::  1. Manually delete the release: gh release delete $RELEASE_TAG --yes --cleanup-tag"
+              echo "::error::  2. Use a different releaseVersion input to avoid conflict"
+              exit 1
+            fi
+
+            # Wait for GitHub API to propagate the deletion (eventual consistency)
+            echo "Waiting for deletion to propagate..."
+            sleep 5
+
+            # Verify deletion completed with timeout
+            DELETED=false
+            for i in {1..5}; do
+              if ! gh release view "$RELEASE_TAG" &> /dev/null; then
+                echo "✓ Release deleted successfully"
+                DELETED=true
+                break
+              fi
+              echo "Waiting for deletion to complete (attempt $i/5)..."
+              sleep 3
+            done
+
+            # Fail if deletion didn't complete
+            if [ "$DELETED" = false ]; then
+              echo "::error::Release deletion timed out after 20 seconds"
+              echo "::error::GitHub API may be experiencing delays. Please try again later."
+              exit 1
+            fi
+          fi
+
+          # Create pre-release first (without assets)
+          # Note: No --target needed here as we're on the checked-out commit
+          # The release will be created at the current HEAD which is the correct commit
+          gh release create "$RELEASE_TAG" \
+            --title "Release $RELEASE_VERSION - Ready for Testing" \
+            --notes-file release_notes.md \
+            --prerelease
+
+          # Upload VSIX files and SHA256 in batch (more efficient than loop)
+          echo "Uploading VSIX files and SHA256.md..."
+          gh release upload "$RELEASE_TAG" ./extensions/*.vsix SHA256.md
+
+          echo "Pre-release created: $RELEASE_TAG"
+          echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
+
+  summary:
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## ✅ Release Built Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Version:** ${{ needs.build-release.outputs.release_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Tag:** ${{ needs.build-release.outputs.release_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** ${{ needs.build-release.outputs.prerelease_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download and test VSIX files from the pre-release" >> $GITHUB_STEP_SUMMARY
+          echo "2. If tests pass, trigger \`publishVSCode.yml\` workflow" >> $GITHUB_STEP_SUMMARY
+          echo "3. If tests fail, create immediate prerelease and retry with bumped version" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View Pre-release](https://github.com/${{ github.repository }}/releases/tag/${{ needs.build-release.outputs.release_tag }})" >> $GITHUB_STEP_SUMMARY

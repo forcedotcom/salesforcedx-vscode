@@ -1,0 +1,271 @@
+name: Build Patch Release
+
+# Tags and builds a patch release from a release-base/v{major}.{minor}.x branch
+# created by create-patch-release-branch.yml.
+#
+# Prerequisites:
+#   - A release-base/v{major}.{minor}.x branch exists with your fixes
+#   - Example: release-base/v67.12.x created from v67.12.0
+#
+# What this does:
+#   1. Tags the branch HEAD as v{major}.{minor}.{patch+1}
+#   2. Builds VSIX files
+#   3. Creates GitHub pre-release with VSIXs
+#   4. You then test and trigger publishVSCode.yml manually
+#
+# After publishing:
+#   - Cherry-pick fixes back to develop
+#   - Delete the release-base branch (git push origin --delete release-base/v{major}.{minor}.x)
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseBranch:
+        description: 'Release branch to tag (e.g., release-base/v67.12.x)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  build-patch:
+    runs-on: ubuntu-latest
+    outputs:
+      patch_version: ${{ steps.calculate-version.outputs.version }}
+      patch_tag: ${{ steps.calculate-version.outputs.tag }}
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.releaseBranch }}
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Calculate patch version
+        id: calculate-version
+        env:
+          BRANCH: ${{ github.event.inputs.releaseBranch }}
+        run: |
+          # Extract major.minor from branch name (release-base/v67.12.x -> 67.12)
+          if ! echo "$BRANCH" | grep -qE '^release-base/v[0-9]+\.[0-9]+\.x$'; then
+            echo "::error::Invalid branch format: $BRANCH"
+            echo "::error::Expected format: release-base/vX.Y.x (e.g., release-base/v67.12.x)"
+            exit 1
+          fi
+
+          MAJOR_MINOR=$(echo "$BRANCH" | sed -E 's/^release-base\/v([0-9]+\.[0-9]+)\.x$/\1/')
+          echo "Major.minor: $MAJOR_MINOR"
+
+          # Find latest STABLE patch version for this major.minor
+          # Filter first to exclude nightly/prerelease tags before sorting
+          # Stable tag format: v{major}.{minor}.{patch} (e.g., v67.12.0)
+          # Exclude: v67.12.0-nightly.*, v67.12.0-beta.*, etc.
+          LATEST_TAG=$(git tag -l "v${MAJOR_MINOR}.*" | grep -E "^v${MAJOR_MINOR}\.[0-9]+$" | sort -V -r | head -1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "::error::No stable release tags found for v${MAJOR_MINOR}.*"
+            echo "::error::Available tags:"
+            git tag -l "v${MAJOR_MINOR}.*" --sort=-v:refname | head -10
+            echo "::error::Cannot determine base version to patch"
+            exit 1
+          fi
+
+          echo "Latest stable tag: $LATEST_TAG"
+
+          # Extract patch number and increment
+          CURRENT_PATCH=$(echo "$LATEST_TAG" | sed -E "s/^v${MAJOR_MINOR}\.([0-9]+)$/\1/")
+
+          # Validate extraction succeeded
+          if [ -z "$CURRENT_PATCH" ] || ! echo "$CURRENT_PATCH" | grep -qE '^[0-9]+$'; then
+            echo "::error::Failed to extract numeric patch version from $LATEST_TAG"
+            echo "::error::Extracted value: '$CURRENT_PATCH'"
+            exit 1
+          fi
+
+          NEW_PATCH=$((CURRENT_PATCH + 1))
+          NEW_VERSION="${MAJOR_MINOR}.${NEW_PATCH}"
+          NEW_TAG="v${NEW_VERSION}"
+
+          echo "Current patch: $CURRENT_PATCH"
+          echo "New patch version: $NEW_VERSION"
+          echo "New tag: $NEW_TAG"
+
+          # Verify tag doesn't already exist
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $NEW_TAG already exists"
+            echo "::error::If this is a re-run, delete the tag first:"
+            echo "::error::  git push origin --delete $NEW_TAG"
+            exit 1
+          fi
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "prev_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Configure git
+        uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Update package versions
+        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+
+      - name: Update package-lock.json
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Commit version updates
+        env:
+          VERSION: ${{ steps.calculate-version.outputs.version }}
+        run: |
+          git add packages/*/package.json package-lock.json
+          git commit -m "chore: bump versions for patch release v${VERSION}"
+          git push origin ${{ github.event.inputs.releaseBranch }}
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ steps.calculate-version.outputs.tag }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Build VSIXs
+        run: npm run vscode:package
+
+      - name: Collect VSIXs
+        run: |
+          mkdir -p extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+
+          # Validate that VSIXs were built
+          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
+          if [ "$VSIX_COUNT" -eq 0 ]; then
+            echo "::error::No VSIX files found after build"
+            exit 1
+          fi
+          echo "✓ Found $VSIX_COUNT VSIX files"
+
+      - name: Generate SHA256 checksums
+        run: |
+          npm run vscode:sha256
+          scripts/concatenate-sha256.js
+          rm ./SHA256
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          VERSION: ${{ steps.calculate-version.outputs.version }}
+          TAG: ${{ steps.calculate-version.outputs.tag }}
+          PREV_TAG: ${{ steps.calculate-version.outputs.prev_tag }}
+          BRANCH: ${{ github.event.inputs.releaseBranch }}
+        run: |
+          echo "Creating GitHub pre-release: $TAG"
+
+          # Get commit messages since previous tag for release notes
+          # Use PREV_TAG from calculate-version step instead of deriving from VERSION
+          COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG..$TAG" 2>/dev/null || echo "- Initial patch release")
+
+          # Create release notes
+          {
+            echo "## Patch Release $VERSION"
+            echo ""
+            echo "Built from branch: \`$BRANCH\`"
+            echo ""
+            echo "### Changes"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "### Testing Required"
+            echo ""
+            echo "This is a pre-release for internal testing only."
+            echo ""
+            echo "1. Download VSIX files from this release"
+            echo "2. Install extensions locally"
+            echo "3. Run manual QA tests"
+            echo "4. If tests PASS - Trigger publishVSCode.yml workflow with version $VERSION"
+            echo ""
+            echo "### Installation"
+            echo ""
+            echo '```bash'
+            echo "gh release download $TAG --dir ~/Downloads/$TAG --pattern '*.vsix'"
+            echo 'find ~/Downloads/'$TAG' -name "*.vsix" -exec code --install-extension {} \;'
+            echo '```'
+            echo ""
+            echo "### Cherry-pick to develop"
+            echo ""
+            echo "After publishing, cherry-pick **ONLY functional fixes** back to develop."
+            echo ""
+            echo "⚠️ **Important:** Do NOT cherry-pick the version-bump commit (e.g., 'chore: bump versions')."
+            echo "Only cherry-pick commits that fix actual bugs or add features."
+            echo ""
+            echo '```bash'
+            echo "git checkout develop"
+            echo ""
+            echo "# Cherry-pick only functional fixes (exclude version-bump commits):"
+            git log --pretty=format:"%H %s" "$PREV_TAG..$TAG" | grep -v "chore: bump versions" | while read hash msg; do
+              echo "git cherry-pick $hash  # $msg"
+            done
+            echo ""
+            echo "git push origin develop"
+            echo '```'
+          } > release_notes.md
+
+          # Check if release already exists
+          if gh release view "$TAG" &> /dev/null; then
+            echo "::warning::Release $TAG already exists. Deleting for retry..."
+            # Delete release but keep the tag (don't use --cleanup-tag)
+            gh release delete "$TAG" --yes
+            sleep 5
+          fi
+
+          # Create pre-release from the existing tag
+          # The tag already points to the correct commit, so no need for --target
+          gh release create "$TAG" \
+            --title "Patch Release $VERSION - Ready for Testing" \
+            --notes-file release_notes.md \
+            --prerelease
+
+          # Upload VSIX files and SHA256 in batch (more efficient than loop)
+          echo "Uploading VSIX files and SHA256.md..."
+          gh release upload "$TAG" ./extensions/*.vsix SHA256.md
+
+          echo "Pre-release created: $TAG"
+          echo "View at: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+
+  summary:
+    needs: build-patch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        env:
+          VERSION: ${{ needs.build-patch.outputs.patch_version }}
+          TAG: ${{ needs.build-patch.outputs.patch_tag }}
+          BRANCH: ${{ github.event.inputs.releaseBranch }}
+        run: |
+          echo "## ✅ Patch Release Built Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** $TAG" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** $BRANCH" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Download and test VSIX files** from the pre-release" >> $GITHUB_STEP_SUMMARY
+          echo "2. **If tests pass**, trigger \`publishVSCode.yml\` workflow:" >> $GITHUB_STEP_SUMMARY
+          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishVSCode.yml -f releaseVersion=$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "3. **Cherry-pick fixes to develop** (see release notes for commands)" >> $GITHUB_STEP_SUMMARY
+          echo "4. **Delete the release branch** after successful publish:" >> $GITHUB_STEP_SUMMARY
+          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
+          echo "   git push origin --delete $BRANCH" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View Pre-release](https://github.com/${{ github.repository }}/releases/tag/$TAG)" >> $GITHUB_STEP_SUMMARY
