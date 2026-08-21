@@ -23,46 +23,47 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Building Release Versions for Testing
 
-Automated Mon 8 AM UTC: `buildReleaseFromPrerelease.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml Wed 7 AM UTC after E2E tests pass), builds stable VSIXs from that tested candidate. Manual trigger for on-demand:
+Automated Mon 8 AM UTC: `build-release.yml` auto-detects latest promoted prerelease via `marketplace-prerelease-*` tracking tags (created by promote-prerelease.yml Wed 7 AM UTC post-E2E tests), builds stable VSIXs from tested candidate. Supports emergency pre-releases via `publishAsPrerelease` flag. Manual trigger:
 
 ```bash
-# Auto-detect latest promoted prerelease
-gh workflow run buildReleaseFromPrerelease.yml
+# Auto-detect → stable release
+gh workflow run build-release.yml
 
 # Specify prerelease tag
-gh workflow run buildReleaseFromPrerelease.yml \
+gh workflow run build-release.yml \
   -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
   -f releaseVersion="67.12.0"
 
-# Emergency: build from hotfix branch
-gh workflow run buildReleaseFromPrerelease.yml \
-  -f startFromRef="hotfix/security-fix" \
-  -f releaseVersion="67.12.1"
+# Emergency pre-release (no version bump)
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix"
 
-# Emergency: build from specific commit
-gh workflow run buildReleaseFromPrerelease.yml \
+# Stable from arbitrary ref (version bump)
+gh workflow run build-release.yml \
   -f startFromRef="abc123def456" \
   -f releaseVersion="67.12.1"
 ```
 
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted prerelease via tracking tag
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest promoted prerelease
 
-**How it works:**
+**Stable release mode:**
 - Queries `marketplace-prerelease-*` tracking tags (newest first)
-- Extracts version from tracking tag
-- Finds nightly tag with that version (points to tested candidate)
-- Creates isolated `release-staging/v{version}` branch from nightly tag
-- Commits version changes to isolated branch
-- Builds stable release from that branch
+- Extracts version, finds matching nightly tag
+- Creates isolated `release-staging/v{version}` branch
+- Commits version changes, builds release
+- Outputs GitHub pre-release w/ VSIX + SHA256
+- Delete isolated branch post-publish:
+  ```bash
+  git push origin --delete release-staging/v{version}
+  ```
 
-Creates GitHub pre-release w/ VSIX + SHA256. Isolated branch prevents merge to develop. Test, then trigger [publishVSCode.yml](./publishVSCode.yml) for marketplace publish.
+**Emergency pre-release mode (`publishAsPrerelease=true`):**
+- Tags source ref directly (no version bump)
+- Creates "Emergency Pre-release" release w/ VSIX + SHA256
+- Skips isolated branch
 
-**After publish, delete isolated branch:**
-```bash
-git push origin --delete release-staging/v{version}
-```
-
-Do NOT cherry-pick the version-bump commit to develop.
+Both: test VSIX, then trigger [publishVSCode.yml](./publishVSCode.yml). Do NOT cherry-pick version-bump commits to develop.
 
 ## Extension Discovery
 

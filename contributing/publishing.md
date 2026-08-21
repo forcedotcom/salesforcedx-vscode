@@ -15,9 +15,10 @@ References:
 
 ## Build Release from Prerelease
 
-Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/buildReleaseFromPrerelease.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Runs after 5-day baking period (Wed pre-release → Mon stable). Trigger manually for on-demand.
+Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases (after 5-day baking period: Wed pre-release → Mon stable) and emergency pre-releases. Trigger manually for on-demand.
 
 **Inputs:**
+- `publishAsPrerelease` — boolean flag (default: `false`). When `true`: emergency pre-release mode (no version bump, tags source ref, creates "Emergency Pre-release"). When `false`: standard mode (version bump, isolated branch, stable release).
 - `startFromRef` — git ref (tag/branch/SHA) to build from (optional)
 - `prereleaseTag` — prerelease tag e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
 - `releaseVersion` — e.g. `67.12.0` (auto-calculated if empty)
@@ -29,31 +30,47 @@ Automated workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedo
 2. Else if `prereleaseTag` provided, validate nightly format (`v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`), use that tag
 3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks Wed 7 AM UTC promotion (latest nightly + passing CI)
 
-**Use `startFromRef` for emergency scenarios (any git ref):**
-- Build from hotfix branch: `-f startFromRef="hotfix/security-fix"`
-- Build from specific commit: `-f startFromRef="abc123def456"`
-- Build from old tag: `-f startFromRef="v67.11.0-nightly.develop.20260805"`
+**Emergency Pre-release Mode (`publishAsPrerelease=true`):**
+- Use for critical hotfixes that cannot wait for normal release cycle
+- No version bumping — tags source ref directly
+- Creates "Emergency Pre-release" GitHub release w/ VSIX + SHA256
+- Example: security hotfix from hotfix branch or specific commit
+- ⚠️ Bypasses nightly validation — ensure ref is reviewed/tested before using
 
-⚠️ Bypasses nightly validation — ensure ref is reviewed/merged to develop before using.
+**Standard Mode (`publishAsPrerelease=false`, default):**
+- Use for regular weekly releases
+- Creates isolated `release-staging/v{version}` branch
+- Bumps version in isolated branch
+- Creates stable release after 5-day baking period
 
 **Examples:**
 
 ```sh
 # Standard: auto-detect latest promoted prerelease
-gh workflow run buildReleaseFromPrerelease.yml
+gh workflow run build-release.yml
 
-# Emergency: build from hotfix branch
-gh workflow run buildReleaseFromPrerelease.yml \
+# Standard: build from hotfix branch with version bump
+gh workflow run build-release.yml \
   -f startFromRef="hotfix/security-fix" \
   -f releaseVersion="67.12.1"
 
-# Emergency: build from specific commit
-gh workflow run buildReleaseFromPrerelease.yml \
+# Standard: build from specific commit with version bump
+gh workflow run build-release.yml \
   -f startFromRef="abc123def" \
   -f releaseVersion="67.12.1"
 
+# Emergency pre-release: hotfix branch, no version bump
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix"
+
+# Emergency pre-release: specific commit, no version bump
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456"
+
 # Legacy: specify prerelease tag explicitly
-gh workflow run buildReleaseFromPrerelease.yml \
+gh workflow run build-release.yml \
   -f prereleaseTag="v67.11.1-nightly.develop.20260812"
 ```
 
@@ -83,7 +100,7 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 **5-day baking period:** Wed pre-release → Mon stable (customer validation).
 
-**Mon stable release:** `buildReleaseFromPrerelease.yml` (Mon 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
+**Mon stable release:** `build-release.yml` (Mon 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds).
 
@@ -93,7 +110,7 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes latest nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
 2. **5-day baking:** Wed → Mon (customer validation)
-3. **Mon 8 AM UTC:** `buildReleaseFromPrerelease.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
+3. **Mon 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
 5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
    - Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
@@ -297,14 +314,14 @@ To minimize rollback scenarios:
 
 ### Comparison: patch vs. normal release
 
-| Aspect | Normal | Patch |
-|--------|--------|-------|
-| Source | develop | release-base/vX.Y.x |
-| Timeline | Wed → 5d → Mon | Hours |
-| Version | X.Y+1.0 | X.Y.Z+1 |
-| Workflows | promote-prerelease → buildReleaseFromPrerelease | create-patch-release-branch → build-patch-release |
-| Cherry-pick | — | Required |
-| Use case | Regular features/fixes | Emergencies |
+| Aspect | Normal | Patch | Emergency Pre-release |
+|--------|--------|-------|----------------------|
+| Source | develop | release-base/vX.Y.x | Any git ref |
+| Timeline | Wed → 5d → Mon | Hours | Minutes |
+| Version | X.Y+1.0 | X.Y.Z+1 | No bump |
+| Workflows | promote-prerelease → build-release | create-patch-release-branch → build-patch-release | build-release w/ publishAsPrerelease=true |
+| Cherry-pick | — | Required | Optional |
+| Use case | Regular features/fixes | Critical hotfixes | Emergency pre-release hotfixes |
 
 ## Troubleshooting
 

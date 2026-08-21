@@ -18,10 +18,10 @@ From repo root (no global `ts-node`):
 
 Run `detect-state.ts` first.
 
-Check scheduled `buildReleaseFromPrerelease.yml` ran Monday:
+Check scheduled `build-release.yml` ran Monday:
 
 ```sh
-gh run list --workflow=buildReleaseFromPrerelease.yml -L 5 --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
 ```
 
 Report status + timestamp. On **failure**, inspect logs:
@@ -35,25 +35,25 @@ Decision matrix:
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
 - **Build failed** → check logs. Issues: no promoted tag (wait Wed 7 AM UTC) or build script error. Re-run:
   ```sh
-  gh workflow run buildReleaseFromPrerelease.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 - **No run this week** → Either:
   - Wait (Mon 8 AM UTC)
   - Trigger manually:
   ```sh
-  gh workflow run buildReleaseFromPrerelease.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 
 After re-dispatch, watch until complete:
 
 ```sh
-gh run list --workflow=buildReleaseFromPrerelease.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
 ## Step 1 — Download stable release build
 
-Get VSIX + SHA256 from GitHub pre-release created by `buildReleaseFromPrerelease.yml`:
+Get VSIX + SHA256 from GitHub pre-release created by `build-release.yml`:
 
 ```sh
 gh release list --repo forcedotcom/salesforcedx-vscode | head -5
@@ -126,7 +126,7 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 - **Daily 4 AM UTC** — nightly.yml → all extensions as prerelease
 - **Wed 7 AM UTC** — promote-prerelease.yml → promotes latest nightly (passing E2E), creates `marketplace-prerelease-*` tracking tag
 - **5-day baking** — Wed → Mon (customer validation)
-- **Mon 8 AM UTC** — buildReleaseFromPrerelease.yml → auto-detects promoted tag, builds stable VSIXs
+- **Mon 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
 - **After test approval** — publishVSCode.yml → publishes to Microsoft + Open VSX
 
 ## Emergency Patch Releases
@@ -200,40 +200,62 @@ Reuse release-base branch; run build-patch-release.yml (auto-increments v67.12.2
 
 ## Alternative: Build from Arbitrary Ref
 
-Emergency releases without formal branches use `buildReleaseFromPrerelease.yml` + `startFromRef`:
+Two modes for emergency builds with `build-release.yml`:
+
+### Stable Release Mode (version bump, isolated branch)
 
 ```sh
-# Build from hotfix branch
-gh workflow run buildReleaseFromPrerelease.yml \
+# Build from hotfix branch with version bump
+gh workflow run build-release.yml \
   -f startFromRef="hotfix/security-fix" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
 
-# Build from specific commit
-gh workflow run buildReleaseFromPrerelease.yml \
+# Build from specific commit with version bump
+gh workflow run build-release.yml \
   -f startFromRef="abc123def456" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
 
-# Build from old prerelease tag
-gh workflow run buildReleaseFromPrerelease.yml \
+# Build from old prerelease tag with version bump
+gh workflow run build-release.yml \
   -f startFromRef="v67.11.0-nightly.develop.20260805" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-**When to use:**
-- Time-critical fixes without formal patch workflow
-- Experimental branches for validation
-- Historical commits
-- Emergency without branch overhead
+### Emergency Pre-release Mode (no version bump, direct tag)
+
+```sh
+# Emergency pre-release from hotfix branch
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="hotfix/security-fix" \
+  --repo forcedotcom/salesforcedx-vscode
+
+# Emergency pre-release from specific commit
+gh workflow run build-release.yml \
+  -f publishAsPrerelease=true \
+  -f startFromRef="abc123def456" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+**Use stable mode when:**
+- Time-critical fixes with formal version increment
+- Experimental branches requiring version management
+- Historical commits needing version tracking
+
+**Use emergency pre-release when:**
+- Critical hotfixes that cannot wait
+- Need immediate testing without version complexity
+- Multiple releases per day (e.g., security patches)
 
 **Priority:** `startFromRef` → `prereleaseTag` → auto-detect latest nightly
 
 ## Conventions
 
 - All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
-- `createReleaseBranch.yml` deprecated (use buildReleaseFromPrerelease.yml)
+- `createReleaseBranch.yml` deprecated (use `build-release.yml`)
 - Don't approve publishes until manual testing done
 - 5-day gap (Wed → Mon) intentional for validation
 - Patch releases bypass timeline for emergencies only

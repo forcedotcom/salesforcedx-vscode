@@ -169,7 +169,7 @@ jobs:
           if [ -z "$VSIX_FILES" ]; then
             echo "::error::No VSIX files found in release $RELEASE_TAG"
             echo "::error::Release exists but contains no .vsix assets"
-            echo "::error::This may indicate buildReleaseFromPrerelease.yml failed to upload VSIXs"
+            echo "::error::This may indicate build-release.yml failed to upload VSIXs"
             exit 1
           fi
 
