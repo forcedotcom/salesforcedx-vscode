@@ -1,17 +1,16 @@
-# DEPRECATED: This workflow is being replaced by buildReleaseFromPrerelease.yml
+# DEPRECATED: Replaced by build-release.yml
 #
-# New workflow builds releases directly from promoted prerelease tags (no release branch).
-# See: .github/workflows/buildReleaseFromPrerelease.yml
-# Documentation: contributing/publishing.md
-#
-# This workflow will be removed after successful transition (target: 2-3 releases)
+# build-release.yml builds from promoted prerelease tags (no release branch) + supports
+# emergency pre-releases via publishAsPrerelease=true.
+# See: .github/workflows/build-release.yml
+# Docs: contributing/publishing.md
 
 name: Create Release Branch (DEPRECATED)
 
 on:
   repository_dispatch:
     types: [create_release_branch]
-  # DISABLED: Monday cron schedule - use buildReleaseFromPrerelease.yml instead
+  # DISABLED: Monday cron schedule - use build-release.yml instead
   # schedule:
   #   - cron: '0 13 * * 1'
   workflow_dispatch:
