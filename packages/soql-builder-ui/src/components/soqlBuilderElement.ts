@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { VscodeMultiSelect } from '@vscode-elements/elements/dist/vscode-multi-select/index.js';
+import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
+import '@vscode-elements/elements/dist/vscode-option/index.js';
+import { html, LitElement, nothing } from 'lit';
+import {
+  SOQL_BUILDER_ACTION_EVENT,
+  createInitialSoqlBuilderState,
+  type SoqlBuilderAction,
+  type SoqlBuilderState
+} from '../domain.js';
+import { soqlBuilderElementStyles } from './soqlBuilderElement.styles.js';
+
+export type SoqlBuilderLabels = {
+  readonly fields: string;
+  readonly from: string;
+  readonly inputs: string;
+  readonly noDefaultOrg: string;
+  readonly query: string;
+};
+
+export type SoqlBuilderLifecycle = {
+  readonly connect: () => void;
+  readonly disconnect: () => Promise<void> | void;
+};
+
+export class SoqlBuilderActionEvent extends CustomEvent<SoqlBuilderAction> {
+  constructor(action: SoqlBuilderAction) {
+    super(SOQL_BUILDER_ACTION_EVENT, {
+      bubbles: true,
+      composed: true,
+      detail: action
+    });
+  }
+}
+
+export class SoqlBuilderElement extends LitElement {
+  public static properties = {
+    labels: { attribute: false },
+    viewState: { attribute: false }
+  };
+
+  public static styles = soqlBuilderElementStyles;
+
+  declare public labels: SoqlBuilderLabels;
+  public lifecycle: SoqlBuilderLifecycle | undefined;
+  declare public viewState: SoqlBuilderState;
+
+  constructor() {
+    super();
+    this.viewState = createInitialSoqlBuilderState();
+  }
+
+  public override connectedCallback(): void {
+    super.connectedCallback();
+    this.lifecycle?.connect();
+  }
+
+  public override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    void this.lifecycle?.disconnect();
+  }
+
+  protected override render() {
+    const state = this.viewState;
+    return html`
+      <main>
+        ${state.errorMessage || state.hasNoDefaultOrg
+          ? html`<p class="warning" role="alert">${state.errorMessage ?? this.labels.noDefaultOrg}</p>`
+          : html`
+              <div class="content">
+                <section class="form" aria-label=${this.labels.inputs}>
+                  <div class="control">
+                    <label for="soql-object">${this.labels.from}</label>
+                    <vscode-single-select
+                      id="soql-object"
+                      combobox
+                      filter="startsWithPerTerm"
+                      label=${this.labels.from}
+                      ?disabled=${state.isObjectsLoading}
+                      .value=${state.query.sObject}
+                      @change=${this.handleObjectChange}
+                    >
+                      ${state.metadata.objects.map(
+                        object => html`<vscode-option value=${object.name}>${object.label}</vscode-option>`
+                      )}
+                    </vscode-single-select>
+                  </div>
+                  <div class="control">
+                    <label for="soql-fields">${this.labels.fields}</label>
+                    <vscode-multi-select
+                      id="soql-fields"
+                      combobox
+                      filter="startsWithPerTerm"
+                      label=${this.labels.fields}
+                      ?disabled=${state.isFieldsLoading || state.query.sObject.length === 0}
+                      .value=${state.query.fields}
+                      @change=${this.handleFieldsChange}
+                    >
+                      ${state.metadata.fields.map(
+                        field => html`<vscode-option value=${field.name}>${field.label}</vscode-option>`
+                      )}
+                    </vscode-multi-select>
+                  </div>
+                </section>
+                <section class="preview" aria-live="polite">
+                  <div class="preview-title">${this.labels.query}</div>
+                  <pre data-testid="query-preview">${state.query.originalSoqlStatement || nothing}</pre>
+                </section>
+              </div>
+            `}
+      </main>
+    `;
+  }
+
+  private readonly handleFieldsChange = (event: Event): void => {
+    const select = event.currentTarget;
+    if (select instanceof VscodeMultiSelect) {
+      this.dispatchEvent(
+        new SoqlBuilderActionEvent({
+          _tag: 'FieldsSelected',
+          fieldNames: [...select.value]
+        })
+      );
+    }
+  };
+
+  private readonly handleObjectChange = (event: Event): void => {
+    const select = event.currentTarget;
+    if (select instanceof VscodeSingleSelect && select.value) {
+      this.dispatchEvent(
+        new SoqlBuilderActionEvent({
+          _tag: 'ObjectSelected',
+          objectName: select.value
+        })
+      );
+    }
+  };
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    'soql-builder-action': SoqlBuilderActionEvent;
+  }
+
+  interface HTMLElementTagNameMap {
+    'soql-builder-app': SoqlBuilderElement;
+  }
+}

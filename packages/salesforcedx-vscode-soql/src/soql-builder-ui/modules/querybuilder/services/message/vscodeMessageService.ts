@@ -1,50 +1,74 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { JsonMap } from '@salesforce/ts-types';
+import * as Schema from 'effect/Schema';
 import { getVscode } from '../globals';
 import { MessageService, IMessageService } from './iMessageService';
-import { SoqlEditorEvent, MessageType } from './soqlEditorEvent';
+import {
+  HostToUiSoqlEditorEventSchema,
+  MessageType,
+  UiToHostSoqlEditorEventSchema,
+  type HostToUiSoqlEditorEvent,
+  type UiToHostSoqlEditorEvent
+} from './soqlEditorEvent';
 
-export const makeVscodeMessageService = (): IMessageService => {
-  const vscode = getVscode() as { postMessage(msg: unknown): void; getState(): unknown; setState(s: unknown): void };
-  const listeners: Array<(event: SoqlEditorEvent) => void> = [];
+export type VscodeMessageService = IMessageService & {
+  readonly dispose: () => void;
+};
 
-  window.addEventListener('message', (e: MessageEvent) => {
-    const data = e.data as SoqlEditorEvent;
-    if (data?.type !== undefined) {
-      listeners.map(l => l(data));
+const isHostToUiSoqlEditorEvent = Schema.is(HostToUiSoqlEditorEventSchema);
+const isUiToHostSoqlEditorEvent = Schema.is(UiToHostSoqlEditorEventSchema);
+
+export const makeVscodeMessageService = (): VscodeMessageService => {
+  const vscode = getVscode();
+  const listeners: ((event: HostToUiSoqlEditorEvent) => void)[] = [];
+
+  const handleWindowMessage = (e: MessageEvent): void => {
+    const data: unknown = e.data;
+    if (isHostToUiSoqlEditorEvent(data)) {
+      listeners.forEach(listener => listener(data));
     }
-  });
+  };
+  window.addEventListener('message', handleWindowMessage);
 
   vscode.postMessage({ type: MessageType.UI_ACTIVATED });
 
-  const onMessage = (listener: (event: SoqlEditorEvent) => void): void => {
+  const onMessage = (listener: (event: HostToUiSoqlEditorEvent) => void): (() => void) => {
     listeners.push(listener);
+    return () => {
+      const index = listeners.indexOf(listener);
+      if (index >= 0) listeners.splice(index, 1);
+    };
   };
 
-  const sendMessage = (event: SoqlEditorEvent): void => {
-    vscode.postMessage(event);
+  const sendMessage = (event: UiToHostSoqlEditorEvent): void => {
+    if (isUiToHostSoqlEditorEvent(event)) vscode.postMessage(event);
   };
 
-  const setState = (state: JsonMap): void => {
+  const setState = (state: unknown): void => {
     vscode.setState(state);
   };
 
-  const getState = (): JsonMap => {
-    return vscode.getState() as JsonMap;
+  const getState = (): unknown => vscode.getState();
+
+  const dispose = (): void => {
+    window.removeEventListener('message', handleWindowMessage);
+    listeners.length = 0;
   };
 
-  return { onMessage, sendMessage, setState, getState };
+  return { onMessage, sendMessage, setState, getState, dispose };
 };
 
-export const VscodeMessageServiceLive: Layer.Layer<MessageService> = Layer.sync(
+export const VscodeMessageServiceLive: Layer.Layer<MessageService> = Layer.scoped(
   MessageService,
-  () => makeVscodeMessageService()
+  Effect.acquireRelease(
+    Effect.sync(() => makeVscodeMessageService()),
+    service => Effect.sync(() => service.dispose())
+  )
 );
