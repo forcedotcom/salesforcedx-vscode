@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'main'
+          ref: 'develop'
       - run: git fetch --tags --quiet
       - id: getReleaseTag
         env:
