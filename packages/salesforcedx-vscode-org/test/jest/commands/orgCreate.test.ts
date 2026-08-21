@@ -47,6 +47,7 @@ type Services = {
   appendToChannel: jest.Mock;
   show: jest.Mock;
   isProject?: boolean;
+  showSuccessNotification?: jest.Mock;
 };
 
 const buildServices = (opts: Services) => ({
@@ -85,7 +86,8 @@ const buildServices = (opts: Services) => ({
   }),
   NotificationModeService: Effect.succeed({
     getProgressLocation: () => Effect.succeed(1),
-    showSuccessNotification: () => Effect.void
+    showSuccessNotification: (command: string, message: string) =>
+      Effect.sync(() => void opts.showSuccessNotification?.(command, message))
   }),
   UserCancellationError
 });
@@ -148,6 +150,18 @@ describe('orgCreateCommand', () => {
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
     expect(appendToChannel).toHaveBeenCalledWith(expect.stringContaining('me@scratch.org'));
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the success toast with the command display text (including its ellipsis)', async () => {
+    const showSuccessNotification = jest.fn();
+
+    const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show, showSuccessNotification });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(showSuccessNotification).toHaveBeenCalledWith(
+      'SFDX: Create a Default Scratch Org',
+      'SFDX: Create a Default Scratch Org... successfully ran'
+    );
   });
 
   it('appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)', async () => {

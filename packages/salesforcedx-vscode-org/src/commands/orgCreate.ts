@@ -22,6 +22,7 @@ import { isValidOrgAlias } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
+/** settings key (no ellipsis); for success notifications, pass the display-text key (`org_create_default_scratch_org_text`) to nls.localize instead, which includes the ellipsis. */
 const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Create a Default Scratch Org';
 
 const decodeExpirationDays = Schema.decodeUnknownOption(
@@ -176,7 +177,10 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     yield* Effect.promise(() => updateConfigAndStateAggregators());
     yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
     yield* channel.showChannel;
-    yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', COMMAND));
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('org_create_default_scratch_org_text'))
+    );
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
