@@ -35,6 +35,7 @@ export type MetricGeneral = {
 export { breakpointUtil } from './breakpoints';
 export type { OrgInfoError } from './commands';
 export { extractHeapDumpIdsFromLog } from './core/extractHeapDumpIds';
+export { extractAnonApexSource } from './core/logContextUtil';
 export type { HeapDumpLogEntry } from './core/extractHeapDumpIds';
 export type { HeapDumpResult } from './adapter/types';
 export type { ApexExecutionOverlayResultCommandSuccess } from './commands';

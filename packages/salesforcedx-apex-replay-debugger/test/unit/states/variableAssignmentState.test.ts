@@ -33,8 +33,7 @@ describe('Variable assignment event', () => {
     logFileContents: 'test log content',
     logFilePath,
     logFileName,
-    trace: true,
-    projectPath: undefined
+    trace: true
   };
   describe('Primitive assignment', () => {
     const STATIC_PRIMITIVE_VARIABLE_SCOPE_BEGIN =

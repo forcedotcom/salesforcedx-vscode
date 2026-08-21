@@ -30,8 +30,7 @@ describe('Debug console', () => {
     let args: LaunchRequestArguments = {
       logFileContents: 'test log content',
       logFilePath,
-      logFileName,
-      projectPath: undefined
+      logFileName
     };
 
     beforeEach(() => {
@@ -39,8 +38,7 @@ describe('Debug console', () => {
       args = {
         logFileContents: 'test log content',
         logFilePath,
-        logFileName,
-        projectPath: undefined
+        logFileName
       };
     });
 

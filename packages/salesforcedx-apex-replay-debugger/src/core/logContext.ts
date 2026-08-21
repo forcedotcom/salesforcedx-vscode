@@ -288,9 +288,17 @@ export class LogContext {
     return this.execAnonMapping;
   }
 
+  public getAnonApexFilePath(): string | undefined {
+    return this.launchArgs.anonApexFilePath;
+  }
+
+  public getAnonApexLineOffset(): number {
+    return this.launchArgs.anonApexLineOffset ?? 0;
+  }
+
   public getUriFromSignature(signature: string): string {
     if (signature === EXEC_ANON_SIGNATURE) {
-      return this.getLogFilePath();
+      return this.launchArgs.anonApexFilePath ?? this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.substring(0, signature.indexOf('(')).lastIndexOf('.'))

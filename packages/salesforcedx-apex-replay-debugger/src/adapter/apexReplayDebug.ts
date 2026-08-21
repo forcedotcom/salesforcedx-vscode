@@ -43,7 +43,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected traceAll = false;
   private initializedResponse!: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
-  protected projectPath: string | undefined;
 
   constructor() {
     super('apex-replay-debug-adapter.log');
@@ -85,7 +84,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
     response.success = false;
     this.setupLogger(args);
-    this.projectPath = args.projectPath;
     this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
     this.sendEvent(
       new Event(SEND_METRIC_GENERAL_EVENT, {
@@ -392,8 +390,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
         } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
+      const isAnonApex = args.source.path?.endsWith('.apex') ?? false;
       for (const bp of args.breakpoints) {
-        const isVerified = breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
+        const isVerified =
+          isAnonApex || breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
         response.body.breakpoints.push({
           verified: isVerified,
           source: args.source,
@@ -461,10 +461,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public errorToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
-  }
-
-  public getProjectPath(): string | undefined {
-    return this.projectPath;
   }
 }
 
