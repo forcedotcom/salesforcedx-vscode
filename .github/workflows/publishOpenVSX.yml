@@ -51,6 +51,9 @@ jobs:
     env:
       OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
       GH_TOKEN: ${{ github.token }}
+      # This job doesn't check out the repo, so `gh release download` can't infer the
+      # repo from a .git dir. GH_REPO gives the gh CLI its repo context directly.
+      GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
     steps:
@@ -79,6 +82,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      # This job doesn't check out the repo, so `gh release download` can't infer the
+      # repo from a .git dir. GH_REPO gives the gh CLI its repo context directly.
+      GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
     steps:
