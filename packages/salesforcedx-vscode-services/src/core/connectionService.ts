@@ -476,6 +476,16 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       ? yield* aliasService.getAliasesFromUsername(username)
       : existingOrgInfo.aliases;
 
+  const currentOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+
+  if (currentOrgInfo.orgId !== orgId) {
+    yield* Effect.annotateCurrentSpan({
+      staleDefaultOrgEnrichment: true,
+      enrichmentOrgId: orgId,
+      currentOrgId: currentOrgInfo.orgId
+    });
+    return currentOrgInfo;
+  }
   yield* Effect.annotateCurrentSpan({
     orgId,
     devHubUsername,
@@ -490,12 +500,12 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   });
 
   const webUserId =
-    existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
+    currentOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
       ? // ooh, now we know who they are, so we set that.
 
         // Pipe the extension context in for ServicesExtension so we don't get context from another ext
         yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
-      : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
+      : (currentOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
   const updates = Object.fromEntries(
     Object.entries({
@@ -516,21 +526,59 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const updated = { ...existingOrgInfo, ...updates, alias };
+  const candidate = { ...currentOrgInfo, ...updates, alias };
 
-  // Check if objects have the same content (deep equality using schema)
-  // otherwise, calling set on the ref counts as a change but it's really not one.
-  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
+  // Preserve the existing no-op behavior for the common unchanged case.
+  if (Schema.equivalence(DefaultOrgInfoSchema)(candidate, currentOrgInfo)) {
     yield* Effect.annotateCurrentSpan({ changed: false });
-    return updated;
+    return currentOrgInfo;
   }
-  yield* Effect.all(
-    [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
-    {
-      concurrency: 'unbounded'
+
+  type DefaultOrgCommit = Readonly<{
+    updated: typeof DefaultOrgInfoSchema.Type;
+    changed: boolean;
+    stale: boolean;
+  }>;
+
+  const commit = yield* SubscriptionRef.modify(
+    defaultOrgRef,
+    (current): readonly [DefaultOrgCommit, typeof DefaultOrgInfoSchema.Type] => {
+      if (current.orgId !== orgId) {
+        return [
+          {
+            updated: current,
+            changed: false,
+            stale: true
+          },
+          current
+        ];
+      }
+
+      const updated: typeof DefaultOrgInfoSchema.Type = {
+        ...current,
+        ...updates,
+        alias
+      };
+      const changed = !Schema.equivalence(DefaultOrgInfoSchema)(updated, current);
+
+      return [
+        {
+          updated,
+          changed,
+          stale: false
+        },
+        changed ? updated : current
+      ];
     }
   );
-  return updated;
+
+  yield* Effect.annotateCurrentSpan({
+    updated: commit.updated,
+    changed: commit.changed,
+    staleDefaultOrgEnrichment: commit.stale
+  });
+
+  return commit.updated;
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
