@@ -23,7 +23,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -158,6 +158,7 @@ export type SalesforceVSCodeServicesApi = {
     TransmogrifierService: typeof TransmogrifierService;
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
+    ClearDefaultOrgRef: typeof clearDefaultOrgRef;
     TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
@@ -508,6 +509,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         SourceTrackingService,
         ActiveMetadataOperationRef: getActiveMetadataOperationRef,
         TargetOrgRef: getDefaultOrgRef,
+        ClearDefaultOrgRef: clearDefaultOrgRef,
         TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
         TerminalService,
         TransmogrifierService,
