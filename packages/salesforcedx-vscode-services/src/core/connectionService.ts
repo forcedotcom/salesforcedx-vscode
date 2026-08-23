@@ -476,16 +476,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       ? yield* aliasService.getAliasesFromUsername(username)
       : existingOrgInfo.aliases;
 
-  const currentOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-
-  if (currentOrgInfo.orgId !== orgId) {
-    yield* Effect.annotateCurrentSpan({
-      staleDefaultOrgEnrichment: true,
-      enrichmentOrgId: orgId,
-      currentOrgId: currentOrgInfo.orgId
-    });
-    return currentOrgInfo;
-  }
   yield* Effect.annotateCurrentSpan({
     orgId,
     devHubUsername,
@@ -499,14 +489,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     aliases
   });
 
-  const webUserId =
-    currentOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-      ? // ooh, now we know who they are, so we set that.
-
-        // Pipe the extension context in for ServicesExtension so we don't get context from another ext
-        yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
-      : (currentOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
-
   const updates = Object.fromEntries(
     Object.entries({
       orgId,
@@ -517,7 +499,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       isSandbox,
       devHubOrgId,
       userId,
-      webUserId,
       aliases,
       username,
       alias,
@@ -526,59 +507,29 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const candidate = { ...currentOrgInfo, ...updates, alias };
-
-  // Preserve the existing no-op behavior for the common unchanged case.
-  if (Schema.equivalence(DefaultOrgInfoSchema)(candidate, currentOrgInfo)) {
-    yield* Effect.annotateCurrentSpan({ changed: false });
-    return currentOrgInfo;
-  }
-
-  type DefaultOrgCommit = Readonly<{
-    updated: typeof DefaultOrgInfoSchema.Type;
-    changed: boolean;
-    stale: boolean;
-  }>;
-
-  const commit = yield* SubscriptionRef.modify(
-    defaultOrgRef,
-    (current): readonly [DefaultOrgCommit, typeof DefaultOrgInfoSchema.Type] => {
-      if (current.orgId !== orgId) {
-        return [
-          {
-            updated: current,
-            changed: false,
-            stale: true
-          },
-          current
-        ];
-      }
-
-      const updated: typeof DefaultOrgInfoSchema.Type = {
-        ...current,
-        ...updates,
-        alias
-      };
-      const changed = !Schema.equivalence(DefaultOrgInfoSchema)(updated, current);
-
-      return [
-        {
-          updated,
-          changed,
-          stale: false
-        },
-        changed ? updated : current
-      ];
+  // Compare-and-swap against live orgId so a late enrichment cannot overwrite a newer default org.
+  // set() always publishes; modify() only publishes when the stored value actually changes.
+  const updated = yield* SubscriptionRef.modify(defaultOrgRef, current => {
+    if (current.orgId !== orgId) {
+      return [current, current];
     }
-  );
 
-  yield* Effect.annotateCurrentSpan({
-    updated: commit.updated,
-    changed: commit.changed,
-    staleDefaultOrgEnrichment: commit.stale
+    const next: typeof DefaultOrgInfoSchema.Type = { ...current, ...updates, alias };
+    return Schema.equivalence(DefaultOrgInfoSchema)(next, current) ? [current, current] : [next, next];
   });
 
-  return commit.updated;
+  const stale = updated.orgId !== orgId;
+  yield* Effect.annotateCurrentSpan({ updated, staleDefaultOrgEnrichment: stale });
+
+  // Persist hashed identity only when this write landed. Stale A never touches globalState.
+  if (!stale && orgId && userId && (updated.webUserId === UNAUTHENTICATED_USER || isUndefined(updated.webUserId))) {
+    const webUserId = yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default));
+    yield* SubscriptionRef.update(defaultOrgRef, current =>
+      current.orgId === orgId ? { ...current, webUserId } : current
+    );
+  }
+
+  return updated;
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */

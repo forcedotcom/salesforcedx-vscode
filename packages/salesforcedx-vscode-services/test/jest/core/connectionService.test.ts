@@ -648,10 +648,20 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     await aReachedFinalLookup.promise;
 
-    // Drain the detached Effect fiber after its final mocked lookup.
-    await new Promise<void>(resolve => setImmediate(resolve));
+    // A's aliases lookup is the last mocked step before modify. Wait until no further
+    // A-shaped publish happens (modify must no-op / not overwrite B).
+    const aOverwrite = await Effect.runPromise(
+      ref.changes.pipe(
+        Stream.drop(1),
+        Stream.filter(orgInfo => orgInfo.orgId === ORG_A_ID || orgInfo.username === ORG_A_USERNAME),
+        Stream.take(1),
+        Stream.runHead,
+        Effect.timeoutOption(Duration.millis(100))
+      )
+    );
+    expect(Option.isNone(aOverwrite)).toBe(true);
 
-    const finalOrgInfo = await ref.pipe(SubscriptionRef.get, Effect.runPromise);
+    const finalOrgInfo = await Effect.runPromise(SubscriptionRef.get(ref));
 
     expect(finalOrgInfo).toMatchObject({
       orgId: ORG_B_ID,
