@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-08-17T01:45:23.318Z
-Total metadata types: 1590
+Generated on: 2026-08-23T13:22:05.848Z
+Total metadata types: 1591
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -27354,6 +27354,12 @@ Total metadata types: 1590
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableEinsteinGPTDeployPromptTemplatesAsActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to turn on the Deploy Active Prompt Template Versions Only setting. Deploys only the active version of prompt templates to this org, and skips inactive versions. If a template doesn&apos;t have an active version, the deployment fails. The default value is false.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableEinsteinGptGlobalLangSupport" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to turn on global languages with prompt templates. The default value is false.</xsd:documentation>
@@ -47018,13 +47024,13 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="doesHideOpportunityInConvertLeadWindow" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Hides the opportunity section of the Convert Lead window during the conversion of a lead. Default value is false.</xsd:documentation>
+       <xsd:documentation>Hides the opportunity section of the Convert Lead window during lead conversion. Default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="doesPreserveLeadStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If your organization uses record types, the lead status changes to the lead status value of the new owner&apos;s record type during conversion. Set doesPreserveLeadStatus to true to preserve the value of the lead status during conversion.Orgs that use record types can create a lead process that allows different lead status values for different record types. If doesPreserveLeadStatus is false, the lead status might change during lead conversion if the new owner&apos;s record type has a different default value for lead status. Default value is true.</xsd:documentation>
+       <xsd:documentation>If your org uses record types, the lead status changes to the lead status value of the new owner&apos;s record type during conversion. Set doesPreserveLeadStatus to true to preserve the value of the lead status during conversion.Orgs that use record types can create a lead process that allows different lead status values for different record types. If doesPreserveLeadStatus is false, the lead status might change during lead conversion if the new owner&apos;s record type has a different default value for lead status. Default value is true.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -47049,6 +47055,12 @@ Total metadata types: 1590
      <xsd:element name="enableOrgWideMergeAndDelete" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Lets a user merge and delete leads. The user must also have the Public Read/Write/Transfer permission.Default value is false.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="relateEmailsToContactOnConvert" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Associates the lead&apos;s emails with the contact that it&apos;s converted to.Default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -57107,7 +57119,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="userLicenseRestrictions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The user license categories that can be assigned the custom permission set license. If no user license categories are specified, all users can be assigned the license. Possible values include: ${communities} ${communitiesLogin} ${customerCommunities} ${customerCommunitiesLogin} ${internal} ${partnerCommunity} ${partnerCommunityLogin} ${platform} For more information, see User License Restriction Categories (Developer Preview). This field is available in API version 55.0 and later.</xsd:documentation>
+       <xsd:documentation>The user license categories that can be assigned the custom permission set license. If no user license categories are specified, all users can be assigned the license. Possible values include: ${communities} ${communitiesLogin} ${customerCommunities} ${customerCommunitiesLogin} ${internal} ${partnerCommunity} ${partnerCommunityLogin} ${platform} For more information, see Understand Permission Set Licenses</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -65766,12 +65778,6 @@ Total metadata types: 1590
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableGraphQLApiGuestUserAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>Indicates whether unauthenticated guest users can access GraphQL API (true) or not (false). The default value is false.Available in API version 67.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
      <xsd:element name="enablePermissionsPolicy" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the pages that Salesforce serves for this org include the Permissions-Policy HTTP header. This HTTP header controls access to browser features such as cameras and microphones. When this field is false, access to the browser features is always permitted. The default value is false.Available in API version 59.0 and later.</xsd:documentation>
@@ -71537,6 +71543,37 @@ Total metadata types: 1590
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="UiWidgetBundle_Beta">
+  <xsd:annotation>
+   <xsd:documentation>Represents a widget. Use widgets to define reusable UI compositions once and deploy them across supported Salesforce applications and third-party platforms. Deploy this bundle to your Salesforce org to make the widget available.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uiwidgetbundle.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Describes the widget.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Represents the name of a widget bundle which is defined when the UiWidgetBundle is created.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="widgetType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Represents the widget type. The only allowed value is JSON.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="Usage">
   <xsd:annotation>
    <xsd:documentation>Salesforce provides default authentication providers, called Salesforce-managed auth providers, to simplify setting up these service providers for authentication.</xsd:documentation>
@@ -77084,6 +77121,7 @@ Total metadata types: 1590
  <xsd:element name="UiFormulaCriterion" type="UiFormulaCriterion"/>
  <xsd:element name="UiFormulaRule" type="UiFormulaRule"/>
  <xsd:element name="UiPreviewMessageTabDef" type="UiPreviewMessageTabDef"/>
+ <xsd:element name="UiWidgetBundle_Beta" type="UiWidgetBundle_Beta"/>
  <xsd:element name="Usage" type="Usage"/>
  <xsd:element name="UserAccessPolicy" type="UserAccessPolicy"/>
  <xsd:element name="UserAccessPolicyAction" type="UserAccessPolicyAction"/>
