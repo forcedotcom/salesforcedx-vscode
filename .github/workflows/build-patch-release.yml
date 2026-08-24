@@ -124,10 +124,11 @@ jobs:
       - name: Commit version updates
         env:
           VERSION: ${{ steps.calculate-version.outputs.version }}
+          RELEASE_BRANCH: ${{ github.event.inputs.releaseBranch }}
         run: |
           git add packages/*/package.json package-lock.json
           git commit -m "chore: bump versions for patch release v${VERSION}"
-          git push origin ${{ github.event.inputs.releaseBranch }}
+          git push origin "$RELEASE_BRANCH"
 
       - name: Create and push tag
         env:
