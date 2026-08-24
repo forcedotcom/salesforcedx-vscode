@@ -19,6 +19,7 @@ import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef
 import { AliasService } from './core/alias';
 import { watchAliasFile } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
+import { ArtifactProjectionSchemas } from './core/artifactProjection';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
@@ -120,6 +121,7 @@ export type SalesforceVSCodeServicesApi = {
     >;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
+    ArtifactProjectionSchemas: typeof ArtifactProjectionSchemas;
     TemplateService: typeof TemplateService;
     TemplateType: typeof TemplateType;
     ChannelService: typeof ChannelService;
@@ -176,7 +178,6 @@ type PublicSdkLayerFor = (
 export type { AliasService } from './core/alias';
 export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
-  ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
   ArtifactNamespaceSchema,
   ArtifactTargetKindSchema,
@@ -188,13 +189,51 @@ export {
   normalizeArtifactIdentity,
   normalizeArtifactIdentityPart,
   normalizeArtifactNamespace,
-  type ApexTypeArtifactIdentity,
   type ArtifactIdentity,
   type ArtifactNamespace,
   type ArtifactTargetKind,
   type MetadataComponentArtifactIdentity,
   type SObjectArtifactIdentity
 } from './core/artifactIdentity';
+export {
+  ArtifactPresenceSchema,
+  ArtifactProjectionSchema,
+  ArtifactProjectionSchemas,
+  ArtifactProviderKindSchema,
+  CanonicalSemanticModelSchema,
+  CatalogEntryDescriptorSchema,
+  CatalogEntryProjectionSchema,
+  DocumentUriSchema,
+  ProjectionUnavailableReasonSchema,
+  ProjectionUnavailableSchema,
+  SObjectChildRelationshipSchema,
+  SObjectFieldRuntimeCapabilitiesSchema,
+  SObjectPicklistValueSchema,
+  SObjectSemanticFieldSchema,
+  SObjectSemanticModelSchema,
+  SObjectSemanticProjectionSchema,
+  SObjectSemanticValueSchema,
+  SourceDocumentProjectionSchema,
+  SourceDocumentSchema,
+  type ArtifactPresence,
+  type ArtifactProjection,
+  type ArtifactProviderKind,
+  type CanonicalSemanticModel,
+  type CatalogEntryDescriptor,
+  type CatalogEntryProjection,
+  type DocumentUri,
+  type ProjectionUnavailable,
+  type ProjectionUnavailableReason,
+  type SObjectChildRelationship,
+  type SObjectFieldRuntimeCapabilities,
+  type SObjectPicklistValue,
+  type SObjectSemanticField,
+  type SObjectSemanticModel,
+  type SObjectSemanticProjection,
+  type SObjectSemanticValue,
+  type SourceDocument,
+  type SourceDocumentProjection
+} from './core/artifactProjection';
 export {
   TemplateService,
   type ApexClassCreateOptions,
@@ -488,6 +527,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         prebuiltServicesDependencies: builtContext,
         ApexLogService,
         AliasService,
+        ArtifactProjectionSchemas,
         TemplateService,
         TemplateType,
         ChannelService,
