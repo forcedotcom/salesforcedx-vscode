@@ -20,7 +20,7 @@ import * as HashSet from 'effect/HashSet';
 import * as Order from 'effect/Order';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
-import { metadataListingKey, sobjectDescriptionKey, typeCacheKey } from './orgCatalogKeys';
+import { componentIdentity, metadataListingKey, sobjectDescriptionKey, typeCacheKey } from './orgCatalogKeys';
 import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot,
@@ -208,7 +208,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                 orgId,
                 new Map(
                   snapshot.tracking.map(observation => [
-                    `${observation.xmlName}\0${observation.fullName}`,
+                    componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName }),
                     {
                       reference: { xmlName: observation.xmlName, fullName: observation.fullName },
                       signature: observation.signature

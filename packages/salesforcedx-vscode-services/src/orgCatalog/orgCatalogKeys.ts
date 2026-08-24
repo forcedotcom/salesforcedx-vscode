@@ -5,14 +5,54 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
-import type { OrgMetadataComponentReference } from './orgMetadataReference';
+import type { OrgMetadataCatalogInternalEntry, OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import {
+  artifactIdentitiesEqual,
+  artifactIdentityKey,
+  type ArtifactNamespace,
+  type MetadataComponentArtifactIdentity
+} from '../core/artifactIdentity';
+import { isOrgMetadataComponentReference, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 export const emptyPresence = (): OrgMetadataPresence => ({ inOrg: false, inWorkspace: false });
 
+const metadataComponentArtifactIdentity = (
+  reference: OrgMetadataComponentReference,
+  namespace: ArtifactNamespace = null
+): MetadataComponentArtifactIdentity => ({
+  kind: 'metadata-component',
+  metadataType: reference.xmlName,
+  namespace,
+  name: reference.fullName
+});
+
 /** Identity key for a metadata component reference, independent of the org it was observed in. */
-export const componentIdentity = (reference: OrgMetadataComponentReference): string =>
-  `${reference.xmlName}\0${reference.fullName}`;
+export const componentIdentity = (
+  reference: OrgMetadataComponentReference,
+  namespace: ArtifactNamespace = null
+): string => artifactIdentityKey(metadataComponentArtifactIdentity(reference, namespace));
+
+/**
+ * Exact namespace lookup for new callers, with a simple-name compatibility fallback only when namespace is omitted.
+ * The fallback preserves existing catalog APIs until their request references carry required-null namespace identity.
+ */
+export const findInventoryComponent = (
+  components: ReadonlyMap<string, OrgMetadataCatalogInternalEntry>,
+  reference: OrgMetadataComponentReference,
+  namespace?: ArtifactNamespace
+): OrgMetadataCatalogInternalEntry | undefined => {
+  if (namespace !== undefined) return components.get(componentIdentity(reference, namespace));
+  const globalMatch = components.get(componentIdentity(reference));
+  if (globalMatch) return globalMatch;
+  return [...components.values()].find(
+    entry =>
+      isOrgMetadataComponentReference(entry.reference) &&
+      artifactIdentitiesEqual(
+        metadataComponentArtifactIdentity(entry.reference),
+        metadataComponentArtifactIdentity(reference)
+      )
+  );
+};
 
 /**
  * Derives the set of SObject api names whose describe caches are affected by a
