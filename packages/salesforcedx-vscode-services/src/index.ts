@@ -310,7 +310,12 @@ export type {
   ListMetadataError,
   SObjectGlobalDescribeItem
 } from './core/metadataDescribeService';
-export type { DescribeSObjectResult, TransmogrifierService } from './core/transmogrifierService';
+export type {
+  DescribeSObjectResult,
+  RestSObjectDescribeTransmogrifierInput,
+  TransmogrifierInput,
+  TransmogrifierService
+} from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
   SObjectSchema,
@@ -318,6 +323,7 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/schemas/sObject';
+export { TransmogrifierError } from './core/transmogrifierService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
