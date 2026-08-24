@@ -366,6 +366,7 @@ export type {
   RestSObjectDescribeTransmogrifierInput,
   SObject,
   SObjectField,
+  SymbolTableApexTransmogrifierInput,
   ChildRelationship,
   TransmogrifierInput,
   TransmogrifierService,

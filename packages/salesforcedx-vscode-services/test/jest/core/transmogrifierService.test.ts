@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { TransmogrifierService, type DescribeSObjectResult } from '../../../src/core/transmogrifierService';
+import * as symbolTableResponse from './fixtures/apexSymbolTableResponse.json';
 
 const describeResult = {
   name: 'Broker__c',
@@ -181,5 +182,168 @@ describe('TransmogrifierService', () => {
       definitionUri: incompleteFieldUri
     });
     expect(result.value.fields[3]).toMatchObject({ name: 'Name', type: 'string', custom: false });
+  });
+
+  it('validates and normalizes recursive Symbol Table Apex payloads', async () => {
+    const result = await run(
+      TransmogrifierService.pipe(
+        Effect.flatMap(service =>
+          service.toSemanticModel({
+            source: 'symbol-table-apex',
+            identity: { kind: 'apex-type', namespace: 'examplepkg', name: 'managedouter' },
+            value: symbolTableResponse.typeStubs[0]
+          })
+        )
+      )
+    );
+
+    expect(result).toMatchObject({
+      kind: 'apex-type-stub',
+      identity: { kind: 'apex-type', namespace: 'ExamplePkg', name: 'ManagedOuter' },
+      value: {
+        namespacePrefix: 'ExamplePkg',
+        name: 'ManagedOuter',
+        kind: 'CLASS',
+        documentation: 'Managed class documentation.',
+        compileError: null
+      }
+    });
+    if (result.kind !== 'apex-type-stub') throw new Error('Expected an Apex type stub');
+    expect(result.value.interfaces[0]).toEqual({
+      namespacePrefix: 'System',
+      name: 'Iterator',
+      typeParameters: [
+        {
+          namespacePrefix: null,
+          name: 'List',
+          typeParameters: [{ namespacePrefix: null, name: 'String', typeParameters: null }]
+        }
+      ]
+    });
+    expect(result.value.fields[0]).toMatchObject({
+      name: 'items',
+      definingType: { namespacePrefix: 'ExamplePkg', name: 'ManagedBase' }
+    });
+    expect(result.value.properties[0]).toMatchObject({
+      name: 'value',
+      getter: { documentation: 'Reads the value.' },
+      setter: null
+    });
+    expect(result.value.methods[0]).toMatchObject({
+      name: 'convert',
+      documentation: 'Converts an input value.',
+      parameters: [{ name: 'input', documentation: null }]
+    });
+    expect(result.value.innerTypes[0]).toMatchObject({
+      name: 'ManagedOuter.Inner',
+      namespacePrefix: 'ExamplePkg'
+    });
+  });
+
+  it('preserves compile errors while completing omitted canonical fields', async () => {
+    const result = await run(
+      TransmogrifierService.pipe(
+        Effect.flatMap(service =>
+          service.toSemanticModel({
+            source: 'symbol-table-apex',
+            identity: { kind: 'apex-type', namespace: null, name: 'BrokenType' },
+            value: symbolTableResponse.typeStubs[4]
+          })
+        )
+      )
+    );
+
+    expect(result).toMatchObject({
+      kind: 'apex-type-stub',
+      value: {
+        fields: [],
+        methods: [],
+        innerTypes: [],
+        compileError: 'Unexpected token near line 4'
+      }
+    });
+  });
+
+  it('orders unordered Symbol Table collections deterministically without reordering parameters', async () => {
+    const result = await run(
+      TransmogrifierService.pipe(
+        Effect.flatMap(service =>
+          service.toSemanticModel({
+            source: 'symbol-table-apex',
+            identity: { kind: 'apex-type', namespace: 'System', name: 'String' },
+            value: {
+              name: 'String',
+              namespacePrefix: 'System',
+              kind: 'CLASS',
+              modifiers: ['virtual', 'global'],
+              fields: [
+                { name: 'Z_VALUE', modifiers: ['static', 'global'] },
+                { name: 'A_VALUE', modifiers: ['global', 'static'] }
+              ],
+              methods: [
+                {
+                  name: 'valueOf',
+                  parameters: [
+                    { name: 'first', type: { name: 'Object' } },
+                    { name: 'second', type: { name: 'String' } }
+                  ]
+                },
+                { name: 'compareTo' }
+              ]
+            }
+          })
+        )
+      )
+    );
+
+    if (result.kind !== 'apex-type-stub') throw new Error('Expected an Apex type stub');
+    expect(result.value.modifiers).toEqual(['global', 'virtual']);
+    expect(result.value.fields.map(field => field.name)).toEqual(['A_VALUE', 'Z_VALUE']);
+    expect(result.value.methods.map(method => method.name)).toEqual(['compareTo', 'valueOf']);
+    expect(result.value.methods[1].parameters.map(parameter => parameter.name)).toEqual(['first', 'second']);
+  });
+
+  it('rejects malformed and identity-mismatched Symbol Table payloads with typed errors', async () => {
+    const malformed = await run(
+      TransmogrifierService.pipe(
+        Effect.flatMap(service =>
+          service.toSemanticModel({
+            source: 'symbol-table-apex',
+            identity: { kind: 'apex-type', namespace: null, name: 'Broken' },
+            value: { name: 'Broken', kind: 'CLASS', fields: [{ name: '' }] }
+          })
+        ),
+        Effect.either
+      )
+    );
+    expect(malformed).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'TransmogrifierError',
+        source: 'symbol-table-apex',
+        message: 'Failed to validate the Symbol Table Apex payload'
+      }
+    });
+
+    const mismatched = await run(
+      TransmogrifierService.pipe(
+        Effect.flatMap(service =>
+          service.toSemanticModel({
+            source: 'symbol-table-apex',
+            identity: { kind: 'apex-type', namespace: 'OtherPackage', name: 'ManagedOuter' },
+            value: symbolTableResponse.typeStubs[0]
+          })
+        ),
+        Effect.either
+      )
+    );
+    expect(mismatched).toMatchObject({
+      _tag: 'Left',
+      left: {
+        _tag: 'TransmogrifierError',
+        source: 'symbol-table-apex',
+        message: 'Symbol Table Apex payload identity does not match the requested artifact identity'
+      }
+    });
   });
 });

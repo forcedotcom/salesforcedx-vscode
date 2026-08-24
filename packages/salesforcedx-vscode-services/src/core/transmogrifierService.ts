@@ -5,12 +5,40 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import type { URI } from 'vscode-uri';
-import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
+import {
+  RawApexTypeStubSchema,
+  type RawApexAnnotationStub,
+  type RawApexFieldStub,
+  type RawApexMethodStub,
+  type RawApexParameterStub,
+  type RawApexPropertyStub,
+  type RawApexTypeReference,
+  type RawApexTypeStub
+} from './apexSymbolTableSchema';
+import {
+  artifactIdentitiesEqual,
+  type ApexTypeArtifactIdentity,
+  type SObjectArtifactIdentity
+} from './artifactIdentity';
+import {
+  ApexTypeStubSemanticModelSchema,
+  SObjectSemanticModelSchema,
+  type ApexAnnotationStub,
+  type ApexFieldStub,
+  type ApexMethodStub,
+  type ApexParameterStub,
+  type ApexPropertyStub,
+  type ApexTypeReference,
+  type ApexTypeStub,
+  type ApexTypeStubSemanticModel,
+  type CanonicalSemanticModel,
+  type SObjectSemanticField,
+  type SObjectSemanticModel
+} from './artifactProjection';
 
 type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 
@@ -87,8 +115,17 @@ export type WorkspaceSObjectMetadataTransmogrifierInput = {
   readonly value: WorkspaceSObjectMetadata;
 };
 
-/** Discriminated provider-native input; later Symbol Table adapters extend this union. */
-export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
+export type SymbolTableApexTransmogrifierInput = {
+  readonly source: 'symbol-table-apex';
+  readonly identity: ApexTypeArtifactIdentity;
+  readonly value: unknown;
+};
+
+/** Discriminated provider-native inputs normalized into canonical semantic models. */
+export type TransmogrifierInput =
+  | RestSObjectDescribeTransmogrifierInput
+  | WorkspaceSObjectMetadataTransmogrifierInput
+  | SymbolTableApexTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
   source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata', 'symbol-table-apex'),
@@ -292,6 +329,109 @@ const mapWorkspaceSObjectToSemanticModel = (
   };
 };
 
+const compareString = (left: string, right: string): number => left.localeCompare(right);
+
+const compareNamedCanonicalValue = (left: { readonly name: string }, right: { readonly name: string }): number => {
+  const byName = left.name.localeCompare(right.name);
+  return byName === 0 ? JSON.stringify(left).localeCompare(JSON.stringify(right)) : byName;
+};
+
+const mapRawApexTypeReference = (raw: RawApexTypeReference): ApexTypeReference => ({
+  namespacePrefix: raw.namespacePrefix ?? null,
+  name: raw.name,
+  typeParameters: raw.typeParameters?.map(mapRawApexTypeReference) ?? null
+});
+
+const mapRawApexAnnotation = (raw: RawApexAnnotationStub): ApexAnnotationStub => ({
+  name: raw.name,
+  parameters: (raw.parameters ?? [])
+    .map(parameter => ({
+      name: parameter.name,
+      type: mapRawApexTypeReference(parameter.type),
+      value: parameter.value
+    }))
+    .toSorted(compareNamedCanonicalValue),
+  documentation: raw.documentation ?? null
+});
+
+const mapRawApexAnnotations = (raw: readonly RawApexAnnotationStub[] | null | undefined) =>
+  (raw ?? []).map(mapRawApexAnnotation).toSorted(compareNamedCanonicalValue);
+
+const mapRawApexParameter = (raw: RawApexParameterStub): ApexParameterStub => ({
+  name: raw.name ?? null,
+  type: raw.type ? mapRawApexTypeReference(raw.type) : null,
+  annotations: mapRawApexAnnotations(raw.annotations),
+  documentation: raw.documentation ?? null
+});
+
+const mapRawApexField = (raw: RawApexFieldStub): ApexFieldStub => ({
+  name: raw.name,
+  type: raw.type ? mapRawApexTypeReference(raw.type) : null,
+  modifiers: (raw.modifiers ?? []).toSorted(compareString),
+  annotations: mapRawApexAnnotations(raw.annotations),
+  documentation: raw.documentation ?? null,
+  definingType: raw.definingType ? mapRawApexTypeReference(raw.definingType) : null
+});
+
+const mapRawApexProperty = (raw: RawApexPropertyStub): ApexPropertyStub => ({
+  name: raw.name,
+  type: raw.type ? mapRawApexTypeReference(raw.type) : null,
+  modifiers: (raw.modifiers ?? []).toSorted(compareString),
+  annotations: mapRawApexAnnotations(raw.annotations),
+  getter: raw.getter
+    ? {
+        modifiers: (raw.getter.modifiers ?? []).toSorted(compareString),
+        documentation: raw.getter.documentation ?? null
+      }
+    : null,
+  setter: raw.setter
+    ? {
+        modifiers: (raw.setter.modifiers ?? []).toSorted(compareString),
+        documentation: raw.setter.documentation ?? null
+      }
+    : null,
+  documentation: raw.documentation ?? null,
+  definingType: raw.definingType ? mapRawApexTypeReference(raw.definingType) : null
+});
+
+const mapRawApexMethod = (raw: RawApexMethodStub): ApexMethodStub => ({
+  name: raw.name,
+  isConstructor: raw.isConstructor ?? null,
+  returnType: raw.returnType ? mapRawApexTypeReference(raw.returnType) : null,
+  modifiers: (raw.modifiers ?? []).toSorted(compareString),
+  annotations: mapRawApexAnnotations(raw.annotations),
+  parameters: (raw.parameters ?? []).map(mapRawApexParameter),
+  documentation: raw.documentation ?? null,
+  definingType: raw.definingType ? mapRawApexTypeReference(raw.definingType) : null
+});
+
+const mapRawApexTypeStub = (raw: RawApexTypeStub): ApexTypeStub => ({
+  name: raw.name,
+  namespacePrefix: raw.namespacePrefix ?? null,
+  kind: raw.kind,
+  modifiers: (raw.modifiers ?? []).toSorted(compareString),
+  annotations: mapRawApexAnnotations(raw.annotations),
+  superClass: raw.superClass ? mapRawApexTypeReference(raw.superClass) : null,
+  interfaces: (raw.interfaces ?? []).map(mapRawApexTypeReference).toSorted(compareNamedCanonicalValue),
+  fields: (raw.fields ?? []).map(mapRawApexField).toSorted(compareNamedCanonicalValue),
+  properties: (raw.properties ?? []).map(mapRawApexProperty).toSorted(compareNamedCanonicalValue),
+  methods: (raw.methods ?? []).map(mapRawApexMethod).toSorted(compareNamedCanonicalValue),
+  innerTypes: (raw.innerTypes ?? []).map(mapRawApexTypeStub).toSorted(compareNamedCanonicalValue),
+  triggerOperations: raw.triggerOperations?.toSorted(compareString) ?? null,
+  triggerObjectType: raw.triggerObjectType ? mapRawApexTypeReference(raw.triggerObjectType) : null,
+  documentation: raw.documentation ?? null,
+  compileError: raw.compileError ?? null
+});
+
+const mapSymbolTableApexToSemanticModel = (
+  identity: ApexTypeArtifactIdentity,
+  raw: RawApexTypeStub
+): ApexTypeStubSemanticModel => ({
+  kind: 'apex-type-stub',
+  identity,
+  value: mapRawApexTypeStub(raw)
+});
+
 const mapRestFieldToSemanticField = (field: SObjectField): SObjectSemanticField => ({
   name: field.name,
   label: field.label,
@@ -362,22 +502,59 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
       return yield* S.decodeUnknown(SObjectSchema)(input);
     });
 
-    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
-      const model =
-        input.source === 'rest-sobject-describe'
-          ? mapRestDescribeToSemanticModel(input.identity, input.value)
-          : mapWorkspaceSObjectToSemanticModel(input.identity, input.value);
-      return yield* S.validate(SObjectSemanticModelSchema)(model).pipe(
-        Effect.mapError(
-          cause =>
-            new TransmogrifierError({
+    const toSemanticModel: (input: TransmogrifierInput) => Effect.Effect<CanonicalSemanticModel, TransmogrifierError> =
+      Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
+        if (input.source === 'symbol-table-apex') {
+          const raw = yield* S.decodeUnknown(RawApexTypeStubSchema)(input.value).pipe(
+            Effect.mapError(
+              cause =>
+                new TransmogrifierError({
+                  source: input.source,
+                  message: 'Failed to validate the Symbol Table Apex payload',
+                  cause
+                })
+            )
+          );
+          const providerIdentity: ApexTypeArtifactIdentity = {
+            kind: 'apex-type',
+            namespace: raw.namespacePrefix ?? null,
+            name: raw.name
+          };
+          if (!artifactIdentitiesEqual(input.identity, providerIdentity)) {
+            return yield* new TransmogrifierError({
               source: input.source,
-              message: `Failed to transform ${input.source} into the canonical semantic model`,
-              cause
-            })
-        )
-      );
-    });
+              message: 'Symbol Table Apex payload identity does not match the requested artifact identity',
+              cause: { requested: input.identity, received: providerIdentity }
+            });
+          }
+          return yield* S.validate(ApexTypeStubSemanticModelSchema)(
+            mapSymbolTableApexToSemanticModel(providerIdentity, raw)
+          ).pipe(
+            Effect.mapError(
+              cause =>
+                new TransmogrifierError({
+                  source: input.source,
+                  message: 'Failed to transform Symbol Table Apex into the canonical semantic model',
+                  cause
+                })
+            )
+          );
+        }
+        const model =
+          input.source === 'rest-sobject-describe'
+            ? mapRestDescribeToSemanticModel(input.identity, input.value)
+            : mapWorkspaceSObjectToSemanticModel(input.identity, input.value);
+        return yield* S.validate(SObjectSemanticModelSchema)(model).pipe(
+          Effect.mapError(
+            cause =>
+              new TransmogrifierError({
+                source: input.source,
+                message: `Failed to transform ${input.source} into the canonical semantic model`,
+                cause
+              })
+          )
+        );
+      });
 
     return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
   })
