@@ -80,6 +80,8 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
     ProjectService.make({
       isSalesforceProject: () => Effect.succeed(true),
       getSfProject: () => Effect.succeed(mockSfProject),
+      getProjectNamespace: () => Effect.succeed(null),
+      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(namespace === null),
       isInPackageDirectories: () => Effect.succeed(true),
       ensureInPackageDirectories: () => Effect.void,
       getSoqlMetadataPath: () => Effect.succeed(URI.file('/test/soql')),
