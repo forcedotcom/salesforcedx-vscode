@@ -1,0 +1,115 @@
+{
+  "typeStubs": [
+    {
+      "name": "ManagedOuter",
+      "namespacePrefix": "ExamplePkg",
+      "kind": "CLASS",
+      "modifiers": ["global"],
+      "annotations": [{ "name": "AuraEnabled", "parameters": [], "documentation": null }],
+      "interfaces": [
+        {
+          "namespacePrefix": "System",
+          "name": "Iterator",
+          "typeParameters": [
+            {
+              "name": "List",
+              "typeParameters": [{ "name": "String" }]
+            }
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "name": "items",
+          "type": { "name": "List", "typeParameters": [{ "name": "String" }] },
+          "modifiers": ["global"],
+          "annotations": [],
+          "definingType": { "namespacePrefix": "ExamplePkg", "name": "ManagedBase" }
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "type": { "name": "String" },
+          "modifiers": ["global"],
+          "annotations": [],
+          "getter": { "modifiers": ["global"], "documentation": "Reads the value." },
+          "setter": null
+        }
+      ],
+      "methods": [
+        {
+          "name": "convert",
+          "returnType": { "name": "String" },
+          "modifiers": ["global"],
+          "annotations": [],
+          "parameters": [
+            {
+              "name": "input",
+              "type": { "name": "Object" },
+              "annotations": [],
+              "documentation": null
+            }
+          ],
+          "documentation": "Converts an input value."
+        }
+      ],
+      "innerTypes": [
+        {
+          "name": "ManagedOuter.Inner",
+          "namespacePrefix": "ExamplePkg",
+          "kind": "CLASS",
+          "modifiers": ["global"],
+          "annotations": [],
+          "interfaces": [],
+          "fields": [],
+          "properties": [],
+          "methods": [],
+          "innerTypes": []
+        }
+      ],
+      "documentation": "Managed class documentation.",
+      "compileError": null
+    },
+    {
+      "name": "RunnableContract",
+      "kind": "INTERFACE",
+      "modifiers": ["public"],
+      "annotations": [],
+      "interfaces": [],
+      "fields": [],
+      "properties": [],
+      "methods": [],
+      "innerTypes": []
+    },
+    {
+      "name": "State",
+      "namespacePrefix": null,
+      "kind": "ENUM",
+      "modifiers": ["public"],
+      "fields": [
+        {
+          "name": "OPEN",
+          "type": { "name": "State" },
+          "modifiers": ["final", "public", "static"],
+          "annotations": []
+        }
+      ]
+    },
+    {
+      "name": "AccountTrigger",
+      "kind": "TRIGGER",
+      "modifiers": ["public"],
+      "triggerOperations": ["AFTER INSERT", "BEFORE UPDATE"],
+      "triggerObjectType": { "namespacePrefix": "Schema", "name": "Account" }
+    },
+    {
+      "name": "BrokenType",
+      "kind": "CLASS",
+      "compileError": "Unexpected token near line 4",
+      "fields": null,
+      "methods": null,
+      "innerTypes": null
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef
 import { AliasService } from './core/alias';
 import { watchAliasFile } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
+import { ApexSymbolTableSchemas } from './core/apexSymbolTableSchema';
 import { ArtifactProjectionSchemas } from './core/artifactProjection';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
@@ -120,6 +121,7 @@ export type SalesforceVSCodeServicesApi = {
       | WorkspaceService
     >;
     ApexLogService: typeof ApexLogService;
+    ApexSymbolTableSchemas: typeof ApexSymbolTableSchemas;
     AliasService: typeof AliasService;
     ArtifactProjectionSchemas: typeof ArtifactProjectionSchemas;
     TemplateService: typeof TemplateService;
@@ -176,6 +178,29 @@ type PublicSdkLayerFor = (
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
 export type { AliasService } from './core/alias';
+export {
+  ApexSymbolTableSchemas,
+  RawApexAccessorStubSchema,
+  RawApexAnnotationParameterStubSchema,
+  RawApexAnnotationStubSchema,
+  RawApexFieldStubSchema,
+  RawApexMethodStubSchema,
+  RawApexParameterStubSchema,
+  RawApexPropertyStubSchema,
+  RawApexTypeReferenceSchema,
+  RawApexTypeStubResponseSchema,
+  RawApexTypeStubSchema,
+  type RawApexAccessorStub,
+  type RawApexAnnotationParameterStub,
+  type RawApexAnnotationStub,
+  type RawApexFieldStub,
+  type RawApexMethodStub,
+  type RawApexParameterStub,
+  type RawApexPropertyStub,
+  type RawApexTypeReference,
+  type RawApexTypeStub,
+  type RawApexTypeStubResponse
+} from './core/apexSymbolTableSchema';
 export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   ApexTypeArtifactIdentitySchema,
@@ -557,6 +582,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       services: {
         prebuiltServicesDependencies: builtContext,
         ApexLogService,
+        ApexSymbolTableSchemas,
         AliasService,
         ArtifactProjectionSchemas,
         TemplateService,
