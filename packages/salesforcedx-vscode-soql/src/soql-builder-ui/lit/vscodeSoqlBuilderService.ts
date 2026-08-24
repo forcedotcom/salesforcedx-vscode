@@ -24,6 +24,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
+import * as Predicate from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
@@ -59,6 +60,12 @@ const toObjectMetadata = (names: readonly string[]) =>
   names.map(name => ({ label: name, name, queryable: true }));
 
 const validateMetadata = (metadata: unknown) => decodeSoqlBuilderMetadata(metadata);
+
+const clearedMetadata = (objects: SoqlBuilderState['metadata']['objects']): SoqlBuilderState['metadata'] => ({
+  childRelationships: [],
+  fields: [],
+  objects
+});
 
 const parseExternalQuery = (statement: string) => tryQueryOperation(() => parseSoqlBuilderQuery(statement));
 
@@ -101,8 +108,15 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
     )
   );
 
+  const publishError = (error: ServiceError) => PubSub.publish(errors, error).pipe(Effect.asVoid);
   const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
-    handler.pipe(Effect.catchAll(error => PubSub.publish(errors, error).pipe(Effect.asVoid)));
+    handler.pipe(
+      Effect.catchTags({
+        SoqlBuilderMessageChannelError: publishError,
+        SoqlBuilderQueryError: publishError,
+        InvalidSoqlBuilderMetadataError: publishError
+      })
+    );
 
   const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(() =>
     trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST }))
@@ -181,14 +195,8 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
           const objectChanged = query.sObject !== current.query.sObject;
           const nextState: SoqlBuilderState = {
             ...current,
-            isFieldsLoading: query.sObject !== undefined && objectChanged,
-            metadata: objectChanged
-              ? {
-                  childRelationships: [],
-                  fields: [],
-                  objects: current.metadata.objects
-                }
-              : current.metadata,
+            isFieldsLoading: Predicate.isNotUndefined(query.sObject) && objectChanged,
+            metadata: objectChanged ? clearedMetadata(current.metadata.objects) : current.metadata,
             notificationsDismissed: false,
             query
           };
@@ -203,7 +211,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
               })
             );
           }
-          if (query.sObject !== undefined && objectChanged) {
+          if (Predicate.isNotUndefined(query.sObject) && objectChanged) {
             yield* requestMetadata(query.sObject);
           }
         }
@@ -222,17 +230,13 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
           const nextState: SoqlBuilderState = {
             ...current,
             hasNoDefaultOrg: false,
-            isFieldsLoading: current.query.sObject !== undefined,
+            isFieldsLoading: Predicate.isNotUndefined(current.query.sObject),
             isObjectsLoading: true,
-            metadata: {
-              childRelationships: [],
-              fields: [],
-              objects: []
-            }
+            metadata: clearedMetadata([])
           };
           yield* SubscriptionRef.set(state, nextState);
           yield* requestObjects();
-          if (current.query.sObject !== undefined) {
+          if (Predicate.isNotUndefined(current.query.sObject)) {
             yield* requestMetadata(current.query.sObject);
           }
         }
@@ -257,7 +261,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
 
   yield* SubscriptionRef.update(state, current => ({ ...current, isObjectsLoading: true }));
   yield* requestObjects();
-  if (savedState.query.sObject !== undefined) {
+  if (Predicate.isNotUndefined(savedState.query.sObject)) {
     yield* SubscriptionRef.update(state, current => ({ ...current, isFieldsLoading: true }));
     yield* requestMetadata(savedState.query.sObject);
   }
@@ -268,18 +272,16 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
         const current = yield* SubscriptionRef.get(state);
         const query = {
           ...createInitialSoqlBuilderQuery(),
-          ...(current.query.headerComments === undefined ? {} : { headerComments: current.query.headerComments }),
+          ...(Predicate.isUndefined(current.query.headerComments)
+            ? {}
+            : { headerComments: current.query.headerComments }),
           sObject: action.objectName
         };
         yield* publishQuery(
           {
             ...current,
             isFieldsLoading: true,
-            metadata: {
-              childRelationships: [],
-              fields: [],
-              objects: current.metadata.objects
-            }
+            metadata: clearedMetadata(current.metadata.objects)
           },
           query
         );
@@ -309,7 +311,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
             ...query,
             where: {
               conditions,
-              ...(action.andOr === undefined ? {} : { andOr: action.andOr })
+              ...(Predicate.isUndefined(action.andOr) ? {} : { andOr: action.andOr })
             }
           };
         })

@@ -161,7 +161,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results-soql-web
-          path: packages/salesforcedx-vscode-soql/test-results
+          path: |
+            packages/salesforcedx-vscode-soql/test-results
+            packages/soql-builder-ui/test-results
           if-no-files-found: ignore
           retention-days: 14
 

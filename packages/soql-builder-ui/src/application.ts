@@ -29,29 +29,33 @@ export type SoqlBuilderView = {
   readonly removeEventListener: (type: string, listener: EventListener) => void;
 };
 
-const SoqlBuilderActionEventSchema = Schema.Struct({
-  type: Schema.Literal(SOQL_BUILDER_ACTION_EVENT),
-  detail: SoqlBuilderActionSchema
-});
+const isSoqlBuilderAction = Schema.is(SoqlBuilderActionSchema);
 
-const isSoqlBuilderActionEvent = Schema.is(SoqlBuilderActionEventSchema);
+const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly detail: SoqlBuilderAction } =>
+  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && isSoqlBuilderAction(event.detail);
 
 export class SoqlBuilderApplication {
   private connection: Fiber.RuntimeFiber<void, SoqlBuilderServiceError> | undefined;
-  private disposed = false;
-  private readonly runtime: ManagedRuntime.ManagedRuntime<SoqlBuilderController, SoqlBuilderServiceError>;
+  private runtime: ManagedRuntime.ManagedRuntime<SoqlBuilderController, SoqlBuilderServiceError> | undefined;
 
   constructor(
     private readonly view: SoqlBuilderView,
-    serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
-  ) {
-    this.runtime = ManagedRuntime.make(SoqlBuilderController.Default.pipe(Layer.provide(serviceLayer)));
-  }
+    private readonly serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
+  ) {}
 
   public readonly connect = (): void => {
-    if (this.connection || this.disposed) return;
+    if (this.connection) return;
 
-    this.connection = this.runtime.runFork(
+    const runtime = ManagedRuntime.make(SoqlBuilderController.Default.pipe(Layer.provide(this.serviceLayer)));
+    this.runtime = runtime;
+    const reportServiceError = (error: SoqlBuilderServiceError): Effect.Effect<void> =>
+      Effect.sync(() => {
+        this.view.viewState = {
+          ...createInitialSoqlBuilderState(),
+          errorMessage: error.message
+        };
+      });
+    const connection = runtime.runFork(
       Effect.gen(this, function* () {
         const controller = yield* SoqlBuilderController;
         const actions = yield* Queue.unbounded<SoqlBuilderAction>();
@@ -81,25 +85,31 @@ export class SoqlBuilderApplication {
         );
       }).pipe(
         Effect.scoped,
-        Effect.catchAll(error =>
-          Effect.sync(() => {
-            this.view.viewState = {
-              ...createInitialSoqlBuilderState(),
-              errorMessage: error.message
-            };
-          })
-        )
+        Effect.catchTags({
+          SoqlBuilderMessageChannelError: reportServiceError,
+          SoqlBuilderQueryError: reportServiceError,
+          InvalidSoqlBuilderMetadataError: reportServiceError
+        })
       )
     );
+    this.connection = connection;
+    connection.addObserver(() => {
+      if (this.connection !== connection) return;
+      this.connection = undefined;
+      this.runtime = undefined;
+      void runtime.dispose().catch(() => {
+        // A completed application fiber has no caller to receive teardown failures.
+      });
+    });
   };
 
   public readonly disconnect = async (): Promise<void> => {
-    if (this.disposed) return;
-    this.disposed = true;
-
     const connection = this.connection;
+    const runtime = this.runtime;
     this.connection = undefined;
-    if (connection) await this.runtime.runPromise(Fiber.interrupt(connection));
-    await this.runtime.dispose();
+    this.runtime = undefined;
+    if (!runtime) return;
+    if (connection) await runtime.runPromise(Fiber.interrupt(connection));
+    await runtime.dispose();
   };
 }
