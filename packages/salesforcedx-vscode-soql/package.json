@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.13.3",
+  "version": "67.13.7",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/soql-builder-ui": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-model": "*",
@@ -78,14 +79,17 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "compile": "wireit",
+    "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
+    "build:soql-builder-lit": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
     "test:query-results-ui": "wireit",
     "test:ui-bundle-budgets": "wireit",
+    "test:lit-foundation": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
@@ -94,6 +98,8 @@
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
+    "vscode:bundle:migration": "wireit",
+    "vscode:package:migration": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "test:compile": "wireit",
@@ -105,6 +111,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "compile:lit-ui",
         "../soql-common:compile",
         "../soql-model:compile",
         "../salesforcedx-vscode-i18n:compile",
@@ -120,6 +127,23 @@
       "output": [
         "out/**"
       ]
+    },
+    "compile:lit-ui": {
+      "command": "tsc --pretty -p tsconfig.lit.json",
+      "dependencies": [
+        "../soql-builder-ui:compile",
+        "../soql-model:compile"
+      ],
+      "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
+        "src/soql-builder-ui/modules/querybuilder/messages/i18n.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/globals.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts",
+        "tsconfig.lit.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": []
     },
     "copy:grammars": {
       "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
@@ -142,6 +166,26 @@
       ],
       "output": [
         "src/soql-builder-ui/dist/**"
+      ]
+    },
+    "build:soql-builder-lit": {
+      "command": "node src/soql-builder-ui/esbuild.lit.config.mjs",
+      "dependencies": [
+        "compile:lit-ui",
+        "../soql-builder-ui:compile"
+      ],
+      "files": [
+        "src/soql-builder-ui/lit/**",
+        "src/soql-builder-ui/modules/querybuilder/messages/i18n.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/globals.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/message/**",
+        "src/soql-builder-ui/esbuild.lit.config.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../soql-builder-ui/out/**",
+        "package.json"
+      ],
+      "output": [
+        "src/soql-builder-ui/dist-lit/**"
       ]
     },
     "test:soql-builder-ui": {
@@ -186,6 +230,17 @@
       ],
       "output": []
     },
+    "test:lit-foundation": {
+      "command": "node scripts/verify-lit-migration-bundle.mjs",
+      "dependencies": [
+        "build:soql-builder-lit"
+      ],
+      "files": [
+        "scripts/verify-lit-migration-bundle.mjs",
+        "src/soql-builder-ui/dist-lit/**"
+      ],
+      "output": []
+    },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
@@ -199,6 +254,26 @@
         "../../scripts/bundling/web.mjs",
         "out/**",
         "src/soql-builder-ui/dist/**",
+        "src/soql-data-view/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:migration": {
+      "command": "node ./esbuild.config.mjs --lit-migration",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "build:soql-builder-lit",
+        "test:lit-foundation"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "src/soql-builder-ui/dist-lit/**",
         "src/soql-data-view/**"
       ],
       "output": [
@@ -337,6 +412,7 @@
         "vscode:bundle"
       ],
       "files": [
+        ".vscodeignore",
         "package.json",
         "package.nls*.json",
         "README.md",
@@ -347,6 +423,25 @@
       ],
       "output": [
         "*.vsix"
+      ]
+    },
+    "vscode:package:migration": {
+      "command": "vsce package --allow-package-all-secrets --out salesforcedx-vscode-soql-lit-migration.vsix",
+      "dependencies": [
+        "vscode:bundle:migration"
+      ],
+      "files": [
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "grammars/**"
+      ],
+      "output": [
+        "salesforcedx-vscode-soql-lit-migration.vsix"
       ]
     },
     "test:compile": {
@@ -367,6 +462,7 @@
         "vscode:bundle"
       ],
       "files": [
+        ".vscodeignore",
         "package.json",
         "package.nls*.json",
         "README.md",
