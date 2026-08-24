@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ChildRelationshipSchema, SObjectFieldSchema } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
@@ -15,46 +16,10 @@ const SoqlObjectMetadataSchema = Schema.Struct({
   queryable: Schema.Boolean
 });
 
-const SoqlPicklistValueSchema = Schema.Struct({
-  active: Schema.Boolean,
-  label: Schema.NullOr(Schema.String),
-  value: Schema.String
-});
-
-const SoqlFieldMetadataSchema = Schema.Struct({
-  aggregatable: Schema.Boolean,
-  custom: Schema.Boolean,
-  defaultValue: Schema.NullOr(Schema.Unknown),
-  extraTypeInfo: Schema.NullOr(Schema.String),
-  filterable: Schema.Boolean,
-  groupable: Schema.Boolean,
-  inlineHelpText: Schema.NullOr(Schema.String),
-  // Host describe payloads (see salesforcedx-vscode-services SObjectFieldSchema) allow empty
-  // strings here; keep these as plain String so a single sparse field cannot fail the whole
-  // metadata decode and blank the UI.
-  label: Schema.String,
-  length: Schema.optional(Schema.Number),
-  name: Schema.String,
-  nillable: Schema.Boolean,
-  picklistValues: Schema.Array(SoqlPicklistValueSchema),
-  precision: Schema.optional(Schema.Number),
-  referenceTo: Schema.Array(Schema.String),
-  relationshipName: Schema.NullOr(Schema.String),
-  scale: Schema.optional(Schema.Number),
-  sortable: Schema.Boolean,
-  type: Schema.String
-});
-
-const SoqlChildRelationshipSchema = Schema.Struct({
-  childSObject: Schema.NonEmptyTrimmedString,
-  field: Schema.NonEmptyTrimmedString,
-  relationshipName: Schema.NullOr(Schema.String)
-});
-
 const SoqlBuilderMetadataSchema = Schema.Struct({
   objects: Schema.Array(SoqlObjectMetadataSchema),
-  fields: Schema.Array(SoqlFieldMetadataSchema),
-  childRelationships: Schema.Array(SoqlChildRelationshipSchema),
+  fields: Schema.Array(SObjectFieldSchema),
+  childRelationships: Schema.Array(ChildRelationshipSchema),
   selectedObjectName: Schema.optional(Schema.NonEmptyTrimmedString)
 });
 
@@ -88,16 +53,32 @@ const SoqlWhereConditionSchema = Schema.Struct({
 
 export type SoqlWhereCondition = typeof SoqlWhereConditionSchema.Type;
 
+const SoqlParseErrorSchema = Schema.Struct({
+  type: Schema.String,
+  message: Schema.String,
+  lineNumber: Schema.Number,
+  charInLine: Schema.Number,
+  grammarRule: Schema.optional(Schema.String)
+});
+
+const SoqlUnsupportedSyntaxSchema = Schema.Struct({
+  unmodeledSyntax: Schema.String,
+  reason: Schema.Struct({
+    reasonCode: Schema.String,
+    message: Schema.String
+  })
+});
+
 const SoqlBuilderQuerySchema = Schema.Struct({
   headerComments: Schema.optional(Schema.String),
   allRows: Schema.Boolean,
   fields: Schema.Array(Schema.NonEmptyTrimmedString),
-  limit: Schema.String,
+  limit: Schema.optional(Schema.String),
   orderBy: Schema.Array(SoqlOrderBySchema),
-  originalSoqlStatement: Schema.String,
-  parseErrors: Schema.Array(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
-  sObject: Schema.String,
-  unsupportedSyntax: Schema.Array(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
+  originalSoqlStatement: Schema.optional(Schema.String),
+  parseErrors: Schema.Array(SoqlParseErrorSchema),
+  sObject: Schema.optional(Schema.String),
+  unsupportedSyntax: Schema.Array(SoqlUnsupportedSyntaxSchema),
   where: Schema.Struct({
     andOr: Schema.optional(Schema.Literal('AND', 'OR')),
     conditions: Schema.Array(SoqlWhereConditionSchema)
@@ -172,14 +153,30 @@ export class InvalidSoqlBuilderMetadataError extends Schema.TaggedError<InvalidS
   }
 }
 
-export class SoqlBuilderServiceError extends Schema.TaggedError<SoqlBuilderServiceError>()('SoqlBuilderServiceError', {
-  operation: Schema.Literal('initialize', 'subscribe', 'dispatch'),
+export class SoqlBuilderMessageChannelError extends Schema.TaggedError<SoqlBuilderMessageChannelError>()(
+  'SoqlBuilderMessageChannelError',
+  {
+    details: Schema.String
+  }
+) {
+  public override get message(): string {
+    return this.details;
+  }
+}
+
+export class SoqlBuilderQueryError extends Schema.TaggedError<SoqlBuilderQueryError>()('SoqlBuilderQueryError', {
   details: Schema.String
 }) {
   public override get message(): string {
     return this.details;
   }
 }
+
+/** The error channel shared by every `SoqlBuilderService` implementation: host-transport breakdowns, malformed SOQL, and invalid metadata. */
+export type SoqlBuilderServiceError =
+  | SoqlBuilderMessageChannelError
+  | SoqlBuilderQueryError
+  | InvalidSoqlBuilderMetadataError;
 
 export const decodeSoqlBuilderMetadata = (input: unknown) =>
   Schema.decodeUnknown(SoqlBuilderMetadataSchema)(input).pipe(
@@ -194,11 +191,8 @@ export const decodeSoqlBuilderMetadata = (input: unknown) =>
 export const createInitialSoqlBuilderQuery = (): SoqlBuilderQuery => ({
   allRows: false,
   fields: [],
-  limit: '',
   orderBy: [],
-  originalSoqlStatement: '',
   parseErrors: [],
-  sObject: '',
   unsupportedSyntax: [],
   where: { conditions: [] }
 });

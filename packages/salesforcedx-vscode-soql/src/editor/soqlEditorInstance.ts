@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
+import type { MessageType, RequestId } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
@@ -59,7 +59,7 @@ type SoqlEditorEvent =
   | {
       type: 'sobject_metadata_request';
       payload: string;
-      requestId?: string;
+      requestId?: RequestId;
     }
   | {
       type: 'sobject_metadata_response';
@@ -68,7 +68,7 @@ type SoqlEditorEvent =
   | {
       type: 'sobjects_request';
       payload: never;
-      requestId?: string;
+      requestId?: RequestId;
     }
   | {
       type: 'run_query';
@@ -138,7 +138,7 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject, requestId?: string) {
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject, requestId?: RequestId) {
     return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload, requestId })).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
@@ -159,11 +159,11 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected updateSObjects(sobjectNames: string[], requestId?: string) {
+  protected updateSObjects(sobjectNames: string[], requestId?: RequestId) {
     return this.sendMessageToUi('sobjects_response', sobjectNames, requestId);
   }
 
-  protected updateSObjectMetadata(sobject: SObject, requestId?: string) {
+  protected updateSObjectMetadata(sobject: SObject, requestId?: RequestId) {
     return this.sendMessageToUi('sobject_metadata_response', sobject, requestId);
   }
 

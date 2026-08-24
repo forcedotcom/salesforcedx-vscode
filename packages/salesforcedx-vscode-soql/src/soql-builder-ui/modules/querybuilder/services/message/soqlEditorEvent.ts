@@ -27,6 +27,12 @@ export const MessageType = {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
+export const RequestIdSchema = Schema.String.pipe(Schema.brand('@soql/RequestId'));
+export type RequestId = Schema.Schema.Type<typeof RequestIdSchema>;
+
+// Deliberately duplicated rather than shared from @salesforce/vscode-services: this file is bundled by the
+// legacy rollup pipeline (rollup.config.mjs), where a CJS require of that package transitively hits effect's
+// CJS Schema build, which unconditionally requires fast-check and fails to resolve under rollup.
 const SObjectFieldSchema = Schema.Struct({
   aggregatable: Schema.Boolean,
   custom: Schema.Boolean,
@@ -76,7 +82,7 @@ const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ 
 const UiActivatedEventSchema = eventWithoutPayload(MessageType.UI_ACTIVATED);
 const SObjectsRequestEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECTS_REQUEST),
-  requestId: Schema.optional(Schema.String)
+  requestId: Schema.optional(RequestIdSchema)
 });
 const RunSoqlQueryEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY);
 const RunSoqlQueryDoneEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE);
@@ -96,17 +102,17 @@ const UiTelemetryEventSchema = Schema.Struct({
 const SObjectMetadataRequestEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST),
   payload: Schema.String,
-  requestId: Schema.optional(Schema.String)
+  requestId: Schema.optional(RequestIdSchema)
 });
 const SObjectMetadataResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
   payload: SObjectMetadataSchema,
-  requestId: Schema.optional(Schema.String)
+  requestId: Schema.optional(RequestIdSchema)
 });
 const SObjectsResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECTS_RESPONSE),
   payload: Schema.Array(Schema.String),
-  requestId: Schema.optional(Schema.String)
+  requestId: Schema.optional(RequestIdSchema)
 });
 const TextSoqlChangedEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED),

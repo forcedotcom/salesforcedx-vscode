@@ -124,7 +124,7 @@ export const parseSoqlBuilderQuery = (statement: string): SoqlBuilderQuery => {
     ...(model.headerComments ? { headerComments: model.headerComments.text } : {}),
     allRows: model.allRows ?? false,
     fields,
-    limit: model.limit ? String(model.limit.limit) : '',
+    ...(model.limit ? { limit: String(model.limit.limit) } : {}),
     orderBy: (model.orderBy?.orderByExpressions ?? []).flatMap(expression =>
       expression.field instanceof FieldRefImpl && !SoqlModelUtils.containsUnmodeledSyntax(expression)
         ? [
@@ -138,7 +138,7 @@ export const parseSoqlBuilderQuery = (statement: string): SoqlBuilderQuery => {
     ),
     originalSoqlStatement: statement,
     parseErrors: (model.errors ?? []).map(error => ({ ...error })),
-    sObject: model.from?.sobjectName ?? '',
+    ...(model.from?.sobjectName ? { sObject: model.from.sobjectName } : {}),
     unsupportedSyntax,
     where: {
       ...(whereGroup?.andOr ? { andOr: whereGroup.andOr } : {}),
@@ -198,12 +198,12 @@ const buildQueryModel = (query: SoqlBuilderQuery): Query => {
   );
   const model = new QueryImpl(
     select,
-    new FromImpl(query.sObject),
+    new FromImpl(query.sObject ?? ''),
     where,
     undefined,
     undefined,
     orderByExpressions.length > 0 ? new OrderByImpl(orderByExpressions) : undefined,
-    query.limit.length > 0 ? new LimitImpl(Number(query.limit)) : undefined
+    query.limit !== undefined ? new LimitImpl(Number(query.limit)) : undefined
   );
   if (query.headerComments) model.headerComments = new HeaderCommentsImpl(query.headerComments);
   model.allRows = query.allRows;
@@ -218,11 +218,6 @@ export const createSoqlBuilderTelemetry = (query: SoqlBuilderQuery) => ({
   fields: query.fields.length,
   limit: query.limit,
   orderBy: query.orderBy.length,
-  sObject: query.sObject.includes('__c') ? 'custom' : 'standard',
-  unsupported: query.unsupportedSyntax.map(unsupported => {
-    const reason = unsupported.reason;
-    return typeof reason === 'object' && reason !== null && 'reasonCode' in reason
-      ? String(reason.reasonCode)
-      : 'unknown';
-  })
+  sObject: query.sObject?.includes('__c') ? 'custom' : 'standard',
+  unsupported: query.unsupportedSyntax.map(unsupported => unsupported.reason.reasonCode)
 });

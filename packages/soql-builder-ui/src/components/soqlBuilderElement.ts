@@ -73,6 +73,8 @@ export class SoqlBuilderElement extends LitElement {
 
   protected override render() {
     const state = this.viewState;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty statement must still render as `nothing`, unlike a merely-unset one; `??` would not collapse ''
+    const queryPreview = state.query.originalSoqlStatement ? state.query.originalSoqlStatement : nothing;
     return html`
       <main>
         ${state.errorMessage || state.hasNoDefaultOrg
@@ -88,7 +90,7 @@ export class SoqlBuilderElement extends LitElement {
                       filter="startsWithPerTerm"
                       label=${this.labels.from}
                       ?disabled=${state.isObjectsLoading}
-                      .value=${state.query.sObject}
+                      .value=${state.query.sObject ?? ''}
                       @change=${this.handleObjectChange}
                     >
                       ${state.metadata.objects.map(
@@ -103,7 +105,7 @@ export class SoqlBuilderElement extends LitElement {
                       combobox
                       filter="startsWithPerTerm"
                       label=${this.labels.fields}
-                      ?disabled=${state.isFieldsLoading || state.query.sObject.length === 0}
+                      ?disabled=${state.isFieldsLoading || state.query.sObject === undefined}
                       .value=${state.query.fields}
                       @change=${this.handleFieldsChange}
                     >
@@ -115,7 +117,7 @@ export class SoqlBuilderElement extends LitElement {
                 </section>
                 <section class="preview" aria-live="polite">
                   <div class="preview-title">${this.labels.query}</div>
-                  <pre data-testid="query-preview">${state.query.originalSoqlStatement || nothing}</pre>
+                  <pre data-testid="query-preview">${queryPreview}</pre>
                 </section>
               </div>
             `}

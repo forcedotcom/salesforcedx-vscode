@@ -81,7 +81,7 @@
     "compile": "wireit",
     "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist dist-migration coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "build:soql-builder-lit": "wireit",
@@ -278,7 +278,7 @@
         "src/soql-data-view/**"
       ],
       "output": [
-        "dist"
+        "dist-migration"
       ]
     },
     "vscode:bundle:local": {
@@ -427,11 +427,12 @@
       ]
     },
     "vscode:package:migration": {
-      "command": "vsce package --allow-package-all-secrets --out salesforcedx-vscode-soql-lit-migration.vsix",
+      "command": "node scripts/package-lit-migration.mjs",
       "dependencies": [
         "vscode:bundle:migration"
       ],
       "files": [
+        "scripts/package-lit-migration.mjs",
         ".vscodeignore",
         "package.json",
         "package.nls*.json",
