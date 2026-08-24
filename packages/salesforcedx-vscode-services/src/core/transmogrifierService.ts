@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
+import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
 
 type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 
@@ -60,6 +62,21 @@ export type SObject = S.Schema.Type<typeof SObjectSchema>;
 export type SObjectField = S.Schema.Type<typeof SObjectFieldSchema>;
 export type ChildRelationship = S.Schema.Type<typeof ChildRelationshipSchema>;
 
+export type RestSObjectDescribeTransmogrifierInput = {
+  readonly source: 'rest-sobject-describe';
+  readonly identity: SObjectArtifactIdentity;
+  readonly value: DescribeSObjectResult;
+};
+
+/** Discriminated provider-native input; later workspace and Symbol Table adapters extend this union. */
+export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput;
+
+export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
+  source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata', 'symbol-table-apex'),
+  message: S.String,
+  cause: S.optional(S.Unknown)
+}) {}
+
 const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
   name: raw.name,
   label: raw.label,
@@ -96,6 +113,65 @@ const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
   }))
 });
 
+const compareName = (left: { readonly name: string }, right: { readonly name: string }): number =>
+  left.name < right.name ? -1 : left.name > right.name ? 1 : 0;
+
+const mapRestFieldToSemanticField = (field: SObjectField): SObjectSemanticField => ({
+  name: field.name,
+  label: field.label,
+  type: field.type,
+  custom: field.custom,
+  defaultValue: field.defaultValue,
+  ...(field.inlineHelpText === null ? {} : { inlineHelpText: field.inlineHelpText }),
+  ...(field.length === undefined ? {} : { length: field.length }),
+  ...(field.precision === undefined ? {} : { precision: field.precision }),
+  ...(field.scale === undefined ? {} : { scale: field.scale }),
+  referenceTo: field.referenceTo.toSorted(),
+  ...(field.relationshipName === null ? {} : { relationshipName: field.relationshipName }),
+  picklistValues: field.picklistValues
+    .map(value => ({
+      value: value.value,
+      active: value.active,
+      ...(value.label === null ? {} : { label: value.label })
+    }))
+    .toSorted((left, right) => left.value.localeCompare(right.value)),
+  runtimeCapabilities: {
+    aggregatable: field.aggregatable,
+    filterable: field.filterable,
+    groupable: field.groupable,
+    nillable: field.nillable,
+    sortable: field.sortable
+  }
+});
+
+const mapRestDescribeToSemanticModel = (
+  identity: SObjectArtifactIdentity,
+  raw: DescribeSObjectResult
+): SObjectSemanticModel => {
+  const value = mapToSObject(raw);
+  return {
+    kind: 'sobject',
+    value: {
+      identity,
+      label: value.label,
+      custom: value.custom,
+      queryable: value.queryable,
+      fields: value.fields.map(mapRestFieldToSemanticField).toSorted(compareName),
+      childRelationships: value.childRelationships
+        .map(relationship => ({
+          childSObject: relationship.childSObject,
+          field: relationship.field,
+          ...(relationship.relationshipName === null ? {} : { relationshipName: relationship.relationshipName })
+        }))
+        .toSorted((left, right) =>
+          left.childSObject === right.childSObject
+            ? left.field.localeCompare(right.field)
+            : left.childSObject.localeCompare(right.childSObject)
+        )
+    }
+  };
+};
+
 export class TransmogrifierService extends Effect.Service<TransmogrifierService>()('TransmogrifierService', {
   accessors: true,
   dependencies: [],
@@ -110,6 +186,20 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
       return yield* S.decodeUnknown(SObjectSchema)(input);
     });
 
-    return { toMinimalSObject, decodeSObject, SObjectSchema };
+    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
+      const model = mapRestDescribeToSemanticModel(input.identity, input.value);
+      return yield* S.decodeUnknown(SObjectSemanticModelSchema)(model).pipe(
+        Effect.mapError(
+          cause =>
+            new TransmogrifierError({
+              source: input.source,
+              message: 'Failed to transform REST SObject Describe into the canonical semantic model',
+              cause
+            })
+        )
+      );
+    });
+
+    return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
   })
 }) {}

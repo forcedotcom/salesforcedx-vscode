@@ -363,16 +363,19 @@ export type {
 } from './core/metadataDescribeService';
 export type {
   DescribeSObjectResult,
+  RestSObjectDescribeTransmogrifierInput,
   SObject,
   SObjectField,
   ChildRelationship,
+  TransmogrifierInput,
   TransmogrifierService
 } from './core/transmogrifierService';
 export {
   SObjectSchema,
   SObjectFieldSchema,
   ChildRelationshipSchema,
-  PicklistValueSchema
+  PicklistValueSchema,
+  TransmogrifierError
 } from './core/transmogrifierService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
