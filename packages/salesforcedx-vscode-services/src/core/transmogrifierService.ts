@@ -9,6 +9,7 @@ import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
+import type { URI } from 'vscode-uri';
 import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
 
 type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
@@ -68,8 +69,26 @@ export type RestSObjectDescribeTransmogrifierInput = {
   readonly value: DescribeSObjectResult;
 };
 
-/** Discriminated provider-native input; later workspace and Symbol Table adapters extend this union. */
-export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput;
+export type WorkspaceSObjectMetadataDocument = {
+  readonly fullName: string;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly definitionUri: URI;
+};
+
+/** Structured metadata parsed by SDR. Raw XML is never interpreted by the Transmogrifier. */
+export type WorkspaceSObjectMetadata = {
+  readonly object: WorkspaceSObjectMetadataDocument;
+  readonly fields: readonly WorkspaceSObjectMetadataDocument[];
+};
+
+export type WorkspaceSObjectMetadataTransmogrifierInput = {
+  readonly source: 'workspace-sobject-metadata';
+  readonly identity: SObjectArtifactIdentity;
+  readonly value: WorkspaceSObjectMetadata;
+};
+
+/** Discriminated provider-native input; later Symbol Table adapters extend this union. */
+export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
   source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata', 'symbol-table-apex'),
@@ -115,6 +134,163 @@ const mapToSObject = (raw: RawDescribeSObjectResult): SObject => ({
 
 const compareName = (left: { readonly name: string }, right: { readonly name: string }): number =>
   left.name < right.name ? -1 : left.name > right.name ? 1 : 0;
+
+const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const metadataValue = (
+  metadata: Readonly<Record<string, unknown>>,
+  metadataType: 'CustomObject' | 'CustomField'
+): Readonly<Record<string, unknown>> => {
+  const wrapped = metadata[metadataType];
+  return isRecord(wrapped) ? wrapped : metadata;
+};
+
+const asArray = (value: unknown): readonly unknown[] =>
+  Array.isArray(value) ? value : value === undefined ? [] : [value];
+
+const optionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+
+const optionalNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string' || value.trim().length === 0) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const optionalBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
+};
+
+const workspaceFieldType = (value: unknown): string | undefined => {
+  const metadataType = optionalString(value);
+  if (!metadataType) return undefined;
+  const normalized = metadataType.toLowerCase();
+  const typeMap: Readonly<Record<string, string>> = {
+    autonumber: 'string',
+    checkbox: 'boolean',
+    encryptedtext: 'string',
+    externallookup: 'reference',
+    hierarchy: 'reference',
+    html: 'textarea',
+    indirectlookup: 'reference',
+    longtextarea: 'textarea',
+    lookup: 'reference',
+    masterdetail: 'reference',
+    metadatarelationship: 'reference',
+    multiselectpicklist: 'multipicklist',
+    number: 'double',
+    text: 'string'
+  };
+  return typeMap[normalized] ?? normalized;
+};
+
+const simpleFieldName = (objectName: string, fullName: string): string => {
+  const prefix = `${objectName}.`;
+  return fullName.toLowerCase().startsWith(prefix.toLowerCase()) ? fullName.slice(prefix.length) : fullName;
+};
+
+const workspacePicklistValues = (field: Readonly<Record<string, unknown>>) => {
+  const valueSet = isRecord(field.valueSet) ? field.valueSet : undefined;
+  const definition = valueSet && isRecord(valueSet.valueSetDefinition) ? valueSet.valueSetDefinition : undefined;
+  return asArray(definition?.value)
+    .filter(isRecord)
+    .flatMap(value => {
+      const name = optionalString(value.fullName);
+      if (!name) return [];
+      const label = optionalString(value.label);
+      const active = optionalBoolean(value.isActive);
+      return [
+        {
+          value: name,
+          ...(label === undefined ? {} : { label }),
+          ...(active === undefined ? {} : { active })
+        }
+      ];
+    })
+    .toSorted((left, right) => left.value.localeCompare(right.value));
+};
+
+const mapWorkspaceField = (
+  identity: SObjectArtifactIdentity,
+  document: WorkspaceSObjectMetadataDocument,
+  rawField?: Readonly<Record<string, unknown>>
+): SObjectSemanticField | undefined => {
+  const field = rawField ?? metadataValue(document.metadata, 'CustomField');
+  const fullName = optionalString(field.fullName) ?? optionalString(document.fullName);
+  if (!fullName) return undefined;
+  const name = simpleFieldName(identity.name, fullName);
+  const label = optionalString(field.label);
+  const type = workspaceFieldType(field.type);
+  const defaultValue = field.defaultValue;
+  const inlineHelpText = optionalString(field.inlineHelpText);
+  const length = optionalNumber(field.length);
+  const precision = optionalNumber(field.precision);
+  const scale = optionalNumber(field.scale);
+  const referenceTo = asArray(field.referenceTo)
+    .flatMap(value => optionalString(value) ?? [])
+    .toSorted();
+  const relationshipName = optionalString(field.relationshipName);
+  const picklistValues = workspacePicklistValues(field);
+  return {
+    name,
+    ...(label === undefined ? {} : { label }),
+    ...(type === undefined ? {} : { type }),
+    custom: /__(?:c|mdt|e|b|x)$/i.test(name),
+    ...(defaultValue === undefined ? {} : { defaultValue }),
+    ...(inlineHelpText === undefined ? {} : { inlineHelpText }),
+    ...(length === undefined ? {} : { length }),
+    ...(precision === undefined ? {} : { precision }),
+    ...(scale === undefined ? {} : { scale }),
+    ...(referenceTo.length === 0 ? {} : { referenceTo }),
+    ...(relationshipName === undefined ? {} : { relationshipName }),
+    ...(picklistValues.length === 0 ? {} : { picklistValues }),
+    definitionUri: document.definitionUri
+  };
+};
+
+const mapWorkspaceSObjectToSemanticModel = (
+  identity: SObjectArtifactIdentity,
+  workspace: WorkspaceSObjectMetadata
+): SObjectSemanticModel => {
+  const object = metadataValue(workspace.object.metadata, 'CustomObject');
+  const nameField = isRecord(object.nameField) ? object.nameField : undefined;
+  const fields = [
+    ...asArray(object.fields)
+      .filter(isRecord)
+      .map(field => mapWorkspaceField(identity, workspace.object, field)),
+    ...(nameField
+      ? [
+          mapWorkspaceField(identity, workspace.object, {
+            ...nameField,
+            fullName: 'Name'
+          })
+        ]
+      : []),
+    ...workspace.fields.map(document => mapWorkspaceField(identity, document))
+  ].reduce(
+    (byName, field) => (field ? new Map(byName).set(field.name.toLowerCase(), field) : byName),
+    new Map<string, SObjectSemanticField>()
+  );
+
+  const label = optionalString(object.label);
+  const pluralLabel = optionalString(object.pluralLabel);
+  return {
+    kind: 'sobject',
+    value: {
+      identity,
+      ...(label === undefined ? {} : { label }),
+      ...(pluralLabel === undefined ? {} : { pluralLabel }),
+      custom: /__(?:c|mdt|e|b|x)$/i.test(identity.name),
+      fields: [...fields.values()].toSorted(compareName),
+      definitionUri: workspace.object.definitionUri
+    }
+  };
+};
 
 const mapRestFieldToSemanticField = (field: SObjectField): SObjectSemanticField => ({
   name: field.name,
@@ -187,13 +363,16 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
     });
 
     const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
-      const model = mapRestDescribeToSemanticModel(input.identity, input.value);
-      return yield* S.decodeUnknown(SObjectSemanticModelSchema)(model).pipe(
+      const model =
+        input.source === 'rest-sobject-describe'
+          ? mapRestDescribeToSemanticModel(input.identity, input.value)
+          : mapWorkspaceSObjectToSemanticModel(input.identity, input.value);
+      return yield* S.validate(SObjectSemanticModelSchema)(model).pipe(
         Effect.mapError(
           cause =>
             new TransmogrifierError({
               source: input.source,
-              message: 'Failed to transform REST SObject Describe into the canonical semantic model',
+              message: `Failed to transform ${input.source} into the canonical semantic model`,
               cause
             })
         )

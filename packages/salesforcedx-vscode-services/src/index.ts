@@ -368,7 +368,10 @@ export type {
   SObjectField,
   ChildRelationship,
   TransmogrifierInput,
-  TransmogrifierService
+  TransmogrifierService,
+  WorkspaceSObjectMetadata,
+  WorkspaceSObjectMetadataDocument,
+  WorkspaceSObjectMetadataTransmogrifierInput
 } from './core/transmogrifierService';
 export {
   SObjectSchema,

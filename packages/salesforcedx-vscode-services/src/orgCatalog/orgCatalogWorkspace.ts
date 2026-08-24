@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SObjectArtifactIdentity } from '../core/artifactIdentity';
+import type { WorkspaceSObjectMetadata, WorkspaceSObjectMetadataDocument } from '../core/transmogrifierService';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
@@ -12,6 +15,11 @@ import { ProjectService } from '../core/projectService';
 import { toUri } from '../vscode/uriUtils';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
+
+class WorkspaceSObjectMetadataReadError extends Data.TaggedError('WorkspaceSObjectMetadataReadError')<{
+  readonly identity: SObjectArtifactIdentity;
+  readonly cause: unknown;
+}> {}
 
 export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('OrgCatalogWorkspace', {
   accessors: true,
@@ -57,6 +65,60 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
     const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')((xmlName: string) =>
       scanWorkspaceInventory(xmlName).pipe(Effect.map(inventory => inventory.components))
     );
+
+    const loadSObjectMetadata = Effect.fn('OrgCatalogWorkspace.loadSObjectMetadata')(function* (
+      identity: SObjectArtifactIdentity
+    ) {
+      if (!(yield* projectService.isArtifactNamespaceWorkspaceEligible(identity.namespace))) return null;
+      const project = yield* projectService.getSfProject();
+      const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
+      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, [
+        { type: 'CustomObject', fullName: identity.name }
+      ]);
+      const sourceComponents = [...componentSet.getSourceComponents()];
+      const objectComponent = sourceComponents.find(
+        component =>
+          component.type.name === 'CustomObject' && component.fullName.toLowerCase() === identity.name.toLowerCase()
+      );
+      const objectXml = objectComponent?.xml;
+      if (!objectComponent || !objectXml) return null;
+
+      return yield* Effect.tryPromise({
+        try: async (): Promise<WorkspaceSObjectMetadata> => {
+          const childComponents = [...sourceComponents, ...objectComponent.getChildren()].filter(
+            (component, index, components) =>
+              component.type.name === 'CustomField' &&
+              component.fullName.toLowerCase().startsWith(`${identity.name.toLowerCase()}.`) &&
+              components.findIndex(
+                candidate => candidate.fullName.toLowerCase() === component.fullName.toLowerCase()
+              ) === index
+          );
+          const object: WorkspaceSObjectMetadataDocument = {
+            fullName: objectComponent.fullName,
+            metadata: await objectComponent.parseXml(),
+            definitionUri: toUri(objectXml)
+          };
+          const fields = await Promise.all(
+            childComponents.flatMap(component => {
+              const sourcePath = component.xml ?? component.content;
+              if (!sourcePath) return [];
+              const definitionUri = toUri(sourcePath);
+              return [
+                component.parseXml().then(
+                  (metadata): WorkspaceSObjectMetadataDocument => ({
+                    fullName: component.fullName,
+                    metadata,
+                    definitionUri
+                  })
+                )
+              ];
+            })
+          );
+          return { object, fields };
+        },
+        catch: cause => new WorkspaceSObjectMetadataReadError({ identity, cause })
+      });
+    });
 
     const getWorkspaceMetadataTypes = Effect.fn('OrgCatalogWorkspace.getWorkspaceMetadataTypes')(function* (
       orgId: string
@@ -121,6 +183,12 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       return resolutions;
     });
 
-    return { getWorkspaceMetadataTypes, resolveComponents, scanWorkspace, scanWorkspaceInventory } as const;
+    return {
+      getWorkspaceMetadataTypes,
+      loadSObjectMetadata,
+      resolveComponents,
+      scanWorkspace,
+      scanWorkspaceInventory
+    } as const;
   })
 }) {}
