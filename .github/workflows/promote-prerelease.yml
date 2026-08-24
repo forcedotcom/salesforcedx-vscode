@@ -34,8 +34,7 @@ permissions:
 
 jobs:
   promote:
-    # TODO: Change back to @main after upstream PR is merged
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/add-release-tag-input-to-vscode-promote-prerelease
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       release-tag: ${{ inputs.releaseTag || '' }}
       min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
