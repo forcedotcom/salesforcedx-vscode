@@ -47,10 +47,10 @@ jobs:
   publish:
     needs: ['ctc-open', 'prepare-release-metadata']
     if: always() && needs.prepare-release-metadata.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run }}
+      dry-run: ${{ inputs.dry-run == true }}
     secrets: inherit
 
   verify-published:
@@ -59,6 +59,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      # No checkout, so give the gh CLI its repo context for `gh release download`.
+      GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
     steps:
@@ -71,7 +73,7 @@ jobs:
           gh release download "$RELEASE_TAG" -D ./extensions
       - name: Verify published versions landed on OpenVSX
         run: |
-          TIMEOUT="${POLL_TIMEOUT:-600}"
+          TIMEOUT="${POLL_TIMEOUT:-1200}"
           INTERVAL="${POLL_INTERVAL:-30}"
           deadline=$(( $(date +%s) + TIMEOUT ))
           pending=()
