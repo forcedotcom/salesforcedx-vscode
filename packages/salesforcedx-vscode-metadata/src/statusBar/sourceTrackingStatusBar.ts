@@ -133,7 +133,10 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     Stream.as('conflictDetectionSettingChange')
   );
   const orgChangeStream = targetOrgRef.changes.pipe(
-    Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
+    // Pass when tracking status is known ('tracksSource' present) OR the ref has no orgId — the cleared
+    // state after the default org is deleted/logged out. Without the `!orgInfo.orgId` branch that cleared
+    // state is dropped and the icons linger on the gone org. (W-23950821)
+    Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && ('tracksSource' in orgInfo || !orgInfo.orgId)),
     Stream.tap(orgInfo =>
       Effect.sync(() => {
         if (!orgInfo.tracksSource || !orgInfo.orgId) {
