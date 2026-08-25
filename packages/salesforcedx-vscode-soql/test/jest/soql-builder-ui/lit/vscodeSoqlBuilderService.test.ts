@@ -113,7 +113,7 @@ describe('VscodeSoqlBuilderService', () => {
     expect(restored.where.andOr).toBe('AND');
     expect(restored.where.conditions).toHaveLength(2);
     expect(restored.orderBy).toEqual([{ field: 'Name', order: 'DESC', nulls: 'NULLS LAST' }]);
-    expect(restored.limit).toBe('10');
+    expect(restored.limit).toEqual({ _tag: 'Valid', value: 10 });
     expect(restored.allRows).toBe(true);
   });
 
@@ -146,7 +146,7 @@ describe('VscodeSoqlBuilderService', () => {
             orderBy: { field: 'Name', nulls: 'NULLS LAST', order: 'ASC' }
           },
           { _tag: 'OrderByRemoved', fieldName: 'Name' },
-          { _tag: 'LimitChanged', limit: '25' },
+          { _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } },
           { _tag: 'AllRowsChanged', allRows: true },
           { _tag: 'NotificationsDismissed' },
           { _tag: 'SetDefaultOrgRequested' },
@@ -168,7 +168,7 @@ describe('VscodeSoqlBuilderService', () => {
 
     const state = lastSavedState(harness.states);
     expect(state.query.sObject).toBe('Account');
-    expect(state.query.limit).toBe('25');
+    expect(state.query.limit).toEqual({ _tag: 'Valid', value: 25 });
     expect(state.query.allRows).toBe(true);
     expect(state.notificationsDismissed).toBe(true);
   });
@@ -191,36 +191,66 @@ describe('VscodeSoqlBuilderService', () => {
     expect(state.query.fields).toEqual(['Name']);
     expect(state.query.where.conditions).toHaveLength(1);
     expect(state.query.orderBy).toEqual([{ field: 'Name', order: 'DESC', nulls: 'NULLS LAST' }]);
-    expect(state.query.limit).toBe('10');
+    expect(state.query.limit).toEqual({ _tag: 'Valid', value: 10 });
     expect(state.query.allRows).toBe(true);
     expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(0);
   });
 
-  it('ignores stale metadata responses and accepts only the active request', async () => {
+  it('restores a legacy string limit as a valid numeric limit', async () => {
+    const harness = makeMessageHarness({
+      limit: '10',
+      originalSoqlStatement: 'SELECT Id FROM Account LIMIT 10'
+    });
+
+    const state = await runWithService(harness.layer, service => service.initialState);
+
+    expect(state.query.limit).toEqual({ _tag: 'Valid', value: 10 });
+  });
+
+  it('retains invalid limit input without publishing malformed SOQL', async () => {
     const harness = makeMessageHarness();
 
     const state = await runWithService(harness.layer, service =>
       Effect.gen(function* () {
         yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Account' });
-        const accountRequest = harness.messages.findLast(
-          message => message.type === MessageType.SOBJECT_METADATA_REQUEST
+        const publishedBeforeInvalid = harness.messages.filter(
+          message => message.type === MessageType.UI_SOQL_CHANGED
+        ).length;
+
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Invalid', input: '-1' } });
+        const invalidState = yield* service.initialState;
+        expect(invalidState.query.limit).toEqual({ _tag: 'Invalid', input: '-1' });
+        expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(
+          publishedBeforeInvalid
         );
+
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Empty' } });
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.query.limit).toEqual({ _tag: 'Empty' });
+    const lastQueryMessage = harness.messages.findLast(message => message.type === MessageType.UI_SOQL_CHANGED);
+    expect(lastQueryMessage?.payload).not.toContain('LIMIT');
+  });
+
+  it('ignores metadata responses for an object that is no longer selected', async () => {
+    const harness = makeMessageHarness();
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Account' });
         yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
-        const contactRequest = harness.messages.findLast(
-          message => message.type === MessageType.SOBJECT_METADATA_REQUEST
-        );
 
         const stateFiber = yield* service.stateChanges.pipe(Stream.runHead, Effect.fork);
         yield* Effect.sleep(Duration.millis(10));
         harness.emit({
           type: MessageType.SOBJECT_METADATA_RESPONSE,
-          payload: accountMetadata,
-          requestId: accountRequest?.requestId
+          payload: accountMetadata
         });
         harness.emit({
           type: MessageType.SOBJECT_METADATA_RESPONSE,
-          payload: { ...accountMetadata, label: 'Contact', name: 'Contact' },
-          requestId: contactRequest?.requestId
+          payload: { ...accountMetadata, label: 'Contact', name: 'Contact' }
         });
         return Option.getOrThrow(yield* Fiber.join(stateFiber));
       })

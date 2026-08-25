@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MessageType, RequestId } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
+import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
@@ -59,7 +59,6 @@ type SoqlEditorEvent =
   | {
       type: 'sobject_metadata_request';
       payload: string;
-      requestId?: RequestId;
     }
   | {
       type: 'sobject_metadata_response';
@@ -68,7 +67,6 @@ type SoqlEditorEvent =
   | {
       type: 'sobjects_request';
       payload: never;
-      requestId?: RequestId;
     }
   | {
       type: 'run_query';
@@ -138,8 +136,8 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject, requestId?: RequestId) {
-    return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload, requestId })).pipe(
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
+    return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload })).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
         appendToChannel(nls.localize('error_unknown_error', 'web_view_post_message')).pipe(
@@ -159,12 +157,12 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected updateSObjects(sobjectNames: string[], requestId?: RequestId) {
-    return this.sendMessageToUi('sobjects_response', sobjectNames, requestId);
+  protected updateSObjects(sobjectNames: string[]) {
+    return this.sendMessageToUi('sobjects_response', sobjectNames);
   }
 
-  protected updateSObjectMetadata(sobject: SObject, requestId?: RequestId) {
-    return this.sendMessageToUi('sobject_metadata_response', sobject, requestId);
+  protected updateSObjectMetadata(sobject: SObject) {
+    return this.sendMessageToUi('sobject_metadata_response', sobject);
   }
 
   protected onDocumentChangeHandler(e: vscode.TextDocumentChangeEvent): void {
@@ -204,14 +202,14 @@ export class SOQLEditorInstance {
 
       case 'sobject_metadata_request':
         return retrieveSObject(event.payload).pipe(
-          Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject, event.requestId) : Effect.void)),
+          Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
 
       case 'sobjects_request':
         return listSObjectNamesEffect.pipe(
-          Effect.flatMap(names => (names ? this.updateSObjects(names, event.requestId) : Effect.void)),
+          Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );

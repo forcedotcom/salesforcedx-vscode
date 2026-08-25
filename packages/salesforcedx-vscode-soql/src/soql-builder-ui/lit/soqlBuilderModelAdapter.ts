@@ -124,7 +124,7 @@ export const parseSoqlBuilderQuery = (statement: string): SoqlBuilderQuery => {
     ...(model.headerComments ? { headerComments: model.headerComments.text } : {}),
     allRows: model.allRows ?? false,
     fields,
-    ...(model.limit ? { limit: String(model.limit.limit) } : {}),
+    limit: model.limit ? { _tag: 'Valid', value: model.limit.limit } : { _tag: 'Empty' },
     orderBy: (model.orderBy?.orderByExpressions ?? []).flatMap(expression =>
       expression.field instanceof FieldRefImpl && !SoqlModelUtils.containsUnmodeledSyntax(expression)
         ? [
@@ -203,7 +203,7 @@ const buildQueryModel = (query: SoqlBuilderQuery): Query => {
     undefined,
     undefined,
     orderByExpressions.length > 0 ? new OrderByImpl(orderByExpressions) : undefined,
-    query.limit !== undefined ? new LimitImpl(Number(query.limit)) : undefined
+    query.limit._tag === 'Valid' ? new LimitImpl(query.limit.value) : undefined
   );
   if (query.headerComments) model.headerComments = new HeaderCommentsImpl(query.headerComments);
   model.allRows = query.allRows;
@@ -216,7 +216,7 @@ export const serializeSoqlBuilderQuery = (query: SoqlBuilderQuery): string =>
 export const createSoqlBuilderTelemetry = (query: SoqlBuilderQuery) => ({
   errors: query.parseErrors.map(error => `${String(error.type)}:${String(error.grammarRule)}`),
   fields: query.fields.length,
-  limit: query.limit,
+  limit: query.limit._tag === 'Valid' ? query.limit.value : undefined,
   orderBy: query.orderBy.length,
   sObject: query.sObject?.includes('__c') ? 'custom' : 'standard',
   unsupported: query.unsupportedSyntax.map(unsupported => unsupported.reason.reasonCode)

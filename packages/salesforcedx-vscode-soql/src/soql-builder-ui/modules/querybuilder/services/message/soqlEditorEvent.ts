@@ -28,17 +28,13 @@ export const MessageType = {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
-export const RequestIdSchema = Schema.String.pipe(Schema.brand('@soql/RequestId'));
-export type RequestId = Schema.Schema.Type<typeof RequestIdSchema>;
-
 export type SObjectMetadata = Pick<typeof SObjectSchema.Type, 'fields'>;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
 const UiActivatedEventSchema = eventWithoutPayload(MessageType.UI_ACTIVATED);
 const SObjectsRequestEventSchema = Schema.Struct({
-  type: Schema.Literal(MessageType.SOBJECTS_REQUEST),
-  requestId: Schema.optional(RequestIdSchema)
+  type: Schema.Literal(MessageType.SOBJECTS_REQUEST)
 });
 const RunSoqlQueryEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY);
 const RunSoqlQueryDoneEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE);
@@ -57,18 +53,15 @@ const UiTelemetryEventSchema = Schema.Struct({
 });
 const SObjectMetadataRequestEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_REQUEST),
-  payload: Schema.String,
-  requestId: Schema.optional(RequestIdSchema)
+  payload: Schema.String
 });
 const SObjectMetadataResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
-  payload: SObjectSchema,
-  requestId: Schema.optional(RequestIdSchema)
+  payload: SObjectSchema
 });
 const SObjectsResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECTS_RESPONSE),
-  payload: Schema.Array(Schema.String),
-  requestId: Schema.optional(RequestIdSchema)
+  payload: Schema.Array(Schema.String)
 });
 const TextSoqlChangedEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.TEXT_SOQL_CHANGED),

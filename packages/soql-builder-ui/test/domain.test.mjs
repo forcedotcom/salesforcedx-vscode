@@ -5,8 +5,10 @@ import * as Schema from 'effect/Schema';
 import {
   InvalidSoqlBuilderMetadataError,
   SoqlBuilderActionSchema,
+  SoqlLimitSchema,
   createInitialSoqlBuilderState,
-  decodeSoqlBuilderMetadata
+  decodeSoqlBuilderMetadata,
+  soqlLimitFromInput
 } from '../out/src/domain.js';
 
 const accountField = {
@@ -63,6 +65,7 @@ test('creates independent initial states', () => {
   assert.notEqual(first.metadata, second.metadata);
   assert.notEqual(first.query, second.query);
   assert.deepEqual(first.query.where.conditions, []);
+  assert.deepEqual(first.query.limit, { _tag: 'Empty' });
   assert.equal(first.isQueryRunning, false);
   assert.equal(first.isQueryPlanRunning, false);
 });
@@ -89,7 +92,7 @@ test('the public action Schema covers all builder operations', () => {
     { _tag: 'WhereConjunctionChanged', andOr: 'OR' },
     { _tag: 'OrderByUpserted', orderBy: { field: 'Name', order: 'ASC', nulls: 'NULLS LAST' } },
     { _tag: 'OrderByRemoved', fieldName: 'Name' },
-    { _tag: 'LimitChanged', limit: '25' },
+    { _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } },
     { _tag: 'AllRowsChanged', allRows: true },
     { _tag: 'NotificationsDismissed' },
     { _tag: 'SetDefaultOrgRequested' },
@@ -100,4 +103,20 @@ test('the public action Schema covers all builder operations', () => {
   for (const action of actions) {
     assert.equal(Schema.is(SoqlBuilderActionSchema)(action), true, action._tag);
   }
+});
+
+test('represents empty, valid, and invalid limit input explicitly', () => {
+  assert.deepEqual(soqlLimitFromInput(''), { _tag: 'Empty' });
+  assert.deepEqual(soqlLimitFromInput('0'), { _tag: 'Valid', value: 0 });
+  assert.deepEqual(soqlLimitFromInput('25'), { _tag: 'Valid', value: 25 });
+  assert.deepEqual(soqlLimitFromInput('-1'), { _tag: 'Invalid', input: '-1' });
+  assert.deepEqual(soqlLimitFromInput('1.5'), { _tag: 'Invalid', input: '1.5' });
+  assert.deepEqual(soqlLimitFromInput('9007199254740992'), {
+    _tag: 'Invalid',
+    input: '9007199254740992'
+  });
+
+  assert.equal(Schema.is(SoqlLimitSchema)({ _tag: 'Valid', value: -1 }), false);
+  assert.equal(Schema.is(SoqlLimitSchema)({ _tag: 'Valid', value: Number.MAX_SAFE_INTEGER + 1 }), false);
+  assert.equal(Schema.is(SoqlLimitSchema)({ _tag: 'Invalid', input: '' }), false);
 });

@@ -24,10 +24,8 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
-import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
-import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -37,9 +35,7 @@ import {
 } from '../modules/querybuilder/services/message/iMessageService';
 import {
   MessageType,
-  RequestIdSchema,
-  type HostToUiSoqlEditorEvent,
-  type RequestId
+  type HostToUiSoqlEditorEvent
 } from '../modules/querybuilder/services/message/soqlEditorEvent';
 import {
   createSoqlBuilderTelemetry,
@@ -68,23 +64,14 @@ const parseExternalQuery = (statement: string) => tryQueryOperation(() => parseS
 
 const serializeQuery = (query: SoqlBuilderQuery) => tryQueryOperation(() => serializeSoqlBuilderQuery(query));
 
+const LegacySavedStateSchema = Schema.Struct({
+  originalSoqlStatement: Schema.String
+});
+
 const decodeSavedState = (input: unknown) =>
   Schema.decodeUnknown(SoqlBuilderStateSchema)(input).pipe(
     Effect.orElse(() =>
-      Schema.decodeUnknown(
-        Schema.Struct({
-          headerComments: Schema.optional(Schema.String),
-          allRows: Schema.Boolean,
-          errors: Schema.Array(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
-          fields: Schema.Array(Schema.NonEmptyTrimmedString),
-          limit: Schema.String,
-          orderBy: Schema.Array(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
-          originalSoqlStatement: Schema.String,
-          sObject: Schema.String,
-          unsupported: Schema.Array(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
-          where: Schema.Record({ key: Schema.String, value: Schema.Unknown })
-        })
-      )(input).pipe(
+      Schema.decodeUnknown(LegacySavedStateSchema)(input).pipe(
         Effect.flatMap(saved => parseExternalQuery(saved.originalSoqlStatement)),
         Effect.map(query => ({ ...createInitialSoqlBuilderState(), query }))
       )
@@ -104,10 +91,6 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const messages = yield* Queue.unbounded<HostToUiSoqlEditorEvent>();
   const errors = yield* PubSub.unbounded<ServiceError>();
 
-  const requestSequence = yield* Ref.make(0);
-  const activeMetadataRequestId = yield* Ref.make<Option.Option<RequestId>>(Option.none());
-  const activeObjectsRequestId = yield* Ref.make<Option.Option<RequestId>>(Option.none());
-
   const removeMessageListener = messageService.onMessage(event => {
     messages.unsafeOffer(event);
   });
@@ -121,25 +104,18 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
     handler.pipe(Effect.catchAll(error => PubSub.publish(errors, error).pipe(Effect.asVoid)));
 
-  const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(function* () {
-    const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
-    const requestId = yield* Schema.decode(RequestIdSchema)(`objects-${sequence}`).pipe(Effect.orDie);
-    yield* Ref.set(activeObjectsRequestId, Option.some(requestId));
-    yield* trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST, requestId }));
-  });
+  const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(() =>
+    trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST }))
+  );
 
-  const requestMetadata = Effect.fn('VscodeSoqlBuilderService.requestMetadata')(function* (objectName: string) {
-    const sequence = yield* Ref.updateAndGet(requestSequence, current => current + 1);
-    const requestId = yield* Schema.decode(RequestIdSchema)(`metadata-${sequence}`).pipe(Effect.orDie);
-    yield* Ref.set(activeMetadataRequestId, Option.some(requestId));
-    yield* trySendMessage(() =>
+  const requestMetadata = Effect.fn('VscodeSoqlBuilderService.requestMetadata')((objectName: string) =>
+    trySendMessage(() =>
       messageService.sendMessage({
         payload: objectName,
-        requestId,
         type: MessageType.SOBJECT_METADATA_REQUEST
       })
-    );
-  });
+    )
+  );
 
   const publishQuery = Effect.fn('VscodeSoqlBuilderService.publishQuery')(function* (
     current: SoqlBuilderState,
@@ -175,8 +151,6 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
     Match.discriminatorsExhaustive('type')({
       [MessageType.SOBJECTS_RESPONSE]: Effect.fn('VscodeSoqlBuilderService.handleSObjectsResponse')(
         function* (event) {
-          const activeRequestId = yield* Ref.get(activeObjectsRequestId);
-          if (Option.getOrUndefined(activeRequestId) !== event.requestId) return;
           const current = yield* SubscriptionRef.get(state);
           const metadata = yield* validateMetadata({
             ...current.metadata,
@@ -188,8 +162,6 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       [MessageType.SOBJECT_METADATA_RESPONSE]: Effect.fn(
         'VscodeSoqlBuilderService.handleSObjectMetadataResponse'
       )(function* (event) {
-        const activeRequestId = yield* Ref.get(activeMetadataRequestId);
-        if (Option.getOrUndefined(activeRequestId) !== event.requestId) return;
         const current = yield* SubscriptionRef.get(state);
         if (event.payload.name !== current.query.sObject) return;
         const metadata = yield* validateMetadata({
@@ -373,9 +345,16 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
           orderBy: query.orderBy.filter(orderBy => orderBy.field !== action.fieldName)
         }))
       ),
-      LimitChanged: Effect.fn('VscodeSoqlBuilderService.dispatchLimitChanged')(action =>
-        modifyQuery(({ query }) => ({ ...query, limit: action.limit === '' ? undefined : action.limit }))
-      ),
+      LimitChanged: Effect.fn('VscodeSoqlBuilderService.dispatchLimitChanged')(function* (action) {
+        if (action.limit._tag === 'Invalid') {
+          const current = yield* SubscriptionRef.get(state);
+          const nextState = { ...current, query: { ...current.query, limit: action.limit } };
+          yield* SubscriptionRef.set(state, nextState);
+          yield* saveViewState(messageService, nextState);
+          return;
+        }
+        yield* modifyQuery(({ query }) => ({ ...query, limit: action.limit }));
+      }),
       AllRowsChanged: Effect.fn('VscodeSoqlBuilderService.dispatchAllRowsChanged')(action =>
         modifyQuery(({ query }) => ({ ...query, allRows: action.allRows }))
       ),

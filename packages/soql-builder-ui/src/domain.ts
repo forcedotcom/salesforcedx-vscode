@@ -69,11 +69,31 @@ const SoqlUnsupportedSyntaxSchema = Schema.Struct({
   })
 });
 
+export const SoqlLimitSchema = Schema.Union(
+  Schema.TaggedStruct('Empty', {}),
+  Schema.TaggedStruct('Valid', {
+    value: Schema.NonNegativeInt.pipe(Schema.lessThanOrEqualTo(Number.MAX_SAFE_INTEGER))
+  }),
+  Schema.TaggedStruct('Invalid', {
+    input: Schema.String.pipe(Schema.minLength(1))
+  })
+);
+
+export type SoqlLimit = typeof SoqlLimitSchema.Type;
+
+export const soqlLimitFromInput = (input: string): SoqlLimit => {
+  if (input.length === 0) return { _tag: 'Empty' };
+  if (!/^\d+$/u.test(input)) return { _tag: 'Invalid', input };
+
+  const value = Number(input);
+  return Number.isSafeInteger(value) ? { _tag: 'Valid', value } : { _tag: 'Invalid', input };
+};
+
 const SoqlBuilderQuerySchema = Schema.Struct({
   headerComments: Schema.optional(Schema.String),
   allRows: Schema.Boolean,
   fields: Schema.Array(Schema.NonEmptyTrimmedString),
-  limit: Schema.optional(Schema.String),
+  limit: SoqlLimitSchema,
   orderBy: Schema.Array(SoqlOrderBySchema),
   originalSoqlStatement: Schema.optional(Schema.String),
   parseErrors: Schema.Array(SoqlParseErrorSchema),
@@ -127,7 +147,7 @@ export const SoqlBuilderActionSchema = Schema.Union(
     fieldName: Schema.NonEmptyTrimmedString
   }),
   Schema.TaggedStruct('LimitChanged', {
-    limit: Schema.String
+    limit: SoqlLimitSchema
   }),
   Schema.TaggedStruct('AllRowsChanged', {
     allRows: Schema.Boolean
@@ -191,6 +211,7 @@ export const decodeSoqlBuilderMetadata = (input: unknown) =>
 export const createInitialSoqlBuilderQuery = (): SoqlBuilderQuery => ({
   allRows: false,
   fields: [],
+  limit: { _tag: 'Empty' },
   orderBy: [],
   parseErrors: [],
   unsupportedSyntax: [],
