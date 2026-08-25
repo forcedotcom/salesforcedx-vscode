@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SObjectSchema } from '@salesforce/vscode-services';
 import * as Schema from 'effect/Schema';
 
 export const MessageType = {
@@ -30,52 +31,7 @@ export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 export const RequestIdSchema = Schema.String.pipe(Schema.brand('@soql/RequestId'));
 export type RequestId = Schema.Schema.Type<typeof RequestIdSchema>;
 
-// Deliberately duplicated rather than shared from @salesforce/vscode-services: this file is bundled by the
-// legacy rollup pipeline (rollup.config.mjs), where a CJS require of that package transitively hits effect's
-// CJS Schema build, which unconditionally requires fast-check and fails to resolve under rollup.
-const SObjectFieldSchema = Schema.Struct({
-  aggregatable: Schema.Boolean,
-  custom: Schema.Boolean,
-  defaultValue: Schema.NullOr(Schema.Unknown),
-  extraTypeInfo: Schema.NullOr(Schema.String),
-  filterable: Schema.Boolean,
-  groupable: Schema.Boolean,
-  inlineHelpText: Schema.NullOr(Schema.String),
-  label: Schema.String,
-  length: Schema.optional(Schema.Number),
-  name: Schema.String,
-  nillable: Schema.Boolean,
-  picklistValues: Schema.Array(
-    Schema.Struct({
-      active: Schema.Boolean,
-      label: Schema.NullOr(Schema.String),
-      value: Schema.String
-    })
-  ),
-  precision: Schema.optional(Schema.Number),
-  referenceTo: Schema.Array(Schema.String),
-  relationshipName: Schema.NullOr(Schema.String),
-  scale: Schema.optional(Schema.Number),
-  sortable: Schema.Boolean,
-  type: Schema.String
-});
-
-const SObjectMetadataSchema = Schema.Struct({
-  name: Schema.String,
-  label: Schema.String,
-  custom: Schema.Boolean,
-  queryable: Schema.Boolean,
-  childRelationships: Schema.Array(
-    Schema.Struct({
-      childSObject: Schema.String,
-      field: Schema.String,
-      relationshipName: Schema.NullOr(Schema.String)
-    })
-  ),
-  fields: Schema.Array(SObjectFieldSchema)
-});
-
-export type SObjectMetadata = Pick<typeof SObjectMetadataSchema.Type, 'fields'>;
+export type SObjectMetadata = Pick<typeof SObjectSchema.Type, 'fields'>;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
@@ -106,7 +62,7 @@ const SObjectMetadataRequestEventSchema = Schema.Struct({
 });
 const SObjectMetadataResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
-  payload: SObjectMetadataSchema,
+  payload: SObjectSchema,
   requestId: Schema.optional(RequestIdSchema)
 });
 const SObjectsResponseEventSchema = Schema.Struct({
