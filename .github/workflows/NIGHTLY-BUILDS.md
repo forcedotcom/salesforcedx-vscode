@@ -21,62 +21,11 @@ gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx
 gh workflow run nightly.yml -f dry-run=true
 ```
 
-## Building Release Versions for Testing
+## Release Workflows
 
-Mon 8 AM UTC: `build-release.yml` auto-detects latest nightly published to marketplace as prerelease via `marketplace-prerelease-*` tracking tags (created Wed 7 AM UTC post-E2E), builds stable VSIXs from tested candidate. Supports emergency pre-releases via 2-step workflow.
-
-Manual trigger:
-
-```bash
-# Auto-detect → stable release
-gh workflow run build-release.yml
-
-# Specify prerelease tag
-gh workflow run build-release.yml \
-  -f prereleaseTag="v67.11.1-nightly.develop.20260812" \
-  -f releaseVersion="67.12.0"
-
-# Step 1: Build emergency pre-release VSIXs (no version bump)
-gh workflow run build-release.yml \
-  -f publishAsPrerelease=true \
-  -f startFromRef="hotfix/security-fix"
-
-# Step 2: Publish to marketplace as pre-release
-gh workflow run promote-nightly-to-prerelease.yml \
-  -f releaseTag="v67.13.7-nightly.develop.20260820"
-
-# Stable from arbitrary ref (version bump)
-gh workflow run build-release.yml \
-  -f startFromRef="abc123def456" \
-  -f releaseVersion="67.12.1"
-```
-
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect latest nightly published to marketplace as prerelease
-
-**Stable release mode:**
-- Queries `marketplace-prerelease-*` tracking tags (newest first)
-- Extracts version, finds matching nightly tag
-- Creates isolated `release-staging/v{version}` branch
-- Commits version changes, builds release
-- Outputs GitHub pre-release w/ VSIX + SHA256
-- Delete isolated branch post-publish:
-  ```bash
-  git push origin --delete release-staging/v{version}
-  ```
-
-**Emergency pre-release mode — 2-step workflow:**
-
-1. **build-release.yml with `publishAsPrerelease=true`**
-   - Tags source ref directly (no version bump)
-   - Creates "Emergency Pre-release" GitHub release w/ VSIX + SHA256
-   - Skips isolated branch
-
-2. **promote-nightly-to-prerelease.yml with `releaseTag=...`**
-   - Publishes Step 1's VSIXs to marketplace (Microsoft + Open VSX) as pre-release
-   - Uses nightly tag format: `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
-   - Timeline: ~5 min total (build + promote)
-
-Both modes: test VSIX, then trigger [publishVSCode.yml](./publishVSCode.yml). Do NOT cherry-pick version-bump commits to develop.
+For building stable releases, emergency pre-releases, and patch releases, see:
+- **[contributing/publishing.md](../../contributing/publishing.md)** - Complete release workflow documentation
+- **[docs/release-testing-guide.md](../../docs/release-testing-guide.md)** - Testing and publishing guide
 
 ## Extension Discovery
 
@@ -115,33 +64,7 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ## Emergency Patch Releases
 
-For critical hotfixes, use patch workflows instead of normal cycle.
-
-### Patch workflows
-
-**Create patch branch:** [`create-patch-release-branch.yml`](./create-patch-release-branch.yml)
-- Creates `release-base/vX.Y.x` from existing release tag
-- Auto-copies + verifies version helper scripts from develop (old tags may lack them)
-- `gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0"`
-
-**Build patch:** [`build-patch-release.yml`](./build-patch-release.yml)
-- Filters for stable tags only (excludes nightly/prerelease before sorting)
-- Auto-increments patch version (v67.12.0 → v67.12.1)
-- Tags with `--target "$TAG"` to ensure release points to exact commit
-- Creates GitHub pre-release with VSIX + cherry-pick instructions (filters out version-bump commits)
-- `gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x"`
-
-### Patch release flow
-
-1. Run `create-patch-release-branch.yml` with base version (e.g., 67.12.0)
-2. Push fixes to `release-base/v67.12.x`
-3. Run `build-patch-release.yml` to tag and build
-4. Test VSIX from pre-release
-5. Trigger `publishVSCode.yml` to publish
-6. Cherry-pick fixes to develop
-7. Delete release-base branch
-
-See [publishing.md](../../contributing/publishing.md#emergency-patch-releases) for details.
+For critical hotfixes, see [contributing/publishing.md](../../contributing/publishing.md#emergency-patch-releases) for complete patch release workflow.
 
 ## Implementation Details
 
