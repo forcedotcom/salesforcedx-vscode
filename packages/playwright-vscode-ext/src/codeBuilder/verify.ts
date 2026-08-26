@@ -24,8 +24,18 @@ import { join } from 'node:path';
 import { computeExtensionDigest } from './digest';
 import { defaultRunner, type CommandRunner } from './runner';
 
-/** Where the CB image loads extension overrides from. */
+/** Where the CB image stores extension override sources (swap writes here). */
 export const OVERRIDES_DIR = '/base/extension-overrides';
+
+/*
+ * The runtime extensions dir code-server actually LOADS from. start.sh re-links each override here
+ * on restart. Verify checks this too: swap writing correct bytes into OVERRIDES_DIR is necessary but
+ * not sufficient — if the restart-time re-link fails (the equal/lower-version case swap's symlink
+ * wipe exists to enable), the override dir is pristine yet the host loads stale/no code. Asserting
+ * the runtime entry exists closes that loop, so the gate proves the LOADED extension, not just the
+ * on-disk source. Kept in sync with swap's wipe target.
+ */
+export const RUNTIME_EXT_DIR = '/home/codebuilder/.local/share/code-server/extensions';
 
 export type VerifyOptions = {
   /** Command runner (injectable for tests). Defaults to real docker via execFileSync. */
@@ -50,29 +60,29 @@ export type VerifyResult = {
 
 /*
  * An extension id is "<publisher>.<name>": publisher and name are npm-style, so only letters,
- * digits, dots, underscores and dashes are legitimate. `id` is interpolated into the `bash -lc`
+ * digits, dots, underscores and dashes are legitimate. `id` is interpolated into the `bash -c`
  * glob below, so reject anything outside that charset up front — a stray shell/glob metacharacter
  * (`;`, `$`, backtick, `*`, `?`, `[`, whitespace) would otherwise be interpreted by the shell or
- * silently widen the match. Fail loud rather than build an unsafe command.
+ * silently widen the match. Fail loud rather than build an unsafe command. Also require an
+ * alphanumeric (reject dot-only `.`/`..`), matching swap's guard so the two agree on a legal id.
  */
 const VALID_ID = /^[A-Za-z0-9._-]+$/;
 const assertSafeId = (id: string): void => {
-  if (!VALID_ID.test(id)) {
-    throw new Error(`unsafe extension id ${JSON.stringify(id)}: expected only [A-Za-z0-9._-]`);
+  if (!VALID_ID.test(id) || !/[A-Za-z0-9]/.test(id)) {
+    throw new Error(`unsafe extension id ${JSON.stringify(id)}: expected only [A-Za-z0-9._-] with an alphanumeric`);
   }
 };
 
 /*
- * List the override dirs for an id. The dir is "<id>-<version>"; versions start with a digit, so
+ * List entries matching "<baseDir>/<id>-<version>" for an id. Versions start with a digit, so
  * anchoring on "-[0-9]" stops a shorter id (…-org) prefix-matching a longer sibling (…-org-browser).
- * More or fewer than one match is itself a failure (a leftover dir is the false-green we guard).
- * `id` is charset-validated (assertSafeId) before it reaches the shell string.
+ * `id` is charset-validated (assertSafeId) before it reaches the shell string. Used for BOTH the
+ * override source dir and the runtime symlink dir. `bash -c`, NOT `-lc`: a login shell sources
+ * profiles that may print a banner to stdout, which would be parsed as an extra match.
  */
-const listOverrideDirs = (runner: CommandRunner, container: string, id: string): string[] => {
+const listExtensionEntries = (runner: CommandRunner, container: string, baseDir: string, id: string): string[] => {
   assertSafeId(id);
-  // `bash -c`, NOT `-lc`: a login shell sources profiles that may print a banner/MOTD to stdout,
-  // which would be parsed as an extra "dir" and turn 1 real match into a spurious "found 2".
-  return runner('docker', ['exec', container, 'bash', '-c', `ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true`])
+  return runner('docker', ['exec', container, 'bash', '-c', `ls -d ${baseDir}/${id}-[0-9]* 2>/dev/null || true`])
     .split('\n')
     .map(l => l.trim())
     .filter(Boolean);
@@ -119,7 +129,7 @@ export const verifyExtensions = (container: string, manifest: Manifest, options:
       const { id, version } = entry;
       let dirs: string[];
       try {
-        dirs = listOverrideDirs(runner, container, id);
+        dirs = listExtensionEntries(runner, container, OVERRIDES_DIR, id);
       } catch (err) {
         // Unsafe id (assertSafeId) or a listing failure — a structured per-entry failure, consistent
         // with the other modes, rather than an exception that skips the remaining entries.
@@ -181,6 +191,31 @@ export const verifyExtensions = (container: string, manifest: Manifest, options:
             'content digest mismatch — the swap did not take (stale/wrong bytes installed). ' +
             `expected pkgJson=${entry.pkgJsonDigest.slice(0, 12)} bundle=${entry.bundleDigest?.slice(0, 12) ?? 'null'}; ` +
             `got pkgJson=${actual.pkgJsonDigest.slice(0, 12)} bundle=${actual.bundleDigest?.slice(0, 12) ?? 'null'}`
+        });
+        continue;
+      }
+
+      /*
+       * Correct bytes are in the override SOURCE dir — but the host loads from the RUNTIME dir, which
+       * start.sh re-links on restart only when the override is strictly-newer than the wiped symlink.
+       * Assert the runtime entry for this exact id-version exists, so a re-link failure (or a missing
+       * restart) fails loud instead of passing green on a container serving stale/no code.
+       */
+      let runtime: string[];
+      try {
+        runtime = listExtensionEntries(runner, container, RUNTIME_EXT_DIR, id);
+      } catch (err) {
+        entries.push({ id, version, ok: false, reason: (err as Error).message });
+        continue;
+      }
+      const runtimeMatch = runtime.some(p => p.slice(p.lastIndexOf('/') + 1) === `${id}-${version}`);
+      if (!runtimeMatch) {
+        const found = runtime.length > 0 ? ` (found: ${runtime.join(' ')})` : '';
+        entries.push({
+          id,
+          version,
+          ok: false,
+          reason: `override bytes are correct but no runtime entry ${id}-${version} under ${RUNTIME_EXT_DIR} — the restart re-link did not take (or verify ran before restart), so the host is not loading this version${found}`
         });
         continue;
       }

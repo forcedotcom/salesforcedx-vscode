@@ -202,9 +202,9 @@ export {
   UnresolvableEntrypointError
 } from './codeBuilder/digest';
 export type { ExtensionDigest } from './codeBuilder/digest';
-export { ManifestSchema, ManifestEntrySchema, makeManifest, readManifest, writeManifest } from './codeBuilder/manifest';
+export { makeManifest, readManifest, writeManifest } from './codeBuilder/manifest';
 export type { Manifest, ManifestEntry } from './codeBuilder/manifest';
-export { verifyExtensions, assertVerified, OVERRIDES_DIR } from './codeBuilder/verify';
+export { verifyExtensions, assertVerified, OVERRIDES_DIR, RUNTIME_EXT_DIR } from './codeBuilder/verify';
 export type { VerifyOptions, VerifyResult, VerifyEntryResult } from './codeBuilder/verify';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';

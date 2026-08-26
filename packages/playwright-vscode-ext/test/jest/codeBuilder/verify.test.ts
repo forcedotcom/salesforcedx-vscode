@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { computeExtensionDigest } from '../../../src/codeBuilder/digest';
 import { makeManifest } from '../../../src/codeBuilder/manifest';
 import type { CommandRunner } from '../../../src/codeBuilder/runner';
-import { OVERRIDES_DIR, verifyExtensions } from '../../../src/codeBuilder/verify';
+import { OVERRIDES_DIR, RUNTIME_EXT_DIR, verifyExtensions } from '../../../src/codeBuilder/verify';
 
 /** Make a real extension tree on disk (the "installed" bytes the fake `docker cp` will hand back). */
 const makeExtensionTree = (pkg: Record<string, unknown>, bundle?: { path: string; content: string }): string => {
@@ -28,15 +28,27 @@ const makeExtensionTree = (pkg: Record<string, unknown>, bundle?: { path: string
  * <c>:<src>/. <dest>` copies the mapped source tree into <dest> so computeExtensionDigest has real
  * bytes. Records every argv for assertions.
  */
+const basename = (p: string): string => p.slice(p.lastIndexOf('/') + 1);
+
 const makeFakeRunner = (opts: {
-  dirsById: Record<string, string[]>; // id → container override dir paths the ls returns
+  dirsById: Record<string, string[]>; // id → container OVERRIDE dir paths the ls returns
   treeByContainerDir: Record<string, string>; // container dir path → host source tree to copy out
+  // id → RUNTIME symlink entries the ls returns. Omit for the healthy default: the same basenames
+  // as the override dirs, rebased under RUNTIME_EXT_DIR (i.e. start.sh re-linked them successfully).
+  runtimeById?: Record<string, string[]>;
 }): { runner: CommandRunner; calls: string[][] } => {
   const calls: string[][] = [];
   const runner: CommandRunner = (file, args) => {
     calls.push([file, ...args]);
     const script = args.at(-1);
     if (args[0] === 'exec' && typeof script === 'string' && script.includes('ls -d')) {
+      const runtimeId = Object.keys(opts.dirsById).find(k => script.includes(`${RUNTIME_EXT_DIR}/${k}-[0-9]`));
+      if (runtimeId) {
+        const explicit = opts.runtimeById?.[runtimeId];
+        if (explicit) return explicit.join('\n');
+        // healthy default: relink succeeded → runtime entry per override dir
+        return opts.dirsById[runtimeId].map(d => `${RUNTIME_EXT_DIR}/${basename(d)}`).join('\n');
+      }
       const id = Object.keys(opts.dirsById).find(k => script.includes(`${OVERRIDES_DIR}/${k}-[0-9]`));
       return id ? opts.dirsById[id].join('\n') : '';
     }
@@ -135,6 +147,45 @@ describe('verifyExtensions', () => {
     const result = verifyExtensions(CONTAINER, manifest, { runner });
     expect(result.ok).toBe(false);
     expect(result.entries[0].reason).toMatch(/digest mismatch/);
+  });
+
+  it('fails when the override bytes are correct but the runtime relink is missing (restart did not take)', () => {
+    const tree = track(
+      makeExtensionTree(
+        { name: 'salesforcedx-vscode-core', version: '67.4.0', main: 'm.js' },
+        { path: 'm.js', content: 'v1' }
+      )
+    );
+    const manifest = makeManifest([{ id: CORE_ID, version: '67.4.0', ...computeExtensionDigest(tree) }]);
+    // Override dir is pristine + digest matches, but start.sh never re-linked the runtime symlink.
+    const { runner } = makeFakeRunner({
+      dirsById: { [CORE_ID]: [CORE_DIR] },
+      treeByContainerDir: { [CORE_DIR]: tree },
+      runtimeById: { [CORE_ID]: [] }
+    });
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(false);
+    expect(result.entries[0].reason).toMatch(/no runtime entry .* the restart re-link did not take/);
+  });
+
+  it('passes when both the override bytes AND the runtime relink are present', () => {
+    const tree = track(
+      makeExtensionTree(
+        { name: 'salesforcedx-vscode-core', version: '67.4.0', main: 'm.js' },
+        { path: 'm.js', content: 'v1' }
+      )
+    );
+    const manifest = makeManifest([{ id: CORE_ID, version: '67.4.0', ...computeExtensionDigest(tree) }]);
+    const { runner, calls } = makeFakeRunner({
+      dirsById: { [CORE_ID]: [CORE_DIR] },
+      treeByContainerDir: { [CORE_DIR]: tree }
+    });
+
+    const result = verifyExtensions(CONTAINER, manifest, { runner });
+    expect(result.ok).toBe(true);
+    // It actually queried the runtime dir (not just the override dir).
+    expect(calls.some(c => (c.at(-1) as string)?.includes(RUNTIME_EXT_DIR))).toBe(true);
   });
 
   it('fails when there is no override dir (swap did not install)', () => {

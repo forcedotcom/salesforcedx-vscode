@@ -20,8 +20,8 @@ import * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-/** One manifest entry: the extension id, its version, and its composite content digest. */
-export const ManifestEntrySchema = Schema.Struct({
+/** One manifest entry: the extension id, its version, and its composite content digest. (Internal — the public surface is the Manifest type + the read/write/make functions.) */
+const ManifestEntrySchema = Schema.Struct({
   /** Full publisher-qualified id, e.g. "salesforce.salesforcedx-vscode-core". */
   id: Schema.String,
   /** The version under test, e.g. "67.4.0". */
@@ -35,7 +35,7 @@ export const ManifestEntrySchema = Schema.Struct({
 export type ManifestEntry = Schema.Schema.Type<typeof ManifestEntrySchema>;
 
 /** The full manifest: every extension swapped in, keyed for lookup by verify. */
-export const ManifestSchema = Schema.Struct({
+const ManifestSchema = Schema.Struct({
   /** Schema version of the manifest file itself, so a reader can detect format drift. */
   schemaVersion: Schema.Literal(1),
   entries: Schema.Array(ManifestEntrySchema)
