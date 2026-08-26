@@ -315,7 +315,8 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getSfProject: () =>
         Effect.succeed({
           getPackageDirectories: () => [{ fullPath: '/workspace/force-app' }]
-        })
+        }),
+      getProjectNamespace: () => Effect.succeed(null)
     } as unknown as InstanceType<typeof ProjectService>),
     Layer.succeed(TransmogrifierService, {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)

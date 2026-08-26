@@ -10,7 +10,7 @@ import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
-import { emptyPresence, typeCacheKey } from './orgCatalogKeys';
+import { emptyPresence, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -62,10 +62,14 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
               : metadataDescribeService
                   .listMetadata(xmlName, undefined, orgId)
                   .pipe(Effect.map(components => ({ components, folders: [] })));
-        const [orgListing, workspaceUris] = yield* Effect.all(
+        const [orgListing, workspaceInventory] = yield* Effect.all(
           [
             listOrgComponents,
-            workspace.scanWorkspace(xmlName).pipe(Effect.catchAll(() => Effect.succeed(new Map<string, URI>())))
+            workspace
+              .scanWorkspaceInventory(xmlName)
+              .pipe(
+                Effect.catchAll(() => Effect.succeed({ namespace: null, components: new Map<string, URI>() } as const))
+              )
           ],
           { concurrency: 'unbounded' }
         );
@@ -78,7 +82,8 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
             orgId,
             xmlName,
             orgComponents: orgListing.components,
-            workspaceUris,
+            workspaceUris: workspaceInventory.components,
+            workspaceNamespace: workspaceInventory.namespace,
             observedAt
           }),
           folders: new Map(orgListing.folders.map(folder => [folder.fullName, folder]))
@@ -93,8 +98,12 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const cachedEntry = (yield* state.getInventory(orgId, reference.xmlName))?.components.get(reference.fullName);
-      const entry = cachedEntry ?? (yield* loadType(orgId, reference.xmlName)).components.get(reference.fullName);
+      const cachedEntry = findInventoryComponent(
+        (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
+        reference
+      );
+      const entry =
+        cachedEntry ?? findInventoryComponent((yield* loadType(orgId, reference.xmlName)).components, reference);
       return entry
         ? ({
             inOrg: entry.inOrg,
@@ -109,9 +118,12 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       reference: OrgMetadataComponentReference
     ) {
       const cached = yield* state.getInventory(orgId, reference.xmlName);
-      const inventory = cached?.components.has(reference.fullName) ? cached : yield* loadType(orgId, reference.xmlName);
+      const inventory =
+        cached && findInventoryComponent(cached.components, reference)
+          ? cached
+          : yield* loadType(orgId, reference.xmlName);
       return (
-        inventory.components.get(reference.fullName) ??
+        findInventoryComponent(inventory.components, reference) ??
         projectChildren(
           entryUri,
           orgId,

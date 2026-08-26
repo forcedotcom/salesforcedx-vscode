@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { TransmogrifierService } from '../core/transmogrifierService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
+import { findInventoryComponent } from './orgCatalogKeys';
 import { projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -126,9 +127,12 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
           `${objectEntry.reference.fullName}.${field.name}`,
           `${objectEntry.reference.fullName}.${unqualifiedName}`
         ];
-        const fullName = candidates.find(candidate => fieldInventory.components.has(candidate)) ?? candidates[0];
+        const fullName =
+          candidates.find(candidate =>
+            findInventoryComponent(fieldInventory.components, { xmlName: 'CustomField', fullName: candidate })
+          ) ?? candidates[0];
         if (inventoriedFullNames.has(fullName)) return [];
-        const existing = fieldInventory.components.get(fullName);
+        const existing = findInventoryComponent(fieldInventory.components, { xmlName: 'CustomField', fullName });
         return [
           {
             ...(existing ?? {
@@ -182,7 +186,9 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
           .toSorted((left, right) => left.name.localeCompare(right.name));
       }
       const inventory = yield* inventories.loadType(orgId, reference.xmlName);
-      const component = reference.fullName ? inventory.components.get(reference.fullName) : undefined;
+      const component = reference.fullName
+        ? findInventoryComponent(inventory.components, { xmlName: reference.xmlName, fullName: reference.fullName })
+        : undefined;
       if (component && reference.xmlName === 'CustomObject') {
         return yield* getCustomFieldChildren(orgId, component);
       }

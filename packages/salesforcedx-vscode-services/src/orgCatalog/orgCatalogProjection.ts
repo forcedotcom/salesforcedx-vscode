@@ -7,7 +7,9 @@
 
 import type { ListedMetadataComponent, TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type { ArtifactNamespace } from '../core/artifactIdentity';
 import { URI } from 'vscode-uri';
+import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
 import { isOrgMetadataComponentReference } from './orgMetadataReference';
 
 export const mergeInventory = ({
@@ -16,6 +18,7 @@ export const mergeInventory = ({
   xmlName,
   orgComponents,
   workspaceUris,
+  workspaceNamespace = null,
   observedAt
 }: {
   readonly entryUri: (orgId: string, xmlName: string, fullName: string) => URI;
@@ -23,11 +26,12 @@ export const mergeInventory = ({
   readonly xmlName: string;
   readonly orgComponents: readonly ListedMetadataComponent[];
   readonly workspaceUris: ReadonlyMap<string, URI>;
+  readonly workspaceNamespace?: ArtifactNamespace;
   readonly observedAt: string;
 }): ReadonlyMap<string, OrgMetadataCatalogEntry> => {
   const orgInventory = orgComponents.reduce(
     (entries, component) =>
-      entries.set(component.fullName, {
+      entries.set(componentIdentity({ xmlName, fullName: component.fullName }, component.namespacePrefix ?? null), {
         orgId,
         observedAt,
         provenance: 'metadata-api',
@@ -47,16 +51,20 @@ export const mergeInventory = ({
     new Map<string, OrgMetadataCatalogEntry>()
   );
   return [...workspaceUris].reduce((entries, [fullName, workspaceUri]) => {
-    const existing = entries.get(fullName);
-    return entries.set(fullName, {
+    const reference = { xmlName, fullName };
+    const key = componentIdentity(reference, workspaceNamespace);
+    const existing = entries.get(key);
+    const canonicalReference =
+      existing && isOrgMetadataComponentReference(existing.reference) ? existing.reference : reference;
+    return entries.set(key, {
       orgId,
       observedAt: existing?.observedAt ?? new Date().toISOString(),
       provenance: existing ? 'metadata-api+workspace' : 'workspace',
-      reference: { xmlName, fullName },
+      reference: canonicalReference,
       documentUri: existing?.documentUri ?? entryUri(orgId, xmlName, fullName),
       name: existing?.name ?? fullName.split('/').at(-1) ?? fullName,
       kind: 'component',
-      namespacePrefix: existing?.namespacePrefix,
+      namespacePrefix: existing?.namespacePrefix ?? workspaceNamespace ?? undefined,
       manageableState: existing?.manageableState,
       fileName: existing?.fileName,
       lastModifiedByName: existing?.lastModifiedByName,
@@ -78,7 +86,10 @@ export const projectChildren = (
 ): OrgMetadataCatalogEntry[] => {
   const prefix = parentFullName ? `${parentFullName}/` : '';
   const childNames = new Set<string>();
-  [...inventory.components.keys(), ...inventory.folders.keys()].forEach(fullName => {
+  const componentFullNames = [...inventory.components.values()].flatMap(component =>
+    isOrgMetadataComponentReference(component.reference) ? [component.reference.fullName] : []
+  );
+  [...componentFullNames, ...inventory.folders.keys()].forEach(fullName => {
     if (!fullName.startsWith(prefix)) return;
     const name = fullName.slice(prefix.length).split('/')[0];
     if (name) childNames.add(name);
@@ -86,9 +97,9 @@ export const projectChildren = (
   return [...childNames]
     .map(name => {
       const fullName = `${prefix}${name}`;
-      const component = inventory.components.get(fullName);
+      const component = findInventoryComponent(inventory.components, { xmlName, fullName });
       const folder = inventory.folders.get(fullName);
-      const hasDescendants = [...inventory.components.keys(), ...inventory.folders.keys()].some(candidate =>
+      const hasDescendants = [...componentFullNames, ...inventory.folders.keys()].some(candidate =>
         candidate.startsWith(`${fullName}/`)
       );
       if (!folder && !hasDescendants && component) return { ...component, name };

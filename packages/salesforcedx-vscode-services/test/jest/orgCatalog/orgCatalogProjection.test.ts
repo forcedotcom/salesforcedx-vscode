@@ -7,6 +7,7 @@
 
 import { URI } from 'vscode-uri';
 import type { TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
+import { componentIdentity } from '../../../src/orgCatalog/orgCatalogKeys';
 import { mergeInventory, projectChildren } from '../../../src/orgCatalog/orgCatalogProjection';
 
 const entryUri = (orgId: string, xmlName: string, fullName: string): URI =>
@@ -28,23 +29,69 @@ describe('Org Catalog inventory projection', () => {
       ])
     });
 
-    expect(inventory.get('Both')).toMatchObject({
+    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'Both' }))).toMatchObject({
       provenance: 'metadata-api+workspace',
       inOrg: true,
       inWorkspace: true,
       workspaceUri,
       remoteLastModifiedDate: '2026-08-03T11:00:00.000Z'
     });
-    expect(inventory.get('RemoteOnly')).toMatchObject({
+    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteOnly' }))).toMatchObject({
       provenance: 'metadata-api',
       inOrg: true,
       inWorkspace: false
     });
-    expect(inventory.get('LocalOnly')).toMatchObject({
+    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'LocalOnly' }))).toMatchObject({
       provenance: 'workspace',
       inOrg: false,
       inWorkspace: true,
       workspaceUri: localOnlyUri
+    });
+  });
+
+  it('keeps a namespaced remote component separate from an ineligible unnamespaced workspace file', () => {
+    const workspaceUri = URI.file('/workspace/classes/MyClass.cls');
+    const inventory = mergeInventory({
+      entryUri,
+      orgId: 'org-one',
+      xmlName: 'ApexClass',
+      observedAt: '2026-08-03T12:00:00.000Z',
+      orgComponents: [{ fullName: 'MyClass', namespacePrefix: 'InstalledPackage' }],
+      workspaceUris: new Map([['MyClass', workspaceUri]]),
+      workspaceNamespace: null
+    });
+
+    expect(inventory.size).toBe(2);
+    expect(
+      inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, 'InstalledPackage'))
+    ).toMatchObject({ namespacePrefix: 'InstalledPackage', inOrg: true, inWorkspace: false });
+    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, null))).toMatchObject({
+      inOrg: false,
+      inWorkspace: true,
+      workspaceUri
+    });
+  });
+
+  it('merges matching project and remote namespaces while preserving provider casing', () => {
+    const workspaceUri = URI.file('/workspace/classes/MyClass.cls');
+    const inventory = mergeInventory({
+      entryUri,
+      orgId: 'org-one',
+      xmlName: 'ApexClass',
+      observedAt: '2026-08-03T12:00:00.000Z',
+      orgComponents: [{ fullName: 'MyClass', namespacePrefix: 'MyPackage' }],
+      workspaceUris: new Map([['myclass', workspaceUri]]),
+      workspaceNamespace: 'mypackage'
+    });
+
+    expect(inventory.size).toBe(1);
+    expect(inventory.values().next().value).toMatchObject({
+      namespacePrefix: 'MyPackage',
+      reference: { xmlName: 'ApexClass', fullName: 'MyClass' },
+      provenance: 'metadata-api+workspace',
+      inOrg: true,
+      inWorkspace: true,
+      workspaceUri
     });
   });
 
