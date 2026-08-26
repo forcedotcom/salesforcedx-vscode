@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { shouldUpdateVersion } = require('./release-package-selection');
 
 const releaseVersion = process.argv[2];
 
@@ -47,13 +48,7 @@ packageFiles.forEach(pkgPath => {
   }
 
   // Check if package should be versioned
-  // TODO: Extract this logic to shared module (scripts/lib/package-utils.js)
-  // This is duplicated from create-release-branch.js shouldUpdateVersion()
-  const hasVscodePublish = pkg.scripts?.['vscode:publish'];
-  const hasPublishConfig = pkg.publishConfig;
-  const versionedIndependently = pkg.versionedIndependently;
-
-  if (!versionedIndependently && (hasVscodePublish || hasPublishConfig)) {
+  if (shouldUpdateVersion(pkg)) {
     console.log(`  Updating ${path.dirname(pkgPath)}`);
     pkg.version = releaseVersion;
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
