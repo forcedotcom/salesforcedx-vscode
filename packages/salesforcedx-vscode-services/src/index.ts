@@ -176,6 +176,26 @@ type PublicSdkLayerFor = (
 export type { AliasService } from './core/alias';
 export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
+  ApexTypeArtifactIdentitySchema,
+  ArtifactIdentitySchema,
+  ArtifactNamespaceSchema,
+  ArtifactTargetKindSchema,
+  MetadataComponentArtifactIdentitySchema,
+  SObjectArtifactIdentitySchema,
+  artifactIdentitiesEqual,
+  artifactIdentityKey,
+  artifactNamespacesEqual,
+  normalizeArtifactIdentity,
+  normalizeArtifactIdentityPart,
+  normalizeArtifactNamespace,
+  type ApexTypeArtifactIdentity,
+  type ArtifactIdentity,
+  type ArtifactNamespace,
+  type ArtifactTargetKind,
+  type MetadataComponentArtifactIdentity,
+  type SObjectArtifactIdentity
+} from './core/artifactIdentity';
+export {
   TemplateService,
   type ApexClassCreateOptions,
   type ApexTriggerCreateOptions,
