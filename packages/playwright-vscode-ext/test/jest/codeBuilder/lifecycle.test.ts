@@ -53,9 +53,10 @@ describe('lifecycle', () => {
       name: 'cb',
       imageRef: 'img:latest',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123,
-      bootEnv: BOOT_ENV
+      publishedPort: 8123
     });
+    // The handle must NOT carry the access token (secret-leak guard).
+    expect(handle).not.toHaveProperty('bootEnv');
   });
 
   it('run throws (with docker logs) AND tears down the container when readiness times out', async () => {
@@ -86,8 +87,7 @@ describe('lifecycle', () => {
       name: 'cb',
       imageRef: 'img',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123,
-      bootEnv: BOOT_ENV
+      publishedPort: 8123
     };
     const returned = await restart(handle, { probe: alwaysReady, intervalMs: 1 }, { runner });
     expect(calls.find(c => c[1] === 'restart')).toEqual(['docker', 'restart', 'cb']);
@@ -100,8 +100,7 @@ describe('lifecycle', () => {
       name: 'cb',
       imageRef: 'img',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123,
-      bootEnv: BOOT_ENV
+      publishedPort: 8123
     };
     teardown(handle, { runner });
     expect(calls[0]).toEqual(['docker', 'rm', '-f', 'cb']);

@@ -13,8 +13,7 @@ const HANDLE: ContainerHandle = {
   name: 'cb',
   imageRef: 'img',
   publishedUrl: 'http://localhost:8123',
-  publishedPort: 8123,
-  bootEnv: { accessToken: 'T', instanceUrl: 'https://x' }
+  publishedPort: 8123
 };
 
 const recorder = (): { runner: CommandRunner; calls: string[][] } => {

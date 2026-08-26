@@ -21,7 +21,13 @@ import { defaultRunner, type CommandRunner } from './runner';
 /** The code-server port inside the CB image (served with --auth none); published to a host port. */
 export const CONTAINER_PORT = 58_080;
 
-/** A running container + the facts downstream steps need. Returned by run/restart, accepted by every verb. */
+/*
+ * A running container + the facts downstream steps need. Returned by run/restart, accepted by every
+ * verb. Deliberately does NOT carry bootEnv: the access token is an INPUT to `run` (baked into the
+ * container's env by `docker run`), not a downstream fact — keeping it here would (a) leak a live
+ * secret into any object a consumer logs, and (b) falsely imply mutating it before `restart` re-auths
+ * (it can't — `docker restart` reuses the original container env).
+ */
 export type ContainerHandle = {
   name: string;
   imageRef: string;
@@ -29,8 +35,6 @@ export type ContainerHandle = {
   publishedUrl: string;
   /** Host port published to the container's code-server port. */
   publishedPort: number;
-  /** The org boot env the container was started with (re-applied on restart). */
-  bootEnv: BootEnv;
 };
 
 /** A host→container bind mount (e.g. the fixture project). */
@@ -67,13 +71,15 @@ export type LifecycleOptions = { runner?: CommandRunner };
  *  - a per-request AbortSignal.timeout — otherwise a half-open socket (container accepted the TCP
  *    connection but never responds) hangs the fetch forever and the overall readiness budget is a
  *    lie (the loop can only check the deadline BETWEEN probes, not mid-probe).
- *  - res.ok — a booting code-server can bind the port and answer 404/500/502 before the workbench is
- *    actually serving; only a 2xx means ready, else we'd hand back an unhealthy handle.
+ *  - `status < 400` (NOT res.ok) — code-server with `--auth none` answers `/` with a 302 redirect
+ *    (e.g. to `?folder=…`); res.ok (2xx-only) would reject that healthy response and burn the whole
+ *    budget. This matches #7718's proven `curl -fsS` (no -L), which treats 3xx as success and only
+ *    fails on 4xx/5xx. A booting server that answers 4xx/5xx is correctly still "not ready".
  */
 const defaultProbe: ReadinessProbe = async url => {
   try {
-    const res = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) });
-    return res.ok;
+    const res = await fetch(url, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(5000) });
+    return res.status < 400;
   } catch {
     return false;
   }
@@ -134,8 +140,7 @@ export const run = async (spec: RunSpec, options: LifecycleOptions = {}): Promis
     name: spec.name,
     imageRef: spec.imageRef,
     publishedUrl,
-    publishedPort: spec.publishedPort,
-    bootEnv: spec.bootEnv
+    publishedPort: spec.publishedPort
   };
   try {
     await waitForWorkbench(runner, handle, spec.readiness);

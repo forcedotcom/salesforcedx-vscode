@@ -68,11 +68,12 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
   }
 
   // The dedicated command returns the REAL token; `org display` redacts it on recent CLI versions.
+  // `sf org auth show-access-token --json` returns `{ result: { accessToken } }` (an object — the
+  // #7718 workflow reads `.result.accessToken`); guard against a null result defensively.
   const tokenResult = runSfJson(['org', 'auth', 'show-access-token', '-o', orgAlias, '--json']) as {
-    result?: { accessToken?: string } | string | null;
+    result?: { accessToken?: string } | null;
   };
-  const accessToken =
-    typeof tokenResult.result === 'object' && tokenResult.result !== null ? tokenResult.result.accessToken : undefined;
+  const accessToken = tokenResult.result?.accessToken;
   if (!accessToken) {
     throw new Error(`could not resolve accessToken for org "${orgAlias}" from \`sf org auth show-access-token\``);
   }
