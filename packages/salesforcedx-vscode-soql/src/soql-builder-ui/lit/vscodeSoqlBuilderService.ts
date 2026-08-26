@@ -6,10 +6,14 @@
  */
 
 import {
-  SoqlBuilderServiceError,
+  SoqlBuilderMessageChannelError,
+  SoqlBuilderQueryError,
+  SoqlBuilderStateSchema,
+  createInitialSoqlBuilderQuery,
   createInitialSoqlBuilderState,
   decodeSoqlBuilderMetadata,
   type SoqlBuilderAction,
+  type SoqlBuilderQuery,
   type SoqlBuilderServiceError as ServiceError,
   type SoqlBuilderState
 } from '@salesforce/soql-builder-ui/domain';
@@ -33,119 +37,62 @@ import {
   MessageType,
   type HostToUiSoqlEditorEvent
 } from '../modules/querybuilder/services/message/soqlEditorEvent';
+import {
+  createSoqlBuilderTelemetry,
+  parseSoqlBuilderQuery,
+  serializeSoqlBuilderQuery
+} from './soqlBuilderModelAdapter';
 
-type ServiceOperation = ServiceError['operation'];
-
-type DeferredSoqlBuilderHostEvent = Extract<
-  HostToUiSoqlEditorEvent,
-  { readonly type: typeof MessageType.RUN_SOQL_QUERY_DONE | typeof MessageType.GET_QUERY_PLAN_DONE }
->;
-
-type SoqlBuilderHostToUiEvent = Exclude<HostToUiSoqlEditorEvent, DeferredSoqlBuilderHostEvent>;
-
-const isSoqlBuilderHostToUiEvent = (
-  event: HostToUiSoqlEditorEvent
-): event is SoqlBuilderHostToUiEvent =>
-  event.type !== MessageType.RUN_SOQL_QUERY_DONE && event.type !== MessageType.GET_QUERY_PLAN_DONE;
-
-const toServiceError = (operation: ServiceOperation, error: unknown): ServiceError =>
-  new SoqlBuilderServiceError({
-    details: String(error),
-    operation
-  });
-
-const tryServiceOperation = (operation: ServiceOperation, evaluate: () => void) =>
+const trySendMessage = <A>(evaluate: () => A) =>
   Effect.try({
     try: evaluate,
-    catch: error => toServiceError(operation, error)
+    catch: error => new SoqlBuilderMessageChannelError({ details: String(error) })
   });
 
-const toObjectMetadata = (names: unknown): unknown =>
-  Array.isArray(names) ? names.map(name => ({ label: name, name, queryable: true })) : names;
-
-const toFieldMetadata = (metadata: unknown): unknown => {
-  if (typeof metadata !== 'object' || metadata === null || !('fields' in metadata)) return metadata;
-  if (!Array.isArray(metadata.fields)) return metadata.fields;
-
-  return metadata.fields.map(field => {
-    if (typeof field !== 'object' || field === null) return field;
-
-    const name = 'name' in field ? field.name : undefined;
-    return {
-      filterable: 'filterable' in field ? field.filterable : false,
-      groupable: 'groupable' in field ? field.groupable : false,
-      label: 'label' in field ? field.label : name,
-      name,
-      sortable: 'sortable' in field ? field.sortable : false,
-      type: 'type' in field ? field.type : undefined
-    };
+const tryQueryOperation = <A>(evaluate: () => A) =>
+  Effect.try({
+    try: evaluate,
+    catch: error => new SoqlBuilderQueryError({ details: String(error) })
   });
-};
 
-const validateMetadata = (metadata: unknown) =>
-  decodeSoqlBuilderMetadata(metadata).pipe(Effect.mapError(error => toServiceError('subscribe', error)));
+const toObjectMetadata = (names: readonly string[]) =>
+  names.map(name => ({ label: name, name, queryable: true }));
 
-const SavedStateSchema = Schema.Struct({
-  errorMessage: Schema.optional(Schema.String),
-  hasNoDefaultOrg: Schema.Boolean,
-  isFieldsLoading: Schema.Boolean,
-  isObjectsLoading: Schema.Boolean,
-  metadata: Schema.Unknown,
-  query: Schema.Struct({
-    fields: Schema.Array(Schema.NonEmptyTrimmedString),
-    originalSoqlStatement: Schema.String,
-    sObject: Schema.String
-  })
+const validateMetadata = (metadata: unknown) => decodeSoqlBuilderMetadata(metadata);
+
+const parseExternalQuery = (statement: string) => tryQueryOperation(() => parseSoqlBuilderQuery(statement));
+
+const serializeQuery = (query: SoqlBuilderQuery) => tryQueryOperation(() => serializeSoqlBuilderQuery(query));
+
+const LegacySavedStateSchema = Schema.Struct({
+  originalSoqlStatement: Schema.String
 });
 
 const decodeSavedState = (input: unknown) =>
-  Schema.decodeUnknown(SavedStateSchema)(input).pipe(
-    Effect.flatMap(saved =>
-      validateMetadata(saved.metadata).pipe(Effect.map(metadata => ({ ...saved, metadata })))
-    )
+  Schema.decodeUnknown(SoqlBuilderStateSchema)(input).pipe(
+    Effect.orElse(() =>
+      Schema.decodeUnknown(LegacySavedStateSchema)(input).pipe(
+        Effect.flatMap(saved => parseExternalQuery(saved.originalSoqlStatement)),
+        Effect.map(query => ({ ...createInitialSoqlBuilderState(), query }))
+      )
+    ),
+    Effect.mapError(error => new SoqlBuilderQueryError({ details: String(error) }))
   );
 
-const formatQuery = (sObject: string, fields: readonly string[]): string => {
-  if (sObject.length === 0) return '';
-  const selection = fields.length > 0 ? fields.join(', ') : 'Id';
-  return `SELECT ${selection}\n    FROM ${sObject}`;
-};
-
-const parseFoundationQuery = (statement: string): SoqlBuilderState['query'] => {
-  const match = /^\s*SELECT\s+([\s\S]+?)\s+FROM\s+([A-Za-z_][\w.]*)/iu.exec(statement);
-  if (!match) return { fields: [], originalSoqlStatement: statement, sObject: '' };
-
-  const fields = match[1]
-    .split(',')
-    .map(field => field.trim())
-    .filter(field => /^[A-Za-z_][\w.]*$/u.test(field));
-  return {
-    fields,
-    originalSoqlStatement: statement,
-    sObject: match[2]
-  };
-};
-
 const saveViewState = (messageService: IMessageService, state: SoqlBuilderState) =>
-  tryServiceOperation('dispatch', () => {
-    messageService.setState({
-      ...state,
-      metadata: {
-        fields: [...state.metadata.fields],
-        objects: [...state.metadata.objects]
-      },
-      query: { ...state.query, fields: [...state.query.fields] }
-    });
-  });
+  trySendMessage(() => messageService.setState(state));
 
 const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   const messageService = yield* MessageService;
-  const savedState = yield* decodeSavedState(messageService.getState()).pipe(Effect.orElseSucceed(createInitialSoqlBuilderState));
+  const savedState = yield* decodeSavedState(messageService.getState()).pipe(
+    Effect.orElseSucceed(createInitialSoqlBuilderState)
+  );
   const state = yield* SubscriptionRef.make(savedState);
-  const messages = yield* Queue.unbounded<SoqlBuilderHostToUiEvent>();
+  const messages = yield* Queue.unbounded<HostToUiSoqlEditorEvent>();
   const errors = yield* PubSub.unbounded<ServiceError>();
+
   const removeMessageListener = messageService.onMessage(event => {
-    if (isSoqlBuilderHostToUiEvent(event)) messages.unsafeOffer(event);
+    messages.unsafeOffer(event);
   });
   yield* Effect.addFinalizer(() =>
     Effect.sync(removeMessageListener).pipe(
@@ -155,44 +102,151 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   );
 
   const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
-    handler.pipe(
-      Effect.catchTag('SoqlBuilderServiceError', error => PubSub.publish(errors, error).pipe(Effect.asVoid))
-    );
+    handler.pipe(Effect.catchAll(error => PubSub.publish(errors, error).pipe(Effect.asVoid)));
 
-  const setQuery = (query: SoqlBuilderState['query']) =>
-    SubscriptionRef.update(state, current => ({ ...current, query }));
+  const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(() =>
+    trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST }))
+  );
 
-  const handleMessage = Match.type<SoqlBuilderHostToUiEvent>().pipe(
+  const requestMetadata = Effect.fn('VscodeSoqlBuilderService.requestMetadata')((objectName: string) =>
+    trySendMessage(() =>
+      messageService.sendMessage({
+        payload: objectName,
+        type: MessageType.SOBJECT_METADATA_REQUEST
+      })
+    )
+  );
+
+  const publishQuery = Effect.fn('VscodeSoqlBuilderService.publishQuery')(function* (
+    current: SoqlBuilderState,
+    query: SoqlBuilderQuery
+  ) {
+      const originalSoqlStatement = yield* serializeQuery(query);
+      const nextState: SoqlBuilderState = {
+        ...current,
+        errorMessage: undefined,
+        notificationsDismissed: false,
+        query: {
+          ...query,
+          originalSoqlStatement,
+          parseErrors: [],
+          unsupportedSyntax: []
+        }
+      };
+      yield* SubscriptionRef.set(state, nextState);
+      yield* trySendMessage(() =>
+        messageService.sendMessage({
+          payload: originalSoqlStatement,
+          type: MessageType.UI_SOQL_CHANGED
+        })
+      );
+      yield* saveViewState(messageService, nextState);
+      return nextState;
+    });
+
+  const modifyQuery = (update: (current: SoqlBuilderState) => SoqlBuilderQuery) =>
+    SubscriptionRef.get(state).pipe(Effect.flatMap(current => publishQuery(current, update(current))));
+
+  const handleMessage = Match.type<HostToUiSoqlEditorEvent>().pipe(
     Match.discriminatorsExhaustive('type')({
-      [MessageType.SOBJECTS_RESPONSE]: event =>
-        Effect.gen(function* () {
+      [MessageType.SOBJECTS_RESPONSE]: Effect.fn('VscodeSoqlBuilderService.handleSObjectsResponse')(
+        function* (event) {
           const current = yield* SubscriptionRef.get(state);
           const metadata = yield* validateMetadata({
-            fields: current.metadata.fields,
+            ...current.metadata,
             objects: toObjectMetadata(event.payload)
           });
           yield* SubscriptionRef.set(state, { ...current, isObjectsLoading: false, metadata });
-        }),
-      [MessageType.SOBJECT_METADATA_RESPONSE]: event =>
-        Effect.gen(function* () {
+        }
+      ),
+      [MessageType.SOBJECT_METADATA_RESPONSE]: Effect.fn(
+        'VscodeSoqlBuilderService.handleSObjectMetadataResponse'
+      )(function* (event) {
+        const current = yield* SubscriptionRef.get(state);
+        if (event.payload.name !== current.query.sObject) return;
+        const metadata = yield* validateMetadata({
+          childRelationships: event.payload.childRelationships,
+          fields: event.payload.fields,
+          objects: current.metadata.objects,
+          selectedObjectName: event.payload.name
+        });
+        yield* SubscriptionRef.set(state, { ...current, isFieldsLoading: false, metadata });
+      }),
+      [MessageType.TEXT_SOQL_CHANGED]: Effect.fn('VscodeSoqlBuilderService.handleTextSoqlChanged')(
+        function* (event) {
           const current = yield* SubscriptionRef.get(state);
-          const metadata = yield* validateMetadata({
-            fields: toFieldMetadata(event.payload),
-            objects: current.metadata.objects
-          });
-          yield* SubscriptionRef.set(state, { ...current, isFieldsLoading: false, metadata });
-        }),
-      [MessageType.TEXT_SOQL_CHANGED]: event => setQuery(parseFoundationQuery(event.payload)),
-      [MessageType.NO_DEFAULT_ORG]: () =>
-        SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: true })),
-      [MessageType.CONNECTION_CHANGED]: () =>
-        SubscriptionRef.update(state, current => ({ ...current, hasNoDefaultOrg: false })).pipe(
-          Effect.andThen(
-            tryServiceOperation('subscribe', () =>
-              messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST })
-            )
-          )
-        )
+          if (event.payload === current.query.originalSoqlStatement) return;
+
+          const query = yield* parseExternalQuery(event.payload);
+          const objectChanged = query.sObject !== current.query.sObject;
+          const nextState: SoqlBuilderState = {
+            ...current,
+            isFieldsLoading: query.sObject !== undefined && objectChanged,
+            metadata: objectChanged
+              ? {
+                  childRelationships: [],
+                  fields: [],
+                  objects: current.metadata.objects
+                }
+              : current.metadata,
+            notificationsDismissed: false,
+            query
+          };
+          yield* SubscriptionRef.set(state, nextState);
+          yield* saveViewState(messageService, nextState);
+
+          if (query.parseErrors.length > 0 || query.unsupportedSyntax.length > 0) {
+            yield* trySendMessage(() =>
+              messageService.sendMessage({
+                payload: createSoqlBuilderTelemetry(query),
+                type: MessageType.UI_TELEMETRY
+              })
+            );
+          }
+          if (query.sObject !== undefined && objectChanged) {
+            yield* requestMetadata(query.sObject);
+          }
+        }
+      ),
+      [MessageType.NO_DEFAULT_ORG]: Effect.fn('VscodeSoqlBuilderService.handleNoDefaultOrg')(function* () {
+        yield* SubscriptionRef.update(state, current => ({
+          ...current,
+          hasNoDefaultOrg: true,
+          isFieldsLoading: false,
+          isObjectsLoading: false
+        }));
+      }),
+      [MessageType.CONNECTION_CHANGED]: Effect.fn('VscodeSoqlBuilderService.handleConnectionChanged')(
+        function* () {
+          const current = yield* SubscriptionRef.get(state);
+          const nextState: SoqlBuilderState = {
+            ...current,
+            hasNoDefaultOrg: false,
+            isFieldsLoading: current.query.sObject !== undefined,
+            isObjectsLoading: true,
+            metadata: {
+              childRelationships: [],
+              fields: [],
+              objects: []
+            }
+          };
+          yield* SubscriptionRef.set(state, nextState);
+          yield* requestObjects();
+          if (current.query.sObject !== undefined) {
+            yield* requestMetadata(current.query.sObject);
+          }
+        }
+      ),
+      [MessageType.RUN_SOQL_QUERY_DONE]: Effect.fn('VscodeSoqlBuilderService.handleRunSoqlQueryDone')(
+        function* () {
+          yield* SubscriptionRef.update(state, current => ({ ...current, isQueryRunning: false }));
+        }
+      ),
+      [MessageType.GET_QUERY_PLAN_DONE]: Effect.fn('VscodeSoqlBuilderService.handleGetQueryPlanDone')(
+        function* () {
+          yield* SubscriptionRef.update(state, current => ({ ...current, isQueryPlanRunning: false }));
+        }
+      )
     })
   );
 
@@ -202,48 +256,129 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
   );
 
   yield* SubscriptionRef.update(state, current => ({ ...current, isObjectsLoading: true }));
-  yield* tryServiceOperation('initialize', () =>
-    messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST })
-  );
+  yield* requestObjects();
+  if (savedState.query.sObject !== undefined) {
+    yield* SubscriptionRef.update(state, current => ({ ...current, isFieldsLoading: true }));
+    yield* requestMetadata(savedState.query.sObject);
+  }
 
-  const dispatch: SoqlBuilderServiceShape['dispatch'] = (action: SoqlBuilderAction) =>
-    Effect.gen(function* () {
-      const current = yield* SubscriptionRef.get(state);
-      const query =
-        action._tag === 'ObjectSelected'
-          ? {
+  const dispatch: SoqlBuilderServiceShape['dispatch'] = Match.type<SoqlBuilderAction>().pipe(
+    Match.tagsExhaustive({
+      ObjectSelected: Effect.fn('VscodeSoqlBuilderService.dispatchObjectSelected')(function* (action) {
+        const current = yield* SubscriptionRef.get(state);
+        const query = {
+          ...createInitialSoqlBuilderQuery(),
+          ...(current.query.headerComments === undefined ? {} : { headerComments: current.query.headerComments }),
+          sObject: action.objectName
+        };
+        yield* publishQuery(
+          {
+            ...current,
+            isFieldsLoading: true,
+            metadata: {
+              childRelationships: [],
               fields: [],
-              originalSoqlStatement: formatQuery(action.objectName, []),
-              sObject: action.objectName
+              objects: current.metadata.objects
             }
-          : {
-              ...current.query,
-              fields: [...action.fieldNames],
-              originalSoqlStatement: formatQuery(current.query.sObject, action.fieldNames)
-            };
-      const nextState: SoqlBuilderState = {
-        ...current,
-        isFieldsLoading: action._tag === 'ObjectSelected',
-        metadata:
-          action._tag === 'ObjectSelected' ? { ...current.metadata, fields: [] } : current.metadata,
-        query
-      };
-
-      yield* SubscriptionRef.set(state, nextState);
-      yield* tryServiceOperation('dispatch', () => {
-        if (action._tag === 'ObjectSelected') {
-          messageService.sendMessage({
-            payload: action.objectName,
-            type: MessageType.SOBJECT_METADATA_REQUEST
-          });
+          },
+          query
+        );
+        yield* requestMetadata(action.objectName);
+      }),
+      FieldsSelected: Effect.fn('VscodeSoqlBuilderService.dispatchFieldsSelected')(action =>
+        modifyQuery(({ query }) => ({ ...query, fields: [...action.fieldNames] }))
+      ),
+      AllFieldsSelected: Effect.fn('VscodeSoqlBuilderService.dispatchAllFieldsSelected')(() =>
+        modifyQuery(({ metadata, query }) => ({ ...query, fields: metadata.fields.map(field => field.name) }))
+      ),
+      AllFieldsCleared: Effect.fn('VscodeSoqlBuilderService.dispatchAllFieldsCleared')(() =>
+        modifyQuery(({ query }) => ({ ...query, fields: [] }))
+      ),
+      WhereConditionUpserted: Effect.fn('VscodeSoqlBuilderService.dispatchWhereConditionUpserted')(action =>
+        modifyQuery(({ query }) => {
+          const existingIndex = query.where.conditions.findIndex(
+            condition => condition.index === action.condition.index
+          );
+          const conditions =
+            existingIndex < 0
+              ? [...query.where.conditions, action.condition]
+              : query.where.conditions.map((condition, index) =>
+                  index === existingIndex ? action.condition : condition
+                );
+          return {
+            ...query,
+            where: {
+              conditions,
+              ...(action.andOr === undefined ? {} : { andOr: action.andOr })
+            }
+          };
+        })
+      ),
+      WhereConditionRemoved: Effect.fn('VscodeSoqlBuilderService.dispatchWhereConditionRemoved')(action =>
+        modifyQuery(({ query }) => ({
+          ...query,
+          where: {
+            ...query.where,
+            conditions: query.where.conditions.filter(condition => condition.index !== action.index)
+          }
+        }))
+      ),
+      WhereConjunctionChanged: Effect.fn('VscodeSoqlBuilderService.dispatchWhereConjunctionChanged')(action =>
+        modifyQuery(({ query }) => ({
+          ...query,
+          where: { ...query.where, andOr: action.andOr }
+        }))
+      ),
+      OrderByUpserted: Effect.fn('VscodeSoqlBuilderService.dispatchOrderByUpserted')(action =>
+        modifyQuery(({ query }) => {
+          const existingIndex = query.orderBy.findIndex(item => item.field === action.orderBy.field);
+          const orderBy =
+            existingIndex < 0
+              ? [...query.orderBy, action.orderBy]
+              : query.orderBy.map((item, index) => (index === existingIndex ? action.orderBy : item));
+          return { ...query, orderBy };
+        })
+      ),
+      OrderByRemoved: Effect.fn('VscodeSoqlBuilderService.dispatchOrderByRemoved')(action =>
+        modifyQuery(({ query }) => ({
+          ...query,
+          orderBy: query.orderBy.filter(orderBy => orderBy.field !== action.fieldName)
+        }))
+      ),
+      LimitChanged: Effect.fn('VscodeSoqlBuilderService.dispatchLimitChanged')(function* (action) {
+        if (action.limit._tag === 'Invalid') {
+          const current = yield* SubscriptionRef.get(state);
+          const nextState = { ...current, query: { ...current.query, limit: action.limit } };
+          yield* SubscriptionRef.set(state, nextState);
+          yield* saveViewState(messageService, nextState);
+          return;
         }
-        messageService.sendMessage({
-          payload: query.originalSoqlStatement,
-          type: MessageType.UI_SOQL_CHANGED
-        });
-      });
-      yield* saveViewState(messageService, nextState);
-    });
+        yield* modifyQuery(({ query }) => ({ ...query, limit: action.limit }));
+      }),
+      AllRowsChanged: Effect.fn('VscodeSoqlBuilderService.dispatchAllRowsChanged')(action =>
+        modifyQuery(({ query }) => ({ ...query, allRows: action.allRows }))
+      ),
+      NotificationsDismissed: Effect.fn('VscodeSoqlBuilderService.dispatchNotificationsDismissed')(
+        function* () {
+          const current = yield* SubscriptionRef.get(state);
+          const nextState = { ...current, notificationsDismissed: true };
+          yield* SubscriptionRef.set(state, nextState);
+          yield* saveViewState(messageService, nextState);
+        }
+      ),
+      SetDefaultOrgRequested: Effect.fn('VscodeSoqlBuilderService.dispatchSetDefaultOrgRequested')(() =>
+        trySendMessage(() => messageService.sendMessage({ type: MessageType.SET_DEFAULT_ORG }))
+      ),
+      RunQueryRequested: Effect.fn('VscodeSoqlBuilderService.dispatchRunQueryRequested')(function* () {
+        yield* SubscriptionRef.update(state, current => ({ ...current, isQueryRunning: true }));
+        yield* trySendMessage(() => messageService.sendMessage({ type: MessageType.RUN_SOQL_QUERY }));
+      }),
+      QueryPlanRequested: Effect.fn('VscodeSoqlBuilderService.dispatchQueryPlanRequested')(function* () {
+        yield* SubscriptionRef.update(state, current => ({ ...current, isQueryPlanRunning: true }));
+        yield* trySendMessage(() => messageService.sendMessage({ type: MessageType.GET_QUERY_PLAN }));
+      })
+    })
+  );
 
   return SoqlBuilderService.of({
     dispatch,
