@@ -88,12 +88,6 @@ gh workflow run build-release.yml \
 - Creates release tag from that branch's commit
 - See [docs/release-testing-guide.md](../docs/release-testing-guide.md) for branch cleanup instructions
 
-**Security measures:**
-- Command injection protection — regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
-- VSIX validation — confirms ≥1 VSIX created after build
-- Script integrity — SHA256 checksums verify scripts weren't tampered (preserved/restored across tag checkout)
-- Deletion timeout — fails if cleanup exceeds 20s (GitHub API eventual consistency)
-
 For complete testing and publishing workflow, see [docs/release-testing-guide.md](../docs/release-testing-guide.md).
 
 ## Nightly Builds & Pre-release Promotion
