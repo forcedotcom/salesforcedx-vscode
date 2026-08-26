@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { SoqlBuilderApplication } from '../../src/application.js';
 import { SoqlBuilderElement } from '../../src/components/soqlBuilderElement.js';
@@ -34,7 +35,7 @@ export type SoqlBuilderBrowserHarness = {
   readonly mount: (overrides?: StateOverrides) => Promise<void>;
   readonly reconnect: () => Promise<void>;
   readonly recordedActions: () => Promise<readonly SoqlBuilderAction[]>;
-  readonly setDispatchLatency: (milliseconds: number) => Promise<void>;
+  readonly setDispatchLatency: (latency: Duration.DurationInput) => Promise<void>;
   readonly stats: () => Promise<FakeSoqlBuilderServiceStats>;
   readonly unmount: () => Promise<void>;
 };
@@ -76,15 +77,19 @@ const mergeState = (base: SoqlBuilderState, overrides: StateOverrides = {}): Soq
   query: { ...base.query, ...overrides.query }
 });
 
-const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+const nextFrame = Effect.async<void>(resume => {
+  requestAnimationFrame(() => resume(Effect.void));
+});
 
-const waitUntil = async (predicate: () => boolean | Promise<boolean>, message: string): Promise<void> => {
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    if (await predicate()) return;
-    await nextFrame();
-  }
-  throw new Error(message);
-};
+const waitUntil = (predicate: () => boolean | Promise<boolean>, message: string): Promise<void> =>
+  Effect.runPromise(
+    Effect.promise(async () => predicate()).pipe(
+      Effect.tap(satisfied => (satisfied ? Effect.void : nextFrame)),
+      Effect.repeat({ until: (satisfied: boolean) => satisfied, times: 120 })
+    )
+  ).then(satisfied => {
+    if (!satisfied) throw new Error(message);
+  });
 
 registerSoqlBuilderElements();
 
@@ -179,7 +184,7 @@ window.soqlBuilderHarness = {
     await mountedElement.updateComplete;
   },
   recordedActions: () => Effect.runPromise(requireFake().recordedActions),
-  setDispatchLatency: milliseconds => Effect.runPromise(requireFake().setDispatchLatency(milliseconds)),
+  setDispatchLatency: latency => Effect.runPromise(requireFake().setDispatchLatency(latency)),
   stats: readStats,
   unmount
 };
