@@ -42,7 +42,7 @@ gh workflow run build-release.yml \
   -f startFromRef="hotfix/security-fix"
 
 # Step 2: Publish to marketplace as pre-release
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.13.7-nightly.develop.20260820"
 
 # Stable from arbitrary ref (version bump)
@@ -71,7 +71,7 @@ gh workflow run build-release.yml \
    - Creates "Emergency Pre-release" GitHub release w/ VSIX + SHA256
    - Skips isolated branch
 
-2. **promote-prerelease.yml with `releaseTag=...`**
+2. **promote-nightly-to-prerelease.yml with `releaseTag=...`**
    - Publishes Step 1's VSIXs to marketplace (Microsoft + Open VSX) as pre-release
    - Uses nightly tag format: `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
    - Timeline: ~5 min total (build + promote)

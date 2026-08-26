@@ -23,7 +23,7 @@ on:
         default: false
         type: boolean
 
-# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-prerelease.yml)
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-nightly-to-prerelease.yml)
 # Do not define it here to avoid deadlock
 
 permissions:
@@ -57,7 +57,7 @@ jobs:
   # Step 3: Promote to prerelease (only runs if gate-check passed)
   promote:
     needs: [find-nightly, gate-check]
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/caller-call-ci-status-check
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-nightly-to-prerelease.yml@ms/caller-call-ci-status-check
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'

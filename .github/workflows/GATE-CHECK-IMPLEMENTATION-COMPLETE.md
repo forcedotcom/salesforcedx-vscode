@@ -4,15 +4,15 @@
 
 ## Problem Solved
 
-Originally, `vscode-promote-prerelease.yml` (upstream) decided when a nightly was "good enough" to promote. This created **inversion of control**: upstream controlled quality gates, not consuming repos. Fixed by moving gate-check to consuming repos.
+Originally, `vscode-promote-nightly-to-prerelease.yml` (upstream) decided when a nightly was "good enough" to promote. This created **inversion of control**: upstream controlled quality gates, not consuming repos. Fixed by moving gate-check to consuming repos.
 
 ## Architecture: 3-Stage Promotion Flow
 
 ```
-promote-prerelease.yml (THIS REPO)
+promote-nightly-to-prerelease.yml (THIS REPO)
 ├─ Stage 1: find-nightly (uses shared vscode-find-nightly-candidate.yml)
 ├─ Stage 2: gate-check (inline, calls shared check-ci-status action)
-└─ Stage 3: promote (uses shared vscode-promote-prerelease.yml, publishing-only)
+└─ Stage 3: promote (uses shared vscode-promote-nightly-to-prerelease.yml, publishing-only)
 ```
 
 **Key principle:** This repo controls criteria, shared workflows provide tools.
@@ -44,7 +44,7 @@ promote-prerelease.yml (THIS REPO)
 
 ### Key Files
 
-- `.github/workflows/promote-prerelease.yml` — Orchestrates 3-stage flow
+- `.github/workflows/promote-nightly-to-prerelease.yml` — Orchestrates 3-stage flow
 - `.github/workflows/vscode-find-nightly-candidate.yml` — Shared workflow (upstream)
 - `.github/actions/vscode/check-ci-status` — Shared action (upstream)
 

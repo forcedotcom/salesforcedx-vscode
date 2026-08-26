@@ -1,7 +1,7 @@
 name: Publish Stable Release to Marketplace
 
 # Publishes stable releases to VS Code Marketplace and Open VSX Registry.
-# For pre-release publishing, use promote-prerelease.yml instead.
+# For pre-release publishing, use promote-nightly-to-prerelease.yml instead.
 # Publishing uses the shared release-asset publisher workflow.
 
 on:

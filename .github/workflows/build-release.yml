@@ -94,7 +94,7 @@ jobs:
 
           else
             # Priority 3: Auto-detect latest nightly published to marketplace as prerelease
-            # The promote-prerelease workflow (nightly → marketplace prerelease) creates
+            # The promote-nightly-to-prerelease workflow (nightly → marketplace prerelease) creates
             # marketplace-prerelease-* tracking tags pointing to the Wednesday candidate commit
             TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
 

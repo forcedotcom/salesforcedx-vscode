@@ -61,7 +61,7 @@ Monitor the workflow at: https://github.com/forcedotcom/salesforcedx-vscode/acti
 
 ```bash
 # Promote to marketplace as pre-release
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.12.0" \
   --repo forcedotcom/salesforcedx-vscode
 ```
@@ -152,7 +152,7 @@ Follow the testing checklist above.
 ### 3. Publish to Marketplace as Pre-release
 
 ```bash
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.12.0" \
   --repo forcedotcom/salesforcedx-vscode
 ```

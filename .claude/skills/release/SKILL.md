@@ -35,7 +35,7 @@ gh run view <runId> --repo forcedotcom/salesforcedx-vscode
 Decision matrix:
 
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
-- **Build failed** → check logs. Issues: no promoted tag (wait Wed 7 AM UTC) or build script error. Re-run:
+- **Build failed** → check logs. Issues: no marketplace prerelease (wait Wed 7 AM UTC) or build script error. Re-run:
   ```sh
   gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
   ```

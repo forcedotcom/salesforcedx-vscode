@@ -100,7 +100,7 @@ For complete testing and publishing workflow, see [docs/release-testing-guide.md
 
 **Nightly builds:** `nightly.yml` → all extensions to pre-release daily (4 AM UTC) + on-demand. Auto-discovers via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
 
-**Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
+**Weekly pre-release promotion:** `promote-nightly-to-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
 
 **Wed stable release:** `build-release.yml` (Wed 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
 
@@ -110,7 +110,7 @@ For complete testing and publishing workflow, see [docs/release-testing-guide.md
 
 ### Standard Path: Nightly → Weekly Pre-release → Wed Stable → Marketplace
 
-1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release; creates `marketplace-prerelease-*` tracking tag
+1. **Wed 7 AM UTC:** `promote-nightly-to-prerelease.yml` auto-runs → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release; creates `marketplace-prerelease-*` tracking tag
 2. **Wed 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
 5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
@@ -187,7 +187,7 @@ Creates GitHub pre-release w/ VSIX + SHA256 from any git ref (tag/branch/SHA). N
 **Step 2: Promote to marketplace as pre-release**
 
 ```sh
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.13.7-nightly.develop.20260820" \
   --repo forcedotcom/salesforcedx-vscode
 ```
@@ -212,7 +212,7 @@ gh workflow run build-release.yml \
   -f startFromRef="abc123def456"
 
 # Promote built VSIXs to marketplace
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.13.7-nightly.develop.20260820"
 ```
 

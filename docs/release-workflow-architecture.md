@@ -158,7 +158,7 @@ Wednesday (7 AM UTC) ───────────────────�
          │                                                     │
          ▼                                                     │
 ┌──────────────────────────────────────────────────────────────────┐      │
-│  promote-prerelease.yml (AUTOMATED CRON)                         │      │
+│  promote-nightly-to-prerelease.yml (AUTOMATED CRON)                         │      │
 │  ┌──────────────────────────────────────────────────────────────┤      │
 │  │ WHAT IT DOES:                                                 │      │
 │  │ ✓ Auto-detects latest nightly with passing E2E tests         │      │
@@ -258,7 +258,7 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!               │
            │                                                        │      │
            ▼                                                        │      │
    ┌──────────────────────────────────────────────────────┐        │      │
-   │ Step 2: promote-prerelease.yml                       │        │      │
+   │ Step 2: promote-nightly-to-prerelease.yml                       │        │      │
    │ -f releaseTag=v67.13.7-nightly.develop.20260821      │        │      │
    │ (~2 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │
@@ -361,7 +361,7 @@ Emergency Path: ❌ None (wait 7+ days)
 ```
 Mon       Tue       Wed       Thu       Fri       Sat       Sun
   │                   │
-  │                   ├─ promote-prerelease.yml (AUTOMATED 7 AM UTC)
+  │                   ├─ promote-nightly-to-prerelease.yml (AUTOMATED 7 AM UTC)
   │                   │    • Finds latest nightly w/ passing E2E
   │                   │    • Publishes to marketplace as PRE-RELEASE
   │                   │    • Creates tracking tag

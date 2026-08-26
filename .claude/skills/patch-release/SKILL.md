@@ -120,7 +120,7 @@ Creates GitHub pre-release with VSIXs. No version bump — tags source ref direc
 ### Step 2: Publish to marketplace as pre-release
 
 ```sh
-gh workflow run promote-prerelease.yml \
+gh workflow run promote-nightly-to-prerelease.yml \
   -f releaseTag="v67.13.7-nightly.develop.20260820" \
   --repo forcedotcom/salesforcedx-vscode
 ```
