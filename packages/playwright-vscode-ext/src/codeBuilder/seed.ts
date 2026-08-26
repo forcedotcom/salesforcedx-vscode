@@ -39,9 +39,14 @@ coder=${CODER_JSON}
 settings=${USER_SETTINGS}
 mkdir -p "$(dirname "$coder")" "$(dirname "$settings")"
 jq -n --arg folder "$FIXTURE_PATH" '{query: {folder: $folder}}' > "$coder"
-[ -s "$settings" ] || echo '{}' > "$settings"
+# Start from a valid object if settings.json is absent OR not valid JSON (whitespace-only, corrupt),
+# so the trust edit below can't silently no-op. Bare 'jq' statements (NOT 'jq ... && mv') so 'set -e'
+# aborts loud on a jq failure — with '&&' the jq is the left operand and errexit would NOT fire, and
+# the trust setting would be silently skipped (workspace opens Restricted, extensions never activate).
+jq -e . "$settings" > /dev/null 2>&1 || echo '{}' > "$settings"
 tmp="$(mktemp)"
-jq '.["security.workspace.trust.enabled"] = false' "$settings" > "$tmp" && mv "$tmp" "$settings"
+jq '.["security.workspace.trust.enabled"] = false' "$settings" > "$tmp"
+mv "$tmp" "$settings"
 chown codebuilder:codebuilder "$coder" "$settings"
 `;
 

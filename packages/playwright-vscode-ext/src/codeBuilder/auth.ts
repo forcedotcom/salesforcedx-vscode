@@ -45,19 +45,34 @@ export type ResolveOrgBootEnvOptions = {
 export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOptions = {}): BootEnv => {
   const runner = options.runner ?? defaultRunner;
 
-  const display = JSON.parse(runner('sf', ['org', 'display', '-o', orgAlias, '--json'])) as {
-    result?: { instanceUrl?: string };
+  /*
+   * Parse `sf --json` stdout, but attach context on failure: if `sf` ever prints an update notice /
+   * banner to stdout (the "hard-won" class of bug), a bare JSON.parse throws an opaque
+   * "Unexpected token" with no clue which command or org. Rethrow with the argv + a stdout snippet.
+   */
+  const runSfJson = (args: string[]): { result?: unknown } => {
+    const out = runner('sf', args);
+    try {
+      return JSON.parse(out) as { result?: unknown };
+    } catch {
+      throw new Error(
+        `\`sf ${args.join(' ')}\` did not return JSON (stdout starts: ${JSON.stringify(out.slice(0, 200))})`
+      );
+    }
   };
+
+  const display = runSfJson(['org', 'display', '-o', orgAlias, '--json']) as { result?: { instanceUrl?: string } };
   const instanceUrl = display.result?.instanceUrl;
   if (!instanceUrl) {
     throw new Error(`could not resolve instanceUrl for org "${orgAlias}" from \`sf org display\``);
   }
 
   // The dedicated command returns the REAL token; `org display` redacts it on recent CLI versions.
-  const tokenResult = JSON.parse(runner('sf', ['org', 'auth', 'show-access-token', '-o', orgAlias, '--json'])) as {
-    result?: { accessToken?: string } | string;
+  const tokenResult = runSfJson(['org', 'auth', 'show-access-token', '-o', orgAlias, '--json']) as {
+    result?: { accessToken?: string } | string | null;
   };
-  const accessToken = typeof tokenResult.result === 'object' ? tokenResult.result?.accessToken : undefined;
+  const accessToken =
+    typeof tokenResult.result === 'object' && tokenResult.result !== null ? tokenResult.result.accessToken : undefined;
   if (!accessToken) {
     throw new Error(`could not resolve accessToken for org "${orgAlias}" from \`sf org auth show-access-token\``);
   }
@@ -67,10 +82,12 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
 
 /** Flatten a BootEnv into the `-e KEY=VALUE` env pairs the CB image expects at `docker run`. */
 export const bootEnvToDockerArgs = (bootEnv: BootEnv): string[] => {
+  // extraEnv is spread FIRST so the resolved core keys (SF_ACCESS_TOKEN/INSTANCE_URL) always win —
+  // an escape-hatch extraEnv can't silently clobber the org credentials the image boots from.
   const env: Record<string, string> = {
+    ...bootEnv.extraEnv,
     SF_ACCESS_TOKEN: bootEnv.accessToken,
-    INSTANCE_URL: bootEnv.instanceUrl,
-    ...bootEnv.extraEnv
+    INSTANCE_URL: bootEnv.instanceUrl
   };
   return Object.entries(env).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
 };

@@ -62,10 +62,18 @@ export type RunSpec = {
 
 export type LifecycleOptions = { runner?: CommandRunner };
 
+/*
+ * Default probe: GET the workbench URL. Two guards the naive version missed:
+ *  - a per-request AbortSignal.timeout — otherwise a half-open socket (container accepted the TCP
+ *    connection but never responds) hangs the fetch forever and the overall readiness budget is a
+ *    lie (the loop can only check the deadline BETWEEN probes, not mid-probe).
+ *  - res.ok — a booting code-server can bind the port and answer 404/500/502 before the workbench is
+ *    actually serving; only a 2xx means ready, else we'd hand back an unhealthy handle.
+ */
 const defaultProbe: ReadinessProbe = async url => {
   try {
-    await fetch(url, { method: 'GET' });
-    return true;
+    const res = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) });
+    return res.ok;
   } catch {
     return false;
   }
@@ -129,7 +137,14 @@ export const run = async (spec: RunSpec, options: LifecycleOptions = {}): Promis
     publishedPort: spec.publishedPort,
     bootEnv: spec.bootEnv
   };
-  await waitForWorkbench(runner, handle, spec.readiness);
+  try {
+    await waitForWorkbench(runner, handle, spec.readiness);
+  } catch (err) {
+    // Readiness failed — tear the just-started container down so a retry with the same name isn't
+    // blocked by "container name already in use", and no orphan is left running.
+    teardown(handle, { runner });
+    throw err;
+  }
   return handle;
 };
 

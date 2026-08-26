@@ -54,6 +54,19 @@ describe('resolveOrgBootEnv', () => {
     const { runner } = makeSfRunner({ instanceUrl: 'https://x', token: null });
     expect(() => resolveOrgBootEnv('myOrg', { runner })).toThrow(/accessToken/);
   });
+
+  it('does not crash when show-access-token result is null (typeof null === object)', () => {
+    const runner: CommandRunner = (file, args) => {
+      if (args[1] === 'display') return JSON.stringify({ result: { instanceUrl: 'https://x' } });
+      return JSON.stringify({ result: null }); // show-access-token
+    };
+    expect(() => resolveOrgBootEnv('myOrg', { runner })).toThrow(/accessToken/); // clean error, not a TypeError
+  });
+
+  it('throws a diagnostic (command + snippet) when sf prints non-JSON stdout noise', () => {
+    const runner: CommandRunner = () => 'Warning: @salesforce/cli update available...\n{"result":{}}';
+    expect(() => resolveOrgBootEnv('myOrg', { runner })).toThrow(/org display[\s\S]*did not return JSON/);
+  });
 });
 
 describe('bootEnvToDockerArgs', () => {
@@ -69,5 +82,17 @@ describe('bootEnvToDockerArgs', () => {
   it('includes extraEnv pairs', () => {
     const args = bootEnvToDockerArgs({ accessToken: 'T', instanceUrl: 'https://x', extraEnv: { FOO: 'bar' } });
     expect(args).toContain('FOO=bar');
+  });
+
+  it('does not let extraEnv override the resolved core credentials', () => {
+    const args = bootEnvToDockerArgs({
+      accessToken: 'REAL',
+      instanceUrl: 'https://real',
+      extraEnv: { SF_ACCESS_TOKEN: 'HIJACK', INSTANCE_URL: 'https://evil' }
+    });
+    expect(args).toContain('SF_ACCESS_TOKEN=REAL');
+    expect(args).toContain('INSTANCE_URL=https://real');
+    expect(args).not.toContain('SF_ACCESS_TOKEN=HIJACK');
+    expect(args).not.toContain('INSTANCE_URL=https://evil');
   });
 });

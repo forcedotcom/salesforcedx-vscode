@@ -58,8 +58,12 @@ describe('lifecycle', () => {
     });
   });
 
-  it('run throws (with docker logs) when the workbench never becomes ready', async () => {
-    const runner: CommandRunner = (file, args) => (args[0] === 'logs' ? 'boot failed line' : '');
+  it('run throws (with docker logs) AND tears down the container when readiness times out', async () => {
+    const calls: string[][] = [];
+    const runner: CommandRunner = (file, args) => {
+      calls.push([file, ...args]);
+      return args[0] === 'logs' ? 'boot failed line' : '';
+    };
     await expect(
       run(
         {
@@ -72,6 +76,8 @@ describe('lifecycle', () => {
         { runner }
       )
     ).rejects.toThrow(/never became reachable[\s\S]*boot failed line/);
+    // The just-started container is removed so a retry isn't blocked by a name conflict.
+    expect(calls.find(c => c[0] === 'docker' && c[1] === 'rm' && c[2] === '-f' && c[3] === 'cb')).toBeDefined();
   });
 
   it('restart issues docker restart then waits for readiness', async () => {
