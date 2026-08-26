@@ -28,13 +28,16 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       MetadataRetrieveService,
       ProjectService
     ]);
-    const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')(function* (xmlName: string) {
-      const project = yield* projectService.getSfProject();
+    const scanWorkspaceInventory = Effect.fn('OrgCatalogWorkspace.scanWorkspaceInventory')(function* (xmlName: string) {
+      const [project, namespace] = yield* Effect.all([
+        projectService.getSfProject(),
+        projectService.getProjectNamespace()
+      ]);
       const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
       const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, [
         { type: xmlName, fullName: '*' }
       ]);
-      return [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
+      const components = [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
         if (component.type.name !== xmlName) return workspaceUris;
         // Decomposed child metadata (for example CustomField) has an XML source file but no
         // `content` path. Treat the XML path as its workspace artifact so local presence is not
@@ -48,7 +51,12 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
         }
         return workspaceUris;
       }, new Map<string, URI>());
+      return { namespace, components } as const;
     });
+
+    const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')((xmlName: string) =>
+      scanWorkspaceInventory(xmlName).pipe(Effect.map(inventory => inventory.components))
+    );
 
     const getWorkspaceMetadataTypes = Effect.fn('OrgCatalogWorkspace.getWorkspaceMetadataTypes')(function* (
       orgId: string
@@ -113,6 +121,6 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       return resolutions;
     });
 
-    return { getWorkspaceMetadataTypes, resolveComponents, scanWorkspace } as const;
+    return { getWorkspaceMetadataTypes, resolveComponents, scanWorkspace, scanWorkspaceInventory } as const;
   })
 }) {}
