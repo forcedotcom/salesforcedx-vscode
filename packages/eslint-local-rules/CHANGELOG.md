@@ -1,3 +1,12 @@
+## [65.12.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.12.1...eslint-plugin-vscode-extensions-v65.12.2) (2026-08-26)
+
+
+### Bug Fixes
+
+* **apex-testing:** prevent users from multi-selecting a combination of individual Apex tests and Apex test suites in the Testing sidebar ([#8048](https://github.com/forcedotcom/salesforcedx-vscode/issues/8048)) ([fd71053](https://github.com/forcedotcom/salesforcedx-vscode/commit/fd710538e217eb678b65a02db1cdf5d2730788c0))
+
+
+
 ## [65.12.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.12.0...eslint-plugin-vscode-extensions-v65.12.1) (2026-07-26)
 
 
