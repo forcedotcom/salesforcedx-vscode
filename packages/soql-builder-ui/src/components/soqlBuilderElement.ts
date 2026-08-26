@@ -6,7 +6,6 @@
  */
 
 import { VscodeMultiSelect } from '@vscode-elements/elements/dist/vscode-multi-select/index.js';
-import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
 import '@vscode-elements/elements/dist/vscode-option/index.js';
 import { html, LitElement, nothing } from 'lit';
 import {
@@ -21,7 +20,9 @@ export type SoqlBuilderLabels = {
   readonly fields: string;
   readonly from: string;
   readonly inputs: string;
+  readonly loading: string;
   readonly noDefaultOrg: string;
+  readonly noResults: string;
   readonly query: string;
 };
 
@@ -73,6 +74,9 @@ export class SoqlBuilderElement extends LitElement {
 
   protected override render() {
     const state = this.viewState;
+    const hasRecoverableFromError = state.query.parseErrors.some(error =>
+      ['EMPTY', 'INCOMPLETEFROM', 'NOFROM'].includes(error.type)
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty statement must still render as `nothing`, unlike a merely-unset one; `??` would not collapse ''
     const queryPreview = state.query.originalSoqlStatement ? state.query.originalSoqlStatement : nothing;
     return html`
@@ -88,22 +92,17 @@ export class SoqlBuilderElement extends LitElement {
                   @submit=${this.preventSubmit}
                 >
                   <div class="control">
-                    <label for="soql-object">${this.labels.from}</label>
-                    <vscode-single-select
-                      id="soql-object"
-                      name="sObject"
-                      tabindex="0"
-                      combobox
-                      filter="startsWithPerTerm"
-                      label=${this.labels.from}
-                      ?disabled=${state.isObjectsLoading}
-                      .value=${state.query.sObject ?? ''}
-                      @change=${this.handleObjectChange}
-                    >
-                      ${state.metadata.objects.map(
-                        object => html`<vscode-option value=${object.name}>${object.label}</vscode-option>`
-                      )}
-                    </vscode-single-select>
+                    <soql-builder-from
+                      .invalid=${hasRecoverableFromError}
+                      .isLoading=${state.isObjectsLoading}
+                      .labels=${{
+                        from: this.labels.from,
+                        loading: this.labels.loading,
+                        noResults: this.labels.noResults
+                      }}
+                      .objects=${state.metadata.objects}
+                      .selectedObjectName=${state.query.sObject}
+                    ></soql-builder-from>
                   </div>
                   <div class="control">
                     <label for="soql-fields">${this.labels.fields}</label>
@@ -141,18 +140,6 @@ export class SoqlBuilderElement extends LitElement {
         new SoqlBuilderActionEvent({
           _tag: 'FieldsSelected',
           fieldNames: [...select.value]
-        })
-      );
-    }
-  };
-
-  private readonly handleObjectChange = (event: Event): void => {
-    const select = event.currentTarget;
-    if (select instanceof VscodeSingleSelect && select.value) {
-      this.dispatchEvent(
-        new SoqlBuilderActionEvent({
-          _tag: 'ObjectSelected',
-          objectName: select.value
         })
       );
     }

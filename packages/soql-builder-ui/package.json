@@ -19,6 +19,10 @@
       "types": "./out/src/components/soqlBuilderElement.d.ts",
       "default": "./out/src/components/soqlBuilderElement.js"
     },
+    "./components/soqlFromElement": {
+      "types": "./out/src/components/soqlFromElement.d.ts",
+      "default": "./out/src/components/soqlFromElement.js"
+    },
     "./domain": {
       "types": "./out/src/domain.d.ts",
       "default": "./out/src/domain.js"

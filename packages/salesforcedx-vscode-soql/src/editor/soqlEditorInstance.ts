@@ -14,6 +14,7 @@ import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isError } from 'effect/Predicate';
+import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -24,6 +25,7 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
+import { invalidateMetadataRequests, runForCurrentMetadataGeneration } from './metadataRequestGeneration';
 import { runQuery } from './queryRunner';
 
 const appendToChannel = (message: string) =>
@@ -95,43 +97,46 @@ export class SOQLEditorInstance {
   ) {
     vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
-    // Stream-based message handling: each message is dispatched concurrently as a named OTel span
-    const messageFiber = getSoqlRuntime().runFork(
-      Stream.async<SoqlEditorEvent>(emit => {
-        const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
-          void emit.single(event);
-        });
-        return Effect.sync(() => {
-          disposable.dispose();
-        });
-      }).pipe(
-        Stream.mapEffect(
-          event =>
-            this.handleMessageEffect(event).pipe(
-              Effect.catchAllCause(_cause =>
-                appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
-              )
-            ),
-          { concurrency: 'unbounded' }
-        ),
-        Stream.runDrain
-      )
-    );
-    this.subscriptions.push({ dispose: () => Fiber.interrupt(messageFiber).pipe(Effect.runFork) });
+    const instanceFiber = getSoqlRuntime().runFork(
+      Effect.gen(this, function* () {
+        // Both streams share this generation Ref. An org change invalidates metadata work before notifying the UI.
+        const metadataRequestGeneration = yield* Ref.make(0);
+        const messages = Stream.async<SoqlEditorEvent>(emit => {
+          const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
+            void emit.single(event);
+          });
+          return Effect.sync(() => {
+            disposable.dispose();
+          });
+        }).pipe(
+          Stream.mapEffect(
+            event =>
+              this.handleMessageEffect(event, metadataRequestGeneration).pipe(
+                Effect.catchAllCause(_cause =>
+                  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
+                )
+              ),
+            { concurrency: 'unbounded' }
+          ),
+          Stream.runDrain
+        );
 
-    const { onConnectionChanged, onNoDefaultOrg } = this;
-    const connectionFiber = getSoqlRuntime().runFork(
-      Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* targetOrgRef.changes.pipe(
+        const connectionChanges = targetOrgRef.changes.pipe(
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
-          Stream.runForEach(isOrgSet => (isOrgSet ? onConnectionChanged() : onNoDefaultOrg()))
+          Stream.runForEach(isOrgSet =>
+            invalidateMetadataRequests(metadataRequestGeneration).pipe(
+              Effect.andThen(this.sendMessageToUi(isOrgSet ? 'connection_changed' : 'no_default_org'))
+            )
+          )
         );
+
+        yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true });
       })
     );
-    this.subscriptions.push({ dispose: () => Fiber.interrupt(connectionFiber).pipe(Effect.runFork) });
+    this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
 
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
@@ -171,7 +176,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  private handleMessageEffect = (event: SoqlEditorEvent) => {
+  private handleMessageEffect = (event: SoqlEditorEvent, metadataRequestGeneration: Ref.Ref<number>) => {
     switch (event.type) {
       case 'ui_activated': {
         return Effect.promise(() => isDefaultOrgSet()).pipe(
@@ -200,19 +205,23 @@ export class SOQLEditorInstance {
         );
       }
 
-      case 'sobject_metadata_request':
-        return retrieveSObject(event.payload).pipe(
-          Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
+      case 'sobject_metadata_request': {
+        return runForCurrentMetadataGeneration(metadataRequestGeneration, retrieveSObject(event.payload), sobject =>
+          sobject ? this.updateSObjectMetadata(sobject) : Effect.void
+        ).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
+      }
 
-      case 'sobjects_request':
-        return listSObjectNamesEffect.pipe(
-          Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
+      case 'sobjects_request': {
+        return runForCurrentMetadataGeneration(metadataRequestGeneration, listSObjectNamesEffect, names =>
+          this.updateSObjects(names)
+        ).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );
+      }
 
       case 'run_query': {
         const runQueryDone = () => this.runQueryDone();
@@ -325,7 +334,4 @@ export class SOQLEditorInstance {
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
   }
-
-  public onConnectionChanged = () => this.sendMessageToUi('connection_changed');
-  private readonly onNoDefaultOrg = () => this.sendMessageToUi('no_default_org');
 }
