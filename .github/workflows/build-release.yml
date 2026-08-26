@@ -469,9 +469,4 @@ jobs:
           echo "**Release Tag:** ${{ needs.build-release.outputs.release_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source:** ${{ needs.build-release.outputs.prerelease_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Download and test VSIX files from the pre-release" >> $GITHUB_STEP_SUMMARY
-          echo "2. If tests pass, trigger \`publishVSCode.yml\` workflow" >> $GITHUB_STEP_SUMMARY
-          echo "3. If tests fail, create immediate prerelease and retry with bumped version" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
           echo "🔗 [View Pre-release](https://github.com/${{ github.repository }}/releases/tag/${{ needs.build-release.outputs.release_tag }})" >> $GITHUB_STEP_SUMMARY
