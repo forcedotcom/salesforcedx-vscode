@@ -73,13 +73,12 @@ export class SoqlFromElement extends LitElement {
     const select = this.querySelector('vscode-single-select');
     if (!select) return;
 
-    // VSCode Elements does not expose the combobox filter value or a no-results label. Keep this implementation
-    // detail contained in the From adapter so the accepted, localized empty state can be announced.
-    void select.updateComplete.then(() => {
-      select.shadowRoot
-        ?.querySelector<HTMLInputElement>('.combobox-input')
-        ?.addEventListener('input', this.handleFilterInput);
-    });
+    // Lit's lifecycle is synchronous, but the nested custom element creates its combobox in its own update.
+    void select.updateComplete.then(() => this.syncComboboxAriaState());
+  }
+
+  protected override updated(): void {
+    this.syncComboboxAriaState();
   }
 
   protected override render() {
@@ -106,6 +105,8 @@ export class SoqlFromElement extends LitElement {
           .invalid=${this.invalid}
           .value=${this.selectedObjectName ?? ''}
           @change=${this.handleObjectChange}
+          @focusin=${this.handleFilterFocus}
+          @input=${this.handleFilterInput}
         >
           ${repeat(
             this.objects,
@@ -119,9 +120,25 @@ export class SoqlFromElement extends LitElement {
   }
 
   private readonly handleFilterInput = (event: Event): void => {
-    const source = event.currentTarget;
+    // The public select does not expose its filter text. Native input events cross its shadow boundary,
+    // so read the originating combobox while keeping the implementation detail inside this adapter.
+    const [source] = event.composedPath();
     if (source instanceof HTMLInputElement) this.filterValue = source.value;
   };
+
+  private readonly handleFilterFocus = (): void => {
+    // VSCode Elements clears its private filter when the combobox regains focus without emitting input.
+    this.filterValue = '';
+  };
+
+  private syncComboboxAriaState(): void {
+    // The accessible combobox is the input inside vscode-single-select, not the custom-element host.
+    const combobox = this.querySelector('vscode-single-select')?.shadowRoot?.querySelector('.combobox-input');
+    if (!(combobox instanceof HTMLInputElement)) return;
+
+    combobox.setAttribute('aria-busy', this.isLoading ? 'true' : 'false');
+    combobox.setAttribute('aria-invalid', this.invalid ? 'true' : 'false');
+  }
 
   private readonly handleObjectChange = (event: Event): void => {
     const select = event.currentTarget;

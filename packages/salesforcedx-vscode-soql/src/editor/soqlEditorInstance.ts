@@ -14,7 +14,6 @@ import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isError } from 'effect/Predicate';
-import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -25,7 +24,11 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
-import { invalidateMetadataRequests, runForCurrentMetadataGeneration } from './metadataRequestGeneration';
+import {
+  invalidateMetadataRequests,
+  MetadataRequestGenerationGateLive,
+  runForCurrentMetadataGeneration
+} from './metadataRequestGeneration';
 import { runQuery } from './queryRunner';
 
 const appendToChannel = (message: string) =>
@@ -99,8 +102,6 @@ export class SOQLEditorInstance {
 
     const instanceFiber = getSoqlRuntime().runFork(
       Effect.gen(this, function* () {
-        // Both streams share this generation Ref. An org change invalidates metadata work before notifying the UI.
-        const metadataRequestGeneration = yield* Ref.make(0);
         const messages = Stream.async<SoqlEditorEvent>(emit => {
           const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
             void emit.single(event);
@@ -111,7 +112,7 @@ export class SOQLEditorInstance {
         }).pipe(
           Stream.mapEffect(
             event =>
-              this.handleMessageEffect(event, metadataRequestGeneration).pipe(
+              this.handleMessageEffect(event).pipe(
                 Effect.catchAllCause(_cause =>
                   appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
                 )
@@ -124,17 +125,15 @@ export class SOQLEditorInstance {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
         const connectionChanges = targetOrgRef.changes.pipe(
-          Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
+          Stream.map(org => org.orgId),
           Stream.changes,
-          Stream.runForEach(isOrgSet =>
-            invalidateMetadataRequests(metadataRequestGeneration).pipe(
-              Effect.andThen(this.sendMessageToUi(isOrgSet ? 'connection_changed' : 'no_default_org'))
-            )
+          Stream.runForEach(orgId =>
+            invalidateMetadataRequests(this.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org'))
           )
         );
 
         yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true });
-      })
+      }).pipe(Effect.provide(MetadataRequestGenerationGateLive))
     );
     this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
 
@@ -176,7 +175,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  private handleMessageEffect = (event: SoqlEditorEvent, metadataRequestGeneration: Ref.Ref<number>) => {
+  private handleMessageEffect = (event: SoqlEditorEvent) => {
     switch (event.type) {
       case 'ui_activated': {
         return Effect.promise(() => isDefaultOrgSet()).pipe(
@@ -206,7 +205,7 @@ export class SOQLEditorInstance {
       }
 
       case 'sobject_metadata_request': {
-        return runForCurrentMetadataGeneration(metadataRequestGeneration, retrieveSObject(event.payload), sobject =>
+        return runForCurrentMetadataGeneration(retrieveSObject(event.payload), sobject =>
           sobject ? this.updateSObjectMetadata(sobject) : Effect.void
         ).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
@@ -215,9 +214,7 @@ export class SOQLEditorInstance {
       }
 
       case 'sobjects_request': {
-        return runForCurrentMetadataGeneration(metadataRequestGeneration, listSObjectNamesEffect, names =>
-          this.updateSObjects(names)
-        ).pipe(
+        return runForCurrentMetadataGeneration(listSObjectNamesEffect, names => this.updateSObjects(names)).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );

@@ -20,6 +20,7 @@ test('renders From loading, empty, recoverable-error, and missing-org states', a
     await emitState(page, { isObjectsLoading: true, metadata: { objects: [] } });
 
     await expect(fromSelect(page)).toHaveAttribute('aria-busy', 'true');
+    await expect(page.getByRole('combobox', { name: 'From' })).toHaveAttribute('aria-busy', 'true');
     await expect(fromSelect(page)).toHaveAttribute('disabled', '');
     await expect(page.getByText('Loading...', { exact: true })).toBeVisible();
   });
@@ -42,6 +43,7 @@ test('renders From loading, empty, recoverable-error, and missing-org states', a
 
     await expect(page.getByRole('form', { name: 'Query inputs' })).toBeVisible();
     await expect(fromSelect(page)).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByRole('combobox', { name: 'From' })).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByText('From*', { exact: true })).toBeVisible();
   });
 

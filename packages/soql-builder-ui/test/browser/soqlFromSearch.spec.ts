@@ -24,6 +24,12 @@ test('searches and keyboard-selects an object from a large catalog', async ({ pa
     await expect(page.getByText('No results found.', { exact: true })).toBeVisible();
   });
 
+  await test.step('clears the announcement when the control resets its filter on focus', async () => {
+    await from.blur();
+    await from.focus();
+    await expect(page.getByText('No results found.', { exact: true })).toBeHidden();
+  });
+
   await test.step('keeps the announcement aligned with the label-only control filter', async () => {
     await from.fill('TargetAccount__c');
     await expect(page.getByRole('option', { name: 'Target Account' })).toBeHidden();
