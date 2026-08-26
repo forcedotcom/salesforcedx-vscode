@@ -151,38 +151,46 @@ gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo 
 
 Creates `release-base/v67.12.x` from tag; copies latest version helpers from develop.
 
-**2. Apply fixes**
+**2. Check out branch locally**
 
 ```sh
-git fetch origin && git checkout release-base/v67.12.x
+git fetch origin
+git checkout release-base/v67.12.x
+```
+
+**3. Apply fixes**
+
+Make code changes, commit with conventional messages (fix:, feat:, etc.), push to branch:
+
+```sh
 git commit -m "fix: <message>"
 git push origin release-base/v67.12.x
 ```
 
-**3. Build patch**
+**4. Build patch release**
 
 ```sh
 gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Auto-calculates patch (stable tags only), tags exact commit, builds VSIX.
+Auto-calculates patch (stable tags only), tags exact commit from branch HEAD, builds VSIX.
 
-**4. Test VSIX**
+**5. Test VSIX**
 
 ```sh
 gh release download v67.12.1 --dir ~/Downloads/v67.12.1 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
 find ~/Downloads/v67.12.1 -type f -name "*.vsix" -exec code --install-extension {} \;
 ```
 
-**5. Publish**
+**6. Publish to marketplace**
 
 ```sh
 gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom/salesforcedx-vscode
 ```
 
-**6. Cherry-pick to develop**
+**7. Cherry-pick fixes to develop**
 
-Merge fixes back. Release notes provide cherry-pick commands.
+Merge functional fixes back to develop (not version bumps). Release notes provide cherry-pick commands.
 
 ```sh
 git checkout develop && git pull origin develop
@@ -190,7 +198,9 @@ git cherry-pick <commit-sha>  # functional fixes only
 git push origin develop
 ```
 
-**7. Cleanup**
+**8. Cleanup (after patch published)**
+
+Delete the release-base branch:
 
 ```sh
 git push origin --delete release-base/v67.12.x

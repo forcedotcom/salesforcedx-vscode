@@ -113,32 +113,3 @@ jobs:
           git push origin "$BRANCH_NAME"
 
           echo "✅ Created branch: $BRANCH_NAME from tag $BASE_TAG"
-          echo ""
-          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "1. **Check out the branch locally:**" >> $GITHUB_STEP_SUMMARY
-          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
-          echo "   git fetch origin" >> $GITHUB_STEP_SUMMARY
-          echo "   git checkout $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
-          echo '   ```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "2. **Apply your fixes:**" >> $GITHUB_STEP_SUMMARY
-          echo "   - Make code changes" >> $GITHUB_STEP_SUMMARY
-          echo "   - Commit with conventional commit messages (fix:, feat:, etc.)" >> $GITHUB_STEP_SUMMARY
-          echo "   - Push to this branch" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "3. **Create patch release:**" >> $GITHUB_STEP_SUMMARY
-          echo "   - Run the \`build-patch-release.yml\` workflow" >> $GITHUB_STEP_SUMMARY
-          echo "   - It will tag v${MAJOR_MINOR}.{patch+1} from branch HEAD" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "4. **Cherry-pick fixes to develop:**" >> $GITHUB_STEP_SUMMARY
-          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
-          echo "   git checkout develop" >> $GITHUB_STEP_SUMMARY
-          echo "   git cherry-pick <commit-sha>" >> $GITHUB_STEP_SUMMARY
-          echo "   git push origin develop" >> $GITHUB_STEP_SUMMARY
-          echo '   ```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "5. **After patch is published, delete the branch:**" >> $GITHUB_STEP_SUMMARY
-          echo '   ```bash' >> $GITHUB_STEP_SUMMARY
-          echo "   git push origin --delete $BRANCH_NAME" >> $GITHUB_STEP_SUMMARY
-          echo '   ```' >> $GITHUB_STEP_SUMMARY
