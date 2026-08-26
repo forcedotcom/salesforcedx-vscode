@@ -6,7 +6,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { builder, mountBuilder } from './helpers.js';
+import { builder, fromSelect, mountBuilder, selectValue } from './helpers.js';
 
 test('reconnects once, avoids duplicate subscriptions, and cleans up all resources', async ({ page }) => {
   await mountBuilder(page);
@@ -24,6 +24,19 @@ test('reconnects once, avoids duplicate subscriptions, and cleans up all resourc
     await expect
       .poll(() => page.evaluate(() => window.soqlBuilderHarness.stats()))
       .toMatchObject({ acquisitions: 2, activeLayers: 1, activeSubscriptions: 1, releases: 1 });
+  });
+
+  await test.step('keeps action and failure channels live after reconnecting', async () => {
+    await selectValue(fromSelect(page), 'Account');
+    await expect
+      .poll(() => page.evaluate(() => window.soqlBuilderHarness.recordedActions()))
+      .toContainEqual({ _tag: 'ObjectSelected', objectName: 'Account' });
+
+    await page.evaluate(() => window.soqlBuilderHarness.fail('Reconnected subscription failed'));
+    await expect(page.getByRole('alert')).toHaveText('Reconnected subscription failed');
+    await expect
+      .poll(() => page.evaluate(() => window.soqlBuilderHarness.stats()))
+      .toMatchObject({ acquisitions: 2, activeLayers: 1, activeSubscriptions: 0, releases: 1 });
   });
 
   await test.step('releases all resources on unmount', async () => {

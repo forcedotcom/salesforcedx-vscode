@@ -31,9 +31,9 @@
       "types": "./out/src/effect/soqlBuilderService.d.ts",
       "default": "./out/src/effect/soqlBuilderService.js"
     },
-    "./testing/fakeEffectDriver": {
-      "types": "./out/src/testing/fakeEffectDriver.d.ts",
-      "default": "./out/src/testing/fakeEffectDriver.js"
+    "./testing/fakeEffectService": {
+      "types": "./out/src/testing/fakeEffectService.d.ts",
+      "default": "./out/src/testing/fakeEffectService.js"
     },
     "./testing/fakeSoqlBuilderService": {
       "types": "./out/src/testing/fakeSoqlBuilderService.d.ts",

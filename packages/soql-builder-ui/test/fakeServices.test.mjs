@@ -6,31 +6,32 @@ import * as Either from 'effect/Either';
 import * as Fiber from 'effect/Fiber';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
-import { makeFakeEffectDriver } from '../out/src/testing/fakeEffectDriver.js';
+import { makeFakeEffectService } from '../out/src/testing/fakeEffectService.js';
 
-const QueryResultsDriver = Context.GenericTag('@salesforce/soql-builder-ui/test/QueryResultsDriver');
+const QueryResultsService = Context.GenericTag('@salesforce/soql-builder-ui/test/QueryResultsService');
 
 test('the query-results fake is a scoped Effect layer with deterministic test-clock latency and typed failures', async () => {
   const failure = { _tag: 'QueryResultsFailure', message: 'CSV export failed' };
   const result = await Effect.runPromise(
     Effect.gen(function* () {
-      const fake = yield* makeFakeEffectDriver(
-        QueryResultsDriver,
+      const fake = yield* makeFakeEffectService(
+        QueryResultsService,
         { returnedCount: 0, title: 'Results' },
         { dispatchLatency: '2 seconds' }
       );
 
-      const driverResult = yield* Effect.gen(function* () {
-        const driver = yield* QueryResultsDriver;
-        const initialState = yield* driver.initialState;
-        const dispatchFiber = yield* driver.dispatch({ _tag: 'SaveRequested', format: 'csv' }).pipe(Effect.fork);
+      const serviceResult = yield* Effect.gen(function* () {
+        const service = yield* QueryResultsService;
+        const initialState = yield* service.initialState;
+        const dispatchFiber = yield* service.dispatch({ _tag: 'SaveRequested', format: 'csv' }).pipe(Effect.fork);
         yield* Effect.yieldNow();
         const actionsBeforeTimeAdvances = yield* fake.recordedActions;
         yield* TestClock.adjust('2 seconds');
         yield* Fiber.join(dispatchFiber);
+        const queuedAction = yield* fake.nextAction;
 
         yield* fake.failNextDispatch(failure);
-        const failedDispatch = yield* driver
+        const failedDispatch = yield* service
           .dispatch({ _tag: 'SaveRequested', format: 'json' })
           .pipe(Effect.either, Effect.fork);
         yield* TestClock.adjust('2 seconds');
@@ -39,12 +40,22 @@ test('the query-results fake is a scoped Effect layer with deterministic test-cl
           actions: yield* fake.recordedActions,
           actionsBeforeTimeAdvances,
           failure: yield* Fiber.join(failedDispatch),
-          initialState
+          initialState,
+          queuedAction
         };
       }).pipe(Effect.provide(fake.layer), Effect.scoped);
 
+      yield* fake.setDispatchLatency(0);
+      const actionAfterReconnect = yield* Effect.gen(function* () {
+        const service = yield* QueryResultsService;
+        const nextAction = yield* fake.nextAction.pipe(Effect.fork);
+        yield* service.dispatch({ _tag: 'SaveRequested', format: 'xml' });
+        return yield* Fiber.join(nextAction);
+      }).pipe(Effect.provide(fake.layer), Effect.scoped);
+
       return {
-        ...driverResult,
+        ...serviceResult,
+        actionAfterReconnect,
         finalized: yield* fake.isFinalized,
         stats: yield* fake.stats
       };
@@ -54,14 +65,16 @@ test('the query-results fake is a scoped Effect layer with deterministic test-cl
   assert.deepEqual(result.initialState, { returnedCount: 0, title: 'Results' });
   assert.deepEqual(result.actionsBeforeTimeAdvances, []);
   assert.deepEqual(result.actions, [{ _tag: 'SaveRequested', format: 'csv' }]);
+  assert.deepEqual(result.queuedAction, { _tag: 'SaveRequested', format: 'csv' });
+  assert.deepEqual(result.actionAfterReconnect, { _tag: 'SaveRequested', format: 'xml' });
   assert.equal(Either.isLeft(result.failure), true);
   assert.deepEqual(result.failure.left, failure);
   assert.equal(result.finalized, true);
   assert.deepEqual(result.stats, {
-    acquisitions: 1,
+    acquisitions: 2,
     activeLayers: 0,
     activeSubscriptions: 0,
     dispatchesInFlight: 0,
-    releases: 1
+    releases: 2
   });
 });
