@@ -206,5 +206,7 @@ export { makeManifest, readManifest, writeManifest } from './codeBuilder/manifes
 export type { Manifest, ManifestEntry } from './codeBuilder/manifest';
 export { verifyExtensions, assertVerified, OVERRIDES_DIR, RUNTIME_EXT_DIR } from './codeBuilder/verify';
 export type { VerifyOptions, VerifyResult, VerifyEntryResult } from './codeBuilder/verify';
+export { swap, defaultExtract, RUNTIME_EXT_DIR } from './codeBuilder/swap';
+export type { SwapOptions, ExtractZip } from './codeBuilder/swap';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';
