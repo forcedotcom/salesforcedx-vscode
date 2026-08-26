@@ -141,16 +141,7 @@ jobs:
         run: npm run vscode:package
 
       - name: Collect VSIXs
-        run: |
-          mkdir -p extensions
-          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-
-          # Validate that VSIXs were built
-          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
-          if [ "$VSIX_COUNT" -eq 0 ]; then
-            echo "::error::No VSIX files found after build"
-            exit 1
-          fi
+        uses: ./.github/actions/collect-vsix
           echo "✓ Found $VSIX_COUNT VSIX files"
 
       - name: Generate SHA256 checksums

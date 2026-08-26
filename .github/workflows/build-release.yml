@@ -269,19 +269,7 @@ jobs:
         run: npm run vscode:package
 
       - name: Collect VSIXs
-        run: |
-          # TODO: Extract to reusable composite action (.github/actions/collect-vsix)
-          # This pattern is duplicated in build-patch-release.yml and other workflows
-          mkdir -p extensions
-          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-
-          # Validate that VSIXs were built
-          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
-          if [ "$VSIX_COUNT" -eq 0 ]; then
-            echo "::error::No VSIX files found after build. Build may have failed silently."
-            exit 1
-          fi
-          echo "✓ Found $VSIX_COUNT VSIX files"
+        uses: ./.github/actions/collect-vsix
 
       - name: Generate SHA256 checksums
         run: |
