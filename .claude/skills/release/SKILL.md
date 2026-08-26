@@ -14,13 +14,13 @@ From repo root (no global `ts-node`):
 
 - `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
 
-## Step 0 — Verify Monday stable build
+## Step 0 — Verify Wednesday stable build
 
 Run `detect-state.ts` first.
 
 > **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
 
-Check scheduled `build-release.yml` ran Monday:
+Check scheduled `build-release.yml` ran Wednesday:
 
 ```sh
 gh run list --workflow=build-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
@@ -40,7 +40,7 @@ Decision matrix:
   gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 - **No run this week** → Either:
-  - Wait (Mon 8 AM UTC)
+  - Wait (Wed 8 AM UTC)
   - Trigger manually:
   ```sh
   gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
@@ -127,8 +127,7 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 
 - **Daily 4 AM UTC** — nightly.yml → extensions as prerelease
 - **Wed 7 AM UTC** — promote-prerelease.yml → selects nightly, gate-checks CI, promotes to pre-release; creates `marketplace-prerelease-*` tracking tag
-- **5-day baking** — Wed → Mon (customer validation)
-- **Mon 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
+- **Wed 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
 - **After test approval** — publishVSCode.yml → publishes to Microsoft + Open VSX
 
 ## Emergency Patch Releases
@@ -281,6 +280,5 @@ gh workflow run build-release.yml \
 
 - All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
 - Don't approve publishes until manual testing done
-- 5-day gap (Wed → Mon) intentional for validation
 - Patch releases bypass timeline for emergencies only
 - Always cherry-pick fixes to develop after publishing

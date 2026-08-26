@@ -15,7 +15,7 @@ References:
 
 ## Build Release from Prerelease
 
-Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases (after 5-day baking period: Wed pre-release → Mon stable) and emergency pre-releases. Trigger manually for on-demand.
+Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Wed 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases and emergency pre-releases. Trigger manually for on-demand.
 
 **Release notes** (minimal format): contain version/title, source ref/branch, internal testing warning, and link to [docs/release-testing-guide.md](../docs/release-testing-guide.md) for complete testing and publishing instructions. Release notes no longer embed procedural instructions.
 
@@ -45,7 +45,7 @@ Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesfor
 - Use for regular weekly releases
 - Creates isolated `release-staging/v{version}` branch
 - Bumps version in isolated branch
-- Creates stable release after 5-day baking period
+- Creates stable release on Wednesday schedule
 
 **Examples:**
 
@@ -102,19 +102,16 @@ For complete testing and publishing workflow, see [docs/release-testing-guide.md
 
 **Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
 
-**5-day baking period:** Wed pre-release → Mon stable (customer validation).
-
-**Mon stable release:** `build-release.yml` (Mon 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
+**Wed stable release:** `build-release.yml` (Wed 8 AM UTC) → detects promoted tag via tracking tag, builds stable VSIXs. Release engineer approves + publishes.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds).
 
 ## Publishing to Marketplace
 
-### Standard Path: Nightly → Weekly Pre-release → Mon Stable → Marketplace
+### Standard Path: Nightly → Weekly Pre-release → Wed Stable → Marketplace
 
 1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release; creates `marketplace-prerelease-*` tracking tag
-2. **5-day baking:** Wed → Mon (customer validation)
-3. **Mon 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
+2. **Wed 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release
 5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
    - Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
@@ -368,7 +365,7 @@ To minimize rollback scenarios:
 | Aspect | Normal | Patch | Emergency Pre-release |
 |--------|--------|-------|----------------------|
 | Source | develop | release-base/vX.Y.x | Any git ref |
-| Timeline | Wed → 5d → Mon | Hours | ~5 min |
+| Timeline | Wed | Hours | ~5 min |
 | Version | X.Y+1.0 | X.Y.Z+1 | Nightly format |
 | Stable? | After baking | Immediate | Pre-release only |
 | Workflows | promote → build-release | create-patch → build-patch | build-release + promote-prerelease |

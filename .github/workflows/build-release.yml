@@ -2,10 +2,9 @@ name: Build Release
 
 on:
   schedule:
-    # Mondays at 8 AM UTC (5 days after Wednesday pre-release promotion)
+    # Wednesdays at 8 AM UTC
     # Builds stable release from pre-release that has been tested by customers
-    # Gives ~5 day baking period (Wed pre-release → Mon stable release)
-    - cron: '0 8 * * 1'
+    - cron: '0 8 * * 3'
   workflow_dispatch:
     inputs:
       startFromRef:
