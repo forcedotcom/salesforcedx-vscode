@@ -68,8 +68,8 @@ export const makeFakeEffectDriver = <Identifier, State, Action, Failure>(
       Stream.fromPubSub(failures).pipe(Stream.mapEffect(error => Effect.fail(error)))
     );
     const service: EffectDriver<State, Action, Failure> = {
-      dispatch: action =>
-        Effect.gen(function* () {
+      dispatch: Effect.fn('FakeEffectDriver.dispatch')(
+        function* (action: Action) {
           yield* Ref.update(stats, current => ({
             ...current,
             dispatchesInFlight: current.dispatchesInFlight + 1
@@ -80,14 +80,14 @@ export const makeFakeEffectDriver = <Identifier, State, Action, Failure>(
           if (Option.isSome(failure)) yield* Effect.fail(failure.value);
           yield* Ref.update(actions, current => [...current, action]);
           yield* Queue.offer(actionQueue, action);
-        }).pipe(
-          Effect.ensuring(
-            Ref.update(stats, current => ({
-              ...current,
-              dispatchesInFlight: current.dispatchesInFlight - 1
-            }))
-          )
-        ),
+        },
+        Effect.ensuring(
+          Ref.update(stats, current => ({
+            ...current,
+            dispatchesInFlight: current.dispatchesInFlight - 1
+          }))
+        )
+      ),
       initialState: SubscriptionRef.get(state),
       stateChanges: Stream.unwrap(
         Ref.update(stats, current => ({
@@ -135,7 +135,7 @@ export const makeFakeEffectDriver = <Identifier, State, Action, Failure>(
               ...current,
               activeLayers: current.activeLayers - 1,
               releases: current.releases + 1
-            }))
+            })).pipe(Effect.andThen(Queue.shutdown(actionQueue)), Effect.andThen(PubSub.shutdown(failures)))
         )
       ),
       nextAction: Queue.take(actionQueue),

@@ -35,10 +35,6 @@
       "types": "./out/src/testing/fakeEffectDriver.d.ts",
       "default": "./out/src/testing/fakeEffectDriver.js"
     },
-    "./testing/fakeQueryResultsDriver": {
-      "types": "./out/src/testing/fakeQueryResultsDriver.d.ts",
-      "default": "./out/src/testing/fakeQueryResultsDriver.js"
-    },
     "./testing/fakeSoqlBuilderService": {
       "types": "./out/src/testing/fakeSoqlBuilderService.d.ts",
       "default": "./out/src/testing/fakeSoqlBuilderService.js"

@@ -83,22 +83,17 @@ export class SoqlBuilderApplication {
           ],
           { concurrency: 'unbounded', discard: true }
         );
-      }).pipe(
-        Effect.scoped,
-        Effect.catchTags({
-          SoqlBuilderMessageChannelError: reportServiceError,
-          SoqlBuilderQueryError: reportServiceError,
-          InvalidSoqlBuilderMetadataError: reportServiceError
-        })
-      )
+      }).pipe(Effect.scoped, Effect.catchAll(reportServiceError))
     );
     this.connection = connection;
     connection.addObserver(() => {
       if (this.connection !== connection) return;
       this.connection = undefined;
       this.runtime = undefined;
+      // addObserver's callback must stay synchronous (Fiber observer contract), so runtime teardown is
+      // fire-and-forget here; a completed application fiber has no caller to receive teardown failures.
       void runtime.dispose().catch(() => {
-        // A completed application fiber has no caller to receive teardown failures.
+        // teardown failures during disposal are non-actionable
       });
     });
   };

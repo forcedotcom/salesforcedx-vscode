@@ -6,7 +6,7 @@ import * as Either from 'effect/Either';
 import * as Fiber from 'effect/Fiber';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
-import { makeFakeQueryResultsDriver } from '../out/src/testing/fakeQueryResultsDriver.js';
+import { makeFakeEffectDriver } from '../out/src/testing/fakeEffectDriver.js';
 
 const QueryResultsDriver = Context.GenericTag('@salesforce/soql-builder-ui/test/QueryResultsDriver');
 
@@ -14,7 +14,7 @@ test('the query-results fake is a scoped Effect layer with deterministic test-cl
   const failure = { _tag: 'QueryResultsFailure', message: 'CSV export failed' };
   const result = await Effect.runPromise(
     Effect.gen(function* () {
-      const fake = yield* makeFakeQueryResultsDriver(
+      const fake = yield* makeFakeEffectDriver(
         QueryResultsDriver,
         { returnedCount: 0, title: 'Results' },
         { dispatchLatency: '2 seconds' }

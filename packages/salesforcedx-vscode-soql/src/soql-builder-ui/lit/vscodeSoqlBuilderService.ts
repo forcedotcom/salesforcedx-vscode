@@ -110,13 +110,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
 
   const publishError = (error: ServiceError) => PubSub.publish(errors, error).pipe(Effect.asVoid);
   const reportMessageError = <A>(handler: Effect.Effect<A, ServiceError>) =>
-    handler.pipe(
-      Effect.catchTags({
-        SoqlBuilderMessageChannelError: publishError,
-        SoqlBuilderQueryError: publishError,
-        InvalidSoqlBuilderMetadataError: publishError
-      })
-    );
+    handler.pipe(Effect.catchAll(publishError));
 
   const requestObjects = Effect.fn('VscodeSoqlBuilderService.requestObjects')(() =>
     trySendMessage(() => messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST }))
