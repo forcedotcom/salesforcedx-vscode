@@ -1,6 +1,6 @@
 # DEPRECATED: Replaced by build-release.yml
 #
-# build-release.yml builds from promoted prerelease tags (no release branch) + supports
+# build-release.yml builds from nightly tags published to marketplace as prerelease (no release branch) + supports
 # emergency pre-releases via publishAsPrerelease=true.
 # See: .github/workflows/build-release.yml
 # Docs: contributing/publishing.md

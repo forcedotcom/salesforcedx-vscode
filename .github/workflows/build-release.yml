@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       prereleaseTag:
-        description: 'Promoted prerelease tag (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest. Ignored if startFromRef is provided.'
+        description: 'Nightly tag published to marketplace as prerelease (e.g., v67.11.1-nightly.develop.20260812). Leave empty to auto-detect latest. Ignored if startFromRef is provided.'
         required: false
         type: string
       releaseVersion:
@@ -93,16 +93,16 @@ jobs:
             fi
 
           else
-            # Priority 3: Auto-detect latest promoted prerelease via tracking tag
-            # The promote-prerelease workflow creates marketplace-prerelease-* tracking tags
-            # that point to the vetted Wednesday candidate commit
+            # Priority 3: Auto-detect latest nightly published to marketplace as prerelease
+            # The promote-prerelease workflow (nightly → marketplace prerelease) creates
+            # marketplace-prerelease-* tracking tags pointing to the Wednesday candidate commit
             TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
 
             if [ -z "$TRACKING_TAG" ]; then
               echo "::error::No marketplace-prerelease tracking tags found"
               echo "::error::Expected pattern: marketplace-prerelease-salesforcedx-vscode-v{version}"
               echo "::error::"
-              echo "::error::This means no nightly has been promoted to prerelease yet."
+              echo "::error::This means no nightly has been published to marketplace as prerelease yet."
               echo "::error::💡 TIP: Use startFromRef input to build from a specific tag/branch/commit"
               exit 1
             fi
@@ -125,9 +125,10 @@ jobs:
               exit 1
             fi
 
-            echo "Auto-detected promoted prerelease via tracking tag: $TRACKING_TAG"
+            echo "Auto-detected nightly published to marketplace as prerelease"
+            echo "Tracking tag: $TRACKING_TAG"
             echo "Resolved to nightly tag: $TAG"
-            echo "This is the Wednesday candidate that was promoted and tested"
+            echo "This is the Wednesday candidate published to marketplace and tested by customers"
           fi
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -348,13 +349,13 @@ jobs:
             # NOTE: This uses text matching on release body which is fragile - if release notes
             # format changes, this check may break. Future improvement: use GitHub release labels
             # or custom metadata for more reliable workflow-created marker.
-            if echo "$EXISTING_BODY" | grep -qE "(Built from promoted prerelease:|Built from source ref:)"; then
+            if echo "$EXISTING_BODY" | grep -qE "(Built from nightly:|Built from source ref:)"; then
               echo "✓ Release was created by build-release.yml - safe to delete for retry"
               gh release delete "$RELEASE_TAG" --yes --cleanup-tag
             else
               echo "::error::Release $RELEASE_TAG exists but was NOT created by this workflow"
               echo "::error::This may be a manually created emergency release"
-              echo "::error::Release body does not contain expected markers: 'Built from promoted prerelease:' or 'Built from source ref:'"
+              echo "::error::Release body does not contain expected markers: 'Built from nightly:' or 'Built from source ref:'"
               echo "::error::"
               echo "::error::To proceed, either:"
               echo "::error::  1. Manually delete the release: gh release delete $RELEASE_TAG --yes --cleanup-tag"

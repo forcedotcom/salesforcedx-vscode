@@ -1,6 +1,6 @@
 ## Release {{VERSION}}
 
-**Built from:** `{{PRERELEASE_TAG}}`
+**Built from nightly:** `{{PRERELEASE_TAG}}`
 **Branch:** `release-staging/v{{VERSION}}` (isolated, do not merge to develop)
 
 ⚠️ **Pre-release for internal testing only.**

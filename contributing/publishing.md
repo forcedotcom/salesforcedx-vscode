@@ -27,12 +27,12 @@ Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesfor
 - `prereleaseTag` — prerelease tag e.g. `v67.11.1-nightly.develop.20260812` (auto-detect if empty)
 - `releaseVersion` — e.g. `67.12.0` (auto-calculated if empty)
 
-**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect via `marketplace-prerelease-*` tracking tags (finds promoted Wed candidate tested by customers)
+**Detection priority:** `startFromRef` → `prereleaseTag` → auto-detect via `marketplace-prerelease-*` tracking tags (finds nightly published to marketplace as prerelease, tested by customers)
 
 **How detection works:**
 1. If `startFromRef` provided, use that ref (any git ref: tag/branch/SHA) — bypasses nightly validation, for emergency releases only
 2. Else if `prereleaseTag` provided, validate nightly format (`v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`), use that tag
-3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks Wed 7 AM UTC promotion (latest nightly + passing CI)
+3. Else auto-detect: query latest `marketplace-prerelease-*` tracking tag → extract version → find matching nightly tag. Tracks Wed 7 AM UTC promotion (nightly published to marketplace + passing CI)
 
 **Emergency Pre-release Mode (`publishAsPrerelease=true`):**
 - Use for critical hotfixes that cannot wait for normal release cycle
@@ -50,7 +50,7 @@ Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesfor
 **Examples:**
 
 ```sh
-# Standard: auto-detect latest promoted prerelease
+# Standard: auto-detect latest nightly published to marketplace as prerelease
 gh workflow run build-release.yml
 
 # Standard: build from hotfix branch with version bump
