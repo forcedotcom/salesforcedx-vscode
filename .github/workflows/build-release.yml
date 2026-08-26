@@ -299,56 +299,7 @@ jobs:
               -e "s|{{REPOSITORY}}|${{ github.repository }}|g" \
               "$TEMPLATE" > release_notes.md
 
-          # Check if release already exists (for retry scenarios)
-          if gh release view "$RELEASE_TAG" &> /dev/null; then
-            echo "⚠️  Release $RELEASE_TAG already exists"
-
-            # Get release body to check if it was created by this workflow
-            EXISTING_BODY=$(gh release view "$RELEASE_TAG" --json body --jq '.body')
-
-            # Check if release was created by this workflow (contains our marker)
-            # NOTE: This uses text matching on release body which is fragile - if release notes
-            # format changes, this check may break. Future improvement: use GitHub release labels
-            # or custom metadata for more reliable workflow-created marker.
-            if echo "$EXISTING_BODY" | grep -qE "(Built from nightly:|Built from source ref:)"; then
-              echo "✓ Release was created by build-release.yml - safe to delete for retry"
-              gh release delete "$RELEASE_TAG" --yes --cleanup-tag
-            else
-              echo "::error::Release $RELEASE_TAG exists but was NOT created by this workflow"
-              echo "::error::This may be a manually created emergency release"
-              echo "::error::Release body does not contain expected markers: 'Built from nightly:' or 'Built from source ref:'"
-              echo "::error::"
-              echo "::error::To proceed, either:"
-              echo "::error::  1. Manually delete the release: gh release delete $RELEASE_TAG --yes --cleanup-tag"
-              echo "::error::  2. Use a different releaseVersion input to avoid conflict"
-              exit 1
-            fi
-
-            # Wait for GitHub API to propagate the deletion (eventual consistency)
-            echo "Waiting for deletion to propagate..."
-            sleep 5
-
-            # Verify deletion completed with timeout
-            DELETED=false
-            for i in {1..5}; do
-              if ! gh release view "$RELEASE_TAG" &> /dev/null; then
-                echo "✓ Release deleted successfully"
-                DELETED=true
-                break
-              fi
-              echo "Waiting for deletion to complete (attempt $i/5)..."
-              sleep 3
-            done
-
-            # Fail if deletion didn't complete
-            if [ "$DELETED" = false ]; then
-              echo "::error::Release deletion timed out after 20 seconds"
-              echo "::error::GitHub API may be experiencing delays. Please try again later."
-              exit 1
-            fi
-          fi
-
-          # Create pre-release first (without assets)
+          # Create pre-release (without assets)
           # Note: No --target needed here as we're on the checked-out commit
           # The release will be created at the current HEAD which is the correct commit
           gh release create "$RELEASE_TAG" \
