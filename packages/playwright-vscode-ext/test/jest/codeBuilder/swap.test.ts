@@ -9,8 +9,8 @@ import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { CommandRunner } from '../../../src/codeBuilder/runner';
-import { RUNTIME_EXT_DIR, swap, type ExtractZip } from '../../../src/codeBuilder/swap';
-import { OVERRIDES_DIR, verifyExtensions } from '../../../src/codeBuilder/verify';
+import { swap, type ExtractZip } from '../../../src/codeBuilder/swap';
+import { OVERRIDES_DIR, RUNTIME_EXT_DIR, verifyExtensions } from '../../../src/codeBuilder/verify';
 
 const PREFIX = 'salesforce';
 
@@ -122,6 +122,15 @@ describe('swap', () => {
       if (args[0] === 'exec' && typeof script === 'string' && script.includes('ls -d')) {
         const m = script.match(/ls -d (\S+)-\[0-9\]\*/);
         const prefix = m?.[1] ?? '';
+        // Runtime ls: simulate a successful start.sh relink — return the installed override dirs'
+        // basenames rebased under RUNTIME_EXT_DIR.
+        if (prefix.startsWith(RUNTIME_EXT_DIR)) {
+          const id = prefix.slice(RUNTIME_EXT_DIR.length + 1);
+          return Object.keys(installedTreeById)
+            .filter(d => d.startsWith(`${OVERRIDES_DIR}/${id}-`))
+            .map(d => `${RUNTIME_EXT_DIR}/${d.slice(d.lastIndexOf('/') + 1)}`)
+            .join('\n');
+        }
         return Object.keys(installedTreeById)
           .filter(d => d.startsWith(`${prefix}-`))
           .join('\n');

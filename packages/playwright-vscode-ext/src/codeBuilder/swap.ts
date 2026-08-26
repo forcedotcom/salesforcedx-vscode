@@ -31,13 +31,9 @@ import { join } from 'node:path';
 import { computeExtensionDigest, resolveExtensionRoot } from './digest';
 import { makeManifest, type Manifest } from './manifest';
 import { defaultRunner, type CommandRunner } from './runner';
-import { OVERRIDES_DIR } from './verify';
-
-/*
- * Runtime extensions dir code-server loads from. start.sh symlinks each override here (strictly-newer
- * semver only), so the wipe must clear this too — else a same-or-lower VSIX never re-links on restart.
- */
-export const RUNTIME_EXT_DIR = '/home/codebuilder/.local/share/code-server/extensions';
+// OVERRIDES_DIR + RUNTIME_EXT_DIR live in verify (the module that also reads them), so swap and
+// verify share one definition of the image's extension locations rather than drifting copies.
+import { OVERRIDES_DIR, RUNTIME_EXT_DIR } from './verify';
 
 /** Extracts a .vsix (a zip) into destDir, yielding destDir/extension/... Injectable for tests. */
 export type ExtractZip = (vsixPath: string, destDir: string) => void;
