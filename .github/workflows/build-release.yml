@@ -174,18 +174,9 @@ jobs:
 
       - name: Preserve scripts before checkout
         if: steps.calculate-version.outputs.is_prerelease != 'true'
-        run: |
-          # Copy scripts to temp location (prerelease tag may not have them)
-          mkdir -p /tmp/release-scripts
-          cp scripts/calculate-release-version.js /tmp/release-scripts/
-          cp scripts/update-release-versions.js /tmp/release-scripts/
-
-          # Generate checksums for integrity verification (without directory prefix)
-          cd scripts
-          sha256sum calculate-release-version.js update-release-versions.js > /tmp/release-scripts/checksums.txt
-          cd ..
-          echo "Generated checksums:"
-          cat /tmp/release-scripts/checksums.txt
+        uses: ./.github/actions/preserve-scripts
+        with:
+          mode: save
 
       - name: Create isolated release branch
         if: steps.calculate-version.outputs.is_prerelease != 'true'
@@ -206,27 +197,9 @@ jobs:
 
       - name: Restore scripts
         if: steps.calculate-version.outputs.is_prerelease != 'true'
-        run: |
-          # Restore scripts from temp location
-          mkdir -p scripts
-
-          # Verify scripts exist in temp
-          if [ ! -f /tmp/release-scripts/calculate-release-version.js ] || [ ! -f /tmp/release-scripts/update-release-versions.js ]; then
-            echo "::error::Scripts not found in /tmp/release-scripts/"
-            exit 1
-          fi
-
-          cp /tmp/release-scripts/calculate-release-version.js scripts/
-          cp /tmp/release-scripts/update-release-versions.js scripts/
-
-          # Verify integrity with checksums
-          cd scripts
-          if ! sha256sum -c /tmp/release-scripts/checksums.txt 2>/dev/null; then
-            echo "::error::Script integrity check failed - checksums do not match"
-            exit 1
-          fi
-          cd ..
-          echo "✓ Script integrity verified"
+        uses: ./.github/actions/preserve-scripts
+        with:
+          mode: restore
 
       - name: Configure git
         if: steps.calculate-version.outputs.is_prerelease != 'true'
