@@ -20,29 +20,13 @@ if (!releaseVersion) {
 
 console.log(`Updating packages to version ${releaseVersion}`);
 
-// Verify packages directory exists
-if (!fs.existsSync('packages')) {
-  console.error('Error: packages/ directory not found');
-  console.error('Current directory:', process.cwd());
-  console.error('This script must be run from the repository root');
-  process.exit(1);
-}
+// Find all package.json files using fs.globSync (Node 20+)
+const packageFiles = fs.globSync('packages/*/package.json', {
+  ignore: '**/node_modules/**'
+});
 
-// Find all package.json files (excluding node_modules)
-let packageFiles;
-try {
-  const output = execSync('find packages -name "package.json" -type f -not -path "*/node_modules/*"', {
-    encoding: 'utf8'
-  }).trim();
-
-  if (!output) {
-    console.error('Error: No package.json files found in packages/');
-    process.exit(1);
-  }
-
-  packageFiles = output.split('\n');
-} catch (error) {
-  console.error('Error running find command:', error.message);
+if (packageFiles.length === 0) {
+  console.error('Error: No package.json files found in packages/');
   process.exit(1);
 }
 
