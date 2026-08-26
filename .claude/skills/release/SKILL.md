@@ -123,14 +123,6 @@ Compose from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
 Show composed post. If Slack MCP available → offer to post/draft to `#platform-dev-tools`. Wait for approval before sending.
 
-## Release timeline
-
-- **Daily 4 AM UTC** — nightly.yml → extensions as prerelease
-- **Wed 7 AM UTC** — promote-prerelease.yml → selects nightly, gate-checks CI, promotes to pre-release; creates `marketplace-prerelease-*` tracking tag
-- **Wed 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
-- **After test approval** — publishVSCode.yml → publishes to Microsoft + Open VSX
-
-
 ## Emergency Hotfixes
 
 For critical security/production bugs, use the separate **`/patch-release`** skill.
