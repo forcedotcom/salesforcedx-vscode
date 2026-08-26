@@ -70,11 +70,16 @@ npm run test:soql-builder-ui --workspace salesforcedx-vscode-soql -- --runInBand
 
 | Artifact | Baseline raw | Baseline gzip | Maximum raw | Maximum gzip |
 | --- | ---: | ---: | ---: | ---: |
-| Legacy builder application | 880,931 B | 231,443 B | 925,000 B | 242,000 B |
+| Legacy builder application | 933,725 B | 246,879 B | 981,000 B | 260,000 B |
 | Query-results first-party shell | 14,293 B | 4,856 B | 16,000 B | 5,500 B |
 | Retained Tabulator vendor assets | 377,590 B | 80,815 B | 378,000 B | 81,000 B |
 
 Tabulator is measured separately because it is retained. A Lit results PR must not present the vendor bytes as framework growth. Migration builds report legacy and Lit entry sizes independently; production VSIX builds must continue excluding inactive migration entries until final cutover.
+
+PR #8026 advances the legacy-builder baseline from 880,931 raw / 231,443 gzip bytes to 933,725 raw /
+246,879 gzip bytes because message-boundary validation now consumes the complete shared Salesforce object schema. The
+new maximums retain approximately five percent headroom rather than treating that intentional schema coverage as an
+unbounded allowance for future growth.
 
 ## Performance and lifecycle gates
 

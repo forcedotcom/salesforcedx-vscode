@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { URI, Utils } from 'vscode-uri';
-import { SObjectSchema } from '../core/transmogrifierService';
+import { SObjectSchema } from '../core/schemas/sObject';
 import { FsService } from '../vscode/fsService';
 import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
