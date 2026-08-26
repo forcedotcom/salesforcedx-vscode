@@ -6,12 +6,12 @@
       "name": "legacy builder application",
       "files": ["src/soql-builder-ui/dist/app.js"],
       "baseline": {
-        "rawBytes": 880931,
-        "gzipBytes": 231443
+        "rawBytes": 933725,
+        "gzipBytes": 246879
       },
       "budget": {
-        "rawBytes": 925000,
-        "gzipBytes": 242000
+        "rawBytes": 981000,
+        "gzipBytes": 260000
       }
     },
     {

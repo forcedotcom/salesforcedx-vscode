@@ -95,6 +95,7 @@ const MainLive = Layer.mergeAll(UserService.Default, OtherService.Default);
 
 - Infrastructure with runtime injection (Cloudflare KV, worker bindings)
 - Factory patterns where resources are provided externally
+- Interfaces with caller-provided implementations — no single canonical one to bundle as `.Default` (e.g. `SoqlBuilderService`, implemented once by the VS Code host and once by a test fake); see `references/service-patterns.md`
 
 ### Params vs Dependencies
 
