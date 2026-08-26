@@ -17,6 +17,8 @@ References:
 
 Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases (after 5-day baking period: Wed pre-release → Mon stable) and emergency pre-releases. Trigger manually for on-demand.
 
+> **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml` instead. Old workflow scheduled for deletion after proven stability (W-23988524).
+
 **Inputs:**
 - `publishAsPrerelease` — boolean flag (default: `false`). When `true`: emergency pre-release mode (no version bump, tags source ref, creates "Emergency Pre-release"). When `false`: standard mode (version bump, isolated branch, stable release).
 - `startFromRef` — git ref (tag/branch/SHA) to build from (optional)
@@ -96,7 +98,7 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 **Nightly builds:** `nightly.yml` → all extensions to pre-release daily (4 AM UTC) + on-demand. Auto-discovers via [`list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
 
-**Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → promotes latest nightly + passing E2E tests to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
+**Weekly pre-release promotion:** `promote-prerelease.yml` (Wed 7 AM UTC, 3h after nightly) → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release. Creates `marketplace-prerelease-*` tracking tag for detection.
 
 **5-day baking period:** Wed pre-release → Mon stable (customer validation).
 
@@ -108,7 +110,7 @@ Test locally; trigger `publishVSCode.yml` if tests pass.
 
 ### Standard Path: Nightly → Weekly Pre-release → Mon Stable → Marketplace
 
-1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → promotes latest nightly + passing E2E tests to pre-release; creates `marketplace-prerelease-*` tracking tag
+1. **Wed 7 AM UTC:** `promote-prerelease.yml` auto-runs → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release; creates `marketplace-prerelease-*` tracking tag
 2. **5-day baking:** Wed → Mon (customer validation)
 3. **Mon 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
 4. Download + test VSIX files from GitHub pre-release

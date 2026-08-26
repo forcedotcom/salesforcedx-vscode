@@ -4,6 +4,9 @@
 # emergency pre-releases via publishAsPrerelease=true.
 # See: .github/workflows/build-release.yml
 # Docs: contributing/publishing.md
+#
+# TODO: Delete this file after 2-3 successful releases with new system (W-23988524)
+# Wait until mid-September 2026 to ensure no rollbacks needed.
 
 name: Create Release Branch (DEPRECATED)
 

@@ -5,7 +5,6 @@ on:
     # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
     # Rationale: Weekly promotion on Wed, then 5-day baking period (Wed → Mon)
     # before stable release, aligning with team review cycles
-    # Stability criteria: latest nightly + all CI checks passed on the tag's commit
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
@@ -33,11 +32,34 @@ permissions:
   actions: read
 
 jobs:
-  promote:
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+  # Step 1: Find nightly candidate (THIS REPO CONTROLS CRITERIA)
+  find-nightly:
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@ms/caller-call-ci-status-check
     with:
       release-tag: ${{ inputs.releaseTag || '' }}
       min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
+
+  # Step 2: Gate-check CI status (THIS REPO CONTROLS CRITERIA)
+  gate-check:
+    needs: find-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check CI status
+        uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@ms/caller-call-ci-status-check
+        with:
+          commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          required-checks: '["unit-tests", "build-all"]'
+
+  # Step 3: Promote to prerelease (only runs if gate-check passed)
+  promote:
+    needs: [find-nightly, gate-check]
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/caller-call-ci-status-check
+    with:
+      release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
       extension-name: 'salesforcedx-vscode'

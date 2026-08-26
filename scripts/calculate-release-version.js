@@ -54,12 +54,6 @@ if (isNaN(majorNum) || isNaN(minorNum) || isNaN(patchNum)) {
   process.exit(1);
 }
 
-// Check for integer overflow (versions should be reasonable)
-if (majorNum > 9999 || minorNum > 9999 || patchNum > 9999) {
-  console.error(`Error: Version component too large in ${prereleaseVersion}. Maximum allowed: 9999`);
-  process.exit(1);
-}
-
 // Bump minor version: 67.11.1 → 67.12.0
 const newMinor = minorNum + 1;
 

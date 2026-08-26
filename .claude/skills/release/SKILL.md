@@ -18,6 +18,8 @@ From repo root (no global `ts-node`):
 
 Run `detect-state.ts` first.
 
+> **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
+
 Check scheduled `build-release.yml` ran Monday:
 
 ```sh
@@ -124,7 +126,7 @@ Show composed post. If Slack MCP available → offer to post/draft to `#platform
 ## Release timeline
 
 - **Daily 4 AM UTC** — nightly.yml → extensions as prerelease
-- **Wed 7 AM UTC** — promote-prerelease.yml → promotes latest nightly (passing E2E), creates `marketplace-prerelease-*` tracking tag
+- **Wed 7 AM UTC** — promote-prerelease.yml → selects nightly, gate-checks CI, promotes to pre-release; creates `marketplace-prerelease-*` tracking tag
 - **5-day baking** — Wed → Mon (customer validation)
 - **Mon 8 AM UTC** — build-release.yml → auto-detects promoted tag, builds stable VSIXs (or emergency pre-release w/ publishAsPrerelease flag)
 - **After test approval** — publishVSCode.yml → publishes to Microsoft + Open VSX
@@ -268,7 +270,6 @@ gh workflow run build-release.yml \
 ## Conventions
 
 - All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
-- `createReleaseBranch.yml` deprecated (use `build-release.yml`)
 - Don't approve publishes until manual testing done
 - 5-day gap (Wed → Mon) intentional for validation
 - Patch releases bypass timeline for emergencies only
