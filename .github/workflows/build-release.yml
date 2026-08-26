@@ -326,72 +326,17 @@ jobs:
         run: |
           echo "Creating GitHub pre-release: $RELEASE_TAG"
 
-          # Create release notes
+          # Generate release notes from template
           if [ "$IS_PRERELEASE" = "true" ]; then
-            # Emergency pre-release mode
-            {
-              echo "## Emergency Pre-release $RELEASE_VERSION"
-              echo ""
-              echo "Built from source ref: \`$PRERELEASE_TAG\`"
-              echo ""
-              echo "**⚠️ EMERGENCY HOTFIX:** This is an expedited pre-release for urgent fixes"
-              echo ""
-              echo "### Testing Required"
-              echo ""
-              echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
-              echo ""
-              echo "### Testing Checklist"
-              echo ""
-              echo "1. Download VSIX files from this release"
-              echo "2. Install extensions locally"
-              echo "3. Run manual QA tests"
-              echo "4. If tests PASS - Use promote-prerelease.yml to publish to marketplace as pre-release"
-              echo ""
-              echo "### Installation"
-              echo ""
-              echo '```bash'
-              echo "gh release download $RELEASE_TAG"
-              echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
-              echo '```'
-            } > release_notes.md
+            TEMPLATE=".github/release-templates/emergency-prerelease.md"
           else
-            # Stable release mode
-            {
-              echo "## Release $RELEASE_VERSION"
-              echo ""
-              echo "Built from promoted prerelease: \`$PRERELEASE_TAG\`"
-              echo ""
-              echo "**⚠️ IMPORTANT:** This release was built on isolated branch \`release-staging/v${RELEASE_VERSION}\`"
-              echo ""
-              echo "### Testing Required"
-              echo ""
-              echo "This is a pre-release for internal testing only. Do NOT publish to marketplace until testing is complete."
-              echo ""
-              echo "### Testing Checklist"
-              echo ""
-              echo "1. Download VSIX files from this release"
-              echo "2. Install extensions locally"
-              echo "3. Run manual QA tests"
-              echo "4. If tests PASS - Trigger publishVSCode.yml workflow with version $RELEASE_VERSION"
-              echo "5. If tests FAIL - Create immediate prerelease, bump version, and retry"
-              echo ""
-              echo "### Installation"
-              echo ""
-              echo '```bash'
-              echo "gh release download $RELEASE_TAG"
-              echo 'find . -name "*.vsix" -exec code --install-extension {} \;'
-              echo '```'
-              echo ""
-              echo "### After Publishing"
-              echo ""
-              echo "Delete the isolated release branch (it should NOT be merged to develop):"
-              echo '```bash'
-              echo "git push origin --delete release-staging/v${RELEASE_VERSION}"
-              echo '```'
-              echo ""
-              echo "Note: Only functional fixes should be cherry-picked to develop, NOT the version-bump commit."
-            } > release_notes.md
+            TEMPLATE=".github/release-templates/stable-release.md"
           fi
+
+          sed -e "s|{{VERSION}}|${RELEASE_VERSION}|g" \
+              -e "s|{{PRERELEASE_TAG}}|${PRERELEASE_TAG}|g" \
+              -e "s|{{REPOSITORY}}|${{ github.repository }}|g" \
+              "$TEMPLATE" > release_notes.md
 
           # Check if release already exists (for retry scenarios)
           if gh release view "$RELEASE_TAG" &> /dev/null; then

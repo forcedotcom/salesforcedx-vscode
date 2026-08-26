@@ -124,8 +124,6 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      # TODO: Add pre-release input to upstream workflow
-      # pre-release: ${{ needs.prepare-release-metadata.outputs.IS_PRERELEASE }}
       dry-run: ${{ inputs.dry-run }}
     secrets: inherit
 

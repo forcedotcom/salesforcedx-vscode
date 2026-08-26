@@ -42,28 +42,26 @@ if (!match) {
 }
 
 const prereleaseVersion = match[1];
-const [major, minor, patch] = prereleaseVersion.split('.');
+const [major, minor, patch] = prereleaseVersion
+  .split('.')
+  .slice(0, 3)
+  .map(n => parseInt(n, 10));
 
-// Validate version components are reasonable numbers
-const majorNum = parseInt(major, 10);
-const minorNum = parseInt(minor, 10);
-const patchNum = parseInt(patch, 10);
-
-if (isNaN(majorNum) || isNaN(minorNum) || isNaN(patchNum)) {
+if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
   console.error(`Error: Invalid version components in ${prereleaseVersion}`);
   process.exit(1);
 }
 
 // Bump minor version: 67.11.1 → 67.12.0
-const newMinor = minorNum + 1;
+const newMinor = minor + 1;
 
 // Validate result doesn't overflow
 if (newMinor > 9999) {
-  console.error(`Error: Minor version overflow. ${minorNum} + 1 = ${newMinor} exceeds maximum 9999`);
+  console.error(`Error: Minor version overflow. ${minor} + 1 = ${newMinor} exceeds maximum 9999`);
   console.error(`Cannot bump minor version from ${prereleaseVersion}`);
   process.exit(1);
 }
 
-const releaseVersion = `${majorNum}.${newMinor}.0`;
+const releaseVersion = `${major}.${newMinor}.0`;
 
 console.log(releaseVersion);

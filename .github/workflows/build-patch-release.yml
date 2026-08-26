@@ -173,50 +173,12 @@ jobs:
           # Use PREV_TAG from calculate-version step instead of deriving from VERSION
           COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG..$TAG" 2>/dev/null || echo "- Initial patch release")
 
-          # Create release notes
-          {
-            echo "## Patch Release $VERSION"
-            echo ""
-            echo "Built from branch: \`$BRANCH\`"
-            echo ""
-            echo "### Changes"
-            echo ""
-            echo "$COMMITS"
-            echo ""
-            echo "### Testing Required"
-            echo ""
-            echo "This is a pre-release for internal testing only."
-            echo ""
-            echo "1. Download VSIX files from this release"
-            echo "2. Install extensions locally"
-            echo "3. Run manual QA tests"
-            echo "4. If tests PASS - Trigger publishVSCode.yml workflow with version $VERSION"
-            echo ""
-            echo "### Installation"
-            echo ""
-            echo '```bash'
-            echo "gh release download $TAG --dir ~/Downloads/$TAG --pattern '*.vsix'"
-            echo 'find ~/Downloads/'$TAG' -name "*.vsix" -exec code --install-extension {} \;'
-            echo '```'
-            echo ""
-            echo "### Cherry-pick to develop"
-            echo ""
-            echo "After publishing, cherry-pick **ONLY functional fixes** back to develop."
-            echo ""
-            echo "⚠️ **Important:** Do NOT cherry-pick the version-bump commit (e.g., 'chore: bump versions')."
-            echo "Only cherry-pick commits that fix actual bugs or add features."
-            echo ""
-            echo '```bash'
-            echo "git checkout develop"
-            echo ""
-            echo "# Cherry-pick only functional fixes (exclude version-bump commits):"
-            git log --pretty=format:"%H %s" "$PREV_TAG..$TAG" | grep -v "chore: bump versions" | while read hash msg; do
-              echo "git cherry-pick $hash  # $msg"
-            done
-            echo ""
-            echo "git push origin develop"
-            echo '```'
-          } > release_notes.md
+          # Generate release notes from template
+          sed -e "s|{{VERSION}}|${VERSION}|g" \
+              -e "s|{{BRANCH}}|${BRANCH}|g" \
+              -e "s|{{REPOSITORY}}|${{ github.repository }}|g" \
+              -e "s|{{COMMITS}}|${COMMITS}|g" \
+              .github/release-templates/patch-release.md > release_notes.md
 
           # Check if release already exists
           if gh release view "$TAG" &> /dev/null; then

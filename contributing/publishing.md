@@ -17,6 +17,8 @@ References:
 
 Automated workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) (Mon 8 AM UTC) → GitHub pre-release w/ VSIX + SHA256. Supports both stable releases (after 5-day baking period: Wed pre-release → Mon stable) and emergency pre-releases. Trigger manually for on-demand.
 
+**Release notes** (minimal format): contain version/title, source ref/branch, internal testing warning, and link to [docs/release-testing-guide.md](../docs/release-testing-guide.md) for complete testing and publishing instructions. Release notes no longer embed procedural instructions.
+
 > **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml` instead. Old workflow scheduled for deletion after proven stability (W-23988524).
 
 **Inputs:**
@@ -84,7 +86,7 @@ gh workflow run build-release.yml \
 - Creates `release-staging/v{version}` branch from source ref (not merged to develop)
 - Commits version changes to isolated branch
 - Creates release tag from that branch's commit
-- Release notes instruct deletion of branch after publish
+- See [docs/release-testing-guide.md](../docs/release-testing-guide.md) for branch cleanup instructions
 
 **Security measures:**
 - Command injection protection — regex validates tag format `v{major}.{minor}.{patch}-nightly.develop.{YYYYMMDD}`
@@ -92,7 +94,7 @@ gh workflow run build-release.yml \
 - Script integrity — SHA256 checksums verify scripts weren't tampered (preserved/restored across tag checkout)
 - Deletion timeout — fails if cleanup exceeds 20s (GitHub API eventual consistency)
 
-Test locally; trigger `publishVSCode.yml` if tests pass.
+For complete testing and publishing workflow, see [docs/release-testing-guide.md](../docs/release-testing-guide.md).
 
 ## Nightly Builds & Pre-release Promotion
 
@@ -269,14 +271,14 @@ gh workflow run publishVSCode.yml -f version="67.12.1" --repo forcedotcom/salesf
 
 **6. Cherry-pick to develop**
 
-Merge fixes back for future releases. Release notes provide cherry-pick commands.
+Merge fixes back for future releases. For detailed cherry-pick workflow, see [docs/release-testing-guide.md](../docs/release-testing-guide.md).
 
 **Filter out version-bump commits** — only cherry-pick functional fixes:
 
 ```sh
 git checkout develop && git pull origin develop
 
-# Release notes list commits; copy only non-version-bump ones:
+# Log to identify commits; cherry-pick only non-version-bump ones:
 git cherry-pick <commit-sha-1>  # fix: actual bug
 git cherry-pick <commit-sha-2>  # feat: new feature
 # SKIP: chore: bump versions for patch release (release-only commit)

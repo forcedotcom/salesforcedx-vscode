@@ -55,7 +55,7 @@ gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 
 ## Step 1 — Download stable release build
 
-Get VSIX + SHA256 from GitHub pre-release created by `build-release.yml`:
+Get VSIX + SHA256 from GitHub pre-release created by `build-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
 
 ```sh
 gh release list --repo forcedotcom/salesforcedx-vscode | head -5
@@ -190,7 +190,7 @@ gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom
 
 **7. Cherry-pick fixes to develop**
 
-Merge functional fixes back to develop (not version bumps). Release notes provide cherry-pick commands.
+Merge functional fixes back to develop (not version bumps). See [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for cherry-pick workflow.
 
 ```sh
 git checkout develop && git pull origin develop
