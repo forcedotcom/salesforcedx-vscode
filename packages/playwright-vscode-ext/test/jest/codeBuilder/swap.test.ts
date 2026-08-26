@@ -146,6 +146,49 @@ describe('swap', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('rejects a dot-only publisher prefix (would let the wipe glob reach the parent dir)', () => {
+    const { runner } = makeRecordingRunner();
+    expect(() => swap(CONTAINER, [], { publisherPrefix: '..', runner, extract: fakeExtract })).toThrow(
+      /unsafe publisher prefix/
+    );
+    expect(() => swap(CONTAINER, [], { publisherPrefix: '.', runner, extract: fakeExtract })).toThrow(
+      /unsafe publisher prefix/
+    );
+  });
+
+  it('rejects a package.json name/version with shell metacharacters (no injection into bash -c)', () => {
+    const evil = track(makeVsixTree('core"; rm -rf /home #', '67.4.0', 'x'));
+    const { runner } = makeRecordingRunner();
+    expect(() => swap(CONTAINER, [evil], { publisherPrefix: PREFIX, runner, extract: fakeExtract })).toThrow(
+      /unsafe package.json name/
+    );
+
+    const evilVersion = track(makeVsixTree('salesforcedx-vscode-core', '0.0.0; rm -rf /', 'x'));
+    expect(() => swap(CONTAINER, [evilVersion], { publisherPrefix: PREFIX, runner, extract: fakeExtract })).toThrow(
+      /unsafe package.json version/
+    );
+  });
+
+  it('fails loud when the extension package.json has no name/version (not a silent "undefined" dir)', () => {
+    const dir = track(mkdtempSync(join(tmpdir(), 'cb-swap-nover-')));
+    mkdirSync(join(dir, 'extension'), { recursive: true });
+    writeFileSync(join(dir, 'extension/package.json'), JSON.stringify({ name: 'salesforcedx-vscode-core' })); // no version
+    const { runner } = makeRecordingRunner();
+    expect(() => swap(CONTAINER, [dir], { publisherPrefix: PREFIX, runner, extract: fakeExtract })).toThrow(
+      /missing or non-string package.json version/
+    );
+  });
+
+  it('docker cp source ends in /. (loads a flat override dir, not a nested extension/)', () => {
+    const vsix = track(makeVsixTree('salesforcedx-vscode-core', '67.4.0', 'x'));
+    const { runner, calls } = makeRecordingRunner();
+    swap(CONTAINER, [vsix], { publisherPrefix: PREFIX, runner, extract: fakeExtract });
+    const cp = calls.find(c => c[1] === 'cp')!;
+    // The trailing /. is load-bearing: it copies the extension CONTENTS flat, so package.json lands
+    // at the override dir root (what the image scans + what verify recomputes against).
+    expect(cp[2].endsWith('/.')).toBe(true);
+  });
+
   it('installs an explicit list as-is (no dir scan, no dedup)', () => {
     const a = track(makeVsixTree('salesforcedx-vscode-core', '67.4.0', 'a'));
     const b = track(makeVsixTree('salesforcedx-vscode-apex', '67.4.0', 'b'));

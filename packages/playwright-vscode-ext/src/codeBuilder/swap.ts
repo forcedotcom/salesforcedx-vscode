@@ -69,13 +69,22 @@ export type SwapOptions = {
   workDir?: string;
 };
 
-// Same charset guard verify uses on ids: publisher/name are npm-style, and the prefix is interpolated
-// into a `bash -c` glob, so reject any shell/glob metacharacter up front.
-const VALID_PREFIX = /^[A-Za-z0-9._-]+$/;
-const assertSafePrefix = (prefix: string): void => {
-  if (!VALID_PREFIX.test(prefix)) {
-    throw new Error(`unsafe publisher prefix ${JSON.stringify(prefix)}: expected only [A-Za-z0-9._-]`);
+/*
+ * Charset guard for every value that gets interpolated into a `bash -c` string: the publisher
+ * prefix, and the name/version read from the (attacker-influenced) extracted package.json. Only
+ * npm-style chars are legitimate; reject any shell/glob metacharacter up front. Also reject a value
+ * that is only dots (`.`/`..`) — a `.`-prefix would make the wipe glob `${prefix}.*` reach the
+ * parent dir. Require at least one alphanumeric so `..`, `.`, `--`, etc. can't slip through.
+ */
+const VALID_SEGMENT = /^[A-Za-z0-9._-]+$/;
+const assertSafeSegment = (value: unknown, label: string): string => {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`missing or non-string ${label} (got ${JSON.stringify(value)})`);
   }
+  if (!VALID_SEGMENT.test(value) || !/[A-Za-z0-9]/.test(value)) {
+    throw new Error(`unsafe ${label} ${JSON.stringify(value)}: expected only [A-Za-z0-9._-] with an alphanumeric`);
+  }
+  return value;
 };
 
 /*
@@ -84,7 +93,7 @@ const assertSafePrefix = (prefix: string): void => {
  */
 export const swap = (container: string, vsixPaths: readonly string[], options: SwapOptions): Manifest => {
   const { publisherPrefix } = options;
-  assertSafePrefix(publisherPrefix);
+  assertSafeSegment(publisherPrefix, 'publisher prefix');
   const runner = options.runner ?? defaultRunner;
   const extract = options.extract ?? defaultExtract;
   const workDir = options.workDir ?? mkdtempSync(join(tmpdir(), 'cb-swap-'));
@@ -105,10 +114,15 @@ export const swap = (container: string, vsixPaths: readonly string[], options: S
       const extractDir = join(workDir, `vsix-${i}`);
       extract(vsixPath, extractDir);
       const root = resolveExtensionRoot(extractDir); // the dir holding package.json (extension/)
-      const { name, version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
-        name: string;
-        version: string;
+      const parsed = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
+        name?: unknown;
+        version?: unknown;
       };
+      // Validate before interpolating into destDir's `bash -c` (name/version come from an
+      // attacker-influenceable package.json) — and fail loud on a missing/blank name or version
+      // rather than silently installing a "salesforce.undefined-undefined" dir.
+      const name = assertSafeSegment(parsed.name, 'package.json name');
+      const version = assertSafeSegment(parsed.version, 'package.json version');
       const id = `${publisherPrefix}.${name}`;
       const digest = computeExtensionDigest(root);
       const destDir = `${OVERRIDES_DIR}/${id}-${version}`;
