@@ -39,7 +39,10 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}-codeBuilderE2E
-  cancel-in-progress: true
+  # Do NOT cancel in flight: a cancel mid `sf org create scratch` can orphan a half-created org the
+  # cleanup step's alias lookup misses. CB e2e is infrequent (nightly/release/dispatch), so queueing
+  # overlapping runs is cheaper than leaking scratch orgs.
+  cancel-in-progress: false
 
 jobs:
   code-builder-e2e:
@@ -50,6 +53,10 @@ jobs:
       # Pull the private CB image with this repo's GITHUB_TOKEN — the package's Manage Actions
       # access grants salesforcedx-vscode read on workspace-manager/codebuilder.
       packages: read
+      # The orchestrator downloads the VSIX artifact + reads run provenance via `gh run download`/
+      # `gh run view`, which hit the Actions API. An explicit permissions block zeroes every unlisted
+      # scope, so this must be declared or those gh calls 403.
+      actions: read
     env:
       CI: '1'
       MINIMAL_ORG_ALIAS: minimalTestOrg
