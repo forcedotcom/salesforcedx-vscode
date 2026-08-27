@@ -99,15 +99,17 @@ Suggested smoke checks the user may run before confirming:
 
 Do not proceed until the user explicitly confirms testing is complete.
 
-## Step 4 — Approve marketplace publishes
+## Step 4 — Trigger marketplace publish
 
-Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`):
+Once user confirms testing is complete, automatically trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`):
 
 ```sh
 gh workflow run publishVSCode.yml -f releaseVersion=<version> --repo forcedotcom/salesforcedx-vscode
 ```
 
-Triggers `publishOpenVSX.yml`. Both gated by `publish` environment — approve in GitHub UI (Actions → run → Review pending → Approve + deploy).
+Triggers `publishOpenVSX.yml`. Both gated by `publish` environment — user will approve in GitHub UI (Actions → run → Review pending → Approve + deploy).
+
+Tell user: "Triggered publish workflows. You'll need to approve the environment gates in GitHub Actions UI."
 
 Monitor runs:
 
