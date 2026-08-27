@@ -13,8 +13,7 @@ import {
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  validateNoCriticalErrors,
-  waitForVSCodeWorkbench
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
 import { containerTest as test } from '../../fixtures/containerFixtures';
@@ -32,7 +31,7 @@ test('Seeded workspace (Code Builder): opens fixture Apex class from the Explore
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('wait for workbench', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await clearAllNotifications(page);
