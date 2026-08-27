@@ -47,8 +47,6 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
         OrgMetadataReferenceService,
         OrgMetadataShadowStore
       ]);
-    const documentUri = (orgId: string, reference: OrgMetadataComponentReference) =>
-      references.documentUri({ orgId, ...reference });
     const materializeSemaphore = yield* Effect.makeSemaphore(1);
 
     const fetchApexClass = Effect.fn('OrgCatalogRemoteSource.fetchApexClass')(function* (
@@ -108,7 +106,10 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       const { content, lastModifiedDate } = yield* fetchApexClass(orgId, reference);
       const shadowRevision = entry.lastModifiedDate ?? lastModifiedDate;
       const { stagingUri } = yield* shadowStore.prepare(orgId, reference, shadowRevision);
-      const primaryUri = Utils.joinPath(stagingUri, Utils.basename(documentUri(orgId, reference)));
+      const primaryUri = Utils.joinPath(
+        stagingUri,
+        Utils.basename(yield* references.documentUri({ orgId, ...reference }))
+      );
       return yield* fsService.safeWriteFile(primaryUri, content).pipe(
         Effect.flatMap(() =>
           shadowStore.publish({
@@ -193,6 +194,14 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
 
           if (forceRefresh && retrieved.length > 0) {
             const observedAt = new Date().toISOString();
+            const documentUris = yield* Effect.forEach(
+              retrieved,
+              ({ reference }) =>
+                references
+                  .documentUri({ orgId, ...reference })
+                  .pipe(Effect.map(uri => [componentIdentity(reference), uri] as const)),
+              { concurrency: 'unbounded' }
+            ).pipe(Effect.map(entries => new Map(entries)));
             yield* state.updateInventories(current => {
               const next = new Map(current);
               retrieved.forEach(({ reference, artifact }) => {
@@ -207,7 +216,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                   observedAt,
                   provenance: currentEntry?.inWorkspace ? 'metadata-api+workspace' : 'metadata-api',
                   reference,
-                  documentUri: documentUri(orgId, reference),
+                  documentUri: documentUris.get(componentIdentity(reference)) ?? currentEntry!.documentUri,
                   name: currentEntry?.name ?? reference.fullName.split('/').at(-1) ?? reference.fullName,
                   kind: 'component',
                   inOrg: true,

@@ -355,7 +355,10 @@ const makeHarness = (options: HarnessOptions = {}) => {
   return {
     catalogChanges,
     internalLayer: Layer.mergeAll(stateLayer, documentsLayer),
-    layer: Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
+    layer: Layer.mergeAll(
+      Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
+      referenceLayer
+    ),
     remoteSourceLayer,
     mocks: {
       buildComponentSetFromSource,
@@ -389,7 +392,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
 const setOrg = (orgId: string) => getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, { orgId })));
 
 const runWithCatalog = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog, LayerError>,
+  layer: Layer.Layer<OrgMetadataCatalog | OrgMetadataReferenceService, LayerError>,
   body: (catalog: InstanceType<typeof OrgMetadataCatalog>) => Effect.Effect<A, E>
 ): Promise<A> =>
   Effect.runPromise(
@@ -414,7 +417,7 @@ const materializeRemoteSource = (
 ) => remoteSource.materializeRemoteSource('org-one', reference, options);
 
 const runWithCatalogAndRemoteSource = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource, LayerError>,
+  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource | OrgMetadataReferenceService, LayerError>,
   body: (
     catalog: InstanceType<typeof OrgMetadataCatalog>,
     remoteSource: InstanceType<typeof OrgCatalogRemoteSource>

@@ -35,8 +35,6 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       OrgMetadataReferenceService,
       MetadataDescribeService
     ]);
-    const entryUri = (orgId: string, xmlName: string, fullName: string) =>
-      references.documentUri({ orgId, xmlName, fullName: fullName || '__type__' });
     const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (orgId: string, xmlName: string) {
       yield* state.ensureHydrated(orgId);
       const key = typeCacheKey(orgId, xmlName);
@@ -73,14 +71,13 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
         const inventory = {
           observedAt,
           complete: true,
-          components: mergeInventory({
-            entryUri,
+          components: yield* mergeInventory({
             orgId,
             xmlName,
             orgComponents: orgListing.components,
             workspaceUris,
             observedAt
-          }),
+          }).pipe(Effect.provideService(OrgMetadataReferenceService, references)),
           folders: new Map(orgListing.folders.map(folder => [folder.fullName, folder]))
         } satisfies TypeInventory;
         yield* state.setInventory(orgId, xmlName, inventory);
@@ -99,7 +96,7 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
         ? ({
             inOrg: entry.inOrg,
             inWorkspace: entry.inWorkspace,
-            ...(entry.workspaceUri ? { workspaceUri: entry.workspaceUri } : {})
+            ...('workspaceUri' in entry && entry.workspaceUri ? { workspaceUri: entry.workspaceUri } : {})
           } satisfies OrgMetadataPresence)
         : emptyPresence();
     });
@@ -112,13 +109,12 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       const inventory = cached?.components.has(reference.fullName) ? cached : yield* loadType(orgId, reference.xmlName);
       return (
         inventory.components.get(reference.fullName) ??
-        projectChildren(
-          entryUri,
+        (yield* projectChildren(
           orgId,
           reference.xmlName,
           reference.fullName.split('/').slice(0, -1).join('/') || undefined,
           inventory
-        ).find(
+        ).pipe(Effect.provideService(OrgMetadataReferenceService, references))).find(
           entry => isOrgMetadataComponentReference(entry.reference) && entry.reference.fullName === reference.fullName
         )
       );

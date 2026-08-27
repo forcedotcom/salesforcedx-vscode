@@ -26,8 +26,15 @@ describe('org metadata document references', () => {
     )
   );
 
-  const run = <A>(body: (service: InstanceType<typeof OrgMetadataReferenceService>) => A): A =>
-    Effect.runSync(OrgMetadataReferenceService.pipe(Effect.map(body), Effect.provide(referenceLayer)));
+  const run = <A, E extends Error>(
+    body: (service: InstanceType<typeof OrgMetadataReferenceService>) => Effect.Effect<A, E>
+  ): A =>
+    Effect.runSync(
+      OrgMetadataReferenceService.pipe(
+        Effect.flatMap(service => body(service).pipe(Effect.orDie)),
+        Effect.provide(referenceLayer)
+      )
+    );
 
   it('round-trips an Apex class with an editor-friendly extension', () => {
     const uri = run(service =>

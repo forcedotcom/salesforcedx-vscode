@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -13,7 +14,10 @@ import {
   isCatalogRelevantWorkspaceUri,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import type { OrgMetadataDocumentLocation } from '../../../src/orgCatalog/orgMetadataReference';
+import {
+  OrgMetadataReferenceService,
+  type OrgMetadataDocumentLocation
+} from '../../../src/orgCatalog/orgMetadataReference';
 
 const documentUri = (orgId: string, fullName: string): URI =>
   URI.parse(`sf-org-metadata:/orgs/${orgId}/ApexClass/${fullName}.cls`);
@@ -38,9 +42,13 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
 
     await provider.provideTextDocumentContent(orgOneUri);
     await provider.provideTextDocumentContent(orgTwoUri);
-    provider.removeInactiveOrgUris('org-two', parseDocumentUri);
-    provider.notifyCatalogChanged('org-two', parseDocumentUri);
-    provider.notifyCatalogChanged('org-one', parseDocumentUri);
+    const orgIds = new Map([
+      [orgOneUri.toString(), 'org-one'],
+      [orgTwoUri.toString(), 'org-two']
+    ]);
+    provider.removeInactiveOrgUris('org-two', orgIds);
+    provider.notifyCatalogChanged('org-two', orgIds);
+    provider.notifyCatalogChanged('org-one', orgIds);
 
     expect(notified).toEqual([orgTwoUri.toString()]);
     provider.dispose();
@@ -64,7 +72,15 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
       }
     });
 
-    await Effect.runPromise(closeInactiveOrgDocuments('org-two', parseDocumentUri));
+    await Effect.runPromise(
+      closeInactiveOrgDocuments('org-two').pipe(
+        Effect.provide(
+          Layer.succeed(OrgMetadataReferenceService, {
+            parseDocumentUri: (uri: URI) => Effect.succeed(parseDocumentUri(uri))
+          } as unknown as InstanceType<typeof OrgMetadataReferenceService>)
+        )
+      )
+    );
 
     expect(close).toHaveBeenCalledWith([staleTextTab, staleDiffTab], true);
   });

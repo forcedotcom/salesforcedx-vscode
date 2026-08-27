@@ -42,7 +42,7 @@ const makeHarness = () => {
     ),
     Layer.succeed(OrgMetadataReferenceService, {
       documentUri: ({ orgId, xmlName, fullName }: { orgId: string; xmlName: string; fullName: string }) =>
-        URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`)
+        Effect.succeed(URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`))
     } as unknown as InstanceType<typeof OrgMetadataReferenceService>),
     TransmogrifierService.Default
   );
