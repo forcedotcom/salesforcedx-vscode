@@ -26,7 +26,7 @@ import { WorkspaceService } from '../vscode/workspaceService';
 import { OrgCatalogDocuments } from './orgCatalogDocuments';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
-import { ORG_METADATA_SCHEME, OrgMetadataReferenceService } from './orgMetadataReference';
+import { ORG_METADATA_SCHEME, orgIdFromOrgMetadataUri } from './orgMetadataReference';
 
 /** Internal Salesforce state must not invalidate the catalog that produced it. */
 export const isCatalogRelevantWorkspaceUri = (workspaceUri: URI, uri: URI): boolean =>
@@ -74,6 +74,9 @@ export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentPr
   }
 }
 
+const requestedUriOrgIds = (provider: OrgMetadataDocumentProvider): Map<string, string | undefined> =>
+  new Map(provider.requestedUriEntries().map(([key, uri]) => [key, orgIdFromOrgMetadataUri(uri)]));
+
 const tabInputUris = (input: unknown): readonly URI[] => {
   if (input instanceof vscode.TabInputText) return [input.uri];
   if (input instanceof vscode.TabInputTextDiff) return [input.original, input.modified];
@@ -84,21 +87,16 @@ const tabInputUris = (input: unknown): readonly URI[] => {
 export const closeInactiveOrgDocuments = Effect.fn('closeInactiveOrgDocuments')(function* (
   activeOrgId: string | undefined
 ) {
-  const references = yield* OrgMetadataReferenceService;
   const tabGroups = vscode.window.tabGroups;
   if (!tabGroups) return;
-  const tabs = yield* Effect.forEach(
-    tabGroups.all.flatMap(group => group.tabs),
-    tab =>
-      Effect.forEach(tabInputUris(tab.input), uri => references.parseDocumentUri(URI.parse(uri.toString())), {
-        concurrency: 'unbounded'
-      }).pipe(
-        Effect.map(locations =>
-          locations.some(location => location !== undefined && location.orgId !== activeOrgId) ? tab : undefined
-        )
-      ),
-    { concurrency: 'unbounded' }
-  ).pipe(Effect.map(candidates => candidates.filter(tab => tab !== undefined)));
+  const tabs = tabGroups.all
+    .flatMap(group => group.tabs)
+    .filter(tab =>
+      tabInputUris(tab.input).some(uri => {
+        const orgId = orgIdFromOrgMetadataUri(URI.parse(uri.toString()));
+        return orgId !== undefined && orgId !== activeOrgId;
+      })
+    );
   if (tabs.length > 0) {
     yield* Effect.tryPromise(() => tabGroups.close(tabs, true)).pipe(Effect.asVoid);
   }
@@ -116,7 +114,6 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     catalogChanges,
     fileChanges,
     metadataChanges,
-    referenceService,
     defaultOrgRef,
     activeOperationRef,
     workspaceService
@@ -126,7 +123,6 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     OrgMetadataCatalogChangePubSub,
     FileChangePubSub,
     MetadataChangeNotificationService,
-    OrgMetadataReferenceService,
     getDefaultOrgRef(),
     getActiveMetadataOperationRef(),
     WorkspaceService
@@ -166,13 +162,9 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             Match.exhaustive
           );
           if (changedOrgId === activeOrgId) {
-            const locations = yield* Effect.forEach(
-              [...provider.requestedUriEntries()],
-              ([key, uri]) =>
-                referenceService.parseDocumentUri(uri).pipe(Effect.map(location => [key, location?.orgId] as const)),
-              { concurrency: 'unbounded' }
-            ).pipe(Effect.map(entries => new Map(entries)));
-            yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, locations));
+            yield* Effect.sync(() =>
+              provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider))
+            );
           }
         })
       )
@@ -248,13 +240,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
           ),
         org: orgChange =>
           Effect.gen(function* () {
-            const locations = yield* Effect.forEach(
-              provider.requestedUriEntries(),
-              ([key, uri]) =>
-                referenceService.parseDocumentUri(uri).pipe(Effect.map(location => [key, location?.orgId] as const)),
-              { concurrency: 'unbounded' }
-            ).pipe(Effect.map(entries => new Map(entries)));
-            provider.removeInactiveOrgUris(orgChange.orgId, locations);
+            provider.removeInactiveOrgUris(orgChange.orgId, requestedUriOrgIds(provider));
             yield* closeInactiveOrgDocuments(orgChange.orgId).pipe(
               Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
             );

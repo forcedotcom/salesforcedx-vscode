@@ -6,7 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -14,19 +13,10 @@ import {
   isCatalogRelevantWorkspaceUri,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import {
-  OrgMetadataReferenceService,
-  type OrgMetadataDocumentLocation
-} from '../../../src/orgCatalog/orgMetadataReference';
+import { orgIdFromOrgMetadataUri } from '../../../src/orgCatalog/orgMetadataReference';
 
 const documentUri = (orgId: string, fullName: string): URI =>
   URI.parse(`sf-org-metadata:/orgs/${orgId}/ApexClass/${fullName}.cls`);
-
-const parseDocumentUri = (uri: URI): OrgMetadataDocumentLocation | undefined => {
-  const [, orgs, orgId, xmlName, encodedFullName] = uri.path.split('/');
-  if (orgs !== 'orgs' || !orgId || !xmlName || !encodedFullName) return undefined;
-  return { orgId, xmlName, fullName: encodedFullName.replace(/\.cls$/u, '') };
-};
 
 describe('OrgMetadataDocumentProvider lifecycle', () => {
   afterEach(() => {
@@ -72,15 +62,7 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
       }
     });
 
-    await Effect.runPromise(
-      closeInactiveOrgDocuments('org-two').pipe(
-        Effect.provide(
-          Layer.succeed(OrgMetadataReferenceService, {
-            parseDocumentUri: (uri: URI) => Effect.succeed(parseDocumentUri(uri))
-          } as unknown as InstanceType<typeof OrgMetadataReferenceService>)
-        )
-      )
-    );
+    await Effect.runPromise(closeInactiveOrgDocuments('org-two'));
 
     expect(close).toHaveBeenCalledWith([staleTextTab, staleDiffTab], true);
   });
@@ -97,5 +79,19 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
     expect(
       isCatalogRelevantWorkspaceUri(workspaceUri, URI.parse('file:///c:/workspace/force-app/main/default/Foo.cls'))
     ).toBe(true);
+  });
+
+  it('prunes inactive URIs from path org id when registry/workspace is unavailable', async () => {
+    const provider = new OrgMetadataDocumentProvider(async () => 'body');
+    const stale = documentUri('org-one', 'One');
+    const active = documentUri('org-two', 'Two');
+    await provider.provideTextDocumentContent(stale);
+    await provider.provideTextDocumentContent(active);
+
+    const locations = new Map(provider.requestedUriEntries().map(([key, uri]) => [key, orgIdFromOrgMetadataUri(uri)]));
+    provider.removeInactiveOrgUris('org-two', locations);
+
+    expect(provider.requestedUriEntries().map(([, uri]) => uri.toString())).toEqual([active.toString()]);
+    provider.dispose();
   });
 });

@@ -13,6 +13,7 @@ import { MetadataRegistryService } from '../../../src/core/metadataRegistryServi
 import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
+  orgIdFromOrgMetadataUri,
   OrgMetadataReferenceService
 } from '../../../src/orgCatalog/orgMetadataReference';
 
@@ -134,6 +135,13 @@ describe('org metadata document references', () => {
     expect(
       run(service => service.parseDocumentUri(URI.parse(`${ORG_METADATA_SCHEME}:/ApexClass/MyTest.cls`)))
     ).toBeUndefined();
+  });
+
+  it('reads org id from the URI path without registry access', () => {
+    expect(
+      orgIdFromOrgMetadataUri(URI.parse(`${ORG_METADATA_SCHEME}:/orgs/00Dxx0000000001/ApexClass/MyTest.cls`))
+    ).toBe('00Dxx0000000001');
+    expect(orgIdFromOrgMetadataUri(URI.file('/ApexClass/MyTest.cls'))).toBeUndefined();
   });
 
   it('recognizes only complete, non-empty component references', () => {

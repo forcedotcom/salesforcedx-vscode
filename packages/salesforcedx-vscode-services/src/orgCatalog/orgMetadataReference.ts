@@ -54,6 +54,14 @@ const makeDocumentUri = (
   });
 };
 
+/** Org id from `/orgs/{orgId}/…` — no registry/workspace. */
+export const orgIdFromOrgMetadataUri = (uri: URI): string | undefined => {
+  if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
+  const [, root, encodedOrgId] = uri.path.split('/');
+  if (root !== 'orgs' || !encodedOrgId) return undefined;
+  return Schema.is(PathSafeOrgId)(encodedOrgId) ? encodedOrgId : undefined;
+};
+
 const parseDocumentUriFromPath = (uri: URI, extension: string | undefined): OrgMetadataDocumentLocation | undefined => {
   if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
   const [, root, encodedOrgId, encodedXmlName, ...encodedFullName] = uri.path.split('/');
