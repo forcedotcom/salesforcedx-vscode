@@ -28,6 +28,9 @@
  *     (Falls back to a CR_PAT env var if you'd rather supply your own classic PAT.)
  *   - sf CLI logged in to a dev hub (for the scratch org)
  *
+ * Env: set CB_SKIP_GHCR_LOGIN=1 when the caller has already `docker login`-ed to ghcr (e.g. CI,
+ * which authenticates with its GITHUB_TOKEN) so this script skips its own gh/CR_PAT login.
+ *
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
  *   --run-id <id>     Pull the VSIX from that Build All run instead of building locally.
  *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
@@ -224,8 +227,12 @@ if (!has('docker')) {
 /*
  * ghcr auth uses your own GitHub identity via the gh CLI — the team has read on the image repo and
  * the package inherits it, so no shared token. gh is required unless the dev supplies a CR_PAT.
+ *
+ * CB_SKIP_GHCR_LOGIN opts out entirely: the caller has already `docker login`-ed to ghcr (CI does
+ * this with its GITHUB_TOKEN), so this script relies on that ambient auth and neither logs in nor
+ * requires gh for login. gh may still be needed for --run-id, which re-checks it at download time.
  */
-if (!process.env.CR_PAT) {
+if (!process.env.CB_SKIP_GHCR_LOGIN && !process.env.CR_PAT) {
   if (!has('gh')) {
     problems.push(
       `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
@@ -257,8 +264,11 @@ const dockerLogin = (user: string, token: string): boolean =>
     stdio: ['pipe', 'ignore', 'ignore']
   }).status === 0;
 
-log('Logging in to ghcr.io');
-if (process.env.CR_PAT) {
+if (process.env.CB_SKIP_GHCR_LOGIN) {
+  // The caller already authenticated docker to ghcr (e.g. CI's `docker login` with GITHUB_TOKEN).
+  log('Skipping ghcr login (CB_SKIP_GHCR_LOGIN set — using ambient docker auth)');
+} else if (process.env.CR_PAT) {
+  log('Logging in to ghcr.io');
   // Explicit PAT wins if provided (classic PAT with read:packages, SSO-authorized for forcedotcom).
   // GitHub accepts any non-empty username with a PAT, so 'oauth' is a safe placeholder here.
   if (!dockerLogin('oauth', process.env.CR_PAT)) {
@@ -266,6 +276,7 @@ if (process.env.CR_PAT) {
     process.exit(1);
   }
 } else {
+  log('Logging in to ghcr.io');
   // Preflight guaranteed gh is installed and logged in to github.com. Pull as the dev's own user.
   const user = tryCapture('gh', ['api', 'user', '-q', '.login']);
   const token = tryCapture('gh', ['auth', 'token', '-h', 'github.com']);
