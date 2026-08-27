@@ -92,10 +92,14 @@ export const createSafeguards = ({ session, worktree }, verify = {}) => {
   return { denyUnsafeShell, afterEdit, onIdle };
 };
 
+/** Worktree for verification: plugin/repo location, not daemon process.cwd(). */
+export const createSafeguardsFromContext = (ctx, verify) =>
+  createSafeguards({ session: ctx.session, worktree: ctx.location.directory }, verify);
+
 const plugin = {
   id: 'safeguards',
   async setup(ctx) {
-    const hooks = createSafeguards({ session: ctx.session, worktree: process.cwd() });
+    const hooks = createSafeguardsFromContext(ctx);
 
     await ctx.shell.hook('create.before', event => {
       hooks.denyUnsafeShell({ command: event.command, cwd: event.cwd });

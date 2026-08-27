@@ -13,7 +13,7 @@ import {
   verifyEdit,
   verifyEditAsync
 } from '../scripts/ai-safeguards.mjs';
-import { createSafeguards } from '../.opencode/plugins/safeguards.ts';
+import { createSafeguards, createSafeguardsFromContext } from '../.opencode/plugins/safeguards.ts';
 
 const temporaryDirectory = async callback => {
   const directory = await mkdtemp(resolve(tmpdir(), 'ai-safeguards-'));
@@ -219,6 +219,35 @@ test('async verification awaits nonblocking runners in order', async () => {
     calls.filter(call => call.command === 'npm').map(call => call.args[1]),
     ['compile', 'compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
   );
+});
+
+test('plugin setup verifies edits and completion against ctx.location.directory', async () => {
+  const pluginDirectory = '/plugin/location';
+  const cwd = process.cwd();
+  assert.notEqual(pluginDirectory, cwd);
+  const roots = [];
+  const hooks = createSafeguardsFromContext(
+    { session: {}, location: { directory: pluginDirectory } },
+    {
+      edit: input => {
+        roots.push(input.root);
+        return { ok: true, step: 'edit verification' };
+      },
+      completion: input => {
+        roots.push(input.root);
+        return { ok: true, step: 'completion verification' };
+      }
+    }
+  );
+  await hooks.afterEdit({
+    tool: 'edit',
+    sessionID: 'session',
+    input: { path: 'src/a.ts' },
+    output: { status: 'completed', result: { content: 'edited' } }
+  });
+  await hooks.onIdle({ type: 'session.idle', data: { sessionID: 'session' } });
+  assert.deepEqual(roots, [pluginDirectory, pluginDirectory]);
+  assert.ok(roots.every(root => root !== cwd));
 });
 
 test('OpenCode blocks unsafe shell before execution', () => {
