@@ -67,27 +67,37 @@ gh release download v<version> \
 
 ## Step 2 — Install and test locally
 
-Ask: `code` or `code-insiders`? (default `code`)
+Ask user: `code` or `code-insiders`? (default `code`)
 
 ```sh
 find ~/Downloads/v<version> -type f -name "*.vsix" -exec <binary> --install-extension {} \;
 ```
 
-Reload VS Code, run smoke checks.
+User should reload VS Code and run a few commands to validate.
 
 ## Step 3 — Confirm manual testing is complete
 
-Tell user: "Log testing in Slack, confirm when ready to publish."
+### 3a — Create the Slack testing doc
 
-Suggested smoke checks:
+The user creates the testing doc from the team's Slack template: https://salesforce.enterprise.slack.com/docs/T092Z56AE/F0B7RLRUSRG
 
-- Authorize org / set default
-- Deploy + retrieve metadata
-- Run Apex test from Test Explorer
-- Open SOQL Builder, run query
-- Open Org Browser
+> Create a new doc from the Slack template and name it **Release Testing v\<version\>** (e.g. `Release Testing v67.12.0`), where `<version>` matches the GH release tag.
 
-Don't proceed until user confirms testing done.
+Use the version from Step 1. Wait for the user to confirm the doc is created and shared with the team before continuing.
+
+### 3b — Run smoke checks
+
+Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Slack doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
+
+Suggested smoke checks the user may run before confirming:
+
+- Authorize an org / set a default org
+- Deploy and retrieve metadata
+- Run an Apex test from the Test Explorer
+- Open SOQL Builder and run a query
+- Open the Org Browser
+
+Do not proceed until the user explicitly confirms testing is complete.
 
 ## Step 4 — Approve marketplace publishes
 
