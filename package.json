@@ -132,6 +132,7 @@
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
+    "test:container:local": "ts-node scripts/codeBuilderLocalE2E.ts",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
