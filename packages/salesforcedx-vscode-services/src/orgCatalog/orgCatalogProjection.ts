@@ -7,8 +7,10 @@
 
 import type { ListedMetadataComponent, TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type { ArtifactNamespace } from '../core/artifactIdentity';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
+import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
 import { isOrgMetadataComponentReference, OrgMetadataReferenceService } from './orgMetadataReference';
 
 export const mergeInventory = Effect.fn('mergeInventory')(function* ({
@@ -16,12 +18,14 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   xmlName,
   orgComponents,
   workspaceUris,
+  workspaceNamespace = null,
   observedAt
 }: {
   readonly orgId: string;
   readonly xmlName: string;
   readonly orgComponents: readonly ListedMetadataComponent[];
   readonly workspaceUris: ReadonlyMap<string, URI>;
+  readonly workspaceNamespace?: ArtifactNamespace;
   readonly observedAt: string;
 }) {
   const references = yield* OrgMetadataReferenceService;
@@ -32,7 +36,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
       Effect.map(
         uri =>
           [
-            component.fullName,
+            componentIdentity({ xmlName, fullName: component.fullName }, component.namespacePrefix ?? null),
             {
               orgId,
               observedAt,
@@ -56,21 +60,25 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   );
   const orgInventory = new Map<string, OrgMetadataCatalogEntry>(orgEntries);
   const workspaceEntries = yield* Effect.forEach([...workspaceUris], ([fullName, workspaceUri]) => {
-    const existing = orgInventory.get(fullName);
+    const reference = { xmlName, fullName };
+    const key = componentIdentity(reference, workspaceNamespace);
+    const existing = orgInventory.get(key);
+    const canonicalReference =
+      existing && isOrgMetadataComponentReference(existing.reference) ? existing.reference : reference;
     return (existing ? Effect.succeed(existing.documentUri) : documentUri(fullName)).pipe(
       Effect.map(
         uri =>
           [
-            fullName,
+            key,
             {
               orgId,
               observedAt: existing?.observedAt ?? new Date().toISOString(),
               provenance: existing ? ('metadata-api+workspace' as const) : ('workspace' as const),
-              reference: { xmlName, fullName },
+              reference: canonicalReference,
               documentUri: uri,
               name: existing?.name ?? fullName.split('/').at(-1) ?? fullName,
               kind: 'component' as const,
-              namespacePrefix: existing?.namespacePrefix,
+              namespacePrefix: existing?.namespacePrefix ?? workspaceNamespace ?? undefined,
               manageableState: existing?.manageableState,
               fileName: existing?.fileName,
               lastModifiedByName: existing?.lastModifiedByName,
@@ -96,7 +104,10 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
   const references = yield* OrgMetadataReferenceService;
   const prefix = parentFullName ? `${parentFullName}/` : '';
   const childNames = new Set<string>();
-  [...inventory.components.keys(), ...inventory.folders.keys()].forEach(fullName => {
+  const componentFullNames = [...inventory.components.values()].flatMap(component =>
+    isOrgMetadataComponentReference(component.reference) ? [component.reference.fullName] : []
+  );
+  [...componentFullNames, ...inventory.folders.keys()].forEach(fullName => {
     if (!fullName.startsWith(prefix)) return;
     const name = fullName.slice(prefix.length).split('/')[0];
     if (name) childNames.add(name);
@@ -106,9 +117,9 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
     name =>
       Effect.gen(function* () {
         const fullName = `${prefix}${name}`;
-        const component = inventory.components.get(fullName);
+        const component = findInventoryComponent(inventory.components, { xmlName, fullName });
         const folder = inventory.folders.get(fullName);
-        const hasDescendants = [...inventory.components.keys(), ...inventory.folders.keys()].some(candidate =>
+        const hasDescendants = [...componentFullNames, ...inventory.folders.keys()].some(candidate =>
           candidate.startsWith(`${fullName}/`)
         );
         if (!folder && !hasDescendants && component) return { ...component, name };

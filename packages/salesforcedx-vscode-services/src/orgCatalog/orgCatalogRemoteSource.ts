@@ -16,7 +16,7 @@ import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
-import { componentIdentity, typeCacheKey } from './orgCatalogKeys';
+import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
@@ -157,8 +157,9 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
             uniqueReferences,
             reference =>
               Effect.gen(function* () {
-                const loadedEntry = (yield* state.getInventory(orgId, reference.xmlName))?.components.get(
-                  reference.fullName
+                const loadedEntry = findInventoryComponent(
+                  (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
+                  reference
                 );
                 const entry = forceRefresh ? loadedEntry : yield* inventories.getEntry(orgId, reference);
                 if (!forceRefresh && !entry?.inOrg) {
@@ -208,7 +209,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                 const key = typeCacheKey(orgId, reference.xmlName);
                 const inventory = next.get(key);
                 if (!inventory) return;
-                const currentEntry = inventory.components.get(reference.fullName);
+                const currentEntry = findInventoryComponent(inventory.components, reference);
                 const remoteLastModifiedDate = artifact.remoteLastModifiedDate;
                 const updatedEntry: OrgMetadataCatalogEntry = {
                   ...currentEntry,
@@ -227,7 +228,10 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                 next.set(key, {
                   ...inventory,
                   observedAt,
-                  components: new Map(inventory.components).set(reference.fullName, updatedEntry)
+                  components: new Map(inventory.components).set(
+                    componentIdentity(reference, currentEntry?.namespacePrefix ?? null),
+                    updatedEntry
+                  )
                 });
               });
               return next;
