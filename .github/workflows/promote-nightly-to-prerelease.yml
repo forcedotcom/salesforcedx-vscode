@@ -34,7 +34,7 @@ permissions:
 jobs:
   # Step 1: Find nightly candidate (THIS REPO CONTROLS CRITERIA)
   find-nightly:
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@ms/caller-call-ci-status-check
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@main
     with:
       release-tag: ${{ inputs.releaseTag || '' }}
       min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check CI status
-        uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@ms/caller-call-ci-status-check
+        uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
         with:
           commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +57,7 @@ jobs:
   # Step 3: Promote to prerelease (only runs if gate-check passed)
   promote:
     needs: [find-nightly, gate-check]
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-nightly-to-prerelease.yml@ms/caller-call-ci-status-check
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-nightly-to-prerelease.yml@main
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
