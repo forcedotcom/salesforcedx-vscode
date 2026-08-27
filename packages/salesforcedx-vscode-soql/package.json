@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.13.8",
+  "version": "67.15.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -42,6 +42,7 @@
     "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
@@ -81,7 +82,7 @@
     "compile": "wireit",
     "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist dist-migration coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "build:soql-builder-lit": "wireit",
@@ -160,6 +161,7 @@
         "../soql-model:compile"
       ],
       "files": [
+        "../salesforcedx-vscode-services/src/core/schemas/sObject.ts",
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/rollup.config.mjs"
@@ -191,9 +193,11 @@
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
       "dependencies": [
+        "../soql-builder-ui:compile",
         "../soql-model:compile"
       ],
       "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
@@ -265,7 +269,6 @@
       "dependencies": [
         "compile",
         "copy:grammars",
-        "build:soql-builder-lit",
         "test:lit-foundation"
       ],
       "files": [
@@ -277,7 +280,7 @@
         "src/soql-data-view/**"
       ],
       "output": [
-        "dist"
+        "dist-migration"
       ]
     },
     "vscode:bundle:local": {
@@ -426,11 +429,12 @@
       ]
     },
     "vscode:package:migration": {
-      "command": "vsce package --allow-package-all-secrets --out salesforcedx-vscode-soql-lit-migration.vsix",
+      "command": "node scripts/package-lit-migration.mjs",
       "dependencies": [
         "vscode:bundle:migration"
       ],
       "files": [
+        "scripts/package-lit-migration.mjs",
         ".vscodeignore",
         "package.json",
         "package.nls*.json",

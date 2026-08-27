@@ -13,6 +13,7 @@ import * as Queue from 'effect/Queue';
 import { URI } from 'vscode-uri';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
+import { componentIdentity, findInventoryComponent } from '../../../src/orgCatalog/orgCatalogKeys';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import {
@@ -42,7 +43,7 @@ const makeHarness = () => {
     ),
     Layer.succeed(OrgMetadataReferenceService, {
       documentUri: ({ orgId, xmlName, fullName }: { orgId: string; xmlName: string; fullName: string }) =>
-        URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`)
+        Effect.succeed(URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`))
     } as unknown as InstanceType<typeof OrgMetadataReferenceService>),
     TransmogrifierService.Default
   );
@@ -111,7 +112,10 @@ describe('OrgMetadataCatalogRecorder', () => {
         yield* recorder.recordRemoteComponents('org-one', 'metadata-api', [
           { type: 'ApexClass', fullName: 'DiscoveredTest', lastModifiedDate: '2026-08-13T00:00:00.000Z' }
         ]);
-        const discovered = (yield* state.getInventory('org-one', 'ApexClass'))?.components.get('DiscoveredTest');
+        const discovered = findInventoryComponent(
+          (yield* state.getInventory('org-one', 'ApexClass'))?.components ?? new Map(),
+          { xmlName: 'ApexClass', fullName: 'DiscoveredTest' }
+        );
         yield* Effect.sleep('350 millis');
         return discovered;
       }).pipe(Effect.provide(layer))
@@ -169,7 +173,7 @@ describe('OrgMetadataCatalogRecorder', () => {
             'org-one',
             new Map([
               [
-                'ApexClass\0Foo',
+                componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' }),
                 { reference: { xmlName: 'ApexClass', fullName: 'Foo' }, signature: 'modify\0revision-1' }
               ]
             ])

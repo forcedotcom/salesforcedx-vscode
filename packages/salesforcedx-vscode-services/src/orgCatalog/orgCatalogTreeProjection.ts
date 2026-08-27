@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { TransmogrifierService } from '../core/transmogrifierService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
+import { findInventoryComponent } from './orgCatalogKeys';
 import { projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -39,8 +40,6 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       MetadataDescribeService,
       TransmogrifierService
     ]);
-    const entryUri = (orgId: string, xmlName: string, fullName: string) =>
-      references.documentUri({ orgId, xmlName, fullName: fullName || '__type__' });
     const getCustomFieldChildren = Effect.fn('OrgCatalogTreeProjection.getCustomFieldChildren')(function* (
       orgId: string,
       objectEntry: OrgMetadataCatalogEntry
@@ -118,35 +117,47 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         } satisfies OrgMetadataCatalogEntry;
       });
       const inventoriedFullNames = new Set(inventoryFields.map(entry => entry.reference.fullName));
-      const describedOnlyEntries = describedFields.flatMap(field => {
-        const unqualifiedName = objectEntry.namespacePrefix
-          ? field.name.replace(`${objectEntry.namespacePrefix}__`, '')
-          : field.name;
-        const candidates = [
-          `${objectEntry.reference.fullName}.${field.name}`,
-          `${objectEntry.reference.fullName}.${unqualifiedName}`
-        ];
-        const fullName = candidates.find(candidate => fieldInventory.components.has(candidate)) ?? candidates[0];
-        if (inventoriedFullNames.has(fullName)) return [];
-        const existing = fieldInventory.components.get(fullName);
-        return [
-          {
-            ...(existing ?? {
-              orgId,
-              observedAt: new Date().toISOString(),
-              provenance: 'rest-api' as const,
-              reference: { xmlName: 'CustomField', fullName },
-              documentUri: entryUri(orgId, 'CustomField', fullName),
-              kind: 'component' as const,
-              inOrg: true,
-              inWorkspace: false
-            }),
-            name: unqualifiedName,
-            namespacePrefix: objectEntry.namespacePrefix,
-            field: toFieldDetails(field, unqualifiedName)
-          } satisfies OrgMetadataCatalogEntry
-        ];
-      });
+      const describedOnlyEntries = yield* Effect.forEach(
+        describedFields,
+        field =>
+          Effect.gen(function* () {
+            const unqualifiedName = objectEntry.namespacePrefix
+              ? field.name.replace(`${objectEntry.namespacePrefix}__`, '')
+              : field.name;
+            const candidates = [
+              `${objectEntry.reference.fullName}.${field.name}`,
+              `${objectEntry.reference.fullName}.${unqualifiedName}`
+            ];
+            const fullName =
+              candidates.find(candidate =>
+                findInventoryComponent(fieldInventory.components, { xmlName: 'CustomField', fullName: candidate })
+              ) ?? candidates[0];
+            if (inventoriedFullNames.has(fullName)) return [];
+            const existing = findInventoryComponent(fieldInventory.components, { xmlName: 'CustomField', fullName });
+            return [
+              {
+                ...(existing ?? {
+                  orgId,
+                  observedAt: new Date().toISOString(),
+                  provenance: 'rest-api' as const,
+                  reference: { xmlName: 'CustomField', fullName },
+                  documentUri: yield* references.documentUri({
+                    orgId,
+                    xmlName: 'CustomField',
+                    fullName
+                  }),
+                  kind: 'component' as const,
+                  inOrg: true,
+                  inWorkspace: false
+                }),
+                name: unqualifiedName,
+                namespacePrefix: objectEntry.namespacePrefix,
+                field: toFieldDetails(field, unqualifiedName)
+              } satisfies OrgMetadataCatalogEntry
+            ];
+          }),
+        { concurrency: 'unbounded' }
+      ).pipe(Effect.map(entries => entries.flat()));
       return [...inventoryEntries, ...describedOnlyEntries].toSorted((left, right) =>
         left.name.localeCompare(right.name)
       );
@@ -162,31 +173,40 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
           { concurrency: 'unbounded' }
         );
         const orgTypes = new Set(metadataTypes.map(type => type.xmlName));
-        return [...new Set([...orgTypes, ...workspaceTypes])]
-          .map(xmlName => ({
-            orgId,
-            observedAt: new Date().toISOString(),
-            provenance:
-              orgTypes.has(xmlName) && workspaceTypes.has(xmlName)
-                ? ('metadata-api+workspace' as const)
-                : orgTypes.has(xmlName)
-                  ? ('metadata-api' as const)
-                  : ('workspace' as const),
-            reference: { xmlName },
-            documentUri: entryUri(orgId, xmlName, ''),
-            name: xmlName,
-            kind: 'type' as const,
-            inOrg: orgTypes.has(xmlName),
-            inWorkspace: workspaceTypes.has(xmlName)
-          }))
-          .toSorted((left, right) => left.name.localeCompare(right.name));
+        return yield* Effect.forEach(
+          [...new Set([...orgTypes, ...workspaceTypes])],
+          xmlName =>
+            references.documentUri({ orgId, xmlName, fullName: '__type__' }).pipe(
+              Effect.map(documentUri => ({
+                orgId,
+                observedAt: new Date().toISOString(),
+                provenance:
+                  orgTypes.has(xmlName) && workspaceTypes.has(xmlName)
+                    ? ('metadata-api+workspace' as const)
+                    : orgTypes.has(xmlName)
+                      ? ('metadata-api' as const)
+                      : ('workspace' as const),
+                reference: { xmlName },
+                documentUri,
+                name: xmlName,
+                kind: 'type' as const,
+                inOrg: orgTypes.has(xmlName),
+                inWorkspace: workspaceTypes.has(xmlName)
+              }))
+            ),
+          { concurrency: 'unbounded' }
+        ).pipe(Effect.map(entries => entries.toSorted((left, right) => left.name.localeCompare(right.name))));
       }
       const inventory = yield* inventories.loadType(orgId, reference.xmlName);
-      const component = reference.fullName ? inventory.components.get(reference.fullName) : undefined;
+      const component = reference.fullName
+        ? findInventoryComponent(inventory.components, { xmlName: reference.xmlName, fullName: reference.fullName })
+        : undefined;
       if (component && reference.xmlName === 'CustomObject') {
         return yield* getCustomFieldChildren(orgId, component);
       }
-      const children = projectChildren(entryUri, orgId, reference.xmlName, reference.fullName, inventory);
+      const children = yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
+        Effect.provideService(OrgMetadataReferenceService, references)
+      );
       if (children.length === 0 && reference.fullName && !inventory.folders.has(reference.fullName)) {
         return yield* Effect.fail(
           vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
@@ -201,7 +221,11 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
     ) {
       if (!reference.xmlName) return undefined;
       const inventory = yield* inventories.getCachedInventory(orgId, reference.xmlName);
-      return inventory ? projectChildren(entryUri, orgId, reference.xmlName, reference.fullName, inventory) : undefined;
+      return inventory
+        ? yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
+            Effect.provideService(OrgMetadataReferenceService, references)
+          )
+        : undefined;
     });
 
     return { getChildren, getChildrenCached, getCustomFieldChildren } as const;

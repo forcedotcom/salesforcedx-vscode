@@ -106,12 +106,36 @@ For complete testing and publishing workflow, see [docs/release-testing-guide.md
 
 1. **Wed 7 AM UTC:** `promote-nightly-to-prerelease.yml` auto-runs → 3-stage flow: select latest nightly, gate-check CI status (verifies required checks passed), promote to pre-release; creates `marketplace-prerelease-*` tracking tag
 2. **Wed 8 AM UTC:** `build-release.yml` auto-runs → detects via tracking tag (finds promoted Wed candidate), builds stable VSIXs
-4. Download + test VSIX files from GitHub pre-release
-5. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
-   - Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
-   - Query release metadata to determine whether to publish as stable or prerelease
-6. Approve marketplace publish gates
-7. Marketplace updates within min
+3. Download + test VSIX files from GitHub pre-release
+4. Trigger publish workflows:
+   - [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) w/ version (e.g. `67.12.0`)
+   - [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) w/ version (e.g. `67.12.0`)
+5. Approve marketplace publish gates
+6. Marketplace updates within min
+
+**`publishVSCode.yml` (Microsoft Marketplace):**
+- Detects release type (prerelease vs stable) via `IS_PRERELEASE` output
+- Verifies release exists; downloads VSIX files
+- Publishes to VS Code Marketplace via `vsce`
+- Dispatches Web Console release (if `CBW_TRIGGER_ENABLED`, default enabled)
+
+**`publishOpenVSX.yml` (Open VSX Registry):**
+- Downloads VSIX files from release
+- Publishes via `npx ovsx publish --skip-duplicate`
+- Polls Open VSX for availability verification
+
+**Manual workflow_dispatch:** Specify release tag (e.g., `v67.10.0`). Ensure `build-release.yml` has already created that GitHub release with VSIX artifacts. Workflows validate release exists before downloads.
+
+Before approving marketplace publishes, download VSIX files, install locally, verify functionality.
+
+Use [gh cli](https://cli.github.com/) (replace `v64.8.0` with your tag; `code` → `code-insiders` as needed):
+
+```sh
+gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
+
+After testing, approve "Publish in Microsoft Marketplace" + "Publish in Open VSX Registry" jobs.
 
 ### ~~Merge to main (Deprecated - Old Release Branch Flow)~~
 

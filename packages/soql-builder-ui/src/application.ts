@@ -21,7 +21,7 @@ import {
   type SoqlBuilderServiceError,
   type SoqlBuilderState
 } from './domain.js';
-import { SoqlBuilderController, SoqlBuilderControllerLive } from './effect/soqlBuilderController.js';
+import { SoqlBuilderController } from './effect/soqlBuilderController.js';
 
 export type SoqlBuilderView = {
   viewState: SoqlBuilderState;
@@ -45,7 +45,7 @@ export class SoqlBuilderApplication {
     private readonly view: SoqlBuilderView,
     serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
   ) {
-    this.runtime = ManagedRuntime.make(SoqlBuilderControllerLive.pipe(Layer.provide(serviceLayer)));
+    this.runtime = ManagedRuntime.make(SoqlBuilderController.Default.pipe(Layer.provide(serviceLayer)));
   }
 
   public readonly connect = (): void => {
@@ -81,7 +81,7 @@ export class SoqlBuilderApplication {
         );
       }).pipe(
         Effect.scoped,
-        Effect.catchTag('SoqlBuilderServiceError', error =>
+        Effect.catchAll(error =>
           Effect.sync(() => {
             this.view.viewState = {
               ...createInitialSoqlBuilderState(),

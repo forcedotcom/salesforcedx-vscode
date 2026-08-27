@@ -176,6 +176,26 @@ type PublicSdkLayerFor = (
 export type { AliasService } from './core/alias';
 export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
+  ApexTypeArtifactIdentitySchema,
+  ArtifactIdentitySchema,
+  ArtifactNamespaceSchema,
+  ArtifactTargetKindSchema,
+  MetadataComponentArtifactIdentitySchema,
+  SObjectArtifactIdentitySchema,
+  artifactIdentitiesEqual,
+  artifactIdentityKey,
+  artifactNamespacesEqual,
+  normalizeArtifactIdentity,
+  normalizeArtifactIdentityPart,
+  normalizeArtifactNamespace,
+  type ApexTypeArtifactIdentity,
+  type ArtifactIdentity,
+  type ArtifactNamespace,
+  type ArtifactTargetKind,
+  type MetadataComponentArtifactIdentity,
+  type SObjectArtifactIdentity
+} from './core/artifactIdentity';
+export {
   TemplateService,
   type ApexClassCreateOptions,
   type ApexTriggerCreateOptions,
@@ -251,19 +271,14 @@ export type {
   ListMetadataError,
   SObjectGlobalDescribeItem
 } from './core/metadataDescribeService';
-export type {
-  DescribeSObjectResult,
-  SObject,
-  SObjectField,
-  ChildRelationship,
-  TransmogrifierService
-} from './core/transmogrifierService';
+export type { DescribeSObjectResult, TransmogrifierService } from './core/transmogrifierService';
+export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
   SObjectSchema,
   SObjectFieldSchema,
   ChildRelationshipSchema,
   PicklistValueSchema
-} from './core/transmogrifierService';
+} from './core/schemas/sObject';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
