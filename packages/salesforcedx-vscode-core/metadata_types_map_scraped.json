@@ -35609,7 +35609,7 @@
         "Field Type": "LicenseExpirationPolicy (enumeration of type string)"
       },
       {
-        "Description": "The user license categories that can be assigned the custom permission set license. If no user license categories are specified, all users can be assigned the license. Possible values include: ${communities} ${communitiesLogin} ${customerCommunities} ${customerCommunitiesLogin} ${internal} ${partnerCommunity} ${partnerCommunityLogin} ${platform} For more information, see User License Restriction Categories (Developer Preview). This field is available in API version 55.0 and later.",
+        "Description": "The user license categories that can be assigned the custom permission set license. If no user license categories are specified, all users can be assigned the license. Possible values include: ${communities} ${communitiesLogin} ${customerCommunities} ${customerCommunitiesLogin} ${internal} ${partnerCommunity} ${partnerCommunityLogin} ${platform} For more information, see Understand Permission Set Licenses",
         "Field Name": "userLicenseRestrictions",
         "Field Type": "string"
       }
@@ -44072,6 +44072,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether to turn on the Deploy Active Prompt Template Versions Only setting. Deploys only the active version of prompt templates to this org, and skips inactive versions. If a template doesn't have an active version, the deployment fails. The default value is false.",
+        "Field Name": "enableEinsteinGPTDeployPromptTemplatesAsActive",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether to turn on global languages with prompt templates. The default value is false.",
         "Field Name": "enableEinsteinGptGlobalLangSupport",
         "Field Type": "boolean"
@@ -47329,12 +47334,12 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Hides the opportunity section of the Convert Lead window during the conversion of a lead. Default value is false.",
+        "Description": "Hides the opportunity section of the Convert Lead window during lead conversion. Default value is false.",
         "Field Name": "doesHideOpportunityInConvertLeadWindow",
         "Field Type": "boolean"
       },
       {
-        "Description": "If your organization uses record types, the lead status changes to the lead status value of the new owner's record type during conversion. Set doesPreserveLeadStatus to true to preserve the value of the lead status during conversion.Orgs that use record types can create a lead process that allows different lead status values for different record types. If doesPreserveLeadStatus is false, the lead status might change during lead conversion if the new owner's record type has a different default value for lead status. Default value is true.",
+        "Description": "If your org uses record types, the lead status changes to the lead status value of the new owner's record type during conversion. Set doesPreserveLeadStatus to true to preserve the value of the lead status during conversion.Orgs that use record types can create a lead process that allows different lead status values for different record types. If doesPreserveLeadStatus is false, the lead status might change during lead conversion if the new owner's record type has a different default value for lead status. Default value is true.",
         "Field Name": "doesPreserveLeadStatus",
         "Field Type": "boolean"
       },
@@ -47356,6 +47361,11 @@
       {
         "Description": "Lets a user merge and delete leads. The user must also have the Public Read/Write/Transfer permission.Default value is false.",
         "Field Name": "enableOrgWideMergeAndDelete",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Associates the lead's emails with the contact that it's converted to.Default value is false.",
+        "Field Name": "relateEmailsToContactOnConvert",
         "Field Type": "boolean"
       },
       {
@@ -49242,11 +49252,6 @@
       {
         "Description": "Indicates whether redirections to other Salesforce orgs are allowed (true) or blocked (false). In Summer ’24 and later, this field is always false.This setting applies to user redirections to another Salesforce org via a direct link, a post-action URL, or a post-login URL in Salesforce. An example of a direct link with a redirection is <a href=\"/?startURL=targetUrl\">linkText\">linkText</a>. Post-action URLs and post-login URLs use a protected URL redirect parameter, such as retURL, startURL, saveURL, cancelURL, and targetURL. Subsequent redirections can’t be verified because they occur outside Salesforce. To allow cross-org redirections, add the URLs for the Salesforce orgs that you own to RedirectWhitelistUrl. Available in API version 59.0 to 60.0.",
         "Field Name": "enableCrossOrgRedirects",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether unauthenticated guest users can access GraphQL API (true) or not (false). The default value is false.Available in API version 67.0 and later.",
-        "Field Name": "enableGraphQLApiGuestUserAccess",
         "Field Type": "boolean"
       },
       {
@@ -54845,6 +54850,28 @@
     ],
     "short_description": "Represents the registration of a custom Marketing Cloud Preview and Test modal tab, created using custom Lightning web components. You can register and show multiple tabs in the Preview and Test experience.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uipreviewmessagetabdef.htm",
+    "parent": "Metadata"
+  },
+  "UiWidgetBundle (Beta)": {
+    "fields": [
+      {
+        "Description": "Required. Describes the widget.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Represents the name of a widget bundle which is defined when the UiWidgetBundle is created.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Represents the widget type. The only allowed value is JSON.",
+        "Field Name": "widgetType",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a widget. Use widgets to define reusable UI compositions once and deploy them across supported Salesforce applications and third-party platforms. Deploy this bundle to your Salesforce org to make the widget available.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uiwidgetbundle.htm",
     "parent": "Metadata"
   },
   "UserAccessPolicy": {

@@ -8,7 +8,7 @@
 import type { OrgMetadataReference } from './orgMetadataReference';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
-import { SObjectSchema } from '../core/transmogrifierService';
+import { SObjectSchema } from '../core/schemas/sObject';
 
 const UriSchema = Schema.declare((value): value is URI => value instanceof URI, {
   identifier: 'URI',

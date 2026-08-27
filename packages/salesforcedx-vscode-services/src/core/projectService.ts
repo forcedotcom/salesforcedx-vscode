@@ -21,6 +21,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { artifactNamespacesEqual, type ArtifactNamespace } from './artifactIdentity';
 import { unknownToErrorCause } from './shared';
 
 export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToResolveSfProjectError>()(
@@ -128,6 +129,14 @@ const readVsCodeTestWebDiskRootMarker = Effect.promise(async (): Promise<string 
 export const sfProjectCacheKey = (workspaceDirFsPath: string) =>
   Effect.map(readVsCodeTestWebDiskRootMarker, markerPath => markerPath ?? normalize(workspaceDirFsPath));
 
+export const canonicalProjectNamespace = (value: unknown): ArtifactNamespace =>
+  typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+
+export const isWorkspaceNamespaceEligible = (
+  requestedNamespace: ArtifactNamespace,
+  projectNamespace: ArtifactNamespace
+): boolean => artifactNamespacesEqual(requestedNamespace, projectNamespace);
+
 /** VS Code Web test mounts are not readable by Node `SfProject.resolve`; used when resolve fails on the disk key. */
 const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async (): Promise<boolean> => {
   const folders = vscode.workspace.workspaceFolders;
@@ -187,6 +196,19 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       yield* setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty');
       return project;
     });
+
+    /** Return the canonical project namespace, or null for an explicitly unnamespaced project. */
+    const getProjectNamespace = Effect.fn('ProjectService.getProjectNamespace')(function* () {
+      const project = yield* getSfProject();
+      return canonicalProjectNamespace(project.getSfProjectJson().getContents().namespace);
+    });
+
+    /** Determine whether an exact artifact namespace is eligible for attribution to this workspace. */
+    const isArtifactNamespaceWorkspaceEligible = Effect.fn('ProjectService.isArtifactNamespaceWorkspaceEligible')(
+      function* (requestedNamespace: ArtifactNamespace) {
+        return isWorkspaceNamespaceEligible(requestedNamespace, yield* getProjectNamespace());
+      }
+    );
 
     /** Check if a URI is within any package directory */
     const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
@@ -271,6 +293,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     return {
       isSalesforceProject,
       getSfProject,
+      getProjectNamespace,
+      isArtifactNamespaceWorkspaceEligible,
       isInPackageDirectories,
       ensureInPackageDirectories,
       getSoqlMetadataPath,

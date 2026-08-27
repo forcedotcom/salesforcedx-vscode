@@ -266,6 +266,16 @@ Ref behavior (concise):
 - `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org.
 - `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
 
+### Clearing the Default Org
+
+Call `ClearDefaultOrgRef()` to reset the in-process org ref (e.g., after deleting the default org):
+
+```typescript
+yield* api.services.ClearDefaultOrgRef();
+```
+
+Clears the reactive ref without rewriting config. Use when the CLI already mutated config but the in-process ref must reset to notify observers (e.g., the source tracking status bar icons). See `orgDeleteDefaultCommand` for an example.
+
 ## Complete Example Pattern
 
 ```typescript

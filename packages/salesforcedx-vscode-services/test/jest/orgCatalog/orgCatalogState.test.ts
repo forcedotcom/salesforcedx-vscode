@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
+import { componentIdentity } from '../../../src/orgCatalog/orgCatalogKeys';
 import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot
@@ -50,7 +51,7 @@ describe('OrgCatalogState', () => {
       folders: new Map(),
       components: new Map([
         [
-          'RemoteAndLocal',
+          componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteAndLocal' }),
           {
             orgId: 'org-one',
             observedAt: '2026-08-03T12:00:00.000Z',
@@ -65,7 +66,7 @@ describe('OrgCatalogState', () => {
           }
         ],
         [
-          'LocalOnly',
+          componentIdentity({ xmlName: 'ApexClass', fullName: 'LocalOnly' }),
           {
             orgId: 'org-one',
             observedAt: '2026-08-03T12:00:00.000Z',
@@ -130,7 +131,9 @@ describe('OrgCatalogState', () => {
 
     expect(load).toHaveBeenCalledTimes(1);
     expect(result.inventory?.components).toEqual([expect.objectContaining({ fullName: 'RemoteTest' })]);
-    expect(result.tracking.get('ApexClass\0RemoteTest')?.signature).toBe('Changed|7');
+    expect(result.tracking.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteTest' }))?.signature).toBe(
+      'Changed|7'
+    );
     expect(saved[0]?.generation).toBe(8);
   });
 

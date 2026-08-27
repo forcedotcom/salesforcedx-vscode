@@ -34,6 +34,10 @@ const userCancellationError = { _tag: 'UserCancellationError', message: 'User ca
 
 type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isSandbox?: boolean };
 
+// The default-delete command clears the reactive org ref after a successful delete so reactive consumers
+// (e.g. the source tracking status bar icons) reset instead of lingering on the now-deleted org (W-23950821).
+const mockClearDefaultOrgRef = jest.fn(() => Effect.void);
+
 const buildServices = (
   orgInfo: OrgSnapshot,
   confirm: boolean,
@@ -57,7 +61,8 @@ const buildServices = (
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
   }),
-  TargetOrgRef: () => SubscriptionRef.make(orgInfo)
+  TargetOrgRef: () => SubscriptionRef.make(orgInfo),
+  ClearDefaultOrgRef: mockClearDefaultOrgRef
 });
 
 const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock, onAppend?: jest.Mock) =>
@@ -73,6 +78,8 @@ describe('orgDeleteDefaultCommand', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
+    // resetMocks:true (jest.base.config) clears impls each test, so (re)set the return here
+    mockClearDefaultOrgRef.mockReturnValue(Effect.void);
   });
 
   it('runs `sf org delete scratch` for a scratch default org', async () => {
@@ -86,6 +93,8 @@ describe('orgDeleteDefaultCommand', () => {
       timeout: Duration.seconds(120)
     });
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    // clears the reactive org ref so the source tracking status bar icons reset (W-23950821)
+    expect(mockClearDefaultOrgRef).toHaveBeenCalledTimes(1);
   });
 
   it('runs `sf org delete sandbox` for a sandbox default org', async () => {
@@ -120,6 +129,8 @@ describe('orgDeleteDefaultCommand', () => {
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgNotDeletableError');
     expect(simpleExec).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+    // nothing was deleted, so the org ref must not be cleared
+    expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
   });
 
   it('appends a fallback success message when sf emits empty stdout', async () => {
@@ -139,6 +150,8 @@ describe('orgDeleteDefaultCommand', () => {
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     expect(simpleExec).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+    // user declined, so the org ref must not be cleared
+    expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
   });
 });
 

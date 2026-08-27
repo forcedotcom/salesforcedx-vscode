@@ -27,7 +27,8 @@ import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../../../src/c
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
-import { TransmogrifierService, type SObject } from '../../../src/core/transmogrifierService';
+import { TransmogrifierService } from '../../../src/core/transmogrifierService';
+import type { SObject } from '../../../src/core/schemas/sObject';
 import { OrgMetadataCatalog } from '../../../src/orgCatalog/orgMetadataCatalog';
 import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
 import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
@@ -314,7 +315,8 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getSfProject: () =>
         Effect.succeed({
           getPackageDirectories: () => [{ fullPath: '/workspace/force-app' }]
-        })
+        }),
+      getProjectNamespace: () => Effect.succeed(null)
     } as unknown as InstanceType<typeof ProjectService>),
     Layer.succeed(TransmogrifierService, {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)
