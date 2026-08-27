@@ -26,11 +26,7 @@ import { WorkspaceService } from '../vscode/workspaceService';
 import { OrgCatalogDocuments } from './orgCatalogDocuments';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
-import {
-  ORG_METADATA_SCHEME,
-  OrgMetadataReferenceService,
-  type OrgMetadataDocumentLocation
-} from './orgMetadataReference';
+import { ORG_METADATA_SCHEME, orgIdFromOrgMetadataUri } from './orgMetadataReference';
 
 /** Internal Salesforce state must not invalidate the catalog that produced it. */
 export const isCatalogRelevantWorkspaceUri = (workspaceUri: URI, uri: URI): boolean =>
@@ -52,20 +48,24 @@ export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentPr
 
   public notifyCatalogChanged(
     activeOrgId: string | undefined,
-    parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
+    locations: ReadonlyMap<string, string | undefined>
   ): void {
-    this.requestedUris.forEach(uri => {
-      if (parseDocumentUri(uri)?.orgId === activeOrgId) this.changeEmitter.fire(uri);
+    this.requestedUris.forEach((uri, key) => {
+      if (locations.get(key) === activeOrgId) this.changeEmitter.fire(uri);
     });
   }
 
   public removeInactiveOrgUris(
     activeOrgId: string | undefined,
-    parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
+    locations: ReadonlyMap<string, string | undefined>
   ): void {
     this.requestedUris.forEach((uri, key) => {
-      if (parseDocumentUri(uri)?.orgId !== activeOrgId) this.requestedUris.delete(key);
+      if (locations.get(key) !== activeOrgId) this.requestedUris.delete(key);
     });
+  }
+
+  public requestedUriEntries(): readonly [string, URI][] {
+    return [...this.requestedUris];
   }
 
   public dispose(): void {
@@ -74,6 +74,9 @@ export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentPr
   }
 }
 
+const requestedUriOrgIds = (provider: OrgMetadataDocumentProvider): Map<string, string | undefined> =>
+  new Map(provider.requestedUriEntries().map(([key, uri]) => [key, orgIdFromOrgMetadataUri(uri)]));
+
 const tabInputUris = (input: unknown): readonly URI[] => {
   if (input instanceof vscode.TabInputText) return [input.uri];
   if (input instanceof vscode.TabInputTextDiff) return [input.original, input.modified];
@@ -81,25 +84,23 @@ const tabInputUris = (input: unknown): readonly URI[] => {
 };
 
 /** @internal Exported for focused provider lifecycle tests; not part of the extension API. */
-export const closeInactiveOrgDocuments = (
-  activeOrgId: string | undefined,
-  parseDocumentUri: (uri: URI) => OrgMetadataDocumentLocation | undefined
-) =>
-  Effect.gen(function* () {
-    const tabGroups = vscode.window.tabGroups;
-    if (!tabGroups) return;
-    const tabs = tabGroups.all.flatMap(group =>
-      group.tabs.filter(tab =>
-        tabInputUris(tab.input).some(uri => {
-          const location = parseDocumentUri(URI.parse(uri.toString()));
-          return location !== undefined && location.orgId !== activeOrgId;
-        })
-      )
+export const closeInactiveOrgDocuments = Effect.fn('closeInactiveOrgDocuments')(function* (
+  activeOrgId: string | undefined
+) {
+  const tabGroups = vscode.window.tabGroups;
+  if (!tabGroups) return;
+  const tabs = tabGroups.all
+    .flatMap(group => group.tabs)
+    .filter(tab =>
+      tabInputUris(tab.input).some(uri => {
+        const orgId = orgIdFromOrgMetadataUri(URI.parse(uri.toString()));
+        return orgId !== undefined && orgId !== activeOrgId;
+      })
     );
-    if (tabs.length > 0) {
-      yield* Effect.tryPromise(() => tabGroups.close(tabs, true)).pipe(Effect.asVoid);
-    }
-  });
+  if (tabs.length > 0) {
+    yield* Effect.tryPromise(() => tabGroups.close(tabs, true)).pipe(Effect.asVoid);
+  }
+});
 
 /**
  * Owns the read-only VS Code document projection and catalog invalidation
@@ -113,7 +114,6 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     catalogChanges,
     fileChanges,
     metadataChanges,
-    referenceService,
     defaultOrgRef,
     activeOperationRef,
     workspaceService
@@ -123,7 +123,6 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     OrgMetadataCatalogChangePubSub,
     FileChangePubSub,
     MetadataChangeNotificationService,
-    OrgMetadataReferenceService,
     getDefaultOrgRef(),
     getActiveMetadataOperationRef(),
     WorkspaceService
@@ -163,7 +162,9 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             Match.exhaustive
           );
           if (changedOrgId === activeOrgId) {
-            yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, referenceService.parseDocumentUri));
+            yield* Effect.sync(() =>
+              provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider))
+            );
           }
         })
       )
@@ -238,14 +239,13 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             Effect.andThen(invalidateCatalog)
           ),
         org: orgChange =>
-          Effect.sync(() => provider.removeInactiveOrgUris(orgChange.orgId, referenceService.parseDocumentUri)).pipe(
-            Effect.andThen(
-              closeInactiveOrgDocuments(orgChange.orgId, referenceService.parseDocumentUri).pipe(
-                Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
-              )
-            ),
-            Effect.andThen(orgChange.orgId !== undefined ? invalidateCatalog : Effect.void)
-          ),
+          Effect.gen(function* () {
+            provider.removeInactiveOrgUris(orgChange.orgId, requestedUriOrgIds(provider));
+            yield* closeInactiveOrgDocuments(orgChange.orgId).pipe(
+              Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
+            );
+            if (orgChange.orgId !== undefined) yield* invalidateCatalog;
+          }),
         operation: () => Effect.void,
         tracking: () => Effect.void
       }),
