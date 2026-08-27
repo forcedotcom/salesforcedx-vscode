@@ -17,8 +17,7 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText,
-  waitForVSCodeWorkbench
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 import packageNls from '../../../../package.nls.json';
@@ -37,7 +36,7 @@ test('Config List (Code Builder): lists config variables in output channel', asy
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('wait for workbench', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     // First container boot stacks telemetry/what's-new toasts that can cover the output toolbar.
