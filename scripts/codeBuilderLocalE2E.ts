@@ -57,7 +57,9 @@ import { join, resolve } from 'node:path';
 
 const REPO_ROOT = resolve(__dirname, '..');
 const CONTAINER_NAME = 'codebuilder-e2e-local';
-const ORG_ALIAS = 'minimalTestOrg';
+// Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
+// workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
+const ORG_ALIAS = process.env.MINIMAL_ORG_ALIAS ?? 'minimalTestOrg';
 // Host port the workbench is published on. The container serves code-server on CONTAINER_PORT
 // (58080); the lifecycle `run` maps this host port to it.
 const PUBLISHED_PORT = 8123;
@@ -92,14 +94,24 @@ type Options = {
 
 const parseArgs = (argv: string[]): Options => {
   const parsed: Options = { teardown: true, imageTag: 'latest', debug: false };
+  // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
+  // `undefined` and fall through silently — `--run-id` with no value would quietly do a local build
+  // instead of the intended artifact run. Fail loud instead.
+  const need = (flag: string, value: string | undefined): string => {
+    if (value === undefined) {
+      console.error(`Option ${flag} requires a value.`);
+      process.exit(2);
+    }
+    return value;
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
       case '--run-id':
-        parsed.runId = argv[++i];
+        parsed.runId = need('--run-id', argv[++i]);
         break;
       case '--grep':
-        parsed.grep = argv[++i];
+        parsed.grep = need('--grep', argv[++i]);
         break;
       case '--no-teardown':
         parsed.teardown = false;
@@ -107,7 +119,7 @@ const parseArgs = (argv: string[]): Options => {
       case '--keep-org': // reuse is already the default; kept for discoverability
         break;
       case '--image-tag':
-        parsed.imageTag = argv[++i];
+        parsed.imageTag = need('--image-tag', argv[++i]);
         break;
       case '--debug':
         parsed.debug = true;
@@ -161,6 +173,11 @@ const cleanup = (): void => {
   }
 };
 process.on('exit', cleanup);
+// Node's 'exit' event does NOT fire on a default-disposition signal, so a Ctrl-C (SIGINT) or a
+// `docker`/CI kill (SIGTERM) mid-run would otherwise leave the container up (holding the port and a
+// live org token) and the temp dir on disk. Route both through process.exit so `cleanup` runs.
+process.on('SIGINT', () => process.exit(130));
+process.on('SIGTERM', () => process.exit(143));
 
 /* --- preflight -------------------------------------------------------------
  * Assume a teammate's box has none of the required tooling. Check every external
@@ -461,9 +478,12 @@ const main = async (): Promise<number> => {
 
   /* --- run the specs ------------------------------------------------------- */
   log('Running container Playwright specs');
-  const testArgs = ['run', 'test:container', '-w', 'salesforcedx-vscode-core', '--', '--reporter=html'];
+  // No --reporter override: a CLI --reporter REPLACES the config's reporter list, which would drop
+  // the CI junit reporter createContainerConfig selects. Let the config choose (html+line+junit in
+  // CI, html+list locally).
+  const testArgs = ['run', 'test:container', '-w', 'salesforcedx-vscode-core'];
   if (opts.grep) {
-    testArgs.push('--grep', opts.grep);
+    testArgs.push('--', '--grep', opts.grep);
   }
   const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL };
   if (opts.debug) {
