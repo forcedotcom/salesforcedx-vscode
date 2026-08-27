@@ -57,6 +57,7 @@ export default [
       '**/out/**',
       '**/dist/**',
       '**/dist-lit/**',
+      '**/dist-migration/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',

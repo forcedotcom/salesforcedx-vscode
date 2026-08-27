@@ -511,6 +511,24 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Implicit full run (no explicit selection): restrict to in-workspace tests for the default profiles.
       const isImplicitFullRun = !request.include?.length;
+
+      // Explicit multi-select of a mix of suites and individual tests/classes silently dropped the suites
+      // downstream (buildTestPayload only builds a suite payload when the selection is suites-only). Reject
+      // the whole run up front instead of executing a partial, confusing subset.
+      if (
+        !isImplicitFullRun &&
+        gatheredTests.some(test => isSuite(test.id)) &&
+        gatheredTests.some(test => !isSuite(test.id))
+      ) {
+        const message = nls.localize('apex_test_mixed_selection_not_supported_message');
+        yield* Effect.sync(() => {
+          gatheredTests.forEach(test => run.errored(test, new vscode.TestMessage(message)));
+          void vscode.window.showErrorMessage(message);
+          run.end();
+        });
+        return;
+      }
+
       const inWorkspaceTag = ctx.inWorkspaceTag;
       const workspaceScopedTests =
         runScope === 'workspace-first' && isImplicitFullRun && inWorkspaceTag

@@ -447,6 +447,36 @@ describe('ApexTestExecutionService', () => {
       expect(runTestAsynchronous).not.toHaveBeenCalled();
       expect(end).toHaveBeenCalled();
     });
+
+    it('rejects an explicit mix of suites and individual tests without running anything', async () => {
+      const suite = fakeItem('suite:S', 'S');
+      const method = fakeItem('method:MyClass.testA', 'testA');
+      const { run, errored, end } = fakeRun();
+      const runTestAsynchronous = jest.fn();
+      setTestService(makeTestService({ runTestAsynchronous }));
+      (vscode.window.showErrorMessage as jest.Mock).mockClear();
+      const ctx = makeCtx({
+        controller: {
+          items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: jest.fn(() => run)
+        } as unknown as vscode.TestController
+      });
+      await runEff(
+        ApexTestExecutionService.runTests(
+          ctx,
+          { include: [suite, method] } as unknown as vscode.TestRunRequest,
+          cancellationToken,
+          false,
+          'workspace-first'
+        )
+      );
+      expect(errored.map(e => e.test)).toEqual([suite, method]);
+      expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+        'Running a mix of individual Apex tests and Apex test suites is not supported. Select either individual tests or test suites, not both.'
+      );
+      expect(runTestAsynchronous).not.toHaveBeenCalled();
+      expect(end).toHaveBeenCalled();
+    });
   });
 
   describe('onResultFileCreate', () => {

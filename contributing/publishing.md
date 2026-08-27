@@ -75,15 +75,23 @@ Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/sa
 - Send Slack notification
 - Create git tag + GitHub release
 
-Then triggers `publishVSCode.yml`:
+Then triggers two separate publish workflows:
+
+**`publishVSCode.yml` (Microsoft Marketplace):** Publishes to VS Code Marketplace only.
 - Verify release exists (required for manual workflow_dispatch triggers)
 - Download VSIX files; validate ≥1 present, exit if missing
-- Call the shared release-asset publisher to publish every VSIX in the GitHub release to VS Code Marketplace
+- Call the shared release-asset publisher via `vsce` to publish every VSIX to VS Code Marketplace
+- Dispatch Web Console release (if CBW_TRIGGER_ENABLED, default enabled)
 - Send approval notification
+
+**`publishOpenVSX.yml` (Open VSX Registry):** Publishes to Open VSX only.
+- Download VSIX files from release
+- Publish via `npx ovsx publish --skip-duplicate` (skipped on dry-run)
+- Poll Open VSX for availability verification
 
 **Manual workflow_dispatch triggers:** Specify the release tag (for example, `v67.10.0`) and ensure `testBuildAndRelease.yml` has already created that GitHub release with VSIX artifacts. The workflow validates the release exists before attempting downloads and will fail early with a clear error if the release is missing.
 
-Before approving marketplace publish, download VSIX files, install locally, verify functionality.
+Before approving marketplace publishes, download VSIX files, install locally, verify functionality.
 
 Use [gh cli](https://cli.github.com/) (replace `v64.8.0` with your tag; `code` → `code-insiders` as needed):
 

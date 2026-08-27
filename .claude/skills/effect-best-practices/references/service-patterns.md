@@ -141,7 +141,11 @@ yield* Effect.annotateCurrentSpan("step", "completing")
 
 ## When Context.Tag is Acceptable
 
-`Context.Tag` is appropriate **only** for infrastructure that's injected at runtime:
+`Context.Tag` is appropriate for infrastructure that's injected at runtime, or for an interface
+with more than one legitimate implementation swapped in by the caller (a real host implementation
+plus a test fake, or one implementation per embedding environment). `Effect.Service` bundles a tag
+with *one* canonical implementation, so it doesn't fit when the whole point of the type is that
+callers provide their own:
 
 ### Cloudflare Worker Bindings
 
@@ -188,6 +192,20 @@ const DatabaseLive = PgClient.layer({
     // ...
 })
 ```
+
+### Interfaces With Caller-Provided Implementations
+
+A type is a pure interface — the package that declares it never picks a default implementation —
+when every consumer must supply its own. `SoqlBuilderService` (`packages/soql-builder-ui/src/effect/soqlBuilderService.ts`)
+is the shape a host embeds the browser-safe SOQL Builder UI against: the VS Code extension
+provides `VscodeSoqlBuilderServiceLive`, tests provide `FakeSoqlBuilderService`, and neither is
+more "canonical" than the other, so there's no single implementation to bundle into `.Default`.
+`Context.GenericTag` (or `Context.Tag`) stays correct here.
+
+Contrast this with `SoqlBuilderController` (`packages/soql-builder-ui/src/effect/soqlBuilderController.ts`):
+it has exactly one implementation regardless of host, so it's an `Effect.Service` — the fact that
+it depends on the caller-provided `SoqlBuilderService` doesn't change that; that dependency is just
+yielded from context like any other, not baked into `dependencies`.
 
 ## Single Responsibility
 

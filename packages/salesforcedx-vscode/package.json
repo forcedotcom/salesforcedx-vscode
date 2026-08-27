@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.13.4",
+  "version": "67.15.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -79,6 +79,7 @@
     "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",
-    "salesforce.apex-language-server-extension"
+    "salesforce.apex-language-server-extension",
+    "salesforce.salesforcedx-metadata-visualizer-vscode"
   ]
 }
