@@ -96,6 +96,25 @@ export const createSafeguards = ({ session, worktree }, verify = {}) => {
 export const createSafeguardsFromContext = (ctx, verify) =>
   createSafeguards({ session: ctx.session, worktree: ctx.location.directory }, verify);
 
+export const runSafeguardEventLoop = async ({ events, onIdle, reportError, signal }) => {
+  const completionVerifications = new Set();
+  const dispatchCompletionVerification = event => {
+    const completionVerification = onIdle(event)
+      .catch(error => reportError('Completion verification failed', error))
+      .finally(() => completionVerifications.delete(completionVerification));
+    completionVerifications.add(completionVerification);
+  };
+
+  try {
+    for await (const event of events) {
+      dispatchCompletionVerification(event);
+    }
+  } catch (error) {
+    if (!signal?.aborted) reportError('Event subscription failed', error);
+  }
+  await Promise.allSettled(completionVerifications);
+};
+
 const plugin = {
   id: 'safeguards',
   async setup(ctx) {
@@ -117,15 +136,16 @@ const plugin = {
     });
 
     const controller = new AbortController();
-    const loop = (async () => {
-      for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
-        await hooks.onIdle(event);
-      }
-    })();
+    const loop = runSafeguardEventLoop({
+      events: ctx.event.subscribe({ signal: controller.signal }),
+      onIdle: hooks.onIdle,
+      reportError: (message, error) => console.error(`[safeguards] ${message}`, error),
+      signal: controller.signal
+    });
 
     return async () => {
       controller.abort();
-      await loop.catch(() => undefined);
+      await loop;
     };
   }
 };

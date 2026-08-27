@@ -13,7 +13,11 @@ import {
   verifyEdit,
   verifyEditAsync
 } from '../scripts/ai-safeguards.mjs';
-import { createSafeguards, createSafeguardsFromContext } from '../.opencode/plugins/safeguards.ts';
+import {
+  createSafeguards,
+  createSafeguardsFromContext,
+  runSafeguardEventLoop
+} from '../.opencode/plugins/safeguards.ts';
 
 const temporaryDirectory = async callback => {
   const directory = await mkdtemp(resolve(tmpdir(), 'ai-safeguards-'));
@@ -248,6 +252,108 @@ test('plugin setup verifies edits and completion against ctx.location.directory'
   await hooks.onIdle({ type: 'session.idle', data: { sessionID: 'session' } });
   assert.deepEqual(roots, [pluginDirectory, pluginDirectory]);
   assert.ok(roots.every(root => root !== cwd));
+});
+
+test('OpenCode event subscription drains while completion verification runs', async () => {
+  const finishVerifications = [];
+  let eventsConsumed = 0;
+  const events = async function* () {
+    eventsConsumed += 1;
+    yield { type: 'session.idle', data: { sessionID: 'one' } };
+    eventsConsumed += 1;
+    yield { type: 'session.idle', data: { sessionID: 'two' } };
+  };
+  const loop = runSafeguardEventLoop({
+    events: events(),
+    onIdle: () =>
+      new Promise(resolveVerification => {
+        finishVerifications.push(resolveVerification);
+      }),
+    reportError: assert.fail
+  });
+
+  await new Promise(resolveImmediate => setImmediate(resolveImmediate));
+  assert.equal(eventsConsumed, 2);
+  finishVerifications.forEach(finishVerification => finishVerification());
+  await loop;
+});
+
+test('OpenCode event subscription does not overlap completion verification for one session', async () => {
+  let finishVerification;
+  let verifications = 0;
+  const hooks = createSafeguards(
+    { session: {}, worktree: '/tmp' },
+    {
+      edit: async () => ({ ok: true, step: 'edit verification' }),
+      completion: () => {
+        verifications += 1;
+        return new Promise(resolveVerification => {
+          finishVerification = resolveVerification;
+        });
+      }
+    }
+  );
+  await hooks.afterEdit({
+    tool: 'edit',
+    sessionID: 'session',
+    input: { path: '/tmp/file.ts' },
+    output: { status: 'completed', result: { content: 'edited' } }
+  });
+  const events = async function* () {
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+  };
+  const loop = runSafeguardEventLoop({
+    events: events(),
+    onIdle: hooks.onIdle,
+    reportError: assert.fail
+  });
+
+  await new Promise(resolveImmediate => setImmediate(resolveImmediate));
+  assert.equal(verifications, 1);
+  finishVerification({ ok: true, step: 'completion verification' });
+  await loop;
+});
+
+test('OpenCode event subscription and completion failures are reported', async () => {
+  const subscriptionFailure = new Error('subscription failed');
+  const completionFailure = new Error('completion failed');
+  const errors = [];
+  const events = async function* () {
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+    throw subscriptionFailure;
+  };
+
+  await runSafeguardEventLoop({
+    events: events(),
+    onIdle: async () => Promise.reject(completionFailure),
+    reportError: (message, error) => errors.push({ message, error })
+  });
+
+  assert.deepEqual(errors, [
+    { message: 'Event subscription failed', error: subscriptionFailure },
+    { message: 'Completion verification failed', error: completionFailure }
+  ]);
+});
+
+test('OpenCode event subscription does not report normal cleanup abort', async () => {
+  const controller = new AbortController();
+  const errors = [];
+  const events = {
+    async *[Symbol.asyncIterator]() {
+      throw new Error('aborted');
+    }
+  };
+  controller.abort();
+
+  await runSafeguardEventLoop({
+    events,
+    onIdle: assert.fail,
+    reportError: (message, error) => errors.push({ message, error }),
+    signal: controller.signal
+  });
+
+  assert.deepEqual(errors, []);
 });
 
 test('OpenCode blocks unsafe shell before execution', () => {
