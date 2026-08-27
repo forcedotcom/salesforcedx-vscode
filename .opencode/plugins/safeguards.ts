@@ -7,7 +7,42 @@ import {
   verifyEditAsync
 } from '../../scripts/ai-safeguards.mjs';
 
-const createSafeguards = ({ client, worktree }, verify = {}) => {
+const eventData = event => event?.data ?? event?.properties ?? event;
+
+const sessionIDOf = event => {
+  const data = eventData(event);
+  return data?.sessionID ?? event?.sessionID;
+};
+
+const isIdleEvent = event => {
+  if (event?.type === 'session.idle') return true;
+  if (event?.type !== 'session.status') return false;
+  const status = eventData(event)?.status;
+  return (typeof status === 'string' ? status : status?.type) === 'idle';
+};
+
+const appendEditFailure = (result, existing) => {
+  const message = formatEditFailure(result);
+  if (!message) return existing;
+  if (existing.status !== 'completed') return existing;
+  const content = resultContent(existing.result);
+  if (content === undefined) return existing;
+  return {
+    ...existing,
+    result: {
+      ...existing.result,
+      content: `${content}\n\n${message}`
+    }
+  };
+};
+
+const resultContent = result => {
+  if (typeof result?.content === 'string') return result.content;
+  const text = result?.content?.find?.(part => part?.type === 'text')?.text;
+  return typeof text === 'string' ? text : undefined;
+};
+
+export const createSafeguards = ({ session, worktree }, verify = {}) => {
   const dirty = new Set();
   const verifying = new Set();
   const continuationIssued = new Set();
@@ -15,57 +50,80 @@ const createSafeguards = ({ client, worktree }, verify = {}) => {
   const runEditVerification = verify.edit ?? verifyEditAsync;
   const runCompletionVerification = verify.completion ?? verifyCompletionAsync;
 
-  return {
-    'tool.execute.before': async (input, output) => {
-      if (input.tool !== 'bash') return;
-      const reason = commandDenial({
-        command: output.args.command ?? '',
-        cwd: output.args.workdir ?? worktree
+  const denyUnsafeShell = ({ command, cwd }) => {
+    const reason = commandDenial({ command, cwd: cwd ?? worktree });
+    if (reason) throw new Error(reason);
+  };
+
+  const afterEdit = async ({ tool, sessionID, input, output }) => {
+    const files = editedPaths(tool, input);
+    if (!files.length) return output;
+    dirty.add(sessionID);
+    editVersions.set(sessionID, (editVersions.get(sessionID) ?? 0) + 1);
+    continuationIssued.delete(sessionID);
+    return appendEditFailure(await runEditVerification({ root: worktree, files }), output);
+  };
+
+  const onIdle = async event => {
+    if (!isIdleEvent(event)) return;
+    const sessionID = sessionIDOf(event);
+    if (!sessionID || !dirty.has(sessionID) || verifying.has(sessionID) || continuationIssued.has(sessionID)) {
+      return;
+    }
+    verifying.add(sessionID);
+    const verifiedVersion = editVersions.get(sessionID) ?? 0;
+    try {
+      const message = formatCompletionFailure(await Promise.resolve(runCompletionVerification({ root: worktree })));
+      if (!message && editVersions.get(sessionID) === verifiedVersion) dirty.delete(sessionID);
+      if (!message) return;
+      continuationIssued.add(sessionID);
+      await session.prompt({
+        sessionID,
+        text: `${message}\nContinue in this session: fix the failure, then complete the task.`
       });
-      if (reason) throw new Error(reason);
-    },
-    'tool.execute.after': async (input, output) => {
-      const files = editedPaths(input.tool, input.args);
-      if (!files.length) return;
-      dirty.add(input.sessionID);
-      editVersions.set(input.sessionID, (editVersions.get(input.sessionID) ?? 0) + 1);
-      continuationIssued.delete(input.sessionID);
-      const message = formatEditFailure(await runEditVerification({ root: worktree, files }));
-      if (message) output.output = `${output.output}\n\n${message}`;
-    },
-    event: async ({ event }) => {
-      if (event.type !== 'session.idle') return;
-      const sessionID = event.properties.sessionID;
-      if (!dirty.has(sessionID) || verifying.has(sessionID) || continuationIssued.has(sessionID)) return;
-      verifying.add(sessionID);
-      const verifiedVersion = editVersions.get(sessionID) ?? 0;
-      try {
-        const result = await Promise.resolve(runCompletionVerification({ root: worktree }));
-        const message = formatCompletionFailure(result);
-        if (!message && editVersions.get(sessionID) === verifiedVersion) dirty.delete(sessionID);
-        if (message) {
-          continuationIssued.add(sessionID);
-          const response = await client.session.promptAsync({
-            path: { id: sessionID },
-            body: {
-              parts: [
-                {
-                  type: 'text',
-                  text: `${message}\nContinue in this session: fix the failure, then complete the task.`
-                }
-              ]
-            }
-          });
-          if (response.error) {
-            continuationIssued.delete(sessionID);
-            throw new Error(`Unable to continue failed verification: ${response.error}`);
-          }
-        }
-      } finally {
-        verifying.delete(sessionID);
-      }
+    } catch (error) {
+      continuationIssued.delete(sessionID);
+      throw error;
+    } finally {
+      verifying.delete(sessionID);
     }
   };
+
+  return { denyUnsafeShell, afterEdit, onIdle };
 };
 
-export default async (input, options) => createSafeguards(input, options);
+const plugin = {
+  id: 'safeguards',
+  async setup(ctx) {
+    const hooks = createSafeguards({ session: ctx.session, worktree: process.cwd() });
+
+    await ctx.shell.hook('create.before', event => {
+      hooks.denyUnsafeShell({ command: event.command, cwd: event.cwd });
+    });
+
+    await ctx.tool.hook('execute.after', async event => {
+      if (event.status !== 'completed') return;
+      const next = await hooks.afterEdit({
+        tool: event.tool,
+        sessionID: event.sessionID,
+        input: event.input,
+        output: event
+      });
+      if (next !== event && next.status === 'completed') event.result = next.result;
+    });
+
+    const controller = new AbortController();
+    const loop = (async () => {
+      for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
+        await hooks.onIdle(event);
+      }
+    })();
+
+    return async () => {
+      controller.abort();
+      await loop.catch(() => undefined);
+    };
+  }
+};
+
+export default plugin;
