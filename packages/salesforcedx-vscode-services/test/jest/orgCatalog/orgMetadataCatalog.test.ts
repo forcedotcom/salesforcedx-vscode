@@ -46,12 +46,15 @@ import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
-import { runOrgMetadataDocumentProvider } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
+import {
+  OrgMetadataDocumentProvider,
+  runOrgMetadataDocumentProvider
+} from '../../../src/orgCatalog/orgMetadataDocumentProvider';
 import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import { OrgMetadataShadowStore } from '../../../src/orgCatalog/orgMetadataShadowStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
 import { FsService } from '../../../src/vscode/fsService';
-import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import { NoWorkspaceOpenError, WorkspaceService } from '../../../src/vscode/workspaceService';
 
 type ListedComponent = {
   readonly fullName: string;
@@ -440,46 +443,70 @@ describe('OrgMetadataCatalog contract', () => {
     expect(keys).toEqual(['getChildren', 'getEntries', 'resolveComponents']);
   });
 
-  it('starts the metadata document provider when no workspace is open', async () => {
-    const { catalogChanges, internalLayer, layer } = makeHarness();
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
-      dispose: jest.fn()
+  it('keeps the metadata document provider alive across org changes when no workspace is open', async () => {
+    const { catalogChanges, internalLayer } = makeHarness();
+    let provider: OrgMetadataDocumentProvider | undefined;
+    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockImplementation((_scheme, value) => {
+      provider = value as OrgMetadataDocumentProvider;
+      return { dispose: jest.fn() };
     });
+    const noWorkspace = new NoWorkspaceOpenError({ message: 'No workspace is currently open' });
+    const workspaceLayer = Layer.succeed(WorkspaceService, {
+      getWorkspaceInfo: () =>
+        Effect.succeed({
+          uri: URI.parse(''),
+          path: '',
+          fsPath: '',
+          isEmpty: true,
+          isVirtualFs: false,
+          cwd: '/workspace'
+        }),
+      getWorkspaceInfoOrThrow: () => Effect.fail(noWorkspace)
+    } as unknown as InstanceType<typeof WorkspaceService>);
+    const registryLayer = MetadataRegistryService.DefaultWithoutDependencies.pipe(Layer.provide(workspaceLayer));
+    const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(registryLayer));
     const providerLayer = Layer.mergeAll(
-      layer,
       internalLayer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
-      OrgMetadataReferenceService.Default,
+      referenceLayer,
       Layer.succeed(
         OrgMetadataCatalogChangePubSub,
         catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
       ),
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(new RegistryAccess())
-      } as unknown as InstanceType<typeof MetadataRegistryService>),
-      Layer.succeed(WorkspaceService, {
-        getWorkspaceInfo: () =>
-          Effect.succeed({
-            uri: URI.parse(''),
-            path: '',
-            fsPath: '',
-            isEmpty: true,
-            isVirtualFs: false,
-            cwd: '/workspace'
-          }),
-        getWorkspaceInfoOrThrow: () => Effect.die('getWorkspaceInfoOrThrow must not run during activation')
-      } as unknown as InstanceType<typeof WorkspaceService>)
+      workspaceLayer
     );
 
-    const result = await runOrgMetadataDocumentProvider().pipe(
-      Effect.timeoutOption('20 millis'),
-      Effect.provide(providerLayer),
-      Effect.scoped,
-      Effect.runPromise
-    );
+    const result = await Effect.scoped(
+      Effect.gen(function* () {
+        yield* setOrg('org-one');
+        const subscription = yield* PubSub.subscribe(catalogChanges);
+        yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
+        yield* Queue.take(subscription);
+        const registeredProvider = provider;
+        if (!registeredProvider) return yield* Effect.die('document provider was not registered');
 
-    expect(Option.isNone(result)).toBe(true);
+        const staleUri = URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/Stale.cls');
+        const activeUri = URI.parse('sf-org-metadata:/orgs/org-two/ApexClass/Active.cls');
+        yield* Effect.promise(() =>
+          Promise.allSettled([
+            registeredProvider.provideTextDocumentContent(staleUri),
+            registeredProvider.provideTextDocumentContent(activeUri)
+          ])
+        );
+
+        yield* setOrg('org-two');
+        const transition = yield* Queue.take(subscription);
+        const requestedUris = registeredProvider.requestedUriEntries().map(([, uri]) => uri.toString());
+        yield* setOrg('org-three');
+        const subsequentTransition = yield* Queue.take(subscription);
+        return { requestedUris, subsequentTransition, transition };
+      })
+    ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
+
+    expect(result.transition).toEqual({ kind: 'org', orgId: 'org-two' });
+    expect(result.requestedUris).toEqual(['sf-org-metadata:/orgs/org-two/ApexClass/Active.cls']);
+    expect(result.subsequentTransition).toEqual({ kind: 'org', orgId: 'org-three' });
   });
 
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {

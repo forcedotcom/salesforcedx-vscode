@@ -13,7 +13,6 @@ import {
   isCatalogRelevantWorkspaceUri,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import { orgIdFromOrgMetadataUri } from '../../../src/orgCatalog/orgMetadataReference';
 
 const documentUri = (orgId: string, fullName: string): URI =>
   URI.parse(`sf-org-metadata:/orgs/${orgId}/ApexClass/${fullName}.cls`);
@@ -79,19 +78,5 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
     expect(
       isCatalogRelevantWorkspaceUri(workspaceUri, URI.parse('file:///c:/workspace/force-app/main/default/Foo.cls'))
     ).toBe(true);
-  });
-
-  it('prunes inactive URIs from path org id when registry/workspace is unavailable', async () => {
-    const provider = new OrgMetadataDocumentProvider(async () => 'body');
-    const stale = documentUri('org-one', 'One');
-    const active = documentUri('org-two', 'Two');
-    await provider.provideTextDocumentContent(stale);
-    await provider.provideTextDocumentContent(active);
-
-    const locations = new Map(provider.requestedUriEntries().map(([key, uri]) => [key, orgIdFromOrgMetadataUri(uri)]));
-    provider.removeInactiveOrgUris('org-two', locations);
-
-    expect(provider.requestedUriEntries().map(([, uri]) => uri.toString())).toEqual([active.toString()]);
-    provider.dispose();
   });
 });
