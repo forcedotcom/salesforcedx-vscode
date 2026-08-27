@@ -214,9 +214,6 @@
       "env": {
         "CODE_BUILDER_URL": {
           "external": true
-        },
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
         }
       },
       "dependencies": [
