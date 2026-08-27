@@ -1,6 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": [
+    ".opencode/plugins/**",
     "packages/salesforcedx-aura-language-server/src/tern/**",
     "packages/salesforcedx-aura-language-server/src/tern-server/**",
     "packages/salesforcedx-visualforce-markup-language-server/src/beautify/**",

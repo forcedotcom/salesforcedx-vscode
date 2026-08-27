@@ -397,7 +397,10 @@ export const verifyCompletionAsync = async ({ root, run = defaultRunAsync }) => 
 };
 
 export const editedPaths = (tool, args) => {
-  if (tool === 'edit' || tool === 'write') return args.filePath ? [args.filePath] : [];
+  if (tool === 'edit' || tool === 'write') {
+    const file = args.filePath ?? args.path;
+    return file ? [file] : [];
+  }
   if (tool !== 'apply_patch') return [];
   const paths = [
     ...String(args.patchText ?? '').matchAll(/^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm)
