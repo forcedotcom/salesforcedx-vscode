@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
@@ -15,10 +16,9 @@ import { isUndefined, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { MessageKey } from '../messages/i18n';
+import { messages, MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
-import { notificationService } from '../utils/notificationHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { clearAllSuiteChildren, getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
@@ -79,12 +79,16 @@ const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')
 });
 
 /** Prompt for the apex classes to include in a suite. Fails with UserCancellationError on dismiss/empty. */
-const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function* () {
+const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function* (
+  command: ProgressAndSuccessCommandKey
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(command);
 
   const apexClassItems = yield* listApexClassItems().pipe(
-    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'))
+    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
   );
 
   const selection = yield* Effect.promise(() =>
@@ -108,7 +112,7 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
   const suitename = yield* Effect.promise(() =>
     vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
   ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
-  const tests = yield* selectApexClasses();
+  const tests = yield* selectApexClasses(messages.apex_test_suite_create_text);
   return { suitename, tests };
 });
 
@@ -116,6 +120,8 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
 const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(messages.apex_test_suite_edit_text);
 
   // Pick the suite
   const quickPickItems = yield* listApexTestSuiteItems();
@@ -137,7 +143,9 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
           `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${escapedSuiteId}'`
         )
       ),
-      listApexClassItems().pipe(promptService.withCancellableProgress(nls.localize('retrieving_tests_message')))
+      listApexClassItems().pipe(
+        promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
+      )
     ],
     { concurrency: 'unbounded' }
   );
@@ -203,25 +211,31 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
 /** Build (or extend) a suite via the apex-node TestService, with cancellable progress + completion sentinel. */
 const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
   options: ApexTestSuiteOptions,
-  executionNameKey: MessageKey
+  executionNameKey: MessageKey,
+  command: ProgressAndSuccessCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const channelService = yield* api.services.ChannelService;
+  const notificationMode = yield* api.services.NotificationModeService;
   const executionName = nls.localize(executionNameKey);
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
+  const progressLocation = yield* notificationMode.getProgressLocation(command);
   yield* api.services.ConnectionService.getConnection().pipe(
     Effect.flatMap(connection =>
       Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests))
     ),
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName)
+    promptService.withCancellableProgress(executionName, progressLocation)
   );
 
   yield* channelService.showChannel;
-  notificationService.showSuccessfulExecution(executionName);
+  yield* notificationMode.showSuccessNotification(
+    command,
+    nls.localize('apex_test_successful_execution_message', executionName)
+  );
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh
   clearAllSuiteChildren();
@@ -237,6 +251,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const channelService = yield* api.services.ChannelService;
+  const notificationMode = yield* api.services.NotificationModeService;
   const executionName = nls.localize('apex_test_suite_edit_text');
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
@@ -267,13 +282,17 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
     { concurrency: 'unbounded' }
   );
 
+  const progressLocation = yield* notificationMode.getProgressLocation(messages.apex_test_suite_edit_text);
   yield* applyEffect.pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName)
+    promptService.withCancellableProgress(executionName, progressLocation)
   );
 
   yield* channelService.showChannel;
-  notificationService.showSuccessfulExecution(executionName);
+  yield* notificationMode.showSuccessNotification(
+    messages.apex_test_suite_edit_text,
+    nls.localize('apex_test_successful_execution_message', executionName)
+  );
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh
   clearAllSuiteChildren();
@@ -291,7 +310,7 @@ export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* ()
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();
   const options = yield* gatherCreateOptions();
-  yield* buildSuite(options, 'apex_test_suite_create_text');
+  yield* buildSuite(options, 'apex_test_suite_create_text', messages.apex_test_suite_create_text);
 });
 
 export const apexTestSuiteRun = Effect.fn('apexTestSuiteRun')(function* () {
