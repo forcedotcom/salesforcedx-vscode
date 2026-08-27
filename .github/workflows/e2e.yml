@@ -142,4 +142,17 @@ jobs:
     with:
       vscode_version: ${{ inputs.vscodeVersion }}
 
+  # Code Builder e2e — container suite against the real CB image. ADVISORY (plan §10.4): a red here
+  # is a signal to investigate, not an automatic release stop. Advisory is enforced by keeping this
+  # a NON-REQUIRED status check (branch/release protection settings) — GitHub does not allow
+  # continue-on-error on a reusable-workflow (`uses:`) job, so it can't be set here. Threads the
+  # build runId (the run that produced the VSIXes) like the other leaves; needs no vscode_version
+  # (it runs the shipping VSIX inside the container, not a desktop VS Code). — W-23898524
+  playwright-code-builder:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    uses: ./.github/workflows/codeBuilderE2E.yml
+    secrets: inherit
+    with:
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
   # LSP_min_vscode_version: removed with lspE2E.yml (see note above) — W-22973351
