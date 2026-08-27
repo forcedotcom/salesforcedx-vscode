@@ -113,21 +113,9 @@ For complete testing and publishing workflow, see [docs/release-testing-guide.md
 6. Approve marketplace publish gates
 7. Marketplace updates within min
 
-### Merge to main (Automated)
+### ~~Merge to main (Deprecated - Old Release Branch Flow)~~
 
-`main` merge triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
-- Tests, build VSIXs, git tag + GitHub release, Slack notification
-
-Then auto-triggers `publishVSCode.yml` when release marked "released" (not pre-release).
-
-**Before approval:** Download + test VSIX locally:
-
-```sh
-gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
-find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
-```
-
-After testing, approve "Publish in Microsoft Marketplace" + "Publish in Open VSX Registry" jobs.
+> **Deprecated:** The PreRelease → testBuildAndRelease workflow is part of the old release branch flow and should not be used. Use `build-release.yml` → `publishVSCode.yml` workflow instead (documented above).
 
 ### Web Console Release
 
