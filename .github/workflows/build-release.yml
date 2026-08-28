@@ -351,17 +351,32 @@ jobs:
         run: |
           echo "Creating GitHub pre-release: $RELEASE_TAG"
 
-          # Generate release notes from template
+          # Generate release notes from inlined template
+          # (Inlined to avoid template unavailability after checkout)
           if [ "$IS_PRERELEASE" = "true" ]; then
-            TEMPLATE=".github/release-templates/emergency-prerelease.md"
-          else
-            TEMPLATE=".github/release-templates/stable-release.md"
-          fi
+            # Emergency pre-release template
+            cat > release_notes.md <<EOF
+          ## Emergency Pre-release ${RELEASE_VERSION}
 
-          sed -e "s|{{VERSION}}|${RELEASE_VERSION}|g" \
-              -e "s|{{PRERELEASE_TAG}}|${PRERELEASE_TAG}|g" \
-              -e "s|{{REPOSITORY}}|${{ github.repository }}|g" \
-              "$TEMPLATE" > release_notes.md
+          **Built from:** \`${PRERELEASE_TAG}\`
+
+          ⚠️ **Pre-release for internal testing only.**
+
+          📚 **See [docs/release-testing-guide.md](https://github.com/${{ github.repository }}/blob/develop/docs/release-testing-guide.md) for complete testing and publishing instructions.**
+          EOF
+          else
+            # Stable release template
+            cat > release_notes.md <<EOF
+          ## Release ${RELEASE_VERSION}
+
+          **Built from nightly:** \`${PRERELEASE_TAG}\`
+          **Branch:** \`release-staging/v${RELEASE_VERSION}\` (isolated, do not merge to develop)
+
+          ⚠️ **Pre-release for internal testing only.**
+
+          📚 **See [docs/release-testing-guide.md](https://github.com/${{ github.repository }}/blob/develop/docs/release-testing-guide.md) for complete testing and publishing instructions.**
+          EOF
+          fi
 
           # Create pre-release (without assets)
           # Note: No --target needed here as we're on the checked-out commit
