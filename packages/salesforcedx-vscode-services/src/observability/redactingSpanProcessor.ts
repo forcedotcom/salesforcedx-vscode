@@ -5,13 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
-import { flow } from 'effect/Function';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import { JSONPath } from 'jsonpath-plus';
-import { redactPii } from './redactPii';
-import { redactSecrets } from './redactSecrets';
-
-const redactSensitiveData = flow(redactSecrets, redactPii);
+import { redactSensitiveData } from './redactSensitiveData';
 
 type StringMatch = {
   value: unknown;

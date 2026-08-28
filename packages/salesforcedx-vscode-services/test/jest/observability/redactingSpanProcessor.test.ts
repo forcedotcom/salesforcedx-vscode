@@ -115,9 +115,9 @@ describe('RedactingSpanProcessor', () => {
       s.recordException(error);
     });
 
-    const redactedCommand = 'sf org display --target-org "<REDACTED_TARGET_ORG>" --json';
+    const redactedCommand = 'sf org display --target-org "<REDACTED TARGET ORG>" --json';
     expect(span.attributes.command).toBe(redactedCommand);
-    expect(span.attributes.contact).toBe('<REDACTED_USERNAME_OR_EMAIL>');
+    expect(span.attributes.contact).toBe('<REDACTED USERNAME OR EMAIL>');
     expect(span.status.message).toBe(`Command failed: ${redactedCommand}`);
     expect(span.events[0].attributes?.['exception.message']).toBe(`Command failed: ${redactedCommand}`);
     expect(span.events[0].attributes?.['exception.stacktrace']).toBe(`Error: Command failed: ${redactedCommand}`);
@@ -142,10 +142,10 @@ describe('RedactingSpanProcessor', () => {
       { contact: 'resource@example.com' }
     );
 
-    expect(span.name).toBe('<REDACTED_USERNAME_OR_EMAIL>');
-    expect(span.events[0].name).toBe('event for <REDACTED_USERNAME_OR_EMAIL>');
-    expect(span.links[0].attributes?.contact).toBe('<REDACTED_USERNAME_OR_EMAIL>');
-    expect(span.resource.attributes.contact).toBe('<REDACTED_USERNAME_OR_EMAIL>');
+    expect(span.name).toBe('<REDACTED USERNAME OR EMAIL>');
+    expect(span.events[0].name).toBe('event for <REDACTED USERNAME OR EMAIL>');
+    expect(span.links[0].attributes?.contact).toBe('<REDACTED USERNAME OR EMAIL>');
+    expect(span.resource.attributes.contact).toBe('<REDACTED USERNAME OR EMAIL>');
   });
 
   it('changes only the approved payload surfaces and preserves structural fields and keys', () => {
@@ -227,7 +227,7 @@ describe('RedactingSpanProcessor', () => {
     expect(after.events[0].attributes?.['event-key@example.com']).toBe('structural key is preserved');
     expect(after.links[0].attributes?.['link-key@example.com']).toBe('structural key is preserved');
     expect(after.resource.attributes['resource-key@example.com']).toBe('structural key is preserved');
-    expect(after.status.message).toBe('<REDACTED_USERNAME_OR_EMAIL> <REDACTED ACCESS TOKEN>');
+    expect(after.status.message).toBe('<REDACTED USERNAME OR EMAIL> <REDACTED ACCESS TOKEN>');
   });
 
   it('redacts status.message and keeps the status code', () => {
