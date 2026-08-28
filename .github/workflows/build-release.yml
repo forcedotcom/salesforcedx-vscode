@@ -163,14 +163,14 @@ jobs:
               # If version couldn't be extracted from tag/branch name, read from package.json
               if [ -z "$VERSION" ]; then
                 echo "Cannot extract version from ref name, reading from package.json..."
-                VERSION=$(node -p "require('./lerna.json').version")
+                VERSION=$(node -p "require('./packages/salesforcedx-vscode-core/package.json').version" 2>/dev/null || echo "")
                 if [ -z "$VERSION" ]; then
                   echo "::error::Cannot derive version from source tag: $SOURCE_TAG"
-                  echo "::error::And failed to read version from lerna.json"
+                  echo "::error::And failed to read version from packages/salesforcedx-vscode-core/package.json"
                   echo "::error::Please provide releaseVersion input for pre-release mode"
                   exit 1
                 fi
-                echo "Read version from lerna.json: $VERSION"
+                echo "Read version from packages/salesforcedx-vscode-core/package.json: $VERSION"
               else
                 echo "Derived pre-release version from source: $VERSION"
               fi
