@@ -102,17 +102,19 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
           { concurrency: 10 }
         )
       );
-      const resolutions = componentReferences.map(reference => {
-        const workspaceUri = workspaceByType.get(reference.xmlName)?.get(reference.fullName);
-        const orgUri = referenceService.documentUri({ orgId, ...reference });
-        return {
-          reference,
-          presence: workspaceUri ? ('both' as const) : ('org' as const),
-          preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
-          orgUri,
-          ...(workspaceUri ? { workspaceUri } : {})
-        };
-      });
+      const resolutions = yield* Effect.forEach(componentReferences, reference =>
+        Effect.gen(function* () {
+          const workspaceUri = workspaceByType.get(reference.xmlName)?.get(reference.fullName);
+          const orgUri = yield* referenceService.documentUri({ orgId, ...reference });
+          return {
+            reference,
+            presence: workspaceUri ? ('both' as const) : ('org' as const),
+            preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
+            orgUri,
+            ...(workspaceUri ? { workspaceUri } : {})
+          };
+        })
+      );
       yield* Effect.annotateCurrentSpan({
         componentCount: componentReferences.length,
         metadataTypeCount: xmlNames.length,

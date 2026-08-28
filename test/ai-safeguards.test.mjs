@@ -13,7 +13,11 @@ import {
   verifyEdit,
   verifyEditAsync
 } from '../scripts/ai-safeguards.mjs';
-import safeguardsPlugin from '../.opencode/plugins/safeguards.ts';
+import {
+  createSafeguards,
+  createSafeguardsFromContext,
+  runSafeguardEventLoop
+} from '../.opencode/plugins/safeguards.ts';
 
 const temporaryDirectory = async callback => {
   const directory = await mkdtemp(resolve(tmpdir(), 'ai-safeguards-'));
@@ -186,6 +190,10 @@ test('extracts and deduplicates apply_patch paths', () => {
   assert.deepEqual(editedPaths('apply_patch', { patchText }), ['src/a.ts', 'src/b.ts']);
 });
 
+test('extracts edit path from V2 path field', () => {
+  assert.deepEqual(editedPaths('edit', { path: 'src/a.ts' }), ['src/a.ts']);
+});
+
 test('edit verification stops after compile failure', () => {
   const { calls, run } = fakeRun([{ ok: false, output: 'compile failed' }]);
   const result = verifyEdit({ root: '/tmp', files: ['/tmp/a.ts'], run });
@@ -217,15 +225,140 @@ test('async verification awaits nonblocking runners in order', async () => {
   );
 });
 
-test('OpenCode blocks unsafe Bash before execution', async () => {
-  const hooks = await safeguardsPlugin({ client: {}, worktree: '/tmp' });
-  await assert.rejects(
-    hooks['tool.execute.before'](
-      { tool: 'bash', sessionID: 'session', callID: 'call' },
-      { args: { command: 'git commit --no-verify' } }
-    ),
-    /--no-verify is blocked/
+test('plugin setup verifies edits and completion against ctx.location.directory', async () => {
+  const pluginDirectory = '/plugin/location';
+  const cwd = process.cwd();
+  assert.notEqual(pluginDirectory, cwd);
+  const roots = [];
+  const hooks = createSafeguardsFromContext(
+    { session: {}, location: { directory: pluginDirectory } },
+    {
+      edit: input => {
+        roots.push(input.root);
+        return { ok: true, step: 'edit verification' };
+      },
+      completion: input => {
+        roots.push(input.root);
+        return { ok: true, step: 'completion verification' };
+      }
+    }
   );
+  await hooks.afterEdit({
+    tool: 'edit',
+    sessionID: 'session',
+    input: { path: 'src/a.ts' },
+    output: { status: 'completed', result: { content: 'edited' } }
+  });
+  await hooks.onIdle({ type: 'session.idle', data: { sessionID: 'session' } });
+  assert.deepEqual(roots, [pluginDirectory, pluginDirectory]);
+  assert.ok(roots.every(root => root !== cwd));
+});
+
+test('OpenCode event subscription drains while completion verification runs', async () => {
+  const finishVerifications = [];
+  let eventsConsumed = 0;
+  const events = async function* () {
+    eventsConsumed += 1;
+    yield { type: 'session.idle', data: { sessionID: 'one' } };
+    eventsConsumed += 1;
+    yield { type: 'session.idle', data: { sessionID: 'two' } };
+  };
+  const loop = runSafeguardEventLoop({
+    events: events(),
+    onIdle: () =>
+      new Promise(resolveVerification => {
+        finishVerifications.push(resolveVerification);
+      }),
+    reportError: assert.fail
+  });
+
+  await new Promise(resolveImmediate => setImmediate(resolveImmediate));
+  assert.equal(eventsConsumed, 2);
+  finishVerifications.forEach(finishVerification => finishVerification());
+  await loop;
+});
+
+test('OpenCode event subscription does not overlap completion verification for one session', async () => {
+  let finishVerification;
+  let verifications = 0;
+  const hooks = createSafeguards(
+    { session: {}, worktree: '/tmp' },
+    {
+      edit: async () => ({ ok: true, step: 'edit verification' }),
+      completion: () => {
+        verifications += 1;
+        return new Promise(resolveVerification => {
+          finishVerification = resolveVerification;
+        });
+      }
+    }
+  );
+  await hooks.afterEdit({
+    tool: 'edit',
+    sessionID: 'session',
+    input: { path: '/tmp/file.ts' },
+    output: { status: 'completed', result: { content: 'edited' } }
+  });
+  const events = async function* () {
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+  };
+  const loop = runSafeguardEventLoop({
+    events: events(),
+    onIdle: hooks.onIdle,
+    reportError: assert.fail
+  });
+
+  await new Promise(resolveImmediate => setImmediate(resolveImmediate));
+  assert.equal(verifications, 1);
+  finishVerification({ ok: true, step: 'completion verification' });
+  await loop;
+});
+
+test('OpenCode event subscription and completion failures are reported', async () => {
+  const subscriptionFailure = new Error('subscription failed');
+  const completionFailure = new Error('completion failed');
+  const errors = [];
+  const events = async function* () {
+    yield { type: 'session.idle', data: { sessionID: 'session' } };
+    throw subscriptionFailure;
+  };
+
+  await runSafeguardEventLoop({
+    events: events(),
+    onIdle: async () => Promise.reject(completionFailure),
+    reportError: (message, error) => errors.push({ message, error })
+  });
+
+  assert.deepEqual(errors, [
+    { message: 'Event subscription failed', error: subscriptionFailure },
+    { message: 'Completion verification failed', error: completionFailure }
+  ]);
+});
+
+test('OpenCode event subscription does not report normal cleanup abort', async () => {
+  const controller = new AbortController();
+  const errors = [];
+  const events = {
+    async *[Symbol.asyncIterator]() {
+      throw new Error('aborted');
+    }
+  };
+  controller.abort();
+
+  await runSafeguardEventLoop({
+    events,
+    onIdle: assert.fail,
+    reportError: (message, error) => errors.push({ message, error }),
+    signal: controller.signal
+  });
+
+  assert.deepEqual(errors, []);
+});
+
+test('OpenCode blocks unsafe shell before execution', () => {
+  const hooks = createSafeguards({ session: {}, worktree: '/tmp' });
+  assert.throws(() => hooks.denyUnsafeShell({ command: 'git commit --no-verify' }), /--no-verify is blocked/);
 });
 
 test('OpenCode appends edit failures and continues the same session once', async () =>
@@ -233,32 +366,59 @@ test('OpenCode appends edit failures and continues the same session once', async
     const file = resolve(root, 'file.ts');
     writeFileSync(file, 'export {};');
     const prompts = [];
-    const client = {
-      session: {
-        promptAsync: async request => {
-          prompts.push(request);
-          return { data: true };
-        }
+    const session = {
+      prompt: async request => {
+        prompts.push(request);
       }
     };
-    const hooks = await safeguardsPlugin(
-      { client, worktree: root },
+    const hooks = createSafeguards(
+      { session, worktree: root },
       {
         edit: () => ({ ok: false, step: 'compile', output: 'bad edit' }),
         completion: () => ({ ok: false, step: 'lint', output: 'bad completion' })
       }
     );
-    const output = { title: 'edit', output: 'edited', metadata: {} };
-    await hooks['tool.execute.after'](
-      { tool: 'edit', sessionID: 'session', callID: 'call', args: { filePath: file } },
-      output
-    );
-    assert.match(output.output, /bad edit/);
-    const event = { event: { type: 'session.idle', properties: { sessionID: 'session' } } };
-    await hooks.event(event);
-    await hooks.event(event);
+    const next = await hooks.afterEdit({
+      tool: 'edit',
+      sessionID: 'session',
+      input: { filePath: file },
+      output: { status: 'completed', result: { content: 'edited' } }
+    });
+    assert.match(next.result.content, /bad edit/);
+    const event = { type: 'session.idle', data: { sessionID: 'session' } };
+    await hooks.onIdle(event);
+    await hooks.onIdle(event);
     assert.equal(prompts.length, 1);
-    assert.equal(prompts[0].path.id, 'session');
+    assert.equal(prompts[0].sessionID, 'session');
+  }));
+
+test('OpenCode treats session.status idle as stop', async () =>
+  temporaryDirectory(async root => {
+    const file = resolve(root, 'file.ts');
+    writeFileSync(file, 'export {};');
+    const prompts = [];
+    const hooks = createSafeguards(
+      {
+        session: {
+          prompt: async request => {
+            prompts.push(request);
+          }
+        },
+        worktree: root
+      },
+      {
+        edit: () => ({ ok: true, step: 'edit verification' }),
+        completion: () => ({ ok: false, step: 'lint', output: 'bad completion' })
+      }
+    );
+    await hooks.afterEdit({
+      tool: 'edit',
+      sessionID: 'session',
+      input: { path: file },
+      output: { status: 'completed', result: { content: 'edited' } }
+    });
+    await hooks.onIdle({ type: 'session.status', data: { sessionID: 'session', status: { type: 'idle' } } });
+    assert.equal(prompts.length, 1);
   }));
 
 test('OpenCode preserves edits made during completion verification', async () =>
@@ -267,8 +427,8 @@ test('OpenCode preserves edits made during completion verification', async () =>
     writeFileSync(file, 'export {};');
     let finishVerification;
     let verifications = 0;
-    const hooks = await safeguardsPlugin(
-      { client: { session: {} }, worktree: root },
+    const hooks = createSafeguards(
+      { session: {}, worktree: root },
       {
         edit: () => ({ ok: true, step: 'edit verification' }),
         completion: () => {
@@ -280,17 +440,19 @@ test('OpenCode preserves edits made during completion verification', async () =>
       }
     );
     const edit = () =>
-      hooks['tool.execute.after'](
-        { tool: 'edit', sessionID: 'session', callID: 'call', args: { filePath: file } },
-        { title: 'edit', output: 'edited', metadata: {} }
-      );
+      hooks.afterEdit({
+        tool: 'edit',
+        sessionID: 'session',
+        input: { filePath: file },
+        output: { status: 'completed', result: { content: 'edited' } }
+      });
     await edit();
-    const event = { event: { type: 'session.idle', properties: { sessionID: 'session' } } };
-    const firstIdle = hooks.event(event);
+    const event = { type: 'session.idle', data: { sessionID: 'session' } };
+    const firstIdle = hooks.onIdle(event);
     await edit();
     finishVerification();
     await firstIdle;
-    const secondIdle = hooks.event(event);
+    const secondIdle = hooks.onIdle(event);
     finishVerification();
     await secondIdle;
     assert.equal(verifications, 2);
