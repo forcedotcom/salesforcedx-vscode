@@ -19,7 +19,7 @@ import {
   TerminatedEvent,
   Thread
 } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import type { DebugProtocol } from '@vscode/debugprotocol';
 import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
