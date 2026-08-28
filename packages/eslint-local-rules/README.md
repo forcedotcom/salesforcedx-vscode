@@ -82,7 +82,7 @@ Enforces that `SuccessOnlyCommandKey` and `ProgressOnlyCommandKey` type alias li
 
 - Each key exists in the package.json commandLevelNotifications properties
 - The key's enum values match the expected notification slot type:
-  - `SuccessOnlyCommandKey`: must have enum `['successToast', 'successStatusBar', 'successOff']`
+  - `SuccessOnlyCommandKey`: must have enum containing only `['successToast', 'successStatusBar', 'successOff']` values (may omit any)
   - `ProgressOnlyCommandKey`: must have enum `['progressToast', 'progressStatusBar']`
 
 **Bad:**
