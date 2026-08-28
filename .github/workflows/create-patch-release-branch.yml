@@ -87,6 +87,10 @@ jobs:
           # Create release-base branch from tag
           git checkout -b "$BRANCH_NAME" "$BASE_TAG"
 
+          # Configure git for commits
+          git config user.name "svc-idee-bot"
+          git config user.email "svc-idee-bot@users.noreply.github.com"
+
           # Preserve current scripts from develop for version tooling
           # Historical tags may not have update-release-versions.js or calculate-release-version.js
           git checkout origin/develop -- scripts/calculate-release-version.js scripts/update-release-versions.js 2>/dev/null || {
