@@ -340,63 +340,64 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     });
 
     /** Apply remote deletes to local and get non-deletes component set (both tracking files).
-     * Also updates remote tracking for deletes where no local file exists (STL skips these). */
-    const maybeApplyRemoteDeletesToLocal = Effect.fn('SourceTrackingService.maybeApplyRemoteDeletesToLocal')(
-      function* () {
-        const tracking = yield* getOrCreateTracking();
+     * Also updates remote tracking for deletes where no local file exists (STL skips these).
+     * Optionally pin tracking to a specific org via expectedOrgId; fails if active org differs. */
+    const maybeApplyRemoteDeletesToLocal = Effect.fn('SourceTrackingService.maybeApplyRemoteDeletesToLocal')(function* (
+      expectedOrgId?: string
+    ) {
+      const tracking = yield* getOrCreateTracking(expectedOrgId);
 
-        return yield* Effect.gen(function* () {
-          yield* rereadBoth(tracking);
+      return yield* Effect.gen(function* () {
+        yield* rereadBoth(tracking);
 
-          // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
-          const allRemoteDeletes = yield* Effect.tryPromise({
-            try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+        // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
+        const allRemoteDeletes = yield* Effect.tryPromise({
+          try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+          catch: toSourceTrackingError
+        });
+
+        const result = yield* Effect.tryPromise({
+          try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
+          catch: toSourceTrackingError
+        }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
+
+        // STL only calls updateRemoteTracking for deletes it could resolve to local files.
+        // For deletes with no local file, manually acknowledge them so they leave tracking.
+        const handledTypeNames = HashSet.fromIterable(
+          result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
+        );
+
+        const unhandled = allRemoteDeletes
+          .filter(isResolvedChangeResult)
+          .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
+
+        if (unhandled.length > 0) {
+          yield* Effect.tryPromise({
+            try: () =>
+              tracking.updateRemoteTracking(
+                unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
+                true // skipPolling — same as STL's deleteFilesAndUpdateTracking
+              ),
             catch: toSourceTrackingError
-          });
+          }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
+        }
 
-          const result = yield* Effect.tryPromise({
-            try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
-            catch: toSourceTrackingError
-          }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
+        // Surface unhandled deletes as synthetic FileResponse entries so the output channel
+        // shows them even when there was no local file to delete.
+        // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
+        const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
+          type: c.type,
+          fullName: c.name,
+          state: ComponentStatus.Deleted,
+          filePath: ''
+        }));
 
-          // STL only calls updateRemoteTracking for deletes it could resolve to local files.
-          // For deletes with no local file, manually acknowledge them so they leave tracking.
-          const handledTypeNames = HashSet.fromIterable(
-            result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
-          );
-
-          const unhandled = allRemoteDeletes
-            .filter(isResolvedChangeResult)
-            .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
-
-          if (unhandled.length > 0) {
-            yield* Effect.tryPromise({
-              try: () =>
-                tracking.updateRemoteTracking(
-                  unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
-                  true // skipPolling — same as STL's deleteFilesAndUpdateTracking
-                ),
-              catch: toSourceTrackingError
-            }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
-          }
-
-          // Surface unhandled deletes as synthetic FileResponse entries so the output channel
-          // shows them even when there was no local file to delete.
-          // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
-          const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
-            type: c.type,
-            fullName: c.name,
-            state: ComponentStatus.Deleted,
-            filePath: ''
-          }));
-
-          return {
-            componentSetFromNonDeletes: result.componentSetFromNonDeletes,
-            fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
-          };
-        }).pipe(remoteSemaphore.withPermits(1), localSemaphore.withPermits(1));
-      }
-    );
+        return {
+          componentSetFromNonDeletes: result.componentSetFromNonDeletes,
+          fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
+        };
+      }).pipe(remoteSemaphore.withPermits(1), localSemaphore.withPermits(1));
+    });
 
     /** Get conflicts without UI side effects (both tracking files) */
     const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* (expectedOrgId?: string) {
@@ -438,7 +439,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       return yield* new SourceTrackingConflictError({ conflicts: conflictDetails });
     });
 
-    /** Maybe update tracking from retrieve result (both tracking files). No-op if tracking is not enabled. */
+    /** Maybe update tracking from retrieve result (both tracking files). No-op if tracking is not enabled. Pinned to a specific org via expectedOrgId. */
     const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
       function* (result: RetrieveResult, expectedOrgId?: string) {
         yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
@@ -462,17 +463,18 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       }
     );
 
-    /** Maybe update tracking from deploy result (both tracking files). No-op if tracking is not enabled. */
+    /** Maybe update tracking from deploy result (both tracking files). No-op if tracking is not enabled. Pinned to a specific org via expectedOrgId. */
     const maybeUpdateTrackingFromDeploy = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromDeploy')(function* (
-      result: DeployResult
+      result: DeployResult,
+      expectedOrgId?: string
     ) {
       // Check if tracking is enabled before attempting to get instance
-      const enabled = yield* hasTracking();
+      const enabled = yield* hasTracking(expectedOrgId);
       if (!enabled) {
         return yield* Effect.void;
       }
 
-      const tracking = yield* getOrCreateTracking();
+      const tracking = yield* getOrCreateTracking(expectedOrgId);
       return yield* Effect.all(
         [
           Effect.tryPromise({
@@ -509,7 +511,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       /** Get status of local and/or remote changes (auto-rereads based on options) */
       getStatus,
 
-      /** Apply remote deletes to local and return non-deletes ComponentSet (auto-rereads both) */
+      /** Apply remote deletes to local and return non-deletes ComponentSet (auto-rereads both; org-pinnable via expectedOrgId) */
       maybeApplyRemoteDeletesToLocal,
 
       /** Get conflicts without UI side effects (auto-rereads both) */
@@ -518,10 +520,10 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       /** Check for conflicts and display them in the channel, failing if found (auto-rereads both) */
       checkConflicts,
 
-      /** Update tracking from retrieve result. No-op if tracking is disabled. */
+      /** Update tracking from retrieve result. No-op if tracking is disabled. Pinned to a specific org via expectedOrgId. */
       maybeUpdateTrackingFromRetrieve,
 
-      /** Update tracking from deploy result. No-op if tracking is disabled. */
+      /** Update tracking from deploy result. No-op if tracking is disabled. Pinned to a specific org via expectedOrgId. */
       maybeUpdateTrackingFromDeploy
     };
   })

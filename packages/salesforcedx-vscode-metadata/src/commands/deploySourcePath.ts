@@ -32,7 +32,7 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: deployComponentSet({ componentSet: err.componentSet })
+      retryOperation: deployComponentSet({ componentSet: err.componentSet, expectedOrgId: err.orgId })
     })
   )
 );

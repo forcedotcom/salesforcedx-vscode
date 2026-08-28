@@ -36,7 +36,7 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: deployComponentSet({ componentSet: err.componentSet })
+      retryOperation: deployComponentSet({ componentSet: err.componentSet, expectedOrgId: err.orgId })
     })
   ),
   withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text')))

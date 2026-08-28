@@ -54,7 +54,11 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
+      retryOperation: retrieveComponentSet({
+        componentSet: err.componentSet,
+        ignoreConflicts: true,
+        expectedOrgId: err.orgId
+      })
     })
   ),
   withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text')))

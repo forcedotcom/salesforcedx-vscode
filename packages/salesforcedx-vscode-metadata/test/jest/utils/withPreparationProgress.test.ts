@@ -145,7 +145,12 @@ describe('withPreparationProgress', () => {
   it('propagates ConflictsDetectedError from detectConflictsFn', async () => {
     setupWithProgress();
     const cs = makeCS();
-    const conflictsError = new ConflictsDetectedError({ pairs: [], componentSet: cs, operationType: 'deploy' });
+    const conflictsError = new ConflictsDetectedError({
+      pairs: [],
+      componentSet: cs,
+      operationType: 'deploy',
+      orgId: 'test-org'
+    });
     const detectConflictsFn = jest.fn(() => Effect.fail(conflictsError));
 
     const exit = await runWithServicesExit(

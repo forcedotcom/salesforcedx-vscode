@@ -18,15 +18,19 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   componentSet: ComponentSet;
   ignoreConflicts?: boolean;
   fileResponsesFromDelete?: FileResponse[];
+  expectedOrgId?: string;
 }) {
-  const { componentSet, ignoreConflicts, fileResponsesFromDelete } = options;
+  const { componentSet, ignoreConflicts, fileResponsesFromDelete, expectedOrgId } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
+    ignoreConflicts,
+    expectedOrgId
+  });
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
 

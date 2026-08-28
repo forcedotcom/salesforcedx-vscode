@@ -13,4 +13,6 @@ export class ConflictsDetectedError extends Data.TaggedError('ConflictsDetectedE
   readonly pairs: DiffFilePair[];
   readonly componentSet: NonEmptyComponentSet;
   readonly operationType: 'deploy' | 'retrieve' | 'delete';
+  /** Org id observed when conflicts were detected, so an override chosen after switching orgs can be rejected instead of deploying to the new org. */
+  readonly orgId: string | undefined;
 }> {}

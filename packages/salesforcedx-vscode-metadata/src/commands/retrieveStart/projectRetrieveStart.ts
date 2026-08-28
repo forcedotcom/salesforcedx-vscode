@@ -19,17 +19,18 @@ import { withPreparationProgress } from '../../utils/withPreparationProgress';
  * Apply remote deletes and retrieve non-deletes. Skips retrieve when only deletes exist.
  * Always surfaces fileResponsesFromDelete in output.
  */
-const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function* () {
+const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function* (expectedOrgId?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const { componentSetFromNonDeletes, fileResponsesFromDelete } =
-    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal();
+    yield* api.services.SourceTrackingService.maybeApplyRemoteDeletesToLocal(expectedOrgId);
 
   yield* componentSetFromNonDeletes.size > 0
     ? retrieveComponentSet({
         componentSet: componentSetFromNonDeletes,
         ignoreConflicts: true,
-        fileResponsesFromDelete
+        fileResponsesFromDelete,
+        expectedOrgId
       })
     : channelService.appendToChannel(yield* formatRetrieveOutput(undefined, fileResponsesFromDelete));
 });
@@ -70,7 +71,7 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
     handleConflictWithRetry({
       pairs: err.pairs,
       operationType: err.operationType,
-      retryOperation: applyAndRetrieve()
+      retryOperation: applyAndRetrieve(err.orgId)
     })
   )
 );

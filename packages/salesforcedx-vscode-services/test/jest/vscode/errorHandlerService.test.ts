@@ -21,6 +21,7 @@ describe('ErrorHandlerService', () => {
   let errorHandler: ErrorHandlerService;
   let showErrorMessageSpy: jest.SpyInstance;
   let showInformationMessageSpy: jest.SpyInstance;
+  let showWarningMessageSpy: jest.SpyInstance;
 
   beforeEach(() => {
     // Mock OutputChannel
@@ -40,6 +41,7 @@ describe('ErrorHandlerService', () => {
     // Mock vscode.window.showErrorMessage
     showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
     showInformationMessageSpy = jest.spyOn(vscode.window, 'showInformationMessage').mockResolvedValue(undefined);
+    showWarningMessageSpy = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
 
     // Create ErrorHandlerService with mocked ChannelService
     const layer = Layer.provide(ErrorHandlerService.Default, Layer.succeed(ChannelService, mockChannelService));
@@ -225,7 +227,7 @@ describe('ErrorHandlerService', () => {
         );
       });
 
-      it('should present an inactive-org interruption as recoverable information', async () => {
+      it('should present an inactive-org interruption as a recoverable warning', async () => {
         class InactiveOrgOperationError extends Schema.TaggedError<InactiveOrgOperationError>()(
           'InactiveOrgOperationError',
           {
@@ -242,9 +244,10 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(Cause.fail(error)));
 
-        expect(showInformationMessageSpy).toHaveBeenCalledWith(
+        expect(showWarningMessageSpy).toHaveBeenCalledWith(
           'The active org changed before this operation finished. Run it again for the current org.'
         );
+        expect(showInformationMessageSpy).not.toHaveBeenCalled();
         expect(showErrorMessageSpy).not.toHaveBeenCalled();
         expect(mockChannel.appendLine).toHaveBeenCalledWith(
           "[InactiveOrgOperationError] The active org changed while an operation for 'org-one' was in progress"

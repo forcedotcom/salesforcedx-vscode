@@ -14,12 +14,15 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
+const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (
+  ignoreConflicts: boolean,
+  expectedOrgId?: string
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
     Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
     withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy')),
-    Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+    Effect.flatMap(cs => deployComponentSet({ componentSet: cs, expectedOrgId }))
   );
 });
 
@@ -30,7 +33,7 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
       handleConflictWithRetry({
         pairs: err.pairs,
         operationType: err.operationType,
-        retryOperation: deployEffect(true)
+        retryOperation: deployEffect(true, err.orgId)
       })
     ),
     withConfigurableSuccessNotification(

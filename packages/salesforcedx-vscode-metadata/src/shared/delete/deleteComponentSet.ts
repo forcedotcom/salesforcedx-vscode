@@ -15,8 +15,9 @@ import { DeleteSourceFailedError } from './deleteErrors';
 /** Delete a ComponentSet, handling cancellation, and local file deletion */
 export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
+  expectedOrgId?: string;
 }) {
-  const { componentSet } = options;
+  const { componentSet, expectedOrgId } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
@@ -29,7 +30,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
   const { isSDRFailure } = componentSetService;
-  const result = yield* api.services.MetadataDeployService.deploy(deleteSet).pipe(
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet, expectedOrgId).pipe(
     Effect.filterOrFail(
       deployResult => !deployResult.getFileResponses().some(isSDRFailure),
       deployResult =>

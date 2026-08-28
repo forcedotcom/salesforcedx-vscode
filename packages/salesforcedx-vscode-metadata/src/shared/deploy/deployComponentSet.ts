@@ -19,15 +19,16 @@ import { getMergedDeployFailures } from './getMergedDeployFailures';
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
+  expectedOrgId?: string;
 }) {
-  const { componentSet } = options;
+  const { componentSet, expectedOrgId } = options;
   clearDeployDiagnostics();
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
-  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
+  const result = yield* api.services.MetadataDeployService.deploy(componentSet, expectedOrgId);
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 

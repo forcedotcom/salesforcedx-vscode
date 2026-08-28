@@ -115,8 +115,11 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       yield* catalogRecorder.recordOperation(event);
     });
 
-    /** Deploy metadata to the default org */
-    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (components: ComponentSet) {
+    /** Deploy metadata to the default org. `expectedOrgId`, when given, pins the deploy API call and post-deploy source-tracking update to that org; fails with InactiveOrgOperationError instead of deploying if the target org changed since it was captured (e.g. while a conflict-resolution modal was open). */
+    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (
+      components: ComponentSet,
+      expectedOrgId?: string
+    ) {
       yield* Effect.all(
         [
           workspaceService.getWorkspaceInfoOrThrow(),
@@ -125,7 +128,9 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         { concurrency: 'unbounded' }
       );
 
-      const connection = yield* connectionService.getConnection();
+      const connection = yield* expectedOrgId
+        ? connectionService.getConnectionForOrg(expectedOrgId)
+        : connectionService.getConnection();
       components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
       const runtime = yield* Effect.runtime();
@@ -178,7 +183,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         yield* Effect.all(
           [
             trackingService
-              .maybeUpdateTrackingFromDeploy(deployOutcome)
+              .maybeUpdateTrackingFromDeploy(deployOutcome, expectedOrgId)
               .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
             publishDeployNotifications(deployOutcome, connection.getAuthInfoFields().orgId)
           ],

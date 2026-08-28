@@ -10,6 +10,7 @@ import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-ret
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
@@ -35,10 +36,11 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
   const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
   yield* confirmOverwrite(projectComponentSet, members);
 
-  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1).pipe(
+  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, orgInfo.orgId).pipe(
     Effect.tap(() =>
       Match.value(node.kind).pipe(
         Match.whenOr('component', 'customObject', () =>

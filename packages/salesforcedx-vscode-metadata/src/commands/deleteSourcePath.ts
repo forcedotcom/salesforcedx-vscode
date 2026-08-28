@@ -60,7 +60,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
         handleConflictWithRetry({
           pairs: err.pairs,
           operationType: err.operationType,
-          retryOperation: deleteComponentSet({ componentSet: err.componentSet })
+          retryOperation: deleteComponentSet({ componentSet: err.componentSet, expectedOrgId: err.orgId })
         })
       ),
       // add the error output to the chanel, let the regular error handler do the rest

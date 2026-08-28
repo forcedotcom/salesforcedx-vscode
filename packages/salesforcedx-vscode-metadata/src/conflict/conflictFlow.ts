@@ -50,7 +50,8 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
         ? yield* detectConflictsFromTimestamps(componentSet, timestampOperationType)
         : [];
 
-  if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
+  if (pairs.length > 0)
+    return yield* new ConflictsDetectedError({ pairs, componentSet, operationType, orgId: orgInfo.orgId });
 });
 
 /**

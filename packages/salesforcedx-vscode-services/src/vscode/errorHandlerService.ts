@@ -88,9 +88,7 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
 
           if (isRecoverableOrgChangeInterruption(error)) {
             yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
-            yield* Effect.sync(
-              () => void vscode.window.showInformationMessage(nls.localize('org_operation_superseded'))
-            );
+            yield* Effect.sync(() => void vscode.window.showWarningMessage(nls.localize('org_operation_superseded')));
             return;
           }
 
