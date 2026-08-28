@@ -233,7 +233,7 @@ gh workflow run create-patch-release-branch.yml -f baseVersion="67.12.0" --repo 
 ```
 
 Creates `release-base/v67.12.x` from tag. Auto-copies latest version helper scripts from develop:
-- Restores `scripts/calculate-release-version.js` + `scripts/update-release-versions.js` from develop (old tags may lack them)
+- Restores `scripts/calculate-release-version.js`, `scripts/update-release-versions.js`, + `scripts/release-package-selection.js` from develop (old tags may lack these scripts and dependencies)
 - Verifies integrity via checksums
 - Commits script updates to branch if needed
 

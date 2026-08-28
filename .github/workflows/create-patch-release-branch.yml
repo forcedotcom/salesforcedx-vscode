@@ -92,8 +92,8 @@ jobs:
           git config user.email "svc-idee-bot@users.noreply.github.com"
 
           # Preserve current scripts from develop for version tooling
-          # Historical tags may not have update-release-versions.js or calculate-release-version.js
-          git checkout origin/develop -- scripts/calculate-release-version.js scripts/update-release-versions.js 2>/dev/null || {
+          # Historical tags may not have these scripts or their dependencies
+          git checkout origin/develop -- scripts/calculate-release-version.js scripts/update-release-versions.js scripts/release-package-selection.js 2>/dev/null || {
             echo "::warning::Could not restore version helper scripts from develop"
             echo "::warning::Branch will use scripts from the base tag (may be outdated)"
           }
@@ -107,7 +107,8 @@ jobs:
 
           Scripts updated:
           - scripts/calculate-release-version.js
-          - scripts/update-release-versions.js"
+          - scripts/update-release-versions.js
+          - scripts/release-package-selection.js"
 
             echo "✓ Updated version helper scripts from develop"
           else
