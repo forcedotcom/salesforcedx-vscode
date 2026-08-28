@@ -174,9 +174,30 @@ jobs:
 
       - name: Preserve scripts before checkout
         if: steps.calculate-version.outputs.is_prerelease != 'true'
-        uses: ./.github/actions/preserve-scripts
-        with:
-          mode: save
+        run: |
+          # Copy scripts to temp location for restoration after checkout
+          # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
+          mkdir -p /tmp/release-scripts
+
+          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+
+          # Copy each script
+          for script in $SCRIPTS; do
+            if [ ! -f "$script" ]; then
+              echo "::error::Script not found: $script"
+              exit 1
+            fi
+            cp "$script" /tmp/release-scripts/
+            echo "✓ Saved: $script"
+          done
+
+          # Generate checksums for integrity verification
+          cd scripts
+          sha256sum calculate-release-version.js update-release-versions.js > /tmp/release-scripts/checksums.txt
+          cd ..
+
+          echo "Generated checksums:"
+          cat /tmp/release-scripts/checksums.txt
 
       - name: Create isolated release branch
         if: steps.calculate-version.outputs.is_prerelease != 'true'
@@ -197,9 +218,37 @@ jobs:
 
       - name: Restore scripts
         if: steps.calculate-version.outputs.is_prerelease != 'true'
-        uses: ./.github/actions/preserve-scripts
-        with:
-          mode: restore
+        run: |
+          # Restore scripts from temp location
+          # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
+          mkdir -p scripts
+
+          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+
+          # Verify all scripts exist in temp
+          for script in $SCRIPTS; do
+            SCRIPT_NAME=$(basename "$script")
+            if [ ! -f "/tmp/release-scripts/$SCRIPT_NAME" ]; then
+              echo "::error::Script not found in /tmp/release-scripts/: $SCRIPT_NAME"
+              exit 1
+            fi
+          done
+
+          # Restore each script
+          for script in $SCRIPTS; do
+            SCRIPT_NAME=$(basename "$script")
+            cp "/tmp/release-scripts/$SCRIPT_NAME" "$script"
+            echo "✓ Restored: $script"
+          done
+
+          # Verify integrity with checksums
+          cd scripts
+          if ! sha256sum -c /tmp/release-scripts/checksums.txt 2>/dev/null; then
+            echo "::error::Script integrity check failed - checksums do not match"
+            exit 1
+          fi
+          cd ..
+          echo "✓ Script integrity verified"
 
       - name: Configure git
         if: steps.calculate-version.outputs.is_prerelease != 'true'
