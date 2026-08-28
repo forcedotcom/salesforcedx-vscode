@@ -62,14 +62,24 @@ jobs:
             # This bypasses nightly tag validation for emergency releases
             echo "Using startFromRef: $START_FROM_REF"
 
-            # Verify ref exists
-            if ! git rev-parse "$START_FROM_REF" >/dev/null 2>&1; then
+            # Fetch remote branches if startFromRef looks like a branch name
+            # (doesn't start with 'v' for tags, isn't a SHA)
+            if [[ ! "$START_FROM_REF" =~ ^v[0-9] ]] && [[ ! "$START_FROM_REF" =~ ^[0-9a-f]{7,40}$ ]]; then
+              echo "Fetching remote branches..."
+              git fetch origin
+            fi
+
+            # Verify ref exists (try with and without origin/ prefix)
+            if git rev-parse "$START_FROM_REF" >/dev/null 2>&1; then
+              TAG="$START_FROM_REF"
+            elif git rev-parse "origin/$START_FROM_REF" >/dev/null 2>&1; then
+              TAG="origin/$START_FROM_REF"
+            else
               echo "::error::Git ref '$START_FROM_REF' does not exist"
               echo "::error::Ensure the tag, branch, or commit SHA is valid"
               exit 1
             fi
 
-            TAG="$START_FROM_REF"
             echo "✓ Verified ref exists: $TAG"
 
           elif [ -n "$INPUT_TAG" ]; then
