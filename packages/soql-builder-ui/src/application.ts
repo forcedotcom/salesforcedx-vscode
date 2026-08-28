@@ -9,7 +9,6 @@ import type { SoqlBuilderService } from './effect/soqlBuilderService.js';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -29,77 +28,81 @@ export type SoqlBuilderView = {
   readonly removeEventListener: (type: string, listener: EventListener) => void;
 };
 
-const SoqlBuilderActionEventSchema = Schema.Struct({
-  type: Schema.Literal(SOQL_BUILDER_ACTION_EVENT),
-  detail: SoqlBuilderActionSchema
-});
+const isSoqlBuilderAction = Schema.is(SoqlBuilderActionSchema);
 
-const isSoqlBuilderActionEvent = Schema.is(SoqlBuilderActionEventSchema);
+const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly detail: SoqlBuilderAction } =>
+  event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && isSoqlBuilderAction(event.detail);
 
 export class SoqlBuilderApplication {
-  private connection: Fiber.RuntimeFiber<void, SoqlBuilderServiceError> | undefined;
-  private disposed = false;
-  private readonly runtime: ManagedRuntime.ManagedRuntime<SoqlBuilderController, SoqlBuilderServiceError>;
+  private sessionFiber: Fiber.RuntimeFiber<void, never> | undefined;
 
   constructor(
     private readonly view: SoqlBuilderView,
-    serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
-  ) {
-    this.runtime = ManagedRuntime.make(SoqlBuilderController.Default.pipe(Layer.provide(serviceLayer)));
-  }
+    private readonly serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>
+  ) {}
 
   public readonly connect = (): void => {
-    if (this.connection || this.disposed) return;
+    if (this.sessionFiber) return;
 
-    this.connection = this.runtime.runFork(
-      Effect.gen(this, function* () {
-        const controller = yield* SoqlBuilderController;
-        const actions = yield* Queue.unbounded<SoqlBuilderAction>();
-        const actionListener: EventListener = event => {
-          if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
+    const reportServiceError = (error: SoqlBuilderServiceError): Effect.Effect<void> =>
+      Effect.sync(() => {
+        this.view.viewState = {
+          ...createInitialSoqlBuilderState(),
+          errorMessage: error.message
         };
+      });
+    const session = Effect.gen(this, function* () {
+      const controller = yield* SoqlBuilderController;
+      const actions = yield* Queue.unbounded<SoqlBuilderAction>();
+      const actionListener: EventListener = event => {
+        if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
+      };
 
-        this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener);
-        yield* Effect.addFinalizer(() =>
+      yield* Effect.acquireRelease(
+        Effect.sync(() => this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
+        () =>
           Effect.sync(() => this.view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
             Effect.andThen(Queue.shutdown(actions))
           )
-        );
+      );
 
-        yield* Effect.all(
-          [
-            controller.states.pipe(
-              Stream.runForEach(state =>
-                Effect.sync(() => {
-                  this.view.viewState = state;
-                })
-              )
-            ),
-            Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
-          ],
-          { concurrency: 'unbounded', discard: true }
-        );
-      }).pipe(
-        Effect.scoped,
-        Effect.catchAll(error =>
-          Effect.sync(() => {
-            this.view.viewState = {
-              ...createInitialSoqlBuilderState(),
-              errorMessage: error.message
-            };
-          })
-        )
-      )
+      yield* Effect.all(
+        [
+          controller.states.pipe(
+            Stream.runForEach(state =>
+              Effect.sync(() => {
+                this.view.viewState = state;
+              })
+            )
+          ),
+          Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
+        ],
+        { concurrency: 'unbounded', discard: true }
+      );
+    }).pipe(
+      Effect.provide(SoqlBuilderController.Default.pipe(Layer.provide(this.serviceLayer))),
+      Effect.scoped,
+      Effect.catchTags({
+        InvalidSoqlBuilderMetadataError: reportServiceError,
+        SoqlBuilderMessageChannelError: reportServiceError,
+        SoqlBuilderQueryError: reportServiceError
+      })
     );
+    const sessionFiber = Effect.yieldNow().pipe(
+      Effect.andThen(session),
+      Effect.ensuring(
+        Effect.sync(() => {
+          if (this.sessionFiber === sessionFiber) this.sessionFiber = undefined;
+        })
+      ),
+      Effect.runFork
+    );
+    this.sessionFiber = sessionFiber;
   };
 
   public readonly disconnect = async (): Promise<void> => {
-    if (this.disposed) return;
-    this.disposed = true;
-
-    const connection = this.connection;
-    this.connection = undefined;
-    if (connection) await this.runtime.runPromise(Fiber.interrupt(connection));
-    await this.runtime.dispose();
+    const sessionFiber = this.sessionFiber;
+    this.sessionFiber = undefined;
+    if (sessionFiber) await sessionFiber.pipe(Fiber.interrupt, Effect.runPromise);
   };
 }

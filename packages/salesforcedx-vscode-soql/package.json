@@ -370,7 +370,8 @@
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "../soql-builder-ui:test:browser"
       ],
       "files": [
         "test/playwright/**/*.ts",

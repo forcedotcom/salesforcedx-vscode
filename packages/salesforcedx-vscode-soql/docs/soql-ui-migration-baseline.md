@@ -147,16 +147,3 @@ Capture representative complete-builder and results states in these four VS Code
 The builder state contains From, multiple Fields, Where, Order By, Limit, All Rows, and preview. The results state uses the wide, related, 51-row fixture with the second page and max-row hint visible. Capture at 1440x900 and at a 480 px editor width. Store screenshots as CI artifacts named `soql-ui-baseline-<target>-<commit>`; do not silently update an accepted reference. Review foreground/background, borders, focus, disabled controls, validation, selection, hover, scrollbars, grouped headers, pagination, and icon visibility against VS Code tokens.
 
 Screenshot collection remains an environment gate: a PR without desktop and web artifacts has not completed Story 1 even if unit tests pass.
-
-## Local E2E evidence — 2026-08-19
-
-The focused builder scenario was run locally against a one-day `minimalTestOrg` created through the globally authenticated `vscodeOrg` Dev Hub. The scratch org was deleted successfully after the run. No credentials were copied into the repository or test artifacts.
-
-```bash
-npm run test:web --workspace salesforcedx-vscode-soql -- --grep "SOQL Builder"
-npm run test:desktop --workspace salesforcedx-vscode-soql -- --grep "SOQL Builder"
-```
-
-On web and macOS desktop, the complete builder scenario reached its final validation step after exercising query construction, Run Query, Get Query Plan, and builder/text-editor round trips. Both targets then failed the existing global console-error gate under VS Code 1.134.0 because the VS Code workbench reported that `chat.contextContributions` depends on the unavailable `chatSessionRoutingProviderService`. The desktop run also reported that the local O11y span exporter could not reach its divert endpoint.
-
-These errors originate outside the SOQL webviews, but they remain unsuppressed. The SOQL Lit migration assignee owns reconciliation with the shared Playwright/VS Code test infrastructure before Story 1 closes. The captured default-dark screenshot confirms the completed builder state but does not replace the required four-theme builder/results matrix.

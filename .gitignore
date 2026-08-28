@@ -6,6 +6,7 @@
 dist/
 dist-lit/
 dist-migration/
+.test-dist/
 out/
 
 # Logs
