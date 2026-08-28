@@ -285,6 +285,12 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         : hasClass
           ? nls.localize('apex_test_class_run_text')
           : nls.localize('apex_test_run_text');
+      // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
+      // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
+      // Must append BEFORE the success notification below: a toast success notification with an action
+      // button awaits the user's response, which never resolves in a headless e2e run.
+      const channelService = yield* api.services.ChannelService;
+      yield* channelService.appendToChannel(`Ended ${executionName}`);
       if (totalCount > 0) {
         const notificationMode = yield* api.services.NotificationModeService;
         const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
@@ -297,10 +303,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           (uri, format) => Runtime.runPromise(runtime)(openTestReport(uri, format))
         );
       }
-      // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
-      // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
-      const channelService = yield* api.services.ChannelService;
-      yield* channelService.appendToChannel(`Ended ${executionName}`);
     });
 
     /**
