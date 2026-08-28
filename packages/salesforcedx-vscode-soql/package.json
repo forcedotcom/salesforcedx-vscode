@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.13.1",
+  "version": "67.15.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,11 +36,13 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/soql-builder-ui": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
@@ -78,12 +80,17 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "compile": "wireit",
+    "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/node_modules .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist dist-migration coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
+    "build:soql-builder-lit": "wireit",
     "test": "wireit",
     "test:soql-builder-ui": "wireit",
+    "test:query-results-ui": "wireit",
+    "test:ui-bundle-budgets": "wireit",
+    "test:lit-foundation": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
@@ -92,6 +99,8 @@
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
+    "vscode:bundle:migration": "wireit",
+    "vscode:package:migration": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "test:compile": "wireit",
@@ -103,6 +112,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "compile:lit-ui",
         "../soql-common:compile",
         "../soql-model:compile",
         "../salesforcedx-vscode-i18n:compile",
@@ -119,6 +129,23 @@
         "out/**"
       ]
     },
+    "compile:lit-ui": {
+      "command": "tsc --pretty -p tsconfig.lit.json",
+      "dependencies": [
+        "../soql-builder-ui:compile",
+        "../soql-model:compile"
+      ],
+      "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
+        "src/soql-builder-ui/modules/querybuilder/messages/i18n.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/globals.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts",
+        "tsconfig.lit.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": []
+    },
     "copy:grammars": {
       "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
       "files": [
@@ -134,6 +161,7 @@
         "../soql-model:compile"
       ],
       "files": [
+        "../salesforcedx-vscode-services/src/core/schemas/sObject.ts",
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/rollup.config.mjs"
@@ -142,16 +170,78 @@
         "src/soql-builder-ui/dist/**"
       ]
     },
+    "build:soql-builder-lit": {
+      "command": "node src/soql-builder-ui/esbuild.lit.config.mjs",
+      "dependencies": [
+        "compile:lit-ui",
+        "../soql-builder-ui:compile"
+      ],
+      "files": [
+        "src/soql-builder-ui/lit/**",
+        "src/soql-builder-ui/modules/querybuilder/messages/i18n.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/globals.ts",
+        "src/soql-builder-ui/modules/querybuilder/services/message/**",
+        "src/soql-builder-ui/esbuild.lit.config.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../soql-builder-ui/out/**",
+        "package.json"
+      ],
+      "output": [
+        "src/soql-builder-ui/dist-lit/**"
+      ]
+    },
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
       "dependencies": [
+        "../soql-builder-ui:compile",
         "../soql-model:compile"
       ],
       "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
         "test/jest/soql-builder-ui/**"
+      ],
+      "output": []
+    },
+    "test:query-results-ui": {
+      "command": "jest --config jest.query-results.config.js --runInBand",
+      "files": [
+        "src/soql-data-view/index.html",
+        "src/soql-data-view/queryDataViewController.js",
+        "test/jest/queryDataView/queryDataViewController.test.ts",
+        "jest.query-results.config.js",
+        "../../config/jest.base.config.js",
+        "../../scripts/setup-jest.ts"
+      ],
+      "output": []
+    },
+    "test:ui-bundle-budgets": {
+      "command": "node scripts/check-ui-bundle-budgets.mjs",
+      "dependencies": [
+        "build:soql-builder-ui"
+      ],
+      "files": [
+        "scripts/check-ui-bundle-budgets.mjs",
+        "test/baselines/soql-ui-bundles.json",
+        "src/soql-builder-ui/dist/app.js",
+        "src/soql-data-view/index.html",
+        "src/soql-data-view/queryDataViewController.js",
+        "src/soql-data-view/queryDataView.css",
+        "src/soql-data-view/tabulator.min.js",
+        "src/soql-data-view/tabulator.min.css"
+      ],
+      "output": []
+    },
+    "test:lit-foundation": {
+      "command": "node scripts/verify-lit-migration-bundle.mjs",
+      "dependencies": [
+        "build:soql-builder-lit"
+      ],
+      "files": [
+        "scripts/verify-lit-migration-bundle.mjs",
+        "src/soql-builder-ui/dist-lit/**"
       ],
       "output": []
     },
@@ -172,6 +262,25 @@
       ],
       "output": [
         "dist"
+      ]
+    },
+    "vscode:bundle:migration": {
+      "command": "node ./esbuild.config.mjs --lit-migration",
+      "dependencies": [
+        "compile",
+        "copy:grammars",
+        "test:lit-foundation"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "src/soql-builder-ui/dist-lit/**",
+        "src/soql-data-view/**"
+      ],
+      "output": [
+        "dist-migration"
       ]
     },
     "vscode:bundle:local": {
@@ -261,7 +370,8 @@
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "../soql-builder-ui:test:browser"
       ],
       "files": [
         "test/playwright/**/*.ts",
@@ -306,6 +416,7 @@
         "vscode:bundle"
       ],
       "files": [
+        ".vscodeignore",
         "package.json",
         "package.nls*.json",
         "README.md",
@@ -316,6 +427,26 @@
       ],
       "output": [
         "*.vsix"
+      ]
+    },
+    "vscode:package:migration": {
+      "command": "node scripts/package-lit-migration.mjs",
+      "dependencies": [
+        "vscode:bundle:migration"
+      ],
+      "files": [
+        "scripts/package-lit-migration.mjs",
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "grammars/**"
+      ],
+      "output": [
+        "salesforcedx-vscode-soql-lit-migration.vsix"
       ]
     },
     "test:compile": {
@@ -336,6 +467,7 @@
         "vscode:bundle"
       ],
       "files": [
+        ".vscodeignore",
         "package.json",
         "package.nls*.json",
         "README.md",

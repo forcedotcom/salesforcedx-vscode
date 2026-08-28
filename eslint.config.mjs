@@ -56,6 +56,9 @@ export default [
     ignores: [
       '**/out/**',
       '**/dist/**',
+      '**/dist-lit/**',
+      '**/dist-migration/**',
+      '**/.test-dist/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
@@ -76,6 +79,9 @@ export default [
       // Lint *.html and querybuilder/messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/*.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/globals.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
       'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
@@ -580,6 +586,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-services-types/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-builder-ui/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
       'packages/salesforcedx-vscode-visualforce/**/*.ts'
     ],
@@ -749,7 +756,11 @@ export default [
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
-      'packages/effect-ext-utils/**/*.ts'
+      'packages/effect-ext-utils/**/*.ts',
+      'packages/soql-builder-ui/src/domain.ts',
+      'packages/soql-builder-ui/src/effect/**/*.ts',
+      'packages/soql-builder-ui/src/testing/**/*.ts',
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts'
     ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
@@ -810,9 +821,13 @@ export default [
   {
     // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
     // Only this rule — those packages aren't ready for the full functional/* set above.
-    // NOTE: soql-builder-ui/**/*.ts is globally ignored (see ignores above), so these webview LWC files
-    // are NOT enforced here — their effect imports were deep-imported manually and stay unenforced.
-    files: ['packages/salesforcedx-vscode-org/**/*.ts', 'packages/salesforcedx-vscode-soql/**/*.ts'],
+    // The extension-owned LWC source under salesforcedx-vscode-soql/src/soql-builder-ui is globally ignored,
+    // while the independent packages/soql-builder-ui workspace is intentionally enforced here.
+    files: [
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-builder-ui/**/*.ts'
+    ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
     }

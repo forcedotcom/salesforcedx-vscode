@@ -6,7 +6,7 @@
  *
  */
 import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
 export enum ModelProps {

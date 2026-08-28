@@ -3,6 +3,7 @@
 .vscode-test-web/**
 .vscode-web/**
 .wireit/**
+.fastcontext/**
 node_modules
 out/**
 src/**
@@ -15,7 +16,9 @@ playwright-report/**
 test-results/**
 **/*.ts
 coverage
+docs/**
 junit*
+scripts/**
 *.vsix
 .circular-deps.json
 .eslintcache
@@ -23,6 +26,7 @@ junit*
 esbuild.config.mjs
 jest.config.js
 tsconfig.json
+tsconfig.lit.json
 .eslint.json
 
 # do not reach outside the package

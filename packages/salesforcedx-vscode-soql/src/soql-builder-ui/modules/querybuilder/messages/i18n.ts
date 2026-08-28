@@ -76,6 +76,7 @@ export const messages = {
 
   // query preview
   label_soql_query: 'SOQL Query',
+  label_soql_query_inputs: 'SOQL Query Inputs',
 
   // placeholders
   placeholder_search_object: 'Search object...',

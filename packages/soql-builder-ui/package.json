@@ -1,0 +1,189 @@
+{
+  "name": "@salesforce/soql-builder-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-safe Lit and Effect foundation for the SOQL Builder",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode.git",
+    "directory": "packages/soql-builder-ui"
+  },
+  "type": "module",
+  "exports": {
+    "./application": {
+      "types": "./out/src/application.d.ts",
+      "default": "./out/src/application.js"
+    },
+    "./components/soqlBuilderElement": {
+      "types": "./out/src/components/soqlBuilderElement.d.ts",
+      "default": "./out/src/components/soqlBuilderElement.js"
+    },
+    "./domain": {
+      "types": "./out/src/domain.d.ts",
+      "default": "./out/src/domain.js"
+    },
+    "./register": {
+      "types": "./out/src/register.d.ts",
+      "default": "./out/src/register.js"
+    },
+    "./service": {
+      "types": "./out/src/effect/soqlBuilderService.d.ts",
+      "default": "./out/src/effect/soqlBuilderService.js"
+    },
+    "./testing/fakeEffectService": {
+      "types": "./out/src/testing/fakeEffectService.d.ts",
+      "default": "./out/src/testing/fakeEffectService.js"
+    },
+    "./testing/fakeSoqlBuilderService": {
+      "types": "./out/src/testing/fakeSoqlBuilderService.d.ts",
+      "default": "./out/src/testing/fakeSoqlBuilderService.js"
+    }
+  },
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "compile": "wireit",
+    "bundle": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist .test-dist coverage test-results .wireit .eslintcache .circular-deps.json",
+    "test": "wireit",
+    "test:browser": "wireit",
+    "test:browser:bundle": "wireit",
+    "test:browser:compile": "wireit",
+    "test:unit": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty --project tsconfig.build.json",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-vscode-services-types:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "bundle": {
+      "command": "node esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "out/**",
+        "esbuild.config.mjs",
+        "package.json"
+      ],
+      "output": [
+        "dist/app.js"
+      ]
+    },
+    "test": {
+      "dependencies": [
+        "test:unit"
+      ]
+    },
+    "test:unit": {
+      "command": "node --test test/**/*.test.mjs",
+      "dependencies": [
+        "bundle"
+      ],
+      "files": [
+        "out/**",
+        "dist/app.js",
+        "test/**/*.test.mjs",
+        "../../scripts/release-package-selection.js",
+        "package.json"
+      ],
+      "output": []
+    },
+    "test:browser:compile": {
+      "command": "tsc --pretty --project tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/browser/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": []
+    },
+    "test:browser:bundle": {
+      "command": "node test/browser/esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/browser/fixture.ts",
+        "test/browser/esbuild.config.mjs",
+        "../../scripts/bundling/**/*.mjs",
+        "package.json"
+      ],
+      "output": [
+        ".test-dist/browser/fixture.js"
+      ]
+    },
+    "test:browser": {
+      "command": "playwright test --config=test/browser/playwright.config.ts",
+      "dependencies": [
+        "test:browser:bundle",
+        "test:browser:compile"
+      ],
+      "files": [
+        ".test-dist/browser/fixture.js",
+        "test/browser/**/*.ts",
+        "package.json"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.mjs",
+        "test/**/*.ts",
+        "test/browser/esbuild.config.mjs",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "esbuild.config.mjs",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/register.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    }
+  },
+  "dependencies": {
+    "@salesforce/vscode-services": "*",
+    "@vscode-elements/elements": "^2.5.1",
+    "effect": "^3.21.2",
+    "lit": "3.3.3"
+  }
+}

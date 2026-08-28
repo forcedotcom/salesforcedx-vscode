@@ -34,23 +34,27 @@ describe('SoqlUtils', () => {
       conditions: [
         {
           condition: {
-            field: { fieldName: 'Name' },
+            field: { kind: 'fieldRef', fieldName: 'Name' },
             operator: '=',
             compareValue: {
               type: 'STRING',
-              value: "'pwt'"
-            }
+              value: "'pwt'",
+              kind: 'literal'
+            },
+            kind: 'fieldCompare'
           },
           index: 0
         },
         {
           condition: {
-            field: { fieldName: 'Id' },
+            field: { kind: 'fieldRef', fieldName: 'Id' },
             operator: '=',
             compareValue: {
               type: 'NUMBER',
-              value: '123456'
-            }
+              value: '123456',
+              kind: 'literal'
+            },
+            kind: 'fieldCompare'
           },
           index: 1
         }
@@ -152,7 +156,7 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlOne);
     const expectedUiModel = { ...uiModelOne } as any;
     delete expectedUiModel.originalSoqlStatement;
-    expect(JSON.stringify(transformedUiModel)).toEqual(JSON.stringify(expectedUiModel));
+    expect(transformedUiModel).toEqual(expectedUiModel);
   });
 
   it('transforms SOQL to UI Model with SELECT COUNT() clause', () => {

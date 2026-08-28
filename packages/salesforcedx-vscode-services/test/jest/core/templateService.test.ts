@@ -81,6 +81,8 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
     ProjectService.make({
       isSalesforceProject: () => Effect.succeed(true),
       getSfProject: () => Effect.succeed(mockSfProject),
+      getProjectNamespace: () => Effect.succeed(null),
+      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(namespace === null),
       projectConfigChanges: Stream.empty,
       isInPackageDirectories: () => Effect.succeed(true),
       ensureInPackageDirectories: () => Effect.void,

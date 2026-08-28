@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DebugProtocol } from '@vscode/debugprotocol';
+import type { DebugProtocol } from '@vscode/debugprotocol';
 import { ApexExecutionOverlayResultCommandSuccess } from '../commands';
 
 export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
@@ -24,6 +24,13 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
   lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];
-  projectPath: string | undefined;
   heapDumpResults?: HeapDumpResult[];
-};
+} & (
+    | {
+        /** Path to Anonymous Apex script file. When set, frame lines use script line numbers directly; otherwise they map via debug log. */
+        anonApexFilePath: string;
+        /** 0-based line offset into anonApexFilePath where the executed selection starts. Added to script line numbers so breakpoints align with the source file. */
+        anonApexLineOffset?: number;
+      }
+    | { anonApexFilePath?: never; anonApexLineOffset?: never }
+  );
