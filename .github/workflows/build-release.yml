@@ -159,12 +159,21 @@ jobs:
             else
               # Extract version from source tag if it's a nightly/prerelease tag
               VERSION=$(echo "$SOURCE_TAG" | grep -oP '\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?' || echo "")
+
+              # If version couldn't be extracted from tag/branch name, read from package.json
               if [ -z "$VERSION" ]; then
-                echo "::error::Cannot derive version from source tag: $SOURCE_TAG"
-                echo "::error::Please provide releaseVersion input for pre-release mode"
-                exit 1
+                echo "Cannot extract version from ref name, reading from package.json..."
+                VERSION=$(node -p "require('./lerna.json').version")
+                if [ -z "$VERSION" ]; then
+                  echo "::error::Cannot derive version from source tag: $SOURCE_TAG"
+                  echo "::error::And failed to read version from lerna.json"
+                  echo "::error::Please provide releaseVersion input for pre-release mode"
+                  exit 1
+                fi
+                echo "Read version from lerna.json: $VERSION"
+              else
+                echo "Derived pre-release version from source: $VERSION"
               fi
-              echo "Derived pre-release version from source: $VERSION"
             fi
             IS_PRERELEASE="true"
           else
