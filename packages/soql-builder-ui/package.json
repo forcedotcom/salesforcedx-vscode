@@ -30,6 +30,14 @@
     "./service": {
       "types": "./out/src/effect/soqlBuilderService.d.ts",
       "default": "./out/src/effect/soqlBuilderService.js"
+    },
+    "./testing/fakeEffectService": {
+      "types": "./out/src/testing/fakeEffectService.d.ts",
+      "default": "./out/src/testing/fakeEffectService.js"
+    },
+    "./testing/fakeSoqlBuilderService": {
+      "types": "./out/src/testing/fakeSoqlBuilderService.d.ts",
+      "default": "./out/src/testing/fakeSoqlBuilderService.js"
     }
   },
   "scripts": {
@@ -37,12 +45,16 @@
     "compile": "wireit",
     "bundle": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
-    "test": "wireit"
+    "clean": "shx rm -rf node_modules out dist .test-dist coverage test-results .wireit .eslintcache .circular-deps.json",
+    "test": "wireit",
+    "test:browser": "wireit",
+    "test:browser:bundle": "wireit",
+    "test:browser:compile": "wireit",
+    "test:unit": "wireit"
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty --project tsconfig.build.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-vscode-services-types:compile"
@@ -50,6 +62,7 @@
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
+        "tsconfig.build.json",
         "../../tsconfig.common.json",
         "package.json"
       ],
@@ -72,6 +85,11 @@
       ]
     },
     "test": {
+      "dependencies": [
+        "test:unit"
+      ]
+    },
+    "test:unit": {
       "command": "node --test test/**/*.test.mjs",
       "dependencies": [
         "bundle"
@@ -81,6 +99,49 @@
         "dist/app.js",
         "test/**/*.test.mjs",
         "../../scripts/release-package-selection.js",
+        "package.json"
+      ],
+      "output": []
+    },
+    "test:browser:compile": {
+      "command": "tsc --pretty --project tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/browser/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": []
+    },
+    "test:browser:bundle": {
+      "command": "node test/browser/esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/browser/fixture.ts",
+        "test/browser/esbuild.config.mjs",
+        "../../scripts/bundling/**/*.mjs",
+        "package.json"
+      ],
+      "output": [
+        ".test-dist/browser/fixture.js"
+      ]
+    },
+    "test:browser": {
+      "command": "playwright test --config=test/browser/playwright.config.ts",
+      "dependencies": [
+        "test:browser:bundle",
+        "test:browser:compile"
+      ],
+      "files": [
+        ".test-dist/browser/fixture.js",
+        "test/browser/**/*.ts",
         "package.json"
       ],
       "output": []
@@ -95,6 +156,10 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.mjs",
+        "test/**/*.ts",
+        "test/browser/esbuild.config.mjs",
+        "tsconfig.json",
+        "tsconfig.build.json",
         "esbuild.config.mjs",
         "../../eslint.config.mjs",
         "package.json"

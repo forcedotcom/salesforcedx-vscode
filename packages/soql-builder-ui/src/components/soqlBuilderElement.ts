@@ -81,11 +81,18 @@ export class SoqlBuilderElement extends LitElement {
           ? html`<p class="warning" role="alert">${state.errorMessage ?? this.labels.noDefaultOrg}</p>`
           : html`
               <div class="content">
-                <section class="form" aria-label=${this.labels.inputs}>
+                <form
+                  class="form"
+                  aria-label=${this.labels.inputs}
+                  aria-busy=${state.isObjectsLoading || state.isFieldsLoading ? 'true' : 'false'}
+                  @submit=${this.preventSubmit}
+                >
                   <div class="control">
                     <label for="soql-object">${this.labels.from}</label>
                     <vscode-single-select
                       id="soql-object"
+                      name="sObject"
+                      tabindex="0"
                       combobox
                       filter="startsWithPerTerm"
                       label=${this.labels.from}
@@ -102,6 +109,8 @@ export class SoqlBuilderElement extends LitElement {
                     <label for="soql-fields">${this.labels.fields}</label>
                     <vscode-multi-select
                       id="soql-fields"
+                      name="fields"
+                      tabindex="0"
                       combobox
                       filter="startsWithPerTerm"
                       label=${this.labels.fields}
@@ -114,8 +123,8 @@ export class SoqlBuilderElement extends LitElement {
                       )}
                     </vscode-multi-select>
                   </div>
-                </section>
-                <section class="preview" aria-live="polite">
+                </form>
+                <section class="preview" role="status" aria-live="polite">
                   <div class="preview-title">${this.labels.query}</div>
                   <pre data-testid="query-preview">${queryPreview}</pre>
                 </section>
@@ -148,6 +157,8 @@ export class SoqlBuilderElement extends LitElement {
       );
     }
   };
+
+  private readonly preventSubmit = (event: SubmitEvent): void => event.preventDefault();
 }
 
 declare global {

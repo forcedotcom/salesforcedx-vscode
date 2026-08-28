@@ -36,6 +36,7 @@ import {
   type Condition,
   type Query
 } from '@salesforce/soql-model';
+import * as Predicate from 'effect/Predicate';
 
 const literalFromModel = (literal: unknown): SoqlLiteral | undefined =>
   literal instanceof LiteralImpl
@@ -68,7 +69,7 @@ const conditionFromModel = (condition: Condition, index: number): SoqlWhereCondi
         field: { fieldName: condition.field.fieldName, kind: 'fieldRef' },
         kind: condition.kind,
         operator: condition.operator,
-        values: values.filter((value): value is SoqlLiteral => value !== undefined)
+        values: values.filter(Predicate.isNotUndefined)
       },
       index
     };
@@ -214,7 +215,9 @@ export const serializeSoqlBuilderQuery = (query: SoqlBuilderQuery): string =>
   new ModelSerializer(buildQueryModel(query)).serialize();
 
 export const createSoqlBuilderTelemetry = (query: SoqlBuilderQuery) => ({
-  errors: query.parseErrors.map(error => `${String(error.type)}:${String(error.grammarRule)}`),
+  errors: query.parseErrors.map(error =>
+    Predicate.isUndefined(error.grammarRule) ? error.type : `${error.type}:${error.grammarRule}`
+  ),
   fields: query.fields.length,
   limit: query.limit._tag === 'Valid' ? query.limit.value : undefined,
   orderBy: query.orderBy.length,
