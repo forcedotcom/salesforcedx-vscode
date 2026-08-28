@@ -6,16 +6,10 @@
  */
 
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
-import * as Layer from 'effect/Layer';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- any for services avoids circular type dep; never for errors prevents type poisoning through Effect.provide
-type OpaqueServicesLayer = Layer.Layer<any, never>;
 
 // eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
-export let AllServicesLayer: OpaqueServicesLayer;
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts any layer error type, narrows to never to contain the cast
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- deliberate narrowing: any→never for errors prevents type poisoning through Effect.provide
-  AllServicesLayer = layer as OpaqueServicesLayer;
+  AllServicesLayer = layer;
 };
