@@ -3,13 +3,14 @@
  * Pure: no GitHub I/O. Workflow supplies facts; this decides skip vs approve.
  */
 
-export const APPROVE_TOKEN = '/ai-auto approve';
+const APPROVE_TOKEN = '/ai-auto approve';
 export const TEAM_SLUG = 'ide-experience';
 export const TEAM_ORG = 'forcedotcom';
 export const BOT_LOGIN = 'svc-idee-bot';
 
 /** Standalone `/ai-auto approve` — whole body, optional trailing whitespace/newlines only. */
-export const isStandaloneAiAutoApprove = body => /^\/ai-auto approve\s*$/.test(String(body ?? '').trim());
+export const isStandaloneAiAutoApprove = body =>
+  new RegExp(`^${APPROVE_TOKEN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`).test(String(body ?? '').trim());
 
 const FAIL_CONCLUSIONS = new Set(['FAILURE', 'CANCELLED', 'TIMED_OUT', 'ERROR', 'ACTION_REQUIRED', 'STARTUP_FAILURE']);
 
@@ -18,7 +19,7 @@ const RUNNING = new Set(['IN_PROGRESS', 'QUEUED', 'PENDING', 'WAITING', 'REQUEST
 const outcome = check => String(check.conclusion ?? check.state ?? 'PENDING').toUpperCase();
 const status = check => String(check.status ?? '').toUpperCase();
 
-export const isCheckGreen = check => {
+const isCheckGreen = check => {
   const o = outcome(check);
   if (FAIL_CONCLUSIONS.has(o)) return false;
   if (RUNNING.has(status(check)) || RUNNING.has(o)) return false;
