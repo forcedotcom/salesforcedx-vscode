@@ -7,8 +7,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { nls } from '../../messages';
+import { messages } from '../../messages/i18n';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 import { gatherAuthParams } from './authParamsGatherer';
 import { executeOrgLoginWeb } from './orgLoginWebExec';
+
+const COMMAND: ProgressOnlyCommandKey = messages.org_login_web_authorize_org_text;
 
 /**
  * Effect command for `sf.org.login.web`: gather alias + login URL, then run `sf org login web`.
@@ -35,5 +39,9 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
   // (alias is locally user-typed, loginUrl is validateUrl-checked) but this is not full shell escaping.
   const command = `sf org login web --alias "${alias}" --instance-url "${loginUrl}" --set-default --json`;
 
-  yield* executeOrgLoginWeb({ command, progressMessage: nls.localize('org_login_web_progress') });
+  yield* executeOrgLoginWeb({
+    command,
+    progressMessage: nls.localize('org_login_web_progress'),
+    notificationCommand: COMMAND
+  });
 });

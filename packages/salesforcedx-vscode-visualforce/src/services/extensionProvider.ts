@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildBaseServicesLayer } from '@salesforce/effect-ext-utils';
-
-export const buildAllServicesLayer = (context: Parameters<typeof buildBaseServicesLayer>[0]) =>
-  buildBaseServicesLayer(context, 'Visualforce');
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 

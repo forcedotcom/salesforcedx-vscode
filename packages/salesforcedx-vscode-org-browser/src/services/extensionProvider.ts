@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildSharedServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
@@ -16,7 +17,19 @@ import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
  * OrgBrowserRetrieveService (which needs only ExtensionProviderService, present in the shared build).
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.merge(buildSharedServicesLayer(context, 'Salesforce Org Browser'), OrgBrowserRetrieveService.Default);
+  Layer.unwrapEffect(
+    Effect.map(getServicesApi, api =>
+      Layer.mergeAll(
+        buildSharedServicesLayer(context, 'Salesforce Org Browser'),
+        OrgBrowserRetrieveService.Default,
+        api.services.NotificationModeService.Default(
+          'salesforcedx-vscode-org-browser',
+          'sf-org-browser-notifications',
+          'Salesforce: Org Browser Notifications'
+        )
+      )
+    )
+  );
 
 // eslint-disable-next-line functional/no-let
 let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
@@ -37,3 +50,10 @@ type OrgBrowserRuntime = ManagedRuntime.ManagedRuntime<
 // eslint-disable-next-line functional/no-let
 let _orgBrowserRuntime: OrgBrowserRuntime | undefined;
 export const getOrgBrowserRuntime = () => (_orgBrowserRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeOrgBrowserRuntime = async (): Promise<void> => {
+  if (_orgBrowserRuntime) {
+    await _orgBrowserRuntime.dispose();
+    _orgBrowserRuntime = undefined;
+  }
+};

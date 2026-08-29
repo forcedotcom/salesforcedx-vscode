@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  buildAllServicesLayer,
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -31,7 +26,7 @@ import {
 import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
-import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { disposeTestController, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';

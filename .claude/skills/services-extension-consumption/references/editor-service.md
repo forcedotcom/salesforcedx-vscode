@@ -22,6 +22,26 @@ const uri = yield * api.services.EditorService.getActiveEditorUri();
 // Throws: NoActiveEditorError if no active editor
 ```
 
+### getActiveEditorText
+
+Get text from active editor (selection if `selection=true` and non-empty, else full document), fails with `NoActiveEditorError` if none:
+
+```typescript
+const text = yield * api.services.EditorService.getActiveEditorText(true);
+// Returns: string (selection or full document)
+// Throws: NoActiveEditorError if no active editor
+```
+
+### getActiveEditorContext
+
+Get text, URI, and optional selection range from active editor. Use `selection=true` to include selection offset:
+
+```typescript
+const ctx = yield * api.services.EditorService.getActiveEditorContext(true);
+// Returns: { text: string; documentUri: URI; selectionRange?: { startLine: number; startCharacter: number } }
+// Throws: NoActiveEditorError if no active editor
+```
+
 ### pubsub
 
 PubSub stream of active editor changes (`vscode.TextEditor | undefined`):

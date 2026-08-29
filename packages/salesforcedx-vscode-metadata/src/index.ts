@@ -36,8 +36,8 @@ import {
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
+  disposeMetadataRuntime,
   getMetadataRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
@@ -49,16 +49,16 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
   await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getMetadataRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getMetadataRuntime().runPromise(deactivateEffect()).finally(disposeMetadataRuntime);
+};
 
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
-
-  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
   const projectGenerateCommands =
     process.env.ESBUILD_PLATFORM === 'web'
       ? []

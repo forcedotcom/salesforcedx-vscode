@@ -10,7 +10,6 @@ import * as PubSub from 'effect/PubSub';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 
 export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>()('NoActiveEditorError', {
   message: Schema.String
@@ -35,7 +34,7 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
     const getActiveEditorUri = Effect.fn('EditorService.getActiveEditorUri')(function* () {
       const editor = vscode.window.activeTextEditor;
       return editor
-        ? URI.parse(editor.document.uri.toString())
+        ? editor.document.uri
         : yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
     });
 
@@ -60,7 +59,6 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       const documentUri = editor.document.uri;
       return {
         text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
-        uri: URI.parse(documentUri.toString()),
         documentUri,
         selectionRange: useSelection
           ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }

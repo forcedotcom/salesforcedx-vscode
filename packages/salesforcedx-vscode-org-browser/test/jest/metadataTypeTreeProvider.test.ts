@@ -136,14 +136,12 @@ describe('MetadataTypeTreeProvider empty-tree context', () => {
 describe('superseded org requests', () => {
   it('discards children from an acquisition tied to the former org', async () => {
     const children = await Effect.runPromise(
-      suppressInactiveOrgOperation(
-        Effect.fail({
-          _tag: 'InactiveOrgOperationError' as const,
-          message: 'org changed',
-          expectedOrgId: 'org-one',
-          observedOrgId: 'org-two'
-        })
-      )
+      Effect.fail({
+        _tag: 'InactiveOrgOperationError' as const,
+        message: 'org changed',
+        expectedOrgId: 'org-one',
+        observedOrgId: 'org-two'
+      }).pipe(suppressInactiveOrgOperation)
     );
 
     expect(children).toEqual([]);

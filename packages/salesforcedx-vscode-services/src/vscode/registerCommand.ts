@@ -7,49 +7,14 @@
 
 import type { UserCancellationError } from './prompts/promptService';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { ErrorHandlerService } from './errorHandlerService';
 import { ExtensionContextService } from './extensionContextService';
 
 /**
- * Factory that creates a registerCommand function pre-loaded with a layer.
- * This ensures command spans are created by the same tracer that handles children.
- *
- * @example
- * const registerCommand = registerCommandWithLayer(AllServicesLayer);
- * yield* registerCommand('sf.my.command', myCommandEffect);
- */
-export const registerCommandWithLayer =
-  <LayerR, LayerE>(layer: Layer.Layer<LayerR, LayerE, never>) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This really is that generic, Effect will handle the param stuff
-  <E, A>(command: string, f: (...args: any[]) => Effect.Effect<A, E | UserCancellationError, LayerR>) =>
-    Effect.gen(function* () {
-      const contextService = yield* ExtensionContextService;
-      const context = yield* contextService.getContext;
-      const errorHandler = yield* ErrorHandlerService;
-      const runtime = yield* Effect.runtime();
-      context.subscriptions.push(
-        vscode.commands.registerCommand(command, (...args) =>
-          Runtime.runFork(runtime)(
-            f(...args).pipe(
-              // root: true ensures proper trace root (not orphaned child of activation)
-              Effect.withSpan(command, { attributes: { command, args }, root: true }),
-              Effect.catchTag('UserCancellationError', () => Effect.void),
-              Effect.catchAllCause(cause => errorHandler.handleCause(cause)),
-              Effect.provide(layer)
-            )
-          )
-        )
-      );
-    }).pipe(Effect.withSpan(`registerCommand:${command}`));
-
-/**
  * Factory that creates a registerCommand function pre-loaded with a ManagedRuntime.
- * Prefer over registerCommandWithLayer when the extension has a runtime; fibers are
- * tracked by the runtime for proper shutdown and share its tracer/logger.
+ * Fibers are tracked by the runtime for proper shutdown and share its tracer/logger.
  *
  * @example
  * const registerCommand = registerCommandWithRuntime(getRuntime());

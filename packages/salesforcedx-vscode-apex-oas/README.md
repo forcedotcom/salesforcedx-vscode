@@ -31,15 +31,17 @@ For AuraEnabled classes (`@AuraEnabled` annotation):
 
 ## Configuration
 
-This extension contributes the following settings:
-
-- `salesforcedx-vscode-apex-oas.general.class.access-modifiers`: Class access modifiers eligible for OAS generation (default: `["global", "public"]`)
-- `salesforcedx-vscode-apex-oas.general.method.access-modifiers`: Method access modifiers eligible for OAS generation (default: `["global", "public"]`)
-- `salesforcedx-vscode-apex-oas.general.property.access-modifiers`: Property access modifiers eligible for OAS generation (default: `["global", "public"]`)
-- `salesforcedx-vscode-apex-oas.generation_strategy`: Strategy for OAS generation (default: `"LEAST_CALLS"`)
-- `salesforcedx-vscode-apex-oas.generation_include_schema`: Include OpenAPI schema in generation (default: `false`)
-- `salesforcedx-vscode-apex-oas.generation_output_token_limit`: Maximum number of tokens for generation output (default: `750`)
-- `salesforcedx-vscode-apex-oas.enableRestOASGen`: Enable OpenAPI document generation for Apex REST (`@RestResource`) classes (default: `false`). Disabled by default because it depends on an external AI model service; AuraEnabled classes are unaffected.
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `salesforcedx-vscode-apex-oas.general.class.access-modifiers` | array | `["global", "public"]` | Class access modifiers eligible for OAS generation. |
+| `salesforcedx-vscode-apex-oas.general.method.access-modifiers` | array | `["global", "public"]` | Method access modifiers eligible for OAS generation. |
+| `salesforcedx-vscode-apex-oas.general.property.access-modifiers` | array | `["global", "public"]` | Property access modifiers eligible for OAS generation. |
+| `salesforcedx-vscode-apex-oas.generation_strategy` | string | `"LEAST_CALLS"` | Strategy for OAS generation. Options: `"LEAST_CALLS"`, `"MOST_CALLS"`. |
+| `salesforcedx-vscode-apex-oas.generation_include_schema` | boolean | `false` | Include OpenAPI schema in generation. |
+| `salesforcedx-vscode-apex-oas.generation_output_token_limit` | number | `750` | Maximum number of tokens for generation output. |
+| `salesforcedx-vscode-apex-oas.enableRestOASGen` | boolean | `false` | Enable OpenAPI document generation for Apex REST (`@RestResource`) classes. Disabled by default because it depends on an external AI model service; AuraEnabled classes are unaffected. |
+| `salesforcedx-vscode-apex-oas.extensionLevelNotifications` | string | — | Controls notifications for all Apex OAS commands. Overrides the global `salesforcedx-vscode-services.notifications` setting. Individual commands can be further overridden in `salesforcedx-vscode-apex-oas.commandLevelNotifications`. |
+| `salesforcedx-vscode-apex-oas.commandLevelNotifications` | object | — | Per-command notification settings (Create OpenAPI Document uses `progressToastSuccessToast`, `progressToastSuccessOff`, `progressStatusBarSuccessStatusBar`, or `progressStatusBarSuccessOff`; Validate OpenAPI Document uses `successToast` or `successStatusBar`). Overrides extension-level setting for specific commands. |
 
 ## Dependencies
 

@@ -27,6 +27,7 @@ export const messages = {
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   cannot_get_apexoaseligibility_response: 'Failed to get response through apexoas/isEligible from Apex Language Server',
   check_openapi_doc_succeeded: 'Validated OpenAPI Document %s successfully',
+  create_openapi_doc_class: 'SFDX: Create OpenAPI Document from This Class',
   eligible_method_not_in_doc: 'Methods %s are eligible for OAS generation, but not present in the document',
   failed_to_combine_oas: 'Failed to combine yaml docs: %s',
   file_exists: 'The file already exists. How do you want to proceed?',
@@ -68,5 +69,6 @@ export const messages = {
     'OpenAPI document generation for Apex REST (@RestResource) classes is disabled. Enable the "salesforcedx-vscode-apex-oas.enableRestOASGen" setting to use it. AuraEnabled classes are not affected.',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
+  validate_oas_document: 'SFDX: Validate OpenAPI Document',
   validation_failed: 'Failed to validate eligibility.'
 } as const;

@@ -17,7 +17,12 @@ import * as vscode from 'vscode';
 import { openFilterTextPicker } from './commands/filterMetadata';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
-import { buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
+import {
+  buildAllServicesLayer,
+  disposeOrgBrowserRuntime,
+  getOrgBrowserRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { coalesceTreeRefreshes } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -28,14 +33,15 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
   await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getOrgBrowserRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getOrgBrowserRuntime().runPromise(deactivateEffect()).finally(disposeOrgBrowserRuntime);
+};
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
-
   // get a connection to initiate the ref
   yield* api.services.ConnectionService.getConnection();
   // wait for the target org ref to have an orgId

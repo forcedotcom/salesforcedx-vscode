@@ -14,6 +14,7 @@ import { nls } from '../../messages';
 import { getPortKillInstructions, isAuthPortConflictError } from '../../util/authErrorParser';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { showVerificationCodeIfNeeded } from '../../util/verificationCode';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 
 /** Interactive web OAuth is human-paced; raise well above the 30s simpleExec default. */
 const LOGIN_TIMEOUT = Duration.minutes(5);
@@ -23,7 +24,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * Both run the same CLI (the dev-hub variant only swaps `--instance-url/--set-default` for
  * `--set-default-dev-hub`), so they share: the Code Builder verification-code fork, the cancellable
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
- * their own params and pass the built command + progress label.
+ * their own params and pass the built command + progress label + notification command key.
  *
  * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
  * and aborts the child via the threaded AbortSignal. Port-conflict failures get a custom notification +
@@ -32,9 +33,11 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
 export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (params: {
   readonly command: string;
   readonly progressMessage: string;
+  readonly notificationCommand: ProgressOnlyCommandKey;
 }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
   // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
   // block the login child; forkDaemon keeps it alive independent of this fiber. Best-effort: a
@@ -54,7 +57,7 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     if (selection === showOutputText) yield* channel.showChannel;
   });
 
-  // success: append output + success message, reveal channel, refresh aggregators
+  // success: append output + success message, reveal channel, refresh aggregators, then show success notification
   const handleSuccess = Effect.fn('executeOrgLoginWeb.handleSuccess')(function* (output: string) {
     yield* channel.appendToChannel(output);
     yield* channel.appendToChannel(nls.localize('org_login_web_success'));
@@ -65,10 +68,12 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     });
   });
 
+  const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
+
   yield* (yield* api.services.TerminalService)
     .simpleExec({ command: params.command, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
-      (yield* api.services.PromptService).withCancellableProgress(params.progressMessage),
+      (yield* api.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

@@ -6,6 +6,7 @@
  */
 
 export const messages = {
+  alias_list_text: 'SFDX: List All Aliases',
   auth_invalid_url: 'Enter a valid URL beginning with http:// or https://.',
   auth_invalid_project_url: 'The sfdcLoginUrl value "%s" in sfdx-project.json is invalid and will not be used.',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
@@ -17,6 +18,8 @@ export const messages = {
   auth_custom_detail: 'Custom org',
   auth_custom_label: 'Custom',
   channel_name: 'Salesforce Org Management',
+  command_succeeded_text: '%s successfully ran',
+  config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   error_invalid_org_alias: 'Alias can only contain underscores, hyphens, spaces and alphanumeric characters.',
@@ -25,7 +28,6 @@ export const messages = {
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   missing_default_org: 'No Default Org Set',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
-  org_create_successfully_ran: 'SFDX: Create a Default Scratch Org... successfully ran',
   org_create_progress: 'Creating default scratch org',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_create_success: 'Successfully created scratch org %s (user %s, org id %s) and set it as the default org.',
@@ -34,10 +36,15 @@ export const messages = {
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
   org_delete_username_text: 'SFDX: Delete Org...',
   org_delete_default_progress: 'Deleting default org',
+  org_display_default_text: 'SFDX: Display Org Details for Default Org',
+  org_display_username_text: 'SFDX: Display Org Details...',
   org_display_progress: 'Getting org details',
   org_display_result_parsing_error: 'An unexpected error occurred while processing the org display response.',
   org_expired: 'Expired',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
+  org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
+  org_logout_default_text: 'SFDX: Log Out from Default Org',
+  org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   org_list_clean_failed_to_remove_org: 'Failed to remove org %s: %s',
   org_list_clean_error_checking_org: 'Error checking org %s: %s',
   org_list_clean_general_error: 'General error during org cleanup: %s',
@@ -66,6 +73,7 @@ export const messages = {
   org_login_web_verification_code_message:
     'Verification Code: %s — If prompted, enter this code in your browser window.',
   org_logout_no_default_org: 'No default org to logout from',
+  org_delete_success: 'Successfully deleted org %s.',
   org_delete_failed_for_org: 'Failed to delete %s (%s). Check the output above for details.',
   org_delete_failed_summary: 'Failed to delete: %s. Check the output above for details.',
   org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',

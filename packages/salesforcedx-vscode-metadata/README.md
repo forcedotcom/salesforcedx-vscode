@@ -29,7 +29,8 @@ This extension is part of the Salesforce Extensions for VS Code package.
 | `salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush` | boolean | `false` | Specifies whether to always use --ignore-conflicts when deploy-on-save runs |
 | `salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve` | boolean | `false` | When enabled, the system will check for conflicts before deploying/retrieving. |
 | `salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds` | number | `60` | Interval in seconds to poll for remote source tracking changes. Set to 0 to disable polling. |
-| `salesforcedx-vscode-metadata.showSuccessNotification` | boolean | `false` | Show an information notification on successful deploy, retrieve, or delete. |
+| `salesforcedx-vscode-metadata.extensionLevelNotifications` | string | `"off"` | Controls notifications for all metadata commands. Options: `"off"`, `"statusBar"`, `"toast"`. |
+| `salesforcedx-vscode-metadata.commandLevelNotifications` | object | — | Per-command notification settings (deploy, retrieve, push, pull, delete, diff, install package, etc.). Overrides extension-level setting for specific commands. |
 
 ## Usage
 

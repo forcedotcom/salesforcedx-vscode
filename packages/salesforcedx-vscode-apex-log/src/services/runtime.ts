@@ -27,3 +27,10 @@ export const setAllServicesLayer = (layer: ServicesLayer): void => {
 let _apexLogRuntime: ApexLogRuntime | undefined;
 
 export const getRuntime = (): ApexLogRuntime => (_apexLogRuntime ??= ManagedRuntime.make(allServicesLayer));
+
+export const disposeRuntime = async (): Promise<void> => {
+  if (_apexLogRuntime) {
+    await _apexLogRuntime.dispose();
+    _apexLogRuntime = undefined;
+  }
+};

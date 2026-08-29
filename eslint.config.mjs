@@ -186,6 +186,7 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
+      'local/notification-slot-matches-package-json': 'error',
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -624,6 +625,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
+      'packages/effect-ext-utils/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],

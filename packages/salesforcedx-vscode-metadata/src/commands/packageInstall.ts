@@ -11,11 +11,16 @@ import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isString, isUndefined } from 'effect/Predicate';
+import { isError, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import * as Str from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
 const PackageIdSchema = SalesforceIdSchema.pipe(Schema.startsWith('04t'));
 
@@ -145,9 +150,8 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {
-  const list = record.Errors?.errors ?? [];
-  const messages = list.map(e => e.message).filter(m => isString(m) && m.length > 0);
-  const detail = messages.length === 0 ? 'Unknown error' : messages.join('; ');
+  const errorMessages = (record.Errors?.errors ?? []).map(e => e.message).filter(Str.isNonEmpty);
+  const detail = errorMessages.length === 0 ? 'Unknown error' : errorMessages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };
 
@@ -168,11 +172,13 @@ const pollUntilComplete = Effect.fn('packageInstall.pollUntilComplete')(function
 export const packageInstallCommand = Effect.fn('packageInstallCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
+  const verifyProgressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress(nls.localize('package_install_verifying_progress', id))
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id), verifyProgressLocation)
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -187,29 +193,28 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
   if (!shouldPoll) {
-    yield* Effect.promise(() =>
-      Promise.resolve(
-        vscode.window.showInformationMessage(nls.localize('package_install_submitted_message', requestId))
-      )
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('package_install_submitted_message', requestId),
+      true
     );
     return;
   }
 
   yield* pollUntilComplete(requestId).pipe(
-    promptService.withCancellableProgress(nls.localize('package_install_polling_progress', packageId)),
-    Effect.tap(() =>
-      Effect.promise(() =>
-        Promise.resolve(
-          vscode.window.showInformationMessage(nls.localize('package_install_succeeded_message', packageId))
-        )
-      )
+    promptService.withCancellableProgress(
+      nls.localize('package_install_polling_progress', packageId),
+      yield* notificationMode.getProgressLocation(COMMAND)
     ),
-    // custom message to make it clear how cancellation works
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
+    ),
+    // custom message to make it clear how cancellation works; forceShow so it's never suppressed
     Effect.tapErrorTag('UserCancellationError', () =>
-      Effect.promise(() =>
-        Promise.resolve(
-          vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
-        )
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('package_install_cancelled_message', requestId),
+        true
       )
     )
   );
