@@ -173,7 +173,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package",
+      "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -522,6 +522,51 @@
           "group": "inline"
         }
       ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-org-browser.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-org-browser.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "Retrieve Metadata": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_retrieve_metadata_description%"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
     }
   }
 }
