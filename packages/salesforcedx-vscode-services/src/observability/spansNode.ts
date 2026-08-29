@@ -78,7 +78,7 @@ export const NodeSdkLayerFor = ({
           }
         },
         spanProcessor: [
-          // first and unconditional: rewrites secret-shaped text during onEnding, which MultiSpanProcessor
+          // first and unconditional: rewrites sensitive-data-shaped text during onEnding, which MultiSpanProcessor
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
           ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
