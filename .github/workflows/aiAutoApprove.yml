@@ -1,0 +1,31 @@
+name: AI Auto Approve
+
+# PR author on @forcedotcom/ide-experience comments exactly `/ai-auto approve`.
+# svc-idee-bot (IDEE_GH_TOKEN) submits APPROVE on the current head when CI is green.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  statuses: read
+
+jobs:
+  approve:
+    if: github.event.issue.pull_request && github.event.comment.body == '/ai-auto approve'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Decide and approve
+        env:
+          IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/ai-auto-approve-cli.mjs
