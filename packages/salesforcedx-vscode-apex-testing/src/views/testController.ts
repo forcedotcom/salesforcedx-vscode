@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
@@ -12,6 +13,7 @@ import type { OrgMetadataComponentReference } from 'salesforcedx-vscode-services
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -372,8 +374,12 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const catalog = yield* api.services.OrgMetadataCatalog;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const command: ProgressAndSuccessCommandKey = messages.apex_test_retrieve_org_only_class_text;
+  const progressLocation = yield* notificationMode.getProgressLocation(command);
   yield* api.services.MetadataRetrieveService.retrieve([{ type: reference.xmlName, fullName: reference.fullName }], {
-    ignoreConflicts: true
+    ignoreConflicts: true,
+    progressLocation
   }).pipe(
     Effect.andThen(catalog.resolveComponents([{ type: reference.xmlName, fullName: reference.fullName }])),
     Effect.flatMap(([resolution]) =>
@@ -385,7 +391,12 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
           }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
         : Effect.void
     ),
-    Effect.tap(() => Effect.sync(() => notificationService.showSuccessfulExecution(executionName)))
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(
+        command,
+        nls.localize('apex_test_successful_execution_message', executionName)
+      )
+    )
   );
 });
 

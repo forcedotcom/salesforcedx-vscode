@@ -79,11 +79,15 @@ const buildServices = (opts: Opts) => ({
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) => {
         opts.withProgress?.(_message);
         return effect;
       }
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>

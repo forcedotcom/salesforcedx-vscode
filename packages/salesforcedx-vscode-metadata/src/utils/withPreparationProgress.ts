@@ -13,6 +13,7 @@ import * as Runtime from 'effect/Runtime';
 import type { NonEmptyComponentSet, UserCancellationError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { type CommandKey } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
 
@@ -39,7 +40,7 @@ const titleKey = (op: OperationType) =>
  *
  * **Cancellation:** When the user cancels, the active sub-effect (prepare or conflict detection)
  * is interrupted via a cancellation Deferred raced against each phase. The operator then fails
- * with {@link UserCancellationError}, which is silently swallowed by `registerCommandWithLayer`
+ * with {@link UserCancellationError}, which is silently swallowed by `registerCommandWithRuntime`
  * (same as all other command cancellations).
  *
  * **Conflict errors:** Any error thrown by `detectConflictsFn` (e.g. `ConflictsDetectedError`) is
@@ -48,6 +49,7 @@ const titleKey = (op: OperationType) =>
  *
  * @param operationType - Determines the initial notification title.
  * @param detectConflictsFn - Optional conflict detection effect to run after the prepare phase. When omitted (e.g. when `ignoreConflicts` is true), both the conflict phase and its "Checking for conflicts..." message update are skipped.
+ * @param command - Optional command key used to resolve the VS Code progress location (toast vs. status bar) via `NotificationModeService`.
  *
  * @example
  * Deploy with conflict detection:
@@ -74,21 +76,26 @@ export const withPreparationProgress =
   // can still catchTag('ConflictsDetectedError', ...) and the runtime requirement is explicit.
   <ConflictsE = never, ConflictsR = never>(
       operationType: OperationType,
-      detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>
+      detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>,
+      command?: CommandKey
     ) =>
     <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const notificationMode = yield* api.services.NotificationModeService;
         const runtime = yield* Effect.runtime<R | ConflictsR>();
         const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
 
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
           Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
+        const progressLocation = command
+          ? yield* notificationMode.getProgressLocation(command)
+          : vscode.ProgressLocation.Notification;
         return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
           void vscode.window.withProgress(
             {
-              location: vscode.ProgressLocation.Notification,
+              location: progressLocation,
               cancellable: true
             },
             async (progress, token) => {

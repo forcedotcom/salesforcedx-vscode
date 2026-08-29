@@ -23,6 +23,7 @@ When **Authorize an Org** fails because local port `1717` is already in use, the
 
 ### Org Management Commands
 
+- **List All Aliases** - Display all configured org aliases
 - **Create a Default Scratch Org** - Create a new scratch org and set it as default
 - **Open Default Org** - Launch your default org in a browser
 - **Display Org Details** - Show information about your orgs
@@ -42,7 +43,17 @@ Visual org picker in the VS Code status bar showing your current default org, wi
 
 ## Extension Settings
 
-This extension contributes commands but does not add any VS Code settings.
+This extension contributes the following VS Code settings to customize notification behavior:
+
+### Notification Settings
+
+- **salesforcedx-vscode-org.extensionLevelNotifications** - Controls default notification behavior for all org commands. Choose from:
+  - `progressToastSuccessToast` - Show progress toast and success toast (default)
+  - `progressToastSuccessOff` - Show progress toast, no success notification
+  - `progressStatusBarSuccessStatusBar` - Show progress in status bar and success in status bar
+  - `progressStatusBarSuccessOff` - Show progress in status bar, no success notification
+
+- **salesforcedx-vscode-org.commandLevelNotifications** - Override notification mode for individual commands. Supports all 14 org commands with the same notification modes as above.
 
 ## Documentation
 

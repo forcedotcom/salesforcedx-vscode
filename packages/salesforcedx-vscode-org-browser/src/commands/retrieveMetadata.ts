@@ -11,9 +11,13 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { isMemberPresentInProject } from './componentPresence';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_metadata_text;
 
 export const hasRetrieveTreeItem = (node: OrgBrowserTreeItem | undefined): node is OrgBrowserTreeItem =>
   isNotUndefined(node);
@@ -33,12 +37,15 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
 
   const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
 
   yield* confirmOverwrite(projectComponentSet, members);
 
-  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1).pipe(
+  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
+    progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
+  }).pipe(
     Effect.tap(() =>
       Match.value(node.kind).pipe(
         Match.whenOr('component', 'customObject', () =>
@@ -48,6 +55,12 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
           })
         ),
         Match.orElse(() => Effect.promise(() => treeProvider.refreshType(node)))
+      )
+    ),
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text'))
       )
     )
   );

@@ -12,8 +12,8 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 /**
  * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
@@ -46,9 +46,12 @@ export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessi
  * check needed. A single progress notification wraps the whole command; query/update failures surface as
  * tagged errors (rendered by ErrorHandlerService) rather than being swallowed.
  */
+const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session';
+
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project (parity
@@ -72,21 +75,24 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
     : api.services.ConnectionService.getConnection();
 
   // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-  yield* Effect.tryPromise({
+  const stopped = yield* Effect.tryPromise({
     try: () => conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
     catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.flatMap(({ records }) =>
       Option.match(Array.head(records), {
-        onNone: () => Effect.succeed(nls.localize('debugger_stop_none_found_text')),
+        onNone: () => Effect.succeed(false as const),
         onSome: ({ Id }) =>
           Effect.tryPromise({
             try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
             catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-          }).pipe(Effect.as(nls.localize('debugger_stop_success_text')))
+          }).pipe(Effect.as(true as const))
       })
     ),
-    Effect.tap(message => Effect.sync(() => void vscode.window.showInformationMessage(message))),
-    promptService.withProgress(nls.localize('debugger_stop_text'))
+    promptService.withProgress(nls.localize('debugger_stop_text'), yield* notificationMode.getProgressLocation(COMMAND))
   );
+
+  yield* stopped
+    ? notificationMode.showSuccessNotification(COMMAND, nls.localize('debugger_stop_success_text'), false)
+    : notificationMode.showSuccessNotification(COMMAND, nls.localize('debugger_stop_none_found_text'), false);
 });

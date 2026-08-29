@@ -368,6 +368,23 @@
           ],
           "description": "%configuration.logLevel.description%"
         },
+        "salesforcedx-vscode-services.notifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "default": "progressToastSuccessToast",
+          "description": "%notifications.description%"
+        },
         "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
           "type": "string",
           "default": null,

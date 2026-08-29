@@ -28,5 +28,13 @@
   "org_browser_walkthrough_retrieve_type_alt": "ApexClass type row with Retrieve Metadata tooltip visible",
   "org_browser_walkthrough_retrieve_single_title": "Retrieve a Single Component",
   "org_browser_walkthrough_retrieve_single_description": "Hover over any **individual component** to reveal its retrieve icon. Click it to download just that file.\n\nThe retrieved file opens automatically in the editor. A checkmark indicates the component now exists in your local project.",
-  "org_browser_walkthrough_retrieve_single_alt": "FileUtilities.cls open in editor with checkmark on component in Org Browser"
+  "org_browser_walkthrough_retrieve_single_alt": "FileUtilities.cls open in editor with checkmark on component in Org Browser",
+  "configuration_title": "Salesforce Org Browser Configuration",
+  "extension_level_notifications_description": "Notification style for all Org Browser commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-org-browser.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Org Browser command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-org-browser.extensionLevelNotifications settings.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications_retrieve_metadata_description": "Notification style for Retrieve Metadata."
 }

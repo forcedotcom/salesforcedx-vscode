@@ -132,7 +132,7 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
   }
 }
 
-// Must survive across Layer builds (each command run rebuilds the layer).
+// Singleton provider; runtime is captured at registration time so the same instance must survive across command invocations.
 // eslint-disable-next-line functional/no-let -- Singleton provider; commands get a fresh service but must refresh the same instance
 let providerInstance: TraceFlagsContentProviderClass | undefined;
 

@@ -9,11 +9,11 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { AllServicesLayer } from './extensionProvider';
+import { getRuntime } from './runtime';
 
 /** Promise bridge for imperative code. Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
 export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
-  Effect.runPromise(
+  getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const traceFlagService = yield* api.services.TraceFlagService;
@@ -24,7 +24,6 @@ export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
       return true;
     }).pipe(
       Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
-      Effect.catchAll(() => Effect.succeed(false)),
-      Effect.provide(AllServicesLayer)
+      Effect.catchAll(() => Effect.succeed(false))
     )
   );

@@ -7,7 +7,6 @@
 
 import { AuthInfo, StateAggregator } from '@salesforce/core';
 import {
-  buildAllServicesLayer,
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
@@ -17,7 +16,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
+import { buildAllServicesLayer, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
@@ -387,7 +386,11 @@ describe('updateConfigAndStateAggregators', () => {
         ConnectionService: {
           getConnection: getConnectionMock,
           invalidateCachedConnections: invalidateCachedConnectionsMock
-        }
+        },
+        NotificationModeService: Effect.succeed({
+          getProgressLocation: () => Effect.succeed(1),
+          showSuccessNotification: () => Effect.void
+        })
       }
     } as unknown as SalesforceVSCodeServicesApi;
 

@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer as buildBaseServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type { ExtensionContext } from 'vscode';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -23,19 +25,30 @@ const ApexTestingServicesLayer = Layer.mergeAll(
 );
 
 /**
- * Layer that provides all services from the SalesforceVSCodeServicesApi plus apex-testing-specific
- * services. Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation,
- * then merged with the apex-testing services. Type derived from the `Layer.merge` to keep the union in sync.
+ * Layer that provides all services from the SalesforceVSCodeServicesApi (including NotificationModeService,
+ * so run/suite/retrieve commands can emit a single combined success toast instead of ad hoc showInformationMessage
+ * calls) plus apex-testing-specific services.
  */
-const mergeAllServices = (layer: ReturnType<typeof buildAllServicesLayer>) =>
-  Layer.merge(layer, ApexTestingServicesLayer);
-type AllServicesLayerType = ReturnType<typeof mergeAllServices>;
+export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
+  Layer.unwrapEffect(
+    Effect.map(getServicesApi, api =>
+      Layer.mergeAll(
+        buildBaseServicesLayer(context, fallbackDisplayName),
+        ApexTestingServicesLayer,
+        api.services.NotificationModeService.Default(
+          'salesforcedx-vscode-apex-testing',
+          'sf-apex-testing-notifications',
+          'Salesforce: Apex Testing Notifications'
+        )
+      )
+    )
+  );
 
 // eslint-disable-next-line functional/no-let -- module-level mutable set once via setAllServicesLayer at activation
-let AllServicesLayer: AllServicesLayerType;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = mergeAllServices(layer);
+  AllServicesLayer = layer;
 };
 
 /**
@@ -44,8 +57,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across test discovery, runs, and code-completion calls
  */
 type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<AllServicesLayerType>,
-  Layer.Layer.Error<AllServicesLayerType>
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 // eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getApexTestingRuntime
 let _apexTestingRuntime: ApexTestingRuntime | undefined;

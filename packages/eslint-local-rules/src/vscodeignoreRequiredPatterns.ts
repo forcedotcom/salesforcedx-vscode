@@ -8,6 +8,7 @@
 import type { Rule } from 'eslint';
 import * as fs from 'node:fs';
 import * as pathModule from 'node:path';
+import { readJsonRecord } from './packageJsonUtils';
 
 const REQUIRED_STATIC_ENTRIES = [
   '**/*.map',
@@ -39,22 +40,6 @@ const EXISTENCE_CHECKED_DIRS = ['scripts/**', 'docs/**'];
 type VscodeignoreLine = {
   readonly line: number;
   readonly value: string;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== undefined && value !== null;
-
-const readJsonRecord = (filePath: string): Record<string, unknown> | undefined => {
-  if (!fs.existsSync(filePath)) {
-    return undefined;
-  }
-
-  try {
-    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    return isRecord(parsed) ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
 };
 
 const parseVscodeignoreLine = (lineText: string): string | undefined => {

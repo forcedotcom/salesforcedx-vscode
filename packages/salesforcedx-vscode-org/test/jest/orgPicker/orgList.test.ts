@@ -97,9 +97,9 @@ describe('OrgList tests', () => {
       let invalidateCachedConnectionsMock: jest.Mock;
       let getConnectionMock: jest.Mock;
 
-      // Run setDefaultOrg (now an Effect.fn, registered via registerCommandWithLayer in production) against
+      // Run setDefaultOrg (now an Effect.fn, registered via registerCommandWithRuntime in production) against
       // stub services and return the Exit. UserCancellationError surfaces as a failure Exit — production's
-      // registerCommandWithLayer swallows it, so a failed Exit here == cancellation path.
+      // registerCommandWithRuntime swallows it, so a failed Exit here == cancellation path.
       const run = () => {
         const mockServicesApi = {
           services: {
@@ -216,7 +216,7 @@ describe('OrgList tests', () => {
 
           const exit = await run();
 
-          // registerCommandWithLayer swallows this tag in production; a failure Exit == cancellation path
+          // registerCommandWithRuntime swallows this tag in production; a failure Exit == cancellation path
           expect(Exit.isFailure(exit)).toBe(true);
           expect(JSON.stringify(exit)).toContain('UserCancellationError');
           expect(executeCommandMock).not.toHaveBeenCalled();
