@@ -50,6 +50,7 @@
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
     "jsforce": "^3.10.19",
+    "jsonpath-plus": "10.4.0",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
