@@ -134,7 +134,43 @@ The steps used to publish to the VS Code Marketplace can be found in the associa
 
 ## Generating a Major Release
 
-The versioning we follow is intentionally mapped with Salesforce Core. When a major version bump occurs, such as 53.0 -> 54.0, we release a major version update as well.
+The versioning we follow is intentionally mapped with Salesforce Core. When a major version bump occurs, such as 67.x -> 68.0, we release a major version update as well.
+
+### Major Version Bump Process
+
+Major bumps are aligned with Salesforce Core major version releases (e.g., SF CLI 2.x → 3.x).
+
+**Step 1: Bump develop branch**
+
+Create a PR to update `package.json` in the root and all publishable packages:
+
+```bash
+# Example: 67.0.0 → 68.0.0
+# Update version in:
+# - package.json (root)
+# - packages/*/package.json (all publishable packages)
+```
+
+After merge, nightlies will automatically build with the new major version: `v68.0.0-nightly.develop.YYYYMMDD`
+
+**Step 2: Build release with manual override**
+
+After ≥7 days of nightly testing, trigger the release build with manual version override to prevent auto-bumping to 68.1.0:
+
+```bash
+gh workflow run buildReleaseFromPrerelease.yml \
+  -f prereleaseTag="v68.0.0-nightly.develop.YYYYMMDD" \
+  -f releaseVersion="68.0.0"
+```
+
+**Step 3: Test and publish**
+
+Follow the standard [Publishing to Marketplace](#publishing-to-marketplace) flow:
+- Download and test VSIX from GitHub pre-release
+- Trigger `publishVSCode.yml` with version `68.0.0`
+- Approve marketplace gates after testing
+
+**Note:** Minor releases (68.0.0 → 68.1.0, 68.2.0, ...) use auto-calculate and don't require manual version updates.
 
 ## Downloading the .vsix from GitHub Action
 
