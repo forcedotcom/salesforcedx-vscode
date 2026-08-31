@@ -8,6 +8,8 @@
 import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
 import '@vscode-elements/elements/dist/vscode-option/index.js';
 import { html, LitElement, nothing } from 'lit';
+import { property } from 'lit/decorators/property.js';
+import { state } from 'lit/decorators/state.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { SOQL_BUILDER_ACTION_EVENT, type SoqlBuilderAction, type SoqlBuilderState } from '../domain.js';
 
@@ -39,29 +41,23 @@ const matchesFromFilter = (objectLabel: string, filterValue: string): boolean =>
 };
 
 export class SoqlFromElement extends LitElement {
-  public static properties = {
-    filterValue: { state: true },
-    invalid: { type: Boolean },
-    isLoading: { type: Boolean },
-    labels: { attribute: false },
-    objects: { attribute: false },
-    selectedObjectName: { attribute: false }
-  };
+  @state()
+  private accessor filterValue = '';
 
-  declare private filterValue: string;
-  declare public invalid: boolean;
-  declare public isLoading: boolean;
-  declare public labels: SoqlFromLabels;
-  declare public objects: SoqlBuilderState['metadata']['objects'];
-  declare public selectedObjectName: string | undefined;
+  @property({ type: Boolean })
+  public accessor invalid = false;
 
-  constructor() {
-    super();
-    this.filterValue = '';
-    this.invalid = false;
-    this.isLoading = false;
-    this.objects = [];
-  }
+  @property({ type: Boolean })
+  public accessor isLoading = false;
+
+  @property({ attribute: false })
+  public accessor labels!: SoqlFromLabels;
+
+  @property({ attribute: false })
+  public accessor objects: SoqlBuilderState['metadata']['objects'] = [];
+
+  @property({ attribute: false })
+  public accessor selectedObjectName: string | undefined;
 
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     // Keep the form-associated VSCode select in the builder form's tree. A nested shadow root would prevent

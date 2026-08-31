@@ -8,6 +8,7 @@
 import { VscodeMultiSelect } from '@vscode-elements/elements/dist/vscode-multi-select/index.js';
 import '@vscode-elements/elements/dist/vscode-option/index.js';
 import { html, LitElement, nothing } from 'lit';
+import { property } from 'lit/decorators/property.js';
 import {
   SOQL_BUILDER_ACTION_EVENT,
   createInitialSoqlBuilderState,
@@ -42,21 +43,15 @@ export class SoqlBuilderActionEvent extends CustomEvent<SoqlBuilderAction> {
 }
 
 export class SoqlBuilderElement extends LitElement {
-  public static properties = {
-    labels: { attribute: false },
-    viewState: { attribute: false }
-  };
-
   public static styles = soqlBuilderElementStyles;
 
-  declare public labels: SoqlBuilderLabels;
-  public lifecycle: SoqlBuilderLifecycle | undefined;
-  declare public viewState: SoqlBuilderState;
+  @property({ attribute: false })
+  public accessor labels!: SoqlBuilderLabels;
 
-  constructor() {
-    super();
-    this.viewState = createInitialSoqlBuilderState();
-  }
+  public lifecycle: SoqlBuilderLifecycle | undefined;
+
+  @property({ attribute: false })
+  public accessor viewState: SoqlBuilderState = createInitialSoqlBuilderState();
 
   public override connectedCallback(): void {
     super.connectedCallback();
