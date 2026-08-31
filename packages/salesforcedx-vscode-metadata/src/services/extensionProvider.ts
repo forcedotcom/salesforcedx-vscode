@@ -5,11 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer as buildSharedServicesLayer,
+  ExtensionProviderService,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
+
+/** Apply the Services-owned target-org guard. */
+export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
+  ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.preventOrgChanges(command))
+  );
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(

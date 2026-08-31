@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
 import { messages } from '../../messages/i18n';
+import { preventOrgChanges } from '../../services/extensionProvider';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';
@@ -79,24 +80,25 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
 );
 
 /** Retrieve remote changes from the default org */
-export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const notificationMode = yield* api.services.NotificationModeService;
-    return yield* retrieveEffect(ignoreConflicts).pipe(
-      Effect.tap(() =>
-        notificationMode.showSuccessNotification(
-          COMMAND,
-          nls.localize(
-            'command_succeeded_text',
-            ignoreConflicts
-              ? nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')
-              : nls.localize('project_retrieve_start_default_org_text')
-          )
+export const projectRetrieveStartCommand = Effect.fn('projectRetrieveStartCommand')(function* (
+  ignoreConflicts: boolean
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  return yield* retrieveEffect(ignoreConflicts).pipe(
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize(
+          'command_succeeded_text',
+          ignoreConflicts
+            ? nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')
+            : nls.localize('project_retrieve_start_default_org_text')
         )
-      ),
-      Effect.catchTag('EmptyComponentSetError', () =>
-        notificationMode.showSuccessNotification(COMMAND, nls.localize('no_remote_changes_to_retrieve'))
       )
-    );
-  });
+    ),
+    Effect.catchTag('EmptyComponentSetError', () =>
+      notificationMode.showSuccessNotification(COMMAND, nls.localize('no_remote_changes_to_retrieve'))
+    )
+  );
+}, preventOrgChanges);

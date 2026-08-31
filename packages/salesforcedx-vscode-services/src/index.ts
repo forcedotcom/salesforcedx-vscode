@@ -38,6 +38,7 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { preventOrgChanges } from './core/targetOrgGuard';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
@@ -129,6 +130,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
+    preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
@@ -504,6 +506,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        preventOrgChanges,
         ExecuteAnonymousService,
         registerCommandWithRuntime,
         EditorService,
