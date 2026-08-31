@@ -48,6 +48,7 @@ type PerformRetrieveOperationInput = {
   connection: Connection;
   registryAccess: RegistryAccess;
   title: string;
+  progressLocation?: vscode.ProgressLocation;
   expectedOrgId?: string;
 } & (
   | {
@@ -193,9 +194,10 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             registry: input.registryAccess
           });
 
+          const progressLocation = input.progressLocation ?? vscode.ProgressLocation.Notification;
           const retrieveResult = await vscode.window.withProgress(
             {
-              location: vscode.ProgressLocation.Notification,
+              location: progressLocation,
               title: input.title,
               cancellable: true
             },
@@ -274,7 +276,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     /** Retrieve one or more metadata components from the default org. */
     const retrieve = Effect.fn('MetadataRetrieveService.retrieve')(function* (
       members: MetadataMember[],
-      options?: MetadataRetrieveOptions
+      options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
     ) {
       const [connection, project, registryAccess, componentSet, hasTracking] = yield* Effect.all(
         [
@@ -300,6 +302,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         connection,
         registryAccess,
         title,
+        progressLocation: options?.progressLocation,
         merge: true,
         project,
         expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
@@ -311,7 +314,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const retrieveComponentSet = Effect.fn('MetadataRetrieveService.retrieveComponentSet')(function* (
       components: ComponentSet,
-      options?: MetadataRetrieveOptions
+      options?: MetadataRetrieveOptions & { progressLocation?: vscode.ProgressLocation }
     ) {
       yield* Effect.annotateCurrentSpan({ components: components.size });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
@@ -339,6 +342,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         connection,
         registryAccess,
         title,
+        progressLocation: options?.progressLocation,
         merge: true,
         project,
         expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
@@ -349,7 +353,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * Sets project directory and API versions on the ComponentSet before retrieving.
      */
     const retrieveComponentSetToDirectory = Effect.fn('MetadataRetrieveService.retrieveComponentSetToDirectory')(
-      function* (components: NonEmptyComponentSet, outputPath: URI, expectedOrgId?: string) {
+      function* (
+        components: NonEmptyComponentSet,
+        outputPath: URI,
+        options?: { progressLocation?: vscode.ProgressLocation; expectedOrgId?: string }
+      ) {
+        const expectedOrgId = options?.expectedOrgId;
         const registryAccess = yield* metadataRegistryService.getRegistryAccess();
         const [connection, project, configAggregator] = yield* Effect.all(
           [
@@ -373,6 +382,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           connection,
           registryAccess,
           title: `Retrieving ${components.size} component${components.size === 1 ? '' : 's'} for diff`,
+          progressLocation: options?.progressLocation,
           merge: false,
           outputPath,
           expectedOrgId: expectedOrgId ?? connection.getAuthInfoFields().orgId

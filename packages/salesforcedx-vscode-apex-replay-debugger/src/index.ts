@@ -6,7 +6,6 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -31,7 +30,7 @@ import {
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { appendAndShowChannelOutput, getDebuggerOutputChannel } from './channels';
-import { anonApexDebugCommand } from './commands/anonApexDebug';
+import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
@@ -43,8 +42,8 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
-import { setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { disposeRuntime, getRuntime } from './services/runtime';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -57,12 +56,8 @@ if (!salesforceApexExtension) {
   throw new Error('Salesforce Apex Extension not initialized');
 }
 
-const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(function* (
-  extensionContext: vscode.ExtensionContext
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
-  const dialogStartingPathUri = yield* getDialogStartingPath(extensionContext);
+const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
+  const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
     const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
@@ -107,7 +102,7 @@ const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(functi
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
-  yield* registerCommand('sf.anon.apex.debug.delegate', anonApexDebugCommand);
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
 
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
@@ -121,9 +116,10 @@ const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(functi
     launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
+    anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
-});
+};
 
 export const updateLastOpened = (extensionContext: vscode.ExtensionContext, logPath: string) => {
   extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
@@ -180,7 +176,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const commands = yield* registerCommands(extensionContext);
+  const commands = yield* Effect.promise(() => registerCommands(extensionContext));
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
@@ -289,8 +285,12 @@ export const writeToDebuggerOutputWindow = (
   }
 };
 
-export const deactivate = () => {
-  console.log('Apex Replay Debugger Extension Deactivated');
-  // Send deactivation event using shared service
-  TelemetryService.getInstance().sendExtensionDeactivationEvent();
+export const deactivate = async () => {
+  await Promise.resolve()
+    .then(() => {
+      console.log('Apex Replay Debugger Extension Deactivated');
+      // Send deactivation event using shared service
+      TelemetryService.getInstance().sendExtensionDeactivationEvent();
+    })
+    .finally(disposeRuntime);
 };

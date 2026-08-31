@@ -9,9 +9,9 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { OasValidationFailed } from '../errors';
+import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import {
@@ -20,6 +20,9 @@ import {
   isValidRegistrationProviderType,
   parseOASDocFromYaml
 } from '../oasUtils';
+import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
+
+const COMMAND: SuccessOnlyCommandKey = messages.validate_oas_document;
 
 const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensureValidRegistrationProviderType')(
   function* (xmlFilePath: string) {
@@ -76,6 +79,7 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
     return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
   }
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const fullPath = sourceUri
     ? sourceUri.fsPath
     : yield* api.services.EditorService.getActiveEditorUri().pipe(
@@ -105,7 +109,8 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
   createProblemTabEntriesForOasDocument(fullPath, processedOasResult, isESRDecomposed);
 
   // Step 5: Notify Success
-  yield* Effect.promise(() =>
-    vscode.window.showInformationMessage(nls.localize('check_openapi_doc_succeeded', path.basename(fullPath)))
+  yield* notificationMode.showSuccessNotification(
+    COMMAND,
+    nls.localize('check_openapi_doc_succeeded', path.basename(fullPath))
   );
 });

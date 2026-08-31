@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.15.2",
+  "version": "67.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -609,6 +609,67 @@
           "default": 50000,
           "minimum": 1,
           "description": "%soql_max_query_limit%"
+        },
+        "salesforcedx-vscode-soql.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-soql.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SOQL Text Editor Run Query": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressStatusBarSuccessStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%"
+              ],
+              "description": "%notifications_soql_text_editor_run_query_description%"
+            },
+            "SOQL Builder Run Query": {
+              "type": "string",
+              "enum": [
+                "progressToast",
+                "progressStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
+              ],
+              "description": "%notifications_soql_builder_run_query_description%"
+            },
+            "Save Query Results": {
+              "type": "string",
+              "enum": [
+                "successToast",
+                "successStatusBar",
+                "successOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
+              ],
+              "description": "%notifications_save_query_results_description%"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
