@@ -102,19 +102,22 @@ export const resolveExtensionRoot = (dir: string): string => {
  *                                  differently on the swap vs verify side (different parent temp dirs)
  * `browser` is ignored on purpose — CB runs the desktop/node build (ADR 0022, plan C2).
  */
-export const resolveEntrypoint = (extensionRoot: string): string | null => {
-  const pkg = JSON.parse(readFileSync(join(extensionRoot, 'package.json'), 'utf-8')) as { main?: string };
-  if (pkg.main === undefined || pkg.main === '') {
+/*
+ * Resolve + validate the entrypoint from an already-parsed `main`. Split out so callers that have
+ * already read package.json (computeExtensionDigest, swap) don't re-read it just to get `main`.
+ */
+const resolveEntrypointFromMain = (extensionRoot: string, main: string | undefined): string | null => {
+  if (main === undefined || main === '') {
     return null;
   }
   const rootAbs = resolve(extensionRoot);
-  const entry = resolve(rootAbs, pkg.main);
+  const entry = resolve(rootAbs, main);
   // Must stay within the extension root (guards `..` traversal and absolute-path `main`).
   if (entry !== rootAbs && !entry.startsWith(rootAbs + sep)) {
-    throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
+    throw new UnresolvableEntrypointError(extensionRoot, main);
   }
   if (!existsSync(entry) || !statSync(entry).isFile()) {
-    throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
+    throw new UnresolvableEntrypointError(extensionRoot, main);
   }
   // Re-check containment on the REAL path: an in-root symlink pointing outside the extension would
   // pass the string check above but hash foreign bytes. realpath resolves the link, then we assert
@@ -122,9 +125,14 @@ export const resolveEntrypoint = (extensionRoot: string): string | null => {
   const realRoot = realpathSync(rootAbs);
   const realEntry = realpathSync(entry);
   if (realEntry !== realRoot && !realEntry.startsWith(realRoot + sep)) {
-    throw new UnresolvableEntrypointError(extensionRoot, pkg.main);
+    throw new UnresolvableEntrypointError(extensionRoot, main);
   }
   return entry;
+};
+
+export const resolveEntrypoint = (extensionRoot: string): string | null => {
+  const pkg = JSON.parse(readFileSync(join(extensionRoot, 'package.json'), 'utf-8')) as { main?: string };
+  return resolveEntrypointFromMain(extensionRoot, pkg.main);
 };
 
 /*
@@ -132,10 +140,15 @@ export const resolveEntrypoint = (extensionRoot: string): string | null => {
  * parent that contains it (a raw .vsix unzip); resolveExtensionRoot handles both. Sync + host-side:
  * the caller has already extracted (swap) or docker-cp'd (verify) the tree to the host.
  */
-export const computeExtensionDigest = (dir: string): ExtensionDigest => {
+export const computeExtensionDigest = (dir: string, rawPkgJson?: string): ExtensionDigest => {
   const root = resolveExtensionRoot(dir);
-  const pkgJsonDigest = sha256(canonicalPackageJson(readFileSync(join(root, 'package.json'), 'utf-8')));
-  const entry = resolveEntrypoint(root);
+  // Read package.json ONCE and derive everything from it: the digest (canonical bytes) and the
+  // entrypoint (`main`). Callers that already read it (swap, for name/version validation) pass it
+  // in so the file isn't read a second/third time per extension.
+  const raw = rawPkgJson ?? readFileSync(join(root, 'package.json'), 'utf-8');
+  const pkgJsonDigest = sha256(canonicalPackageJson(raw));
+  const { main } = JSON.parse(raw) as { main?: string };
+  const entry = resolveEntrypointFromMain(root, main);
   const bundleDigest = entry === null ? null : sha256(readFileSync(entry));
   return { pkgJsonDigest, bundleDigest };
 };
