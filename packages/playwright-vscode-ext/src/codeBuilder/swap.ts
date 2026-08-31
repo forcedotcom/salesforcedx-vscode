@@ -30,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { computeExtensionDigest, resolveExtensionRoot } from './digest';
 import { makeManifest, type Manifest } from './manifest';
-import { defaultRunner, type CommandRunner } from './runner';
+import { defaultRunner, runnerTimeoutMs, withTimeoutRetry, type CommandRunner } from './runner';
 // OVERRIDES_DIR + RUNTIME_EXT_DIR live in verify (the module that also reads them), so swap and
 // verify share one definition of the image's extension locations rather than drifting copies.
 import { OVERRIDES_DIR, RUNTIME_EXT_DIR } from './verify';
@@ -41,17 +41,24 @@ export type ExtractZip = (vsixPath: string, destDir: string) => void;
 /*
  * Default extractor: host-side `unzip`, with a python3 fallback (both present on macOS and the CI
  * ubuntu runners — same pair #7718 relied on, just host-side rather than in-container).
+ *
+ * Each exec carries the runner's per-attempt timeout and the whole extract is wrapped in
+ * withTimeoutRetry, so a wedged unzip/python3 can't hang the swap forever (same hang protection the
+ * command runner gives docker/sf calls). A missing `unzip` (non-timeout failure) still falls through
+ * to python3 immediately.
  */
 export const defaultExtract: ExtractZip = (vsixPath, destDir) => {
-  try {
-    execFileSync('unzip', ['-q', '-o', vsixPath, '-d', destDir], { stdio: 'ignore' });
-  } catch {
-    execFileSync(
-      'python3',
-      ['-c', 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', vsixPath, destDir],
-      { stdio: 'ignore' }
-    );
-  }
+  withTimeoutRetry(() => {
+    try {
+      execFileSync('unzip', ['-q', '-o', vsixPath, '-d', destDir], { stdio: 'ignore', timeout: runnerTimeoutMs() });
+    } catch {
+      execFileSync(
+        'python3',
+        ['-c', 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', vsixPath, destDir],
+        { stdio: 'ignore', timeout: runnerTimeoutMs() }
+      );
+    }
+  });
 };
 
 export type SwapOptions = {
@@ -106,21 +113,26 @@ export const swap = (container: string, vsixPaths: readonly string[], options: S
     ]);
 
     // 2. Install each VSIX: extract host-side, digest, docker cp the tree into a fresh override dir.
+    // Sequential by design: swap shells through the SYNCHRONOUS CommandRunner seam (execFileSync) so
+    // unit tests assert exact argv with no docker. Extract + digest are host-side and could in
+    // principle run in parallel, but they aren't the pipeline's cost (the multi-GB image pull + boot
+    // dominate by minutes) and parallelizing would force an async rewrite that breaks that hermetic
+    // seam — deliberately not done.
     const entries = vsixPaths.map((vsixPath, i) => {
       const extractDir = join(workDir, `vsix-${i}`);
       extract(vsixPath, extractDir);
       const root = resolveExtensionRoot(extractDir); // the dir holding package.json (extension/)
-      const parsed = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
-        name?: unknown;
-        version?: unknown;
-      };
+      // Read package.json ONCE and reuse it: name/version validation here + the digest below (passed
+      // in so computeExtensionDigest doesn't re-read it for the hash or the entrypoint).
+      const rawPkgJson = readFileSync(join(root, 'package.json'), 'utf-8');
+      const parsed = JSON.parse(rawPkgJson) as { name?: unknown; version?: unknown };
       // Validate before interpolating into destDir's `bash -c` (name/version come from an
       // attacker-influenceable package.json) — and fail loud on a missing/blank name or version
       // rather than silently installing a "salesforce.undefined-undefined" dir.
       const name = assertSafeSegment(parsed.name, 'package.json name');
       const version = assertSafeSegment(parsed.version, 'package.json version');
       const id = `${publisherPrefix}.${name}`;
-      const digest = computeExtensionDigest(root);
+      const digest = computeExtensionDigest(root, rawPkgJson);
       const destDir = `${OVERRIDES_DIR}/${id}-${version}`;
       // Fresh dir, then copy the extracted tree's CONTENTS in (root/. → destDir), matching the flat
       // installed layout the image scans (package.json at the dir root).
