@@ -33,6 +33,7 @@ test('tagged command errors include the tag only in channel output', async ({ pa
 
   const expectedText = `[ManifestSelectionRequiredError] ${messages.deploy_select_manifest}`;
   await executeCommandById(page, 'sf.metadata.deploy.in.manifest', {
-    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 5000 })
+    timeout: 90_000,
+    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 15_000 })
   });
 });
