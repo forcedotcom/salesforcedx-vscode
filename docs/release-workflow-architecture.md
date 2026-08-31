@@ -142,7 +142,7 @@ Annual cost: 26-78 hours/year in merge conflicts alone
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                              NEW WORKFLOW                                │
 │        Automated Tag-Based Releases + Emergency Response Capability      │
-│              Single Branch • Zero Merge Conflicts • 5-Day Validation     │
+│              Single Branch • Zero Merge Conflicts • Same-Day Publishing  │
 └─────────────────────────────────────────────────────────────────────────┘
 
 Daily (4 AM UTC)
@@ -154,32 +154,32 @@ Daily (4 AM UTC)
 └────────┬─────────┘     Users opt-in to test cutting-edge features
          │
          │
-Wednesday (7 AM UTC) ─────────────────────────────────────────┐
+Wednesday (Week N - 7 AM UTC) ───────────────────────────────┐
          │                                                     │
          ▼                                                     │
 ┌──────────────────────────────────────────────────────────────────┐      │
 │  promote-nightly-to-prerelease.yml (AUTOMATED CRON)                         │      │
 │  ┌──────────────────────────────────────────────────────────────┤      │
 │  │ WHAT IT DOES:                                                 │      │
-│  │ ✓ Auto-detects latest nightly with passing E2E tests         │      │
+│  │ ✓ Finds nightly build ≥7 days old with passing E2E tests    │      │
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │      │
-│  │   (marks which nightly to promote to stable)                 │      │
+│  │   (marks which nightly to promote to stable next week)       │      │
 │  │ ✓ Publishes that specific nightly to marketplace             │      │
 │  │ ✓ Zero manual intervention                                   │      │
 │  │                                                                │      │
 │  │ WHY IT MATTERS:                                               │      │
 │  │ • Real customers test pre-release in production               │      │
 │  │ • Bug reports come in BEFORE stable publish                  │      │
-│  │ • Can iterate/patch during 5-day window                       │      │
+│  │ • Can iterate/patch during 7-day customer validation window  │      │
 │  └──────────────────────────────────────────────────────────────┤      │
 └────────┬─────────────────────────────────────────────────────────┘      │
          │                                                                 │
          │ ════════════════════════════════════════════════════           │
-         │ 5-DAY CUSTOMER VALIDATION PERIOD                               │
-         │ Wed → Mon: Real users test pre-release                         │
+         │ 7-DAY CUSTOMER VALIDATION PERIOD                               │
+         │ Real users test prerelease in production before stable build   │
          │ ════════════════════════════════════════════════════           │
          │                                                                 │
-Monday (8 AM UTC)                                                          │
+Next Wednesday (Week N+1 - 8 AM UTC)                                       │
          │                                                                 │
          ▼                                                                 │
 ┌──────────────────────────────────────────────────────────────────┐      │
@@ -187,7 +187,7 @@ Monday (8 AM UTC)                                                          │
 │  ┌──────────────────────────────────────────────────────────────┤      │
 │  │ WHAT IT DOES:                                                 │      │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │      │
-│  │    (Wednesday's promoted build that customers tested)         │      │
+│  │    (previous Wednesday's promoted build that customers tested)│      │
 │  │ 2. Extracts source commit SHA                                │      │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │      │
 │  │ 4. Bumps version in isolated branch                           │      │
@@ -311,7 +311,7 @@ KEY IMPROVEMENTS SUMMARY:
 
 ✓ ZERO MERGE CONFLICTS: Ephemeral staging branch (never merged)
 ✓ SINGLE BRANCH: develop only (no main, no release/vX.Y.Z)
-✓ 5-DAY VALIDATION: Customer testing Wed → Mon (catch bugs before stable)
+✓ CUSTOMER VALIDATION: 7-day prerelease testing period (Week N Wed → Week N+1 Wed)
 ✓ AUTOMATED: Weekly releases require zero manual branching
 ✓ SECURE: 7 security vulnerabilities fixed
 ✓ EMERGENCY PRE-RELEASE: 5 minutes (vs 7+ days)
@@ -359,34 +359,34 @@ Emergency Path: ❌ None (wait 7+ days)
 
 ### New Workflow (After PR #7790 + #7995)
 ```
-Mon       Tue       Wed       Thu       Fri       Sat       Sun
-  │                   │
-  │                   ├─ promote-nightly-to-prerelease.yml (AUTOMATED 7 AM UTC)
-  │                   │    • Finds latest nightly w/ passing E2E
-  │                   │    • Publishes to marketplace as PRE-RELEASE
-  │                   │    • Creates tracking tag
-  │                   │    ✓ Real users test in production
-  │                   │
-  │                   │◄────── 5-DAY CUSTOMER BAKING ────────►
-  │                   │                                       │
-Mon                   │                                       │
-  │                   │                                       │
-  ├─ build-release.yml (AUTOMATED 8 AM UTC) ─────────────────┤
-  │    • Detects Wed's promoted tag
-  │    • Creates ephemeral staging branch
-  │    • Builds stable VSIXs
-  │    ✓ ZERO merge conflicts
-  │
-  ├─ Engineer tests (30 min)
-  │
-  ├─ publishVSCode.yml (manual trigger)
-  │    • Publishes STABLE to marketplace
-  │
-  └─ DONE (no merges, branch auto-deleted)
+WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
+                              │
+                              ├─ promote-nightly-to-prerelease.yml (AUTOMATED 7 AM UTC)
+                              │    • Finds nightly ≥7 days old w/ passing E2E
+                              │    • Publishes to marketplace as PRE-RELEASE
+                              │    • Creates marketplace-prerelease-* tracking tag
+                              │    ✓ Real users test in production
+                              │
+                              │    [7 DAYS OF CUSTOMER TESTING]
+                              │
+WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
+                              │
+                              ├─ build-release.yml (AUTOMATED 8 AM UTC)
+                              │    • Finds previous Wed's marketplace-prerelease-* tag
+                              │    • Creates ephemeral staging branch
+                              │    • Builds stable VSIXs
+                              │    ✓ ZERO merge conflicts
+                              │
+                              ├─ Engineer tests (30 min)
+                              │
+                              ├─ publishVSCode.yml (manual trigger)
+                              │    • Publishes STABLE to marketplace
+                              │
+                              └─ DONE (no merges, branch auto-deleted)
 
 Total Time: 30 min/week (testing only)
 Merge Conflicts: ZERO (ephemeral branch, never merged)
-Pre-release Period: 5 DAYS (Wed → Mon customer validation)
+Customer Validation Period: 7 DAYS (Week N Wed → Week N+1 Wed)
 Emergency Path: ✓ 5 minutes (build → publish as pre-release)
                 ✓ Patch path (v67.12.0 → v67.12.1)
 ```
@@ -400,10 +400,10 @@ Emergency Path: ✓ 5 minutes (build → publish as pre-release)
 | **Branches to Maintain** | 3 (main, develop, release/vX.Y.Z) | 1 (develop only) | 67% reduction |
 | **Merge Conflicts per Release** | 2 merges × 50-100 conflicts each | 0 conflicts | 100% eliminated |
 | **Time Resolving Conflicts** | 50-135 min/week | 0 min/week | 100% saved |
-| **Pre-release Validation Period** | 0 days (straight to stable) | 5 days (Wed → Mon) | ∞% improvement |
+| **Customer Validation Period** | 0 (straight to stable) | 7 days (Week N Wed → Week N+1 Wed) | Real user testing |
 | **Total Weekly Release Time** | 50-135 min | 30 min | 77-84% faster |
 | **Emergency Response Time** | 7+ days (no path) | 5 minutes | 99.95% faster |
 | **Patch Release Support** | ❌ No capability | ✓ v67.12.0 → v67.12.1 | New capability |
 | **Security Vulnerabilities** | 7 unpatched | 0 (all fixed) | 100% resolved |
 | **Annual Engineer Time Saved** | - | 43-109 hours/year | - |
-| **Risk of User Impact** | High (all users immediately) | Low (5-day validation) | 80%+ reduction |
+| **Risk of User Impact** | High (all users immediately) | Lower (pre-release testing before stable build) | Validation window |

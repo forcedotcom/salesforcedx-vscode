@@ -248,24 +248,21 @@ node scripts/calculate-release-version.js --prerelease-tag="v9999.9999.9999-nigh
 
 ---
 
-### Test 7: IS_PRERELEASE Detection
+### Test 7: Prerelease Filtering
 
-**Goal:** Verify publishVSCode.yml correctly detects release type
+**Goal:** Verify publishVSCode.yml correctly filters out nightly/prerelease tags
 
-**Note:** This workflow will fail on ci-testing due to missing publish secrets, but we can check the detection logic.
+**Note:** This workflow will fail on ci-testing due to missing publish secrets, but we can check the filtering logic.
 
 **Steps:**
-1. Create a pre-release manually on ci-testing repo
-2. Go to Actions → `publishVSCode.yml`
-3. Click "Run workflow"
-4. Set `version`: (the pre-release tag you created)
-5. Set `dry-run`: `true`
-6. Run workflow
+1. Create a nightly tag manually on ci-testing repo: `v67.14.0-nightly.develop.20260831`
+2. Create a GitHub release for this tag marked as pre-release
+3. Observe that `publishVSCode.yml` does NOT trigger automatically
 
 **Expected Results:**
-- ✅ `prepare-release-metadata` job detects `IS_PRERELEASE=true`
-- ✅ Logs show "Release type: prerelease"
-- ✅ Workflow stops at dry-run (doesn't attempt publish)
+- ✅ Workflow does not run for nightly tags (filtered by `if` condition on line 31)
+- ✅ Only stable tags without `-nightly` suffix trigger the workflow
+- ✅ Release type detection (`CBW_RELEASE_TYPE`) distinguishes between `patch` and `minor` based on version comparison
 
 ---
 
@@ -339,7 +336,7 @@ After running all tests, verify:
 - [ ] Patch branches get version scripts
 - [ ] Patch versions increment correctly
 - [ ] Prerelease versions parse correctly
-- [ ] IS_PRERELEASE detection works
+- [ ] Prerelease filtering prevents nightly tag publishing
 - [ ] Isolated branches documented for cleanup
 - [ ] Multiple patches work sequentially
 - [ ] Invalid formats rejected with clear errors

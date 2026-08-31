@@ -35,13 +35,62 @@ Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally;
 
 ## Nightly Builds & Pre-release Promotion
 
-**Nightly builds:** `nightly.yml` publishes all extensions to pre-release channels daily (4 AM UTC) + on-demand. Auto-discovers via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
+### Nightly Builds
+
+Automated nightly VS Code extension builds via `salesforcecli/github-workflows` shared CI.
+
+**Automatic:** Daily 4 AM UTC publishes all extensions as prereleases. New extensions auto-included via dynamic discovery.
+
+**Manual trigger:**
+```bash
+# Publish all (dynamically discovered)
+gh workflow run nightly.yml
+
+# Publish specific extensions only
+gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx-vscode-core"
+
+# Dry-run (no publish)
+gh workflow run nightly.yml -f dry-run=true
+```
+
+**Extension discovery:** Nightly builds use [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) — scans `packages/` for VS Code extensions:
+- Filters: `engines.vscode`, `publisher`, `categories`; name starts `salesforcedx-vscode` (includes main bundle)
+- Returns comma-separated list (sorted)
+- Auto-included without workflow changes
+
+Published releases extract extension names from VSIX filenames in release assets via `gh release view` + `sed`. Supports stable (`-1.2.3.vsix`) and prerelease (`-1.2.3-beta.vsix`, `-1.2.3-nightly.1.vsix`) formats.
+
+**Architecture:** `nightly.yml` delegates to shared reusable workflow:
+- **Workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main`
+- **Git Identity**: `get-git-identity` job queries `getGithubUserInfo` action; provides username/email to publish job
+- **Scripts**: Downloaded at runtime (not stored locally)
+- **Actions**: check-ci-status, calculate-artifact-name, publish-vsix
+
+**Required secrets** (repo settings):
+- `IDEE_GH_TOKEN` — GitHub token for version bumps/releases
+- `VSCE_PERSONAL_ACCESS_TOKEN` — VS Code Marketplace
+- `IDEE_OVSX_PAT` — Open VSX Registry
+
+**Environment variables:**
+- `VSCE_PRE_RELEASE=true` — Set by wireit in legacy extension packaging to pass `--pre-release` flag to vsce
+  - Used by: salesforcedx-vscode-core, lwc, lightning, apex-debugger, apex-oas
+  - Script: `scripts/vsce-bundled-extension.ts`
+
+**Package scripts:**
+- `package:packages` — Stable packaging (calls `vscode:package`)
+- `package:packages:prerelease` — Prerelease packaging (calls `vscode:package:prerelease`)
+  - Modern extensions: adds `--pre-release` flag to vsce
+  - Legacy extensions: sets `VSCE_PRE_RELEASE=true` env var
+
+### Pre-release Promotion
 
 **Pre-release promotion:** `promote-prerelease.yml` (Wednesdays 7 AM UTC) runs 3-stage pipeline: (1) find-nightly selects oldest nightly ≥7 days; (2) gate-check verifies CI passed on nightly commit; (3) promote creates tracking tag for release flow. Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
 
 **Artifact retention:** 30 days (vs. 5 for PR builds) supports promotion workflow stability checks.
+
+**Implementation details:** See [github-workflows](https://github.com/salesforcecli/github-workflows) and [apex-language-support scripts](https://github.com/forcedotcom/apex-language-support/tree/main/.github/scripts). This repo is a **consumer** of shared infrastructure — calls reusable workflow, scripts maintained externally.
 
 ## Publishing to Marketplace
 

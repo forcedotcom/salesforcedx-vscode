@@ -230,11 +230,12 @@ Analysis of releases (2024-2025):
 - Bug discovery: After everyone has it
 
 **New (Current):**
-- Wednesday: Publish as **pre-release** to marketplace
-- 5-day customer validation (Wed → Mon)
-- Real users opt-in and test in production
-- Monday: Publish as **stable** only if validation passed
-- Bug discovery: During pre-release period (before stable)
+- Week N Wednesday 7 AM UTC: Publish as **pre-release** to marketplace
+- [7 days of customer testing]
+- Week N+1 Wednesday 8 AM UTC: Build **stable** release from previous week's prerelease
+- Real users opt-in to pre-release and test in production
+- Engineer reviews and publishes stable when ready
+- Bug discovery: During 7-day pre-release period (before stable publish)
 
 ---
 
@@ -725,7 +726,7 @@ Monday 1:00 PM: Start over
 | Pain Point | OLD (Before Aug 2026) | NEW (After PR #7790 + #7995) | Savings |
 |------------|-----------------------|------------------------------|---------|
 | Merge conflict resolution | 43-117 hours/year | 0 hours/year | **43-117 hours** |
-| Customer validation period | 0 days | 5 days | **∞% improvement** |
+| Customer validation period | 0 (straight to stable) | 7 days (Week N → Week N+1) | **Real user testing** |
 | Emergency response time | 4-7 days | 5 minutes | **99.95% faster** |
 | User impact from regressions | 10,000+ users immediately | <500 pre-release users first | **95% reduction** |
 | Security vulnerabilities | 7 unpatched | 0 (all fixed) | **100% resolved** |
@@ -741,7 +742,7 @@ Monday 1:00 PM: Start over
 - ❌ **Security risk:** 7 unpatched vulnerabilities
 
 **NEW Workflow Benefits:**
-- ✅ **Customer trust:** 5-minute emergency fixes, 5-day validation before stable
+- ✅ **Customer trust:** 5-minute emergency fixes, automated workflow with 7-day customer validation
 - ✅ **Low blast radius:** Pre-release users catch issues before stable (95% risk reduction)
 - ✅ **Team productivity:** Zero merge conflicts, 43-117 hours/year saved
 - ✅ **Competitive parity:** Progressive rollout model matching industry standards
@@ -756,7 +757,7 @@ Monday 1:00 PM: Start over
 - **Problem:** Still no way to promote specific builds or respond to emergencies
 
 **Phase 2: PR #7995 (Current) - Automated Promotion + Emergency Response**
-- Automated Wed → Mon promotion with 5-day validation
+- Automated weekly workflow: Week N Wed 7 AM prerelease promotion → Week N+1 Wed 8 AM stable build (7-day customer validation)
 - Emergency pre-release path (5 minutes: hotfix → marketplace)
 - Emergency patch releases (v67.12.0 → v67.12.1)
 - Fixed 7 security vulnerabilities
@@ -777,7 +778,8 @@ See [release-workflow-architecture.md](./release-workflow-architecture.md) for c
 - ✅ Foundation for progressive rollout
 
 **PR #7995 (Current):**
-- ✅ **5-day customer validation** (Wed pre-release → Mon stable)
+- ✅ **Automated weekly publishing** (Week N Wed pre-release → Week N+1 Wed stable build)
+- ✅ **7-day customer validation period** (real users test prerelease before stable)
 - ✅ **Zero merge conflicts** (ephemeral staging branches)
 - ✅ **Single branch model** (develop only)
 - ✅ **5-minute emergency pre-release** (hotfix → marketplace)

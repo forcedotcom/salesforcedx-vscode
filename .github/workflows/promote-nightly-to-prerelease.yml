@@ -3,8 +3,9 @@ name: Promote Nightly to Pre-release
 on:
   schedule:
     # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
-    # Rationale: Weekly promotion on Wed, then 5-day baking period (Wed → Mon)
-    # before stable release, aligning with team review cycles
+    # Rationale: Weekly promotion cycle - promotes nightly ≥7 days old to prerelease
+    # Next week's build-release.yml (Wed 8 AM UTC) builds stable from this week's promoted prerelease
+    # This gives 7 days of customer testing before stable release
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
@@ -13,9 +14,9 @@ on:
         required: false
         type: string
       min-tag-age-days:
-        description: 'Minimum nightly age in days before eligible for promotion (default: 0 for latest nightly). Ignored if releaseTag provided.'
+        description: 'Minimum nightly age in days before eligible for promotion (default: 7 for weekly promotion cycle). Ignored if releaseTag provided.'
         required: false
-        default: '0'
+        default: '7'
         type: string
       dry-run:
         description: 'Run in dry-run mode (no actual publishing or tagging)'
