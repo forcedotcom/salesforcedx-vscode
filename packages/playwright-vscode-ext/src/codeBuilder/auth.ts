@@ -55,9 +55,11 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
     try {
       return JSON.parse(out) as { result?: unknown };
     } catch {
-      throw new Error(
-        `\`sf ${args.join(' ')}\` did not return JSON (stdout starts: ${JSON.stringify(out.slice(0, 200))})`
-      );
+      // Slicing raw stdout at a byte offset can split a multi-byte UTF-8 char (e.g. an emoji in a
+      // CLI banner), which JSON.stringify then renders as a replacement char. Strip non-printable-
+      // ASCII from the snippet first so the diagnostic stays clean and readable.
+      const snippet = out.slice(0, 200).replaceAll(/[^\x20-\x7E]/g, '?');
+      throw new Error(`\`sf ${args.join(' ')}\` did not return JSON (stdout starts: ${JSON.stringify(snippet)})`);
     }
   };
 

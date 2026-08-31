@@ -38,15 +38,23 @@ set -e
 coder=${CODER_JSON}
 settings=${USER_SETTINGS}
 mkdir -p "$(dirname "$coder")" "$(dirname "$settings")"
-jq -n --arg folder "$FIXTURE_PATH" '{query: {folder: $folder}}' > "$coder"
-# Start from a valid object if settings.json is absent OR not valid JSON (whitespace-only, corrupt),
-# so the trust edit below can't silently no-op. Bare 'jq' statements (NOT 'jq ... && mv') so 'set -e'
-# aborts loud on a jq failure — with '&&' the jq is the left operand and errexit would NOT fire, and
-# the trust setting would be silently skipped (workspace opens Restricted, extensions never activate).
-jq -e . "$settings" > /dev/null 2>&1 || echo '{}' > "$settings"
-tmp="$(mktemp)"
-jq '.["security.workspace.trust.enabled"] = false' "$settings" > "$tmp"
-mv "$tmp" "$settings"
+
+# coder.json: build in a temp then atomically mv into place so a concurrent reader never sees a
+# partial file. Bare statements (NOT 'jq ... && mv') so 'set -e' aborts loud on a jq failure.
+ctmp="$(mktemp)"
+jq -n --arg folder "$FIXTURE_PATH" '{query: {folder: $folder}}' > "$ctmp"
+mv "$ctmp" "$coder"
+
+# settings.json (disable workspace trust): ONE atomic read-modify-write. Read the current settings,
+# defaulting to {} if the file is absent OR not valid JSON (so the edit can't silently no-op), apply
+# the trust edit in a single jq, then mv into place. The mv is the ONLY mutation of settings.json —
+# there is no separate truncating 'echo > settings' that could clobber a concurrent code-server
+# write (the check-then-write race). Bare statements so 'set -e' catches a jq failure.
+stmp="$(mktemp)"
+current="$(jq . "$settings" 2>/dev/null || echo '{}')"
+printf '%s' "$current" | jq '.["security.workspace.trust.enabled"] = false' > "$stmp"
+mv "$stmp" "$settings"
+
 chown codebuilder:codebuilder "$coder" "$settings"
 `;
 
