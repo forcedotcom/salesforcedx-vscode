@@ -12,7 +12,6 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 
 /**
  * Extract the method name from a symbol name that may include return type and parentheses.
@@ -123,15 +122,15 @@ const writeCodeCoverageJson = Effect.fn('testUtils.writeCodeCoverageJson')(funct
 });
 
 /** Reads test-run-id.txt using FsService (works in both desktop and web) */
-export const readTestRunIdFile = async (apexTestDir: URI): Promise<string | undefined> =>
-  getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const fileUri = Utils.joinPath(apexTestDir, 'test-run-id.txt');
-      const content = yield* api.services.FsService.readFile(fileUri);
-      return content.trim();
-    }).pipe(Effect.orElseSucceed(() => undefined))
-  );
+export const readTestRunIdFile = Effect.fn('testUtils.readTestRunIdFile')(
+  function* (apexTestDir: URI) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const fileUri = Utils.joinPath(apexTestDir, 'test-run-id.txt');
+    const content = yield* api.services.FsService.readFile(fileUri);
+    return content.trim();
+  },
+  Effect.orElseSucceed(() => undefined)
+);
 
 /**
  * Writes test result JSON file (result + run-id + optional coverage) via FsService (works on web and

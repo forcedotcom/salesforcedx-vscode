@@ -5,25 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildBaseServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type { ExtensionContext } from 'vscode';
 
-/**
- * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
- * When context is not provided, ExtensionContextService.Default is used (fails if getContext is called).
- */
-export const buildAllServicesLayer = (context: Parameters<typeof buildBaseServicesLayer>[0]) =>
-  buildBaseServicesLayer(context, 'Salesforce Metadata');
+export const buildAllServicesLayer = (context: ExtensionContext) =>
+  Layer.unwrapEffect(
+    Effect.map(getServicesApi, api =>
+      Layer.mergeAll(
+        buildSharedServicesLayer(context, 'Salesforce Metadata'),
+        api.services.NotificationModeService.Default(
+          'salesforcedx-vscode-metadata',
+          'sf-metadata-notifications',
+          'Salesforce: Metadata Notifications'
+        )
+      )
+    )
+  );
 
-/**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Uses ExtensionContextService.Default (fails if getContext is called).
- * Use AllServicesLayerFor(context) to provide a working ExtensionContextService.
- */
 // eslint-disable-next-line functional/no-let
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;
@@ -40,3 +43,10 @@ type MetadataRuntime = ManagedRuntime.ManagedRuntime<
 // eslint-disable-next-line functional/no-let
 let _metadataRuntime: MetadataRuntime | undefined;
 export const getMetadataRuntime = () => (_metadataRuntime ??= ManagedRuntime.make(AllServicesLayer));
+
+export const disposeMetadataRuntime = async (): Promise<void> => {
+  if (_metadataRuntime) {
+    await _metadataRuntime.dispose();
+    _metadataRuntime = undefined;
+  }
+};

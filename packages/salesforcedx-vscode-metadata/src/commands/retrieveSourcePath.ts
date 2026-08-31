@@ -11,9 +11,12 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_this_source_text;
 
 /** Retrieve source paths from the default org */
 // When a single file is selected and "Retrieve Source from Org" is executed,
@@ -29,6 +32,7 @@ import { withPreparationProgress } from '../utils/withPreparationProgress';
 export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(
   function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const notificationMode = yield* api.services.NotificationModeService;
     const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
 
     if (!resolvedSourceUri) return;
@@ -36,30 +40,34 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     const componentSetService = yield* api.services.ComponentSetService;
     const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
     yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
-    const componentSet = yield* Effect.succeed(Array.from(resolvedUris)).pipe(
-      Effect.flatMap(componentSetService.getComponentSetFromUris),
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
-    );
 
     // we can ignore conflicts because we already did the detectConflicts check
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+    yield* Effect.succeed(Array.from(resolvedUris)).pipe(
+      Effect.flatMap(componentSetService.getComponentSetFromUris),
+      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'), COMMAND),
+      Effect.flatMap(cs => retrieveComponentSet({ componentSet: cs, ignoreConflicts: true, command: COMMAND })),
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          retryOperation: retrieveComponentSet({
+            componentSet: err.componentSet,
+            ignoreConflicts: true,
+            expectedOrgId: err.orgId,
+            command: COMMAND
+          })
+        })
+      )
+    );
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))
+    );
   },
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
       Effect.as(undefined)
     )
-  ),
-  Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({
-      pairs: err.pairs,
-      operationType: err.operationType,
-      retryOperation: retrieveComponentSet({
-        componentSet: err.componentSet,
-        ignoreConflicts: true,
-        expectedOrgId: err.orgId
-      })
-    })
-  ),
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text')))
+  )
 );

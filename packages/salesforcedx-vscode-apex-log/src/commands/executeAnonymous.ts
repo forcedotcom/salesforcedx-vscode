@@ -8,11 +8,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
 import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
 
@@ -52,21 +52,27 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const command: ProgressAndSuccessCommandKey = selectionOnly
+    ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
+    : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
   // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
   yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgress(nls.localize('exec_anon_progress_title')),
+    promptService.withProgress(
+      nls.localize('exec_anon_progress_title'),
+      yield* notificationMode.getProgressLocation(command)
+    ),
     Effect.tap(logUri =>
-      Effect.sync(
-        () =>
-          void vscode.window
-            .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-            .then(selected =>
-              selected === nls.localize('open_log')
-                ? getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
-                : undefined
-            )
-      )
+      notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
+        {
+          label: nls.localize('open_log'),
+          run: () =>
+            getRuntime()
+              .runPromise(api.services.FsService.showTextDocument(logUri))
+              .then(() => undefined)
+        }
+      ])
     )
   );
 });

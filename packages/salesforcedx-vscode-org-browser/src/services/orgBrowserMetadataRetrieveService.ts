@@ -21,14 +21,15 @@ export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedEr
 const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   members: MetadataMember[],
   openInEditor = false,
-  expectedOrgId?: string
+  options?: { expectedOrgId?: string; progressLocation?: vscode.ProgressLocation }
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
 
   const result = yield* api.services.MetadataRetrieveService.retrieve(members, {
     ignoreConflicts: true,
-    expectedOrgId
+    expectedOrgId: options?.expectedOrgId,
+    progressLocation: options?.progressLocation
   });
   if (isString(result)) {
     return result;

@@ -8,8 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { type CommandKey } from '../../utils/notificationMode';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
@@ -19,17 +21,23 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   ignoreConflicts?: boolean;
   fileResponsesFromDelete?: FileResponse[];
   expectedOrgId?: string;
+  command?: CommandKey;
 }) {
-  const { componentSet, ignoreConflicts, fileResponsesFromDelete, expectedOrgId } = options;
+  const { componentSet, ignoreConflicts, fileResponsesFromDelete, expectedOrgId, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const channelService = yield* api.services.ChannelService;
 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
     ignoreConflicts,
-    expectedOrgId
+    expectedOrgId,
+    progressLocation
   });
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));

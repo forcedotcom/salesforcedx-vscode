@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.15.1",
+  "version": "67.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -50,6 +50,7 @@
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
     "jsforce": "^3.10.19",
+    "jsonpath-plus": "10.4.0",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
@@ -366,6 +367,23 @@
             "error"
           ],
           "description": "%configuration.logLevel.description%"
+        },
+        "salesforcedx-vscode-services.notifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "default": "progressToastSuccessToast",
+          "description": "%notifications.description%"
         },
         "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
           "type": "string",

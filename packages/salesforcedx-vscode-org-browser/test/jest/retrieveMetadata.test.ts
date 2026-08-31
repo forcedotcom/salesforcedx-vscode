@@ -57,7 +57,11 @@ describe('retrieveEffect', () => {
       services: {
         ComponentSetService: { getComponentSetFromProjectDirectories: () => Effect.succeed(projectComponentSet) },
         TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org-one' }),
-        PromptService: Effect.succeed({ confirmOrThrow: () => Effect.void })
+        PromptService: Effect.succeed({ confirmOrThrow: () => Effect.void }),
+        NotificationModeService: Effect.succeed({
+          getProgressLocation: () => Effect.succeed('progress-location'),
+          showSuccessNotification: () => Effect.void
+        })
       }
     };
     const mockExtensionProvider = {
@@ -70,6 +74,9 @@ describe('retrieveEffect', () => {
       ) as Effect.Effect<unknown, never, never>
     );
 
-    expect(mockRetrieve).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'FileUtilities' }], true, 'org-one');
+    expect(mockRetrieve).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'FileUtilities' }], true, {
+      expectedOrgId: 'org-one',
+      progressLocation: 'progress-location'
+    });
   });
 });

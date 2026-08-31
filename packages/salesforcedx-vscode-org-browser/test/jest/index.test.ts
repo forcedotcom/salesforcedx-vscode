@@ -44,6 +44,7 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
@@ -236,7 +237,7 @@ const mockServicesApi = {
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
     OrgMetadataCatalogChangePubSub,
     ProjectService: {} as typeof ProjectService,
-    registerCommandWithLayer: () => () => Effect.void,
+    registerCommandWithRuntime: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
     SettingsService: {} as typeof SettingsService,
     SourceTrackingService: {} as typeof SourceTrackingService,
@@ -275,8 +276,12 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
-            OrgMetadataCatalogChangePubSub.Default,
-            MockOrgBrowserRetrieveServiceLayer
+            MockOrgBrowserRetrieveServiceLayer,
+            Layer.succeed(NotificationModeService, {
+              getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+              showSuccessNotification: () => Effect.void
+            } as unknown as NotificationModeService),
+            OrgMetadataCatalogChangePubSub.Default
           )
         )
       )
