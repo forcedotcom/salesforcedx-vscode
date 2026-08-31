@@ -115,12 +115,26 @@ describe('RedactingSpanProcessor', () => {
       s.recordException(error);
     });
 
-    const redactedCommand = 'sf org display --target-org "<REDACTED TARGET ORG>" --json';
+    const redactedCommand = 'sf org display --target-org "<REDACTED COMMAND VALUE>" --json';
     expect(span.attributes.command).toBe(redactedCommand);
     expect(span.attributes.contact).toBe('<REDACTED USERNAME OR EMAIL>');
     expect(span.status.message).toBe(`Command failed: ${redactedCommand}`);
     expect(span.events[0].attributes?.['exception.message']).toBe(`Command failed: ${redactedCommand}`);
     expect(span.events[0].attributes?.['exception.stacktrace']).toBe(`Error: Command failed: ${redactedCommand}`);
+  });
+
+  it('redacts alias flags, alias assignments, and target configuration in span attributes', () => {
+    const span = endSpanThrough(s =>
+      s.setAttributes({
+        loginCommand: 'sf org login web --alias my-org',
+        aliasCommand: 'sf alias set my-org=user@example.com',
+        configCommand: 'sf config set target-org=my-org target-dev-hub=dev-hub'
+      })
+    );
+
+    expect(span.attributes.loginCommand).toBe('sf org login web --alias <REDACTED COMMAND VALUE>');
+    expect(span.attributes.aliasCommand).toBe('sf alias set <REDACTED COMMAND ARG>');
+    expect(span.attributes.configCommand).toBe('sf config set <REDACTED COMMAND ARG> <REDACTED COMMAND ARG>');
   });
 
   it('redacts every mutable exported string surface', () => {

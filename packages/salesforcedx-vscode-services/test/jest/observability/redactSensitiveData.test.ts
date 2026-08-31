@@ -134,16 +134,19 @@ describe('redactSensitiveData', () => {
     it.each([
       [
         'sf org display --target-org first.last@example.com --json',
-        'sf org display --target-org <REDACTED USERNAME OR EMAIL> --json'
+        'sf org display --target-org <REDACTED COMMAND VALUE> --json'
       ],
       [
         'sf org display --target-org "first.last@example.com" --json',
-        'sf org display --target-org "<REDACTED USERNAME OR EMAIL>" --json'
+        'sf org display --target-org "<REDACTED COMMAND VALUE>" --json'
       ],
-      ['sf org display --target-org=my-scratch-org --json', 'sf org display --target-org=<REDACTED TARGET ORG> --json'],
-      ["sf org display -o 'my-scratch-org' --json", "sf org display -o '<REDACTED TARGET ORG>' --json"],
-      ['sf org display -o=my-scratch-org --json', 'sf org display -o=<REDACTED TARGET ORG> --json'],
-      ['Command failed: sf org display -o my-scratch-org', 'Command failed: sf org display -o <REDACTED TARGET ORG>']
+      [
+        'sf org display --target-org=my-scratch-org --json',
+        'sf org display --target-org=<REDACTED COMMAND VALUE> --json'
+      ],
+      ["sf org display -o 'my-scratch-org' --json", "sf org display -o '<REDACTED COMMAND VALUE>' --json"],
+      ['sf org display -o=my-scratch-org --json', 'sf org display -o=<REDACTED COMMAND VALUE> --json'],
+      ['Command failed: sf org display -o my-scratch-org', 'Command failed: sf org display -o <REDACTED COMMAND VALUE>']
     ])('redacts a target-org value while preserving command context: %s', (value, expected) => {
       expect(redactSensitiveData(value)).toBe(expected);
     });
@@ -151,21 +154,107 @@ describe('redactSensitiveData', () => {
     it('redacts target-org values embedded in error text', () => {
       expect(
         redactSensitiveData('Command failed: sf org display --target-org user@example.com --json\nError: unavailable')
-      ).toBe('Command failed: sf org display --target-org <REDACTED USERNAME OR EMAIL> --json\nError: unavailable');
+      ).toBe('Command failed: sf org display --target-org <REDACTED COMMAND VALUE> --json\nError: unavailable');
+    });
+
+    it('redacts every flag value without needing to identify which one contains the access token', () => {
+      expect(
+        redactSensitiveData(
+          'sf data query --query "SELECT NamespacePrefix FROM Organization LIMIT 1" --target-org "00D000000000000!AQEAQKabcdef" --json'
+        )
+      ).toBe('sf data query --query "<REDACTED COMMAND VALUE>" --target-org "<REDACTED COMMAND VALUE>" --json');
+    });
+
+    it.each([
+      [
+        'sf org create scratch --alias my-scratch-org --json',
+        'sf org create scratch --alias <REDACTED COMMAND VALUE> --json'
+      ],
+      // Repository-authored commands use --alias; redact legacy CLI text defensively.
+      ['sf org create scratch -a=my-scratch-org --json', 'sf org create scratch -a=<REDACTED COMMAND VALUE> --json'],
+      [
+        'Command failed: sf org login web --alias "my scratch org"',
+        'Command failed: sf org login web --alias "<REDACTED COMMAND VALUE>"'
+      ],
+      [
+        'sf org login access-token --alias user@example.com --no-prompt',
+        'sf org login access-token --alias <REDACTED COMMAND VALUE> --no-prompt'
+      ]
+    ])('redacts aliases established by sf org commands: %s', (value, expected) => {
+      expect(redactSensitiveData(value)).toBe(expected);
+    });
+
+    it.each([
+      ['sf alias set my-org=user@example.com', 'sf alias set <REDACTED COMMAND ARG>'],
+      [
+        'sf alias set my-org=opaque-username other-org=other-username --json',
+        'sf alias set <REDACTED COMMAND ARG> <REDACTED COMMAND ARG> --json'
+      ],
+      ['Command failed: sf alias set "my org"="user name"', 'Command failed: sf alias set "<REDACTED COMMAND ARG>"']
+    ])('redacts both sides of sf alias set assignments: %s', (value, expected) => {
+      expect(redactSensitiveData(value)).toBe(expected);
+    });
+
+    it('limits command-context redaction to the line containing the sf command', () => {
+      expect(
+        redactSensitiveData(
+          [
+            'npm config set color=true',
+            'sf org login web --alias my-org',
+            'sf alias set other-org=other-username',
+            'sf data query -a AggregateResult',
+            'git log -o output.txt'
+          ].join('\n')
+        )
+      ).toBe(
+        [
+          'npm config set color=true',
+          'sf org login web --alias <REDACTED COMMAND VALUE>',
+          'sf alias set <REDACTED COMMAND ARG>',
+          'sf data query -a <REDACTED COMMAND VALUE>',
+          'git log -o output.txt'
+        ].join('\n')
+      );
+    });
+
+    it.each(['git log --alias my-alias', 'npm config set color=true'])(
+      'does not apply sf command redaction to other executables: %s',
+      value => {
+        expect(redactSensitiveData(value)).toBe(value);
+      }
+    );
+
+    it.each([
+      ['target-org=my-scratch-org', 'target-org=<REDACTED USERNAME OR ALIAS>'],
+      ['target-dev-hub="my-dev-hub"', 'target-dev-hub="<REDACTED USERNAME OR ALIAS>"'],
+      [
+        'sf config set target-org=my-scratch-org target-dev-hub="my dev hub"',
+        'sf config set <REDACTED COMMAND ARG> <REDACTED COMMAND ARG>'
+      ],
+      ['target-org=user@example.com', 'target-org=<REDACTED USERNAME OR EMAIL>']
+    ])('redacts target configuration assignments: %s', (value, expected) => {
+      expect(redactSensitiveData(value)).toBe(expected);
+    });
+
+    it('redacts every positional config assignment, not only known sensitive keys', () => {
+      expect(redactSensitiveData('sf config set api-version=65.0')).toBe('sf config set <REDACTED COMMAND ARG>');
     });
 
     it('is idempotent', () => {
       const values = [
         'contact=<REDACTED USERNAME OR EMAIL>',
-        'sf org display --target-org <REDACTED USERNAME OR EMAIL> --json',
-        'sf org display --target-org <REDACTED TARGET ORG> --json'
+        'sf org display --target-org <REDACTED COMMAND VALUE> --json',
+        'sf org login web --alias <REDACTED COMMAND VALUE>',
+        'sf alias set <REDACTED COMMAND ARG>',
+        'target-org=<REDACTED USERNAME OR ALIAS>',
+        'target-dev-hub="<REDACTED USERNAME OR ALIAS>"'
       ];
       values.forEach(value => expect(redactSensitiveData(value)).toBe(value));
     });
 
     it('applies generic email redaction outside target-org arguments', () => {
       expect(redactSensitiveData('sf org display --target-dev-hub devhub@example.com --json')).toBe(
-        'sf org display --target-dev-hub <REDACTED USERNAME OR EMAIL> --json'
+        'sf org display --target-dev-hub <REDACTED COMMAND VALUE> --json'
       );
     });
 

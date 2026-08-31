@@ -67,6 +67,7 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
+    "generate:sf-command-catalog": "node scripts/generate-sf-command-catalog.mjs",
     "generate-types": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
@@ -103,6 +104,7 @@
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
+        "scripts/**/*.mjs",
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -199,6 +201,7 @@
         "compile"
       ],
       "files": [
+        "scripts/**/*.mjs",
         "src/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
