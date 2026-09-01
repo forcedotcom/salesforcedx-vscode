@@ -2,10 +2,8 @@ name: Promote Nightly to Pre-release
 
 on:
   schedule:
-    # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
-    # Rationale: Weekly promotion cycle - promotes most recent CI-passing nightly to prerelease
-    # Next week's build-release.yml (Wed 8 AM UTC) builds stable from this week's promoted prerelease
-    # This gives 7 days of customer testing in prerelease before stable release
+    # Wednesdays at 7 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
+    # Creates tracking tag for build-release.yml (see that workflow for stable release process)
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
