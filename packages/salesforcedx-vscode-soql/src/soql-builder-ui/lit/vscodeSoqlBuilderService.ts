@@ -160,6 +160,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       [MessageType.SOBJECTS_RESPONSE]: Effect.fn('VscodeSoqlBuilderService.handleSObjectsResponse')(
         function* (event) {
           const current = yield* SubscriptionRef.get(state);
+          if (current.hasNoDefaultOrg) return;
           const metadata = yield* validateMetadata({
             ...current.metadata,
             objects: toObjectMetadata(event.payload)
@@ -211,18 +212,24 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
         }
       ),
       [MessageType.NO_DEFAULT_ORG]: Effect.fn('VscodeSoqlBuilderService.handleNoDefaultOrg')(function* () {
-        yield* SubscriptionRef.update(state, current => ({
-          ...current,
-          hasNoDefaultOrg: true,
-          isFieldsLoading: false,
-          isObjectsLoading: false
-        }));
+        yield* SubscriptionRef.update(state, current => {
+          const nextState = {
+            ...current,
+            errorMessage: undefined,
+            hasNoDefaultOrg: true,
+            isFieldsLoading: false,
+            isObjectsLoading: false,
+            metadata: clearedMetadata([])
+          };
+          return nextState;
+        });
       }),
       [MessageType.CONNECTION_CHANGED]: Effect.fn('VscodeSoqlBuilderService.handleConnectionChanged')(
         function* () {
           const current = yield* SubscriptionRef.get(state);
           const nextState: SoqlBuilderState = {
             ...current,
+            errorMessage: undefined,
             hasNoDefaultOrg: false,
             isFieldsLoading: Predicate.isNotUndefined(current.query.sObject),
             isObjectsLoading: true,
@@ -264,6 +271,7 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
     Match.tagsExhaustive({
       ObjectSelected: Effect.fn('VscodeSoqlBuilderService.dispatchObjectSelected')(function* (action) {
         const current = yield* SubscriptionRef.get(state);
+        if (current.query.sObject === action.objectName) return;
         const query = {
           ...createInitialSoqlBuilderQuery(),
           ...(Predicate.isUndefined(current.query.headerComments)

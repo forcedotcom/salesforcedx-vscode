@@ -265,7 +265,7 @@
       ]
     },
     "vscode:bundle:migration": {
-      "command": "node ./esbuild.config.mjs --lit-migration",
+      "command": "node scripts/build-lit-migration.mjs",
       "dependencies": [
         "compile",
         "copy:grammars",
@@ -273,6 +273,8 @@
       ],
       "files": [
         "esbuild.config.mjs",
+        "scripts/build-lit-migration.mjs",
+        "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",

@@ -19,6 +19,10 @@
       "types": "./out/src/components/soqlBuilderElement.d.ts",
       "default": "./out/src/components/soqlBuilderElement.js"
     },
+    "./components/soqlFromElement": {
+      "types": "./out/src/components/soqlFromElement.d.ts",
+      "default": "./out/src/components/soqlFromElement.js"
+    },
     "./domain": {
       "types": "./out/src/domain.d.ts",
       "default": "./out/src/domain.js"
@@ -120,17 +124,34 @@
     "test:browser:bundle": {
       "command": "node test/browser/esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "test:browser:emit"
       ],
       "files": [
-        "src/**/*.ts",
-        "test/browser/fixture.ts",
+        ".test-dist/browser-compiled/**",
         "test/browser/esbuild.config.mjs",
         "../../scripts/bundling/**/*.mjs",
         "package.json"
       ],
       "output": [
         ".test-dist/browser/fixture.js"
+      ]
+    },
+    "test:browser:emit": {
+      "command": "tsc --pretty --project tsconfig.browser.json",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/browser/fixture.ts",
+        "tsconfig.json",
+        "tsconfig.browser.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        ".test-dist/browser-compiled/**"
       ]
     },
     "test:browser": {
@@ -160,6 +181,7 @@
         "test/browser/esbuild.config.mjs",
         "tsconfig.json",
         "tsconfig.build.json",
+        "tsconfig.browser.json",
         "esbuild.config.mjs",
         "../../eslint.config.mjs",
         "package.json"

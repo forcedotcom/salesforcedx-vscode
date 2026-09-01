@@ -23,7 +23,9 @@ app.labels = {
   fields: messages.label_fields,
   from: messages.label_from,
   inputs: messages.label_soql_query_inputs,
+  loading: messages.label_loading,
   noDefaultOrg: messages.label_no_default_org,
+  noResults: messages.label_no_results_found,
   query: messages.label_soql_query
 };
 app.lifecycle = new SoqlBuilderApplication(app, serviceLayer);
