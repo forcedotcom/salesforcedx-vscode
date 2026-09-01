@@ -1,0 +1,7 @@
+{
+  "extends": "./api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/out/src/tests/types.d.ts",
+  "apiReport": {
+    "reportFileName": "apex-node-tests-types"
+  }
+}

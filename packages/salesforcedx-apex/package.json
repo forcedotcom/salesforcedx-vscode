@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
+    "@microsoft/api-extractor": "7.59.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
@@ -48,6 +49,9 @@
     "out/src"
   ],
   "scripts": {
+    "api:check": "wireit",
+    "api:update": "wireit",
+    "api:update:tests-types": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -57,6 +61,55 @@
   },
   "versionedIndependently": true,
   "wireit": {
+    "api:update": {
+      "command": "api-extractor run --local --verbose",
+      "dependencies": [
+        "compile"
+      ]
+    },
+    "api:update:tests-types": {
+      "command": "api-extractor run --local --verbose --config api-extractor.tests-types.json",
+      "dependencies": [
+        "compile"
+      ]
+    },
+    "api:check": {
+      "dependencies": [
+        "api:check:root",
+        "api:check:tests-types"
+      ]
+    },
+    "api:check:root": {
+      "command": "api-extractor run --verbose",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "out/src/**/*.d.ts",
+        "api-extractor.json",
+        "etc/apex-node.api.md",
+        "package.json"
+      ],
+      "output": [
+        "temp/apex-node.api.md"
+      ]
+    },
+    "api:check:tests-types": {
+      "command": "api-extractor run --verbose --config api-extractor.tests-types.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "out/src/tests/types.d.ts",
+        "api-extractor.json",
+        "api-extractor.tests-types.json",
+        "etc/apex-node-tests-types.api.md",
+        "package.json"
+      ],
+      "output": [
+        "temp/apex-node-tests-types.api.md"
+      ]
+    },
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
@@ -99,6 +152,7 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
+        "api:check",
         "../eslint-local-rules:compile",
         "check:circular-deps",
         "compile"
