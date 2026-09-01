@@ -277,7 +277,7 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs",
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
@@ -286,7 +286,10 @@
         ".opencode/plugins/safeguards.ts",
         "scripts/ai-safeguards.mjs",
         "scripts/ai-safeguards-cli.mjs",
-        "test/ai-safeguards.test.mjs"
+        "scripts/ai-auto-approve.mjs",
+        "scripts/ai-auto-approve-cli.mjs",
+        "test/ai-safeguards.test.mjs",
+        "test/ai-auto-approve.test.mjs"
       ],
       "output": []
     },

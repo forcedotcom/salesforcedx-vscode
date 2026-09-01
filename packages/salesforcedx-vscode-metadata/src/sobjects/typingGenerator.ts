@@ -6,6 +6,7 @@
  */
 import { mapInput, not } from 'effect/Predicate';
 import { EOL } from 'node:os';
+import { byFieldName } from './byFieldName';
 import { FieldDeclaration, SObjectDefinition } from './types/general';
 
 const isCollectionType = (fieldType: string): boolean =>
@@ -42,7 +43,7 @@ export const generateTypeText = (definition: SObjectDefinition): string =>
     .filter(not(mapInput(isCollectionType, (decl: FieldDeclaration) => decl.type)))
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    .toSorted((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .toSorted(byFieldName)
     .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name)
     .map(decl => convertDeclaration(definition.name, decl))
     .join(`${EOL}`)
