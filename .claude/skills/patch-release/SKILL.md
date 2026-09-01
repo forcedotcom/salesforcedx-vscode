@@ -115,7 +115,7 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates GitHub pre-release with VSIXs. No version bump — tags source ref directly as nightly format.
+Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
 
 ### Step 2: Publish to marketplace as pre-release
 

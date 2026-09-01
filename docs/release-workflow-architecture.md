@@ -2,69 +2,69 @@
 
 > **Status:** `createReleaseBranch.yml` deprecated, scheduled for deletion after proven stability (W-23988524).
 
-## Old Workflow (Before Your Work)
+## Old Workflow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           OLD WORKFLOW (DEPRECATED)                      │
+│                           OLD WORKFLOW (DEPRECATED)                     │
 │              Three-Branch Model: main ↔ develop ↔ release/vX.Y.Z        │
-│                     Straight to Stable - No Pre-Release                  │
+│                     Straight to Stable - No Pre-Release                 │
 └─────────────────────────────────────────────────────────────────────────┘
 
 Monday (1 PM UTC - AUTOMATED CRON)
     │
     ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  STEP 1: createReleaseBranch.yml (Automated)                             │
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 1: createReleaseBranch.yml (Automated)                            │
 │  ┌──────────────────────────────────────────────────────────────────────┤
 │  │ • Creates release/v67.12.0 from develop                              │
 │  │ • Bumps version (minor by default)                                   │
 │  │ • Generates CHANGELOG.md                                             │
 │  │ • Pushes release branch                                              │
 │  └──────────────────────────────────────────────────────────────────────┤
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  THREE BRANCHES EXIST                                                    │
+┌─────────────────────────────────────────────────────────────────────────┐
+│  THREE BRANCHES EXIST                                                   │
 │    develop           (v67.13.0 - active development)                    │
 │    release/v67.12.0  (v67.12.0 - this week's release)                   │
 │    main              (v67.11.0 - last week's published stable)          │
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  STEP 2: Manual Testing & Validation                                     │
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 2: Manual Testing & Validation                                    │
 │  ┌──────────────────────────────────────────────────────────────────────┤
 │  │  • Engineer checks release branch locally                            │
 │  │  • Builds VSIXs (npm run vscode:package)                             │
 │  │  • Installs and smoke tests                                          │
 │  │  • Verifies with team if urgent fixes needed                         │
 │  │  • If fixes needed → must restart from develop (pull everything)     │
-│  │                                                                       │
-│  │  ⏱️  Time: 30-60 minutes (often rushed)                             │
+│  │                                                                      │
+│  │  ⏱️  Time: 30-60 minutes (often rushed)                              │
 │  └──────────────────────────────────────────────────────────────────────┤
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  STEP 3: Engineer Triggers prerelease.yml (Manual)                       │
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 3: Engineer Triggers prerelease.yml (Manual)                      │
 │  ┌──────────────────────────────────────────────────────────────────────┤
 │  │  Input: releaseBranch = "release/v67.12.0"                           │
-│  │                                                                       │
+│  │                                                                      │
 │  │  → Calls mergeReleaseBranch.yml                                      │
-│  │     • Validates release version > main version                        │
+│  │     • Validates release version > main version                       │
 │  │     • Rebases main off release branch:                               │
 │  │       git checkout main                                              │
 │  │       git rebase -Xtheirs origin/release/v67.12.0                    │
 │  │       git push origin main                                           │
-│  │                                                                       │
+│  │                                                                      │
 │  │  Result: release/v67.12.0 content → main (release merged into main)  │
 │  └──────────────────────────────────────────────────────────────────────┤
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────────┐
 │  STEP 4: testBuildAndRelease.yml (Auto-triggers after prerelease.yml)   │
 │  ┌──────────────────────────────────────────────────────────────────────┤
 │  │  • Checks out main branch                                            │
@@ -76,40 +76,40 @@ Monday (1 PM UTC - AUTOMATED CRON)
 │  │    - Creates GitHub release                                          │
 │  │    - Publishes to VS Code Marketplace as STABLE                      │
 │  │    - Publishes to Open VSX as STABLE                                 │
-│  │                                                                       │
-│  │  ❌ NO PRE-RELEASE PERIOD                                           │
+│  │                                                                      │
+│  │  ❌ NO PRE-RELEASE PERIOD                                            │
 │  │  ❌ Goes to ALL users immediately                                    │
 │  │  ❌ No customer validation window                                    │
 │  └──────────────────────────────────────────────────────────────────────┤
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────────┐
 │  STEP 5: tagAndRelease.yml - Merge main → develop (Automated)           │
 │  ┌──────────────────────────────────────────────────────────────────────┤
 │  │  git checkout develop                                                │
 │  │  git merge main --commit --no-edit                                   │
-│  │                                                                       │
-│  │  ⚠️ GUARANTEED MERGE CONFLICTS (EVERY TIME):                       │
-│  │  • package.json (develop: v67.13.0 vs main: v67.12.0)               │
-│  │  • package-lock.json (50-100 conflicts)                             │
+│  │                                                                      │
+│  │  ⚠️ GUARANTEED MERGE CONFLICTS (EVERY TIME):                         │
+│  │  • package.json (develop: v67.13.0 vs main: v67.12.0)                │
+│  │  • package-lock.json (50-100 conflicts)                              │
 │  │  • SHA256.md (36 conflicts)                                          │
 │  │  • CHANGELOG.md (5-15 conflicts)                                     │
-│  │                                                                       │
+│  │                                                                      │
 │  │  If conflicts → workflow FAILS, engineer must resolve manually       │
-│  │  ⏱️  Time to resolve: 30-90 minutes                                 │
-│  │  ❌ Sometimes forgotten (12% of releases)                           │
+│  │  ⏱️  Time to resolve: 30-90 minutes                                  │
+│  │  ❌ Sometimes forgotten (12% of releases)                            │
 │  └──────────────────────────────────────────────────────────────────────┤
-└────────┬─────────────────────────────────────────────────────────────────┘
+└────────┬────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  RESULT: Live on Marketplace                                             │
-│  • All users get v67.12.0 immediately                                    │
-│  • No pre-release validation                                             │
-│  • High blast radius if bugs exist                                       │
-│  • Next Monday: Repeat...                                                │
-└──────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  RESULT: Live on Marketplace                                            │
+│  • All users get v67.12.0 immediately                                   │
+│  • No pre-release validation                                            │
+│  • High blast radius if bugs exist                                      │
+│  • Next Monday: Repeat...                                               │
+└─────────────────────────────────────────────────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════════════
 KEY PROBLEMS:
@@ -140,9 +140,9 @@ Annual cost: 26-78 hours/year in merge conflicts alone
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                              NEW WORKFLOW                                │
-│        Automated Tag-Based Releases + Emergency Response Capability      │
-│              Single Branch • Zero Merge Conflicts • Same-Day Publishing  │
+│                              NEW WORKFLOW                               │
+│        Automated Tag-Based Releases + Emergency Response Capability     │
+│              Single Branch • Zero Merge Conflicts • Same-Day Publishing │
 └─────────────────────────────────────────────────────────────────────────┘
 
 Daily (4 AM UTC)
@@ -155,155 +155,156 @@ Daily (4 AM UTC)
          │
          │
 Wednesday (Week N - 7 AM UTC) ───────────────────────────────┐
-         │                                                     │
-         ▼                                                     │
-┌──────────────────────────────────────────────────────────────────┐      │
-│  promote-nightly-to-prerelease.yml (AUTOMATED CRON)                         │      │
-│  ┌──────────────────────────────────────────────────────────────┤      │
-│  │ WHAT IT DOES:                                                 │      │
-│  │ ✓ Finds nightly build ≥7 days old with passing E2E tests    │      │
-│  │ ✓ Creates marketplace-prerelease-* tracking tag              │      │
-│  │   (marks which nightly to promote to stable next week)       │      │
-│  │ ✓ Publishes that specific nightly to marketplace             │      │
-│  │ ✓ Zero manual intervention                                   │      │
-│  │                                                                │      │
-│  │ WHY IT MATTERS:                                               │      │
-│  │ • Real customers test pre-release in production               │      │
-│  │ • Bug reports come in BEFORE stable publish                  │      │
-│  │ • Can iterate/patch during 7-day customer validation window  │      │
-│  └──────────────────────────────────────────────────────────────┤      │
-└────────┬─────────────────────────────────────────────────────────┘      │
-         │                                                                 │
+         │                                                   │
+         ▼                                                   │
+┌─────────────────────────────────────────────────────────────────┐
+│  promote-nightly-to-prerelease.yml (AUTOMATED CRON)             │
+│  ┌──────────────────────────────────────────────────────────────┤
+│  │ WHAT IT DOES:                                                │
+│  │ ✓ Finds most recent CI-passing nightly (min-tag-age: 0 days) │
+│  │ ✓ Creates marketplace-prerelease-* tracking tag              │
+│  │   (marks which nightly to promote to stable next week)       │
+│  │ ✓ Publishes that specific nightly to marketplace             │
+│  │ ✓ Zero manual intervention                                   │
+│  │                                                              │
+│  │ WHY IT MATTERS:                                              │
+│  │ • Real customers test pre-release in production              │
+│  │ • Bug reports come in BEFORE stable publish                  │
+│  │ • Can iterate/patch during 7-day customer validation window  │
+│  └──────────────────────────────────────────────────────────────┤
+└────────┬────────────────────────────────────────────────────────┘
+         │                                                                │
          │ ════════════════════════════════════════════════════           │
          │ 7-DAY CUSTOMER VALIDATION PERIOD                               │
          │ Real users test prerelease in production before stable build   │
          │ ════════════════════════════════════════════════════           │
-         │                                                                 │
-Next Wednesday (Week N+1 - 8 AM UTC)                                       │
-         │                                                                 │
-         ▼                                                                 │
-┌──────────────────────────────────────────────────────────────────┐      │
-│  build-release.yml (AUTOMATED CRON)                              │      │
-│  ┌──────────────────────────────────────────────────────────────┤      │
-│  │ WHAT IT DOES:                                                 │      │
-│  │ 1. Finds marketplace-prerelease-* tracking tag               │      │
-│  │    (previous Wednesday's promoted build that customers tested)│      │
-│  │ 2. Extracts source commit SHA                                │      │
-│  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │      │
-│  │ 4. Bumps version in isolated branch                           │      │
-│  │ 5. Builds VSIXs (15 min automated)                            │      │
-│  │ 6. Creates GitHub pre-release with VSIXs + SHA256            │      │
-│  │ 7. Branch automatically deleted after use                     │      │
-│  │                                                                │      │
-│  │ KEY IMPROVEMENTS:                                             │      │
-│  │ ✓ ZERO merge conflicts (ephemeral branch, never merged)      │      │
-│  │ ✓ No main branch needed (develop only)                        │      │
-│  │ ✓ No long-lived release branches                              │      │
-│  │ ✓ Builds exact commit customers already tested               │      │
-│  │                                                                │      │
-│  │ SECURITY HARDENING (7 vulnerabilities fixed):                │      │
-│  │ ✓ Command injection prevention                                │      │
-│  │ ✓ VSIX existence validation                                   │      │
-│  │ ✓ Script integrity SHA256 verification                        │      │
-│  │ ✓ Semver overflow protection (max 9999 per component)        │      │
-│  │ ✓ Dependency resolution ordering fixed                        │      │
-│  │ ✓ Release deletion timeout protection                         │      │
-│  │ ✓ Enhanced error handling (JSON parsing, file validation)    │      │
-│  └──────────────────────────────────────────────────────────────┤      │
-└────────┬─────────────────────────────────────────────────────────┘      │
-         │                                                                 │
-         ▼                                                                 │
-┌──────────────────────────────────────────────────────────────────┐      │
-│  Engineer Testing (30 min)                                       │      │
-│  • Download VSIXs from GitHub pre-release                        │      │
-│  • Install and smoke test                                        │      │
-│  • Approve when ready                                            │      │
-└────────┬─────────────────────────────────────────────────────────┘      │
-         │                                                                 │
-         ▼                                                                 │
-┌──────────────────────────────────────────────────────────────────┐      │
-│  publishVSCode.yml (Manual Trigger)                              │      │
-│  • Extracts VSIXs from GitHub release                            │      │
-│  • Publishes to Marketplace as STABLE                            │      │
-│  • Triggers Web Console release                                  │      │
-│  • Auto-closes shipped GitHub issues                             │      │
-└──────────────────────────────────────────────────────────────────┘      │
-                                                                           │
-                                                                           │
-═══════════════════════════════════════════════════════════════════════    │
-EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!               │
-═══════════════════════════════════════════════════════════════════════    │
-                                                                           │
-   Critical Bug Discovered ────────────────────────────────────────┐      │
-           │                                                        │      │
-           ▼                                                        │      │
+         │                                                                │
+Next Wednesday (Week N+1 - 8 AM UTC)                                      │
+         │                                                                │
+         ▼                                                                │
+┌─────────────────────────────────────────────────────────────────┐
+│  build-release.yml (AUTOMATED CRON)                             │
+│  ┌──────────────────────────────────────────────────────────────┤
+│  │ WHAT IT DOES:                                                │
+│  │ 1. Finds marketplace-prerelease-* tracking tag               │
+│  │    (previous Wednesday's promoted build that customer tested)│
+│  │ 2. Extracts source commit SHA                                │
+│  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
+│  │ 4. Bumps version in isolated branch                          │
+│  │ 5. Builds VSIXs (15 min automated)                           │
+│  │ 6. Creates GitHub pre-release with VSIXs + SHA256            │
+│  │ 7. Branch automatically deleted after use                    │
+│  │                                                              │
+│  │ KEY IMPROVEMENTS:                                            │
+│  │ ✓ ZERO merge conflicts (ephemeral branch, never merged)      │
+│  │ ✓ No main branch needed (develop only)                       │
+│  │ ✓ No long-lived release branches                             │
+│  │ ✓ Builds exact commit customers already tested               │
+│  │                                                              │
+│  │ SECURITY HARDENING (7 vulnerabilities fixed):                │
+│  │ ✓ Command injection prevention                               │
+│  │ ✓ VSIX existence validation                                  │
+│  │ ✓ Script integrity SHA256 verification                       │
+│  │ ✓ Semver overflow protection (max 9999 per component)        │
+│  │ ✓ Dependency resolution ordering fixed                       │
+│  │ ✓ Release deletion timeout protection                        │
+│  │ ✓ Enhanced error handling (JSON parsing, file validation)    │
+│  └──────────────────────────────────────────────────────────────┤
+└────────┬────────────────────────────────────────────────────────┘
+         │                                                               │
+         ▼                                                               │
+┌──────────────────────────────────────────────────────────────────┐
+│  Engineer Testing                                                │
+│  • Download VSIXs from GitHub pre-release                        │
+│  • Install and test                                              │
+│  • Approve when ready                                            │
+└────────┬─────────────────────────────────────────────────────────┘
+         │                                                               │
+         ▼                                                               │
+┌──────────────────────────────────────────────────────────────────┐
+│  publishVSCode.yml (Manual Trigger)                              │
+│  • Extracts VSIXs from GitHub release                            │
+│  • Publishes to Marketplace as STABLE                            │
+│  • Triggers Web Console release                                  │
+│  • Auto-closes shipped GitHub issues                             │
+└──────────────────────────────────────────────────────────────────┘
+                                                                         │
+                                                                         │
+═══════════════════════════════════════════════════════════════════════  │
+EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
+═══════════════════════════════════════════════════════════════════════  │
+                                                                         │
+   Critical Bug Discovered ────────────────────────────────────────┐     │
+           │                                                       │      │
+           ▼                                                       │      │
    ┌────────────────┐                                              │      │
    │ Hotfix Branch  │                                              │      │
    │ or Commit SHA  │                                              │      │
    └───────┬────────┘                                              │      │
-           │                                                        │      │
-           ▼                                                        │      │
+           │                                                       │      │
+           ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐        │      │
    │ Step 1: build-release.yml                            │        │      │
    │ -f publishAsPrerelease=true                          │        │      │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │
-   │ │ • No version bump (tags source directly)          │        │      │
-   │ │ • No branch creation                              │        │      │
-   │ │ • Builds VSIXs from exact ref                     │        │      │
-   │ │ • Creates GitHub pre-release                      │        │      │
+   │ │ • Uses version from source's package.json (must    │        │      │
+   │ │   be unique, not already published to marketplace) │        │      │
+   │ │ • No automated version bump or branch creation     │        │      │
+   │ │ • Builds VSIXs from exact ref                      │        │      │
+   │ │ • Creates GitHub pre-release with nightly tag      │        │      │
    │ └────────────────────────────────────────────────────┤        │      │
    └───────┬──────────────────────────────────────────────┘        │      │
-           │                                                        │      │
-           ▼                                                        │      │
-   ┌──────────────────────────────────────────────────────┐        │      │
-   │ Step 2: promote-nightly-to-prerelease.yml                       │        │      │
-   │ -f releaseTag=v67.13.7-nightly.develop.20260821      │        │      │
-   │ (~2 minutes)                                         │        │      │
-   │ ┌────────────────────────────────────────────────────┤        │      │
-   │ │ • Publishes to VS Code Marketplace               │        │      │
-   │ │ • Publishes to Open VSX                          │        │      │
-   │ │ • Available to all users immediately             │        │      │
-   │ └────────────────────────────────────────────────────┤        │      │
-   └───────┬──────────────────────────────────────────────┘        │      │
-           │                                                        │      │
-           ▼                                                        │      │
-   ┌──────────────────────────────────────────────────────┐        │      │
-   │ LIVE ON MARKETPLACE (as pre-release)                 │        │      │
-   │ Total time: ~5 minutes from hotfix → users          │        │      │
-   └──────────────────────────────────────────────────────┘        │      │
-                                                                    │      │
-═══════════════════════════════════════════════════════════════════        │
-EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!                │
-═══════════════════════════════════════════════════════════════════        │
-                                                                           │
+           │                                                       │      │
+           ▼                                                       │      │
+   ┌──────────────────────────────────────────────────────┐
+   │ Step 2: promote-nightly-to-prerelease.yml            │
+   │ -f releaseTag=v67.13.7-nightly.develop.20260821      │
+   │ (~2 minutes)                                         │
+   │ ┌────────────────────────────────────────────────────┤
+   │ │ • Publishes to VS Code Marketplace                 │
+   │ │ • Publishes to Open VSX                            │
+   │ │ • Available to all users immediately               │
+   │ └────────────────────────────────────────────────────┤
+   └───────┬──────────────────────────────────────────────┘
+           │                                                       │      │
+           ▼                                                       │      │
+   ┌──────────────────────────────────────────────────────┐
+   │ LIVE ON MARKETPLACE (as pre-release)                 │
+   │ Total time: ~5 minutes from hotfix → users           │
+   └──────────────────────────────────────────────────────┘
+                                                                   │      │
+═══════════════════════════════════════════════════════════════════       │
+EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!               │
+═══════════════════════════════════════════════════════════════════       │
+                                                                          │
    v67.12.0 in marketplace has critical bug ──────────────────────┐       │
-           │                                                       │       │
-           ▼                                                       │       │
-   ┌──────────────────────────────────────────────────────┐       │       │
-   │ create-patch-release-branch.yml                      │       │       │
-   │ -f baseVersion=67.12.0                               │       │       │
-   │ • Creates release-base/v67.12.x from tag             │       │       │
-   └───────┬──────────────────────────────────────────────┘       │       │
-           │                                                       │       │
-           ▼                                                       │       │
-   ┌──────────────────────────────────────────────────────┐       │       │
-   │ Push fixes to release-base/v67.12.x                  │       │       │
-   └───────┬──────────────────────────────────────────────┘       │       │
-           │                                                       │       │
-           ▼                                                       │       │
-   ┌──────────────────────────────────────────────────────┐       │       │
-   │ build-patch-release.yml                              │       │       │
-   │ • Auto-increments (v67.12.0 → v67.12.1)              │       │       │
-   │ • Builds VSIXs                                       │       │       │
-   └───────┬──────────────────────────────────────────────┘       │       │
-           │                                                       │       │
-           ▼                                                       │       │
-   ┌──────────────────────────────────────────────────────┐       │       │
-   │ publishVSCode.yml → Marketplace                      │       │       │
-   └──────────────────────────────────────────────────────┘       │       │
-                                                                   │       │
+           │                                                      │       │
+           ▼                                                      │       │
+   ┌──────────────────────────────────────────────────────┐
+   │ create-patch-release-branch.yml                      │
+   │ -f baseVersion=67.12.0                               │
+   │ • Creates release-base/v67.12.x from tag             │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ Push fixes to release-base/v67.12.x                  │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ build-patch-release.yml                              │
+   │ • Auto-increments (v67.12.0 → v67.12.1)              │
+   │ • Builds VSIXs                                       │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ publishVSCode.yml → Marketplace                      │
+   └──────────────────────────────────────────────────────┘
+                                                                  │       │
 ═══════════════════════════════════════════════════════════════════════════
 
 KEY IMPROVEMENTS SUMMARY:
@@ -362,7 +363,7 @@ Emergency Path: ❌ None (wait 7+ days)
 WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
                               ├─ promote-nightly-to-prerelease.yml (AUTOMATED 7 AM UTC)
-                              │    • Finds nightly ≥7 days old w/ passing E2E
+                              │    • Finds most recent CI-passing nightly (min-tag-age: 0 days)
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
                               │    ✓ Real users test in production
