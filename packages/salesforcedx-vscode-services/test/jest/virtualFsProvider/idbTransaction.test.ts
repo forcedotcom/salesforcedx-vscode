@@ -12,20 +12,26 @@ import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
 import { settleIdbTransaction } from '../../../src/virtualFsProvider/idbTransaction';
 
+type IdbHandler = ((ev: Event) => void) | null;
+
+const fire = (handler: IdbHandler, type: string): void => {
+  handler?.(new Event(type));
+};
+
 const fakeIdb = (result = 'saved-key') => {
   const abort = jest.fn();
   const transaction = {
     error: null as DOMException | null,
-    oncomplete: null as IDBTransaction['oncomplete'],
-    onabort: null as IDBTransaction['onabort'],
-    onerror: null as IDBTransaction['onerror'],
+    oncomplete: null as IdbHandler,
+    onabort: null as IdbHandler,
+    onerror: null as IdbHandler,
     abort
   };
   const request = {
     result,
     error: null as DOMException | null,
-    onsuccess: null as IDBRequest['onsuccess'],
-    onerror: null as IDBRequest['onerror']
+    onsuccess: null as IdbHandler,
+    onerror: null as IdbHandler
   };
   return { transaction, request, abort };
 };
@@ -38,7 +44,7 @@ describe('settleIdbTransaction', () => {
         const fiber = yield* Effect.fork(settleIdbTransaction(transaction, request, 'readwrite'));
         yield* Effect.yieldNow();
         yield* Effect.sync(() => {
-          transaction.oncomplete?.(new Event('complete'));
+          fire(transaction.oncomplete, 'complete');
         });
         return yield* Fiber.join(fiber);
       })
@@ -53,7 +59,7 @@ describe('settleIdbTransaction', () => {
         const fiber = yield* Effect.fork(settleIdbTransaction(transaction, request, 'readwrite'));
         yield* Effect.yieldNow();
         yield* Effect.sync(() => {
-          transaction.onabort?.(new Event('abort'));
+          fire(transaction.onabort, 'abort');
         });
         return yield* Fiber.await(fiber);
       })
@@ -71,7 +77,7 @@ describe('settleIdbTransaction', () => {
     const hung = fakeIdb();
     const next = fakeIdb('second-key');
     hung.abort.mockImplementation(() => {
-      hung.transaction.onabort?.(new Event('abort'));
+      fire(hung.transaction.onabort, 'abort');
     });
 
     const hungExit = await Effect.runPromise(
@@ -91,7 +97,7 @@ describe('settleIdbTransaction', () => {
         const nextFiber = yield* Effect.fork(settleIdbTransaction(next.transaction, next.request, 'readwrite'));
         yield* Effect.yieldNow();
         yield* Effect.sync(() => {
-          next.transaction.oncomplete?.(new Event('complete'));
+          fire(next.transaction.oncomplete, 'complete');
         });
         return yield* Fiber.join(nextFiber);
       })
