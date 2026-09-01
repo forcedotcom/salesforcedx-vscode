@@ -6,7 +6,6 @@
  */
 import { flow } from 'effect/Function';
 import { isNotUndefined, isRecord } from 'effect/Predicate';
-import { redactSfCommands } from './redactSfCommands';
 
 // Web-safe: no `node:` imports — this module is consumed by spansWeb.ts as well as spansNode.ts.
 
@@ -51,6 +50,8 @@ const VALUE_PATTERNS: readonly (readonly [label: string, group: string, source: 
   ]
 ];
 
+const REDACTED_VALUE_LABELS: ReadonlySet<string> = new Set(VALUE_PATTERNS.map(([label]) => label));
+
 /**
  * Cheap `includes` pre-check: `RedactingSpanProcessor.onEnding` runs synchronously on every span end
  * in every session, so values with no recognizable sensitive shape must not reach the combined regex at all.
@@ -75,40 +76,45 @@ const redactRecognizableValues = (value: string): string =>
 
 // #endregion
 
-// #region Contextual target configuration redaction
+// #region Target-org argument redaction
 
-const REDACTED_USERNAME_OR_ALIAS = '<REDACTED USERNAME OR ALIAS>';
+const REDACTED_TARGET_ORG = '<REDACTED TARGET ORG>';
+const SF_CLI_HINT = /(^|\s)sf(?:\s|$)/;
 /**
- * Org aliases and opaque usernames have no intrinsic shape that can join VALUE_PATTERNS. Standalone
- * target configuration assignments can appear outside a complete `sf` command, so retain this
- * narrow contextual rule after catalog-driven command redaction.
+ * Target-org aliases do not have an intrinsic shape that can join VALUE_PATTERNS: an arbitrary
+ * string becomes sensitive only when it is the value of a target-org flag. Replacing the value
+ * must also preserve the flag, separator, and quote style. The short `-o` flag needs the additional
+ * `sf` context check because other commands use the same flag for unrelated values.
  *
- * The `<REDACTED...>` alternative is required because recognizable-value matching runs first. An
- * email-shaped target username therefore reaches this parser as the space-containing
+ * The `<REDACTED...>` alternative is required because the general VALUE_PATTERNS matcher runs first.
+ * An email-shaped target-org username therefore reaches this parser as the space-containing
  * `<REDACTED USERNAME OR EMAIL>` label, which must be captured atomically before the unquoted-value
  * fallback.
  */
-const TARGET_CONFIG_ASSIGNMENT = /(^|\s)(target-org|target-dev-hub)(\s*=\s*)("[^"]*"|'[^']*'|<REDACTED[^>]*>|[^\s]+)/g;
-const REDACTION_LABEL = /^<REDACTED [^>]+>$/;
+const TARGET_ORG_ARGUMENT = /(^|\s)(--target-org|-o)(=|\s+)("[^"]*"|'[^']*'|<REDACTED[^>]*>|[^\s]+)/g;
 
-const unquote = (value: string): string =>
-  value.startsWith('"') || value.startsWith("'") ? value.slice(1, -1) : value;
+const redactTargetOrgArguments = (value: string): string => {
+  const isSfCommand = SF_CLI_HINT.test(value);
 
-const replacePreservingQuotes = (value: string, replacement: string): string =>
-  value.startsWith('"') ? `"${replacement}"` : value.startsWith("'") ? `'${replacement}'` : replacement;
+  return value.replaceAll(
+    TARGET_ORG_ARGUMENT,
+    (match, leading: string, flag: string, separator: string, argument: string) => {
+      if (flag === '-o' && !isSfCommand) return match;
 
-const redactTargetConfigAssignments = (value: string): string =>
-  value.replaceAll(
-    TARGET_CONFIG_ASSIGNMENT,
-    (match: string, leading: string, identifier: string, separator: string, argument: string) => {
-      if (REDACTION_LABEL.test(unquote(argument))) return match;
+      const unquotedArgument = argument.startsWith('"') || argument.startsWith("'") ? argument.slice(1, -1) : argument;
+      if (REDACTED_VALUE_LABELS.has(unquotedArgument) || unquotedArgument === REDACTED_TARGET_ORG) return match;
 
-      const redactedArgument = replacePreservingQuotes(argument, REDACTED_USERNAME_OR_ALIAS);
-      return `${leading}${identifier}${separator}${redactedArgument}`;
+      const redactedArgument = argument.startsWith('"')
+        ? `"${REDACTED_TARGET_ORG}"`
+        : argument.startsWith("'")
+          ? `'${REDACTED_TARGET_ORG}'`
+          : REDACTED_TARGET_ORG;
+      return `${leading}${flag}${separator}${redactedArgument}`;
     }
   );
+};
 
 // #endregion
 
 /** Redact known secret and PII shapes while preserving their surrounding telemetry context. */
-export const redactSensitiveData = flow(redactSfCommands, redactRecognizableValues, redactTargetConfigAssignments);
+export const redactSensitiveData = flow(redactRecognizableValues, redactTargetOrgArguments);

@@ -10,7 +10,7 @@ import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isString } from 'effect/Predicate';
+import { isRecord, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { SFDX_CORE_SECTION } from '../constants';
 import { ConfigService } from '../core/configService';
@@ -18,19 +18,54 @@ import { SettingsService } from '../vscode/settingsService';
 import { ChildProcess } from './childProcess';
 
 export class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
-/** node's `exec` rejection (ExecException) carries `.stdout`/`.stderr`. Its `.message` already appends
- * stderr, but never stdout — `sf --json` puts its error payload on stdout, so fold any stdout not already
- * present into the message so failure-inspecting callers see the full output. */
-const hasStringStdout = (e: Error): e is Error & { stdout: string } => 'stdout' in e && isString(e.stdout);
+type ExecFailure = Readonly<{
+  message: string;
+  errorType: 'cancelled' | 'nonzero_exit' | 'spawn_error' | 'timeout' | 'unknown';
+  exitCode?: number;
+  signal?: string;
+  stdoutBytes: number;
+  stderrBytes: number;
+}>;
 
-const execErrorMessage = (e: unknown): string => {
-  if (!isError(e)) return 'exec failed';
-  const trimmedStdout = hasStringStdout(e) ? e.stdout.trim() : '';
-  return trimmedStdout && !e.message.includes(trimmedStdout) ? `${e.message}\n${trimmedStdout}` : e.message;
+const byteLength = (value: string): number => new TextEncoder().encode(value).byteLength;
+
+const execFailure = (e: unknown): ExecFailure => {
+  if (!isRecord(e)) {
+    return { message: 'Command failed', errorType: 'unknown', stdoutBytes: 0, stderrBytes: 0 };
+  }
+
+  // node's ExecException is an Error with additional process fields. Runtime-check every field at
+  // this boundary and intentionally ignore `message` and `cmd`, which contain the full invocation.
+  const stdout = isString(e.stdout) ? e.stdout : '';
+  const stderr = isString(e.stderr) ? e.stderr : '';
+  const code = typeof e.code === 'number' ? e.code : undefined;
+  const codeName = isString(e.code) ? e.code : undefined;
+  const signal = isString(e.signal) ? e.signal : undefined;
+  const killed = e.killed === true;
+  const errorType =
+    codeName === 'ABORT_ERR'
+      ? 'cancelled'
+      : killed
+        ? 'timeout'
+        : code !== undefined
+          ? 'nonzero_exit'
+          : codeName !== undefined
+            ? 'spawn_error'
+            : 'unknown';
+  const identifier = code ?? codeName ?? signal;
+  const diagnostics = [stderr.trim(), stdout.trim()].filter(value => value.length > 0);
+
+  return {
+    message: [`Command failed${identifier === undefined ? '' : ` (${identifier})`}`, ...diagnostics].join('\n'),
+    errorType,
+    ...(code === undefined ? {} : { exitCode: code }),
+    ...(signal === undefined ? {} : { signal }),
+    stdoutBytes: byteLength(stdout),
+    stderrBytes: byteLength(stderr)
+  };
 };
 
 /** Nothing about assembling the CLI env may fail a CLI command: log the cause at debug and fall back. */
@@ -105,10 +140,15 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       env?: Record<string, string>;
       cwd?: string;
     }) {
-      yield* Effect.annotateCurrentSpan('command', command);
+      const timeoutMs = Duration.toMillis(timeout);
+      yield* Effect.annotateCurrentSpan({
+        'terminal.timeout.ms': timeoutMs,
+        'terminal.cwd.set': cwd !== undefined
+      });
       // fail fast before any settings/config work: none of it is available (or wanted) on web
       if (process.env.ESBUILD_PLATFORM === 'web') {
-        return yield* new TerminalServiceError({ message: 'Not available on web', command });
+        yield* Effect.annotateCurrentSpan('error.type', 'unsupported_platform');
+        return yield* new TerminalServiceError({ message: 'Not available on web' });
       }
       // FORCE_COLOR=0 strips the ANSI escapes sf wraps JSON in (else JSON.parse breaks); SF_JSON_TO_STDOUT keeps
       // the payload on stdout; SFDX_TOOL is read by @salesforce/plugin-telemetry to attribute the invocation to
@@ -129,12 +169,29 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
       const result = yield* Effect.tryPromise({
         // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
-        try: signal => childProcess.exec(command, { timeout: Duration.toMillis(timeout), signal, env: mergedEnv, cwd }),
-        // node's exec rejection appends stderr to `.message` but NOT stdout. `sf --json` writes its
-        // structured error payload to stdout (SF_JSON_TO_STDOUT), so fold stdout in too — else callers
-        // inspecting the failure (e.g. port-conflict detection) never see the JSON error text.
-        catch: e => new TerminalServiceError({ message: execErrorMessage(e), command })
-      });
+        try: signal => childProcess.exec(command, { timeout: timeoutMs, signal, env: mergedEnv, cwd }),
+        // Never copy node's error.message: ExecException embeds the complete command. Rebuild a diagnostic
+        // from the low-cardinality result and stdout/stderr instead; sf JSON failures are written to stdout.
+        catch: execFailure
+      }).pipe(
+        Effect.tap(execution =>
+          Effect.annotateCurrentSpan({
+            'process.exit.code': 0,
+            'terminal.stdout.bytes': byteLength(execution.stdout),
+            'terminal.stderr.bytes': byteLength(execution.stderr)
+          })
+        ),
+        Effect.tapError(failure =>
+          Effect.annotateCurrentSpan({
+            ...(failure.exitCode === undefined ? {} : { 'process.exit.code': failure.exitCode }),
+            'error.type': failure.errorType,
+            ...(failure.signal === undefined ? {} : { 'terminal.signal': failure.signal }),
+            'terminal.stdout.bytes': failure.stdoutBytes,
+            'terminal.stderr.bytes': failure.stderrBytes
+          })
+        ),
+        Effect.mapError(failure => new TerminalServiceError({ message: failure.message }))
+      );
       return parse(result.stdout.trim());
     });
     return { simpleExec };
