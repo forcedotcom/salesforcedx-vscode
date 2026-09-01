@@ -142,7 +142,6 @@ jobs:
 
       - name: Collect VSIXs
         uses: ./.github/actions/collect-vsix
-          echo "✓ Found $VSIX_COUNT VSIX files"
 
       - name: Generate SHA256 checksums
         run: |
