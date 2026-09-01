@@ -18,6 +18,7 @@ import {
   SerializedEntryWithPath,
   SerializedFileWithPath
 } from './fsTypes';
+import { settleIdbTransaction } from './idbTransaction';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const SALESFORCE_DOMAIN_SUFFIXES = [
@@ -85,35 +86,17 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
     );
 
     const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
-      Effect.async<A, VirtualFsProviderError>(resume => {
+      Effect.suspend(() => {
         // eslint-disable-next-line functional/no-try-statements
         try {
           const transaction = db.transaction(STORE_NAME, mode);
-          const store = transaction.objectStore(STORE_NAME);
-          const request = f(store);
-
-          request.onsuccess = (): void => {
-            resume(Effect.succeed(request.result));
-          };
-
-          request.onerror = (): void => {
-            resume(
-              Effect.fail(
-                new VirtualFsProviderError({
-                  ...unknownToErrorCause(request.error),
-                  message: `Transaction failed with mode "${mode}"`
-                })
-              )
-            );
-          };
+          return settleIdbTransaction(transaction, f(transaction.objectStore(STORE_NAME)), mode);
         } catch (error: unknown) {
-          resume(
-            Effect.fail(
-              new VirtualFsProviderError({
-                ...unknownToErrorCause(error),
-                message: `Transaction failed with mode "${mode}"`
-              })
-            )
+          return Effect.fail(
+            new VirtualFsProviderError({
+              ...unknownToErrorCause(error),
+              message: `Transaction failed with mode "${mode}"`
+            })
           );
         }
       });
