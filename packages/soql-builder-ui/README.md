@@ -2,6 +2,11 @@
 
 `@salesforce/soql-builder-ui` is the private, browser-safe Lit and Effect foundation for the SOQL Builder. It owns presentation, validated browser DTOs, UI state and actions, and scoped controller lifecycle primitives. It does not import VS Code APIs, extension services, JSforce, or extension-host message types.
 
+The Lit From control uses a labeled, searchable `vscode-single-select`. It preserves form association and exposes
+loading, empty, no-match, recoverable validation, restored-selection, and external-update states through the shared
+builder state contract. Object selection remains an action: the extension-owned service resets dependent query clauses,
+publishes the document update, and requests catalog-backed metadata.
+
 The extension owns the VS Code integration service and connects it to one scoped Effect session for the lifetime of the Lit application. An explicit migration build can package that application for demonstrations and integration testing. Normal release builds continue to build and activate the existing LWC application until the cutover story.
 
 This workspace is not published to npm and does not include an example Node server.
