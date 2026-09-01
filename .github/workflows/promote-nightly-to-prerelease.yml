@@ -53,7 +53,7 @@ jobs:
   # Step 3: Promote to prerelease (only runs if gate-check passed)
   promote:
     needs: [find-nightly, gate-check]
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-nightly-to-prerelease.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
