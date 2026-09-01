@@ -163,12 +163,20 @@ jobs:
           # Use PREV_TAG from calculate-version step instead of deriving from VERSION
           COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG..$TAG" 2>/dev/null || echo "- Initial patch release")
 
-          # Generate release notes from template
-          sed -e "s|{{VERSION}}|${VERSION}|g" \
-              -e "s|{{BRANCH}}|${BRANCH}|g" \
-              -e "s|{{REPOSITORY}}|${{ github.repository }}|g" \
-              -e "s|{{COMMITS}}|${COMMITS}|g" \
-              .github/release-templates/patch-release.md > release_notes.md
+          # Generate release notes (write directly to avoid sed escaping issues)
+          cat > release_notes.md <<EOF
+          ## Patch Release ${VERSION}
+
+          **Built from branch:** \`${BRANCH}\`
+
+          ### Changes
+
+          ${COMMITS}
+
+          ⚠️ **Pre-release for internal testing only.**
+
+          📚 **See [docs/release-testing-guide.md](https://github.com/${{ github.repository }}/blob/develop/docs/release-testing-guide.md) for complete testing and publishing instructions.**
+          EOF
 
           # Check if release already exists
           if gh release view "$TAG" &> /dev/null; then
