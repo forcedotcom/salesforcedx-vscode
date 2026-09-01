@@ -19,7 +19,7 @@ test('renders loading, disabled, live status, and alert states from the fake ser
     await expect(page.getByRole('form', { name: 'Query inputs' })).toHaveAttribute('aria-busy', 'true');
     await expect(fromSelect(page)).toHaveAttribute('disabled', '');
     await expect(fieldsSelect(page)).toHaveAttribute('disabled', '');
-    await expect(page.getByRole('status')).toContainText('SELECT Id FROM Account');
+    await expect(page.getByRole('status').filter({ hasText: 'Query preview' })).toContainText('SELECT Id FROM Account');
   });
 
   await test.step('clears loading and disabled states on the next emitted state', async () => {

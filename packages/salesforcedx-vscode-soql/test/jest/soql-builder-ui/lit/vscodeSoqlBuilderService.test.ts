@@ -173,6 +173,82 @@ describe('VscodeSoqlBuilderService', () => {
     expect(state.notificationsDismissed).toBe(true);
   });
 
+  it('resets dependent clauses and requests metadata once when From changes', async () => {
+    const harness = makeMessageHarness({
+      originalSoqlStatement:
+        "SELECT Id FROM Account WHERE Name = 'Acme' ORDER BY Name DESC NULLS LAST LIMIT 10 ALL ROWS"
+    });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.query).toMatchObject({
+      allRows: false,
+      fields: [],
+      limit: { _tag: 'Empty' },
+      orderBy: [],
+      sObject: 'Contact',
+      where: { conditions: [] }
+    });
+    expect(
+      harness.messages.filter(
+        message => message.type === MessageType.SOBJECT_METADATA_REQUEST && message.payload === 'Contact'
+      )
+    ).toHaveLength(1);
+    const publishedQuery = harness.messages.findLast(message => message.type === MessageType.UI_SOQL_CHANGED)?.payload;
+    expect(publishedQuery).toContain('FROM Contact');
+    expect(publishedQuery).not.toMatch(/WHERE|ORDER BY|LIMIT|ALL ROWS/u);
+  });
+
+  it('clears object metadata for a missing org and ignores a late object-list response', async () => {
+    const harness = makeMessageHarness();
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Account'] });
+        yield* Effect.sleep(Duration.millis(10));
+        harness.emit({ type: MessageType.NO_DEFAULT_ORG });
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['PreviousOrgObject__c'] });
+        yield* Effect.sleep(Duration.millis(10));
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.hasNoDefaultOrg).toBe(true);
+    expect(state.metadata.objects).toEqual([]);
+    expect(state.isObjectsLoading).toBe(false);
+  });
+
+  it('clears metadata and reloads a restored selection after the default org changes', async () => {
+    const harness = makeMessageHarness({ originalSoqlStatement: 'SELECT Id FROM Account' });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Account', 'Contact'] });
+        yield* Effect.sleep(Duration.millis(10));
+        harness.emit({ type: MessageType.CONNECTION_CHANGED });
+        yield* Effect.sleep(Duration.millis(10));
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.hasNoDefaultOrg).toBe(false);
+    expect(state.metadata.objects).toEqual([]);
+    expect(state.isObjectsLoading).toBe(true);
+    expect(state.isFieldsLoading).toBe(true);
+    expect(harness.messages.filter(message => message.type === MessageType.SOBJECTS_REQUEST)).toHaveLength(2);
+    expect(
+      harness.messages.filter(
+        message => message.type === MessageType.SOBJECT_METADATA_REQUEST && message.payload === 'Account'
+      )
+    ).toHaveLength(2);
+  });
+
   it('restores the complete query and does not echo external text changes', async () => {
     const harness = makeMessageHarness();
     const statement =
