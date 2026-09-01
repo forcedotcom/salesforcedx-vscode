@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -76,6 +78,10 @@ export const formatErrorMessage = (error: unknown): string => {
     : error && typeof error === 'object' && 'message' in error
       ? String(error.message)
       : String(error);
-  const matched = ERROR_PATTERNS.find(({ match }) => match(errorString));
-  return matched ? nls.localize(matched.key) : nls.localize('data_query_error_message', errorString);
+  return Arr.findFirst(ERROR_PATTERNS, ({ match }) => match(errorString)).pipe(
+    Option.match({
+      onNone: () => nls.localize('data_query_error_message', errorString),
+      onSome: matched => nls.localize(matched.key)
+    })
+  );
 };

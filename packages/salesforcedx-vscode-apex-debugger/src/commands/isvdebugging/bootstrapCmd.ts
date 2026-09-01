@@ -6,9 +6,11 @@
  */
 import { Global } from '@salesforce/core/global';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
+import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
@@ -68,14 +70,24 @@ const relativeInstalledPackagesPath = () => path.join(relativeToolsFolder(), INS
 
 /** Parses `sf data query --json` stdout for `Organization.NamespacePrefix`; empty string when absent. */
 export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string => {
-  const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
-  if (
-    orgNamespaceQueryResponse.result?.records?.[0] &&
-    isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
-  ) {
-    return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
-  }
-  return '';
+  const orgNamespaceQueryResponse: unknown = JSON.parse(orgNamespaceQueryJson);
+  const records: readonly unknown[] =
+    typeof orgNamespaceQueryResponse === 'object' &&
+    orgNamespaceQueryResponse !== null &&
+    'result' in orgNamespaceQueryResponse &&
+    typeof orgNamespaceQueryResponse.result === 'object' &&
+    orgNamespaceQueryResponse.result !== null &&
+    'records' in orgNamespaceQueryResponse.result &&
+    Array.isArray(orgNamespaceQueryResponse.result.records)
+      ? orgNamespaceQueryResponse.result.records
+      : [];
+  return Arr.head(records).pipe(
+    Option.map(record =>
+      typeof record === 'object' && record !== null && 'NamespacePrefix' in record ? record.NamespacePrefix : undefined
+    ),
+    Option.filter(isString),
+    Option.getOrElse(() => '')
+  );
 };
 
 /** Parses `sf package installed list --json` stdout into the installed-package descriptors. */
@@ -167,7 +179,14 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(Effect.flatMap(folders => promptService.considerUndefinedAsCancellation(folders?.[0])));
+  ).pipe(
+    Effect.flatMap(folders =>
+      Option.match(Arr.head(folders ?? []), {
+        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
+        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
+      })
+    )
+  );
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });

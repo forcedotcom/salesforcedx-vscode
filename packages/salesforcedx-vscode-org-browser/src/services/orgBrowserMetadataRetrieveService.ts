@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
@@ -46,7 +47,13 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
       onSome: filePath =>
         fsService
           .showTextDocument(
-            URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath })
+            URI.from({
+              scheme: Option.getOrElse(
+                Option.map(Arr.head(vscode.workspace.workspaceFolders ?? []), folder => folder.uri.scheme),
+                () => 'file'
+              ),
+              path: filePath
+            })
           )
           .pipe(Effect.catchTag('FsServiceError', e => Effect.log(`Could not open file: ${String(e)}`)))
     });
@@ -57,7 +64,10 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
+  Arr.head(result.getFileResponses()).pipe(
+    Option.flatMap(response => Option.fromNullable(response.filePath)),
+    Option.map(filePath => filePath.replace(/^\\/, '/'))
+  );
 
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
   'OrgBrowserRetrieveService',
