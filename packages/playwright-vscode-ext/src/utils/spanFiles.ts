@@ -14,6 +14,9 @@ export const SPANS_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
 
 export type SpanRow = {
   kind?: string;
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
   name?: string;
   startTimeUnixNano?: string;
   attributes?: Record<string, unknown>;
