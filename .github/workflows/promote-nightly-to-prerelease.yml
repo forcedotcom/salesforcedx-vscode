@@ -3,20 +3,15 @@ name: Promote Nightly to Pre-release
 on:
   schedule:
     # Wednesdays at 7 AM UTC (3h after nightly build at 4 AM)
-    # Rationale: Weekly promotion cycle - promotes nightly ≥7 days old to prerelease
+    # Rationale: Weekly promotion cycle - promotes most recent CI-passing nightly to prerelease
     # Next week's build-release.yml (Wed 8 AM UTC) builds stable from this week's promoted prerelease
-    # This gives 7 days of customer testing before stable release
+    # This gives 7 days of customer testing in prerelease before stable release
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
       releaseTag:
-        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Use for emergency pre-releases. Overrides min-tag-age-days.'
+        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Leave empty to auto-detect most recent CI-passing nightly.'
         required: false
-        type: string
-      min-tag-age-days:
-        description: 'Minimum nightly age in days before eligible for promotion (default: 7 for weekly promotion cycle). Ignored if releaseTag provided.'
-        required: false
-        default: '7'
         type: string
       dry-run:
         description: 'Run in dry-run mode (no actual publishing or tagging)'
@@ -38,7 +33,7 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@main
     with:
       release-tag: ${{ inputs.releaseTag || '' }}
-      min-tag-age-days: ${{ inputs.min-tag-age-days || '0' }}
+      min-tag-age-days: '0'
 
   # Step 2: Gate-check CI status (THIS REPO CONTROLS CRITERIA)
   gate-check:
