@@ -38,7 +38,7 @@
     "@vscode/test-web": "^0.0.81"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.0.0"
+    "@salesforce/core": "^9.1.9"
   },
   "scripts": {
     "check:circular-deps": "wireit",

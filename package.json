@@ -17,7 +17,7 @@
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "jsforce": "^3.10.19",
+    "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^11",

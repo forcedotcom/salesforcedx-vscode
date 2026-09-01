@@ -17,7 +17,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^9.0.0",
+    "@salesforce/core": "^9.1.9",
     "@salesforce/kit": "^4.0.0",
     "@salesforce/ts-types": "^3.0.0",
     "fast-glob": "^3.3.2",

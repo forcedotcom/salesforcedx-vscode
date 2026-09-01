@@ -26,8 +26,7 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 
 /** Same tag as the real services error, so the command's catchTag recovers it. */
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
 const SCRATCH_RESULT = {
@@ -187,13 +186,11 @@ describe('orgDisplayDefaultCommand', () => {
 
   it('recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload', async () => {
     // sf exits non-zero on failure, so simpleExec fails; its message carries the JSON error payload,
-    // which decodeTaggedCliResponse slices out of the `Command failed: ...` prefix.
-    const command = 'sf org display --target-org "me@scratch.org" --json';
+    // which decodeTaggedCliResponse extracts after TerminalService's command-free failure prefix.
     simpleExec = jest.fn(() =>
       Effect.fail(
         new TerminalServiceError({
-          command,
-          message: `Command failed: ${command}\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
+          message: `Command failed\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
         })
       )
     );
@@ -208,9 +205,7 @@ describe('orgDisplayDefaultCommand', () => {
   it('propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)', async () => {
     // infra failure, not a CLI-reported one: there is nothing to decode, so the typed error must reach
     // ErrorHandlerService with its real diagnostic instead of becoming an opaque OrgDisplayParseError.
-    simpleExec = jest.fn(() =>
-      Effect.fail(new TerminalServiceError({ command: 'sf org display --json', message: 'sh: sf: command not found' }))
-    );
+    simpleExec = jest.fn(() => Effect.fail(new TerminalServiceError({ message: 'sh: sf: command not found' })));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
