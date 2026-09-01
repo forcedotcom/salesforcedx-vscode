@@ -1,14 +1,14 @@
 name: Create Patch Release Branch
 
 # Creates a release-base/v{major}.{minor}.x branch from an existing release tag
-# for iterative patching. After fixes are pushed, run build-patch-release.yml
+# for iterative patching. After fixes are pushed, run build-and-release-patch-branch.yml
 # to tag and release the patch version.
 #
 # Usage:
 #   1. Run this workflow with baseVersion (e.g., 67.12.0)
 #   2. Workflow creates release-base/v67.12.x from tag v67.12.0
 #   3. Push your fixes to release-base/v67.12.x
-#   4. Run build-patch-release.yml to tag v67.12.1 and create release
+#   4. Run build-and-release-patch-branch.yml to tag v67.12.1 and create release
 
 on:
   workflow_dispatch:

@@ -6,7 +6,7 @@ Guide for testing pre-release builds before publishing to marketplace.
 
 This guide covers testing and publishing for:
 - **Stable releases** (built by `build-release.yml`)
-- **Patch releases** (built by `build-patch-release.yml`)
+- **Patch releases** (built by `build-and-release-patch-branch.yml`)
 - **Emergency pre-releases** (built by `build-release.yml` with `publishAsPrerelease=true`)
 
 After any build workflow creates a pre-release, follow these steps to test and publish.
@@ -97,7 +97,7 @@ For hotfixes on already-published stable releases:
 
 ```bash
 # From a patch branch (e.g., release/v67.x)
-gh workflow run build-patch-release.yml \
+gh workflow run build-and-release-patch-branch.yml \
   -f branch="release/v67.x" \
   --repo forcedotcom/salesforcedx-vscode
 ```

@@ -198,7 +198,7 @@ git push ci-testing HEAD:release-base/v67.11.x
 ```
 
 **Steps:**
-1. Go to Actions → `build-patch-release.yml`
+1. Go to Actions → `build-and-release-patch-branch.yml`
 2. Click "Run workflow"
 3. Set `releaseBranch`: `release-base/v67.11.x`
 4. Run workflow
@@ -301,7 +301,7 @@ git push ci-testing HEAD:release-base/v67.11.x
 ```
 
 **Steps:**
-1. Run `build-patch-release.yml` again with same branch
+1. Run `build-and-release-patch-branch.yml` again with same branch
 2. Check version increments to `v67.11.2`
 
 **Expected Results:**

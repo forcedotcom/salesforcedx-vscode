@@ -295,7 +295,7 @@ EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!               │
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ build-patch-release.yml                              │
+   │ build-and-release-patch-branch.yml                              │
    │ • Auto-increments (v67.12.0 → v67.12.1)              │
    │ • Builds VSIXs                                       │
    └───────┬──────────────────────────────────────────────┘

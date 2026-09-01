@@ -1,4 +1,4 @@
-name: Build Patch Release
+name: Build and Release Patch Branch
 
 # Tags and builds a patch release from a release-base/v{major}.{minor}.x branch
 # created by create-patch-release-branch.yml.
@@ -31,7 +31,7 @@ permissions:
   actions: read
 
 jobs:
-  build-patch:
+  build-and-release-patch:
     runs-on: ubuntu-latest
     outputs:
       patch_version: ${{ steps.calculate-version.outputs.version }}
@@ -201,13 +201,13 @@ jobs:
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
   summary:
-    needs: build-patch
+    needs: build-and-release-patch
     runs-on: ubuntu-latest
     steps:
       - name: Summary
         env:
-          VERSION: ${{ needs.build-patch.outputs.patch_version }}
-          TAG: ${{ needs.build-patch.outputs.patch_tag }}
+          VERSION: ${{ needs.build-and-release-patch.outputs.patch_version }}
+          TAG: ${{ needs.build-and-release-patch.outputs.patch_tag }}
           BRANCH: ${{ github.event.inputs.releaseBranch }}
         run: |
           echo "## ✅ Patch Release Built Successfully" >> $GITHUB_STEP_SUMMARY

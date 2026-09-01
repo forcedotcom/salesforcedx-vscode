@@ -41,7 +41,7 @@ git push origin release-base/v67.12.x
 ### 4. Build patch release
 
 ```sh
-gh workflow run build-patch-release.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
+gh workflow run build-and-release-patch-branch.yml -f releaseBranch="release-base/v67.12.x" --repo forcedotcom/salesforcedx-vscode
 ```
 
 Auto-calculates patch version (v67.12.0 → v67.12.1), tags exact commit from branch HEAD, builds VSIXs.
@@ -90,7 +90,7 @@ git push origin --delete release-base/v67.12.x
 Reuse the same `release-base/v67.12.x` branch for multiple patches:
 
 1. Make additional fixes on the branch
-2. Run `build-patch-release.yml` again (auto-increments to v67.12.2, v67.12.3, etc.)
+2. Run `build-and-release-patch-branch.yml` again (auto-increments to v67.12.2, v67.12.3, etc.)
 3. Test and publish each patch
 4. Cherry-pick all functional fixes to develop
 5. Delete branch after final patch
