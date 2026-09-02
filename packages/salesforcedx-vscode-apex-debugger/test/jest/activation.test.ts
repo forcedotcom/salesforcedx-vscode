@@ -10,28 +10,36 @@ import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { activateEffect, getExceptionBreakpointCache, type ExceptionBreakpointItem } from '../../src/index';
 
-const registerCommandWithLayer = jest.fn();
+const registerCommandWithRuntime = jest.fn();
 const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
     value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
 };
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void
+} as unknown as NotificationModeService;
 
 const extensionProviderLayer = () =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: {
-        PromptService: Effect.succeed(promptService),
-        registerCommandWithLayer: () => registerCommandWithLayer
-      }
-    })
-  } as unknown as ExtensionProviderService);
+  Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({
+        services: {
+          PromptService: Effect.succeed(promptService),
+          registerCommandWithRuntime: () => registerCommandWithRuntime,
+          NotificationModeService
+        }
+      })
+    } as unknown as ExtensionProviderService),
+    Layer.succeed(NotificationModeService, notificationMode)
+  );
 
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
-
 const runActivate = () =>
   Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
@@ -43,7 +51,7 @@ const runActivate = () =>
 
 const runExceptionBreakpointCommand = async () => {
   await runActivate();
-  const command = registerCommandWithLayer.mock.calls.find(
+  const command = registerCommandWithRuntime.mock.calls.find(
     ([commandId]) => commandId === 'sf.debug.exception.breakpoint'
   )?.[1] as () => Effect.Effect<void, unknown, ExtensionProviderService>;
   return Effect.runPromiseExit(
@@ -54,7 +62,7 @@ const runExceptionBreakpointCommand = async () => {
 describe('activateEffect', () => {
   beforeEach(() => {
     getExceptionBreakpointCache().clear();
-    registerCommandWithLayer.mockReturnValue(Effect.void);
+    registerCommandWithRuntime.mockReturnValue(Effect.void);
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
     (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
@@ -85,9 +93,9 @@ describe('activateEffect', () => {
   it('registers the Effect-based commands', async () => {
     await runActivate();
 
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.exception.breakpoint', expect.anything());
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debug.exception.breakpoint', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
   });
 
   it('fails with UserCancellationError when exception selection is dismissed', async () => {
