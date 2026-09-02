@@ -173,6 +173,48 @@ describe('VscodeSoqlBuilderService', () => {
     expect(state.notificationsDismissed).toBe(true);
   });
 
+  it('publishes COUNT and bulk field-selection actions through the host contract', async () => {
+    const harness = makeMessageHarness();
+    const metadata = {
+      ...accountMetadata,
+      fields: [
+        ...accountMetadata.fields,
+        {
+          ...accountMetadata.fields[0],
+          label: 'Account Name',
+          name: 'Name',
+          type: 'string'
+        }
+      ]
+    } as const;
+
+    await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Account' });
+        harness.emit({ type: MessageType.SOBJECT_METADATA_RESPONSE, payload: metadata });
+        yield* Effect.sleep(Duration.millis(10));
+
+        yield* service.dispatch({ _tag: 'FieldsSelected', fieldNames: ['COUNT()'] });
+        const countState = yield* service.initialState;
+        expect(countState.query.fields).toEqual(['COUNT()']);
+        const countQuery = harness.messages.findLast(message => message.type === MessageType.UI_SOQL_CHANGED)?.payload;
+        expect(countQuery?.replace(/\s+/gu, ' ').trim()).toBe('SELECT COUNT() FROM Account');
+
+        yield* service.dispatch({ _tag: 'AllFieldsSelected' });
+        const allFieldsState = yield* service.initialState;
+        expect(allFieldsState.query.fields).toEqual(['Id', 'Name']);
+        const allFieldsQuery = harness.messages.findLast(
+          message => message.type === MessageType.UI_SOQL_CHANGED
+        )?.payload;
+        expect(allFieldsQuery?.replace(/\s+/gu, ' ').trim()).toBe('SELECT Id, Name FROM Account');
+
+        yield* service.dispatch({ _tag: 'AllFieldsCleared' });
+        const clearedState = yield* service.initialState;
+        expect(clearedState.query.fields).toEqual([]);
+      })
+    );
+  });
+
   it('resets dependent clauses and requests metadata once when From changes', async () => {
     const harness = makeMessageHarness({
       originalSoqlStatement:
