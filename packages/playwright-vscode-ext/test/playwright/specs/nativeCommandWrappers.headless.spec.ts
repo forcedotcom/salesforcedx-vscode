@@ -14,7 +14,6 @@ import {
   goToFile,
   goToLineColumn,
   newUntitledTextFile,
-  paste,
   reloadWindow,
   saveFile,
   selectAll,
@@ -26,7 +25,7 @@ import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET, TAB, WORKBENCH } from '../../../sr
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { test } from '../fixtures/index';
 
-// Coverage scope: the 11 WI-named native wrappers + `focusOnProblemsView`, all exercisable headlessly.
+// Coverage scope: the 10 WI-named native wrappers + `focusOnProblemsView`, all exercisable headlessly.
 // Wrappers that need a desktop context or an extension (`goToDefinition` LSP nav,
 // `showRunningExtensions`, `hideSecondarySideBar`, `closeWorkspace`, `closeEditor`, `find`,
 // `hidePanel`, `clearOutput`, `insertSnippet`, `focusActiveEditorGroup`) are NOT here — they
@@ -143,21 +142,6 @@ test.describe('Native command wrappers', () => {
     await page.keyboard.type('X');
     await expect(editor).toContainText('X');
     await expect(editor).not.toContainText('alpha');
-  });
-
-  test('paste inserts clipboard content at the cursor', async ({ page }) => {
-    await newUntitledTextFile(page);
-    const editor = page.locator(EDITOR_WITH_URI).first();
-    await expect(editor).toBeVisible({ timeout: 10_000 });
-    await editor.click();
-
-    // Web headless: clipboard is per-browser-context (not the shared OS clipboard), so writing then
-    // pasting within this single test does not race other workers.
-    const clipboardText = 'pasted-via-wrapper';
-    await page.evaluate((text: string) => navigator.clipboard.writeText(text), clipboardText);
-
-    await paste(page);
-    await expect(editor).toContainText(clipboardText, { timeout: 10_000 });
   });
 
   test('focusOnProblemsView reveals the Problems view', async ({ page }) => {

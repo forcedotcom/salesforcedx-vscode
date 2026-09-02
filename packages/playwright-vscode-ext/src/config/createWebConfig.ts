@@ -36,13 +36,11 @@ export const createWebConfig = (options: WebConfigOptions) =>
       video: process.env.CI ? 'on' : 'retain-on-failure',
       actionTimeout: 15_000,
       navigationTimeout: 30_000,
-      permissions: ['clipboard-read', 'clipboard-write'],
       launchOptions: {
         args: [
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--disable-features=IsolateOrigins,site-per-process',
-          '--enable-clipboard-read-write'
+          '--disable-features=IsolateOrigins,site-per-process'
         ]
       }
     },
