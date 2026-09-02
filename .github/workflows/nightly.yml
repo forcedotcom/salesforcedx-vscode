@@ -124,7 +124,7 @@ jobs:
 
   nightly-release:
     needs: [build-extension-list, get-git-identity]
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@ms/fix-monorepo-github-release
     with:
       branch: ${{ github.event.inputs.branch || 'develop' }}
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
