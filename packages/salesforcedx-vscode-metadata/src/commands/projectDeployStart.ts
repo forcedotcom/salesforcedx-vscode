@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
@@ -26,31 +27,30 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 });
 
 /** Deploy local changes to the default org */
-export const projectDeployStartCommand = (ignoreConflicts = false) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const notificationMode = yield* api.services.NotificationModeService;
-    return yield* deployEffect(ignoreConflicts).pipe(
-      Effect.catchTag('ConflictsDetectedError', err =>
-        handleConflictWithRetry({
-          pairs: err.pairs,
-          operationType: err.operationType,
-          retryOperation: deployEffect(true)
-        })
-      ),
-      Effect.tap(() =>
-        notificationMode.showSuccessNotification(
-          COMMAND,
-          nls.localize(
-            'command_succeeded_text',
-            ignoreConflicts
-              ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
-              : nls.localize('project_deploy_start_default_org_text')
-          )
+export const projectDeployStartCommand = Effect.fn('projectDeployStartCommand')(function* (ignoreConflicts = false) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  return yield* deployEffect(ignoreConflicts).pipe(
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: deployEffect(true)
+      })
+    ),
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize(
+          'command_succeeded_text',
+          ignoreConflicts
+            ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+            : nls.localize('project_deploy_start_default_org_text')
         )
-      ),
-      Effect.catchTag('EmptyComponentSetError', () =>
-        notificationMode.showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy'))
       )
-    );
-  });
+    ),
+    Effect.catchTag('EmptyComponentSetError', () =>
+      notificationMode.showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy'))
+    )
+  );
+}, preventOrgChanges);

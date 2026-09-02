@@ -11,6 +11,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
@@ -51,5 +52,6 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
-  )
+  ),
+  preventOrgChanges
 );

@@ -12,6 +12,7 @@ import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
@@ -31,17 +32,12 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
     return yield* Effect.void;
   }
   const members = yield* getRetrieveMembers(node, treeProvider);
-  if (members.length === 0) {
-    return yield* Effect.void;
-  }
+  if (members.length === 0) return yield* Effect.void;
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
-
-  const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-
-  yield* confirmOverwrite(projectComponentSet, members);
+  yield* confirmOverwrite(yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories(), members);
 
   return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
     progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
@@ -64,7 +60,7 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
       )
     )
   );
-});
+}, preventOrgChanges);
 
 const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataTypeTreeProvider) =>
   Match.value(node).pipe(

@@ -8,12 +8,15 @@ import { Config } from '@salesforce/core/config';
 import { Global } from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { join, normalize, sep } from 'node:path';
 import { FileChangePubSub } from '../vscode/fileChangePubSub';
+import { AliasService } from './alias';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { clearDefaultOrgRef } from './defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef } from './defaultOrgRef';
 
 /** Check if a file path is a config file (global or project-specific) */
 const isConfigFile = (path: string, globalConfigPath: string, projectConfigPattern: string): boolean => {
@@ -28,14 +31,28 @@ const isConfigFile = (path: string, globalConfigPath: string, projectConfigPatte
  * */
 export const watchConfigFiles = Effect.fn('watchConfigFiles')(function* () {
   const configFileName = Config.getFileName();
-  const globalConfigPath = normalize(join(Global.DIR, configFileName));
+  const globalConfigPath = normalize(join(Global.SF_DIR, configFileName));
   const projectConfigPattern = `${Global.SF_STATE_FOLDER}${sep}${configFileName}`;
+  const aliasFilePath = normalize(join(Global.SFDX_DIR, 'alias.json'));
 
   const fileChangePubSub = yield* FileChangePubSub;
 
-  // Subscribe to file changes and clear defaultOrgRef when config files change
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
-    Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
+    Stream.filterEffect(event => {
+      if (isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)) return Effect.succeed(true);
+      if (normalize(event.uri.fsPath) !== aliasFilePath) return Effect.succeed(false);
+
+      return Effect.gen(function* () {
+        const [targetOrg, currentOrg] = yield* Effect.all([
+          ConfigService.getTargetOrg(),
+          getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get))
+        ]);
+        if (!targetOrg || targetOrg === currentOrg.username) return false;
+
+        const resolvedUsername = yield* AliasService.getUsernameFromAlias(targetOrg);
+        return Option.getOrUndefined(resolvedUsername) !== currentOrg.username;
+      });
+    }),
     Stream.debounce(Duration.millis(5)),
     Stream.tap(() => ConfigService.invalidateConfigAggregator()),
     Stream.tap(() => ConnectionService.invalidateCachedConnections()),
