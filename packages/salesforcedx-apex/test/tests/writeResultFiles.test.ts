@@ -14,7 +14,6 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { writeResultFiles } from '../../src/tests/testService';
 import {
-  ApexTestResultOutcome,
   ResultFormat,
   TestResult,
   TestRunIdResult,
@@ -71,7 +70,7 @@ describe('writeResultFiles', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testMethod1',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
@@ -90,7 +89,7 @@ describe('writeResultFiles', () => {
         message: 'Test failed',
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testMethod2',
-        outcome: ApexTestResultOutcome.Fail,
+        outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
         apexClass: {
           id: '01p000000000002AAA',
@@ -142,7 +141,7 @@ describe('writeResultFiles', () => {
   it('should create JSON result file when format is specified', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json]
+      resultFormats: ['json']
     };
 
     const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -160,7 +159,7 @@ describe('writeResultFiles', () => {
   it('should create TAP result file when format is specified', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.tap]
+      resultFormats: ['tap']
     };
 
     const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -178,7 +177,7 @@ describe('writeResultFiles', () => {
   it('should create JUnit result file when format is specified', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.junit]
+      resultFormats: ['junit']
     };
 
     const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -287,7 +286,7 @@ describe('writeResultFiles', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json]
+      resultFormats: ['json']
     };
 
     // A TestRunIdResult is not a full TestResult, so result-format files are skipped.
@@ -335,7 +334,7 @@ describe('writeResultFiles', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.markdown]
+      resultFormats: ['markdown']
     };
 
     const result = await writeResultFiles(
@@ -360,7 +359,7 @@ describe('writeResultFiles', () => {
   it('should create text result file when format is specified', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.text]
+      resultFormats: ['text']
     };
 
     const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -391,7 +390,7 @@ describe('writeResultFiles', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.markdown]
+      resultFormats: ['markdown']
     };
 
     const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
@@ -407,7 +406,7 @@ describe('writeResultFiles', () => {
   it('should handle all result formats together', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json, ResultFormat.tap, ResultFormat.junit, ResultFormat.markdown, ResultFormat.text]
+      resultFormats: ['json', 'tap', 'junit', 'markdown', 'text']
     };
 
     const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -435,13 +434,7 @@ describe('writeResultFiles', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [
-        ResultFormat.json,
-        ResultFormat.tap,
-        ResultFormat.junit,
-        ResultFormat.markdown,
-        ResultFormat.text
-      ],
+      resultFormats: ['json', 'tap', 'junit', 'markdown', 'text'],
       fileInfos: [
         {
           filename: 'custom.txt',

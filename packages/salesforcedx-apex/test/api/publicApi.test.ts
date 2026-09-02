@@ -13,8 +13,6 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
-      'ApexTestResultOutcome',
-      'ApexTestRunResultStatus',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -23,9 +21,7 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
-      'ResultFormat',
       'TapReporter',
-      'TestLevel',
       'TestService'
     ]);
   });

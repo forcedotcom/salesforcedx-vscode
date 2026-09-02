@@ -126,18 +126,7 @@ export type ApexTestQueueItemRecord = {
 };
 
 // @public (undocumented)
-export const ApexTestQueueItemStatus: {
-    readonly Holding: "Holding";
-    readonly Queued: "Queued";
-    readonly Preparing: "Preparing";
-    readonly Processing: "Processing";
-    readonly Aborted: "Aborted";
-    readonly Completed: "Completed";
-    readonly Failed: "Failed";
-};
-
-// @public (undocumented)
-export type ApexTestQueueItemStatus = (typeof ApexTestQueueItemStatus)[keyof typeof ApexTestQueueItemStatus];
+export type ApexTestQueueItemStatus = 'Holding' | 'Queued' | 'Preparing' | 'Processing' | 'Aborted' | 'Completed' | 'Failed';
 
 // @public (undocumented)
 export type ApexTestResultData = {
@@ -169,29 +158,10 @@ export type ApexTestResultDataRaw = ApexTestResultData & {
 };
 
 // @public (undocumented)
-export const ApexTestResultOutcome: {
-    readonly Pass: "Pass";
-    readonly Fail: "Fail";
-    readonly CompileFail: "CompileFail";
-    readonly Skip: "Skip";
-};
+export type ApexTestResultOutcome = 'Pass' | 'Fail' | 'CompileFail' | 'Skip';
 
 // @public (undocumented)
-export type ApexTestResultOutcome = (typeof ApexTestResultOutcome)[keyof typeof ApexTestResultOutcome];
-
-// @public (undocumented)
-export const ApexTestRunResultStatus: {
-    readonly Queued: "Queued";
-    readonly Processing: "Processing";
-    readonly Aborted: "Aborted";
-    readonly Passed: "Passed";
-    readonly Failed: "Failed";
-    readonly Completed: "Completed";
-    readonly Skipped: "Skipped";
-};
-
-// @public (undocumented)
-export type ApexTestRunResultStatus = (typeof ApexTestRunResultStatus)[keyof typeof ApexTestRunResultStatus];
+export type ApexTestRunResultStatus = 'Queued' | 'Processing' | 'Aborted' | 'Passed' | 'Failed' | 'Completed' | 'Skipped';
 
 // @public (undocumented)
 export type ApexTestSetupData = {
@@ -392,17 +362,7 @@ export interface Progress<T> {
 }
 
 // @public (undocumented)
-export const ResultFormat: {
-    readonly junit: "junit";
-    readonly tap: "tap";
-    readonly json: "json";
-    readonly human: "human";
-    readonly markdown: "markdown";
-    readonly text: "text";
-};
-
-// @public (undocumented)
-export type ResultFormat = (typeof ResultFormat)[keyof typeof ResultFormat];
+export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
 
 // @public (undocumented)
 export type SyncTestConfiguration = {
@@ -429,15 +389,8 @@ export type TestItem = {
     category?: string;
 };
 
-// @public (undocumented)
-export const TestLevel: {
-    readonly RunLocalTests: "RunLocalTests";
-    readonly RunAllTestsInOrg: "RunAllTestsInOrg";
-    readonly RunSpecifiedTests: "RunSpecifiedTests";
-};
-
-// @public (undocumented)
-export type TestLevel = (typeof TestLevel)[keyof typeof TestLevel];
+// @public
+export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
 
 // @public (undocumented)
 export type TestResult = {

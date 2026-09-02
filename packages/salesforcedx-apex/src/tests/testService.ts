@@ -38,6 +38,8 @@ import {
 } from './types';
 import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
 
+const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
+
 /**
  * Standalone function for writing test result files - easier to test
  */
@@ -50,7 +52,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(format => format in ResultFormat)) {
+  if (resultFormats && !resultFormats.every(format => validResultFormats.has(format))) {
     throw new Error(nls.localize('resultFormatErr'));
   }
 
@@ -70,25 +72,25 @@ export const writeResultFiles = async (
       let filePath;
       let readable;
       switch (format) {
-        case ResultFormat.json:
+        case 'json':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
           readable = TestResultStringifyStream.fromTestResult(result, {
             bufferSize: getBufferSize()
           });
           break;
-        case ResultFormat.tap:
+        case 'tap':
           filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
           readable = new TapFormatTransformer(result, undefined, {
             bufferSize: getBufferSize()
           });
           break;
-        case ResultFormat.junit:
+        case 'junit':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
           readable = new JUnitFormatTransformer(result, {
             bufferSize: getBufferSize()
           });
           break;
-        case ResultFormat.markdown:
+        case 'markdown':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
           readable = new MarkdownTextFormatTransformer(result, {
             bufferSize: getBufferSize(),
@@ -96,7 +98,7 @@ export const writeResultFiles = async (
             codeCoverage
           });
           break;
-        case ResultFormat.text:
+        case 'text':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
           readable = new MarkdownTextFormatTransformer(result, {
             bufferSize: getBufferSize(),
@@ -510,7 +512,7 @@ export class TestService {
 
     return {
       tests: classItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }
@@ -520,7 +522,7 @@ export class TestService {
     const classItems = classNames.split(',').map((item): TestItem => ({ className: item }));
     return {
       tests: classItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }
@@ -551,7 +553,7 @@ export class TestService {
 
     return {
       tests: testItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }

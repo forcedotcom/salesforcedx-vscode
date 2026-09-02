@@ -11,14 +11,11 @@ import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { join } from 'node:path';
 import { SyncTestConfiguration, TestService } from '../../src';
 import {
-  TestLevel,
   ApexOrgWideCoverage,
   ApexCodeCoverageAggregate,
   ApexCodeCoverage,
-  ResultFormat,
   OutputDirConfig,
-  TestResult,
-  TestCategory
+  TestResult
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import {
@@ -203,7 +200,7 @@ describe('Run Apex tests synchronously', () => {
     it('should create json result file without testRunId for sync runs', async () => {
       const config = {
         dirPath: 'path/to/directory',
-        resultFormats: [ResultFormat.json]
+        resultFormats: ['json']
       } as OutputDirConfig;
       const testSrv = new TestService(mockConnection);
       await testSrv.writeResultFiles(syncResult, config);
@@ -215,7 +212,7 @@ describe('Run Apex tests synchronously', () => {
     it('should create junit result file without testRunId for sync runs', async () => {
       const config = {
         dirPath: 'path/to/directory',
-        resultFormats: [ResultFormat.junit]
+        resultFormats: ['junit']
       } as OutputDirConfig;
       const testSrv = new TestService(mockConnection);
       await testSrv.writeResultFiles(syncResult, config);
@@ -233,7 +230,7 @@ describe('Run Apex tests synchronously', () => {
       $$.SANDBOX.stub(SyncTests.prototype, 'formatSyncResults').throws(new Error(errMsg));
       try {
         await testSrv.runTestSynchronous({
-          testLevel: TestLevel.RunLocalTests
+          testLevel: 'RunLocalTests'
         });
         fail('Should have failed');
       } catch (e) {
@@ -273,7 +270,7 @@ describe('Run Apex tests synchronously', () => {
       const result = await syncTests.formatSyncResults(mockSyncResult, Date.now());
 
       expect(result.tests).toHaveLength(1);
-      expect(result.tests[0].category).toBe(TestCategory.Apex);
+      expect(result.tests[0].category).toBe('Apex');
       expect(result.tests[0].apexClass.fullName).toBe('TestApexClass');
     });
 
@@ -300,7 +297,7 @@ describe('Run Apex tests synchronously', () => {
       const result = await syncTests.formatSyncResults(mockSyncResult, Date.now());
 
       expect(result.tests).toHaveLength(1);
-      expect(result.tests[0].category).toBe(TestCategory.Flow);
+      expect(result.tests[0].category).toBe('Flow');
       expect(result.tests[0].apexClass.fullName).toBe('FlowTesting.TestFlow.TestFlowClass');
     });
 
@@ -339,13 +336,13 @@ describe('Run Apex tests synchronously', () => {
       // Verify custom namespace Apex test
       const customApexTest = result.tests.find(t => t.methodName === 'testCustomMethod');
       expect(customApexTest).toBeDefined();
-      expect(customApexTest!.category).toBe(TestCategory.Apex);
+      expect(customApexTest!.category).toBe('Apex');
       expect(customApexTest!.apexClass.fullName).toBe('myorg.CustomTestClass');
 
       // Verify Flow test with extended namespace
       const flowTest = result.tests.find(t => t.methodName === 'testAnotherFlow');
       expect(flowTest).toBeDefined();
-      expect(flowTest!.category).toBe(TestCategory.Flow);
+      expect(flowTest!.category).toBe('Flow');
       expect(flowTest!.apexClass.fullName).toBe('FlowTesting.AnotherFlow.AnotherFlowTest');
     });
   });

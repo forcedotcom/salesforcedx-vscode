@@ -6,7 +6,7 @@
  */
 import { LoggerLevel } from '@salesforce/core';
 import { isEmpty } from '../narrowing';
-import { type ApexTestResultData, type TestResult, ApexTestResultOutcome } from '../tests/types';
+import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format
@@ -83,7 +83,7 @@ export class JUnitReporter {
         testCase.apexClass.fullName
       }" time="${msToSecond(testCase.runTime)}">\n`;
 
-      if (testCase.outcome === ApexTestResultOutcome.Fail || testCase.outcome === ApexTestResultOutcome.CompileFail) {
+      if (testCase.outcome === 'Fail' || testCase.outcome === 'CompileFail') {
         const rawMessage = testCase.message ?? '';
         let message = isEmpty(rawMessage) ? '' : rawMessage;
         message = this.xmlEscape(message);

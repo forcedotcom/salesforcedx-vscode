@@ -13,7 +13,7 @@ import { Client, Subscription } from 'faye';
 import { fail } from 'node:assert';
 import { Progress } from '../../src';
 import { StreamMessage, TestResultMessage } from '../../src/streaming/types';
-import { ApexTestQueueItemStatus, ApexTestProgressValue } from '../../src/tests/types';
+import { ApexTestProgressValue } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import { EventEmitter } from 'node:events';
 import { Duration } from '@salesforce/kit';
@@ -174,7 +174,7 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '7092M000000Vt94QAC',
-          Status: ApexTestQueueItemStatus.Completed,
+          Status: 'Completed',
           ApexClassId: '01p2M00000O6tXZQAZ',
           TestRunResultId: '05m2M000000TgYuQAK'
         }
@@ -196,13 +196,13 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '7092M000000Vt94QAC',
-          Status: ApexTestQueueItemStatus.Completed,
+          Status: 'Completed',
           ApexClassId: '01p2M00000O6tXZQAZ',
           TestRunResultId: '05m2M000000TgYuQAK'
         },
         {
           Id: '709xx000000Vt94QAD',
-          Status: ApexTestQueueItemStatus.Processing,
+          Status: 'Processing',
           ApexClassId: '01pxx00000O6tXZQAx',
           TestRunResultId: '05mxx000000TgYuQAw'
         }
@@ -270,7 +270,7 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '707xx0000AGQ3jbQQD',
-          Status: ApexTestQueueItemStatus.Processing,
+          Status: 'Processing',
           ApexClassId: '01pxx00000O6tXZQAx',
           TestRunResultId: '05mxx000000TgYuQAw'
         }
@@ -302,7 +302,7 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '707xx0000AGQ3jbQQD',
-          Status: ApexTestQueueItemStatus.Processing,
+          Status: 'Processing',
           ApexClassId: '01pxx00000O6tXZQAx',
           TestRunResultId: '05mxx000000TgYuQAw'
         }
@@ -325,7 +325,7 @@ describe('Streaming API Client', () => {
           records: [
             {
               Id: '707xx0000AGQ3jbQQD',
-              Status: ApexTestQueueItemStatus.Processing,
+              Status: 'Processing',
               ApexClassId: '01pxx00000O6tXZQAx',
               TestRunResultId: '05mxx000000TgYuQAw'
             }
@@ -442,7 +442,7 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '7092M000000Vt94QAC',
-          Status: ApexTestQueueItemStatus.Processing,
+          Status: 'Processing',
           ApexClassId: '01p2M00000O6tXZQAZ',
           TestRunResultId: '05m2M000000TgYuQAK'
         }
@@ -498,7 +498,7 @@ describe('Streaming API Client', () => {
       records: [
         {
           Id: '7092M000000Vt94QAC',
-          Status: ApexTestQueueItemStatus.Completed,
+          Status: 'Completed',
           ApexClassId: '01p2M00000O6tXZQAZ',
           TestRunResultId: '05m2M000000TgYuQAK'
         }

@@ -9,7 +9,6 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { fail } from 'node:assert';
 import { TestService } from '../../src';
-import { TestCategory, TestLevel } from '../../src/tests/types';
 
 let mockConnection: Connection;
 let toolingCreateStub: SinonStub;
@@ -325,25 +324,20 @@ describe('Apex Test Suites', () => {
 
     describe('buildSyncPayload', () => {
       it('should include category in sync payload when category is provided', async () => {
-        const result = await testService.buildSyncPayload(
-          TestLevel.RunLocalTests,
-          undefined,
-          undefined,
-          TestCategory.Flow
-        );
+        const result = await testService.buildSyncPayload('RunLocalTests', undefined, undefined, 'Flow');
 
         expect(result).toEqual({
-          testLevel: TestLevel.RunLocalTests,
-          category: [TestCategory.Flow],
+          testLevel: 'RunLocalTests',
+          category: ['Flow'],
           skipCodeCoverage: false
         });
       });
 
       it('should handle multiple categories in sync payload', async () => {
-        const result = await testService.buildSyncPayload(TestLevel.RunLocalTests, undefined, undefined, 'Flow,Apex');
+        const result = await testService.buildSyncPayload('RunLocalTests', undefined, undefined, 'Flow,Apex');
 
         expect(result).toEqual({
-          testLevel: TestLevel.RunLocalTests,
+          testLevel: 'RunLocalTests',
           category: ['Flow', 'Apex'],
           skipCodeCoverage: false
         });
@@ -351,30 +345,25 @@ describe('Apex Test Suites', () => {
 
       it('should not include category in sync payload when category is not provided', async () => {
         const result = await testService.buildSyncPayload(
-          TestLevel.RunLocalTests,
+          'RunLocalTests',
           'TestClass.method1', // Provide tests to avoid validation error
           undefined,
           undefined
         );
 
         expect(result).not.toHaveProperty('category');
-        expect(result.testLevel).toBe(TestLevel.RunSpecifiedTests);
+        expect(result.testLevel).toBe('RunSpecifiedTests');
       });
 
       it('should handle classnames with category for Flow tests in sync payload', async () => {
         // Mock the buildClassPayloadForFlow method
         const mockFlowPayload = {
-          testLevel: TestLevel.RunSpecifiedTests,
+          testLevel: 'RunSpecifiedTests',
           tests: [{ className: 'FlowTestClass' }]
         };
         $$.SANDBOX.stub(testService as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
-        const result = await testService.buildSyncPayload(
-          TestLevel.RunSpecifiedTests,
-          undefined,
-          'FlowTestClass',
-          TestCategory.Flow
-        );
+        const result = await testService.buildSyncPayload('RunSpecifiedTests', undefined, 'FlowTestClass', 'Flow');
 
         expect(result).toEqual(mockFlowPayload);
       });
@@ -382,17 +371,11 @@ describe('Apex Test Suites', () => {
 
     describe('buildAsyncPayload', () => {
       it('should include category in async payload when not provided', async () => {
-        const result = await testService.buildAsyncPayload(
-          TestLevel.RunLocalTests,
-          undefined,
-          undefined,
-          undefined,
-          TestCategory.Flow
-        );
+        const result = await testService.buildAsyncPayload('RunLocalTests', undefined, undefined, undefined, 'Flow');
 
         expect(result).toEqual({
           suiteNames: undefined,
-          testLevel: TestLevel.RunLocalTests,
+          testLevel: 'RunLocalTests',
           category: ['Flow'],
           skipCodeCoverage: false
         });
@@ -400,7 +383,7 @@ describe('Apex Test Suites', () => {
 
       it('should not include category in async payload when not provided', async () => {
         const result = await testService.buildAsyncPayload(
-          TestLevel.RunSpecifiedTests,
+          'RunSpecifiedTests',
           undefined,
           'TestClass',
           undefined,
@@ -408,7 +391,7 @@ describe('Apex Test Suites', () => {
         );
 
         expect(result).toEqual({
-          testLevel: TestLevel.RunSpecifiedTests,
+          testLevel: 'RunSpecifiedTests',
           tests: [{ className: 'TestClass' }],
           skipCodeCoverage: false
         });

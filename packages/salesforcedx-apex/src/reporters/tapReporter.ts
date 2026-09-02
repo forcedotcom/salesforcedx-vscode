@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultData, ApexTestResultOutcome, TestResult } from '../tests/types';
+import { ApexTestResultData, TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
@@ -42,7 +42,7 @@ export class TapReporter {
       testNumber: index + 1,
       description: test.fullName,
       diagnostics: buildTapDiagnostics(test),
-      outcome: test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok'
+      outcome: test.outcome === 'Pass' ? 'ok' : 'not ok'
     }));
   }
 }

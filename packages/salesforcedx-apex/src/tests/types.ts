@@ -7,41 +7,17 @@
 
 import { ApexDiagnostic } from '../utils';
 
-export const TestLevel = {
-  /**
-   * All tests in your org are run, except the ones that originate from installed managed packages
-   */
-  RunLocalTests: 'RunLocalTests',
-  /**
-   * All tests are in your org and in installed managed packages are run
-   */
-  RunAllTestsInOrg: 'RunAllTestsInOrg',
-  /**
-   * Only the tests that you specify are run
-   */
-  RunSpecifiedTests: 'RunSpecifiedTests'
-} as const;
-export type TestLevel = (typeof TestLevel)[keyof typeof TestLevel];
+/**
+ * Specifies which Apex tests run.
+ *
+ * - `RunLocalTests`: all local tests except those from installed managed packages
+ * - `RunAllTestsInOrg`: all local and managed-package tests
+ * - `RunSpecifiedTests`: only explicitly selected tests
+ */
+export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
 
-export const TestCategory = {
-  /**
-   * Apex test classes and methods written in Apex code
-   */
-  Apex: 'Apex',
-  /**
-   * Flow tests that validate Salesforce Flow functionality
-   */
-  Flow: 'Flow'
-} as const;
-export type TestCategory = (typeof TestCategory)[keyof typeof TestCategory];
-
-export const TestCategoryPrefix = {
-  /**
-   * Prefix identifier used to detect Flow tests in test names
-   */
-  FlowTest: 'FlowTesting.'
-} as const;
-export type TestCategoryPrefix = (typeof TestCategoryPrefix)[keyof typeof TestCategoryPrefix];
+/** Test implementation category. */
+export type TestCategory = 'Apex' | 'Flow';
 
 export type AsyncTestConfiguration = {
   /**
@@ -84,15 +60,7 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export const ResultFormat = {
-  junit: 'junit',
-  tap: 'tap',
-  json: 'json',
-  human: 'human',
-  markdown: 'markdown',
-  text: 'text'
-} as const;
-export type ResultFormat = (typeof ResultFormat)[keyof typeof ResultFormat];
+export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
 
 export type OutputDirConfig = {
   dirPath: string;
@@ -203,13 +171,7 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export const ApexTestResultOutcome = {
-  Pass: 'Pass',
-  Fail: 'Fail',
-  CompileFail: 'CompileFail',
-  Skip: 'Skip'
-} as const;
-export type ApexTestResultOutcome = (typeof ApexTestResultOutcome)[keyof typeof ApexTestResultOutcome];
+export type ApexTestResultOutcome = 'Pass' | 'Fail' | 'CompileFail' | 'Skip';
 
 type FlowTestResultRecord = {
   Id: string;
@@ -305,16 +267,14 @@ export type FlowTestResult = {
   records: FlowTestResultRecord[];
 };
 
-export const ApexTestRunResultStatus = {
-  Queued: 'Queued',
-  Processing: 'Processing',
-  Aborted: 'Aborted',
-  Passed: 'Passed',
-  Failed: 'Failed',
-  Completed: 'Completed',
-  Skipped: 'Skipped'
-} as const;
-export type ApexTestRunResultStatus = (typeof ApexTestRunResultStatus)[keyof typeof ApexTestRunResultStatus];
+export type ApexTestRunResultStatus =
+  | 'Queued'
+  | 'Processing'
+  | 'Aborted'
+  | 'Passed'
+  | 'Failed'
+  | 'Completed'
+  | 'Skipped';
 
 export type ApexTestRunResult = {
   /**
@@ -359,16 +319,14 @@ export type ApexTestRunResult = {
   UserId: string;
 };
 
-export const ApexTestQueueItemStatus = {
-  Holding: 'Holding',
-  Queued: 'Queued',
-  Preparing: 'Preparing',
-  Processing: 'Processing',
-  Aborted: 'Aborted',
-  Completed: 'Completed',
-  Failed: 'Failed'
-} as const;
-export type ApexTestQueueItemStatus = (typeof ApexTestQueueItemStatus)[keyof typeof ApexTestQueueItemStatus];
+export type ApexTestQueueItemStatus =
+  | 'Holding'
+  | 'Queued'
+  | 'Preparing'
+  | 'Processing'
+  | 'Aborted'
+  | 'Completed'
+  | 'Failed';
 
 export type ApexTestQueueItemRecord = {
   Id: string;

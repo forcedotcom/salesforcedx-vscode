@@ -16,8 +16,8 @@ The baseline retains externally used services, reporters, result values, and
 the types reachable through them. `DefaultWatermarks` remains public because an
 external consumer subclasses `CoverageReporter` and supplies it.
 
-Published enum values use readonly literal objects plus derived union types
-instead of TypeScript enums. Type-only packages remain development dependencies.
+Published enum values become type-only string unions. Type-only packages remain
+development dependencies.
 
 VS Code-only declarations remain available where the co-repo extension needs
 them, but carry `@internal` and are excluded from the public API report. They may
