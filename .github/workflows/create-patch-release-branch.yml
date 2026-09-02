@@ -87,9 +87,18 @@ jobs:
           # Create release-base branch from tag
           git checkout -b "$BRANCH_NAME" "$BASE_TAG"
 
-          # Configure git for commits
-          git config user.name "svc-idee-bot"
-          git config user.email "svc-idee-bot@users.noreply.github.com"
+      - name: Configure git
+        uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Preserve version scripts
+        env:
+          BASE_VERSION: ${{ github.event.inputs.baseVersion }}
+        run: |
+          # Extract major.minor for branch name
+          MAJOR_MINOR=$(echo "$BASE_VERSION" | sed -E 's/^([0-9]+\.[0-9]+)\.[0-9]+$/\1/')
+          BRANCH_NAME="release-base/v${MAJOR_MINOR}.x"
 
           # Preserve current scripts from develop for version tooling
           # Historical tags may not have these scripts or their dependencies
