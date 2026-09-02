@@ -19,7 +19,7 @@ import { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 
 const SELECT_COUNT = 'COUNT()';
 
-export type SoqlFieldsLabels = {
+type SoqlFieldsLabels = {
   readonly clearAll: string;
   readonly count: string;
   readonly fields: string;
