@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src';
+import { MarkupContent, MarkedString, TextDocument } from 'vscode-languageserver-types';
+import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 
 describe('HTML Hover', () => {
   const assertHoverFor =
@@ -17,12 +17,14 @@ describe('HTML Hover', () => {
       const document = TextDocument.create(uri, languageId, 0, value);
 
       const position = document.positionAt(offset);
-      const ls = htmlLanguageService.getLanguageService();
+      const ls = getVisualforceHtmlLanguageService();
       const htmlDoc = ls.parseHTMLDocument(document);
 
       const hover = ls.doHover(document, position, htmlDoc);
-      expect(hover?.contents[0].value).toBe(expectedHoverLabel);
-      expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
+      const contents = hover?.contents as (MarkupContent | MarkedString)[] | undefined;
+      const firstContent = contents?.[0];
+      expect(typeof firstContent === 'string' ? firstContent : firstContent?.value).toBe(expectedHoverLabel);
+      expect(hover ? document.offsetAt(hover.range.start) : undefined).toBe(expectedHoverOffset);
     };
 
   const assertHover = assertHoverFor('test://test/test.html', 'html');

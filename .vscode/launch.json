@@ -435,29 +435,6 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Tests - Visualforce Markup Language Server - Unit Tests",
-      "program": "${workspaceFolder}/packages/salesforcedx-visualforce-markup-language-server/node_modules/mocha/bin/_mocha",
-      "args": [
-        "--timeout",
-        "999999",
-        "--colors",
-        "--recursive",
-        "${workspaceFolder}/packages/salesforcedx-visualforce-markup-language-server/out/test/unit"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
-      "sourceMapPathOverrides": {
-        "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-visualforce-markup-language-server/out/test/unit/*",
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile and Bundle",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
       "name": "Launch Tests - Apex Debugger - Unit Tests",
       "type": "node",
       "request": "launch",
