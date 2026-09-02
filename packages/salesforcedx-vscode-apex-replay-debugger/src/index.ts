@@ -57,24 +57,40 @@ if (!salesforceApexExtension) {
   throw new Error('Salesforce Apex Extension not initialized');
 }
 
+export const promptForLogFile = Effect.fn('ApexReplayDebugger.promptForLogFile')(function* (
+  extensionContext: vscode.ExtensionContext,
+  defaultUri: URI | undefined
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const fileUri = yield* Effect.promise(() =>
+    vscode.window.showOpenDialog({
+      canSelectFiles: true,
+      canSelectFolders: false,
+      canSelectMany: false,
+      defaultUri
+    })
+  ).pipe(
+    Effect.map(fileUris => (fileUris?.length === 1 ? fileUris[0] : undefined)),
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
+  );
+  yield* Effect.sync(() => updateLastOpened(extensionContext, fileUri.fsPath));
+  return fileUri.fsPath;
+});
+
 const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const dialogStartingPathUri = yield* getDialogStartingPath(extensionContext);
-  const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
-    const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
-      canSelectFiles: true,
-      canSelectFolders: false,
-      canSelectMany: false,
-      defaultUri: dialogStartingPathUri
-    });
-    if (fileUris?.length === 1) {
-      updateLastOpened(extensionContext, fileUris[0].fsPath);
-      return fileUris[0].fsPath;
-    }
-  });
+  const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', () =>
+    getRuntime().runPromise(
+      promptForLogFile(extensionContext, dialogStartingPathUri).pipe(
+        Effect.catchTag('UserCancellationError', () => Effect.void)
+      )
+    )
+  );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
     async (editorUri: URI) => {

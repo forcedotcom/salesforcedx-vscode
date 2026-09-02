@@ -76,7 +76,8 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-apex:compile"
+        "../salesforcedx-vscode-apex:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",

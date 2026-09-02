@@ -71,7 +71,8 @@
         "../salesforcedx-vscode-apex:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-apex-debugger:compile",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",

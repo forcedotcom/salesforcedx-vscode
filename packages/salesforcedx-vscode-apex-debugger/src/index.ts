@@ -41,7 +41,7 @@ const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> =>
   session.type === LIVESHARE_DEBUGGER_TYPE ? session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST) : session.type;
 
-const registerCommands = (): vscode.Disposable => {
+const registerDebuggerHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
     if (event?.session) {
       const type = await getDebuggerType(event.session);
@@ -66,10 +66,6 @@ const registerCommands = (): vscode.Disposable => {
       }
     }
   });
-  const exceptionBreakpointCmd = vscode.commands.registerCommand(
-    'sf.debug.exception.breakpoint',
-    configureExceptionBreakpoint
-  );
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
@@ -79,7 +75,7 @@ const registerCommands = (): vscode.Disposable => {
     });
   });
 
-  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, startSessionHandler);
+  return vscode.Disposable.from(customEventHandler, startSessionHandler);
 };
 
 export type ExceptionBreakpointItem = vscode.QuickPickItem & {
@@ -105,14 +101,20 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   }
 ];
 
-const configureExceptionBreakpoint = async (): Promise<void> => {
-  const salesforceApexExtension = await getActiveApexExtension();
-  const exceptionBreakpointInfos =
-    (await salesforceApexExtension.exports.getExceptionBreakpointInfo()) as ExceptionBreakpointItem[];
-  console.log('Retrieved exception breakpoint info from language server');
+const configureExceptionBreakpoint = Effect.fn('configureExceptionBreakpoint')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const salesforceApexExtension = yield* Effect.promise(() => getActiveApexExtension());
+  const exceptionBreakpointInfos = (yield* Effect.promise(() =>
+    salesforceApexExtension.exports.getExceptionBreakpointInfo()
+  )) as ExceptionBreakpointItem[];
+  yield* Effect.log('Retrieved exception breakpoint info from language server');
   let enabledExceptionBreakpointTyperefs: string[] = [];
-  if (vscode.debug.activeDebugSession) {
-    const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
+  const activeDebugSession = vscode.debug.activeDebugSession;
+  if (activeDebugSession) {
+    const responseBody = (yield* Effect.promise(() =>
+      activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST)
+    )) as { typerefs?: string[] };
     if (responseBody?.typerefs) {
       enabledExceptionBreakpointTyperefs = responseBody.typerefs;
     }
@@ -127,25 +129,26 @@ const configureExceptionBreakpoint = async (): Promise<void> => {
     placeHolder: nls.localize('select_exception_text'),
     matchOnDescription: true
   };
-  const selectedException = await vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions);
-  if (selectedException) {
-    const selectBreakModeOptions: vscode.QuickPickOptions = {
-      placeHolder: nls.localize('select_break_option_text'),
-      matchOnDescription: true
-    };
-    const selectedBreakMode = await vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions);
-    if (selectedBreakMode) {
-      selectedException.breakMode = selectedBreakMode.breakMode;
-      const args: SetExceptionBreakpointsArguments = {
-        exceptionInfo: selectedException
-      };
-      if (vscode.debug.activeDebugSession) {
-        await vscode.debug.activeDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
-      }
-      updateExceptionBreakpointCache(selectedException);
-    }
+  const selectedException = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions)
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  const selectBreakModeOptions: vscode.QuickPickOptions = {
+    placeHolder: nls.localize('select_break_option_text'),
+    matchOnDescription: true
+  };
+  const selectedBreakMode = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions)
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  selectedException.breakMode = selectedBreakMode.breakMode;
+  const args: SetExceptionBreakpointsArguments = {
+    exceptionInfo: selectedException
+  };
+  const currentDebugSession = vscode.debug.activeDebugSession;
+  if (currentDebugSession) {
+    yield* Effect.promise(() => currentDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args));
   }
-};
+  yield* Effect.sync(() => updateExceptionBreakpointCache(selectedException));
+});
 
 export const mergeExceptionBreakpointInfos = (
   breakpointInfos: ExceptionBreakpointItem[],
@@ -245,11 +248,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   extensionContext: vscode.ExtensionContext
 ) {
   yield* Effect.sync(() => {
-    const commands = registerCommands();
+    const debuggerHandlers = registerDebuggerHandlers();
     const debugHandlers = registerDebugHandlers();
     const fileWatchers = registerFileWatchers();
     extensionContext.subscriptions.push(
-      commands,
+      debuggerHandlers,
       fileWatchers,
       debugHandlers,
       vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
@@ -259,6 +262,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   // Register Effect-based commands with AllServicesLayer for tracing + global error/cancellation handling
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.debug.exception.breakpoint', configureExceptionBreakpoint);
   yield* registerCommand('sf.debugger.stop', debuggerStop);
   yield* registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 });

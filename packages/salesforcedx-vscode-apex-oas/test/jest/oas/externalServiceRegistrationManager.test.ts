@@ -6,11 +6,13 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import { nls } from '../../../src/messages/nls';
 import {
   buildESRXml,
@@ -36,7 +38,11 @@ const buildExtensionProviderLayer = (registryAccess: any) =>
         },
         WorkspaceService: {
           getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace })
-        }
+        },
+        PromptService: Effect.succeed({
+          considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
+        })
       }
     } as any)
   });
@@ -102,12 +108,18 @@ describe('externalServiceRegistrationManager', () => {
       });
     });
 
-    it('returns undefined if no folder is selected', async () => {
+    it('fails with UserCancellationError if no folder is selected', async () => {
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
-      const result = await runEffect(getFolderForArtifact(), {
-        getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
-      });
-      expect(result).toBeUndefined();
+      const exit = await Effect.runPromiseExit(
+        getFolderForArtifact().pipe(
+          Effect.provide(
+            buildExtensionProviderLayer({
+              getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
+            })
+          )
+        ) as Effect.Effect<unknown, unknown, never>
+      );
+      expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
     });
 
     it('throws if registry access fails', async () => {
