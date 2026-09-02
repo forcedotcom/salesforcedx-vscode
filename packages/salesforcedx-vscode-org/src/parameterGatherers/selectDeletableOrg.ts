@@ -7,7 +7,9 @@
 
 import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
@@ -35,8 +37,12 @@ export const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
 
   const targetOrgs: OrgToDelete[] = selections.filter(isOrgItem).flatMap(s => {
     if (!s.orgUsername) return [];
-    const auth = freshAuthorizations.find(o => o.username === s.orgUsername);
-    const orgType = auth?.isScratchOrg === true ? 'scratch' : 'sandbox';
+    const orgType: OrgToDelete['orgType'] = Arr.findFirst(freshAuthorizations, o => o.username === s.orgUsername).pipe(
+      Option.match({
+        onNone: () => 'sandbox',
+        onSome: auth => (auth.isScratchOrg === true ? 'scratch' : 'sandbox')
+      })
+    );
     return [{ username: s.orgUsername, orgType }];
   });
 

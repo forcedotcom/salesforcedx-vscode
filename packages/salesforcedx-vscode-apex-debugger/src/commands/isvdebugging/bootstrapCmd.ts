@@ -6,10 +6,12 @@
  */
 import { Global } from '@salesforce/core/global';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError, isString } from 'effect/Predicate';
+import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -69,17 +71,19 @@ const relativeMetadataTempPath = () => path.join(relativeToolsFolder(), ISVDEBUG
 const relativeApexPackageXmlPath = () => path.join(relativeMetadataTempPath(), PACKAGE_XML);
 const relativeInstalledPackagesPath = () => path.join(relativeToolsFolder(), INSTALLED_PACKAGES);
 
+const OrgNamespaceQueryResponse = Schema.Struct({
+  result: Schema.Struct({ records: Schema.Array(Schema.Unknown) })
+});
+const OrgNamespaceRecord = Schema.Struct({ NamespacePrefix: Schema.String });
+
 /** Parses `sf data query --json` stdout for `Organization.NamespacePrefix`; empty string when absent. */
-export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string => {
-  const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
-  if (
-    orgNamespaceQueryResponse.result?.records?.[0] &&
-    isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
-  ) {
-    return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
-  }
-  return '';
-};
+export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string =>
+  Schema.decodeUnknownOption(OrgNamespaceQueryResponse)(JSON.parse(orgNamespaceQueryJson)).pipe(
+    Option.flatMap(({ result }) => Arr.head(result.records)),
+    Option.flatMap(Schema.decodeUnknownOption(OrgNamespaceRecord)),
+    Option.map(({ NamespacePrefix }) => NamespacePrefix),
+    Option.getOrElse(() => '')
+  );
 
 /** Parses `sf package installed list --json` stdout into the installed-package descriptors. */
 export const parsePackageInstalledListJson = (packagesJson: string): InstalledPackageInfo[] => {
@@ -109,7 +113,7 @@ const uriValidator = (value: string): string | undefined => {
     const parameter = new URL(value).searchParams;
     const url = parameter.get('url');
     const sessionId = parameter.get('sessionId');
-    // `''` passes isString + SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    // `''` passes SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
     if (!url || !sessionId || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
@@ -170,7 +174,14 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(Effect.flatMap(folders => promptService.considerUndefinedAsCancellation(folders?.[0])));
+  ).pipe(
+    Effect.flatMap(folders =>
+      Option.match(Arr.head(folders ?? []), {
+        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
+        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
+      })
+    )
+  );
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });
