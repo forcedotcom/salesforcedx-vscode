@@ -59,7 +59,7 @@
     "acorn": "8.15.0",
     "assert": "2.1.0",
     "browserify-zlib": "0.2.0",
-    "check-peer-dependencies": "4.3.0",
+    "check-peer-dependencies": "4.3.4",
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
