@@ -111,7 +111,7 @@ See `references/full-suite-execution.md` for complete guide on running web/deskt
 
 ## Container Specs
 
-10 packages now ship **container** Playwright specs (core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
+12 packages ship **container** Playwright specs (apex, lightning, core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
 
 **Run locally:**
 ```bash
