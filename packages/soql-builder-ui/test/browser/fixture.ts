@@ -166,7 +166,9 @@ window.soqlBuilderHarness = {
       fields: 'Fields',
       from: 'From',
       inputs: 'Query inputs',
+      loading: 'Loading...',
       noDefaultOrg: 'No default org',
+      noResults: 'No results found.',
       query: 'Query preview'
     };
     application = new SoqlBuilderApplication(element, fake.layer);

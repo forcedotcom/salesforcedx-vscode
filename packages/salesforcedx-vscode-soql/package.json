@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.16.0",
+  "version": "67.17.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -62,7 +62,7 @@
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "@salesforce/core": "^9.0.0",
+    "@salesforce/core": "^9.1.9",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
@@ -265,7 +265,7 @@
       ]
     },
     "vscode:bundle:migration": {
-      "command": "node ./esbuild.config.mjs --lit-migration",
+      "command": "node scripts/build-lit-migration.mjs",
       "dependencies": [
         "compile",
         "copy:grammars",
@@ -273,6 +273,8 @@
       ],
       "files": [
         "esbuild.config.mjs",
+        "scripts/build-lit-migration.mjs",
+        "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
