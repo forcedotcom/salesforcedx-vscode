@@ -334,6 +334,44 @@ describe('WorkspaceContext', () => {
     expect(afterSecond.include).toEqual(afterFirst.include);
   });
 
+  it('configureProject() does not rewrite jsconfig when content is semantically unchanged despite formatting differences', async () => {
+    // Use a fresh accessor + content map so this test is independent
+    const freshAccessor = new LspFileSystemAccessor();
+    const freshMap = buildContentMap(SFDX_WORKSPACE_PATH, SFDX_WORKSPACE_STRUCTURE as Record<string, string>);
+    mockAccessorWithVirtualFs(freshAccessor, freshMap);
+
+    const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, freshAccessor);
+    context.initialize('SFDX');
+
+    const jsconfigPath = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
+
+    // First configuration creates the file
+    await context.configureProject();
+    const afterFirstContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    const afterFirst = JSON.parse(Buffer.from(afterFirstContent).toString('utf8')) as JsconfigContent;
+
+    // Manually reformat the file with different spacing to simulate external formatting
+    const reformattedContent = JSON.stringify(afterFirst, null, 4);
+    await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
+
+    // Track writes by spying on updateFileContent
+    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    writeSpy.mockClear(); // Clear any previous calls
+
+    // Second configuration should detect semantic equality and skip the write
+    await context.configureProject();
+
+    // Verify that updateFileContent was NOT called for this jsconfig path
+    const writesToJsconfig = writeSpy.mock.calls.filter(call => call[0] === jsconfigPath);
+    expect(writesToJsconfig).toHaveLength(0);
+
+    // Verify content remained reformatted
+    const finalContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    expect(finalContent).toBe(reformattedContent);
+
+    writeSpy.mockRestore();
+  });
+
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemAccessor);
     context.initialize('CORE_PARTIAL');
@@ -353,6 +391,38 @@ describe('WorkspaceContext', () => {
       Buffer.from((await coreProjectFileSystemAccessor.getFileContent(settingsPath)) ?? '').toString('utf8')
     );
     verifyCoreSettings(settings);
+  });
+
+  it('configureProject() does not rewrite a semantically unchanged core jsconfig', async () => {
+    const freshAccessor = new LspFileSystemAccessor();
+    const freshMap = buildContentMap(CORE_PROJECT_ROOT, CORE_PARTIAL_WORKSPACE_STRUCTURE as Record<string, string>);
+    for (const [rel, content] of Object.entries(CORE_WORKSPACE_STRUCTURE as Record<string, string>)) {
+      if (rel.startsWith('.vscode/typings/')) {
+        freshMap.set(normalizePath(path.join(CORE_ALL_ROOT, rel)), content);
+      }
+    }
+    mockAccessorWithVirtualFs(freshAccessor, freshMap);
+
+    const context = new WorkspaceContext(CORE_PROJECT_ROOT, freshAccessor);
+    context.initialize('CORE_PARTIAL');
+    const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
+
+    await context.configureProject();
+    const generatedContent = (await freshAccessor.getFileContent(jsconfigPath)) ?? '';
+    const generatedConfig: unknown = JSON.parse(generatedContent);
+    const reformattedContent = JSON.stringify(generatedConfig, null, 4);
+    await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
+
+    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    writeSpy.mockClear();
+
+    await context.configureProject();
+
+    const writesToJsconfig = writeSpy.mock.calls.filter(call => call[0] === jsconfigPath);
+    expect(writesToJsconfig).toHaveLength(0);
+    expect(await freshAccessor.getFileContent(jsconfigPath)).toBe(reformattedContent);
+
+    writeSpy.mockRestore();
   });
 
   it('configureCoreMulti()', async () => {
