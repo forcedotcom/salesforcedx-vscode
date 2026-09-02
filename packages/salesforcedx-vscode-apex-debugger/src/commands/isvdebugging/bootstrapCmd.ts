@@ -11,7 +11,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isError, isString } from 'effect/Predicate';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -71,27 +71,19 @@ const relativeMetadataTempPath = () => path.join(relativeToolsFolder(), ISVDEBUG
 const relativeApexPackageXmlPath = () => path.join(relativeMetadataTempPath(), PACKAGE_XML);
 const relativeInstalledPackagesPath = () => path.join(relativeToolsFolder(), INSTALLED_PACKAGES);
 
+const OrgNamespaceQueryResponse = Schema.Struct({
+  result: Schema.Struct({ records: Schema.Array(Schema.Unknown) })
+});
+const OrgNamespaceRecord = Schema.Struct({ NamespacePrefix: Schema.String });
+
 /** Parses `sf data query --json` stdout for `Organization.NamespacePrefix`; empty string when absent. */
-export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string => {
-  const orgNamespaceQueryResponse: unknown = JSON.parse(orgNamespaceQueryJson);
-  const records: readonly unknown[] =
-    typeof orgNamespaceQueryResponse === 'object' &&
-    orgNamespaceQueryResponse !== null &&
-    'result' in orgNamespaceQueryResponse &&
-    typeof orgNamespaceQueryResponse.result === 'object' &&
-    orgNamespaceQueryResponse.result !== null &&
-    'records' in orgNamespaceQueryResponse.result &&
-    Array.isArray(orgNamespaceQueryResponse.result.records)
-      ? orgNamespaceQueryResponse.result.records
-      : [];
-  return Arr.head(records).pipe(
-    Option.map(record =>
-      typeof record === 'object' && record !== null && 'NamespacePrefix' in record ? record.NamespacePrefix : undefined
-    ),
-    Option.filter(isString),
+export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string =>
+  Schema.decodeUnknownOption(OrgNamespaceQueryResponse)(JSON.parse(orgNamespaceQueryJson)).pipe(
+    Option.flatMap(({ result }) => Arr.head(result.records)),
+    Option.flatMap(Schema.decodeUnknownOption(OrgNamespaceRecord)),
+    Option.map(({ NamespacePrefix }) => NamespacePrefix),
     Option.getOrElse(() => '')
   );
-};
 
 /** Parses `sf package installed list --json` stdout into the installed-package descriptors. */
 export const parsePackageInstalledListJson = (packagesJson: string): InstalledPackageInfo[] => {
@@ -121,7 +113,7 @@ const uriValidator = (value: string): string | undefined => {
     const parameter = new URL(value).searchParams;
     const url = parameter.get('url');
     const sessionId = parameter.get('sessionId');
-    // `''` passes isString + SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    // `''` passes SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
     if (!url || !sessionId || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
