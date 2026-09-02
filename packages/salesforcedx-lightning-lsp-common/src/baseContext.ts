@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError, isString, isUndefined } from 'effect/Predicate';
+import { isError, isRecord, isString, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -35,12 +36,66 @@ export interface Indexer {
 }
 
 const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirectoryConfig => {
-  if (typeof value !== 'object' || value === null) return false;
-  const obj = value;
-  return 'path' in obj && isString(obj.path);
+  if (!isRecord(value)) return false;
+  return 'path' in value && isString(value.path);
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+const JSON_INDENT = 2;
+
+/**
+ * Schema for JSON-serializable values (primitives, arrays, nested objects).
+ * Uses Schema.suspend for recursive types (arrays and objects can contain JSON values).
+ * This allows Effect Schema to validate and provide structural equality checking.
+ */
+const JsonValueSchema: Schema.Schema<JsonValue> = Schema.suspend(() =>
+  Schema.Union(
+    Schema.Null,
+    Schema.Undefined,
+    Schema.String,
+    Schema.Number,
+    Schema.Boolean,
+    Schema.Array(JsonValueSchema),
+    Schema.Record({ key: Schema.String, value: JsonValueSchema })
+  )
+);
+
+// Type representing a JSON-serializable value
+type JsonValue =
+  | null
+  | undefined
+  | string
+  | number
+  | boolean
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+
+/**
+ * Compares two JSON-serializable values for deep structural equality using Effect Schema.
+ *
+ * Uses Schema.equivalence() which provides proper structural equality for:
+ * - Nested objects (key order independent)
+ * - Arrays (order dependent)
+ * - All JSON primitives
+ *
+ * This is the idiomatic Effect way to compare complex data structures.
+ * @internal Exported for testing only
+ */
+export const areJsonValuesEqual = (a: unknown, b: unknown): boolean => {
+  // Fast path: reference equality
+  if (a === b) return true;
+
+  try {
+    // Decode both values through the schema to validate they're valid JSON
+    // Then use the schema-derived equivalence to compare them
+    const decodedA = Schema.decodeUnknownSync(JsonValueSchema)(a);
+    const decodedB = Schema.decodeUnknownSync(JsonValueSchema)(b);
+
+    return Schema.equivalence(JsonValueSchema)(decodedA, decodedB);
+  } catch {
+    // If schema validation fails, values are not equal
+    return false;
+  }
+};
 
 /** Default config when sfdx-project.json is missing or unreadable (e.g. workspace/readFile not yet handled by client). */
 const DEFAULT_SFDX_PROJECT_CONFIG: SfdxProjectConfig = {
@@ -423,7 +478,12 @@ export abstract class BaseWorkspaceContext {
             include: [...new Set([...userInclude, ...jsconfigSfdx.include, typingsInclude])]
           };
 
-          jsconfigContent = JSON.stringify(mergedConfig, null, 4);
+          // Only write if content has changed semantically
+          if (areJsonValuesEqual(mergedConfig, existingConfig)) {
+            continue;
+          }
+
+          jsconfigContent = JSON.stringify(mergedConfig, null, JSON_INDENT);
         } else {
           // Create new jsconfig from template
           if (this.workspaceRoots?.length === 0 || !this.workspaceRoots[0]) {
@@ -446,7 +506,7 @@ export abstract class BaseWorkspaceContext {
             ...jsconfigSfdx,
             include: [...jsconfigSfdx.include, typingsInclude]
           };
-          jsconfigContent = JSON.stringify(config, null, 2);
+          jsconfigContent = JSON.stringify(config, null, JSON_INDENT);
         }
 
         await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
@@ -488,7 +548,20 @@ export abstract class BaseWorkspaceContext {
             ...jsconfigCore,
             include: [...jsconfigCore.include, typingsInclude]
           };
-          const jsconfigContent = JSON.stringify(config, null, 2);
+
+          const existingConfigContent = await this.fileSystemAccessor.getFileContent(jsconfigPath);
+          if (existingConfigContent) {
+            try {
+              const existingConfig: unknown = JSON.parse(existingConfigContent);
+              if (areJsonValuesEqual(config, existingConfig)) {
+                continue;
+              }
+            } catch {
+              // Invalid existing JSON should be replaced with the generated configuration.
+            }
+          }
+
+          const jsconfigContent = JSON.stringify(config, null, JSON_INDENT);
           await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
         } catch (error) {
           console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);

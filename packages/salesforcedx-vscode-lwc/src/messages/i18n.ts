@@ -71,6 +71,9 @@ export const messages = {
   lwc_language_server_client_start_failed: '[LWC] Failed to start client: %s',
   lwc_language_server_started: 'LWC Language Server started successfully',
   lwc_language_server_output_channel_hint: 'Check "LWC Language Server" output channel for server logs',
+  lwc_restarting_language_server: 'Restarting LWC Language Server due to sfdx-project.json changes...',
+  lwc_language_server_restarted: 'LWC Language Server restarted successfully',
+  lwc_language_server_restart_failed: 'Failed to restart LWC Language Server: %s',
   lwc_test_support_load_failed: 'Failed to load test support: %s'
 } as const;
 
