@@ -107,7 +107,27 @@ Note: "keyboard shortcut can miss on web" comments refer to **shortcut keystroke
 
 ## Running Full E2E Test Suite
 
-See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.
+See `references/full-suite-execution.md` for complete guide on running web/desktop E2E tests locally across all packages in dependency order + running container specs.
+
+## Container Specs
+
+10 packages now ship **container** Playwright specs (core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
+
+**Run locally:**
+```bash
+npm run test:container:local
+```
+(from repo root; pulls the image, builds your extensions + swaps them in, then runs all packages' container specs sequentially against 1 shared workbench — see the "Running Code Builder e2e locally" section above for flags/prereqs)
+
+**Run 1 package:**
+```bash
+npm run test:container -w <package>
+```
+(assumes container already running; typically invoked by orchestrator, not manually)
+
+See `docs/codeBuilderContainerParity.md` for coverage ledger (which packages have container specs + rationale).
+
+**Orchestrator:** `scripts/codeBuilderLocalE2E.ts` discovers all packages with `test:container` scripts, spins up 1 container, swaps every built extension into it, runs all suites sequentially. Adding a container suite to a package auto-discovers it (no script edit needed).
 
 ## Disable/reenable other E2E when iterating
 
