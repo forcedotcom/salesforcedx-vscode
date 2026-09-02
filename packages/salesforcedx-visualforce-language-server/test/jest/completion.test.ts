@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CompletionConfiguration } from 'vscode-html-languageservice';
 import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src';
-import { CompletionConfiguration } from '../../src/services/htmlCompletion';
+import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
 type ItemDescription = {
@@ -47,15 +47,15 @@ describe('HTML Completion', () => {
     }
   };
 
-  const testCompletionFor = async (
+  const testCompletionFor = (
     value: string,
     expected: { count?: number; items?: ItemDescription[] },
     settings?: CompletionConfiguration
-  ): Promise<void> => {
+  ): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
-    const ls = htmlLanguageService.getLanguageService();
+    const ls = getVisualforceHtmlLanguageService();
 
     const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
     const position = document.positionAt(offset);
@@ -72,49 +72,17 @@ describe('HTML Completion', () => {
     }
   };
 
-  test('Complete', async () => {
-    await testCompletionFor('<|', {
-      items: [
-        { label: 'iframe', resultText: '<iframe' },
-        { label: 'h1', resultText: '<h1' },
-        { label: 'div', resultText: '<div' }
-      ]
+  test('Visualforce metadata', () => {
+    testCompletionFor('<apex:pageM|', {
+      items: [{ label: 'apex:pageMessage' }]
     });
 
-    await testCompletionFor('< |', {
-      items: [
-        { label: 'iframe', resultText: '<iframe' },
-        { label: 'h1', resultText: '<h1' },
-        { label: 'div', resultText: '<div' }
-      ]
+    testCompletionFor('<apex:pageMessage |', {
+      items: [{ label: 'escape' }, { label: 'severity' }]
     });
 
-    await testCompletionFor('<h|', {
-      items: [
-        { label: 'html', resultText: '<html' },
-        { label: 'h1', resultText: '<h1' },
-        { label: 'header', resultText: '<header' }
-      ]
-    });
-
-    await testCompletionFor('<input|', {
-      items: [{ label: 'input', resultText: '<input' }]
-    });
-
-    await testCompletionFor('<inp|ut', {
-      items: [{ label: 'input', resultText: '<input' }]
-    });
-
-    await testCompletionFor('<|inp', {
-      items: [{ label: 'input', resultText: '<input' }]
-    });
-
-    await testCompletionFor('<input |', {
-      items: [
-        { label: 'type', resultText: '<input type="$1"' },
-        { label: 'style', resultText: '<input style="$1"' },
-        { label: 'onmousemove', resultText: '<input onmousemove="$1"' }
-      ]
+    testCompletionFor('<apex:pageMessage escape="|">', {
+      items: [{ label: 'true' }, { label: 'false' }]
     });
   });
 });
