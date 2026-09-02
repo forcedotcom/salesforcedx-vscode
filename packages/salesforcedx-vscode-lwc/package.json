@@ -65,6 +65,7 @@
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "wireit",
     "test:e2e": "wireit",
@@ -158,6 +159,22 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
         "package*.json"
       ],
       "output": []
