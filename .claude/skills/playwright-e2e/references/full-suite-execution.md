@@ -187,7 +187,7 @@ Each command must complete and be analyzed before proceeding to the next.
 
 After all web/desktop tests pass, optionally run **container** Playwright specs. Container tests validate extensions against the Code Builder container (desktop extension build in a Node host with language servers + CLI access).
 
-**10 packages ship container specs** (core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
+**12 packages ship container specs** (apex, lightning, core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
 
 **Run all at once (recommended):**
 ```bash
