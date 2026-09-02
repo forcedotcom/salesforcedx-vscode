@@ -19,7 +19,7 @@ const loadBridgeWithMockLayer = () => {
   const calls: string[] = [];
   // Resolver so the test awaits the fire-and-forget fiber instead of guessing a delay.
   const { promise: shown, resolve: channelShown } = Promise.withResolvers<void>();
-  const loaded = {} as { appendAndShowChannelOutput: (message: string) => void };
+  const loaded = {} as { writeToDebuggerOutputWindow: (message: string) => void };
 
   jest.isolateModules(() => {
     const { ExtensionProviderService } =
@@ -59,29 +59,30 @@ const loadBridgeWithMockLayer = () => {
       ) as unknown as Parameters<typeof setAllServicesLayer>[0]
     );
 
-    loaded.appendAndShowChannelOutput = (
+    loaded.writeToDebuggerOutputWindow = (
       require('../../../src/channels') as typeof import('../../../src/channels')
-    ).appendAndShowChannelOutput;
+    ).writeToDebuggerOutputWindow;
   });
 
   return { ...loaded, calls, shown };
 };
 
-describe('appendAndShowChannelOutput', () => {
+describe('writeToDebuggerOutputWindow', () => {
   it('creates no channel and does not throw when no AllServicesLayer has been set', () => {
     jest.isolateModules(() => {
-      const { appendAndShowChannelOutput } = require('../../../src/channels') as typeof import('../../../src/channels');
+      const { writeToDebuggerOutputWindow } =
+        require('../../../src/channels') as typeof import('../../../src/channels');
       // Channel output is fire-and-forget: pre-activation (or in unit tests) there is no layer/runtime,
       // and writeToDebuggerOutputWindow's callers must not see that as an exception or a stray channel.
-      expect(() => appendAndShowChannelOutput('hello')).not.toThrow();
+      expect(() => writeToDebuggerOutputWindow('hello')).not.toThrow();
       expect(vscode.window.createOutputChannel).not.toHaveBeenCalled();
     });
   });
 
   it('appends the message to the services channel, then reveals it without stealing focus', async () => {
-    const { appendAndShowChannelOutput, calls, shown } = loadBridgeWithMockLayer();
+    const { writeToDebuggerOutputWindow, calls, shown } = loadBridgeWithMockLayer();
 
-    appendAndShowChannelOutput('checkpoint failed');
+    writeToDebuggerOutputWindow('checkpoint failed');
     await shown;
 
     // show(true) keeps keyboard focus in the editor, matching the legacy showChannelOutput()
