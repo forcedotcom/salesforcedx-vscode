@@ -69,7 +69,6 @@ export const messages = {
   delete_source_confirmation_message:
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
-  cancel_delete_source_button_text: 'Cancel',
   delete_source_operation_failed: 'Delete operation failed: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',

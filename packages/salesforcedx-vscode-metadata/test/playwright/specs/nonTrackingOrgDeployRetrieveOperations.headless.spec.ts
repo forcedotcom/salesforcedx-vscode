@@ -25,6 +25,7 @@ import {
   waitForOutputChannelText,
   isDesktop,
   NOTIFICATION_LIST_ITEM,
+  clickModalDialogButton,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -107,16 +108,10 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
       await executeCommandWithCommandPalette(page, packageNls.delete_source_text);
 
-      const deleteConfirmation = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: messages.delete_source_confirmation_message })
-        .first();
+      const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
-
-      const deleteButton = deleteConfirmation.getByRole('button', {
-        name: messages.confirm_delete_source_button_text
-      });
-      await deleteButton.click();
+      await expect(deleteConfirmation).toContainText(messages.delete_source_confirmation_message);
+      await clickModalDialogButton(page, messages.confirm_delete_source_button_text);
 
       await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
       await waitForOutputChannelText(page, { expectedText: 'Deleted Source', timeout: DEPLOY_TIMEOUT });

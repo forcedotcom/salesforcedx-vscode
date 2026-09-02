@@ -20,13 +20,10 @@ import { withPreparationProgress } from '../utils/withPreparationProgress';
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const PROCEED = nls.localize('confirm_delete_source_button_text');
-  const CANCEL = nls.localize('cancel_delete_source_button_text');
-  const prompt = nls.localize('delete_source_confirmation_message');
-  const response = yield* Effect.promise(
-    async () => await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL)
-  );
-  return response === PROCEED ? (true as const) : yield* new api.services.UserCancellationError();
+  yield* (yield* api.services.PromptService).confirmOrThrow({
+    message: nls.localize('delete_source_confirmation_message'),
+    confirmLabel: nls.localize('confirm_delete_source_button_text')
+  });
 });
 
 const deletePaths = Effect.fn('deletePaths')(function* (uris: URI[]) {
