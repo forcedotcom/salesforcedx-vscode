@@ -11,11 +11,14 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.delete_source_text;
 
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
@@ -31,8 +34,8 @@ const deletePaths = Effect.fn('deletePaths')(function* (uris: URI[]) {
   const componentSetService = yield* api.services.ComponentSetService;
   return yield* componentSetService.getComponentSetFromUris(uris).pipe(
     Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-    withPreparationProgress('delete', cs => detectConflicts(cs, 'delete')),
-    Effect.flatMap(cs => deleteComponentSet({ componentSet: cs }))
+    withPreparationProgress('delete', cs => detectConflicts(cs, 'delete'), COMMAND),
+    Effect.flatMap(cs => deleteComponentSet({ componentSet: cs, command: COMMAND }))
   );
 });
 
@@ -42,6 +45,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
+    const notificationMode = yield* api.services.NotificationModeService;
 
     // Resolve source URI from parameter or active editor
     const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
@@ -57,7 +61,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
         handleConflictWithRetry({
           pairs: err.pairs,
           operationType: err.operationType,
-          retryOperation: deleteComponentSet({ componentSet: err.componentSet })
+          retryOperation: deleteComponentSet({ componentSet: err.componentSet, command: COMMAND })
         })
       ),
       // add the error output to the chanel, let the regular error handler do the rest
@@ -70,8 +74,11 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
         ])
       )
     );
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('delete_source_text'))
+    );
   },
-  withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('delete_source_text'))),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));

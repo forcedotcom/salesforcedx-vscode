@@ -53,6 +53,10 @@ const buildServices = (opts: {
       opts.showChannel();
     })
   }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  }),
   UserCancellationError: class {
     public readonly _tag = 'UserCancellationError';
   }

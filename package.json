@@ -17,7 +17,7 @@
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "jsforce": "^3.10.19",
+    "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^11",
@@ -277,7 +277,7 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs",
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
@@ -286,7 +286,10 @@
         ".opencode/plugins/safeguards.ts",
         "scripts/ai-safeguards.mjs",
         "scripts/ai-safeguards-cli.mjs",
-        "test/ai-safeguards.test.mjs"
+        "scripts/ai-auto-approve.mjs",
+        "scripts/ai-auto-approve-cli.mjs",
+        "test/ai-safeguards.test.mjs",
+        "test/ai-auto-approve.test.mjs"
       ],
       "output": []
     },

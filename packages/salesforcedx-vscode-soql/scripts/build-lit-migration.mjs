@@ -5,6 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-
-export const telemetryService = TelemetryService.getInstance('salesforcedx-vscode-org');
+process.argv.push('--lit-migration');
+await import('../esbuild.config.mjs');
+await import('./verify-lit-migration-parity.mjs');

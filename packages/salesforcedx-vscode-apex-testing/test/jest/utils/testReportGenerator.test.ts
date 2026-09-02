@@ -90,7 +90,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
-import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
+import { openTestReport, writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
 // Additional mock functions for vscode APIs
 const mockOpenTextDocument = jest.fn().mockResolvedValue({});
@@ -1037,63 +1037,31 @@ describe('testReportGenerator', () => {
   });
 
   describe('writeAndOpenTestReport', () => {
-    it('should write markdown report and notify without opening by default', async () => {
+    it("should write markdown report without showing a toast (toast is the caller's responsibility)", async () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime'));
+      const reportUri = await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime')
+      );
 
       expect(mockWriteFile).toHaveBeenCalled();
-      expect(mockShowInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.md'),
-        'Open Report'
-      );
+      expect(reportUri.toString()).toContain('test-result-test-run-123.md');
+      expect(mockShowInformationMessage).not.toHaveBeenCalled();
       expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.md'));
     });
 
-    it('should open markdown preview when user selects Open Report', async () => {
+    it("should write text report without showing a toast (toast is the caller's responsibility)", async () => {
       const result = createMockTestResult();
       const outputDir = URI.file(path.join('test', 'output'));
 
-      mockShowInformationMessage.mockResolvedValueOnce('Open Report');
-
-      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime'));
-      // Allow daemon fiber to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      expect(mockWriteFile).toHaveBeenCalled();
-      // Refresh should be called before showing preview
-      expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.preview.refresh');
-      expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', expect.any(Object));
-      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.md'));
-    });
-
-    it('should write text report and notify without opening by default', async () => {
-      const result = createMockTestResult();
-      const outputDir = URI.file(path.join('test', 'output'));
-
-      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime'));
-
-      expect(mockWriteFile).toHaveBeenCalled();
-      expect(mockShowInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('test-result-test-run-123.txt'),
-        'Open Report'
+      const reportUri = await getApexTestingRuntime().runPromise(
+        writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime')
       );
-      expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.txt'));
-    });
-
-    it('should open text report when user selects Open Report', async () => {
-      const result = createMockTestResult();
-      const outputDir = URI.file(path.join('test', 'output'));
-
-      mockShowInformationMessage.mockResolvedValueOnce('Open Report');
-
-      await getApexTestingRuntime().runPromise(writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime'));
-      // Allow daemon fiber to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
 
       expect(mockWriteFile).toHaveBeenCalled();
-      expect(mockShowTextDocument).toHaveBeenCalled();
+      expect(reportUri.toString()).toContain('test-result-test-run-123.txt');
+      expect(mockShowInformationMessage).not.toHaveBeenCalled();
       expect(mockAppendToChannel).toHaveBeenCalledWith(expect.stringContaining('test-result-test-run-123.txt'));
     });
 
@@ -1140,6 +1108,25 @@ describe('testReportGenerator', () => {
       const [uri] = writeCall;
       // Should use library format: test-result-{testRunId}.md
       expect(uri.fsPath).toContain('test-result-test-run-123.md');
+    });
+  });
+
+  describe('openTestReport', () => {
+    it('should refresh and open the markdown preview for markdown format', async () => {
+      const reportUri = URI.file(path.join('test', 'output', 'test-result-test-run-123.md'));
+
+      await getApexTestingRuntime().runPromise(openTestReport(reportUri, 'markdown'));
+
+      expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.preview.refresh');
+      expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', reportUri);
+    });
+
+    it('should open the text report in an editor for text format', async () => {
+      const reportUri = URI.file(path.join('test', 'output', 'test-result-test-run-123.txt'));
+
+      await getApexTestingRuntime().runPromise(openTestReport(reportUri, 'text'));
+
+      expect(mockShowTextDocument).toHaveBeenCalledWith(reportUri, { preview: false, preserveFocus: false });
     });
   });
 });
