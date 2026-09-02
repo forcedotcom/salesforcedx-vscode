@@ -158,8 +158,7 @@ describe('orgDeleteDefaultCommand', () => {
 // Mirrors the real TerminalServiceError (terminalService.ts) so the partial-failure test exercises the
 // actual error shape the catchTag captures, not a hand-rolled stand-in.
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
 // Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
@@ -246,8 +245,7 @@ describe('orgDeleteUsernameCommand', () => {
             try: () => Promise.reject(new Error('Command failed: non-zero exit')),
             catch: e =>
               new TerminalServiceError({
-                message: e instanceof Error ? e.message : 'exec failed',
-                command: args.command
+                message: e instanceof Error ? e.message : 'exec failed'
               })
           })
         : Effect.succeed('deleted')

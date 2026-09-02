@@ -1,4 +1,13 @@
-## [1.3.11](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.10...playwright-vscode-ext-v1.3.11) (2026-08-20)
+## [1.3.12](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.11...playwright-vscode-ext-v1.3.12) (2026-09-01)
+
+
+### Bug Fixes
+
+* **services:** redact arbitrary sf command arguments in telemetry - W-24017196 ([#8078](https://github.com/forcedotcom/salesforcedx-vscode/issues/8078)) ([a57ae53](https://github.com/forcedotcom/salesforcedx-vscode/commit/a57ae53ce715435e59682e7576dbd013d151ea28))
+
+
+
+## 1.3.11 (2026-08-20)
 
 
 ### Bug Fixes
