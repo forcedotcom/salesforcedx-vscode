@@ -39,6 +39,7 @@ import {
   buildAllServicesLayer,
   disposeMetadataRuntime,
   getMetadataRuntime,
+  preventOrgChanges,
   setAllServicesLayer
 } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
@@ -92,8 +93,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartCommand(false)),
       registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartCommand(true)),
-      registerCommand('sf.metadata.project.deploy.then.retrieve', () =>
-        projectDeployStartCommand(false).pipe(Effect.andThen(() => projectRetrieveStartCommand(false)))
+      registerCommand(
+        'sf.metadata.project.deploy.then.retrieve',
+        Effect.fn('projectDeployThenRetrieveCommand')(function* () {
+          yield* projectDeployStartCommand(false);
+          yield* projectRetrieveStartCommand(false);
+        }, preventOrgChanges)
       ),
       registerCommand('sf.metadata.retrieve.current.source.file', () =>
         retrieveSourcePathsCommand(undefined, undefined)

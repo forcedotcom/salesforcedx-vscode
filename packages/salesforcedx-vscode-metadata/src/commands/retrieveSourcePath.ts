@@ -12,6 +12,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
@@ -68,5 +69,6 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
       Effect.as(undefined)
     )
-  )
+  ),
+  preventOrgChanges
 );
