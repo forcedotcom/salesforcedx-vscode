@@ -12,6 +12,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
@@ -56,7 +57,8 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
       Effect.as(undefined)
     )
-  )
+  ),
+  preventOrgChanges
 );
 
 // When a single file is selected and "Deploy Source from Org" is executed,
@@ -78,11 +80,10 @@ export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySource
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
-  const urisSet = new Set([sourceUri, ...uris]);
-  const result = yield* deployUris(urisSet);
+  const result = yield* deployUris(new Set([sourceUri, ...uris]));
   yield* notificationMode.showSuccessNotification(
     COMMAND,
     nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
   );
   return result;
-});
+}, preventOrgChanges);
