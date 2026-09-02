@@ -28,6 +28,18 @@ describe('runnerTimeoutMs', () => {
     process.env.CB_RUNNER_TIMEOUT_MS = '1234';
     expect(runnerTimeoutMs()).toBe(1234);
   });
+
+  it('treats 0 as an explicit "no timeout", not a fallback to the default', () => {
+    process.env.CB_RUNNER_TIMEOUT_MS = '0';
+    expect(runnerTimeoutMs()).toBe(0);
+  });
+
+  it('falls back to the default for a negative or non-numeric value', () => {
+    process.env.CB_RUNNER_TIMEOUT_MS = '-5';
+    expect(runnerTimeoutMs()).toBe(600_000);
+    process.env.CB_RUNNER_TIMEOUT_MS = 'not-a-number';
+    expect(runnerTimeoutMs()).toBe(600_000);
+  });
 });
 
 describe('withTimeoutRetry', () => {
@@ -86,6 +98,17 @@ describe('withTimeoutRetry', () => {
     });
     expect(out).toBe('recovered');
     expect(calls).toBe(2);
+  });
+
+  it('runs at least once even if CB_RUNNER_MAX_ATTEMPTS is 0/negative (never throws undefined)', () => {
+    process.env.CB_RUNNER_MAX_ATTEMPTS = '0';
+    let calls = 0;
+    const out = withTimeoutRetry(() => {
+      calls++;
+      return 'ran';
+    });
+    expect(out).toBe('ran');
+    expect(calls).toBe(1);
   });
 });
 

@@ -29,7 +29,16 @@ const DEFAULT_TIMEOUT_MS = 600_000; // 10 min per attempt
 const DEFAULT_MAX_ATTEMPTS = 5;
 
 /** Per-attempt timeout (ms) for a shelled command. Env-overridable via CB_RUNNER_TIMEOUT_MS. */
-export const runnerTimeoutMs = (): number => Number(process.env.CB_RUNNER_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS;
+export const runnerTimeoutMs = (): number => {
+  const raw = process.env.CB_RUNNER_TIMEOUT_MS;
+  if (raw === undefined) {
+    return DEFAULT_TIMEOUT_MS;
+  }
+  // `0` is a VALID explicit "no timeout" (execFileSync treats 0/undefined as unbounded), so honor it
+  // rather than `|| DEFAULT`-ing it back to 10 min. Only an unset/NaN/negative value falls back.
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_TIMEOUT_MS;
+};
 
 // execFileSync throws `code: 'ETIMEDOUT'` when its `timeout` fires (it SIGTERMs the child); a genuine
 // non-zero exit has a numeric `status` and no such code. Only the former is a hang worth retrying.
@@ -43,7 +52,9 @@ const isTimeout = (err: unknown): boolean =>
  * extractor so extraction gets the same hang protection.
  */
 export const withTimeoutRetry = <T>(attempt: () => T): T => {
-  const maxAttempts = Number(process.env.CB_RUNNER_MAX_ATTEMPTS) || DEFAULT_MAX_ATTEMPTS;
+  // Always run at least once, even if the env var is 0/negative/garbage — otherwise the loop would
+  // be skipped and we'd fall through to `throw lastError` with nothing set.
+  const maxAttempts = Math.max(1, Number(process.env.CB_RUNNER_MAX_ATTEMPTS) || DEFAULT_MAX_ATTEMPTS);
   let lastError: unknown;
   for (let i = 1; i <= maxAttempts; i++) {
     try {
@@ -55,7 +66,9 @@ export const withTimeoutRetry = <T>(attempt: () => T): T => {
       lastError = err;
     }
   }
-  throw lastError; // exhausted retries on repeated timeouts
+  // maxAttempts >= 1 guarantees lastError is set here; the ?? guard just makes `throw undefined`
+  // impossible if that ever changes.
+  throw lastError ?? new Error('withTimeoutRetry: exhausted with no attempt executed');
 };
 
 /** Default runner: real process execution, arg-array form (no shell interpolation), with timeout + retry. */

@@ -43,9 +43,18 @@ describe('manifest', () => {
     expect(() => readManifest(join(tmp(), 'nope.json'))).toThrow(/manifest not found/);
   });
 
-  it('throws (validation) on a malformed manifest', () => {
+  it('throws (validation) on a malformed manifest with a readable (formatted) schema error', () => {
     const path = join(tmp(), 'bad.json');
     writeFileSync(path, JSON.stringify({ schemaVersion: 2, entries: 'not-an-array' }));
     expect(() => readManifest(path)).toThrow(/invalid manifest/);
+    // The message must be the TreeFormatter output, not a useless "[object Object]".
+    let message = '';
+    try {
+      readManifest(path);
+    } catch (err) {
+      message = (err as Error).message;
+    }
+    expect(message).not.toContain('[object Object]');
+    expect(message).toMatch(/schemaVersion|entries/);
   });
 });

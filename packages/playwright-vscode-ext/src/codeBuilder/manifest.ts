@@ -17,6 +17,7 @@
 
 import type { ExtensionDigest } from './digest';
 import * as Either from 'effect/Either';
+import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -70,7 +71,9 @@ export const readManifest = (path: string): Manifest => {
   const parsed: unknown = JSON.parse(readFileSync(path, 'utf-8'));
   const result = decodeEither(parsed);
   if (Either.isLeft(result)) {
-    throw new Error(`invalid manifest at ${path}: ${String(result.left)}`);
+    // TreeFormatter renders the schema ParseError as a readable field-by-field tree; String(...)
+    // would just print "[object Object]".
+    throw new Error(`invalid manifest at ${path}: ${ParseResult.TreeFormatter.formatErrorSync(result.left)}`);
   }
   return result.right;
 };

@@ -175,6 +175,17 @@ describe('digest', () => {
       expect(computeExtensionDigest(swapSide).pkgJsonDigest).toBe(computeExtensionDigest(installed).pkgJsonDigest);
     });
 
+    it('strips __metadata only at the ROOT — a nested key named __metadata is meaningful content', () => {
+      const withoutNested = track(makeExtensionRaw('{"name":"x","version":"1.0.0","contributes":{"foo":1}}'));
+      const withNested = track(
+        makeExtensionRaw('{"name":"x","version":"1.0.0","contributes":{"foo":1,"__metadata":"user-data"}}')
+      );
+      // A legitimately-named nested __metadata must NOT be filtered, so it changes the digest.
+      expect(computeExtensionDigest(withoutNested).pkgJsonDigest).not.toBe(
+        computeExtensionDigest(withNested).pkgJsonDigest
+      );
+    });
+
     it('still differs when the meaningful content (version) changes', () => {
       const a = track(makeExtensionRaw('{"name":"x","version":"1.0.0"}'));
       const b = track(makeExtensionRaw('{"name":"x","version":"1.0.1"}'));

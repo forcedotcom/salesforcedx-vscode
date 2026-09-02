@@ -55,22 +55,28 @@ const sha256 = (bytes: Buffer | string): string => createHash('sha256').update(b
  * changes the canonical form, so the gate keeps its teeth.
  */
 const INSTALL_INJECTED_KEYS = new Set(['__metadata']);
+// Stable, key-sorted stringify. Does NOT filter keys — filtering happens ONCE at the top level
+// (below), because install-injected keys like `__metadata` are added to the package.json ROOT; a
+// legitimately-named nested key (e.g. `{ contributes: { __metadata: … } }`) must be preserved or the
+// swap-side and verify-side digests would still agree but over the wrong content.
+const stableStringify = (value: unknown): string => {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(',')}]`;
+  }
+  const obj = value as Record<string, unknown>;
+  const entries = Object.keys(obj)
+    .toSorted()
+    .map(k => `${JSON.stringify(k)}:${stableStringify(obj[k])}`);
+  return `{${entries.join(',')}}`;
+};
 const canonicalPackageJson = (raw: string): string => {
   const parsed = JSON.parse(raw) as Record<string, unknown>;
-  const stableStringify = (value: unknown): string => {
-    if (value === null || typeof value !== 'object') {
-      return JSON.stringify(value);
-    }
-    if (Array.isArray(value)) {
-      return `[${value.map(stableStringify).join(',')}]`;
-    }
-    const entries = Object.keys(value as Record<string, unknown>)
-      .filter(k => !INSTALL_INJECTED_KEYS.has(k))
-      .toSorted()
-      .map(k => `${JSON.stringify(k)}:${stableStringify((value as Record<string, unknown>)[k])}`);
-    return `{${entries.join(',')}}`;
-  };
-  return stableStringify(parsed);
+  // Drop install-injected keys at the ROOT only, then stably stringify the rest.
+  const rootFiltered = Object.fromEntries(Object.entries(parsed).filter(([k]) => !INSTALL_INJECTED_KEYS.has(k)));
+  return stableStringify(rootFiltered);
 };
 
 /*
