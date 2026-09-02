@@ -7,38 +7,41 @@
 
 import { ApexDiagnostic } from '../utils';
 
-export const enum TestLevel {
+export const TestLevel = {
   /**
    * All tests in your org are run, except the ones that originate from installed managed packages
    */
-  RunLocalTests = 'RunLocalTests',
+  RunLocalTests: 'RunLocalTests',
   /**
    * All tests are in your org and in installed managed packages are run
    */
-  RunAllTestsInOrg = 'RunAllTestsInOrg',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
   /**
    * Only the tests that you specify are run
    */
-  RunSpecifiedTests = 'RunSpecifiedTests'
-}
+  RunSpecifiedTests: 'RunSpecifiedTests'
+} as const;
+export type TestLevel = (typeof TestLevel)[keyof typeof TestLevel];
 
-export const enum TestCategory {
+export const TestCategory = {
   /**
    * Apex test classes and methods written in Apex code
    */
-  Apex = 'Apex',
+  Apex: 'Apex',
   /**
    * Flow tests that validate Salesforce Flow functionality
    */
-  Flow = 'Flow'
-}
+  Flow: 'Flow'
+} as const;
+export type TestCategory = (typeof TestCategory)[keyof typeof TestCategory];
 
-export const enum TestCategoryPrefix {
+export const TestCategoryPrefix = {
   /**
    * Prefix identifier used to detect Flow tests in test names
    */
-  FlowTest = 'FlowTesting.'
-}
+  FlowTest: 'FlowTesting.'
+} as const;
+export type TestCategoryPrefix = (typeof TestCategoryPrefix)[keyof typeof TestCategoryPrefix];
 
 export type AsyncTestConfiguration = {
   /**
@@ -81,14 +84,15 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export enum ResultFormat {
-  junit = 'junit',
-  tap = 'tap',
-  json = 'json',
-  human = 'human',
-  markdown = 'markdown',
-  text = 'text'
-}
+export const ResultFormat = {
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
+} as const;
+export type ResultFormat = (typeof ResultFormat)[keyof typeof ResultFormat];
 
 export type OutputDirConfig = {
   dirPath: string;
@@ -199,12 +203,13 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export const enum ApexTestResultOutcome {
-  Pass = 'Pass',
-  Fail = 'Fail',
-  CompileFail = 'CompileFail',
-  Skip = 'Skip'
-}
+export const ApexTestResultOutcome = {
+  Pass: 'Pass',
+  Fail: 'Fail',
+  CompileFail: 'CompileFail',
+  Skip: 'Skip'
+} as const;
+export type ApexTestResultOutcome = (typeof ApexTestResultOutcome)[keyof typeof ApexTestResultOutcome];
 
 type FlowTestResultRecord = {
   Id: string;
@@ -300,15 +305,16 @@ export type FlowTestResult = {
   records: FlowTestResultRecord[];
 };
 
-export const enum ApexTestRunResultStatus {
-  Queued = 'Queued',
-  Processing = 'Processing',
-  Aborted = 'Aborted',
-  Passed = 'Passed',
-  Failed = 'Failed',
-  Completed = 'Completed',
-  Skipped = 'Skipped'
-}
+export const ApexTestRunResultStatus = {
+  Queued: 'Queued',
+  Processing: 'Processing',
+  Aborted: 'Aborted',
+  Passed: 'Passed',
+  Failed: 'Failed',
+  Completed: 'Completed',
+  Skipped: 'Skipped'
+} as const;
+export type ApexTestRunResultStatus = (typeof ApexTestRunResultStatus)[keyof typeof ApexTestRunResultStatus];
 
 export type ApexTestRunResult = {
   /**
@@ -353,15 +359,16 @@ export type ApexTestRunResult = {
   UserId: string;
 };
 
-export const enum ApexTestQueueItemStatus {
-  Holding = 'Holding',
-  Queued = 'Queued',
-  Preparing = 'Preparing',
-  Processing = 'Processing',
-  Aborted = 'Aborted',
-  Completed = 'Completed',
-  Failed = 'Failed'
-}
+export const ApexTestQueueItemStatus = {
+  Holding: 'Holding',
+  Queued: 'Queued',
+  Preparing: 'Preparing',
+  Processing: 'Processing',
+  Aborted: 'Aborted',
+  Completed: 'Completed',
+  Failed: 'Failed'
+} as const;
+export type ApexTestQueueItemStatus = (typeof ApexTestQueueItemStatus)[keyof typeof ApexTestQueueItemStatus];
 
 export type ApexTestQueueItemRecord = {
   Id: string;
@@ -623,4 +630,5 @@ export type ApexTestProgressValue =
       testRunId: string;
     };
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type TestSuiteMembershipRecord = { ApexClassId: string };

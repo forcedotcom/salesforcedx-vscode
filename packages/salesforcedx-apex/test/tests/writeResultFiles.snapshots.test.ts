@@ -12,8 +12,8 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { writeResultFiles } from '../../src/tests/testService';
 import {
-  writeResultFiles,
   ApexTestResultOutcome,
   ResultFormat,
   TestResult,

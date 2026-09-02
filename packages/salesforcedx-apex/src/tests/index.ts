@@ -5,13 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { TestService, writeResultFiles } from './testService';
+export { TestService } from './testService';
 export { ApexTestResultOutcome, ApexTestRunResultStatus, ResultFormat, TestCategory, TestLevel } from './types';
 export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
+  ApexTestQueueItem,
+  ApexTestQueueItemRecord,
+  ApexTestQueueItemStatus,
   ApexTestProgressValue,
   ApexTestResultData,
+  ApexTestResultDataRaw,
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
@@ -20,7 +26,8 @@ export type {
   SyncTestConfiguration,
   TestItem,
   TestResult,
+  TestResultRaw,
   TestRunIdResult,
+  TestSuiteMembershipRecord,
   PerClassCoverage
 } from './types';
-export { writeAsyncResultsToFile } from './asyncTests';

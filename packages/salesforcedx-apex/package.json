@@ -11,16 +11,11 @@
     ".": {
       "types": "./out/src/index.d.ts",
       "default": "./out/src/index.js"
-    },
-    "./lib/src/tests/types.js": {
-      "types": "./out/src/tests/types.d.ts",
-      "default": "./out/src/tests/types.js"
     }
   },
   "dependencies": {
     "@salesforce/core": "^9.1.9",
     "@salesforce/kit": "^4.0.0",
-    "@salesforce/ts-types": "^3.0.0",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -31,6 +26,7 @@
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
     "@microsoft/api-extractor": "7.59.0",
+    "@salesforce/ts-types": "^3.0.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
@@ -51,7 +47,6 @@
   "scripts": {
     "api:check": "wireit",
     "api:update": "wireit",
-    "api:update:tests-types": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -74,12 +69,6 @@
       ]
     },
     "api:check": {
-      "dependencies": [
-        "api:check:root",
-        "api:check:tests-types"
-      ]
-    },
-    "api:check:root": {
       "command": "api-extractor run --verbose",
       "dependencies": [
         "compile"
@@ -87,27 +76,11 @@
       "files": [
         "out/src/**/*.d.ts",
         "api-extractor.json",
-        "etc/apex-node.api.md",
+        "etc/apex-node.public.api.md",
         "package.json"
       ],
       "output": [
-        "temp/apex-node.api.md"
-      ]
-    },
-    "api:check:tests-types": {
-      "command": "api-extractor run --verbose --config api-extractor.tests-types.json",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "out/src/tests/types.d.ts",
-        "api-extractor.json",
-        "api-extractor.tests-types.json",
-        "etc/apex-node-tests-types.api.md",
-        "package.json"
-      ],
-      "output": [
-        "temp/apex-node-tests-types.api.md"
+        "temp/apex-node.public.api.md"
       ]
     },
     "compile": {

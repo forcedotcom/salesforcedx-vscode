@@ -5,6 +5,7 @@
   "apiReport": {
     "enabled": true,
     "reportFileName": "apex-node",
+    "reportVariants": ["public"],
     "reportFolder": "<projectFolder>/etc",
     "reportTempFolder": "<projectFolder>/temp"
   },
@@ -22,6 +23,10 @@
       "ae-forgotten-export": {
         "logLevel": "none",
         "addToApiReportFile": true
+      },
+      "ae-internal-missing-underscore": {
+        "logLevel": "none",
+        "addToApiReportFile": false
       },
       "ae-missing-release-tag": {
         "logLevel": "none"

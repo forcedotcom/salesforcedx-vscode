@@ -28,12 +28,17 @@ import {
   syncTestResultSimple,
   syncTestResultWithFailures
 } from '../testData';
-// eslint-disable-next-line no-duplicate-imports
-import { JUnitFormatTransformer } from '../../src';
+import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
 import { Writable } from 'node:stream';
+
+type TestServiceInternals = {
+  createStream: (filePath: string) => Writable;
+};
+
+const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
 
 let mockConnection: Connection;
 let toolingRequestStub: SinonStub;
@@ -68,7 +73,7 @@ describe('Run Apex tests synchronously', () => {
       headers: { 'content-type': 'application/json' }
     };
 
-    testServiceSpy = $$.SANDBOX.stub(TestService.prototype, 'createStream').returns(
+    testServiceSpy = $$.SANDBOX.stub(testServicePrototype, 'createStream').returns(
       new Writable({
         write(chunk: unknown, encoding, callback) {
           callback();

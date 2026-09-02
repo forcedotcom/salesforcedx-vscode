@@ -54,7 +54,7 @@ export const writeAsyncResultsToFile = async (formattedResults: TestResult, runI
   return await pipeline(stringifyStream, writeStream);
 };
 
-const finishedStatuses = new Set([
+const finishedStatuses = new Set<ApexTestRunResultStatus>([
   ApexTestRunResultStatus.Aborted,
   ApexTestRunResultStatus.Failed,
   ApexTestRunResultStatus.Completed,

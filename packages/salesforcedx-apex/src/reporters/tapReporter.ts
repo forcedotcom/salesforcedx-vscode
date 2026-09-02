@@ -37,7 +37,7 @@ export class TapReporter {
   }
 
   @elapsedTime()
-  public buildTapResults(testResult: TestResult): TapResult[] {
+  private buildTapResults(testResult: TestResult): TapResult[] {
     return testResult.tests.map((test: ApexTestResultData, index: number) => ({
       testNumber: index + 1,
       description: test.fullName,

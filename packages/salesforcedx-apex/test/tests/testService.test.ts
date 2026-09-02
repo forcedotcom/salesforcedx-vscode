@@ -16,6 +16,13 @@ let toolingCreateStub: SinonStub;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
+type TestServiceInternals = {
+  getApexClassIds: (testClasses: string[]) => Promise<string[]>;
+};
+
+const getApexClassIds = (service: TestService, testClasses: string[]): Promise<string[]> =>
+  (service as unknown as TestServiceInternals).getApexClassIds(testClasses);
+
 describe('Apex Test Suites', () => {
   const $$ = new TestContext();
   beforeEach(async () => {
@@ -36,7 +43,7 @@ describe('Apex Test Suites', () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
     const testService = new TestService(mockConnection);
-    const ids = await testService.getApexClassIds(['firstTestClass']);
+    const ids = await getApexClassIds(testService, ['firstTestClass']);
 
     expect(ids).toEqual(['xxxxxxx243']);
     expect(toolingQueryStub.calledOnce).toBe(true);
@@ -48,7 +55,7 @@ describe('Apex Test Suites', () => {
     toolingQueryStub.resolves({ records: [{ Id: 'pkgClassId' }] });
 
     const testService = new TestService(mockConnection);
-    const ids = await testService.getApexClassIds(['myns.FooTest']);
+    const ids = await getApexClassIds(testService, ['myns.FooTest']);
 
     expect(ids).toEqual(['pkgClassId']);
     expect(toolingQueryStub.firstCall.args[0]).toContain("Name = 'FooTest'");
@@ -71,7 +78,7 @@ describe('Apex Test Suites', () => {
       });
 
     const testService = new TestService(mockConnection);
-    const ids = await testService.getApexClassIds(['firstTestClass', 'secondTestClass', 'thirdTestClass']);
+    const ids = await getApexClassIds(testService, ['firstTestClass', 'secondTestClass', 'thirdTestClass']);
 
     expect(ids).toEqual(['xxxxxxx243', 'xxxxxxx245', 'xxxxxxx247']);
     expect(toolingQueryStub.calledThrice).toBe(true);
@@ -81,7 +88,7 @@ describe('Apex Test Suites', () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
     const testService = new TestService(mockConnection);
-    const ids = await testService.getApexClassIds([]);
+    const ids = await getApexClassIds(testService, []);
 
     expect(ids).toEqual([]);
     expect(toolingQueryStub.notCalled).toBe(true);
@@ -91,7 +98,7 @@ describe('Apex Test Suites', () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
     const testService = new TestService(mockConnection);
-    const ids = await testService.getApexClassIds([]);
+    const ids = await getApexClassIds(testService, []);
 
     expect(ids).toEqual([]);
     expect(toolingQueryStub.notCalled).toBe(true);

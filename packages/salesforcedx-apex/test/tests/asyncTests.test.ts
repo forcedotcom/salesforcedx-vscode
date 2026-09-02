@@ -9,15 +9,9 @@ import { elapsedTime } from '../../src/utils';
 import * as dateUtil from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
-import {
-  TestService,
-  OutputDirConfig,
-  ApexTestProgressValue,
-  Progress,
-  JUnitFormatTransformer,
-  TapFormatTransformer,
-  CancellationTokenSource
-} from '../../src';
+import { TestService, OutputDirConfig, ApexTestProgressValue, Progress, CancellationTokenSource } from '../../src';
+import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
+import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
   AsyncTestConfiguration,
   TestLevel,
@@ -55,6 +49,12 @@ import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
+
+type TestServiceInternals = {
+  createStream: (filePath: string) => Writable;
+};
+
+const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
 
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
@@ -1723,7 +1723,7 @@ describe('Create Result Files', () => {
     writeFileSpy = sandboxStub1.stub(fs, 'writeFile');
     // sandboxStub1.stub(fs, 'close');
     sandboxStub1.stub(fs, 'open');
-    testServiceSpy = sandboxStub1.stub(TestService.prototype, 'createStream').returns(
+    testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
       new Writable({
         write(chunk: unknown, encoding, callback) {
           callback();

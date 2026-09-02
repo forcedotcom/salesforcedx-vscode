@@ -8,8 +8,11 @@ import * as publicApi from '../../src';
 import * as packageJson from '../../package.json';
 
 describe('@salesforce/apex-node public API', () => {
-  it('exports the established runtime symbols', () => {
-    expect(Object.keys(publicApi).sort()).toEqual([
+  it('exports the target major-version runtime symbols', () => {
+    const coRepoOnlySymbols = new Set(['MarkdownTextFormatTransformer']);
+    const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
+
+    expect(supportedSymbols.sort()).toEqual([
       'ApexTestResultOutcome',
       'ApexTestRunResultStatus',
       'CancellationTokenSource',
@@ -18,30 +21,20 @@ describe('@salesforce/apex-node public API', () => {
       'DefaultWatermarks',
       'ExecuteService',
       'HumanReporter',
-      'JUnitFormatTransformer',
       'JUnitReporter',
       'LogService',
-      'MarkdownTextFormatTransformer',
       'ResultFormat',
-      'Table',
-      'TapFormatTransformer',
       'TapReporter',
       'TestLevel',
-      'TestService',
-      'writeAsyncResultsToFile',
-      'writeResultFiles'
+      'TestService'
     ]);
   });
 
-  it('restricts consumers to the established package entry points', () => {
+  it('restricts consumers to the target major-version package entry point', () => {
     expect(packageJson.exports).toEqual({
       '.': {
         types: './out/src/index.d.ts',
         default: './out/src/index.js'
-      },
-      './lib/src/tests/types.js': {
-        types: './out/src/tests/types.d.ts',
-        default: './out/src/tests/types.js'
       }
     });
   });

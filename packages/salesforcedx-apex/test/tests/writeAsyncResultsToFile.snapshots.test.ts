@@ -10,7 +10,8 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
+import { ApexTestResultOutcome, TestResult } from '../../src';
+import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {
   let tempDir: string;
