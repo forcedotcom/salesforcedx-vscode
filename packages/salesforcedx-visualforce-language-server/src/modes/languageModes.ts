@@ -5,11 +5,8 @@
 
 'use strict';
 
-import {
-  DocumentContext,
-  getLanguageService as getHTMLLanguageService
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import { LanguageSettings } from 'vscode-css-languageservice';
+import { DocumentContext } from 'vscode-html-languageservice';
 import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
@@ -32,6 +29,7 @@ import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache
 import { getCSSMode } from './cssMode';
 import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
+import { getVisualforceHtmlLanguageService } from './visualforceHtmlLanguageService';
 
 export type Settings = LanguageSettings & {
   css?: any;
@@ -78,7 +76,7 @@ type LanguageModeRange = Range & {
 export const getLanguageModes = async (supportedLanguages: {
   [languageId: string]: boolean;
 }): Promise<LanguageModes> => {
-  const htmlLanguageService = getHTMLLanguageService();
+  const htmlLanguageService = getVisualforceHtmlLanguageService();
   const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
     getDocumentRegions(htmlLanguageService, document)
   );

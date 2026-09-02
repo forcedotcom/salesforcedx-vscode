@@ -39,7 +39,6 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -69,7 +68,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
-        "../salesforcedx-visualforce-markup-language-server:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
