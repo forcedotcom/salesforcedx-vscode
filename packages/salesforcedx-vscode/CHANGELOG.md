@@ -2,67 +2,30 @@
 
 ## Added
 
-#### docs
-
-- User-configurable notifications system at the system, extension, and command levels - W-24026732 ([PR #8073](https://github.com/forcedotcom/salesforcedx-vscode/pull/8073))
-
-- Add metadata visualizer to the standard extension pack ([PR #8049](https://github.com/forcedotcom/salesforcedx-vscode/pull/8049))
-
 #### salesforcedx-vscode
 
-- Add metadata visualizer to the standard extension pack ([PR #8049](https://github.com/forcedotcom/salesforcedx-vscode/pull/8049))
+- We added the **Metadata Visualizer** (salesforce.salesforcedx-metadata-visualizer-vscode) to the standard extension pack, so it's now included by default. ([PR #8049](https://github.com/forcedotcom/salesforcedx-vscode/pull/8049))
 
 #### salesforcedx-vscode-core
 
-- User-configurable notifications system at the system, extension, and command levels - W-24026732 ([PR #8073](https://github.com/forcedotcom/salesforcedx-vscode/pull/8073))
-
-#### salesforcedx-vscode-services
-
-- Make catalog identity namespace-aware - W-23971749 ([PR #8035](https://github.com/forcedotcom/salesforcedx-vscode/pull/8035))
-
-- Add project namespace eligibility - W-23971749 ([PR #8034](https://github.com/forcedotcom/salesforcedx-vscode/pull/8034))
-
-- Add canonical artifact identity - W-23971749 ([PR #8033](https://github.com/forcedotcom/salesforcedx-vscode/pull/8033))
-
-- Expand Lit Effect service contract - W-23928675 ([PR #8026](https://github.com/forcedotcom/salesforcedx-vscode/pull/8026))
-
-#### salesforcedx-vscode-services-types
-
-- Add canonical artifact identity - W-23971749 ([PR #8033](https://github.com/forcedotcom/salesforcedx-vscode/pull/8033))
-
-- Expand Lit Effect service contract - W-23928675 ([PR #8026](https://github.com/forcedotcom/salesforcedx-vscode/pull/8026))
-
-#### salesforcedx-vscode-soql
-
-- Migrate From selection to Lit - W-23928681 ([PR #8053](https://github.com/forcedotcom/salesforcedx-vscode/pull/8053))
-
-- Add browser test harness for soql-builder-ui - W-23928678 ([PR #8042](https://github.com/forcedotcom/salesforcedx-vscode/pull/8042))
-
-- Expand Lit Effect service contract - W-23928675 ([PR #8026](https://github.com/forcedotcom/salesforcedx-vscode/pull/8026))
+- We added a configurable notifications system so you can control whether progress and success notifications for a command appear as a toast, in the status bar, or (for success notifications) not at all. You can set this at the system, extension, or command level. ([PR #8073](https://github.com/forcedotcom/salesforcedx-vscode/pull/8073))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-testing
 
-- Prevent users from multi-selecting a combination of individual Apex tests and Apex test suites in the Testing sidebar ([PR #8048](https://github.com/forcedotcom/salesforcedx-vscode/pull/8048))
-
-#### salesforcedx-vscode-core
-
-- Redact arbitrary sf command arguments in telemetry - W-24017196 ([PR #8078](https://github.com/forcedotcom/salesforcedx-vscode/pull/8078))
+- We fixed a bug where selecting a mix of individual Apex tests and Apex test suites in the **Testing** sidebar silently skipped the test suites instead of running them; you now get an error notification instead. ([PR #8048](https://github.com/forcedotcom/salesforcedx-vscode/pull/8048))
 
 #### salesforcedx-vscode-metadata
 
-- Sort sObject field decls by name - W-23573457 ([PR #8071](https://github.com/forcedotcom/salesforcedx-vscode/pull/8071))
+- We fixed a bug where generated sObject faux classes and TypeScript typings didn't sort fields alphabetically by name. ([PR #8071](https://github.com/forcedotcom/salesforcedx-vscode/pull/8071))
 
 #### salesforcedx-vscode-services
 
-- Persist later web memfs writes to IndexedDB - W-24062740 ([PR #8088](https://github.com/forcedotcom/salesforcedx-vscode/pull/8088))
+- We fixed a bug in web-based VS Code where files created, deployed, or retrieved after your first change appeared in the Explorer but disappeared after a reload. ([PR #8088](https://github.com/forcedotcom/salesforcedx-vscode/pull/8088))
 
-- Redact sensitive data from telemetry spans - W-24017196 ([PR #8072](https://github.com/forcedotcom/salesforcedx-vscode/pull/8072))
+- We fixed a bug that prevented Salesforce project creation commands from running in an empty VS Code window. ([PR #8065](https://github.com/forcedotcom/salesforcedx-vscode/pull/8065))
 
-- Activate without an open workspace - W-24004823 ([PR #8065](https://github.com/forcedotcom/salesforcedx-vscode/pull/8065))
+## Under the Hood
 
-#### salesforcedx-vscode-services-types
-
-- Activate without an open workspace - W-24004823 ([PR #8065](https://github.com/forcedotcom/salesforcedx-vscode/pull/8065))
-
+- We made some under the hood changes. ([PR #8033](https://github.com/forcedotcom/salesforcedx-vscode/pull/8033), [PR #8034](https://github.com/forcedotcom/salesforcedx-vscode/pull/8034), [PR #8035](https://github.com/forcedotcom/salesforcedx-vscode/pull/8035), [PR #8026](https://github.com/forcedotcom/salesforcedx-vscode/pull/8026), [PR #8053](https://github.com/forcedotcom/salesforcedx-vscode/pull/8053), [PR #8042](https://github.com/forcedotcom/salesforcedx-vscode/pull/8042), [PR #8078](https://github.com/forcedotcom/salesforcedx-vscode/pull/8078), [PR #8072](https://github.com/forcedotcom/salesforcedx-vscode/pull/8072))
