@@ -14,7 +14,7 @@ export type FileChangeEvent = {
   readonly uri: URI;
 };
 
-/** PubSub that broadcasts all workspace file-system change events.
+/** PubSub that broadcasts observed file-system change events.
  * The VS Code wiring (FileWatcherLayer) writes to this; consumers subscribe read-only. */
 export class FileChangePubSub extends Effect.Service<FileChangePubSub>()('FileChangePubSub', {
   scoped: PubSub.sliding<FileChangeEvent>(10_000)

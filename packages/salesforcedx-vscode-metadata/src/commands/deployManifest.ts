@@ -11,6 +11,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
@@ -47,5 +48,6 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
-  )
+  ),
+  preventOrgChanges
 );
