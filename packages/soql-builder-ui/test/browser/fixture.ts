@@ -163,13 +163,16 @@ window.soqlBuilderHarness = {
     fake = Effect.runSync(makeFakeSoqlBuilderService(latestState));
     element = document.createElement('soql-builder-app');
     element.labels = {
+      clearAllFields: 'Clear All',
+      count: 'COUNT()',
       fields: 'Fields',
       from: 'From',
       inputs: 'Query inputs',
       loading: 'Loading...',
       noDefaultOrg: 'No default org',
       noResults: 'No results found.',
-      query: 'Query preview'
+      query: 'Query preview',
+      selectAllFields: 'Select All'
     };
     application = new SoqlBuilderApplication(element, fake.layer);
     element.lifecycle = application;

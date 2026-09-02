@@ -6,9 +6,13 @@
  */
 
 import { SoqlBuilderElement } from './components/soqlBuilderElement.js';
+import { SoqlFieldsElement } from './components/soqlFieldsElement.js';
 import { SoqlFromElement } from './components/soqlFromElement.js';
 
 export const registerSoqlBuilderElements = (): void => {
+  if (!customElements.get('soql-builder-fields')) {
+    customElements.define('soql-builder-fields', SoqlFieldsElement);
+  }
   if (!customElements.get('soql-builder-from')) {
     customElements.define('soql-builder-from', SoqlFromElement);
   }
