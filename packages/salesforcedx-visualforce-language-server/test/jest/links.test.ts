@@ -5,8 +5,9 @@
 'use strict';
 
 import * as url from 'node:url';
+import { DocumentContext } from 'vscode-html-languageservice';
 import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src';
+import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 
 type DocumentLink = {
   offset: number;
@@ -14,7 +15,7 @@ type DocumentLink = {
 };
 
 describe('HTML Link Detection', () => {
-  const getDocumentContext = (documentUrl: string): htmlLanguageService.DocumentContext => ({
+  const getDocumentContext = (documentUrl: string): DocumentContext => ({
     resolveReference: (ref: string, base?: string) =>
       base ? url.resolve(url.resolve(documentUrl, base), ref) : url.resolve(documentUrl, ref)
   });
@@ -23,7 +24,7 @@ describe('HTML Link Detection', () => {
     TextDocument.create(modelUrl, 'html', 0, content);
 
   const getLanguageLinks = (document: TextDocument, modelUrl: string) =>
-    htmlLanguageService.getLanguageService().findDocumentLinks(document, getDocumentContext(modelUrl));
+    getVisualforceHtmlLanguageService().findDocumentLinks(document, getDocumentContext(modelUrl));
 
   const testLinkCreation = (modelUrl: string, tokenContent: string, expected: string | null): void => {
     const document = createDocument(modelUrl, `<a href="${tokenContent}">`);

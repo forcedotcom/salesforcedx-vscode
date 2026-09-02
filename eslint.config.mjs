@@ -66,7 +66,6 @@ export default [
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
-      'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
       'packages/salesforcedx-vscode-lightning/extension/tern/**',
@@ -691,7 +690,6 @@ export default [
     // this rule requires strict null checks to be enabled and that code does not support it
     // Also disable for packages that don't have strictNullChecks enabled
     files: [
-      'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
       'packages/salesforcedx-vscode-soql/**',
@@ -736,10 +734,7 @@ export default [
   },
   {
     // Override header rules
-    files: [
-      'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts'
-    ],
+    files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
       'header/header': 'off'
     }
