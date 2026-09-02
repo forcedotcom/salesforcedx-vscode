@@ -5,28 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SoqlBuilderState } from '../domain.js';
 import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
 import '@vscode-elements/elements/dist/vscode-option/index.js';
 import { html, LitElement, nothing } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { SOQL_BUILDER_ACTION_EVENT, type SoqlBuilderAction, type SoqlBuilderState } from '../domain.js';
+import { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 
 export type SoqlFromLabels = {
   readonly from: string;
   readonly loading: string;
   readonly noResults: string;
-};
-
-const dispatchAction = (target: EventTarget, action: SoqlBuilderAction): void => {
-  target.dispatchEvent(
-    new CustomEvent(SOQL_BUILDER_ACTION_EVENT, {
-      bubbles: true,
-      composed: true,
-      detail: action
-    })
-  );
 };
 
 const normalize = (value: string): string => value.trim().toLocaleLowerCase();
@@ -140,10 +131,12 @@ export class SoqlFromElement extends LitElement {
     const select = event.currentTarget;
     if (select instanceof VscodeSingleSelect && select.value) {
       this.filterValue = '';
-      dispatchAction(this, {
-        _tag: 'ObjectSelected',
-        objectName: select.value
-      });
+      this.dispatchEvent(
+        new SoqlBuilderActionEvent({
+          _tag: 'ObjectSelected',
+          objectName: select.value
+        })
+      );
     }
   };
 }
