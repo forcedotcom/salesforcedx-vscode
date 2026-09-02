@@ -12,6 +12,7 @@ import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
@@ -86,5 +87,6 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
     Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));
     })
-  )
+  ),
+  preventOrgChanges
 );

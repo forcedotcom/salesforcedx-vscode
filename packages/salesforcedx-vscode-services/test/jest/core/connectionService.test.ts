@@ -21,10 +21,12 @@ import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
   InactiveOrgOperationError,
+  NoTargetOrgConfiguredError,
   updateDefaultOrgIdentity
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -118,12 +120,83 @@ describe('ConnectionService.getConnectionForOrg', () => {
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-expected' was in progress",
+          message: "The active org changed while an operation for '00D-expected' was in progress.",
           expectedOrgId: '00D-expected',
           observedOrgId: '00D-observed'
         })
       )
     );
+  });
+});
+
+describe('preventOrgChanges', () => {
+  const prepareConnection = async (orgId: string | undefined) => {
+    await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    jest.mocked(Connection.create).mockResolvedValue(makeConn({ isAccessTokenFlow: false, orgId }));
+  };
+
+  it('runs the command when the target org does not change', async () => {
+    await prepareConnection('00D-original');
+
+    await expect(
+      Effect.runPromise(preventOrgChanges(Effect.succeed('complete')).pipe(Effect.provide(buildLayer())))
+    ).resolves.toBe('complete');
+  });
+
+  it('keeps an observed target-org change cancelled after switching back', async () => {
+    await prepareConnection('00D-original');
+
+    const exit = await Effect.runPromiseExit(
+      preventOrgChanges(
+        Effect.gen(function* () {
+          const ref = yield* getDefaultOrgRef();
+          yield* SubscriptionRef.set(ref, { orgId: '00D-replacement' });
+          yield* SubscriptionRef.set(ref, { orgId: '00D-original' });
+          yield* Effect.sleep(Duration.millis(1));
+        })
+      ).pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(
+        new InactiveOrgOperationError({
+          message: "The active org changed while an operation for '00D-original' was in progress.",
+          expectedOrgId: '00D-original',
+          observedOrgId: '00D-replacement'
+        })
+      )
+    );
+  });
+
+  it('ignores target-org updates that retain the same org ID', async () => {
+    await prepareConnection('00D-original');
+
+    await expect(
+      Effect.runPromise(
+        preventOrgChanges(
+          Effect.gen(function* () {
+            yield* SubscriptionRef.set(yield* getDefaultOrgRef(), {
+              orgId: '00D-original',
+              username: 'replacement@example.com'
+            });
+            yield* Effect.sleep(Duration.millis(1));
+            return 'complete';
+          })
+        ).pipe(Effect.provide(buildLayer()))
+      )
+    ).resolves.toBe('complete');
+  });
+
+  it('fails before the command when the connection has no org ID', async () => {
+    await prepareConnection(undefined);
+
+    const exit = await Effect.runPromiseExit(
+      preventOrgChanges(Effect.succeed('not run')).pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(Exit.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' })));
   });
 });
 
