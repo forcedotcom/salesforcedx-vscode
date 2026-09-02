@@ -370,6 +370,29 @@ const modernVsixName = (pkgDir: string): string | null => {
   }
 };
 
+/*
+ * Every package whose package.json declares a `test:container` script. The orchestrator swaps ALL
+ * built extensions into the ONE running container, so each package's container specs drive that same
+ * live workbench. Discovering the suites from the packages themselves keeps this self-maintaining —
+ * adding a container suite to a new package wires it in with no edit here. core sorts first (its
+ * specs smoke-test the mounted fixture), the rest alphabetically.
+ */
+const discoverContainerPackages = (): string[] => {
+  const packagesDir = join(REPO_ROOT, 'packages');
+  const CORE = 'salesforcedx-vscode-core';
+  return readdirSync(packagesDir)
+    .filter(pkg => {
+      try {
+        // Untyped JSON.parse to match this file's other package.json reads (e.g. modernVsixName).
+        const { scripts } = JSON.parse(readFileSync(join(packagesDir, pkg, 'package.json'), 'utf-8'));
+        return Boolean(scripts?.['test:container']);
+      } catch {
+        return false;
+      }
+    })
+    .toSorted((a, b) => (a === CORE ? -1 : b === CORE ? 1 : a.localeCompare(b)));
+};
+
 /* --- gather the VSIX under test -------------------------------------------- */
 if (opts.runId) {
   if (!has('gh')) {
@@ -488,30 +511,44 @@ const main = async (): Promise<number> => {
   assertVerified(handle.name, manifest);
 
   /* --- run the specs ------------------------------------------------------- */
-  log('Running container Playwright specs');
-  // No --reporter override: a CLI --reporter REPLACES the config's reporter list, which would drop
-  // the CI junit reporter createContainerConfig selects. Let the config choose (html+line+junit in
-  // CI, html+list locally).
-  const testArgs = ['run', 'test:container', '-w', 'salesforcedx-vscode-core'];
-  if (opts.grep) {
-    testArgs.push('--', '--grep', opts.grep);
-  }
+  // Run every package's container suite against the one shared container, SEQUENTIALLY: a single
+  // container serves a single browser session, so concurrent Playwright runs would fight over the
+  // same workbench. Every suite runs even if an earlier one fails, so one invocation surfaces all
+  // failures rather than stopping at the first. No --reporter override: a CLI --reporter REPLACES
+  // the config's reporter list, which would drop the CI junit reporter createContainerConfig selects.
+  const containerPackages = discoverContainerPackages();
+  log(`Running container Playwright specs for ${containerPackages.length} package(s): ${containerPackages.join(', ')}`);
+
   const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL };
   if (opts.debug) {
     testEnv.PWDEBUG = '1';
   }
-  const specs = spawnSync('npm', testArgs, { cwd: REPO_ROOT, stdio: 'inherit', env: testEnv });
-  const rc = specs.status ?? 1;
 
-  if (rc !== 0) {
-    log(`Specs failed (exit ${rc}). Container logs:`);
+  const failed: string[] = [];
+  for (const pkg of containerPackages) {
+    log(`Specs: ${pkg}`);
+    const testArgs = ['run', 'test:container', '-w', pkg];
+    if (opts.grep) {
+      testArgs.push('--', '--grep', opts.grep);
+    }
+    const specs = spawnSync('npm', testArgs, { cwd: REPO_ROOT, stdio: 'inherit', env: testEnv });
+    if ((specs.status ?? 1) !== 0) {
+      failed.push(pkg);
+    }
+  }
+
+  if (failed.length > 0) {
+    log(`Container specs failed for ${failed.length} package(s): ${failed.join(', ')}. Recent container logs:`);
     const logs = tryCapture('docker', ['logs', CONTAINER_NAME]);
     if (logs) {
       console.log(logs.split('\n').slice(-40).join('\n'));
     }
-    console.log('    HTML report: packages/salesforcedx-vscode-core/playwright-report/index.html');
+    for (const pkg of failed) {
+      console.log(`    HTML report: packages/${pkg}/playwright-report/index.html`);
+    }
+    return 1;
   }
-  return rc;
+  return 0;
 };
 
 main()

@@ -123,12 +123,15 @@ jobs:
       - name: Run Code Builder E2E (orchestrator)
         run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
 
+      # Every package with a container suite writes its own report/results dir (the orchestrator runs
+      # each package's `test:container` against the one container), so glob across packages rather
+      # than hardcoding core.
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-codebuilder
-          path: packages/salesforcedx-vscode-core/playwright-report
+          path: packages/*/playwright-report
           if-no-files-found: ignore
 
       - name: Upload Playwright Test Results
@@ -136,7 +139,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results-codebuilder
-          path: packages/salesforcedx-vscode-core/test-results
+          path: packages/*/test-results
           if-no-files-found: ignore
 
       # The orchestrator tears the container down itself; this is a belt-and-suspenders cleanup for
