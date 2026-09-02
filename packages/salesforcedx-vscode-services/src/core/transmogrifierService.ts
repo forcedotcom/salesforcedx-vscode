@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import type { URI } from 'vscode-uri';
+import { artifactIdentitiesEqual, type SObjectArtifactIdentity } from './artifactIdentity';
 import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
 import { SObjectSchema, type SObject, type SObjectField } from './schemas/sObject';
 
@@ -42,11 +42,20 @@ export type WorkspaceSObjectMetadataTransmogrifierInput = {
   readonly value: WorkspaceSObjectMetadata;
 };
 
-/** Provider-native SObject inputs accepted by the canonical transformation boundary. */
-export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
+type PersistedSObjectSemanticModelTransmogrifierInput = {
+  readonly source: 'persisted-semantic-model';
+  readonly identity: SObjectArtifactIdentity;
+  readonly value: unknown;
+};
+
+/** Provider-native SObject inputs normalized into the canonical semantic model. */
+export type TransmogrifierInput =
+  | RestSObjectDescribeTransmogrifierInput
+  | WorkspaceSObjectMetadataTransmogrifierInput
+  | PersistedSObjectSemanticModelTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
-  source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata'),
+  source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata', 'persisted-semantic-model'),
   message: S.String,
   cause: S.optional(S.Unknown)
 }) {}
@@ -316,22 +325,43 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
       return yield* S.decodeUnknown(SObjectSchema)(input);
     });
 
-    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
-      const model =
-        input.source === 'rest-sobject-describe'
-          ? mapRestDescribeToSemanticModel(input.identity, input.value)
-          : mapWorkspaceSObjectToSemanticModel(input.identity, input.value);
-      return yield* S.validate(SObjectSemanticModelSchema)(model).pipe(
-        Effect.mapError(
-          cause =>
-            new TransmogrifierError({
+    const toSemanticModel: (input: TransmogrifierInput) => Effect.Effect<SObjectSemanticModel, TransmogrifierError> =
+      Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
+        if (input.source === 'persisted-semantic-model') {
+          const persistedModel = yield* S.decodeUnknown(SObjectSemanticModelSchema)(input.value).pipe(
+            Effect.mapError(
+              cause =>
+                new TransmogrifierError({
+                  source: input.source,
+                  message: 'Failed to validate the persisted canonical semantic model',
+                  cause
+                })
+            )
+          );
+          if (!artifactIdentitiesEqual(input.identity, persistedModel.value.identity)) {
+            return yield* new TransmogrifierError({
               source: input.source,
-              message: `Failed to transform ${input.source} into the canonical semantic model`,
-              cause
-            })
-        )
-      );
-    });
+              message: 'Persisted semantic model identity does not match the requested artifact identity',
+              cause: { requested: input.identity, received: persistedModel.value.identity }
+            });
+          }
+          return persistedModel;
+        }
+        const model =
+          input.source === 'rest-sobject-describe'
+            ? mapRestDescribeToSemanticModel(input.identity, input.value)
+            : mapWorkspaceSObjectToSemanticModel(input.identity, input.value);
+        return yield* S.validate(SObjectSemanticModelSchema)(model).pipe(
+          Effect.mapError(
+            cause =>
+              new TransmogrifierError({
+                source: input.source,
+                message: `Failed to transform ${input.source} into the canonical semantic model`,
+                cause
+              })
+          )
+        );
+      });
 
     return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
   })
