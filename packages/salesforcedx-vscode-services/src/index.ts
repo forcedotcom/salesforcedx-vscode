@@ -23,7 +23,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { clearDefaultOrgRef, getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -162,7 +162,6 @@ export type SalesforceVSCodeServicesApi = {
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     ClearDefaultOrgRef: typeof clearDefaultOrgRef;
-    TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
@@ -177,7 +176,6 @@ type PublicSdkLayerFor = (
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
 export type { AliasService } from './core/alias';
-export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
@@ -536,7 +534,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         ActiveMetadataOperationRef: getActiveMetadataOperationRef,
         TargetOrgRef: getDefaultOrgRef,
         ClearDefaultOrgRef: clearDefaultOrgRef,
-        TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
         TerminalService,
         TransmogrifierService,
         TraceFlagItemStruct,

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
+import { classifyOrgForTelemetry, isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -16,6 +16,7 @@ import {
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, extensions, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
 import {
@@ -47,29 +48,31 @@ type IdentityFromServices = {
   telemetryClassification: 'gov' | 'nonGov' | 'unknown';
 } & OrgIdentity;
 
-const identityFromSnapshot = (
-  snapshot: ReturnType<SalesforceVSCodeServicesApi['services']['TelemetryIdentitySnapshot']>
-): IdentityFromServices => ({
-  cliId: snapshot.cliId,
-  webUserId: snapshot.webUserId ?? UNAUTHENTICATED_USER,
-  orgId: snapshot.orgId,
-  orgShape: shapeFrom(snapshot),
-  devHubId: snapshot.devHubOrgId,
-  orgEdition: snapshot.orgEdition,
-  telemetryClassification: snapshot.telemetryClassification
+type ServicesTargetOrgRef = Effect.Effect.Success<ReturnType<SalesforceVSCodeServicesApi['services']['TargetOrgRef']>>;
+type DefaultOrgInfo = ServicesTargetOrgRef extends SubscriptionRef.SubscriptionRef<infer Info> ? Info : never;
+
+const identityFromDefaultOrgInfo = ({ instanceName, ...identity }: DefaultOrgInfo): IdentityFromServices => ({
+  cliId: identity.cliId,
+  webUserId: identity.webUserId ?? UNAUTHENTICATED_USER,
+  orgId: identity.orgId,
+  orgShape: shapeFrom(identity),
+  devHubId: identity.devHubOrgId,
+  orgEdition: identity.orgEdition,
+  telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName)
 });
+
+const readIdentity = (api: SalesforceVSCodeServicesApi) =>
+  api.services.TargetOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.map(identityFromDefaultOrgInfo));
 
 const getIdentitySnapshotFromServices = (): IdentityFromServices => {
   const extension = extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services');
   if (!extension?.isActive) throw new Error('Salesforce VS Code Services extension is not active');
-  return identityFromSnapshot(extension.exports.services.TelemetryIdentitySnapshot());
+  return Effect.runSync(readIdentity(extension.exports));
 };
 
 /** Pull telemetry identity from the services extension. */
 const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
-  Effect.runPromise(
-    getServicesApi.pipe(Effect.map(api => identityFromSnapshot(api.services.TelemetryIdentitySnapshot())))
-  );
+  Effect.runPromise(getServicesApi.pipe(Effect.flatMap(readIdentity)));
 
 type CommandMetric = {
   extensionName: string;
