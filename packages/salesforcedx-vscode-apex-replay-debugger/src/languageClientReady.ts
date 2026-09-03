@@ -33,18 +33,16 @@ const LANGUAGE_CLIENT_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe
 export const waitForLanguageClientReady = Effect.fn('ApexReplayDebugger.waitForLanguageClientReady')(function* (
   getStatus: () => LanguageClientStatus
 ) {
-  const checkStatus = Effect.gen(function* () {
-    const status = yield* Effect.sync(getStatus);
-    if (status.failedToInitialize()) {
-      return yield* new LanguageClientInitializationError({ message: status.getStatusMessage() });
-    }
-    if (!status.isReady()) {
-      return yield* new LanguageClientNotReadyError();
-    }
-    return true;
-  });
-
-  return yield* checkStatus.pipe(
+  return yield* Effect.sync(getStatus).pipe(
+    Effect.filterOrFail(
+      status => !status.failedToInitialize(),
+      status => new LanguageClientInitializationError({ message: status.getStatusMessage() })
+    ),
+    Effect.filterOrFail(
+      status => status.isReady(),
+      () => new LanguageClientNotReadyError()
+    ),
+    Effect.as(true),
     Effect.retry({
       schedule: LANGUAGE_CLIENT_READY_SCHEDULE,
       while: error => error._tag === 'LanguageClientNotReadyError'
