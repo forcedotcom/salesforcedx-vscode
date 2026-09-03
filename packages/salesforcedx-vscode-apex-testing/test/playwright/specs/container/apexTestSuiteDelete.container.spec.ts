@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/*
+ * Container port of apexTestSuiteDelete.headless.spec.ts. The web twin never surfaces
+ * Apex test suites because salesforcedx-vscode-apex has no browser bundle. The Code Builder image
+ * runs the DESKTOP build in a Node host, so creating a suite, deleting its metadata from project +
+ * org, and watching it vanish from the Testing sidebar without a manual refresh all work end-to-end
+ * against the boot org (one tracking scratch org authed as default target-org). It reuses the seeded
+ * PagedResultTest class and only creates a uniquely-named suite so the shared, persistent
+ * workbench/org never collides.
+ */
+
+import { expect } from '@playwright/test';
+import {
+  clearAllNotifications,
+  clearOutputChannel,
+  closeAllEditors,
+  deployCurrentSourceToOrg,
+  ensureOutputPanelOpen,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
+  openFileByName,
+  openFileFromExplorerTree,
+  saveScreenshot,
+  selectOutputChannel,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  upsertSettings,
+  validateNoCriticalErrors,
+  waitForOutputChannelText
+} from '@salesforce/playwright-vscode-ext';
+
+import { containerTest as test } from '../../fixtures/containerFixtures';
+import { TEST_RUN_TIMEOUT } from '../../constants';
+import { expandTreeRow, openTestExplorerAndDiscover } from '../../helpers/testExplorerHelpers';
+import { createApexTestSuiteViaPalette, createLocalApexTestSuiteFile } from '../../helpers/apexTestSuiteHelpers';
+
+const TEST_CLASS = 'PagedResultTest';
+
+test.beforeEach(async ({ page }) => {
+  await closeAllEditors(page);
+  await clearAllNotifications(page);
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, 'Apex Testing');
+  await clearOutputChannel(page);
+});
+
+test('Apex Test Suite: delete suite and verify it disappears from Testing sidebar without refresh', async ({
+  page
+}) => {
+  test.setTimeout(TEST_RUN_TIMEOUT);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+
+  let testSuiteName: string;
+
+  // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
+  const deployOpenFile = async (fileName: string): Promise<void> => {
+    await openFileByName(page, fileName);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  };
+
+  await test.step('deploy seeded Apex class to the boot org', async () => {
+    await ensureSecondarySideBarHidden(page);
+    await deployOpenFile('PagedResult.cls');
+    await deployOpenFile('PagedResultTest.cls');
+    await saveScreenshot(page, 'setup.test-class-deployed.png');
+  });
+
+  await test.step('create Apex Test Suite', async () => {
+    testSuiteName = `DelSuite${Date.now()}`;
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+    await createApexTestSuiteViaPalette(page, testSuiteName, TEST_CLASS);
+    await saveScreenshot(page, 'step.create-suite.done.png');
+  });
+
+  await test.step('verify suite creation', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Ended SFDX: Create Apex Test Suite',
+      timeout: 60_000
+    });
+    await saveScreenshot(page, 'step.verify-creation.png');
+  });
+
+  await test.step('verify suite appears in Testing sidebar', async () => {
+    const panel = await openTestExplorerAndDiscover(page);
+
+    // The "Apex Test Suites" parent item should be visible
+    const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
+    await expect(suiteParent).toBeVisible({ timeout: 30_000 });
+
+    // Expand the "Apex Test Suites" parent so child suite items become visible in the tree
+    await expandTreeRow(panel, 'Apex Test Suites');
+
+    // The specific suite name should be visible as a baseline before deletion
+    const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+    await expect(suiteItem).toBeVisible({ timeout: 15_000 });
+    await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
+  });
+
+  await test.step('create the test suite metadata file locally', async () => {
+    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
+    await createLocalApexTestSuiteFile(page, testSuiteName, TEST_CLASS);
+    await saveScreenshot(page, 'step.local-suite-file-created.png');
+  });
+
+  await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
+    // Open the test suite file via the Explorer tree (Quick Open can't find newly-created files on web).
+    // force-app/main/default is already expanded by default; just expand testSuites to reach the file.
+    await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, ['testSuites']);
+    await saveScreenshot(page, 'step.suite-file-opened.png');
+
+    // Run "SFDX: Delete from Project and Org" via command palette
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, 'SFDX: Delete from Project and Org');
+    await saveScreenshot(page, 'step.delete-command-executed.png');
+
+    // The delete confirmation surfaces as a notification toast with a "Delete Source" button
+    const deleteConfirmation = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Deleting source files deletes the files from your computer/ })
+      .first();
+    await expect(deleteConfirmation).toBeVisible({ timeout: 15_000 });
+    await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
+    await saveScreenshot(page, 'step.delete-confirmed.png');
+  });
+
+  await test.step('wait for deletion to complete', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Deleted Source',
+      timeout: 120_000
+    });
+    await saveScreenshot(page, 'step.delete-completed.png');
+  });
+
+  await test.step('verify suite disappears from Testing sidebar without manual refresh', async () => {
+    // Re-focus the Test Explorer — the delete flow leaves focus on the Output panel.
+    await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
+    const panel = page.locator(TEST_EXPLORER_PANEL);
+    await panel.waitFor({ state: 'visible', timeout: 10_000 });
+
+    // The deleted suite should disappear without manual refresh. Other suites can legitimately
+    // remain in the shared org, including suites left by a previous failed test attempt.
+    const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+    await expect(suiteItem).toBeHidden({ timeout: 60_000 });
+    await saveScreenshot(page, 'step.suite-gone-from-sidebar.png');
+  });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+});
