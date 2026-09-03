@@ -141,7 +141,7 @@ jobs:
         run: npm run vscode:package
 
       - name: Collect VSIXs
-        uses: ./.github/actions/collect-vsix
+        uses: salesforcecli/github-workflows/.github/actions/collect-vsix@main
 
       - name: Generate SHA256 checksums
         run: |
