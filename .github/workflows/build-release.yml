@@ -330,22 +330,11 @@ jobs:
         run: npm run vscode:package
 
       - name: Collect VSIXs
-        run: |
-          # Collect built VSIX files from packages directory with validation
-          # (Inlined from .github/actions/collect-vsix to avoid action unavailability)
-          mkdir -p extensions
-
-          # Collect all VSIX files from packages
-          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-
-          # Validate that VSIXs were built
-          VSIX_COUNT=$(ls -1 ./extensions/*.vsix 2>/dev/null | wc -l)
-          if [ "$VSIX_COUNT" -eq 0 ]; then
-            echo "::error::No VSIX files found after build. Build may have failed silently."
-            exit 1
-          fi
-
-          echo "✓ Found $VSIX_COUNT VSIX files in extensions"
+        # NOTE: This resolves the action from the checked-out working tree, which is the
+        # `git checkout $SOURCE_REF` from the steps above. If building/publishing from a
+        # historical ref that predates this action (added 2026-08-26), this step will fail
+        # because the action file won't exist in that ref's tree.
+        uses: ./.github/actions/collect-vsix
 
       - name: Generate SHA256 checksums
         run: |
