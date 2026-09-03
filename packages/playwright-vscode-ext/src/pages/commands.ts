@@ -10,6 +10,7 @@ import {
   dismissAllQuickInputWidgets,
   dismissSignInWalkthroughDialog,
   dismissWelcomeOnboardingOverlayIfPresent,
+  isDesktop,
   waitForQuickInputFirstOption
 } from '../utils/helpers';
 import { WORKBENCH } from '../utils/locators';
@@ -160,19 +161,21 @@ export const executeCommandById = async (
   commandId: string,
   options?: ExecuteCommandByIdOptions
 ): Promise<void> => {
+  const keybinding = isDesktop() ? 'ctrl+shift+alt+f9' : 'ctrl+shift+9';
+  const key = isDesktop() ? 'Control+Shift+Alt+F9' : 'Control+Shift+9';
   await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
-  await page.keyboard.press('Control+a');
-  await page.keyboard.insertText(JSON.stringify([{ key: 'ctrl+shift+9', command: commandId }]));
+  await executeCommandWithCommandPalette(page, 'Select All');
+  await page.keyboard.insertText(JSON.stringify([{ key: keybinding, command: commandId }]));
   await executeCommandWithCommandPalette(page, 'File: Save');
   await executeCommandWithCommandPalette(page, 'View: Close Editor');
 
   if (options?.verifyExecution) {
     await expect(async () => {
-      await page.keyboard.press('Control+Shift+9');
+      await page.keyboard.press(key);
       await options.verifyExecution!();
     }).toPass({ timeout: options.timeout ?? 30_000, intervals: [250, 500, 1000] });
   } else {
-    await page.keyboard.press('Control+Shift+9');
+    await page.keyboard.press(key);
   }
 };
 

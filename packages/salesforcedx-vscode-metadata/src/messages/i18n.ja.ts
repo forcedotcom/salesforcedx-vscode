@@ -15,7 +15,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   delete_source_confirmation_message:
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
-  cancel_delete_source_button_text: 'キャンセル',
 
   missing_default_org: 'デフォルトの組織が未設定',
 

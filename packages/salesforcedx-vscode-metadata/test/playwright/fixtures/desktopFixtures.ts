@@ -25,7 +25,8 @@ export const desktopTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'window.dialogStyle': 'custom'
   }
 });
 export const dreamhouseDesktopTest = createDesktopTest({
@@ -42,7 +43,8 @@ export const nonTrackingDesktopTest = createDesktopTest({
   // salesforcedx-vscode-lwc contributes "SFDX: Create Lightning Web Component" (used by deleteBundleSource spec).
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log', 'salesforcedx-vscode-lwc'],
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'window.dialogStyle': 'custom'
   }
 });
 export const emptyWorkspaceDesktopTest = createDesktopTest({
