@@ -21,7 +21,7 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
+  openFileFromExplorerTree,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
@@ -96,13 +96,12 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
 
   await test.step('1. Editor context menu', async () => {
     // Edit apex class to create local change
-    await openFileByName(page, `${className}.cls`);
+    await openFileFromExplorerTree(page, `${className}.cls`, ['force-app', 'main', 'default', 'classes']);
 
     await editOpenFile(page, 'Editor context menu manifest test');
     await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
 
-    // Open the manifest file (Quick Open shows just "package.xml")
-    await openFileByName(page, 'package.xml');
+    await openFileFromExplorerTree(page, 'package.xml', ['manifest']);
 
     // Ensure the manifest editor is focused and ready
     const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
@@ -151,7 +150,7 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
     await closeAllEditors(page);
 
     // Edit apex class again to create new local change
-    await openFileByName(page, `${className}.cls`);
+    await openFileFromExplorerTree(page, `${className}.cls`, ['force-app', 'main', 'default', 'classes']);
     // Ensure the editor is focused before editing
     const apexEditor = page.locator(`[data-uri*="${className}.cls"]`).first();
     await apexEditor.waitFor({ state: 'visible', timeout: 10_000 });
