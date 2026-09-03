@@ -30,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { computeExtensionDigest, resolveExtensionRoot } from './digest';
 import { makeManifest, type Manifest } from './manifest';
-import { defaultRunner, runnerTimeoutMs, withTimeoutRetry, type CommandRunner } from './runner';
+import { assertSafeShellSegment, defaultRunner, runnerTimeoutMs, withTimeoutRetry, type CommandRunner } from './runner';
 // OVERRIDES_DIR + RUNTIME_EXT_DIR live in verify (the module that also reads them), so swap and
 // verify share one definition of the image's extension locations rather than drifting copies.
 import { OVERRIDES_DIR, RUNTIME_EXT_DIR } from './verify';
@@ -73,30 +73,22 @@ export type SwapOptions = {
 };
 
 /*
- * Charset guard for every value that gets interpolated into a `bash -c` string: the publisher
- * prefix, and the name/version read from the (attacker-influenced) extracted package.json. Only
- * npm-style chars are legitimate; reject any shell/glob metacharacter up front. Also reject a value
- * that is only dots (`.`/`..`) — a `.`-prefix would make the wipe glob `${prefix}.*` reach the
- * parent dir. Require at least one alphanumeric so `..`, `.`, `--`, etc. can't slip through.
- */
-const VALID_SEGMENT = /^[A-Za-z0-9._-]+$/;
-const assertSafeSegment = (value: unknown, label: string): string => {
-  if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`missing or non-string ${label} (got ${JSON.stringify(value)})`);
-  }
-  if (!VALID_SEGMENT.test(value) || !/[A-Za-z0-9]/.test(value)) {
-    throw new Error(`unsafe ${label} ${JSON.stringify(value)}: expected only [A-Za-z0-9._-] with an alphanumeric`);
-  }
-  return value;
-};
-
-/*
  * Install the given VSIXes into the container and return the Manifest of exactly what was installed.
  * Explicit list only — no directory scan, no dedup (that selection is the consumer's job).
+ *
+ * The publisher prefix and the name/version read from each (attacker-influenceable) package.json are
+ * charset-validated via the shared assertSafeShellSegment guard before they reach any `bash -c`
+ * string, so swap and verify share one injection defense that can't drift.
  */
 export const swap = (container: string, vsixPaths: readonly string[], options: SwapOptions): Manifest => {
   const { publisherPrefix } = options;
-  assertSafeSegment(publisherPrefix, 'publisher prefix');
+  assertSafeShellSegment(publisherPrefix, 'publisher prefix');
+  // Fail-fast BEFORE the destructive wipe: an empty list would wipe the container's extensions and
+  // then emit an empty Manifest that verify rejects downstream anyway ("no entries — nothing to
+  // verify"). Reject it here so a caller mistake never leaves the container stripped bare.
+  if (vsixPaths.length === 0) {
+    throw new Error('swap requires at least one vsixPath — refusing to wipe the container with nothing to install');
+  }
   const runner = options.runner ?? defaultRunner;
   const extract = options.extract ?? defaultExtract;
   const workDir = options.workDir ?? mkdtempSync(join(tmpdir(), 'cb-swap-'));
@@ -125,12 +117,20 @@ export const swap = (container: string, vsixPaths: readonly string[], options: S
       // Read package.json ONCE and reuse it: name/version validation here + the digest below (passed
       // in so computeExtensionDigest doesn't re-read it for the hash or the entrypoint).
       const rawPkgJson = readFileSync(join(root, 'package.json'), 'utf-8');
-      const parsed = JSON.parse(rawPkgJson) as { name?: unknown; version?: unknown };
+      // The wipe has already run by now, so a bad package.json must fail with enough context to
+      // identify the culprit — name the ORIGINAL vsixPath (not the anonymous vsix-${i} extractDir),
+      // since JSON.parse's own error mentions neither.
+      let parsed: { name?: unknown; version?: unknown };
+      try {
+        parsed = JSON.parse(rawPkgJson) as { name?: unknown; version?: unknown };
+      } catch (err) {
+        throw new Error(`invalid package.json in ${vsixPath}: ${(err as Error).message}`);
+      }
       // Validate before interpolating into destDir's `bash -c` (name/version come from an
       // attacker-influenceable package.json) — and fail loud on a missing/blank name or version
       // rather than silently installing a "salesforce.undefined-undefined" dir.
-      const name = assertSafeSegment(parsed.name, 'package.json name');
-      const version = assertSafeSegment(parsed.version, 'package.json version');
+      const name = assertSafeShellSegment(parsed.name, 'package.json name');
+      const version = assertSafeShellSegment(parsed.version, 'package.json version');
       const id = `${publisherPrefix}.${name}`;
       const digest = computeExtensionDigest(root, rawPkgJson);
       const destDir = `${OVERRIDES_DIR}/${id}-${version}`;

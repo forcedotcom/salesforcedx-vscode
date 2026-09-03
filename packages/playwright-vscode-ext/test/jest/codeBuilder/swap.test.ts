@@ -188,6 +188,24 @@ describe('swap', () => {
     );
   });
 
+  it('fails fast on an empty vsixPaths list — no destructive wipe with nothing to install', () => {
+    const { runner, calls } = makeRecordingRunner();
+    expect(() => swap(CONTAINER, [], { publisherPrefix: PREFIX, runner, extract: fakeExtract })).toThrow(
+      /at least one vsixPath/
+    );
+    expect(calls).toHaveLength(0); // the wipe never ran
+  });
+
+  it('fails loud naming the source vsixPath when its package.json is malformed JSON', () => {
+    const dir = track(mkdtempSync(join(tmpdir(), 'cb-swap-badjson-')));
+    mkdirSync(join(dir, 'extension'), { recursive: true });
+    writeFileSync(join(dir, 'extension/package.json'), '{ not valid json');
+    const { runner } = makeRecordingRunner();
+    expect(() => swap(CONTAINER, [dir], { publisherPrefix: PREFIX, runner, extract: fakeExtract })).toThrow(
+      new RegExp(`invalid package.json in ${dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+    );
+  });
+
   it('docker cp source ends in /. (loads a flat override dir, not a nested extension/)', () => {
     const vsix = track(makeVsixTree('salesforcedx-vscode-core', '67.4.0', 'x'));
     const { runner, calls } = makeRecordingRunner();
