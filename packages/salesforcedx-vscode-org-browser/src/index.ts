@@ -49,7 +49,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   context.subscriptions.push(vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider));
 
   // --- Filter state: persistence, migration, and initial context keys ---
-  // Legacy migration: convert old viewMode to boolean flags
+  // Legacy migration: convert old viewMode to boolean type
   const legacyViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
   if (isNotUndefined(legacyViewMode)) {
     const migratedShowLocal = legacyViewMode !== 'orgOnly';
