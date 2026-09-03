@@ -12,24 +12,23 @@ import {
   MetricLaunch,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT,
-  breakpointUtil
+  SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import { salesforceApexExtension } from './apexExtension';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
   sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
-import { appendAndShowChannelOutput, getDebuggerOutputChannel } from './channels';
+import { getDebuggerOutputChannel } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -41,21 +40,12 @@ import {
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
-import { waitForLanguageClientReady } from './languageClientReady';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
-export enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
-
-const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-if (!salesforceApexExtension) {
-  throw new Error('Salesforce Apex Extension not initialized');
-}
+export { retrieveLineBreakpointInfo } from './apexExtension';
+export { writeToDebuggerOutputWindow } from './channels';
 
 const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
   const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
@@ -219,60 +209,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   // Telemetry
   yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 });
-
-export const retrieveLineBreakpointInfo = Effect.fn('ApexReplayDebugger.retrieveLineBreakpointInfo')(function* () {
-  if (!salesforceApexExtension.isActive) {
-    yield* Effect.promise(() => salesforceApexExtension.activate());
-  }
-  if (salesforceApexExtension) {
-    const isReady = yield* waitForLanguageClientReady(() =>
-      salesforceApexExtension.exports.languageClientManager.getStatus()
-    );
-    if (!isReady) {
-      const errorMessage = nls.localize('language_client_not_ready');
-      yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
-      return false;
-    } else {
-      const lineBpInfo = yield* Effect.promise(() => salesforceApexExtension.exports.getLineBreakpointInfo());
-      if (lineBpInfo?.length) {
-        yield* Effect.log(nls.localize('line_breakpoint_information_success'));
-        yield* Effect.sync(() => breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo));
-      } else {
-        const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
-        yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
-      }
-      return true;
-    }
-  } else {
-    const errorMessage = nls.localize('session_language_server_error_text');
-    yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
-    return false;
-  }
-});
-
-export const writeToDebuggerOutputWindow = (
-  output: string,
-  showVSCodeWindow?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
-) => {
-  appendAndShowChannelOutput(output);
-  if (showVSCodeWindow && vsCodeWindowType) {
-    switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
-        vscode.window.showErrorMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Informational: {
-        vscode.window.showInformationMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Warning: {
-        vscode.window.showWarningMessage(output);
-        break;
-      }
-    }
-  }
-};
 
 export const deactivate = async () => {
   await Promise.resolve()
