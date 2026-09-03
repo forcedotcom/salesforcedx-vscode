@@ -35,6 +35,11 @@ export type ContainerHandle = {
   publishedUrl: string;
   /** Host port published to the container's code-server port. */
   publishedPort: number;
+  /**
+   * The bind mounts `run` applied (empty when none). Recorded so downstream steps — notably seed —
+   * can validate a path against a REAL mount instead of trusting a "keep in sync" comment.
+   */
+  mounts: readonly Mount[];
 };
 
 /** A host→container bind mount (e.g. the fixture project). */
@@ -97,12 +102,17 @@ const waitForWorkbench = async (
   const intervalMs = readiness.intervalMs ?? 2000;
   const probe = readiness.probe ?? defaultProbe;
   const deadline = Date.now() + timeoutMs;
-  do {
+  // Check the deadline BEFORE the trailing sleep (not after): the loop still probes first — an
+  // already-up container returns on the first iteration with zero wasted interval — but it never
+  // burns a full intervalMs sleep once the budget is spent, so the effective wait stays within
+  // timeoutMs (the do-while overshot by up to one interval) and a timeoutMs: 0 fast-fail probes zero
+  // times. Each probe is itself time-bounded (default AbortSignal.timeout), so no probe can hang.
+  while (Date.now() < deadline) {
     if (await probe(handle.publishedUrl)) {
       return;
     }
     await sleep(intervalMs);
-  } while (Date.now() < deadline);
+  }
   let logs = '';
   try {
     logs = runner('docker', ['logs', handle.name]);
@@ -140,7 +150,8 @@ export const run = async (spec: RunSpec, options: LifecycleOptions = {}): Promis
     name: spec.name,
     imageRef: spec.imageRef,
     publishedUrl,
-    publishedPort: spec.publishedPort
+    publishedPort: spec.publishedPort,
+    mounts: spec.mounts ?? []
   };
   try {
     await waitForWorkbench(runner, handle, spec.readiness);
@@ -156,6 +167,14 @@ export const run = async (spec: RunSpec, options: LifecycleOptions = {}): Promis
 /*
  * Restart the container and wait for the workbench again. One `docker restart` both re-scans the
  * extension-overrides (applying a prior swap) and re-runs the image's start-time org auth.
+ *
+ * CAVEAT (plan §16 OQ3): `docker restart` reuses the env baked at `docker run`, so start-time org
+ * auth re-runs against the ORIGINAL SF_ACCESS_TOKEN — there is no path to inject a fresh token here.
+ * `waitForWorkbench` only probes code-server's HTTP surface (which answers 2xx/3xx regardless of org
+ * auth state), so a restart after the token expired resolves as "healthy" while the org is actually
+ * unauthenticated, and downstream org-dependent specs then fail with confusing auth errors far from
+ * the cause. Low likelihood in practice (sf tokens last ~2h vs. a typically-seconds run→restart gap),
+ * so this is documented rather than asserted; if it ever bites, add a post-restart org-auth check.
  */
 export const restart = async (
   handle: ContainerHandle,

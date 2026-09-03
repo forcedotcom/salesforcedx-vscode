@@ -53,7 +53,9 @@ describe('lifecycle', () => {
       name: 'cb',
       imageRef: 'img:latest',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123
+      publishedPort: 8123,
+      // run records the mounts it applied so downstream steps (seed) can validate against them.
+      mounts: [{ hostPath: '/host/fixture', containerPath: '/home/codebuilder/fixture-project' }]
     });
     // The handle must NOT carry the access token (secret-leak guard).
     expect(handle).not.toHaveProperty('bootEnv');
@@ -81,13 +83,37 @@ describe('lifecycle', () => {
     expect(calls.find(c => c[0] === 'docker' && c[1] === 'rm' && c[2] === '-f' && c[3] === 'cb')).toBeDefined();
   });
 
+  it('checks the deadline before sleeping: timeoutMs 0 fast-fails without probing (no trailing sleep)', async () => {
+    const { runner } = recorder();
+    let probes = 0;
+    const countingProbe: ReadinessProbe = () => {
+      probes += 1;
+      return Promise.resolve(false);
+    };
+    await expect(
+      run(
+        {
+          name: 'cb',
+          imageRef: 'img',
+          publishedPort: 8123,
+          bootEnv: BOOT_ENV,
+          readiness: { probe: countingProbe, timeoutMs: 0, intervalMs: 1000 }
+        },
+        { runner }
+      )
+    ).rejects.toThrow(/never became reachable/);
+    // A spent budget must not burn a probe or a trailing interval sleep.
+    expect(probes).toBe(0);
+  });
+
   it('restart issues docker restart then waits for readiness', async () => {
     const { runner, calls } = recorder();
     const handle = {
       name: 'cb',
       imageRef: 'img',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123
+      publishedPort: 8123,
+      mounts: []
     };
     const returned = await restart(handle, { probe: alwaysReady, intervalMs: 1 }, { runner });
     expect(calls.find(c => c[1] === 'restart')).toEqual(['docker', 'restart', 'cb']);
@@ -100,7 +126,8 @@ describe('lifecycle', () => {
       name: 'cb',
       imageRef: 'img',
       publishedUrl: 'http://localhost:8123',
-      publishedPort: 8123
+      publishedPort: 8123,
+      mounts: []
     };
     teardown(handle, { runner });
     expect(calls[0]).toEqual(['docker', 'rm', '-f', 'cb']);

@@ -35,6 +35,10 @@ const USER_SETTINGS = '/home/codebuilder/.local/share/code-server/User/settings.
  */
 const SEED_SCRIPT = `
 set -e
+# jq preflight: the whole script hard-depends on jq and the CB image is team-owned + changeable
+# (ADR 0022). Without this, an image missing jq aborts with an opaque "jq: command not found"; fail
+# early with a clear, greppable message instead.
+command -v jq >/dev/null 2>&1 || { echo "seed: jq not found in container (SEED_SCRIPT requires jq)" >&2; exit 127; }
 coder=${CODER_JSON}
 settings=${USER_SETTINGS}
 mkdir -p "$(dirname "$coder")" "$(dirname "$settings")"
@@ -74,5 +78,32 @@ export const seedWorkspace = (handle: ContainerHandle, options: SeedOptions = {}
   const runner = options.runner ?? defaultRunner;
   const fixturePath = options.fixturePath ?? FIXTURE_MOUNT_PATH;
 
-  runner('docker', ['exec', '-e', `FIXTURE_PATH=${fixturePath}`, handle.name, 'bash', '-c', SEED_SCRIPT]);
+  // Cross-check the fixture path against the container's REAL mounts (recorded by `run`) instead of
+  // trusting the FIXTURE_MOUNT_PATH "keep in sync" comment. A caller who mounts the fixture at a
+  // custom containerPath but forgets to pass the matching fixturePath here would otherwise write a
+  // coder.json pointing at a non-mounted folder — code-server opens an empty dir and specs fail with
+  // a confusing "no SFDX project" far from the cause. Skip when no mounts were recorded.
+  const mountPaths = handle.mounts.map(m => m.containerPath);
+  if (mountPaths.length > 0 && !mountPaths.includes(fixturePath)) {
+    throw new Error(
+      `seedWorkspace: fixturePath "${fixturePath}" is not a container mount (mounted: ${mountPaths.join(', ')}). ` +
+        'Pass the same containerPath you gave run()\'s mounts, or omit fixturePath to use the default.'
+    );
+  }
+
+  try {
+    runner('docker', ['exec', '-e', `FIXTURE_PATH=${fixturePath}`, handle.name, 'bash', '-c', SEED_SCRIPT]);
+  } catch (err) {
+    // Parity with waitForWorkbench's diagnostics: a bare exec failure (jq missing, chown/mkdir fails)
+    // otherwise surfaces downstream as "extensions didn't activate" with no context. Append docker
+    // logs (best-effort) so the real cause travels with the thrown error.
+    let logs = '';
+    try {
+      logs = runner('docker', ['logs', handle.name]);
+    } catch {
+      /* best-effort */
+    }
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`seedWorkspace failed for container "${handle.name}": ${detail}\n${logs}`);
+  }
 };

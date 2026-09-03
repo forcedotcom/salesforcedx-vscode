@@ -20,7 +20,21 @@
  * baseline; this helper may be superseded by a different auth path later.
  */
 
+import * as Schema from 'effect/Schema';
 import { defaultRunner, type CommandRunner } from './runner';
+
+/*
+ * Schemas for the `sf --json` shapes we consume, validated at the boundary (TS standards / precedent
+ * in manifest.ts) rather than trusted via `as` casts. Excess CLI fields are ignored; the fields we
+ * read are optional here so a MISSING field yields a clean domain error below (not a decode failure).
+ */
+const OrgDisplayShape = Schema.Struct({
+  result: Schema.optional(Schema.Struct({ instanceUrl: Schema.optional(Schema.String) }))
+});
+const ShowAccessTokenShape = Schema.Struct({
+  // `result` can legitimately be null on this command (#7718), so allow NullOr, not just optional.
+  result: Schema.Struct({ accessToken: Schema.optional(Schema.String) }).pipe(Schema.NullOr, Schema.optional)
+});
 
 /** The env keys the CB image reads at boot to authenticate an org, plus an escape hatch for extras. */
 export type BootEnv = {
@@ -50,10 +64,11 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
    * banner to stdout (the "hard-won" class of bug), a bare JSON.parse throws an opaque
    * "Unexpected token" with no clue which command or org. Rethrow with the argv + a stdout snippet.
    */
-  const runSfJson = (args: string[]): { result?: unknown } => {
+  const runSfJson = <A>(args: string[], schema: Schema.Schema<A>): A => {
     const out = runner('sf', args);
+    let parsed: unknown;
     try {
-      return JSON.parse(out) as { result?: unknown };
+      parsed = JSON.parse(out);
     } catch {
       // Slicing raw stdout at a byte offset can split a multi-byte UTF-8 char (e.g. an emoji in a
       // CLI banner), which JSON.stringify then renders as a replacement char. Strip non-printable-
@@ -61,9 +76,12 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
       const snippet = out.slice(0, 200).replaceAll(/[^\x20-\x7E]/g, '?');
       throw new Error(`\`sf ${args.join(' ')}\` did not return JSON (stdout starts: ${JSON.stringify(snippet)})`);
     }
+    // Validate the parsed shape at the boundary (schema, not `as`), so an unexpected `sf` output
+    // shape fails loud here rather than surfacing as an undefined further down.
+    return Schema.decodeUnknownSync(schema)(parsed);
   };
 
-  const display = runSfJson(['org', 'display', '-o', orgAlias, '--json']) as { result?: { instanceUrl?: string } };
+  const display = runSfJson(['org', 'display', '-o', orgAlias, '--json'], OrgDisplayShape);
   const instanceUrl = display.result?.instanceUrl;
   if (!instanceUrl) {
     throw new Error(`could not resolve instanceUrl for org "${orgAlias}" from \`sf org display\``);
@@ -71,10 +89,8 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
 
   // The dedicated command returns the REAL token; `org display` redacts it on recent CLI versions.
   // `sf org auth show-access-token --json` returns `{ result: { accessToken } }` (an object — the
-  // #7718 workflow reads `.result.accessToken`); guard against a null result defensively.
-  const tokenResult = runSfJson(['org', 'auth', 'show-access-token', '-o', orgAlias, '--json']) as {
-    result?: { accessToken?: string } | null;
-  };
+  // #7718 workflow reads `.result.accessToken`); the schema allows a null result defensively.
+  const tokenResult = runSfJson(['org', 'auth', 'show-access-token', '-o', orgAlias, '--json'], ShowAccessTokenShape);
   const accessToken = tokenResult.result?.accessToken;
   if (!accessToken) {
     throw new Error(`could not resolve accessToken for org "${orgAlias}" from \`sf org auth show-access-token\``);
