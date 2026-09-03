@@ -25,12 +25,13 @@
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
-    "@microsoft/api-extractor": "7.59.0",
     "@salesforce/ts-types": "^3.0.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
     "@types/sinon": "^17.0.3",
+    "effect": "^3.21.2",
+    "prettier": "3.8.3",
     "sinon": "^17.0.1"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
@@ -45,8 +46,8 @@
     "out/src"
   ],
   "scripts": {
-    "api:check": "wireit",
-    "api:update": "wireit",
+    "schema:check": "wireit",
+    "schema:update": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -56,31 +57,28 @@
   },
   "versionedIndependently": true,
   "wireit": {
-    "api:update": {
-      "command": "api-extractor run --local --verbose",
-      "dependencies": [
-        "compile"
-      ]
-    },
-    "api:update:tests-types": {
-      "command": "api-extractor run --local --verbose --config api-extractor.tests-types.json",
-      "dependencies": [
-        "compile"
-      ]
-    },
-    "api:check": {
-      "command": "api-extractor run --verbose",
-      "dependencies": [
-        "compile"
-      ],
+    "schema:update": {
+      "command": "ts-node scripts/generatePublicApiSchema.ts",
       "files": [
-        "out/src/**/*.d.ts",
-        "api-extractor.json",
-        "etc/apex-node.public.api.md",
+        "scripts/generatePublicApiSchema.ts",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
         "package.json"
       ],
       "output": [
-        "temp/apex-node.public.api.md"
+        "schemas/public-api.schema.json"
+      ]
+    },
+    "schema:check": {
+      "command": "ts-node scripts/generatePublicApiSchema.ts --check",
+      "files": [
+        "scripts/generatePublicApiSchema.ts",
+        "schemas/public-api.schema.json",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
       ]
     },
     "compile": {
@@ -88,6 +86,7 @@
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -125,13 +124,14 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "api:check",
+        "schema:check",
         "../eslint-local-rules:compile",
         "check:circular-deps",
         "compile"
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"
