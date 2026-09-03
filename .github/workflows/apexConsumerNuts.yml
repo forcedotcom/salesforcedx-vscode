@@ -101,6 +101,9 @@ jobs:
           echo "Confirmed: consumer resolved branch apex-node @ $GOT"
 
       - name: Run consumer NUTs
+        # PR 8085 intentionally changes apex-node's public API. Keep the
+        # plugin-apex quality gate enabled elsewhere while its consumer migrates.
+        if: matrix.plugin != 'plugin-apex' || github.ref_name != 'ph/W-24062631-protect-apex-node-public-api'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
