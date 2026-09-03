@@ -161,15 +161,10 @@ export const executeCommandById = async (
   commandId: string,
   options?: ExecuteCommandByIdOptions
 ): Promise<void> => {
-  const desktop = isDesktop();
-  const keybinding = desktop ? 'ctrl+shift+alt+f9' : 'ctrl+shift+9';
-  const key = desktop ? 'Control+Shift+Alt+F9' : 'Control+Shift+9';
+  const keybinding = isDesktop() ? 'ctrl+shift+alt+f9' : 'ctrl+shift+9';
+  const key = isDesktop() ? 'Control+Shift+Alt+F9' : 'Control+Shift+9';
   await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
-  if (desktop) {
-    await executeCommandWithCommandPalette(page, 'Select All');
-  } else {
-    await page.keyboard.press('Control+a');
-  }
+  await executeCommandWithCommandPalette(page, 'Select All');
   await page.keyboard.insertText(JSON.stringify([{ key: keybinding, command: commandId }]));
   await executeCommandWithCommandPalette(page, 'File: Save');
   await executeCommandWithCommandPalette(page, 'View: Close Editor');
