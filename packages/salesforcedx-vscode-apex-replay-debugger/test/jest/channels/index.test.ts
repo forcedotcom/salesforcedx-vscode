@@ -19,7 +19,9 @@ const loadBridgeWithMockLayer = () => {
   const calls: string[] = [];
   // Resolver so the test awaits the fire-and-forget fiber instead of guessing a delay.
   const { promise: shown, resolve: channelShown } = Promise.withResolvers<void>();
-  const loaded = {} as { appendAndShowChannelOutput: (message: string) => void };
+  const loaded = {} as {
+    writeToDebuggerOutputWindow: (message: string, windowType?: 'error' | 'warning') => void;
+  };
 
   jest.isolateModules(() => {
     const { ExtensionProviderService } =
@@ -59,32 +61,60 @@ const loadBridgeWithMockLayer = () => {
       ) as unknown as Parameters<typeof setAllServicesLayer>[0]
     );
 
-    loaded.appendAndShowChannelOutput = (
+    loaded.writeToDebuggerOutputWindow = (
       require('../../../src/channels') as typeof import('../../../src/channels')
-    ).appendAndShowChannelOutput;
+    ).writeToDebuggerOutputWindow;
   });
 
   return { ...loaded, calls, shown };
 };
 
-describe('appendAndShowChannelOutput', () => {
+describe('writeToDebuggerOutputWindow', () => {
+  beforeEach(() => {
+    jest.mocked(vscode.window.showErrorMessage).mockClear();
+    jest.mocked(vscode.window.showWarningMessage).mockClear();
+  });
+
   it('creates no channel and does not throw when no AllServicesLayer has been set', () => {
     jest.isolateModules(() => {
-      const { appendAndShowChannelOutput } = require('../../../src/channels') as typeof import('../../../src/channels');
+      const { writeToDebuggerOutputWindow } =
+        require('../../../src/channels') as typeof import('../../../src/channels');
       // Channel output is fire-and-forget: pre-activation (or in unit tests) there is no layer/runtime,
       // and writeToDebuggerOutputWindow's callers must not see that as an exception or a stray channel.
-      expect(() => appendAndShowChannelOutput('hello')).not.toThrow();
+      expect(() => writeToDebuggerOutputWindow('hello')).not.toThrow();
       expect(vscode.window.createOutputChannel).not.toHaveBeenCalled();
     });
   });
 
   it('appends the message to the services channel, then reveals it without stealing focus', async () => {
-    const { appendAndShowChannelOutput, calls, shown } = loadBridgeWithMockLayer();
+    const { writeToDebuggerOutputWindow, calls, shown } = loadBridgeWithMockLayer();
 
-    appendAndShowChannelOutput('checkpoint failed');
+    writeToDebuggerOutputWindow('checkpoint failed');
     await shown;
 
     // show(true) keeps keyboard focus in the editor, matching the legacy showChannelOutput()
     expect(calls).toEqual(['append:checkpoint failed', 'show:true']);
+    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows an error toast when windowType is error', async () => {
+    const { writeToDebuggerOutputWindow, shown } = loadBridgeWithMockLayer();
+
+    writeToDebuggerOutputWindow('checkpoint failed', 'error');
+    await shown;
+
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('checkpoint failed');
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows a warning toast when windowType is warning', async () => {
+    const { writeToDebuggerOutputWindow, shown } = loadBridgeWithMockLayer();
+
+    writeToDebuggerOutputWindow('upload in progress', 'warning');
+    await shown;
+
+    expect(vscode.window.showWarningMessage).toHaveBeenCalledWith('upload in progress');
+    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 });

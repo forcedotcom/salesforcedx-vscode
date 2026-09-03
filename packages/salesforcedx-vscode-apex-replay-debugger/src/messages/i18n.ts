@@ -17,7 +17,6 @@
  */
 export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
-  session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
     'You have %d of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   no_enabled_checkpoints: "You don't have any checkpoints enabled. Enable a checkpoint and try again.",
