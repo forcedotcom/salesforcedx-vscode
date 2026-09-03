@@ -6,7 +6,7 @@
  */
 
 import { type Page } from '@playwright/test';
-import { executeCommandWithCommandPalette, OpenCommandPaletteOptions } from './commands';
+import { executeCommandWithCommandPalette, type OpenCommandPaletteOptions } from './commands';
 
 /**
  * Named wrappers for VS Code built-in (native) command-palette commands.
