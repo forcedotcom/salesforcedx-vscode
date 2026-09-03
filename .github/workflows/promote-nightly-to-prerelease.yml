@@ -26,6 +26,7 @@ permissions:
   contents: write
   packages: write
   actions: read
+  checks: read
 
 jobs:
   # Step 1: Find nightly candidate (THIS REPO CONTROLS CRITERIA)
