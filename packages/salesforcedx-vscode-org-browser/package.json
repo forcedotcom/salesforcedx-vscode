@@ -324,18 +324,23 @@
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_loading%",
+        "when": "!sf:orgBrowser.initialized"
+      },
+      {
+        "view": "sfdxOrgBrowser",
         "contents": "%org_browser_filters_all_off%",
-        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
       },
       {
         "view": "sfdxOrgBrowser",
         "contents": "%org_browser_filters_empty%",
-        "when": "(sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty)"
+        "when": "sf:orgBrowser.initialized == true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
       },
       {
         "view": "sfdxOrgBrowser",
         "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
-        "when": "sf:orgBrowser.showOrg == true && sf:orgBrowser.treeEmpty == false"
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.showOrg == true && sf:orgBrowser.treeEmpty == false"
       }
     ],
     "viewsContainers": {
@@ -429,42 +434,42 @@
       "view/title": [
         {
           "command": "sfdxOrgBrowser.showLocal.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == false",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.showLocal == false",
           "group": "navigation@0"
         },
         {
           "command": "sfdxOrgBrowser.showLocal.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == true",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.showLocal == true",
           "group": "navigation@0"
         },
         {
           "command": "sfdxOrgBrowser.showOrg.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.showOrg == false",
           "group": "navigation@1"
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.showOrg == true",
           "group": "navigation@1"
         },
         {
           "command": "sfdxOrgBrowser.filterText",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.textFilterActive == false",
           "group": "navigation@2"
         },
         {
           "command": "sfdxOrgBrowser.filterText.active",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true && sf:orgBrowser.textFilterActive == true",
           "group": "navigation@2"
         },
         {
           "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true",
           "group": "navigation@3"
         },
         {
           "command": "sfdxOrgBrowser.collapseAll",
-          "when": "view == sfdxOrgBrowser",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.initialized == true",
           "group": "navigation@4"
         }
       ],
