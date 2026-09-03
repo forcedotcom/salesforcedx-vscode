@@ -21,7 +21,7 @@ References:
 
 ## Build Release from Prerelease
 
-Manual workflow [`buildReleaseFromPrerelease.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/buildReleaseFromPrerelease.yml) builds release VSIXs from promoted prerelease tags for internal testing. Auto-detects latest nightly tag and bumps minor version, or accepts manual overrides.
+Manual workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) builds release VSIXs from promoted prerelease tags for internal testing. Auto-detects latest nightly tag and bumps minor version, or accepts manual overrides.
 
 Inputs:
 - `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty
@@ -84,7 +84,7 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Pre-release Promotion
 
-**Pre-release promotion:** `promote-prerelease.yml` (Wednesdays 7 AM UTC) runs 3-stage pipeline: (1) find-nightly selects oldest nightly ≥7 days; (2) gate-check verifies CI passed on nightly commit; (3) promote creates tracking tag for release flow. Safe rollback window before general release.
+**Pre-release promotion:** `promote-nightly-to-prerelease.yml` (Wednesdays 7 AM UTC) runs 3-stage pipeline: (1) find-nightly selects oldest nightly ≥7 days; (2) gate-check verifies CI passed on nightly commit; (3) promote creates tracking tag for release flow. Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
 
@@ -97,7 +97,7 @@ Published releases extract extension names from VSIX filenames in release assets
 ### Standard Path: Promoted Prerelease → Release
 
 1. Promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion))
-2. Trigger [`buildReleaseFromPrerelease.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/buildReleaseFromPrerelease.yml) to build release VSIXs
+2. Trigger [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) to build release VSIXs
 3. Download + test VSIX files from GitHub pre-release
 4. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`)
 5. Approve marketplace publish gates
@@ -207,7 +207,7 @@ After merge, nightlies will automatically build with the new major version: `v68
 After ≥7 days of nightly testing, trigger the release build with manual version override to prevent auto-bumping to 68.1.0:
 
 ```bash
-gh workflow run buildReleaseFromPrerelease.yml \
+gh workflow run build-release.yml \
   -f prereleaseTag="v68.0.0-nightly.develop.YYYYMMDD" \
   -f releaseVersion="68.0.0"
 ```

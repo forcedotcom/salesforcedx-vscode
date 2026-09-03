@@ -130,7 +130,7 @@ git ls-remote ci-testing | grep release-staging && echo "❌ Staging branch exis
 **Goal:** Verify 3-stage promotion workflow creates tracking tag
 
 **Steps:**
-1. Go to Actions → `promote-prerelease.yml`
+1. Go to Actions → `promote-nightly-to-prerelease.yml`
 2. Click "Run workflow"
 3. Leave inputs empty (auto-select latest nightly)
 4. Run workflow
