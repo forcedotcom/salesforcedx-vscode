@@ -45,7 +45,7 @@ import { buildAllServicesLayer, setAllServicesLayer } from './services/extension
 import { disposeRuntime, getRuntime } from './services/runtime';
 
 export { retrieveLineBreakpointInfo } from './apexExtension';
-export { VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from './channels';
+export { writeToDebuggerOutputWindow } from './channels';
 
 const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
   const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));

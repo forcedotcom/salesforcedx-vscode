@@ -19,7 +19,9 @@ const loadBridgeWithMockLayer = () => {
   const calls: string[] = [];
   // Resolver so the test awaits the fire-and-forget fiber instead of guessing a delay.
   const { promise: shown, resolve: channelShown } = Promise.withResolvers<void>();
-  const loaded = {} as { writeToDebuggerOutputWindow: (message: string) => void };
+  const loaded = {} as {
+    writeToDebuggerOutputWindow: (message: string, windowType?: 'error' | 'warning') => void;
+  };
 
   jest.isolateModules(() => {
     const { ExtensionProviderService } =
@@ -68,6 +70,11 @@ const loadBridgeWithMockLayer = () => {
 };
 
 describe('writeToDebuggerOutputWindow', () => {
+  beforeEach(() => {
+    jest.mocked(vscode.window.showErrorMessage).mockClear();
+    jest.mocked(vscode.window.showWarningMessage).mockClear();
+  });
+
   it('creates no channel and does not throw when no AllServicesLayer has been set', () => {
     jest.isolateModules(() => {
       const { writeToDebuggerOutputWindow } =
@@ -87,5 +94,27 @@ describe('writeToDebuggerOutputWindow', () => {
 
     // show(true) keeps keyboard focus in the editor, matching the legacy showChannelOutput()
     expect(calls).toEqual(['append:checkpoint failed', 'show:true']);
+    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows an error toast when windowType is error', async () => {
+    const { writeToDebuggerOutputWindow, shown } = loadBridgeWithMockLayer();
+
+    writeToDebuggerOutputWindow('checkpoint failed', 'error');
+    await shown;
+
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('checkpoint failed');
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows a warning toast when windowType is warning', async () => {
+    const { writeToDebuggerOutputWindow, shown } = loadBridgeWithMockLayer();
+
+    writeToDebuggerOutputWindow('upload in progress', 'warning');
+    await shown;
+
+    expect(vscode.window.showWarningMessage).toHaveBeenCalledWith('upload in progress');
+    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 });

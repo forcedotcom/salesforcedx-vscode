@@ -9,11 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 
-export enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
+export type DebuggerWindowType = 'error' | 'warning';
 
 const getChannelService = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -45,26 +41,8 @@ const appendAndShowChannelOutput = (message: string): void => {
   getRuntime().runFork(Effect.ignoreLogged(appendAndShow(message)));
 };
 
-export const writeToDebuggerOutputWindow = (
-  output: string,
-  showVSCodeWindow?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
-) => {
+export const writeToDebuggerOutputWindow = (output: string, windowType?: DebuggerWindowType) => {
   appendAndShowChannelOutput(output);
-  if (showVSCodeWindow && vsCodeWindowType) {
-    switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
-        vscode.window.showErrorMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Informational: {
-        vscode.window.showInformationMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Warning: {
-        vscode.window.showWarningMessage(output);
-        break;
-      }
-    }
-  }
+  if (!windowType) return;
+  windowType === 'error' ? vscode.window.showErrorMessage(output) : vscode.window.showWarningMessage(output);
 };

@@ -8,7 +8,7 @@
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
-import { VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from './channels';
+import { writeToDebuggerOutputWindow } from './channels';
 import { nls } from './messages';
 
 const apexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
@@ -37,7 +37,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   }
   if (expired) {
     const errorMessage = nls.localize('language_client_not_ready');
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    writeToDebuggerOutputWindow(errorMessage, 'error');
     return false;
   }
 
@@ -47,7 +47,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
     breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
   } else {
     const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    writeToDebuggerOutputWindow(errorMessage, 'error');
   }
   return true;
 };
