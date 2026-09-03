@@ -44,11 +44,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check CI status
+        # Gate on the nightly's own build/release success, NOT unit-tests/build-all.
+        # Unit + e2e tests already ran on the PR (via validatePR.yml) before the change
+        # merged to develop. Those PR check-runs live on the PR head commit, which no longer
+        # exists after squash-merge, so they can't be found on the develop nightly commit.
+        # The meaningful, available signals here are that the nightly compiled/packaged the
+        # VSIXs and published the GitHub release cleanly.
         uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
         with:
           commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          required-checks: '["unit-tests", "build-all"]'
+          required-checks: '["nightly-release / package / Package", "nightly-release / Create GitHub Releases"]'
 
   # Step 3: Promote to prerelease (only runs if gate-check passed)
   promote:
