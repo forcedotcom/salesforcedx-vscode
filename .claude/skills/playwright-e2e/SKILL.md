@@ -111,7 +111,7 @@ See `references/full-suite-execution.md` for complete guide on running web/deskt
 
 ## Container Specs
 
-12 packages ship **container** Playwright specs (apex, lightning, core, metadata, apex-testing, apex-log, apex-oas, soql, lwc, visualforce, org-browser, services).
+15 packages ship **container** Playwright specs (apex, apex-debugger, apex-log, apex-oas, apex-replay-debugger, apex-testing, core, lightning, lwc, metadata, org, org-browser, services, soql, visualforce) — 75 specs total. See the [coverage ledger](../../../docs/codeBuilderContainerParity.md) for the per-package list and which specs are intentionally not ported.
 
 **Run locally:**
 ```bash
