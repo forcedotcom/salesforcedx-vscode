@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -57,48 +58,53 @@ if (!salesforceApexExtension) {
   throw new Error('Salesforce Apex Extension not initialized');
 }
 
-const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
-  const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
-  const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
-    const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
-      canSelectFiles: true,
-      canSelectFolders: false,
-      canSelectMany: false,
-      defaultUri: dialogStartingPathUri
-    });
+const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime(), { returnEffectResult: true });
+  const dialogStartingPathUri = yield* getDialogStartingPath(extensionContext);
+
+  const promptForLogCommand = Effect.fn('ApexReplayDebugger.promptForLogCommand')(function* () {
+    const fileUris: URI[] | undefined = yield* Effect.promise(() =>
+      vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        defaultUri: dialogStartingPathUri
+      })
+    );
     if (fileUris?.length === 1) {
-      updateLastOpened(extensionContext, fileUris[0].fsPath);
+      yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0].fsPath));
       return fileUris[0].fsPath;
     }
   });
-  const launchFromLogFileCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.logfile',
-    async (editorUri: URI) => {
-      const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
+  const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (editorUri: URI) {
+    const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
 
-      if (resolved) {
-        updateLastOpened(extensionContext, resolved.fsPath);
-      }
-      await launchFromLogFile(resolved?.fsPath);
+    if (resolved) {
+      yield* Effect.sync(() => updateLastOpened(extensionContext, resolved.fsPath));
     }
-  );
+    yield* Effect.promise(() => launchFromLogFile(resolved?.fsPath));
+  });
+  const launchFromLogFilePathCommand = Effect.fn('ApexReplayDebugger.launchFromLogFilePathCommand')(function* (
+    logFilePath: string | undefined,
+    anonApexFilePath?: string,
+    anonApexLineOffset?: number
+  ) {
+    if (logFilePath) {
+      yield* Effect.promise(() => launchFromLogFile(logFilePath, true, anonApexFilePath, anonApexLineOffset));
+    }
+  });
+  const launchFromLastLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLastLogFileCommand')(function* () {
+    const lastOpenedLog = extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
+    yield* Effect.promise(() => launchFromLogFile(lastOpenedLog));
+  });
 
-  const launchFromLogFilePathCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.logfile.path',
-    async (logFilePath, anonApexFilePath?: string, anonApexLineOffset?: number) => {
-      if (logFilePath) {
-        await launchFromLogFile(logFilePath, true, anonApexFilePath, anonApexLineOffset);
-      }
-    }
-  );
-
-  const launchFromLastLogFileCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.last.logfile',
-    async () => {
-      const lastOpenedLog = extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
-      await launchFromLogFile(lastOpenedLog);
-    }
-  );
+  yield* registerCommand('extension.replay-debugger.getLogFileName', promptForLogCommand);
+  yield* registerCommand('sf.launch.replay.debugger.logfile', launchFromLogFileCommand);
+  yield* registerCommand('sf.launch.replay.debugger.logfile.path', launchFromLogFilePathCommand);
+  yield* registerCommand('sf.launch.replay.debugger.last.logfile', launchFromLastLogFileCommand);
 
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
@@ -111,16 +117,12 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
   );
 
   return vscode.Disposable.from(
-    promptForLogCmd,
-    launchFromLogFileCmd,
-    launchFromLogFilePathCmd,
-    launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
     anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
-};
+});
 
 export const updateLastOpened = (extensionContext: vscode.ExtensionContext, logPath: string) => {
   extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
@@ -177,7 +179,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const commands = yield* Effect.promise(() => registerCommands(extensionContext));
+  const commands = yield* registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',

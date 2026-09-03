@@ -21,7 +21,7 @@ import { ExtensionContextService } from './extensionContextService';
  * yield* registerCommand('sf.my.command', myCommandEffect);
  */
 export const registerCommandWithRuntime =
-  <R, RuntimeE>(runtime: ManagedRuntime.ManagedRuntime<R, RuntimeE>) =>
+  <R, RuntimeE>(runtime: ManagedRuntime.ManagedRuntime<R, RuntimeE>, options?: { returnEffectResult?: boolean }) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This really is that generic, Effect will handle the param stuff
   <E, A>(command: string, f: (...args: any[]) => Effect.Effect<A, E | UserCancellationError, R>) =>
     Effect.gen(function* () {
@@ -29,14 +29,13 @@ export const registerCommandWithRuntime =
       const context = yield* contextService.getContext;
       const errorHandler = yield* ErrorHandlerService;
       context.subscriptions.push(
-        vscode.commands.registerCommand(command, (...args) =>
-          runtime.runFork(
-            f(...args).pipe(
-              Effect.withSpan(command, { attributes: { command, args }, root: true }),
-              Effect.catchTag('UserCancellationError', () => Effect.void),
-              Effect.catchAllCause(cause => errorHandler.handleCause(cause))
-            )
-          )
-        )
+        vscode.commands.registerCommand(command, (...args) => {
+          const commandEffect = f(...args).pipe(
+            Effect.withSpan(command, { attributes: { command, args }, root: true }),
+            Effect.catchTag('UserCancellationError', () => Effect.void),
+            Effect.catchAllCause(cause => errorHandler.handleCause(cause))
+          );
+          return options?.returnEffectResult ? runtime.runPromise(commandEffect) : runtime.runFork(commandEffect);
+        })
       );
     }).pipe(Effect.withSpan(`registerCommand:${command}`));
