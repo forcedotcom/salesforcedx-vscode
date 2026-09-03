@@ -1,0 +1,63 @@
+name: Promote Nightly to Pre-release
+
+on:
+  schedule:
+    # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
+    # Creates tracking tag for NEXT week's build-release.yml (which runs at 7 AM)
+    # IMPORTANT: Runs AFTER build-release (7 AM) so that stable builds use last week's
+    # tested prerelease (7+ days on marketplace), not today's newly promoted one
+    - cron: '0 8 * * 3'
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Leave empty to auto-detect most recent CI-passing nightly.'
+        required: false
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing or tagging)'
+        required: false
+        default: false
+        type: boolean
+
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-nightly-to-prerelease.yml)
+# Do not define it here to avoid deadlock
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  # Step 1: Find nightly candidate (THIS REPO CONTROLS CRITERIA)
+  find-nightly:
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@main
+    with:
+      release-tag: ${{ inputs.releaseTag || '' }}
+      min-tag-age-days: '0'
+
+  # Step 2: Gate-check CI status (THIS REPO CONTROLS CRITERIA)
+  gate-check:
+    needs: find-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check CI status
+        uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
+        with:
+          commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          required-checks: '["unit-tests", "build-all"]'
+
+  # Step 3: Promote to prerelease (only runs if gate-check passed)
+  promote:
+    needs: [find-nightly, gate-check]
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    with:
+      release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
+      vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
+      exclude-web-vsix: 'false'
+      extension-name: 'salesforcedx-vscode'
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit

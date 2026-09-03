@@ -1,6 +1,10 @@
 
-name: PreRelease
+name: PreRelease (DEPRECATED)
 
+# DEPRECATED: This workflow is part of the old release branch flow.
+# Use build-release.yml → publishVSCode.yml workflow instead.
+# Scheduled for removal after migration complete.
+#
 # Have workflow for just merging into main
 # Release flow will trigger by a merge into main w/ approval 
 
