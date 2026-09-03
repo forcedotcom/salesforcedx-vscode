@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.4.0...playwright-vscode-ext-v1.5.0) (2026-09-03)
+
+
+### Features
+
+* **codebuilder-e2e:** verify gate + digest/Manifest utilities - W-23898517 ([#8009](https://github.com/forcedotcom/salesforcedx-vscode/issues/8009)) ([3728582](https://github.com/forcedotcom/salesforcedx-vscode/commit/372858205e9236d3325edcb8889f106495458fb0))
+
+
+
 # [1.4.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.12...playwright-vscode-ext-v1.4.0) (2026-09-03)
 
 
