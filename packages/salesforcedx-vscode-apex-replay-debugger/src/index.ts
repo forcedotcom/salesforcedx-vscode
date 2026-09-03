@@ -41,6 +41,7 @@ import {
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
+import { waitForLanguageClientReady } from './languageClientReady';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
@@ -219,47 +220,35 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 });
 
-export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
+export const retrieveLineBreakpointInfo = Effect.fn('ApexReplayDebugger.retrieveLineBreakpointInfo')(function* () {
   if (!salesforceApexExtension.isActive) {
-    await salesforceApexExtension.activate();
+    yield* Effect.promise(() => salesforceApexExtension.activate());
   }
   if (salesforceApexExtension) {
-    let expired = false;
-    let i = 0;
-    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await imposeSlightDelay(100);
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
+    const isReady = yield* waitForLanguageClientReady(() =>
+      salesforceApexExtension.exports.languageClientManager.getStatus()
+    );
+    if (!isReady) {
       const errorMessage = nls.localize('language_client_not_ready');
-      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+      yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
       return false;
     } else {
-      const lineBpInfo = await salesforceApexExtension.exports.getLineBreakpointInfo();
+      const lineBpInfo = yield* Effect.promise(() => salesforceApexExtension.exports.getLineBreakpointInfo());
       if (lineBpInfo?.length) {
-        console.log(nls.localize('line_breakpoint_information_success'));
-        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+        yield* Effect.log(nls.localize('line_breakpoint_information_success'));
+        yield* Effect.sync(() => breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo));
       } else {
         const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+        yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
       }
       return true;
     }
   } else {
     const errorMessage = nls.localize('session_language_server_error_text');
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error));
     return false;
   }
-};
-
-const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
+});
 
 export const writeToDebuggerOutputWindow = (
   output: string,
