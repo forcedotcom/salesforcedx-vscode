@@ -136,8 +136,8 @@ git ls-remote ci-testing | grep release-staging && echo "❌ Staging branch exis
 4. Run workflow
 
 **Expected Results:**
-- ✅ Stage 1 (find-nightly): Finds nightly ≥7 days old
-- ✅ Stage 2 (gate-check): Verifies all CI checks passed on nightly commit
+- ✅ Stage 1 (find-nightly): Finds most recent nightly (min-tag-age: 0 days)
+- ✅ Stage 2 (gate-check): Verifies nightly's build/release success (checks: `nightly-release / package / Package`, `nightly-release / Create GitHub Releases`)
 - ✅ Stage 3 (promote): Creates tracking tag `marketplace-prerelease-salesforcedx-vscode-vX.Y.Z` (skipped on ci-testing due to no secrets)
 - ✅ Workflow completes successfully even without publish secrets
 

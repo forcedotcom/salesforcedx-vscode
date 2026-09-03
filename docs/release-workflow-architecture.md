@@ -20,14 +20,16 @@ Daily (4 AM UTC)
 └────────┬─────────┘     Users opt-in to test cutting-edge features
          │
          │
-Wednesday (Week N - 7 AM UTC) ───────────────────────────────┐
+Wednesday (Week N - 8 AM UTC) ───────────────────────────────┐
          │                                                   │
          ▼                                                   │
 ┌─────────────────────────────────────────────────────────────────┐
 │  promote-nightly-to-prerelease.yml (AUTOMATED CRON)             │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
-│  │ ✓ Finds most recent CI-passing nightly (min-tag-age: 0 days) │
+│  │ ✓ Finds most recent nightly (min-tag-age: 0 days)            │
+│  │ ✓ Gate-checks: nightly build/release success                 │
+│  │   (not unit-tests; those ran on PR before merge to develop)  │
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
@@ -228,8 +230,9 @@ Emergency Path: ❌ None (wait 7+ days)
 ```
 WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ promote-nightly-to-prerelease.yml (AUTOMATED 7 AM UTC)
-                              │    • Finds most recent CI-passing nightly (min-tag-age: 0 days)
+                              ├─ promote-nightly-to-prerelease.yml (AUTOMATED 8 AM UTC)
+                              │    • Finds most recent nightly (min-tag-age: 0 days)
+                              │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
                               │    ✓ Real users test in production
@@ -238,7 +241,7 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
 WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ build-release.yml (AUTOMATED 8 AM UTC)
+                              ├─ build-release.yml (AUTOMATED 7 AM UTC)
                               │    • Finds previous Wed's marketplace-prerelease-* tag
                               │    • Creates ephemeral staging branch
                               │    • Builds stable VSIXs
