@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.12...playwright-vscode-ext-v1.4.0) (2026-09-03)
+
+
+### Features
+
+* use modal confirmation for destructive delete-source and retrieve-overwrite prompts - W-23530668 ([#8090](https://github.com/forcedotcom/salesforcedx-vscode/issues/8090)) ([12830dd](https://github.com/forcedotcom/salesforcedx-vscode/commit/12830dda8a417e963a2c5ea3776242105897b878))
+
+
+
 ## [1.3.12](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.11...playwright-vscode-ext-v1.3.12) (2026-09-01)
 
 
