@@ -84,7 +84,7 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Pre-release Promotion
 
-**Pre-release promotion:** `promote-nightly-to-prerelease.yml` (Wednesdays 7 AM UTC) runs 3-stage pipeline: (1) find-nightly selects oldest nightly ≥7 days; (2) gate-check verifies CI passed on nightly commit; (3) promote creates tracking tag for release flow. Safe rollback window before general release.
+**Pre-release promotion:** `promote-nightly-to-prerelease.yml` (Wednesdays 8 AM UTC) runs 3-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success (not unit-tests/build-all, which only exist on PR commits); (3) promote creates tracking tag for release flow. Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
 
