@@ -554,99 +554,105 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   try {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
     // attached to the checkpoint while they're being uploaded into the org.
-    await Effect.promise(async () => {
-      writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
-      await vscode.window.withProgress(
-        {
-          location: progressLocation,
-          title: localizedProgressMessage,
-          cancellable: false
-        },
+    await Effect.gen(function* () {
+      yield* Effect.sync(() =>
+        writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)
+      );
+      yield* Effect.promise(() =>
+        vscode.window.withProgress(
+          {
+            location: progressLocation,
+            title: localizedProgressMessage,
+            cancellable: false
+          },
 
-        async (progress, _token) => {
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
-          );
-          progress.report({
-            increment: 0,
-            message: localizedProgressMessage
-          });
-          const connection = await getConnection();
-          if (!connection) {
-            updateError = true;
-            return false;
-          }
+          (progress, _token) =>
+            getRuntime().runPromise(
+              Effect.gen(function* () {
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
+                );
+                progress.report({
+                  increment: 0,
+                  message: localizedProgressMessage
+                });
+                const connection = yield* Effect.promise(getConnection);
+                if (!connection) {
+                  updateError = true;
+                  return false;
+                }
 
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
-          );
-          progress.report({
-            increment: 20,
-            message: localizedProgressMessage
-          });
-          const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
-          // If we didn't get the source line information that'll be reported at that time, just return
-          if (!sourceLineInfoRetrieved) {
-            updateError = true;
-            return false;
-          }
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
+                );
+                progress.report({
+                  increment: 20,
+                  message: localizedProgressMessage
+                });
+                const sourceLineInfoRetrieved = yield* retrieveLineBreakpointInfo();
+                // If we didn't get the source line information that'll be reported at that time, just return
+                if (!sourceLineInfoRetrieved) {
+                  updateError = true;
+                  return false;
+                }
 
-          // There can be a max of five active checkpoints
-          if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
-            updateError = true;
-            return false;
-          }
+                // There can be a max of five active checkpoints
+                if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
+                  updateError = true;
+                  return false;
+                }
 
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
-          );
-          progress.report({
-            increment: 50,
-            message: localizedProgressMessage
-          });
-          // For the active checkpoints set the typeRefs using the source/line info
-          if (!setTypeRefsForEnabledCheckpoints()) {
-            updateError = true;
-            return false;
-          }
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
+                );
+                progress.report({
+                  increment: 50,
+                  message: localizedProgressMessage
+                });
+                // For the active checkpoints set the typeRefs using the source/line info
+                if (!setTypeRefsForEnabledCheckpoints()) {
+                  updateError = true;
+                  return false;
+                }
 
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
-          );
-          progress.report({
-            increment: 50,
-            message: localizedProgressMessage
-          });
-          // remove any existing checkpoints on the server
-          const allRemoved: boolean = await clearExistingCheckpoints();
-          if (!allRemoved) {
-            updateError = true;
-            return false;
-          }
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
+                );
+                progress.report({
+                  increment: 50,
+                  message: localizedProgressMessage
+                });
+                // remove any existing checkpoints on the server
+                const allRemoved = yield* Effect.promise(clearExistingCheckpoints);
+                if (!allRemoved) {
+                  updateError = true;
+                  return false;
+                }
 
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
-          );
-          progress.report({
-            increment: 70,
-            message: localizedProgressMessage
-          });
-          updateError = (
-            await Promise.allSettled(
-              (checkpointService.getChildren() as CheckpointNode[])
-                .filter(cpNode => cpNode.isCheckpointEnabled())
-                .map(cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode))
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
+                );
+                progress.report({
+                  increment: 70,
+                  message: localizedProgressMessage
+                });
+                const [failedCheckpointUploads] = yield* Effect.partition(
+                  (checkpointService.getChildren() as CheckpointNode[]).filter(cpNode => cpNode.isCheckpointEnabled()),
+                  cpNode => Effect.tryPromise(() => executeCreateApexExecutionOverlayActionCommand(cpNode)),
+                  { concurrency: 'unbounded' }
+                );
+                updateError = failedCheckpointUploads.length > 0;
+
+                progress.report({
+                  increment: 100,
+                  message: localizedProgressMessage
+                });
+                writeToDebuggerOutputWindow(
+                  `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
+                );
+              })
             )
-          ).some(promise => promise.status === 'rejected');
-
-          progress.report({
-            increment: 100,
-            message: localizedProgressMessage
-          });
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
-          );
-        }
+        )
       );
     }).pipe(lock.withPermits(1), Effect.runPromise);
   } finally {
