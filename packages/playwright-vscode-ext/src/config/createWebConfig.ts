@@ -26,7 +26,8 @@ export const createWebConfig = (options: WebConfigOptions) =>
     testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
-    ...(options.workers ? { workers: options.workers } : {}),
+    workers:
+      options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined),
     reporter: createReporter('test-results/junit.xml'),
     use: {
       viewport: { width: 1920, height: 1080 },
