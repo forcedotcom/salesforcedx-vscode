@@ -24,8 +24,6 @@ const ExtensionProviderServiceLive = Layer.effect(
 
 // In an Effect.gen:
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
-
-
 ```
 
 ## Prebuilt vs Per-Extension Services
