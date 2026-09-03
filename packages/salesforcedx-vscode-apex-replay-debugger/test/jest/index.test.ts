@@ -147,7 +147,7 @@ describe('Apex Replay Debugger activation', () => {
       defaultUri: dialogStartingPath
     });
     expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_KEY, selectedLog.fsPath);
-    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, '/logs');
+    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, URI.file('/logs').fsPath);
   });
 
   it('launches and remembers the supplied log URI', async () => {
@@ -156,7 +156,7 @@ describe('Apex Replay Debugger activation', () => {
     await runCommand('sf.launch.replay.debugger.logfile', selectedLog);
 
     expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_KEY, selectedLog.fsPath);
-    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, '/logs');
+    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, URI.file('/logs').fsPath);
     expect(launchFromLogFile).toHaveBeenCalledWith(selectedLog.fsPath);
   });
 
