@@ -12,6 +12,7 @@ import type {
   OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import type { URI } from 'vscode-uri';
@@ -57,7 +58,7 @@ export const compareTrackingObservations = (
   previous: ReadonlyMap<string, RemoteTrackingObservation>,
   current: ReadonlyMap<string, RemoteTrackingObservation>
 ): OrgMetadataComponentReference[] => [
-  ...[...new Set([...previous.keys(), ...current.keys()])]
+  ...Arr.dedupe([...previous.keys(), ...current.keys()])
     .filter(key => previous.get(key)?.signature !== current.get(key)?.signature)
     .flatMap(key => {
       const observation = current.get(key) ?? previous.get(key);

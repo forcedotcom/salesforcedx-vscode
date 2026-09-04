@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import { isError, isString, isUndefined } from 'effect/Predicate';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
@@ -420,7 +421,7 @@ export abstract class BaseWorkspaceContext {
               ...(isRecord(existingCompilerOptions) ? existingCompilerOptions : {}),
               ...(isRecord(templateCompilerOptions) ? templateCompilerOptions : {})
             },
-            include: [...new Set([...userInclude, ...jsconfigSfdx.include, typingsInclude])]
+            include: Arr.dedupe([...userInclude, ...jsconfigSfdx.include, typingsInclude])
           };
 
           jsconfigContent = JSON.stringify(mergedConfig, null, 4);
