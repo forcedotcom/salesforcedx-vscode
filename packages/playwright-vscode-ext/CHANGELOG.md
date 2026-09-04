@@ -1,3 +1,12 @@
+## [1.6.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.6.0...playwright-vscode-ext-v1.6.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **org-browser:** register controls before org initialization - W-24087331 ([#8105](https://github.com/forcedotcom/salesforcedx-vscode/issues/8105)) ([dd7fd9d](https://github.com/forcedotcom/salesforcedx-vscode/commit/dd7fd9d4cef00cd30885b2dc5513759657043f0e))
+
+
+
 # [1.6.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.5.0...playwright-vscode-ext-v1.6.0) (2026-09-04)
 
 
