@@ -199,7 +199,9 @@ export const createLwcViaSfdxCommand = async (page: Page, componentName: string)
   const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${jsFileName}"]`);
   await jsEditor.waitFor({ state: 'visible', timeout: 45_000 });
 
-  if (componentName === 'gtdHtmlComp') {
+  // Match a bare `gtdHtmlComp` (web specs) or a unique-suffixed `gtdHtmlComp<Date.now()>` (container
+  // specs, which share one persistent workbench and must avoid name collisions) — both need the seed.
+  if (componentName.startsWith('gtdHtmlComp')) {
     await replaceEditorContentAndSave(page, jsEditor, LWC_GTD_HTML_COMP_SEED_JS);
     await openLwcFile(page, `${camelName}.html`);
     const htmlEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${camelName}.html"]`);
