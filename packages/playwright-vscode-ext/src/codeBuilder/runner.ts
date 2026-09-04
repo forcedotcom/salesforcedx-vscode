@@ -74,3 +74,24 @@ export const withTimeoutRetry = <T>(attempt: () => T): T => {
 /** Default runner: real process execution, arg-array form (no shell interpolation), with timeout + retry. */
 export const defaultRunner: CommandRunner = (file, args) =>
   withTimeoutRetry(() => execFileSync(file, args as string[], { encoding: 'utf-8', timeout: runnerTimeoutMs() }));
+
+/*
+ * Shared charset guard for every value that gets interpolated into a `bash -c` string — a publisher
+ * prefix, a package.json name/version, an extension id. These are the ONLY places a shelled command
+ * is built from a string rather than an argv array, so a stray shell/glob metacharacter (`;`, `$`,
+ * backtick, `*`, `?`, `[`, whitespace) would otherwise be interpreted by the shell or silently widen
+ * a glob. Only npm-style chars are legitimate. Also reject a value that is only dots (`.`/`..`): a
+ * `.`-prefix would make a wipe glob like `${value}.*` reach the parent dir, so require at least one
+ * alphanumeric so `..`, `.`, `--`, etc. can't slip through. swap and verify BOTH call this so their
+ * injection defenses can never diverge. Returns the validated value so callers can use it inline.
+ */
+const VALID_SHELL_SEGMENT = /^[A-Za-z0-9._-]+$/;
+export const assertSafeShellSegment = (value: unknown, label: string): string => {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`missing or non-string ${label} (got ${JSON.stringify(value)})`);
+  }
+  if (!VALID_SHELL_SEGMENT.test(value) || !/[A-Za-z0-9]/.test(value)) {
+    throw new Error(`unsafe ${label} ${JSON.stringify(value)}: expected only [A-Za-z0-9._-] with an alphanumeric`);
+  }
+  return value;
+};
