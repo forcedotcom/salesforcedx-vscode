@@ -12,15 +12,8 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import {
-  writeResultFiles,
-  ApexTestResultOutcome,
-  ResultFormat,
-  TestResult,
-  OutputDirConfig,
-  CodeCoverageResult,
-  PerClassCoverage
-} from '../../src';
+import { writeResultFiles } from '../../src/tests/testService';
+import { TestResult, OutputDirConfig, CodeCoverageResult, PerClassCoverage } from '../../src';
 
 describe('writeResultFiles - Snapshot Tests', () => {
   let tempDir: string;
@@ -75,7 +68,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testSnapshotMethod1',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
@@ -94,7 +87,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         message: 'Snapshot test failed with detailed error message',
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testSnapshotMethod2',
-        outcome: ApexTestResultOutcome.Fail,
+        outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
         apexClass: {
           id: '01p000000000002AAA',
@@ -113,7 +106,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testSnapshotMethod3',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000003AAA',
@@ -153,7 +146,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
   it('should produce consistent JSON output', async function () {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json]
+      resultFormats: ['json']
     };
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -169,7 +162,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
   it('should produce consistent TAP output', async function () {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.tap]
+      resultFormats: ['tap']
     };
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -184,7 +177,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
   it('should produce consistent JUnit output', async function () {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.junit]
+      resultFormats: ['junit']
     };
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
@@ -211,7 +204,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.markdown]
+      resultFormats: ['markdown']
     };
 
     await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
@@ -238,7 +231,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.text]
+      resultFormats: ['text']
     };
 
     await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
@@ -329,13 +322,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [
-        ResultFormat.json,
-        ResultFormat.tap,
-        ResultFormat.junit,
-        ResultFormat.markdown,
-        ResultFormat.text
-      ],
+      resultFormats: ['json', 'tap', 'junit', 'markdown', 'text'],
       fileInfos: [
         {
           filename: 'comprehensive-test.txt',

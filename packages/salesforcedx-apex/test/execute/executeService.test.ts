@@ -15,6 +15,15 @@ import { nls } from '../../src/i18n';
 import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';
 import * as os from 'node:os';
 
+type ExecuteServiceInternals = {
+  connectionRequest: (requestData: unknown) => Promise<SoapResponse>;
+  getUserInput: () => Promise<string>;
+};
+
+const executeServicePrototype = ExecuteService.prototype as unknown as ExecuteServiceInternals;
+const getUserInput = (service: ExecuteService): Promise<string> =>
+  (service as unknown as ExecuteServiceInternals).getUserInput();
+
 describe('Apex Execute Tests', () => {
   const $$ = new TestContext();
 
@@ -59,7 +68,7 @@ describe('Apex Execute Tests', () => {
       success: true,
       logs: log
     };
-    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
+    $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
@@ -90,7 +99,7 @@ describe('Apex Execute Tests', () => {
       success: true,
       logs: undefined
     };
-    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
+    $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
@@ -133,7 +142,7 @@ describe('Apex Execute Tests', () => {
         }
       ]
     };
-    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
+    $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest').resolves(soapResponse);
 
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
@@ -175,7 +184,7 @@ describe('Apex Execute Tests', () => {
         }
       ]
     };
-    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
+    $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest').resolves(soapResponse);
 
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
@@ -210,7 +219,7 @@ describe('Apex Execute Tests', () => {
       logs: log
     };
 
-    const connRequestStub = $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest');
+    const connRequestStub = $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest');
     const error = new Error('INVALID_SESSION_ID');
     error.name = 'ERROR_HTTP_500';
     connRequestStub.onFirstCall().throws(error);
@@ -261,7 +270,7 @@ describe('Apex Execute Tests', () => {
       success: true,
       logs: log
     };
-    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
+    $$.SANDBOX.stub(executeServicePrototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexCode: bufferInput
     });
@@ -289,7 +298,7 @@ describe('Apex Execute Tests', () => {
 
     const executeService = new ExecuteService(mockConnection);
     try {
-      await executeService.getUserInput();
+      await getUserInput(executeService);
     } catch (e) {
       expect((e as Error).message).toEqual(nls.localize('unexpectedExecAnonInputError', errorText));
     }
@@ -306,7 +315,7 @@ describe('Apex Execute Tests', () => {
       .returns({ on });
 
     const executeService = new ExecuteService(mockConnection);
-    const text = await executeService.getUserInput();
+    const text = await getUserInput(executeService);
     expect(text).toBe(`${inputText}${os.EOL}`);
   });
 
@@ -320,7 +329,7 @@ describe('Apex Execute Tests', () => {
 
     const executeService = new ExecuteService(mockConnection);
     try {
-      await executeService.getUserInput();
+      await getUserInput(executeService);
     } catch (e) {
       expect((e as Error).message).toEqual(nls.localize('execAnonInputTimeout'));
     }

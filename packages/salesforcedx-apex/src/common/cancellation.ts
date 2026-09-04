@@ -42,12 +42,13 @@ class Token implements CancellationToken {
 }
 
 export class CancellationTokenSource {
-  token: Token = new Token();
+  private readonly internalToken = new Token();
+  readonly token: CancellationToken = this.internalToken;
   async asyncCancel(): Promise<void> {
-    this.token.isCancellationRequested = true;
-    for (const callback of this.token.callbacks) {
+    this.internalToken.isCancellationRequested = true;
+    for (const callback of this.internalToken.callbacks) {
       await callback();
     }
-    this.token.callbacks = [];
+    this.internalToken.callbacks = [];
   }
 }

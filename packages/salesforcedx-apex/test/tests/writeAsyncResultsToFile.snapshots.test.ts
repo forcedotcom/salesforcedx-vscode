@@ -10,7 +10,8 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
+import { TestResult } from '../../src';
+import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {
   let tempDir: string;
@@ -54,7 +55,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncSnapshotMethod1',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
@@ -73,7 +74,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         message: 'Async test failed with complex error details',
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncSnapshotMethod2',
-        outcome: ApexTestResultOutcome.Fail,
+        outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
         apexClass: {
           id: '01p000000000002AAA',
@@ -92,7 +93,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncSnapshotMethod3',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000003AAA',
@@ -111,7 +112,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncSnapshotMethod4',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000004AAA',
@@ -156,7 +157,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
           message: null as string | null,
           asyncApexJobId: '707000000000001AAA',
           methodName: 'testWithNullValues',
-          outcome: ApexTestResultOutcome.Pass,
+          outcome: 'Pass',
           apexLogId: null as string | null,
           apexClass: {
             id: '01p000000000001AAA',

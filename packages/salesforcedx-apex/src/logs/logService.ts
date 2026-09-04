@@ -21,7 +21,7 @@ type StreamingLogMessage = {
 };
 
 export class LogService {
-  public readonly connection: Connection;
+  private readonly connection: Connection;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
@@ -30,7 +30,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
+  private async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
     if (!(typeof options.logId === 'string' || typeof options.numberOfLogs === 'number')) {
       throw new Error(nls.localize('missingInfoLogError'));
     }
@@ -65,7 +65,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async getLogById(logId: string): Promise<LogResult> {
+  private async getLogById(logId: string): Promise<LogResult> {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
     const response = await this.toolingRequest(url);
@@ -107,7 +107,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async createStreamingClient(org: Org): Promise<StreamingClient> {
+  private async createStreamingClient(org: Org): Promise<StreamingClient> {
     const options = new StreamingClient.DefaultOptions(org, STREAMING_LOG_TOPIC, this.streamingCallback.bind(this));
     options.setSubscribeTimeout(Duration.minutes(LOG_TIMER_LENGTH_MINUTES));
 
@@ -115,7 +115,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async logCallback(message: StreamingLogMessage): Promise<void> {
+  private async logCallback(message: StreamingLogMessage): Promise<void> {
     if (message.sobject?.Id) {
       const log = await this.getLogById(message.sobject.Id);
       if (log && this.logTailer) {
@@ -144,7 +144,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async toolingRequest(url: string): Promise<AnyJson> {
+  private async toolingRequest(url: string): Promise<AnyJson> {
     const log = (await this.connection.tooling.request(url)) as AnyJson;
     return log;
   }

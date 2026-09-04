@@ -7,6 +7,20 @@
 import { TapReporter } from '../../src';
 import { testResults } from './testResults';
 
+type TapResult = {
+  description: string;
+  diagnostics: string[];
+  outcome: string;
+  testNumber: number;
+};
+
+type TapReporterInternals = {
+  buildTapResults: (testResult: Parameters<TapReporter['format']>[0]) => TapResult[];
+};
+
+const buildTapResults = (reporter: TapReporter): TapResult[] =>
+  (reporter as unknown as TapReporterInternals).buildTapResults(testResults);
+
 describe('TAP Reporter Tests', () => {
   let reporter: TapReporter;
   const failures = new Set([1, 5, 8, 12]);
@@ -34,13 +48,13 @@ describe('TAP Reporter Tests', () => {
   });
 
   it('should report the correct number of test points', async () => {
-    const result = reporter.buildTapResults(testResults);
+    const result = buildTapResults(reporter);
     expect(result).not.toHaveLength(0);
     expect(result).toHaveLength(16);
   });
 
   it('should report test outcome', () => {
-    const result = reporter.buildTapResults(testResults);
+    const result = buildTapResults(reporter);
     result.forEach((r, i) => {
       expect(r.testNumber).toBe(i + 1);
       if (failures.has(i)) {
@@ -54,7 +68,7 @@ describe('TAP Reporter Tests', () => {
   });
 
   it('should report test diagnostics', () => {
-    const result = reporter.buildTapResults(testResults);
+    const result = buildTapResults(reporter);
     expect(result[1].diagnostics).toEqual(['Unknown error']);
     expect(result[5].diagnostics).toEqual([
       'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',

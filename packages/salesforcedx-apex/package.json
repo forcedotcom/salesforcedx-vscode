@@ -11,16 +11,11 @@
     ".": {
       "types": "./out/src/index.d.ts",
       "default": "./out/src/index.js"
-    },
-    "./lib/src/tests/types.js": {
-      "types": "./out/src/tests/types.d.ts",
-      "default": "./out/src/tests/types.js"
     }
   },
   "dependencies": {
     "@salesforce/core": "^9.1.9",
     "@salesforce/kit": "^4.0.0",
-    "@salesforce/ts-types": "^3.0.0",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -30,10 +25,13 @@
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
+    "@salesforce/ts-types": "^3.0.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
     "@types/sinon": "^17.0.3",
+    "effect": "^3.21.2",
+    "prettier": "3.8.3",
     "sinon": "^17.0.1"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
@@ -48,6 +46,8 @@
     "out/src"
   ],
   "scripts": {
+    "schema:check": "wireit",
+    "schema:update": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -57,11 +57,36 @@
   },
   "versionedIndependently": true,
   "wireit": {
+    "schema:update": {
+      "command": "ts-node scripts/generatePublicApiSchema.ts",
+      "files": [
+        "scripts/generatePublicApiSchema.ts",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "schemas/public-api.schema.json"
+      ]
+    },
+    "schema:check": {
+      "command": "ts-node scripts/generatePublicApiSchema.ts --check",
+      "files": [
+        "scripts/generatePublicApiSchema.ts",
+        "schemas/public-api.schema.json",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ]
+    },
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -99,12 +124,14 @@
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
+        "schema:check",
         "../eslint-local-rules:compile",
         "check:circular-deps",
         "compile"
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.ts",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

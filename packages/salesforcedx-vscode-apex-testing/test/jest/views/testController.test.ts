@@ -185,13 +185,6 @@ const mockTestServiceMethods = {
 
 jest.mock('@salesforce/apex-node', () => ({
   TestService: jest.fn().mockImplementation(() => mockTestServiceMethods),
-  TestLevel: {
-    RunSpecifiedTests: 'RunSpecifiedTests',
-    RunAllTestsInOrg: 'RunAllTestsInOrg'
-  },
-  ResultFormat: {
-    json: 'json'
-  },
   HumanReporter: jest.fn().mockImplementation(() => ({
     format: jest.fn().mockReturnValue('')
   }))
