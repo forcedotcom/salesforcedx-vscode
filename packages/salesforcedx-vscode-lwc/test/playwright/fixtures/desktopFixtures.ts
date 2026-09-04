@@ -42,6 +42,6 @@ export const desktopJestTest = createDesktopTest({
       await seedLwcJestWorkspace(dir);
       await use(dir);
     },
-    { timeout: 7 * 60 * 1000 }
+    { scope: 'test', timeout: 7 * 60 * 1000 }
   ]
 });
