@@ -87,7 +87,7 @@ export const seedWorkspace = (handle: ContainerHandle, options: SeedOptions = {}
   if (mountPaths.length > 0 && !mountPaths.includes(fixturePath)) {
     throw new Error(
       `seedWorkspace: fixturePath "${fixturePath}" is not a container mount (mounted: ${mountPaths.join(', ')}). ` +
-        'Pass the same containerPath you gave run()\'s mounts, or omit fixturePath to use the default.'
+        "Pass the same containerPath you gave run()'s mounts, or omit fixturePath to use the default."
     );
   }
 

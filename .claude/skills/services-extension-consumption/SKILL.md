@@ -127,6 +127,36 @@ Commands auto:
 - Trace with observability spans
 - Handle Cancellation
 
+### Activation ordering
+
+`activate()` awaits `getRuntime().runPromise(activateEffect(context))`; it does not detach the main activation Effect. Only work explicitly started with `Effect.fork*` continues after activation completes.
+
+Register all manifest-contributed UI before awaiting work that can be slow or unresolved:
+
+1. Register tree/webview providers and put any returned `Disposable` in `context.subscriptions` when it is not scope-owned.
+2. Restore the extension's persisted UI state and set its context keys.
+3. Register every contributed command.
+4. Set an extension-owned readiness context key only after steps 1-3 succeed, and use it to gate title/menu commands that would otherwise be visible.
+5. Only then await connection resolution, target-org readiness, catalog hydration, or network work. Use `Effect.forkIn` for long-lived watchers that do not need to block activation.
+
+`when` clauses can expose a contributed command before its handler has registered. A context key owned by another extension, including `sf:has_target_org`, is a visibility hint, not proof that this extension has initialized. Do not make a contributed handler's registration depend on it. Keep target-org and authorization checks in the command implementation or shared service layer.
+
+```typescript
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const provider = new MyTreeProvider();
+  context.subscriptions.push(vscode.window.registerTreeDataProvider(VIEW_ID, provider));
+
+  yield* setInitialContext();
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* registerCommand('sf.my.command', () => myCommand(provider));
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:myExtension.ready', true));
+
+  // Command registration must not wait for org-backed initialization.
+  yield* api.services.ConnectionService.getConnection();
+});
+```
+
 ### Success handling
 
 `Effect.fn` accepts middleware args after the generator. Put success-side middleware **before** `catchTag`/`catchAll` — otherwise caught errors become successes.
