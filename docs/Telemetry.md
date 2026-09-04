@@ -87,7 +87,7 @@ properties must to include (nothing else will got to PDP, but you might want the
 
 ### new services extension
 
-If using the New services extension, use `registerCommandWithLayer` from the services API.
+If using the New services extension, use `registerCommandWithRuntime` from the services API.
 
 Commands registered this way get automatic spans, which go to all the configured telemetry destinations (o11y, appInsights, local docker, etc). See [services-extension-consumption skill](../.claude/skills/services-extension-consumption/SKILL.md)
 

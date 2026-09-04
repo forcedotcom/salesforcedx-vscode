@@ -7,9 +7,11 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';
 
@@ -20,7 +22,8 @@ const mockUserCancellationError = UserCancellationError;
 
 const createMockServicesApi = () => ({
   services: {
-    UserCancellationError: mockUserCancellationError
+    UserCancellationError: mockUserCancellationError,
+    NotificationModeService
   }
 });
 
@@ -29,14 +32,27 @@ const createMockExtensionProvider = () =>
     getServicesApi: Effect.succeed(createMockServicesApi())
   }) as unknown as ExtensionProviderService;
 
-const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(Effect.provideService(ExtensionProviderService, createMockExtensionProvider()));
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void
+} as unknown as NotificationModeService;
 
-const runWithServices = <A>(effect: Effect.Effect<A, unknown, ExtensionProviderService>) =>
+const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
+  e.pipe(
+    Effect.provide(
+      Layer.mergeAll(
+        Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
+        Layer.succeed(NotificationModeService, notificationMode)
+      )
+    )
+  );
+
+const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
   Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
-const runWithServicesExit = <A>(effect: Effect.Effect<A, unknown, ExtensionProviderService>) =>
-  Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
+const runWithServicesExit = <A>(
+  effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>
+) => Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
 /** Make withProgress call the task callback immediately, returning a controllable token */
 const setupWithProgress = () => {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import type { DocumentContext } from 'vscode-html-languageservice';
 import {
   BrowserMessageReader,
   BrowserMessageWriter,

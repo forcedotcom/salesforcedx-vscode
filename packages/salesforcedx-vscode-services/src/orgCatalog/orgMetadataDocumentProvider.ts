@@ -162,9 +162,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             Match.exhaustive
           );
           if (changedOrgId === activeOrgId) {
-            yield* Effect.sync(() =>
-              provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider))
-            );
+            yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider)));
           }
         })
       )

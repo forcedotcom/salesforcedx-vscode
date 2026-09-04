@@ -21,11 +21,15 @@ import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpoin
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
 
+const COMMAND: ProgressAndSuccessCommandKey = 'Debug Apex Test Class';
+
 const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   // ProjectService's folders (test results, debug logs) need an open workspace, so there's nothing to do
   // without one
   const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
@@ -74,24 +78,28 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const debugLogsFolder = yield* api.services.ProjectService.getDebugLogsFolder();
   yield* Effect.promise(() => logService.getLogs({ logId, outputDir: debugLogsFolder.fsPath }));
   yield* Effect.promise(() => launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false));
+  yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
   return true;
 });
 
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
-  const success = await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: `Running ${nls.localize('debug_test_exec_name')}`,
-      cancellable: false
-    },
-    () =>
-      getRuntime()
-        .runPromise(debugTest(className, methodName))
-        .catch((error: unknown) => {
-          void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
-        })
+  const progressLocation = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
   );
-  if (success) {
-    void vscode.window.showInformationMessage(nls.localize('debug_test_success'));
+  try {
+    await vscode.window.withProgress(
+      {
+        location: progressLocation,
+        title: `Running ${nls.localize('debug_test_exec_name')}`,
+        cancellable: false
+      },
+      () => getRuntime().runPromise(debugTest(className, methodName))
+    );
+  } catch (error) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
   }
 };

@@ -18,6 +18,7 @@ import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
+import { notificationSlotMatchesPackageJson } from './notificationSlotMatchesPackageJson';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -48,6 +49,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
+    'notification-slot-matches-package-json': notificationSlotMatchesPackageJson,
     'no-self-barrel-import': noSelfBarrelImport,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-successive-annotate-current-span': noSuccessiveAnnotateCurrentSpan,

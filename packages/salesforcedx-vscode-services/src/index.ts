@@ -23,7 +23,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { clearDefaultOrgRef, getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -38,6 +38,7 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { preventOrgChanges } from './core/targetOrgGuard';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
@@ -73,8 +74,9 @@ import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
+import { NotificationModeService } from './vscode/notificationModeService';
 import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
-import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
+import { registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
@@ -128,7 +130,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
-    registerCommandWithLayer: typeof registerCommandWithLayer;
+    preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
@@ -149,6 +151,7 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: PublicSdkLayerFor;
@@ -159,7 +162,6 @@ export type SalesforceVSCodeServicesApi = {
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     ClearDefaultOrgRef: typeof clearDefaultOrgRef;
-    TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
@@ -174,7 +176,6 @@ type PublicSdkLayerFor = (
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
 export type { AliasService } from './core/alias';
-export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
   ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
@@ -295,6 +296,13 @@ export type { FsServiceError } from './vscode/fsService';
 export { ICONS } from './vscode/mediaService';
 export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
+export {
+  NotificationModeService,
+  type ProgressAndSuccessMode,
+  type ProgressOnlyMode,
+  type SuccessOnlyMode,
+  type ToastAction
+} from './vscode/notificationModeService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* () {
@@ -496,8 +504,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        preventOrgChanges,
         ExecuteAnonymousService,
-        registerCommandWithLayer,
         registerCommandWithRuntime,
         EditorService,
         ErrorHandlerService,
@@ -516,6 +524,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataDeployService,
         MetadataRegistryService,
         MetadataRetrieveService,
+        NotificationModeService,
         ProjectService,
         getSdkLayerConfigFromContext,
         SdkLayerFor: publicSdkLayerFor,
@@ -525,7 +534,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         ActiveMetadataOperationRef: getActiveMetadataOperationRef,
         TargetOrgRef: getDefaultOrgRef,
         ClearDefaultOrgRef: clearDefaultOrgRef,
-        TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
         TerminalService,
         TransmogrifierService,
         TraceFlagItemStruct,

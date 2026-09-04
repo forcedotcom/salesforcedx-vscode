@@ -8,22 +8,30 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { activateEffect } from '../../src/index';
 
-const registerCommandWithLayer = jest.fn();
+const registerCommandWithRuntime = jest.fn();
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void
+} as unknown as NotificationModeService;
 
 const extensionProviderLayer = () =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: {
-        registerCommandWithLayer: () => registerCommandWithLayer
-      }
-    })
-  } as unknown as ExtensionProviderService);
+  Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({
+        services: {
+          registerCommandWithRuntime: () => registerCommandWithRuntime,
+          NotificationModeService
+        }
+      })
+    } as unknown as ExtensionProviderService),
+    Layer.succeed(NotificationModeService, notificationMode)
+  );
 
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
-
 const runActivate = () =>
   Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
@@ -35,7 +43,7 @@ const runActivate = () =>
 
 describe('activateEffect', () => {
   beforeEach(() => {
-    registerCommandWithLayer.mockReturnValue(Effect.void);
+    registerCommandWithRuntime.mockReturnValue(Effect.void);
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
     (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
@@ -54,7 +62,7 @@ describe('activateEffect', () => {
   it('registers the Effect-based commands', async () => {
     await runActivate();
 
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
-    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
+    expect(registerCommandWithRuntime).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
   });
 });

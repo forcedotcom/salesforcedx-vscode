@@ -14,7 +14,6 @@ packages/salesforcedx-lightning-lsp-common/src/resources/
 packages/salesforcedx-lwc-language-server/src/resources/
 packages/salesforcedx-lwc-language-server/src/build-time-resources/
 packages/salesforcedx-lwc-language-server/typings/**
-packages/salesforcedx-visualforce-markup-language-server/src/beautify/
 packages/salesforcedx-vscode-core/resources/
 packages/salesforcedx-vscode-core/metadata_types_map_scraped.json
 packages/salesforcedx-vscode-lightning/src/resources/

@@ -39,9 +39,11 @@ jest.mock('../../../src/utils/pathHelpers', () => {
   };
 });
 
-// writeTestResultJsonFile now returns an Effect (default Effect.void); readTestRunIdFile stays a Promise.
+// writeTestResultJsonFile and readTestRunIdFile now both return an Effect (default Effect.void / Effect.succeed(undefined)).
 const mockWriteTestResultJsonFile = jest.fn((..._a: unknown[]) => Effect.void);
-const mockReadTestRunIdFile = jest.fn().mockResolvedValue(undefined);
+const mockReadTestRunIdFile = jest.fn(
+  (..._a: unknown[]) => Effect.succeed(undefined) as Effect.Effect<string | undefined>
+);
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
@@ -63,6 +65,7 @@ import { ApexTestExecutionService, type ExecutionContext } from '../../../src/vi
 import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
 const appendToChannel = jest.fn(() => Effect.void);
+const showSuccessNotification = jest.fn(() => Effect.void);
 const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
@@ -74,6 +77,7 @@ const settingsValues: Record<string, unknown> = {
 const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
+    NotificationModeService: Effect.succeed({ showSuccessNotification }),
     FsService: { readFile: (uri: URI) => readFile(uri) },
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
@@ -241,7 +245,7 @@ describe('ApexTestExecutionService', () => {
       setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx();
       // executeTests writes the Ref; a subsequent onResultFileCreate for the same file must skip re-apply.
-      mockReadTestRunIdFile.mockResolvedValue('RID');
+      mockReadTestRunIdFile.mockReturnValue(Effect.succeed('RID'));
       await runEff(
         Effect.gen(function* () {
           yield* ApexTestExecutionService.executeTests({
@@ -478,7 +482,7 @@ describe('ApexTestExecutionService', () => {
   describe('onResultFileCreate', () => {
     it('applies results for the expected file and dedupes a repeat for the same URI', async () => {
       readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 1 } })));
-      mockReadTestRunIdFile.mockResolvedValue(undefined);
+      mockReadTestRunIdFile.mockReturnValue(Effect.succeed(undefined));
       const ctx = makeCtx();
       const dir = URI.file('/tmp');
       const resultUri = URI.file('/tmp/test-result.json');

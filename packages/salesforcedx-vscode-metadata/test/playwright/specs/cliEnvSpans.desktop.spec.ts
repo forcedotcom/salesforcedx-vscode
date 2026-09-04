@@ -41,17 +41,34 @@ import { desktopTest as test } from '../fixtures';
 // every key an `sf ` exec should carry once telemetry is off (the fixture sets telemetry.telemetryLevel: 'off')
 const GATHERED_ENV_KEYS = ['SF_LOG_LEVEL', 'SF_DISABLE_TELEMETRY', 'SF_JSON_TO_STDOUT', 'FORCE_COLOR', 'SFDX_TOOL'];
 
-/** simpleExec spans for one command, restricted to this window by start time (startTimeUnixNano is epoch
- * nanos). The spans dir is shared with earlier runs AND with parallel workers, so assert "some in-window
- * row satisfies X" — never "the newest matching row", which another Electron can win. */
-const simpleExecRowsSince = (baselineNanos: bigint, command: string) => async (): Promise<SpanRow[]> =>
-  (await readAllSpanRows()).filter(
+/** simpleExec children of an in-window gatherEnvironment span. The command attribute is deliberately absent,
+ * so use the parent operation for identity. The spans dir is shared with earlier runs and parallel workers;
+ * trace + span IDs keep unrelated simpleExec spans out without inspecting command input. */
+const simpleExecRowsSince = (baselineNanos: bigint) => async (): Promise<SpanRow[]> => {
+  const rows = await readAllSpanRows();
+  const parentIds = new Set(
+    rows
+      .filter(
+        row =>
+          row.kind === 'span' &&
+          row.name === 'gatherEnvironment' &&
+          isString(row.traceId) &&
+          isString(row.spanId) &&
+          BigInt(row.startTimeUnixNano ?? '0') > baselineNanos
+      )
+      .map(row => `${row.traceId}:${row.spanId}`)
+  );
+
+  return rows.filter(
     row =>
       row.kind === 'span' &&
       row.name === 'TerminalService.simpleExec' &&
-      row.attributes?.command === command &&
+      isString(row.traceId) &&
+      isString(row.parentSpanId) &&
+      parentIds.has(`${row.traceId}:${row.parentSpanId}`) &&
       BigInt(row.startTimeUnixNano ?? '0') > baselineNanos
   );
+};
 
 /** effect's OTel tracer runs non-primitive attribute values through Inspectable.toStringUnknown
  * (JSON.stringify(value, null, 2)), so the annotated array reaches the span file as JSON text
@@ -86,23 +103,23 @@ const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
   });
 
   const firstRunSfRows = await test.step('the sf child gets the gathered env; the non-sf child gets none', async () => {
-    const sfRows = await waitForSpanRows(
-      simpleExecRowsSince(firstRun, 'sf --version'),
-      rows => rows.some(row => GATHERED_ENV_KEYS.every(key => envKeysOf(row).includes(key))),
-      `an sf --version simpleExec span whose envKeys include ${GATHERED_ENV_KEYS.join(', ')}`
+    const rows = await waitForSpanRows(
+      simpleExecRowsSince(firstRun),
+      candidates =>
+        candidates.some(row => GATHERED_ENV_KEYS.every(key => envKeysOf(row).includes(key))) &&
+        candidates.some(row => row.attributes?.envKeys === undefined),
+      `gatherEnvironment simpleExec children with and without ${GATHERED_ENV_KEYS.join(', ')}`
     );
 
-    const javaRows = await waitForSpanRows(
-      simpleExecRowsSince(firstRun, 'java --version'),
-      rows => rows.length > 0,
-      'a java --version simpleExec span'
-    );
-    // non-sf commands get nothing gathered, so the attribute is absent entirely
     expect(
-      javaRows.every(row => row.attributes?.envKeys === undefined),
-      'java --version spans should carry no envKeys'
+      rows.every(row => row.attributes?.command === undefined),
+      'simpleExec spans should not carry the raw command'
     ).toBe(true);
-    return sfRows;
+    expect(
+      rows.some(row => row.attributes?.envKeys === undefined),
+      'one gatherEnvironment child should carry no envKeys'
+    ).toBe(true);
+    return rows.filter(row => GATHERED_ENV_KEYS.every(key => envKeysOf(row).includes(key)));
   });
 
   // The setting legitimately falls back to the ambient NODE_EXTRA_CA_CERTS, and VS Code hands the extension
@@ -113,7 +130,7 @@ const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
   if (!ambientCaCerts) {
     await test.step('NODE_EXTRA_CA_CERTS is absent before the setting is written', async () => {
       // re-read: another window can have added in-window rows since the poll above returned
-      const rows = await simpleExecRowsSince(firstRun, 'sf --version')();
+      const rows = await simpleExecRowsSince(firstRun)();
       expect(
         rows.some(row => envKeysOf(row).includes('NODE_EXTRA_CA_CERTS')),
         'no in-window sf span should carry NODE_EXTRA_CA_CERTS yet'
@@ -139,9 +156,9 @@ const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
       const secondRun = nowNanos();
       await executeCommandWithCommandPalette(page, packageNls.project_info_text);
       await waitForSpanRows(
-        simpleExecRowsSince(secondRun, 'sf --version'),
+        simpleExecRowsSince(secondRun),
         rows => rows.some(row => envKeysOf(row).includes('NODE_EXTRA_CA_CERTS')),
-        'an sf --version simpleExec span whose envKeys include NODE_EXTRA_CA_CERTS'
+        'a gatherEnvironment simpleExec child whose envKeys include NODE_EXTRA_CA_CERTS'
       );
     });
   }

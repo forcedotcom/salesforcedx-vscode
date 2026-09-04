@@ -16,8 +16,11 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { HashableUri, NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, type DiffFilePair } from './diffTypes';
+
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Diff Source Against Org';
 
 export const sourceComponentToPaths = (component: SourceComponent) =>
   [component.content, component.xml, ...component.walkContent()].filter(isString);
@@ -41,13 +44,15 @@ const getCacheDirectory = Effect.fn('getCacheDirectory')(function* () {
 
 const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const cache = yield* getCacheDirectory();
+
   yield* api.services.FsService.safeDelete(cache.uri, { recursive: true });
-  return yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
-    componentSet,
-    cache.uri,
-    cache.orgId
-  );
+
+  return yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cache.uri, {
+    progressLocation: yield* notificationMode.getProgressLocation(COMMAND),
+    expectedOrgId: cache.orgId
+  });
 });
 
 /**

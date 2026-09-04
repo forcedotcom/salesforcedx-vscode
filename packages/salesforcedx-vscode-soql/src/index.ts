@@ -18,8 +18,8 @@ import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
+  disposeSoqlRuntime,
   getSoqlRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
@@ -29,12 +29,12 @@ const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
-  );
+  await getSoqlRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getSoqlRuntime().runPromise(deactivateEffect()).finally(disposeSoqlRuntime);
+};
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -97,7 +97,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet([member]);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
@@ -180,7 +180,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet(members);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
