@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
@@ -21,6 +22,10 @@ const restartFlag = languageClientManager as unknown as { isRestarting: boolean 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
 // Prefixed `mock*` so jest.mock's factory may reference it (jest hoists the factory above imports).
 const mockRecordedSpans: RecordedSpan[] = [];
+const promptService = {
+  considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+    value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
+};
 
 const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   const hit = mockRecordedSpans.find(s => s.name === name);
@@ -175,6 +180,17 @@ describe('Language Client Manager', () => {
         get: jest.fn().mockReturnValue('prompt')
       });
       (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+      (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+        isActive: true,
+        exports: {
+          services: {
+            PromptService: Effect.succeed(promptService),
+            WorkspaceService: {
+              getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
+            }
+          }
+        }
+      });
 
       // Reset the isRestarting flag
       restartFlag.isRestarting = false;
@@ -262,6 +278,7 @@ describe('Language Client Manager', () => {
         isActive: true,
         exports: {
           services: {
+            PromptService: Effect.succeed(promptService),
             WorkspaceService: {
               getWorkspaceInfo: () =>
                 Effect.succeed({
@@ -320,7 +337,12 @@ describe('Language Client Manager', () => {
       });
 
       // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
-      (vscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+      (vscode.extensions.getExtension as jest.Mock)
+        .mockReturnValueOnce({
+          isActive: true,
+          exports: { services: { PromptService: Effect.succeed(promptService) } }
+        })
+        .mockReturnValue(undefined);
 
       // Mock createLanguageClient to resolve immediately
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
