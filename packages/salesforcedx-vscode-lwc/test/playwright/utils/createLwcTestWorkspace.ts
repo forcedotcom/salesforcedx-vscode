@@ -83,7 +83,8 @@ module.exports = { ...jestConfig, modulePathIgnorePatterns: ['<rootDir>/.localde
  * test runner is available in the workspace. Used by run/debug LWC test desktop specs.
  *
  * This installs `@salesforce/sfdx-lwc-jest` directly from the registry and may take 30–90 s on a
- * clean machine — call it at fixture setup time, not inside a test step.
+ * clean machine — call it at fixture setup time, not inside a test step. The desktopJestTest
+ * `workspaceDir` fixture timeout covers this install.
  */
 export const seedLwcJestWorkspace = async (workspaceDir: string): Promise<void> => {
   await Promise.all([
