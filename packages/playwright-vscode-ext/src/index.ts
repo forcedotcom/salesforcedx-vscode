@@ -206,5 +206,20 @@ export { makeManifest, readManifest, writeManifest } from './codeBuilder/manifes
 export type { Manifest, ManifestEntry } from './codeBuilder/manifest';
 export { verifyExtensions, assertVerified, OVERRIDES_DIR, RUNTIME_EXT_DIR } from './codeBuilder/verify';
 export type { VerifyOptions, VerifyResult, VerifyEntryResult } from './codeBuilder/verify';
+export { swap, defaultExtract } from './codeBuilder/swap';
+export type { SwapOptions, ExtractZip } from './codeBuilder/swap';
+export { pull, run, restart, teardown, CONTAINER_PORT } from './codeBuilder/lifecycle';
+export type {
+  ContainerHandle,
+  Mount,
+  RunSpec,
+  ReadinessOptions,
+  ReadinessProbe,
+  LifecycleOptions
+} from './codeBuilder/lifecycle';
+export { resolveOrgBootEnv, bootEnvToDockerArgs } from './codeBuilder/auth';
+export type { BootEnv, ResolveOrgBootEnvOptions } from './codeBuilder/auth';
+export { seedWorkspace, FIXTURE_MOUNT_PATH } from './codeBuilder/seed';
+export type { SeedOptions } from './codeBuilder/seed';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';

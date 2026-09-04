@@ -22,7 +22,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { computeExtensionDigest } from './digest';
-import { defaultRunner, type CommandRunner } from './runner';
+import { assertSafeShellSegment, defaultRunner, type CommandRunner } from './runner';
 
 /** Where the CB image stores extension override sources (swap writes here). */
 export const OVERRIDES_DIR = '/base/extension-overrides';
@@ -61,16 +61,11 @@ export type VerifyResult = {
 /*
  * An extension id is "<publisher>.<name>": publisher and name are npm-style, so only letters,
  * digits, dots, underscores and dashes are legitimate. `id` is interpolated into the `bash -c`
- * glob below, so reject anything outside that charset up front — a stray shell/glob metacharacter
- * (`;`, `$`, backtick, `*`, `?`, `[`, whitespace) would otherwise be interpreted by the shell or
- * silently widen the match. Fail loud rather than build an unsafe command. Also require an
- * alphanumeric (reject dot-only `.`/`..`), matching swap's guard so the two agree on a legal id.
+ * glob below, so validate it with the SAME shared guard swap uses before it builds its own
+ * `bash -c` strings — one definition of "safe shell segment" so the two sides can never diverge.
  */
-const VALID_ID = /^[A-Za-z0-9._-]+$/;
 const assertSafeId = (id: string): void => {
-  if (!VALID_ID.test(id) || !/[A-Za-z0-9]/.test(id)) {
-    throw new Error(`unsafe extension id ${JSON.stringify(id)}: expected only [A-Za-z0-9._-] with an alphanumeric`);
-  }
+  assertSafeShellSegment(id, 'extension id');
 };
 
 /*
