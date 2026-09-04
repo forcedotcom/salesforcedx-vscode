@@ -57,6 +57,18 @@ interface RestartQuickPickItem extends vscode.QuickPickItem {
   type: 'restart' | 'reset';
 }
 
+const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestartOption')(function* (
+  items: RestartQuickPickItem[]
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick(items, {
+      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+    })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+});
+
 export type ToolsEntry = { readonly uri: URI; readonly type: vscode.FileType };
 
 /** Given `.sfdx/tools` entries, the NNN-named subdirectory URIs to delete. Pure; unit-tested directly. */
@@ -154,9 +166,12 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<string | undefined> {
-    const selectedOption = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
-    });
+    const selectedOption = await getRuntime().runPromise(
+      promptForRestartOption(items).pipe(
+        Effect.catchTag('UserCancellationError', () => Effect.void),
+        Effect.provideService(ExtensionProviderService, { getServicesApi })
+      )
+    );
 
     if (selectedOption) {
       await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
