@@ -142,4 +142,19 @@ jobs:
     with:
       vscode_version: ${{ inputs.vscodeVersion }}
 
+  # Code Builder e2e — container suite against the real CB image. ADVISORY (plan §10.4): a red here
+  # is a signal to investigate, not an automatic release stop. Like every leaf, a failure DOES mark
+  # this e2e.yml run failed (GitHub forbids continue-on-error on a reusable-workflow `uses:` job, so
+  # the workflow itself can't suppress it). Advisory-ness therefore lives outside the workflow: the
+  # CB check is NON-REQUIRED for merge/release protection, release automation gates on the build (not
+  # this post-hoc run), and a human confirms a real regression before it delays anything. Threads the
+  # build runId like the other leaves; needs no vscode_version (runs the shipping VSIX in-container).
+  # — W-23898524
+  playwright-code-builder:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    uses: ./.github/workflows/codeBuilderE2E.yml
+    secrets: inherit
+    with:
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
   # LSP_min_vscode_version: removed with lspE2E.yml (see note above) — W-22973351

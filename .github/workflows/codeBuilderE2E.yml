@@ -1,0 +1,154 @@
+name: Code Builder E2E (Playwright)
+
+# Runs the Playwright container specs against the real Code Builder workspace-manager image, with
+# the unreleased monorepo VSIX (built by an upstream Build All run, downloaded by runId — the same
+# bytes about to ship, not a rebuild) swapped in. Linux-only single job: the code-server runtime is
+# identical regardless of host OS, and containers are Linux (plan §10.3).
+#
+# This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.ts, run via
+# `npm run test:container:local`) rather than re-implementing the pull → swap → restart → gate →
+# specs pipeline — the orchestrator is the local twin of this job, so the two cannot drift (plan
+# §9.1 "WF drives ORCH", §15). CI does the ghcr `docker login` (its GITHUB_TOKEN) and dev-hub auth;
+# CB_SKIP_GHCR_LOGIN tells the orchestrator to use that ambient docker auth instead of gh/CR_PAT.
+#
+# Advisory, not blocking (plan §10.4): the e2e.yml leaf that invokes this marks it continue-on-error,
+# so a red here is a signal to investigate, not an automatic release stop. Runs on nightly + release
+# flows (via e2e.yml) and on demand (workflow_dispatch); not per-PR yet (plan §10.1).
+
+on:
+  workflow_dispatch:
+    inputs:
+      runId:
+        description: 'Run ID of the Build All run that produced the VSIX under test.'
+        required: true
+        type: string
+      image_tag:
+        description: 'Code Builder image tag to pull (rolling: latest).'
+        required: false
+        type: string
+        default: 'latest'
+  workflow_call:
+    inputs:
+      runId:
+        required: true
+        type: string
+      image_tag:
+        required: false
+        type: string
+        default: 'latest'
+
+concurrency:
+  group: ci-${{ github.ref }}-codeBuilderE2E
+  # Do NOT cancel in flight: a cancel mid `sf org create scratch` can orphan a half-created org the
+  # cleanup step's alias lookup misses. CB e2e is infrequent (nightly/release/dispatch), so queueing
+  # overlapping runs is cheaper than leaking scratch orgs.
+  cancel-in-progress: false
+
+jobs:
+  code-builder-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Pull the private CB image with this repo's GITHUB_TOKEN — the package's Manage Actions
+      # access grants salesforcedx-vscode read on workspace-manager/codebuilder.
+      packages: read
+      # The orchestrator downloads the VSIX artifact + reads run provenance via `gh run download`/
+      # `gh run view`, which hit the Actions API. An explicit permissions block zeroes every unlisted
+      # scope, so this must be declared or those gh calls 403.
+      actions: read
+    env:
+      CI: '1'
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      CONTAINER_NAME: codebuilder-e2e-local
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # gh (used by the orchestrator for `gh run download` of the VSIX artifact + provenance) reads
+      # this. The job's packages:read + contents:read cover both.
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # We `docker login` below; tell the orchestrator to rely on that ambient auth, not gh/CR_PAT.
+      CB_SKIP_GHCR_LOGIN: '1'
+      RUN_ID: ${{ inputs.runId }}
+      # Rolling tag by default. A trusted dispatch/call input; kept in env (never inlined into a
+      # run: command) to avoid script injection.
+      IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.3'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+          retry_wait_seconds: 30
+
+      - name: Install Playwright chromium
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      # Pull the private CB image with this repo's built-in GITHUB_TOKEN — the package's Manage
+      # Actions access grants salesforcedx-vscode read, so no App/PAT/private key is needed. The
+      # orchestrator sees CB_SKIP_GHCR_LOGIN and reuses this login instead of doing its own.
+      - name: Log in to ghcr.io
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Auth to dev hub
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, create the
+      # scratch org, run + seed + swap + restart + verify gate, then run the container specs and tear
+      # the container down. Same pipeline a developer runs locally.
+      - name: Run Code Builder E2E (orchestrator)
+        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-codebuilder
+          path: packages/salesforcedx-vscode-core/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-codebuilder
+          path: packages/salesforcedx-vscode-core/test-results
+          if-no-files-found: ignore
+
+      # The orchestrator tears the container down itself; this is a belt-and-suspenders cleanup for
+      # the case where it died before its teardown ran.
+      - name: Ensure container removed
+        if: always()
+        continue-on-error: true
+        run: docker rm -f "$CONTAINER_NAME" || true
+
+      # The orchestrator does NOT delete the scratch org (locally it reuses one across runs); a CI
+      # runner is ephemeral, so delete it to avoid leaking active scratch orgs against the dev hub.
+      - name: Cleanup scratch org
+        if: always()
+        continue-on-error: true
+        run: sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
