@@ -5,11 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { createDesktopTest, createTestWorkspace } from '@salesforce/playwright-vscode-ext';
 
 import {
+  installLwcJestWorkspace,
+  linkLwcJestWorkspace,
   seedLwcHeadlessWorkspaceSupplement,
-  seedLwcJestWorkspace,
   seedSnippetsE2eEmptyBundle
 } from '../utils/createLwcTestWorkspace';
 
@@ -34,11 +38,23 @@ export const desktopJestTest = createDesktopTest({
   fixturesDir: __dirname,
   disableOtherExtensions: false,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata']
-}).extend({
-  workspaceDir: async ({}, use) => {
+}).extend<{}, { lwcJestNodeModulesDir: string }>({
+  lwcJestNodeModulesDir: [
+    async ({}, use) => {
+      const installDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lwc-jest-'));
+      await installLwcJestWorkspace(installDir);
+      try {
+        await use(path.join(installDir, 'node_modules'));
+      } finally {
+        await fs.rm(installDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+      }
+    },
+    { scope: 'worker', timeout: 7 * 60 * 1000 }
+  ],
+  workspaceDir: async ({ lwcJestNodeModulesDir }, use) => {
     const dir = await createTestWorkspace(undefined);
     await seedLwcHeadlessWorkspaceSupplement(dir);
-    await seedLwcJestWorkspace(dir);
+    await linkLwcJestWorkspace(dir, lwcJestNodeModulesDir);
     await use(dir);
   }
 });
