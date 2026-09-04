@@ -35,10 +35,13 @@ export const desktopJestTest = createDesktopTest({
   disableOtherExtensions: false,
   additionalExtensionDirs: ['salesforcedx-vscode-metadata']
 }).extend({
-  workspaceDir: async ({}, use) => {
-    const dir = await createTestWorkspace(undefined);
-    await seedLwcHeadlessWorkspaceSupplement(dir);
-    await seedLwcJestWorkspace(dir);
-    await use(dir);
-  }
+  workspaceDir: [
+    async ({}, use) => {
+      const dir = await createTestWorkspace(undefined);
+      await seedLwcHeadlessWorkspaceSupplement(dir);
+      await seedLwcJestWorkspace(dir);
+      await use(dir);
+    },
+    { scope: 'test', timeout: 7 * 60 * 1000 }
+  ]
 });

@@ -6,6 +6,8 @@ const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 const VALUE_OPTIONS = new Set(['-C', '-c', '--config-env', '--exec-path', '--git-dir', '--work-tree', '--namespace']);
 
 export const NO_VERIFY_REASON = 'git with --no-verify is blocked. Run without --no-verify so hooks run.';
+export const TRACKED_BASE_BRANCH_REASON =
+  'Creating a branch from origin/develop or origin/main without --no-track is blocked. Add --no-track to avoid tracking the shared base branch.';
 const DYNAMIC_GIT_REASON =
   'Git commands assembled with shell expansion are blocked because safeguards cannot verify the resulting command. Use literal Git arguments.';
 const ATTACHED_DIRECTORY_REASON =
@@ -120,7 +122,7 @@ const gitCommand = words => {
   if (git < 0) return undefined;
   return values.slice(git + 1).reduce(
     (state, word) => {
-      if (state.subcommand) return state;
+      if (state.subcommand) return { ...state, arguments: [...state.arguments, word] };
       if (state.awaiting) {
         return state.awaiting === '-C'
           ? { ...state, directory: decodeShellWord(word), awaiting: undefined }
@@ -137,7 +139,7 @@ const gitCommand = words => {
       if (word.startsWith('-')) return state;
       return { ...state, subcommand: word };
     },
-    { attachedDirectory: false, directory: undefined, awaiting: undefined, subcommand: undefined }
+    { arguments: [], attachedDirectory: false, directory: undefined, awaiting: undefined, subcommand: undefined }
   );
 };
 
@@ -236,12 +238,25 @@ const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
   return result.reason;
 };
 
+const trackedBaseBranchDenial = ({ command, cwd }) =>
+  inspectCommand(command, cwd, tokens => {
+    const git = gitCommand(tokens);
+    if (!git || git.arguments.includes('--no-track')) return undefined;
+    const namesRemoteBase = git.arguments.some(argument => argument === 'origin/develop' || argument === 'origin/main');
+    const createsBranch =
+      (git.subcommand === 'worktree' && git.arguments[0] === 'add') ||
+      (git.subcommand === 'checkout' && git.arguments.includes('-b'));
+    return namesRemoteBase && createsBranch ? TRACKED_BASE_BRANCH_REASON : undefined;
+  }).reason;
+
 export const commandDenial = (input, policy = 'all') =>
   policy === 'no-verify'
     ? noVerifyDenial(input.command)
     : policy === 'push-dependencies'
       ? missingDependenciesDenial(input)
-      : (noVerifyDenial(input.command) ?? missingDependenciesDenial(input));
+      : policy === 'tracked-base-branch'
+        ? trackedBaseBranchDenial(input)
+        : (noVerifyDenial(input.command) ?? trackedBaseBranchDenial(input) ?? missingDependenciesDenial(input));
 
 const failure = (step, output, limit = 500) => ({
   ok: false,

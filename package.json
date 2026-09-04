@@ -278,6 +278,7 @@
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
+        ".claude/hooks/block-tracked-base-branch.sh",
         ".claude/hooks/verify-on-edit.sh",
         ".claude/hooks/verify-stop.sh",
         ".opencode/plugins/safeguards.ts",
