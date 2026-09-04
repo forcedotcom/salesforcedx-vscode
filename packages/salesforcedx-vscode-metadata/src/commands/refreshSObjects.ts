@@ -21,19 +21,21 @@ export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete
 
 const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
 
-const gatherCategory = () =>
-  Effect.promise(async () => {
-    const options = [
-      nls.localize('sobject_refresh_all'),
-      nls.localize('sobject_refresh_custom'),
-      nls.localize('sobject_refresh_standard')
-    ];
-    const choice = await vscode.window.showQuickPick(options);
-    if (!choice) return undefined;
-    if (choice === options[1]) return 'CUSTOM' as const;
-    if (choice === options[2]) return 'STANDARD' as const;
-    return 'ALL' as const;
-  });
+const gatherCategory = Effect.fn('gatherSObjectCategory')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const options = [
+    nls.localize('sobject_refresh_all'),
+    nls.localize('sobject_refresh_custom'),
+    nls.localize('sobject_refresh_standard')
+  ];
+  const choice = yield* Effect.promise(() => vscode.window.showQuickPick(options)).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
+  );
+  if (choice === options[1]) return 'CUSTOM' as const;
+  if (choice === options[2]) return 'STANDARD' as const;
+  return 'ALL' as const;
+});
 
 /** Emit the cross-extension completion notification for the given exit code, if core is present. */
 const emitCompletion = (exitCode: number) =>
@@ -98,7 +100,6 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
 const runRefresh = Effect.fn('runRefresh')(function* (source?: SObjectRefreshSource) {
   if (!source || source === 'manual') {
     const picked = yield* gatherCategory();
-    if (!picked) return;
     yield* executeRefresh(picked, source);
   } else {
     yield* executeRefresh('ALL', source);
