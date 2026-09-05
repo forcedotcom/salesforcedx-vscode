@@ -7,9 +7,9 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import type {
-  ApexClassOASEligibleResponses,
   ApexClassOASGatherContextResponse,
   ApexOASEligiblePayload,
   ApexVSCodeApi
@@ -25,10 +25,12 @@ const APEX_EXTENSION_ID = 'salesforce.salesforcedx-vscode-apex';
 const LSP_READY_SCHEDULE = Schedule.fixed(Duration.millis(500)).pipe(Schedule.intersect(Schedule.recurs(240)));
 
 const getApexExtension = Effect.fn('ApexOas.Lsp.getApexExtension')(function* () {
-  const apexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(APEX_EXTENSION_ID);
-  if (!apexExtension) {
-    return yield* new ApexExtensionUnavailable({ message: 'Apex extension is not installed' });
-  }
+  const apexExtension = yield* Effect.sync(() => vscode.extensions.getExtension<ApexVSCodeApi>(APEX_EXTENSION_ID)).pipe(
+    Effect.filterOrFail(
+      isNotUndefined,
+      () => new ApexExtensionUnavailable({ message: 'Apex extension is not installed' })
+    )
+  );
   if (!apexExtension.isActive) {
     yield* Effect.tryPromise({
       try: () => apexExtension.activate(),
@@ -42,17 +44,23 @@ const getApexExtension = Effect.fn('ApexOas.Lsp.getApexExtension')(function* () 
 export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
   manager: ApexVSCodeApi['languageClientManager']
 ) {
-  const client = manager.getClientInstance();
-  const status = manager.getStatus();
-  if (status.failedToInitialize()) {
-    return yield* new ApexLspRequestFailed({
-      message: `Apex Language Server failed to initialize: ${status.getStatusMessage()}`
-    });
-  }
-  if (!client || !status.isReady()) {
-    return yield* new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') });
-  }
-  return client;
+  const apexClient = manager.getClientInstance();
+  const languageClientStatus = manager.getStatus();
+  yield* Effect.succeed(languageClientStatus).pipe(
+    Effect.filterOrFail(
+      status => !status.failedToInitialize(),
+      status =>
+        new ApexLspRequestFailed({
+          message: `Apex Language Server failed to initialize: ${status.getStatusMessage()}`
+        })
+    )
+  );
+  return yield* Effect.succeed(apexClient).pipe(
+    Effect.filterOrFail(
+      (client): client is NonNullable<typeof apexClient> => isNotUndefined(client) && languageClientStatus.isReady(),
+      () => new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') })
+    )
+  );
 });
 
 const getClient = Effect.fn('ApexOas.Lsp.getClient')(function* () {
@@ -73,10 +81,9 @@ export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('
         catch: cause =>
           new ApexLspRequestFailed({ message: `apexoas/isEligible request failed: ${String(cause)}`, cause })
       }).pipe(
-        Effect.flatMap(response =>
-          response
-            ? Effect.succeed<ApexClassOASEligibleResponses>(response)
-            : new ApexLspRequestFailed({ message: 'apexoas/isEligible returned no response' })
+        Effect.filterOrFail(
+          isNotUndefined,
+          () => new ApexLspRequestFailed({ message: 'apexoas/isEligible returned no response' })
         )
       );
     });
