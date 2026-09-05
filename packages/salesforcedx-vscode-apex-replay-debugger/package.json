@@ -230,9 +230,8 @@
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
+    "onDebugResolve:apex-replay",
     "onCommand:sf.launch.replay.debugger.logfile",
-    "onCommand:sf.launch.replay.debugger.logfile.path",
     "onCommand:sf.anon.apex.debug.delegate",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
@@ -370,9 +369,6 @@
         "languages": [
           "apex"
         ],
-        "variables": {
-          "AskForLogFileName": "extension.replay-debugger.getLogFileName"
-        },
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",

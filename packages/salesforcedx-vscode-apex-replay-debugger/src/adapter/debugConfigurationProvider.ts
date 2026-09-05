@@ -9,15 +9,70 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { isString, isUndefined } from 'effect/Predicate';
+import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
+import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
 import { getRuntime } from '../services/runtime';
 
+const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
+
+class SelectedLogFileReadError extends Schema.TaggedError<SelectedLogFileReadError>()('SelectedLogFileReadError', {
+  message: Schema.String,
+  filePath: Schema.String,
+  cause: Schema.String
+}) {}
+
+type SelectedLogFile = {
+  readonly contents: string;
+  readonly path: string;
+  readonly name: string;
+};
+
+const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
+  config: vscode.DebugConfiguration,
+  extensionContext: vscode.ExtensionContext
+) {
+  if ((config.logFile ?? LOG_FILE_PROMPT) !== LOG_FILE_PROMPT) return undefined;
+
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const defaultUri = yield* getDialogStartingPath(extensionContext);
+  const fileUris = yield* Effect.promise(() =>
+    vscode.window.showOpenDialog({
+      canSelectFiles: true,
+      canSelectFolders: false,
+      canSelectMany: false,
+      defaultUri
+    })
+  );
+  if (fileUris?.length !== 1) return yield* new api.services.UserCancellationError();
+
+  const filePath = fileUris[0].fsPath;
+  yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));
+  const contents = yield* api.services.FsService.readFile(filePath).pipe(
+    Effect.mapError(
+      cause =>
+        new SelectedLogFileReadError({
+          message: `Failed to read selected log file: ${errorToString(cause)}`,
+          filePath,
+          cause: errorToString(cause)
+        })
+    ),
+    Effect.tapError(error =>
+      Effect.logError('Failed to read selected log file', { filePath: error.filePath, cause: error.cause })
+    )
+  );
+  return { contents, path: filePath, name: getBasename(filePath) } satisfies SelectedLogFile;
+});
+
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
+  constructor(private readonly extensionContext: vscode.ExtensionContext) {}
+
   private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
     'salesforce.salesforcedx-vscode-apex'
   );
@@ -31,7 +86,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
-      logFile: logFile ?? '${command:AskForLogFileName}',
+      logFile: logFile ?? LOG_FILE_PROMPT,
       stopOnEntry,
       trace: true,
       ...(anonApexFilePath ? { anonApexFilePath } : {}),
@@ -51,16 +106,26 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config: vscode.DebugConfiguration,
     _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(config).catch(async err =>
-      vscode.window.showErrorMessage(errorToString(err), { modal: true }).then(() => undefined)
-    );
+    return getRuntime()
+      .runPromise(
+        selectLogFile(config, this.extensionContext).pipe(
+          Effect.flatMap(selectedLogFile => Effect.promise(() => this.asyncDebugConfig(config, selectedLogFile))),
+          Effect.map(Option.fromNullable),
+          Effect.catchTag('UserCancellationError', () => Effect.succeed(Option.none<vscode.DebugConfiguration>())),
+          Effect.map(Option.getOrUndefined)
+        )
+      )
+      .catch(async err => vscode.window.showErrorMessage(errorToString(err), { modal: true }).then(() => undefined));
   }
 
-  private async asyncDebugConfig(config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration | undefined> {
+  private async asyncDebugConfig(
+    config: vscode.DebugConfiguration,
+    selectedLogFile: SelectedLogFile | undefined
+  ): Promise<vscode.DebugConfiguration | undefined> {
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    config.logFile = config.logFile ?? '${command:AskForLogFileName}';
+    config.logFile = config.logFile ?? LOG_FILE_PROMPT;
     if (isUndefined(config.stopOnEntry)) {
       config.stopOnEntry = true;
     }
@@ -77,7 +142,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     // Handle log file reading for web compatibility
-    if (config.logFile && config.logFile !== '${command:AskForLogFileName}') {
+    if (config.logFile && config.logFile !== LOG_FILE_PROMPT) {
       // Direct file path provided
       try {
         config.logFileContents = await getRuntime().runPromise(readLogFile(config.logFile));
@@ -91,23 +156,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         // paste Effect's multi-line pretty-printed cause (with stack) into the modal dialog.
         throw new Error(`Failed to read log file: ${errorToString(error)}`);
       }
-    } else if (config.logFile === '${command:AskForLogFileName}') {
-      // User needs to select a file
-      try {
-        const logFilePath = await vscode.commands.executeCommand('extension.replay-debugger.getLogFileName');
-        if (logFilePath && isString(logFilePath)) {
-          config.logFileContents = await getRuntime().runPromise(readLogFile(logFilePath));
-          config.logFilePath = logFilePath;
-          config.logFileName = getBasename(logFilePath);
-          // Remove logFile since we're now using logFileContents
-          delete config.logFile;
-        } else {
-          throw new Error('No log file selected');
-        }
-      } catch (error) {
-        console.error('Failed to read selected log file:', error);
-        throw new Error(`Failed to read selected log file: ${errorToString(error)}`);
-      }
+    } else if (selectedLogFile) {
+      config.logFileContents = selectedLogFile.contents;
+      config.logFilePath = selectedLogFile.path;
+      config.logFileName = selectedLogFile.name;
+      // Remove logFile since we're now using logFileContents
+      delete config.logFile;
     }
 
     if (typeof config.logFileContents !== 'string') {
