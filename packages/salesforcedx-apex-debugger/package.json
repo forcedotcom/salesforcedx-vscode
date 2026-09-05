@@ -20,6 +20,7 @@
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
     "cross-spawn": "7.0.6",
+    "effect": "^3.21.2",
     "faye": "1.4.1",
     "request-light": "^0.8.0",
     "rxjs": "^7.8.2",

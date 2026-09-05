@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import { isError, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
@@ -475,7 +476,7 @@ export abstract class BaseWorkspaceContext {
               ...(isRecord(existingCompilerOptions) ? existingCompilerOptions : {}),
               ...(isRecord(templateCompilerOptions) ? templateCompilerOptions : {})
             },
-            include: [...new Set([...userInclude, ...jsconfigSfdx.include, typingsInclude])]
+            include: Arr.dedupe([...userInclude, ...jsconfigSfdx.include, typingsInclude])
           };
 
           // Only write if content has changed semantically

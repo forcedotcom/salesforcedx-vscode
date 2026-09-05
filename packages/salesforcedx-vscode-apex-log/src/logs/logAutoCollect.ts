@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -60,14 +61,12 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
       )
     ].map(([userId, recs]) => [userId, recs.map(r => toDate(r.startDate!)).reduce((a, b) => (a < b ? a : b))])
   );
-  const userIds = [
-    ...new Set(
-      activeItems
-        .map(r => r.tracedEntityId)
-        .filter(isString)
-        .filter(id => id.startsWith('005'))
-    )
-  ];
+  const userIds = Arr.dedupe(
+    activeItems
+      .map(r => r.tracedEntityId)
+      .filter(isString)
+      .filter(id => id.startsWith('005'))
+  );
   const minStart =
     startDateByUser.size > 0 ? [...startDateByUser.values()].reduce((a, b) => (a < b ? a : b)) : undefined;
 
