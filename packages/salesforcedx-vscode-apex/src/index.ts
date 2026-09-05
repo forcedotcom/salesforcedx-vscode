@@ -77,20 +77,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   yield* Effect.forkIn(checkAndResolveOrphanedLanguageServers(), scope).pipe(Effect.asVoid);
 });
 
-const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
-  // Customer-facing commands (log.get and anon.execute.* moved to salesforcedx-vscode-apex-log)
-  const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', () =>
-    vscode.commands.executeCommand('sf.anon.apex.execute.document')
-  );
-  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
-    'sf.apex.languageServer.restart',
-    async (source?: 'commandPalette' | 'statusBar') => {
-      await restartLanguageServerAndClient(context, source ?? 'commandPalette');
-    }
-  );
-
-  return vscode.Disposable.from(anonApexRunDelegateCmd, restartApexLanguageServerCmd);
-};
+const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =>
+  vscode.commands.registerCommand('sf.apex.languageServer.restart', async (source?: 'commandPalette' | 'statusBar') => {
+    await restartLanguageServerAndClient(context, source ?? 'commandPalette');
+  });
 
 // root: true → exports as a top-level span (not an orphaned child of any ambient span)
 const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {

@@ -458,7 +458,7 @@
         },
         {
           "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
+          "when": "sf:project_opened && editorLangId == 'apex' && !editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.apex.log.get",
@@ -504,7 +504,7 @@
         },
         {
           "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && !editorHasSelection && sf:has_target_org"
+          "when": "sf:project_opened && editorLangId == 'apex' && !editorHasSelection && sf:has_target_org"
         }
       ],
       "explorer/context": [

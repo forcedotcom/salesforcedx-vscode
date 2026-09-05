@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 
 import {
+  clickCodeLens,
   closeEditor,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
@@ -24,6 +25,7 @@ import {
   setupNetworkMonitoring,
   TAB,
   validateNoCriticalErrors,
+  verifyCommandDoesNotExist,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForQuickInputFirstOption
@@ -62,6 +64,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await expect(page.locator(TAB).filter({ hasText: /\.apex$/ })).toBeVisible({ timeout: 5000 });
     await saveScreenshot(page, 'create-script.apex-opened.png');
+    await verifyCommandDoesNotExist(page, packageNls['apexLog.command.executeDocument']);
   });
 
   await test.step('type simple Apex and execute document', async () => {
@@ -71,7 +74,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /executed successfully/i })
@@ -142,7 +145,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("Integer x = 'bad';");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const errorNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /Line \d+.*Column \d+/ })
@@ -158,7 +161,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('fixed');");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /executed successfully/i })
