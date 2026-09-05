@@ -8,6 +8,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  clickCodeLens,
   createAndOpenApexScript,
   createApexClass,
   ensureOutputPanelOpen,
@@ -162,7 +163,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       name: 'TestScript'
     });
 
-    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
 
     const docSuccessNotification = page
       .locator(NOTIFICATION_LIST_ITEM)

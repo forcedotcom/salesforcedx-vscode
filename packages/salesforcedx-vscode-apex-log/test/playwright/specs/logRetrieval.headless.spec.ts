@@ -9,6 +9,7 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
+  clickCodeLens,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -83,7 +84,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('logtest');");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /executed successfully/i })

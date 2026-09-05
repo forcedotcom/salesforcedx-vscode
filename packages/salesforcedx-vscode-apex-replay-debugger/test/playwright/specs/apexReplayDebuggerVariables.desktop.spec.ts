@@ -8,6 +8,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  clickCodeLens,
   createAndOpenApexScript,
   createApexClass,
   EDITOR_WITH_URI,
@@ -19,7 +20,6 @@ import {
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
-  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -88,8 +88,7 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
       content: 'NestedRelExample.build();'
     });
 
-    await page.keyboard.press('F1');
-    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeDocument'] as string);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
