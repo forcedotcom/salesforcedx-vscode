@@ -114,7 +114,7 @@
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "ejs": "^3.1.10",
-    "minimatch": "^9.0.5",
+    "minimatch": "^10.2.6",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
