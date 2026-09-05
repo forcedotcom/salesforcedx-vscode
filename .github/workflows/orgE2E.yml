@@ -107,53 +107,49 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Generate minimal project
+      - name: Install Playwright and create scratch orgs
         if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: sf project generate -n minimal-project
-
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
-            --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
-      - name: create scratch org
-        if: steps.try-run.outcome == 'failure'
-        # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
-        working-directory: minimal-project
+          retry() {
+            local retry_wait_seconds=$1
+            local attempt command_pid timeout_pid
+            shift
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep "$retry_wait_seconds"; fi
+            done
+            return 1
+          }
 
-      - name: create throwaway logout scratch org
-        if: steps.try-run.outcome == 'failure'
-        # pre-seeds THROWAWAY_ORG_ALIAS so the real-logout step's createThrowawayOrg fast-paths
-        # (tryUseExistingOrg hit) instead of tripping requireOrgInCI. This org is logged out by the test.
-        shell: bash
-        run: |
-          sf org create scratch -y 1 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json
-        working-directory: minimal-project
+          retry 60 npx playwright install chromium --with-deps &
+          playwright_pid=$!
 
-      - name: create default-logout throwaway scratch org
-        if: steps.try-run.outcome == 'failure'
-        # pre-seeds DEFAULT_LOGOUT_ORG_ALIAS so the logout.default step's createThrowawayOrg fast-paths.
-        # This org is set as default and logged out by the test.
-        shell: bash
-        run: |
-          sf org create scratch -y 1 -f config/project-scratch-def.json -a "$DEFAULT_LOGOUT_ORG_ALIAS" --json
-        working-directory: minimal-project
+          (
+            sf project generate -n minimal-project
+            retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+            cd minimal-project
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+            # Pre-seed both aliases so the logout tests use these orgs instead of creating orgs in CI.
+            sf org create scratch -y 1 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json
+            sf org create scratch -y 1 -f config/project-scratch-def.json -a "$DEFAULT_LOGOUT_ORG_ALIAS" --json
+          ) &
+          scratch_org_setup_pid=$!
 
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$scratch_org_setup_pid" || failed=1
+          exit "$failed"
 
       - name: Run Org E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
