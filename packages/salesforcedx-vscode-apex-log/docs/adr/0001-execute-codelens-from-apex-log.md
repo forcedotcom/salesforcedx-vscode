@@ -1,5 +1,5 @@
 # Execute CodeLens from Apex Log, not Jorje
 
-Jorje emits Execute (`sf.anon.apex.run.delegate`) and Debug on Anonymous Apex. Web has no Jorje. Apex Log owns Execute on `apex-anon`: extension CodeLens → `sf.anon.apex.execute.document`. Desktop Apex `provideCodeLenses` middleware drops the LS Execute lens so desktop is not duplicated. Debug and `debug.delegate` stay LS-owned. Handler for `run.delegate` deleted — a leftover lens is a dead click (swallow regression), not a silent second Execute.
+Jorje emits Execute (`sf.anon.apex.run.delegate`) and Debug on Anonymous Apex. Web lacks Jorje. Apex Log owns Execute on `apex-anon` via CodeLens → `sf.anon.apex.execute.document`. Desktop Apex middleware drops LS Execute lens to prevent duplication. Debug and `debug.delegate` remain LS-owned. Handler for `run.delegate` deleted—leftover lenses become dead clicks (swallow regression vs silent duplicate Execute).
 
-**Considered:** change Jorje (LS+extension release); keep `run.delegate` as backstop (hides duplicate-lens regression); Apex Log lens on `apex` as well (out of scope).
+**Considered**: change Jorje (LS+extension release); keep `run.delegate` as backstop (hides duplicate-lens regression); Apex Log lens on `apex` as well (out of scope).
