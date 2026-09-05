@@ -28,6 +28,7 @@ import {
   logger
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import * as Arr from 'effect/Array';
 import * as os from 'node:os';
 import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
@@ -1548,7 +1549,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   public toCommaSeparatedString(arg?: string[]): string {
     if (arg && arg.length > 0) {
-      return Array.from(new Set(arg)).join(',');
+      return Arr.dedupe(arg).join(',');
     }
     return '';
   }
