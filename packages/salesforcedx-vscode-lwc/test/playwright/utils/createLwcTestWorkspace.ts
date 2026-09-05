@@ -78,32 +78,22 @@ const JEST_CONFIG_JS = `const { jestConfig } = require('@salesforce/sfdx-lwc-jes
 module.exports = { ...jestConfig, modulePathIgnorePatterns: ['<rootDir>/.localdevserver'] };
 `;
 
-const writeLwcJestWorkspaceFiles = async (workspaceDir: string): Promise<void> => {
+/**
+ * Seeds `package.json`, `jest.config.js`, and runs `npm install` (without scripts) so the LWC Jest
+ * test runner is available in the workspace. Used by run/debug LWC test desktop specs.
+ *
+ * This installs `@salesforce/sfdx-lwc-jest` directly from the registry and may take 30–90 s on a
+ * clean machine — call it at fixture setup time, not inside a test step. The desktopJestTest
+ * `workspaceDir` fixture timeout covers this install.
+ */
+export const seedLwcJestWorkspace = async (workspaceDir: string): Promise<void> => {
   await Promise.all([
     fs.writeFile(path.join(workspaceDir, 'package.json'), JEST_PACKAGE_JSON, 'utf8'),
     fs.writeFile(path.join(workspaceDir, 'jest.config.js'), JEST_CONFIG_JS, 'utf8')
   ]);
-};
-
-/**
- * Seeds `package.json`, `jest.config.js`, and runs `npm install` (without scripts) so the LWC Jest
- * test runner is available for run/debug LWC test desktop specs.
- */
-export const installLwcJestWorkspace = async (workspaceDir: string): Promise<void> => {
-  await writeLwcJestWorkspaceFiles(workspaceDir);
   execSync('npm install --ignore-scripts', {
     cwd: workspaceDir,
     stdio: 'pipe',
     timeout: 6 * 60 * 1000
   });
-};
-
-/** Seeds an LWC Jest workspace using an existing worker-local `node_modules` installation. */
-export const linkLwcJestWorkspace = async (workspaceDir: string, nodeModulesDir: string): Promise<void> => {
-  await writeLwcJestWorkspaceFiles(workspaceDir);
-  await fs.symlink(
-    nodeModulesDir,
-    path.join(workspaceDir, 'node_modules'),
-    process.platform === 'win32' ? 'junction' : 'dir'
-  );
 };
