@@ -488,14 +488,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     aliases
   });
 
-  const webUserId =
-    existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-      ? // ooh, now we know who they are, so we set that.
-
-        // Pipe the extension context in for ServicesExtension so we don't get context from another ext
-        yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
-      : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
-
   const updates = Object.fromEntries(
     Object.entries({
       orgId,
@@ -506,7 +498,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       isSandbox,
       devHubOrgId,
       userId,
-      webUserId,
       aliases,
       username,
       alias,
@@ -515,20 +506,28 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
-  const updated = { ...existingOrgInfo, ...updates, alias };
-
-  // Check if objects have the same content (deep equality using schema)
-  // otherwise, calling set on the ref counts as a change but it's really not one.
-  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
-    yield* Effect.annotateCurrentSpan({ changed: false });
-    return updated;
-  }
-  yield* Effect.all(
-    [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
-    {
-      concurrency: 'unbounded'
+  // Compare-and-swap against live orgId so a late enrichment cannot overwrite a newer default org.
+  // set() always publishes; modify() only publishes when the stored value actually changes.
+  const updated = yield* SubscriptionRef.modify(defaultOrgRef, current => {
+    if (current.orgId !== orgId) {
+      return [current, current];
     }
-  );
+
+    const next: typeof DefaultOrgInfoSchema.Type = { ...current, ...updates, alias };
+    return Schema.equivalence(DefaultOrgInfoSchema)(next, current) ? [current, current] : [next, next];
+  });
+
+  const stale = updated.orgId !== orgId;
+  yield* Effect.annotateCurrentSpan({ updated, staleDefaultOrgEnrichment: stale });
+
+  // Persist hashed identity only when this write landed. Stale A never touches globalState.
+  if (!stale && orgId && userId && (updated.webUserId === UNAUTHENTICATED_USER || isUndefined(updated.webUserId))) {
+    const webUserId = yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default));
+    yield* SubscriptionRef.update(defaultOrgRef, current =>
+      current.orgId === orgId ? { ...current, webUserId } : current
+    );
+  }
+
   return updated;
 });
 
