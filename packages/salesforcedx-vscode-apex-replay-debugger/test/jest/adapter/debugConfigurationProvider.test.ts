@@ -62,7 +62,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     });
     expect(resolved).not.toHaveProperty('logFile');
     expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_KEY, selectedLog.fsPath);
-    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, '/logs');
+    expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, URI.file('/logs').fsPath);
   });
 
   it('silently cancels when no log file is selected', async () => {
