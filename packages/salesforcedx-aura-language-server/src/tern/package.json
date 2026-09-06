@@ -18,7 +18,6 @@
     "acorn-walk": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "enhanced-resolve": "^2.2.2",
-    "minimatch": "^3.0.3",
     "resolve-from": "2.0.0"
   },
   "devDependencies": {
