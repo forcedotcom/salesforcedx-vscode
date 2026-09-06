@@ -28,14 +28,22 @@ jobs:
             exit 0
           fi
 
+          # Isolate the "What issues does this PR fix or reference?" section so
+          # issues mentioned elsewhere in the description aren't tagged.
+          SECTION=$(echo "$PR_BODY" | awk '/^### What issues does this PR fix or reference\?/{flag=1; next} /^### /{flag=0} flag')
+
           # Extract full issue URLs for this repo
-          ISSUE_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/issues/\K[0-9]+" | sort -u | xargs)
+          ISSUE_NUMS=$(echo "$SECTION" | grep -oP "github\.com/${REPO}/issues/\K[0-9]+" | sort -u | xargs)
 
           # Extract full discussion URLs for this repo
-          DISC_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/discussions/\K[0-9]+" | sort -u | xargs)
+          DISC_NUMS=$(echo "$SECTION" | grep -oP "github\.com/${REPO}/discussions/\K[0-9]+" | sort -u | xargs)
 
           # Extract keyword-prefixed short references (Closes #NNN, Fixes #NNN, etc.)
-          SHORT_REFS=$(echo "$PR_BODY" | grep -oiP '(?:closes|close|fixes|fix|resolves|resolve)\s*#\K[0-9]+' | sort -u | xargs)
+          SHORT_REFS=$(echo "$SECTION" | grep -oiP '(?:closes|close|fixes|fix|resolves|resolve)\s*#\K[0-9]+' | sort -u | xargs)
+
+          # Extract bare short references (e.g. "#8094")
+          BARE_REFS=$(echo "$SECTION" | grep -oP '(?<![\w/])#\K[0-9]+' | sort -u | xargs)
+          SHORT_REFS=$(echo "$SHORT_REFS $BARE_REFS" | xargs -n1 2>/dev/null | sort -u | xargs)
 
           # Determine unresolved numbers (short refs that aren't already classified)
           UNRESOLVED=""
