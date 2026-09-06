@@ -81,6 +81,7 @@ jobs:
         if: steps.parse.outputs.issues != '' || steps.parse.outputs.unresolved != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           ISSUE_NUMBERS: ${{ steps.parse.outputs.issues }}
           UNRESOLVED: ${{ steps.parse.outputs.unresolved }}
         run: |
