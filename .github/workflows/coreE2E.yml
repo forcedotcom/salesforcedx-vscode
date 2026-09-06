@@ -105,35 +105,47 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
-            --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
-
-      - name: Generate minimal project
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: sf project generate -n minimal-project
-
-      - name: create scratch org
+      - name: Install Playwright and create scratch org
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
-        working-directory: minimal-project
+          retry() {
+            local retry_wait_seconds=$1
+            local attempt command_pid timeout_pid
+            shift
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep "$retry_wait_seconds"; fi
+            done
+            return 1
+          }
+
+          retry 60 npx playwright install chromium --with-deps &
+          playwright_pid=$!
+
+          (
+            sf project generate -n minimal-project
+            retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+            cd minimal-project
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ) &
+          scratch_org_setup_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$scratch_org_setup_pid" || failed=1
+          exit "$failed"
 
       - name: Run Core E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
