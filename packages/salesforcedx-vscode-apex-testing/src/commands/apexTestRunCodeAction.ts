@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { type ApexDiagnostic, ApexTestResultData, TestLevel, TestResult } from '@salesforce/apex-node';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
@@ -14,12 +15,19 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
-import { notificationService } from '../utils/notificationHelpers';
+import { notificationService, showRunSuccessNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { openTestReport } from '../utils/testReportGenerator';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
+
+// Class/method run + their "last run" re-run variants all delegate here, sharing the "SFDX: Run Apex
+// Tests" executionName from getRunCommandContext (pre-existing behavior), so one command key covers all.
+const COMMAND: ProgressAndSuccessCommandKey = messages.apex_test_run_text;
 
 class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
   message: Schema.String
@@ -36,6 +44,7 @@ class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCache
 const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();
+  const notificationMode = yield* api.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
@@ -51,7 +60,9 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     getTempFolder()
   );
 
-  const result = yield* runApexTests({
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+
+  const { result, reportUri, outputFormat } = yield* runApexTests({
     payload,
     outputDir,
     codeCoverage,
@@ -59,7 +70,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     telemetryTrigger: 'codeAction'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName)
+    promptService.withCancellableProgress(executionName, progressLocation)
   );
 
   yield* channelService.showChannel;
@@ -70,7 +81,14 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
 
   yield* handleDiagnostics(result);
   if (result.summary.outcome === 'Passed') {
-    notificationService.showSuccessfulExecution(executionName);
+    yield* showRunSuccessNotification(
+      notificationMode,
+      COMMAND,
+      executionName,
+      reportUri,
+      outputFormat,
+      (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
+    );
   } else {
     notificationService.showFailedExecution(executionName);
   }

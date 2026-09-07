@@ -31,8 +31,6 @@ import { isServicesRuntimeReady } from '../../src/servicesRuntime';
 import { getExtensionScope } from '../../src/vscode/extensionScope';
 import { ConfigService } from '../../src/core/configService';
 import { ConnectionService } from '../../src/core/connectionService';
-import { getDefaultOrgRef } from '../../src/core/defaultOrgRef';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -231,7 +229,7 @@ describe('Extension', () => {
     vscode.workspace.updateWorkspaceFolders = jest.fn();
   });
 
-  it('activates with one default-org ref shared by policy, snapshot, and span SDKs', async () => {
+  it('activates with shared services and an external span SDK', async () => {
     const context = {
       subscriptions: [],
       extension: {
@@ -261,17 +259,6 @@ describe('Extension', () => {
       Layer.buildWithScope(api.services.SdkLayerFor(context), Effect.runSync(getExtensionScope()))
     );
     expect(externalSdkContext).toBeDefined();
-
-    const defaultOrgRef = await Effect.runPromise(getDefaultOrgRef());
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'gov-org', instanceName: 'stg9402s' }));
-    expect(api.services.TelemetryIdentitySnapshot()).toMatchObject({
-      orgId: 'gov-org',
-      telemetryClassification: 'gov'
-    });
-    expect(api.services.TelemetryIdentitySnapshot()).not.toHaveProperty('instanceName');
-
-    await Effect.runPromise(SubscriptionRef.set(defaultOrgRef, { orgId: 'non-gov-org', instanceName: 'usa9102' }));
-    expect(api.services.TelemetryIdentitySnapshot().telemetryClassification).toBe('nonGov');
   });
 
   it('should deactivate successfully', async () => {

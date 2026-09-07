@@ -66,7 +66,6 @@ export default [
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
-      'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
       'packages/salesforcedx-vscode-lightning/extension/tern/**',
@@ -186,6 +185,7 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
+      'local/notification-slot-matches-package-json': 'error',
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -624,6 +624,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
+      'packages/effect-ext-utils/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -689,7 +690,6 @@ export default [
     // this rule requires strict null checks to be enabled and that code does not support it
     // Also disable for packages that don't have strictNullChecks enabled
     files: [
-      'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
       'packages/salesforcedx-vscode-soql/**',
@@ -734,10 +734,7 @@ export default [
   },
   {
     // Override header rules
-    files: [
-      'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts'
-    ],
+    files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
       'header/header': 'off'
     }
@@ -845,6 +842,16 @@ export default [
   {
     // consistent-type-imports for salesforcedx-utils (inline to avoid no-duplicate-imports; W-23371027)
     files: ['packages/salesforcedx-utils/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
+    files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

@@ -14,7 +14,7 @@ Our observability system follows a simple principle: **use only spans**. All obs
 ```mermaid
 flowchart TD
     A["EffectCode<br/>.fn or .withSpan"] --> B[all OTEL spans]
-    B --> R["RedactingSpanProcessor<br/>scrubs secrets from every span"]
+    B --> R["RedactingSpanProcessor<br/>scrubs secrets and PII from every span"]
     R --> C["SpanTransformProcessor<br/>adds attributes to top-level spans"]
     C --> D{Filter & Route Spans}
     D -->|all spans<br/>enabled via Settings| E[Console Exporter]
@@ -31,13 +31,15 @@ flowchart TD
 - App Insights is **automatic** (see [Automatic Configuration](#automatic-configuration) for details). It can be disabled via VSCode Settings.
 - O11y requires configuration (see [O11y Configuration](#o11y-configuration))
 
-### Secret Redaction
+### Sensitive Data Redaction
 
 Every span passes through `RedactingSpanProcessor` (`redactingSpanProcessor.ts`) before any exporter sees it. The processor is registered first and unconditionally in the `spanProcessor` array of both `spansNode.ts` and `spansWeb.ts`, and it does all of its work in the experimental `onEnding` hook. That hook placement is what makes one processor sufficient: the OpenTelemetry SDK wraps the array in a `MultiSpanProcessor`, which calls `onEnding` on **every** registered processor before it calls `onEnd` on any of them. A single in-place rewrite therefore covers every sink — console, App Insights, O11y, local OTLP over http, and the OTLP JSONL files — including processors that were registered before the redactor.
 
-What gets rewritten: string-valued span attributes (arrays element-wise), `status.message`, and the attributes of each span event. The event case is the important one. `@effect/opentelemetry` sets `status.message` to `Cause.pretty(cause)` and calls `span.recordException` with a stack that is also `Cause.pretty` output, so third-party error text from jsforce or `@salesforce/core` — including access tokens — arrives as `exception.message` and `exception.stacktrace` on the default Node path.
+What gets rewritten: every descendant string value in span attributes, status, events, link attributes, and resource attributes, plus the span name. `jsonpath-plus` supplies the recursive string-leaf traversal over those controlled JSON-like surfaces; it does not traverse `SpanImpl` itself. Attribute keys and structural telemetry fields — trace/span IDs, link contexts, timing, kind, instrumentation scope, resource schema, and processor/exporter internals — are intentionally excluded. The event case is particularly important. `@effect/opentelemetry` sets `status.message` to `Cause.pretty(cause)` and calls `span.recordException` with a stack that is also `Cause.pretty` output, so third-party error text from jsforce or `@salesforce/core` — including access tokens — arrives as `exception.message` and `exception.stacktrace` on the default Node path.
 
-The value patterns live in `redactSecrets.ts`. Three of them (SFDX auth URL, JWT, opaque access token) are copied from `@salesforce/core`'s `util/sfdc`, which cannot be imported because that package's `exports` map does not expose it; the access-token tail is deliberately wider than core's so that `-`, `=` and `+` bytes are consumed instead of left in the log. The other three (`Bearer …`, `sid=…`, and key-shaped refresh tokens) exist because core's own filters only match JSON-shaped `"key": "value"` text and cannot see a secret embedded in a prose stack trace. A cheap `String.includes` hint check short-circuits before the combined regex runs, because `onEnding` executes synchronously on every span end in every session.
+Secret and username-or-email patterns share the fixed-value recognition stage in `redactSensitiveData.ts`. Three secret patterns (SFDX auth URL, JWT, opaque access token) are copied from `@salesforce/core`'s `util/sfdc`, which cannot be imported because that package's `exports` map does not expose it; the access-token tail is deliberately wider than core's so that `-`, `=` and `+` bytes are consumed instead of left in the log. The other three secret patterns (`Bearer …`, `sid=…`, and key-shaped refresh tokens) exist because core's own filters only match JSON-shaped `"key": "value"` text and cannot see a secret embedded in a prose stack trace. A cheap `String.includes` hint check short-circuits before the combined regex runs, because `onEnding` executes synchronously on every span end in every session.
+
+Org aliases, usernames, query text, paths, and other command inputs do not all have intrinsic sensitive-data shapes. `TerminalService.simpleExec` therefore keeps the raw shell command only at the execution boundary: it does not attach the command to its span or copy it into `TerminalServiceError`. Node's `exec` error message and `cmd` property are also excluded because both contain the complete invocation. The service records only command-independent execution metadata such as timeout, whether a working directory was supplied, exit code, output sizes, signal, and error category. This supports arbitrary shell commands without maintaining a command catalog or attempting to parse shell syntax. The span processor's recognizable secret/email and target-org safeguards remain as defense in depth for strings originating outside TerminalService, including error output recorded on spans.
 
 Telemetry identity attributes survive by construction: the access-token pattern requires the `!` separator, so a bare 18-character `00D…` org ID, a `005…` user ID, a hashed `webUserId`, and `devHubOrgId` all pass through untouched (ADR-0019).
 
@@ -241,7 +243,7 @@ yield * Effect.annotateCurrentSpan({ telemetryIgnore: true });
 
 When `enableConsoleTraces` is enabled, spans are exported to the console (browser console or Node.js console). This is useful for debugging and seeing what spans are being created.
 
-Log records are a separate pipeline from spans (`logRecordProcessor` in `spansNode.ts`, plus `OtlpLogger.layer` when local traces are enabled), and they do **not** pass through `RedactingSpanProcessor` — see [Secret Redaction](#secret-redaction). Assume anything you log can reach a log sink verbatim until W-23597360 lands.
+Log records are a separate pipeline from spans (`logRecordProcessor` in `spansNode.ts`, plus `OtlpLogger.layer` when local traces are enabled), and they do **not** pass through `RedactingSpanProcessor` — see [Sensitive Data Redaction](#sensitive-data-redaction). Assume anything you log can reach a log sink verbatim until W-23597360 lands.
 
 ### Putting an SDK in Your Layer
 

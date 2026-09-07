@@ -95,15 +95,6 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
-            dreamhouse-lwc
-          retry_wait_seconds: 60
-
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -113,13 +104,38 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Install Playwright browsers and OS deps
+      - name: Install Playwright and clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
+
+          retry npx playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
@@ -278,22 +294,38 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Install Playwright browsers and OS deps
+      - name: Install Playwright and clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
 
-      - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
-            dreamhouse-lwc
-          retry_wait_seconds: 60
+          retry npx playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'

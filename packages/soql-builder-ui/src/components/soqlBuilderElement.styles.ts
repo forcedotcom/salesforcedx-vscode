@@ -34,6 +34,40 @@ export const soqlBuilderElementStyles = css`
     grid-template-columns: 72px minmax(0, 1fr);
   }
 
+  soql-builder-fields,
+  soql-builder-from {
+    display: contents;
+  }
+
+  soql-builder-fields .input,
+  soql-builder-from .input {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  soql-builder-from .required {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    margin-inline-start: 2px;
+  }
+
+  soql-builder-from .status {
+    color: var(--vscode-descriptionForeground, inherit);
+    font-size: 0.92em;
+  }
+
+  soql-builder-fields .status {
+    color: var(--vscode-descriptionForeground, inherit);
+    font-size: 0.92em;
+  }
+
+  .field-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   label,
   .preview-title {
     font-weight: 600;

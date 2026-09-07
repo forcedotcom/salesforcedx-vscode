@@ -1247,7 +1247,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(mocks.shadowGet).not.toHaveBeenCalled();
     expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
-    expect(mocks.retrieveComponentSetToDirectory.mock.calls[0]?.[2]).toBe('org-one');
+    expect(mocks.retrieveComponentSetToDirectory.mock.calls[0]?.[2]).toEqual({ expectedOrgId: 'org-one' });
     expect(mocks.shadowPrepare).toHaveBeenCalledWith('org-one', reference, undefined);
     expect(artifact.remoteLastModifiedDate).toBe('revision-2');
     expect(entry?.lastModifiedDate).toBe('revision-2');

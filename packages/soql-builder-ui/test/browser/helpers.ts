@@ -6,6 +6,7 @@
  */
 
 import { expect, type Locator, type Page } from '@playwright/test';
+import type { SoqlBuilderState } from '../../src/domain.js';
 import type { SoqlBuilderBrowserHarness } from './fixture.js';
 
 type StateOverrides = NonNullable<Parameters<SoqlBuilderBrowserHarness['mount']>[0]>;
@@ -21,6 +22,32 @@ export const builder = (page: Page): Locator => page.locator('soql-builder-app')
 export const fromSelect = (page: Page): Locator => builder(page).locator('vscode-single-select[name="sObject"]');
 
 export const fieldsSelect = (page: Page): Locator => builder(page).locator('vscode-multi-select[name="fields"]');
+
+export const countCheckbox = (page: Page): Locator => builder(page).locator('vscode-checkbox[name="count"]');
+
+export const clearAllFieldsButton = (page: Page): Locator =>
+  builder(page).locator('vscode-button').filter({ hasText: 'Clear All' });
+
+export const selectAllFieldsButton = (page: Page): Locator =>
+  builder(page).locator('vscode-button').filter({ hasText: 'Select All' });
+
+export const makeField = (name: string, label: string): SoqlBuilderState['metadata']['fields'][number] => ({
+  aggregatable: true,
+  custom: false,
+  defaultValue: null,
+  extraTypeInfo: null,
+  filterable: true,
+  groupable: true,
+  inlineHelpText: null,
+  label,
+  name,
+  nillable: true,
+  picklistValues: [],
+  referenceTo: [],
+  relationshipName: null,
+  sortable: true,
+  type: 'string'
+});
 
 /**
  * Drives the documented public value/change contract of VSCode Elements. Component tests should use this instead of

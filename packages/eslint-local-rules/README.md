@@ -76,6 +76,37 @@ const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
 
 Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
 
+### notification-slot-matches-package-json
+
+Enforces that `SuccessOnlyCommandKey` and `ProgressOnlyCommandKey` type alias literals in notificationMode.ts files match their slot's enum shape defined in package.json commandLevelNotifications. The rule validates that:
+
+- Each key exists in the package.json commandLevelNotifications properties
+- The key's enum values match the expected notification slot type:
+  - `SuccessOnlyCommandKey`: must have enum containing only `['successToast', 'successStatusBar', 'successOff']` values (may omit any)
+  - `ProgressOnlyCommandKey`: must have enum `['progressToast', 'progressStatusBar']`
+
+**Bad:**
+
+```typescript
+// SuccessOnlyCommandKey lists a ProgressOnly command
+export type SuccessOnlyCommandKey = 'My Progress Command';
+
+// ProgressOnlyCommandKey lists a SuccessOnly command
+export type ProgressOnlyCommandKey = 'My Success Command';
+
+// Key doesn't exist in package.json
+export type SuccessOnlyCommandKey = 'Nonexistent Command';
+```
+
+**Good:**
+
+```typescript
+export type SuccessOnlyCommandKey = 'My Success Command';
+export type ProgressOnlyCommandKey = 'My Progress Command';
+```
+
+This rule requires files using these type aliases to be near a package.json that defines the commandLevelNotifications configuration.
+
 ### no-successive-annotate-current-span
 
 Enforces that back-to-back `Effect.annotateCurrentSpan` calls are merged into a single call. Each call opens and annotates the current span independently, so two or more adjacent calls do redundant work that a single object-argument call expresses more cheaply. The rule detects two forms: consecutive `yield* Effect.annotateCurrentSpan(...)` statements inside a generator, and consecutive `Effect.tap(x => Effect.annotateCurrentSpan(...))` arguments inside one `.pipe(...)` chain. Any intervening statement or non-annotate `.tap` breaks the run, so only genuinely successive calls are flagged. Array forms (`Effect.all`/`forEach`) and `andThen` chains are out of scope.
@@ -173,6 +204,16 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-view-refs': 'error'
+    }
+  },
+  // Enable TypeScript linting for notificationMode.ts files
+  {
+    files: ['**/notificationMode.ts'],
+    plugins: {
+      local: localRulesPlugin
+    },
+    rules: {
+      'local/notification-slot-matches-package-json': 'error'
     }
   },
   // Enable .vscodeignore linting for extension package folders

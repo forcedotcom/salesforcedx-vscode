@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -96,7 +97,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet([member]);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
@@ -108,7 +109,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 .flatMap(response => (response.filePath ? [response.filePath] : []));
               const stagedFiles = yield* listStagedFiles(stagingUri);
               const reportedUris = yield* Effect.forEach(
-                [...new Set([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths])],
+                Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
                 path => fsService.toUri(path),
                 { concurrency: 'unbounded' }
               );
@@ -179,7 +180,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet(members);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
@@ -207,7 +208,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                         : []
                     );
                     const reportedUris = yield* Effect.forEach(
-                      [...new Set([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths])],
+                      Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
                       path => fsService.toUri(path),
                       { concurrency: 'unbounded' }
                     );

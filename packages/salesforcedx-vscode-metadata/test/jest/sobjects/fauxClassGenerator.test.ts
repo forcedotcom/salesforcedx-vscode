@@ -79,5 +79,26 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const text = generateFauxClassText(definition);
       expect(text).toContain('String Name;');
     });
+
+    it('Should list field declarations alphabetically by name', () => {
+      const sobject = JSON.parse(
+        '{ "name": "Custom__c", "fields": [{"name":"Zebra","type":"string","referenceTo":[]},{"name":"Apple","type":"boolean","referenceTo":[]},{"name":"Mango","type":"date","referenceTo":[]}], "childRelationships": [] }'
+      );
+      const definition = generateSObjectDefinition(sobject);
+      const text = generateFauxClassText(definition);
+      const names = [...text.matchAll(/^\s+global \S+ (\w+);$/gm)].map(m => m[1]);
+      expect(names).toEqual(['Apple', 'Mango', 'Zebra']);
+    });
+
+    it('Should keep only the first of same-name field declarations', () => {
+      const text = generateFauxClassText({
+        name: 'Custom__c',
+        fields: [
+          { modifier: 'global', type: 'String', name: 'Dup' },
+          { modifier: 'global', type: 'Boolean', name: 'Dup' }
+        ]
+      });
+      expect([...text.matchAll(/^\s+global \S+ (\w+);$/gm)].map(m => m[1])).toEqual(['Dup']);
+    });
   });
 });

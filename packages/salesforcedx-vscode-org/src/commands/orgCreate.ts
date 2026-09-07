@@ -20,6 +20,10 @@ import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
 import { isValidOrgAlias } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+
+/** settings key (no ellipsis); for success notifications, pass the display-text key (`org_create_default_scratch_org_text`) to nls.localize instead, which includes the ellipsis. */
+const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Create a Default Scratch Org';
 
 const decodeExpirationDays = Schema.decodeUnknownOption(
   Schema.NumberFromString.pipe(Schema.int(), Schema.between(1, 30))
@@ -152,18 +156,20 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
 
   const promptService = yield* api.services.PromptService;
   const terminalService = yield* api.services.TerminalService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
   // quote alias: validateInput (isValidOrgAlias) permits embedded spaces, and childProcess.exec runs
   // via /bin/sh -c, so an unquoted `--alias my org` would word-split. Validated days contain no shell metachars.
   const command = `sf org create scratch --definition-file "${defFilePath}" --alias "${alias}" --duration-days ${days} --set-default --json`;
   const stdout = yield* terminalService
     .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
-    .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress')));
+    .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress'), progressLocation));
 
   const response = yield* decodeOrgCreateResponse(stdout);
 
-  // success: refresh the config/state aggregators (default org flipped by --set-default), report to the
-  // channel, then show the `... successfully ran` toast (parity with the old SfCommandletExecutor).
+  // success: refresh the config/state aggregators (default org flipped by --set-default), report to
+  // the channel, then show success notification based on the configured notification mode.
   const handleSuccess = Effect.fn('orgCreateCommand.handleSuccess')(function* ({
     result: { orgId, username }
   }: OrgCreateSuccess) {
@@ -171,10 +177,9 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     yield* Effect.promise(() => updateConfigAndStateAggregators());
     yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
     yield* channel.showChannel;
-    // in-layer channel already revealed above, so the toast's "Show" button is redundant — emit a plain
-    // information toast directly via vscode.window (no legacy NotificationService / ../channels singleton).
-    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_create_successfully_ran'))).pipe(
-      Effect.ignore
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('org_create_default_scratch_org_text'))
     );
   });
 

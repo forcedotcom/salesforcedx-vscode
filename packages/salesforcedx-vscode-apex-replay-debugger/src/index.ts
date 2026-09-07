@@ -6,32 +6,30 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
   MetricLaunch,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT,
-  breakpointUtil
+  SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import { salesforceApexExtension } from './apexExtension';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
   sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
-import { appendAndShowChannelOutput, getDebuggerOutputChannel } from './channels';
-import { anonApexDebugCommand } from './commands/anonApexDebug';
+import { getDebuggerOutputChannel } from './channels';
+import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
@@ -43,26 +41,14 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
-import { setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { disposeRuntime, getRuntime } from './services/runtime';
 
-export enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
+export { retrieveLineBreakpointInfo } from './apexExtension';
+export { writeToDebuggerOutputWindow } from './channels';
 
-const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-if (!salesforceApexExtension) {
-  throw new Error('Salesforce Apex Extension not initialized');
-}
-
-const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(function* (
-  extensionContext: vscode.ExtensionContext
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
-  const dialogStartingPathUri = yield* getDialogStartingPath(extensionContext);
+const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
+  const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
     const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
@@ -107,7 +93,7 @@ const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(functi
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
-  yield* registerCommand('sf.anon.apex.debug.delegate', anonApexDebugCommand);
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
 
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
@@ -121,9 +107,10 @@ const registerCommands = Effect.fn('ApexReplayDebugger.registerCommands')(functi
     launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
+    anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
-});
+};
 
 export const updateLastOpened = (extensionContext: vscode.ExtensionContext, logPath: string) => {
   extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
@@ -180,7 +167,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const commands = yield* registerCommands(extensionContext);
+  const commands = yield* Effect.promise(() => registerCommands(extensionContext));
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
@@ -223,74 +210,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 });
 
-export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
-  if (!salesforceApexExtension.isActive) {
-    await salesforceApexExtension.activate();
-  }
-  if (salesforceApexExtension) {
-    let expired = false;
-    let i = 0;
-    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await imposeSlightDelay(100);
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      const errorMessage = nls.localize('language_client_not_ready');
-      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      return false;
-    } else {
-      const lineBpInfo = await salesforceApexExtension.exports.getLineBreakpointInfo();
-      if (lineBpInfo?.length) {
-        console.log(nls.localize('line_breakpoint_information_success'));
-        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
-      } else {
-        const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      }
-      return true;
-    }
-  } else {
-    const errorMessage = nls.localize('session_language_server_error_text');
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-    return false;
-  }
-};
-
-const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
-
-export const writeToDebuggerOutputWindow = (
-  output: string,
-  showVSCodeWindow?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
-) => {
-  appendAndShowChannelOutput(output);
-  if (showVSCodeWindow && vsCodeWindowType) {
-    switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
-        vscode.window.showErrorMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Informational: {
-        vscode.window.showInformationMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Warning: {
-        vscode.window.showWarningMessage(output);
-        break;
-      }
-    }
-  }
-};
-
-export const deactivate = () => {
-  console.log('Apex Replay Debugger Extension Deactivated');
-  // Send deactivation event using shared service
-  TelemetryService.getInstance().sendExtensionDeactivationEvent();
+export const deactivate = async () => {
+  await Promise.resolve()
+    .then(() => {
+      console.log('Apex Replay Debugger Extension Deactivated');
+      // Send deactivation event using shared service
+      TelemetryService.getInstance().sendExtensionDeactivationEvent();
+    })
+    .finally(disposeRuntime);
 };

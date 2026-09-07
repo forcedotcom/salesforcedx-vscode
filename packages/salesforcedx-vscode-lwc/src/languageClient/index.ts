@@ -10,15 +10,19 @@ import { URI, Utils } from 'vscode-uri';
 
 // Conditionally export the appropriate language client based on platform.
 // Use dynamic imports to avoid bundling Node.js-specific code in web mode.
-export const createLanguageClient = async (extensionUri: URI, initializationOptions: LwcInitializationOptions) => {
+export const createLanguageClient = async (
+  extensionUri: URI,
+  initializationOptions: LwcInitializationOptions,
+  packageDirectories?: string[]
+) => {
   const base = URI.from(extensionUri);
   if (process.env.ESBUILD_PLATFORM === 'web') {
     const serverPath = Utils.joinPath(base, 'dist', 'web', 'lwcServer.js').toString();
     const { createLanguageClient: createWebLanguageClient } = await import('./web.js');
-    return createWebLanguageClient(serverPath, initializationOptions);
+    return createWebLanguageClient(serverPath, initializationOptions, packageDirectories);
   } else {
     const serverPath = Utils.joinPath(base, 'dist', 'lwcServer.js').fsPath;
     const { createLanguageClient: createNodeLanguageClient } = await import('./node.js');
-    return createNodeLanguageClient(serverPath, initializationOptions);
+    return createNodeLanguageClient(serverPath, initializationOptions, packageDirectories);
   }
 };

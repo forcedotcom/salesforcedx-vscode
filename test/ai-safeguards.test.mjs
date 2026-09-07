@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import {
   NO_VERIFY_REASON,
+  TRACKED_BASE_BRANCH_REASON,
   commandDenial,
   editedPaths,
   verifyCompletion,
@@ -42,6 +43,38 @@ test('denies git --no-verify', () => {
   assert.equal(commandDenial({ command: 'git commit --no\\\n-verify', cwd: '/tmp' }), NO_VERIFY_REASON);
   assert.equal(commandDenial({ command: 'git commit --no-veri\\fy', cwd: '/tmp' }), NO_VERIFY_REASON);
   assert.equal(commandDenial({ command: 'git commit --no-veri""fy', cwd: '/tmp' }), NO_VERIFY_REASON);
+});
+
+test('denies branches from remote bases without --no-track', () => {
+  ['origin/develop', 'origin/main'].forEach(remoteBase => {
+    assert.equal(
+      commandDenial({ command: `git worktree add -b feature ../feature ${remoteBase}`, cwd: '/tmp' }),
+      TRACKED_BASE_BRANCH_REASON
+    );
+    assert.equal(
+      commandDenial({ command: `git checkout -b feature ${remoteBase}`, cwd: '/tmp' }),
+      TRACKED_BASE_BRANCH_REASON
+    );
+  });
+});
+
+test('allows non-tracking and unrelated branch commands', () => {
+  ['origin/develop', 'origin/main'].forEach(remoteBase => {
+    assert.equal(
+      commandDenial({ command: `git worktree add --no-track -b feature ../feature ${remoteBase}`, cwd: '/tmp' }),
+      undefined
+    );
+    assert.equal(
+      commandDenial({ command: `git checkout --no-track -b feature ${remoteBase}`, cwd: '/tmp' }),
+      undefined
+    );
+  });
+  [
+    'git worktree add -b feature ../feature develop',
+    'git checkout -b feature origin/release',
+    'git checkout origin/develop',
+    'echo git checkout -b feature origin/main'
+  ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), undefined));
 });
 
 test('denies dynamically assembled Git safeguards', () => {

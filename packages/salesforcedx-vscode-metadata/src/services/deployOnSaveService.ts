@@ -23,6 +23,9 @@ import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+
+const COMMAND: ProgressAndSuccessCommandKey = 'Deploy on Save';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -83,7 +86,13 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
     }
   }
 
-  return yield* deployComponentSet({ componentSet });
+  const result = yield* deployComponentSet({ componentSet, command: COMMAND });
+  const notificationMode = yield* api.services.NotificationModeService;
+  yield* notificationMode.showSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text'))
+  );
+  return result;
 });
 
 /** Handle deploy conflicts: populate conflict view scoped to the deployed component set */
@@ -156,7 +165,7 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
   // Register the save handler
   const runtime = yield* Effect.runtime();
   const disposable = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-    await Runtime.runPromise(runtime)(Queue.offer(saveQueue, URI.parse(document.uri.toString())));
+    await Runtime.runPromise(runtime)(Queue.offer(saveQueue, document.uri));
   });
 
   yield* channelService.appendToChannel('Deploy on save service initialized');

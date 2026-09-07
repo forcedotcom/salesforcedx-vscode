@@ -39,7 +39,7 @@ import {
   clearOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  NOTIFICATION_LIST_ITEM,
+  clickModalDialogButton,
   ensureSecondarySideBarHidden,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
@@ -137,12 +137,10 @@ const createLwcBundle = async (page: Page, camelName: string): Promise<void> => 
 
       await executeCommandWithCommandPalette(page, messages.delete_source_text);
 
-      const deleteConfirmation = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: messages.delete_source_confirmation_message })
-        .first();
+      const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
-      await deleteConfirmation.getByRole('button', { name: messages.confirm_delete_source_button_text }).click();
+      await expect(deleteConfirmation).toContainText(messages.delete_source_confirmation_message);
+      await clickModalDialogButton(page, messages.confirm_delete_source_button_text);
 
       await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
       await waitForOutputChannelText(page, { expectedText: 'Deleted Source', timeout: DEPLOY_TIMEOUT });

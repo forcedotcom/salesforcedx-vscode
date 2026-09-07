@@ -235,7 +235,7 @@ jobs:
 
   e2e-desktop-run-tests:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]

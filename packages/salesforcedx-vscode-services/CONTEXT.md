@@ -19,10 +19,10 @@
 
 ### redaction vs Redacted
 
-- **redaction** here = string scrubbing of span attributes / `status.message` / event attributes by `redactSecrets` (`observability/redactSecrets.ts`), replacing matched shapes with `<REDACTED … TOKEN>` labels
+- **redaction** here = string scrubbing of span payload values by `redactSensitiveData` (`observability/redactSensitiveData.ts`), replacing secret and PII shapes with `<REDACTED …>` labels
 - pattern-based and lossy: no way back to the original value, no wrapper type
 - **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); not used anywhere in this repo today
-- _Avoid_: calling `redactSecrets` output "a Redacted" — different mechanism, different guarantees
+- _Avoid_: calling `redactSensitiveData` output "a Redacted" — different mechanism, different guarantees
 
 ### Effect boundary
 

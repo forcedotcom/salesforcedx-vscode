@@ -13,5 +13,16 @@
   "exception_breakpoint_command_text": "SFDX: Configure Apex Debug Exceptions",
   "connect_type_text": "Connection Type",
   "isv_bootstrap_command_text": "SFDX: Create and Set Up Project for ISV Debugging",
-  "debugger_stop_text": "SFDX: Stop Apex Debugger Session"
+  "debugger_stop_text": "SFDX: Stop Apex Debugger Session",
+  "apexDebugger.configuration.title": "Salesforce Apex Interactive Debugger",
+  "extension_level_notifications_description": "Notification style for all Apex Interactive Debugger commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-apex-debugger.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Apex Interactive Debugger command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-apex-debugger.extensionLevelNotifications settings.",
+  "notifications.progressToast.description": "Show progress as a toast notification.",
+  "notifications.progressStatusBar.description": "Show progress spinner in the status bar.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications_isv_debugger_setup_description": "Notification style when setting up an ISV Debugger project (progress only; no success notification).",
+  "notifications_debugger_stop_description": "Notification style when stopping an Apex Debugger session."
 }

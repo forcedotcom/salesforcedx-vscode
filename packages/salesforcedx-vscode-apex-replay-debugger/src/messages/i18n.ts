@@ -17,7 +17,6 @@
  */
 export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
-  session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
     'You have %d of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   no_enabled_checkpoints: "You don't have any checkpoints enabled. Enable a checkpoint and try again.",
@@ -53,6 +52,7 @@ export const messages = {
   debug_test_no_debug_log: 'No debug log associated with test results',
   channel_name: 'Apex Replay Debugger',
   apex_execute_text: 'Execute Anonymous Apex',
+  apex_execute_debug_failed: 'Execute anonymous failed: %s',
   apex_execute_debug_success: 'Execute Anonymous Apex successfully ran',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',

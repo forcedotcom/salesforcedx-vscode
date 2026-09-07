@@ -49,6 +49,9 @@ export const messages = {
   action_add: 'Add',
 
   // fields
+  action_clear_all_fields: 'Clear All',
+  action_select_all_fields: 'Select All',
+  label_count: 'COUNT()',
   label_fields: 'Fields',
 
   // from

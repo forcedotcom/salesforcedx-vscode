@@ -5,24 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { VscodeMultiSelect } from '@vscode-elements/elements/dist/vscode-multi-select/index.js';
-import { VscodeSingleSelect } from '@vscode-elements/elements/dist/vscode-single-select/index.js';
-import '@vscode-elements/elements/dist/vscode-option/index.js';
 import { html, LitElement, nothing } from 'lit';
-import {
-  SOQL_BUILDER_ACTION_EVENT,
-  createInitialSoqlBuilderState,
-  type SoqlBuilderAction,
-  type SoqlBuilderState
-} from '../domain.js';
+import { property } from 'lit/decorators/property.js';
+import { createInitialSoqlBuilderState, type SoqlBuilderState } from '../domain.js';
+import { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 import { soqlBuilderElementStyles } from './soqlBuilderElement.styles.js';
 
+export { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
+
 export type SoqlBuilderLabels = {
+  readonly clearAllFields: string;
+  readonly count: string;
   readonly fields: string;
   readonly from: string;
   readonly inputs: string;
+  readonly loading: string;
   readonly noDefaultOrg: string;
+  readonly noResults: string;
   readonly query: string;
+  readonly selectAllFields: string;
 };
 
 export type SoqlBuilderLifecycle = {
@@ -30,32 +31,16 @@ export type SoqlBuilderLifecycle = {
   readonly disconnect: () => Promise<void> | void;
 };
 
-export class SoqlBuilderActionEvent extends CustomEvent<SoqlBuilderAction> {
-  constructor(action: SoqlBuilderAction) {
-    super(SOQL_BUILDER_ACTION_EVENT, {
-      bubbles: true,
-      composed: true,
-      detail: action
-    });
-  }
-}
-
 export class SoqlBuilderElement extends LitElement {
-  public static properties = {
-    labels: { attribute: false },
-    viewState: { attribute: false }
-  };
-
   public static styles = soqlBuilderElementStyles;
 
-  declare public labels: SoqlBuilderLabels;
-  public lifecycle: SoqlBuilderLifecycle | undefined;
-  declare public viewState: SoqlBuilderState;
+  @property({ attribute: false })
+  public accessor labels!: SoqlBuilderLabels;
 
-  constructor() {
-    super();
-    this.viewState = createInitialSoqlBuilderState();
-  }
+  public lifecycle: SoqlBuilderLifecycle | undefined;
+
+  @property({ attribute: false })
+  public accessor viewState: SoqlBuilderState = createInitialSoqlBuilderState();
 
   public override connectedCallback(): void {
     super.connectedCallback();
@@ -73,6 +58,12 @@ export class SoqlBuilderElement extends LitElement {
 
   protected override render() {
     const state = this.viewState;
+    const hasRecoverableFromError = state.query.parseErrors.some(error =>
+      ['EMPTY', 'INCOMPLETEFROM', 'NOFROM'].includes(error.type)
+    );
+    const hasRecoverableFieldsError = state.query.parseErrors.some(error =>
+      ['EMPTY', 'NOSELECT', 'NOSELECTIONS'].includes(error.type)
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty statement must still render as `nothing`, unlike a merely-unset one; `??` would not collapse ''
     const queryPreview = state.query.originalSoqlStatement ? state.query.originalSoqlStatement : nothing;
     return html`
@@ -88,40 +79,34 @@ export class SoqlBuilderElement extends LitElement {
                   @submit=${this.preventSubmit}
                 >
                   <div class="control">
-                    <label for="soql-object">${this.labels.from}</label>
-                    <vscode-single-select
-                      id="soql-object"
-                      name="sObject"
-                      tabindex="0"
-                      combobox
-                      filter="startsWithPerTerm"
-                      label=${this.labels.from}
-                      ?disabled=${state.isObjectsLoading}
-                      .value=${state.query.sObject ?? ''}
-                      @change=${this.handleObjectChange}
-                    >
-                      ${state.metadata.objects.map(
-                        object => html`<vscode-option value=${object.name}>${object.label}</vscode-option>`
-                      )}
-                    </vscode-single-select>
+                    <soql-builder-from
+                      .invalid=${hasRecoverableFromError}
+                      .isLoading=${state.isObjectsLoading}
+                      .labels=${{
+                        from: this.labels.from,
+                        loading: this.labels.loading,
+                        noResults: this.labels.noResults
+                      }}
+                      .objects=${state.metadata.objects}
+                      .selectedObjectName=${state.query.sObject}
+                    ></soql-builder-from>
                   </div>
                   <div class="control">
-                    <label for="soql-fields">${this.labels.fields}</label>
-                    <vscode-multi-select
-                      id="soql-fields"
-                      name="fields"
-                      tabindex="0"
-                      combobox
-                      filter="startsWithPerTerm"
-                      label=${this.labels.fields}
-                      ?disabled=${state.isFieldsLoading || state.query.sObject === undefined}
-                      .value=${state.query.fields}
-                      @change=${this.handleFieldsChange}
-                    >
-                      ${state.metadata.fields.map(
-                        field => html`<vscode-option value=${field.name}>${field.label}</vscode-option>`
-                      )}
-                    </vscode-multi-select>
+                    <soql-builder-fields
+                      .disabled=${state.query.sObject === undefined}
+                      .fields=${state.metadata.fields}
+                      .invalid=${hasRecoverableFieldsError}
+                      .isLoading=${state.isFieldsLoading}
+                      .labels=${{
+                        clearAll: this.labels.clearAllFields,
+                        count: this.labels.count,
+                        fields: this.labels.fields,
+                        loading: this.labels.loading,
+                        noResults: this.labels.noResults,
+                        selectAll: this.labels.selectAllFields
+                      }}
+                      .selectedFieldNames=${state.query.fields}
+                    ></soql-builder-fields>
                   </div>
                 </form>
                 <section class="preview" role="status" aria-live="polite">
@@ -133,30 +118,6 @@ export class SoqlBuilderElement extends LitElement {
       </main>
     `;
   }
-
-  private readonly handleFieldsChange = (event: Event): void => {
-    const select = event.currentTarget;
-    if (select instanceof VscodeMultiSelect) {
-      this.dispatchEvent(
-        new SoqlBuilderActionEvent({
-          _tag: 'FieldsSelected',
-          fieldNames: [...select.value]
-        })
-      );
-    }
-  };
-
-  private readonly handleObjectChange = (event: Event): void => {
-    const select = event.currentTarget;
-    if (select instanceof VscodeSingleSelect && select.value) {
-      this.dispatchEvent(
-        new SoqlBuilderActionEvent({
-          _tag: 'ObjectSelected',
-          objectName: select.value
-        })
-      );
-    }
-  };
 
   private readonly preventSubmit = (event: SubmitEvent): void => event.preventDefault();
 }

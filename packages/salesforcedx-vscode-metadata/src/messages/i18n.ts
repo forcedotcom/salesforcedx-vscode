@@ -44,6 +44,7 @@ export const messages = {
   deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
   deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
 
+  deploy_on_save_text: 'Deploy on save',
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
   deploy_on_save_error_generic: 'Deploy on save failed: %s',
@@ -69,7 +70,6 @@ export const messages = {
   delete_source_confirmation_message:
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
-  cancel_delete_source_button_text: 'Cancel',
   delete_source_operation_failed: 'Delete operation failed: %s',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',

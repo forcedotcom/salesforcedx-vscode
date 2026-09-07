@@ -1,11 +1,12 @@
 {
   "name": "@salesforce/apex-node",
   "description": "Salesforce JS library for Apex",
-  "version": "67.14.0",
+  "version": "9.0.7",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "out/src/index.js",
   "types": "out/src/index.d.ts",
+  "private": true,
   "exports": {
     ".": {
       "types": "./out/src/index.d.ts",
@@ -17,7 +18,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^9.0.0",
+    "@salesforce/core": "^9.1.9",
     "@salesforce/kit": "^4.0.0",
     "@salesforce/ts-types": "^3.0.0",
     "fast-glob": "^3.3.2",
@@ -54,6 +55,7 @@
     "test:compile": "wireit",
     "test": "wireit"
   },
+  "versionedIndependently": true,
   "wireit": {
     "compile": {
       "command": "tsc --pretty",

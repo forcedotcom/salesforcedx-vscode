@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
@@ -86,7 +87,7 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       componentReferences: readonly OrgMetadataComponentReference[],
       options: { readonly prefer: 'workspace' | 'org' }
     ) {
-      const xmlNames = [...new Set(componentReferences.map(reference => reference.xmlName))];
+      const xmlNames = Arr.dedupe(componentReferences.map(reference => reference.xmlName));
       const workspaceByType = new Map(
         yield* Effect.forEach(
           xmlNames,

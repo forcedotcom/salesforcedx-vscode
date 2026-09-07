@@ -6,13 +6,11 @@
  */
 
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -116,7 +114,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     });
 
     /** Deploy metadata to the default org */
-    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (components: ComponentSet) {
+    const deploy = Effect.fn('MetadataDeployService.deploy')(function* (
+      components: ComponentSet,
+      options?: { progressLocation?: vscode.ProgressLocation }
+    ) {
       yield* Effect.all(
         [
           workspaceService.getWorkspaceInfoOrThrow(),
@@ -128,7 +129,6 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const connection = yield* connectionService.getConnection();
       components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
-      const runtime = yield* Effect.runtime();
       const deployFiber = yield* Effect.fork(
         Effect.tryPromise({
           try: async () => {
@@ -136,17 +136,19 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
               usernameOrConnection: connection
             });
 
+            const progressLocation = options?.progressLocation ?? vscode.ProgressLocation.Notification;
             const deployResult = await vscode.window.withProgress(
               {
-                location: vscode.ProgressLocation.Notification,
+                location: progressLocation,
                 title: getDeployMessage(components),
                 cancellable: true
               },
               async (_, token) => {
-                token.onCancellationRequested(async () => {
-                  await deployOperation.cancel();
-                  await Fiber.interrupt(deployFiber).pipe(Runtime.runPromise(runtime));
-                });
+                // Only send the cancel request to the server — do NOT interrupt the fiber.
+                // pollStatus() will resolve with Canceled/Canceling if the server honored it,
+                // or Succeeded if the deploy completed before the cancel arrived. Either way
+                // we get the real outcome and can update source tracking correctly.
+                token.onCancellationRequested(() => void deployOperation.cancel());
                 return await deployOperation.pollStatus();
               }
             );
@@ -163,14 +165,21 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       );
 
       const deployOutcome = yield* Effect.matchCauseEffect(Fiber.join(deployFiber), {
-        onFailure: cause =>
-          Cause.isInterruptedOnly(cause)
-            ? Effect.fail<UserCancellationError | MetadataDeployError>(new UserCancellationError())
-            : Effect.failCause(cause),
+        onFailure: cause => Effect.failCause(cause),
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
       yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+
+      // If the server honored the cancel, surface it as UserCancellationError so the
+      // command pipeline silently swallows it (same UX as if cancel arrived in time).
+      if (
+        deployOutcome.response?.status === RequestStatus.Canceled ||
+        deployOutcome.response?.status === RequestStatus.Canceling
+      ) {
+        return yield* new UserCancellationError();
+      }
+
       if (
         deployOutcome.response?.status === RequestStatus.Succeeded ||
         deployOutcome.response?.status === RequestStatus.SucceededPartial

@@ -6,6 +6,7 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
+import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -13,13 +14,20 @@ import * as Option from 'effect/Option';
 import { and, isUndefined, not } from 'effect/Predicate';
 import { window } from 'vscode';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
-import { notificationService } from '../utils/notificationHelpers';
+import { notificationService, showRunSuccessNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { openTestReport } from '../utils/testReportGenerator';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
+
+// Suite runs delegate to runSelectedTests too, but getRunCommandContext always resolves the "SFDX: Run
+// Apex Tests" executionName (pre-existing behavior), so a single command key covers both callers.
+const COMMAND: ProgressAndSuccessCommandKey = messages.apex_test_run_text;
 
 /** Apex classes worth offering in the quick pick: not a Flow test, and has at least one test method */
 const isRunnableTestClass = and(not(isFlowTest), (cls: ToolingTestClass) => (cls.testMethods?.length ?? 0) > 0);
@@ -28,6 +36,8 @@ const isRunnableTestClass = and(not(isFlowTest), (cls: ToolingTestClass) => (cls
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   const buildItems = Effect.fn('apexTestRun.selectTests.buildItems')(function* () {
     const suiteAndClassItems = yield* Effect.all(
@@ -79,7 +89,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   });
 
   return yield* buildItems().pipe(
-    promptService.withCancellableProgress(nls.localize('retrieving_tests_message')),
+    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation),
     Effect.flatMap(items => Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items))),
     Effect.flatMap(selection => promptService.considerUndefinedAsCancellation(selection))
   );
@@ -93,15 +103,17 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
 });
 
 /** Shared helper: build the payload for a selected quick-pick item, run it with cancellable progress +
- * completion sentinel, and notify success/failure. Returns the TestResult, or undefined when the run
- * produced no usable result (e.g. timeout / no summary). User cancellation fails the fiber with
+ * completion sentinel, and notify success/failure with a single combined toast (success message + an
+ * "Open Report" action when report generation succeeded). Returns the TestResult, or undefined when the
+ * run produced no usable result (e.g. timeout / no summary). User cancellation fails the fiber with
  * UserCancellationError rather than resolving to undefined.
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   if (selection.type === 'Suite') {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const connection = yield* api.services.ConnectionService.getConnection();
     const members = yield* Effect.tryPromise(() => new TestService(connection).getTestsInSuite(selection.label));
     if (members.length === 0) {
@@ -119,6 +131,8 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
   }
 
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+
   return yield* runApexTests({
     payload,
     outputDir,
@@ -127,17 +141,18 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     telemetryTrigger: 'quickPick'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName),
-    // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
+    promptService.withCancellableProgress(executionName, progressLocation),
+    // Terminal notify on the success value (undefined result = soft failure: timeout/no summary).
     // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
     Effect.tap(() => channelService.showChannel),
-    Effect.tap(result =>
-      Effect.sync(() =>
-        (isUndefined(result) ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
-          executionName
-        )
-      )
-    )
+    Effect.tap(({ result, reportUri, outputFormat }) =>
+      isUndefined(result)
+        ? Effect.sync(() => notificationService.showFailedExecution(executionName))
+        : showRunSuccessNotification(notificationMode, COMMAND, executionName, reportUri, outputFormat, (uri, format) =>
+            getApexTestingRuntime().runPromise(openTestReport(uri, format))
+          )
+    ),
+    Effect.map(({ result }) => result)
   );
 });
 

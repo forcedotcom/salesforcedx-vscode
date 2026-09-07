@@ -10,11 +10,13 @@ import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-re
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { URI } from 'vscode-uri';
 
@@ -91,12 +93,17 @@ const makeHarness = () => {
   const workspaceService = {
     getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/workspace') })
   } as unknown as InstanceType<typeof WorkspaceService>;
+  const notificationMode = {
+    getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+    showSuccessNotification: () => Effect.void
+  } as unknown as NotificationModeService;
   const provider = {
     getServicesApi: Effect.succeed({
       services: {
         ComponentSetService,
         FsService,
         MetadataRetrieveService: { buildComponentSet, retrieveComponentSetToDirectory },
+        NotificationModeService,
         OrgMetadataCatalog,
         SourceTrackingService,
         TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org-one' }),
@@ -116,7 +123,7 @@ const makeHarness = () => {
       toUri
     },
     provider,
-    services: { catalog, componentSetService, fsService, sourceTracking, workspaceService }
+    services: { catalog, componentSetService, fsService, notificationMode, sourceTracking, workspaceService }
   };
 };
 
@@ -125,6 +132,7 @@ const runWithHarness = <A, E, R>(effect: Effect.Effect<A, E, R>, harness: Return
     effect.pipe(
       Effect.provideService(ExtensionProviderService, harness.provider),
       Effect.provideService(FsService, harness.services.fsService),
+      Effect.provideService(NotificationModeService, harness.services.notificationMode),
       Effect.provideService(OrgMetadataCatalog, harness.services.catalog),
       Effect.provideService(SourceTrackingService, harness.services.sourceTracking),
       Effect.provideService(ComponentSetService, harness.services.componentSetService),
