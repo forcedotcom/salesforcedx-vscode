@@ -5,7 +5,7 @@
 'use strict';
 
 import * as url from 'node:url';
-import { DocumentContext } from 'vscode-html-languageservice';
+import { type DocumentContext } from 'vscode-html-languageservice';
 import { TextDocument } from 'vscode-languageserver-types';
 import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 
