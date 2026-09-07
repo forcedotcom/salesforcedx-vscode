@@ -6,6 +6,7 @@
  */
 import { fs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
+import * as Encoding from 'effect/Encoding';
 import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
@@ -120,12 +121,18 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
 
     const loadState = () =>
       withStore('readonly', store => store.getAll()).pipe(
-        Effect.tap((entries: SerializedEntryWithPath[]) => {
-          entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
-            fs.mkdirSync(entry.path, { recursive: true });
-          });
-          entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
-        }),
+        Effect.tap((entries: SerializedEntryWithPath[]) =>
+          Effect.gen(function* () {
+            yield* Effect.forEach(
+              entries.filter(isSerializedDirectoryWithPath),
+              entry => restoreDirectory(entry.path),
+              { discard: true }
+            );
+            yield* Effect.forEach(entries.filter(isSerializedFileWithPath), writeFileWithOrWithoutDir, {
+              discard: true
+            });
+          })
+        ),
         Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
         Effect.withSpan('loadState')
       );
@@ -146,13 +153,12 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
         Effect.tap(entry => {
           if (!entry) {
-            return;
+            return Effect.void;
           }
           if (isSerializedFileWithPath(entry)) {
-            writeFileWithOrWithoutDir(entry);
-          } else {
-            fs.mkdirSync(entry.path, { recursive: true });
+            return writeFileWithOrWithoutDir(entry);
           }
+          return restoreDirectory(entry.path);
         }),
         Effect.asVoid,
         Effect.withSpan('loadFile', { attributes: { path } })
@@ -187,11 +193,45 @@ export const IndexedDBStorageServiceShared =
     ? IndexedDBStorageService.Default.pipe(Layer.memoize, Layer.unwrapEffect)
     : IndexedDBStorageServicesNoop;
 
-const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
-  fs.mkdirSync(dirname(entry.path), { recursive: true });
-  // Use base64 to preserve binary data (e.g., git objects)
-  fs.writeFileSync(entry.path, Buffer.from(entry.data, 'base64'));
-};
+const restoreDirectory = Effect.fn('IndexedDBStorageService.restoreDirectory')(function* (path: string) {
+  yield* Effect.try({
+    try: () => fs.mkdirSync(path, { recursive: true }),
+    catch: error =>
+      new VirtualFsProviderError({
+        ...unknownToErrorCause(error),
+        message: `Failed to restore directory "${path}"`,
+        path
+      })
+  });
+});
+
+const writeFileWithOrWithoutDir = Effect.fn('IndexedDBStorageService.writeFileWithOrWithoutDir')(function* (
+  entry: SerializedFileWithPath
+) {
+  const data = yield* Encoding.decodeBase64(entry.data).pipe(
+    Effect.mapError(
+      error =>
+        new VirtualFsProviderError({
+          ...unknownToErrorCause(error),
+          message: `Failed to decode restored file "${entry.path}"`,
+          path: entry.path
+        })
+    )
+  );
+  yield* Effect.try({
+    try: () => {
+      fs.mkdirSync(dirname(entry.path), { recursive: true });
+      // Use base64 to preserve binary data (e.g., git objects)
+      fs.writeFileSync(entry.path, Buffer.from(data));
+    },
+    catch: error =>
+      new VirtualFsProviderError({
+        ...unknownToErrorCause(error),
+        message: `Failed to restore file "${entry.path}"`,
+        path: entry.path
+      })
+  });
+});
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {
   const stats = fs.statSync(path);
@@ -204,7 +244,7 @@ const buildFileEntry = (path: string): SerializedEntryWithPath => {
       ? { entries: {}, type: vscode.FileType.Directory }
       : {
           // Use base64 to preserve binary data (e.g., git objects)
-          data: fs.readFileSync(path).toString('base64'),
+          data: Encoding.encodeBase64(fs.readFileSync(path)),
           type: vscode.FileType.File
         })
   };
