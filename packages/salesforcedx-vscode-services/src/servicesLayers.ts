@@ -8,6 +8,7 @@
 import * as Layer from 'effect/Layer';
 import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
+import { ApexNodeConnectionProviderLayer } from './core/apexNodeCapabilities';
 import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
@@ -46,7 +47,7 @@ import { WorkspaceService } from './vscode/workspaceService';
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
  * when deriving runtime type from `typeof globalLayers`.
  */
-export const globalLayers = Layer.mergeAll(
+const baseGlobalLayers = Layer.mergeAll(
   AliasService.Default,
   TemplateService.Default,
   ExtensionContextService.Default,
@@ -83,3 +84,5 @@ export const globalLayers = Layer.mergeAll(
   TraceFlagService.Default,
   WorkspaceService.Default
 );
+
+export const globalLayers = ApexNodeConnectionProviderLayer.pipe(Layer.provideMerge(baseGlobalLayers));

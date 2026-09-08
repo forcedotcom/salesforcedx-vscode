@@ -9,6 +9,11 @@ Note: Please report any issues via the [Issues tab](https://github.com/forcedotc
 
 <br/>
 
+## API entry points
+
+- `@salesforce/apex-node` is the backward-compatible Promise and class API.
+- `@salesforce/apex-node/effect` is the primary API for new Effect operations, schemas, errors, and host capabilities.
+
 ## Getting Started
 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.

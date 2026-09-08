@@ -23,7 +23,7 @@ This supersedes the direction proposed in closed [PR 7599](https://github.com/fo
 ## Consequences
 
 - Traditional consumers do not receive `Effect.Effect` return types or need to run Effects, although Effect is a package runtime dependency and may appear behind schema-derived declarations.
-- `./effect` is a deliberate public API expansion with its own API Extractor report, package-export test, and packed-consumer validation.
+- `./effect` is a deliberate public API expansion covered by the JSON-schema contract, package-export test, and packed-consumer validation.
 - Wire schemas decode untrusted transport and persisted data; domain schemas define normalized public values. Capability objects such as connections, streams, callbacks, and cancellation handles are not schema-modeled.
 - The foundation adds structure, exports, errors, and layers only. Execute, log, test, coverage, streaming, reporter, and file behavior migrates in their respective work items.
 - Promise adapters may depend on Effect implementations; Effect implementations must not call legacy service classes.

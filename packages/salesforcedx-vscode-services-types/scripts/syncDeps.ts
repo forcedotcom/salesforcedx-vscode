@@ -38,6 +38,7 @@ const syncDeps = (): void => {
     '@opentelemetry/sdk-trace-base',
     '@opentelemetry/sdk-trace-node',
     '@opentelemetry/sdk-trace-web',
+    '@salesforce/apex-node',
     '@salesforce/core',
     '@salesforce/source-deploy-retrieve',
     '@salesforce/source-tracking',
