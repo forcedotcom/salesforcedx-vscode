@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { parse } from 'jest-editor-support';
+import parseJestTest from 'jest-editor-support/build/parsers';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
@@ -19,6 +19,8 @@ import {
   populateAncestorTitles,
   sanitizeFailureMessage
 } from './jestUtils';
+
+const parse: typeof import('jest-editor-support').parse = parseJestTest;
 
 class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];

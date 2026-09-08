@@ -17,7 +17,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const nodeBuild = await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
-  external: [...nodeConfig.external, '@babel/preset-typescript/package.json', 'jest-editor-support', '@babel/core'],
+  external: nodeConfig.external,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist',
   metafile: true
@@ -40,12 +40,7 @@ const browserBuild = await build({
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
-  external: [
-    'vscode',
-    '@salesforce/lightning-lsp-common',
-    '@babel/preset-typescript/package.json',
-    'jest-editor-support'
-  ],
+  external: ['vscode', '@salesforce/lightning-lsp-common'],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
