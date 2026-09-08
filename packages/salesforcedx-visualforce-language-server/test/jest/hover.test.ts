@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { MarkupContent, MarkedString, TextDocument } from 'vscode-languageserver-types';
+import { type MarkupContent, type MarkedString, TextDocument } from 'vscode-languageserver-types';
 import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 
 describe('HTML Hover', () => {

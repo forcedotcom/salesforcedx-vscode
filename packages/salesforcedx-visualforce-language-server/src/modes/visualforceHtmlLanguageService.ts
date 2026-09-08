@@ -5,17 +5,17 @@
 'use strict';
 
 import {
-  DocumentContext,
+  type DocumentContext,
   getDefaultHTMLDataProvider,
   getLanguageService,
-  HTMLDocument,
-  LanguageService,
-  Position,
+  type HTMLDocument,
+  type LanguageService,
+  type Position,
   Range,
-  TextDocument,
+  type TextDocument,
   TokenType
 } from 'vscode-html-languageservice';
-import { DocumentLink, Hover, MarkedString } from 'vscode-languageserver-types';
+import { type DocumentLink, type Hover, MarkedString } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
 import { visualforceDataProvider } from './visualforceTags';
 

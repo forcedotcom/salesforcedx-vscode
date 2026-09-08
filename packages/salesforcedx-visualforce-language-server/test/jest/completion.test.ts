@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CompletionConfiguration } from 'vscode-html-languageservice';
-import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
+import { type CompletionConfiguration } from 'vscode-html-languageservice';
+import { type CompletionItemKind, type CompletionList, TextDocument } from 'vscode-languageserver-types';
 import { getVisualforceHtmlLanguageService } from '../../src/modes/visualforceHtmlLanguageService';
 import { applyEdits } from './textEditSupport';
 

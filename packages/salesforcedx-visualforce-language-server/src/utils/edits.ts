@@ -5,7 +5,7 @@
 'use strict';
 
 import type { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position, TextEdit } from 'vscode-languageserver-types';
+import { type Position, type TextEdit } from 'vscode-languageserver-types';
 
 export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
