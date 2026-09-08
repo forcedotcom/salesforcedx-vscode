@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { JUnitFormatTransformer } from '../../src';
+import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, junitSetup, setupResult } from './testResults';
 

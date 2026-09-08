@@ -9,27 +9,15 @@ import { elapsedTime } from '../../src/utils';
 import * as dateUtil from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
-import {
-  TestService,
-  OutputDirConfig,
-  ApexTestProgressValue,
-  Progress,
-  JUnitFormatTransformer,
-  TapFormatTransformer,
-  CancellationTokenSource
-} from '../../src';
+import { TestService, OutputDirConfig, ApexTestProgressValue, Progress, CancellationTokenSource } from '../../src';
+import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
+import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
   AsyncTestConfiguration,
-  TestLevel,
-  ApexTestQueueItemStatus,
-  ApexTestResultOutcome,
   ApexTestQueueItem,
-  ApexTestRunResultStatus,
   ApexTestResult,
   ApexTestQueueItemRecord,
-  ResultFormat,
-  TestRunIdResult,
-  TestCategory
+  TestRunIdResult
 } from '../../src/tests/types';
 import { StreamingClient } from '../../src/streaming';
 import { fail } from 'node:assert';
@@ -56,6 +44,12 @@ import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
 
+type TestServiceInternals = {
+  createStream: (filePath: string) => Writable;
+};
+
+const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
+
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
@@ -68,7 +62,7 @@ const pollResponse: ApexTestQueueItem = {
   records: [
     {
       Id: '7092M000000Vt94QAC',
-      Status: ApexTestQueueItemStatus.Completed,
+      Status: 'Completed',
       ApexClassId: '01p2M00000O6tXZQAZ',
       TestRunResultId: '05m2M000000TgYuQAK'
     }
@@ -97,7 +91,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should run a successful test', async () => {
     const requestOptions: AsyncTestConfiguration = {
       classNames: 'TestSample',
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: 'RunSpecifiedTests'
     };
 
     const testAsyncRequest = {
@@ -116,7 +110,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '07Mxx00000F2Xx6UAF',
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: 1000,
           UserId: '005xx000000abcDAAU',
@@ -127,7 +121,7 @@ describe('Run Apex tests asynchronously', () => {
           StackTrace: null,
           Message: null,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Pass,
+          Outcome: 'Pass',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -160,7 +154,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should throw an error on refresh token issue', async () => {
     const requestOptions: AsyncTestConfiguration = {
       classNames: 'TestSample',
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: 'RunSpecifiedTests'
     };
     const testAsyncRequest = {
       method: 'POST',
@@ -196,7 +190,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU'
@@ -212,7 +206,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '07Mxx00000F2Xx6UAF',
           ApexTestQueueItemId: '7092M000000Vt94QAC',
-          Result: ApexTestResultOutcome.Pass,
+          Result: 'Pass',
           TestStartDateTime: '3',
           TestEndDateTime: '5',
           FlowTest: {
@@ -233,7 +227,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           Id: '7092M000000Vt94QAC',
-          Status: ApexTestQueueItemStatus.Completed,
+          Status: 'Completed',
           ApexClassId: null,
           TestRunResultId: '05m2M000000TgYuQAK'
         }
@@ -270,7 +264,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '07Mxx00000F2Xx6UAF',
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU',
@@ -278,7 +272,7 @@ describe('Run Apex tests asynchronously', () => {
           StackTrace: null,
           Message: null,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Skip,
+          Outcome: 'Skip',
           ApexLogId: null,
           ApexClass: {
             Id: '7092M000000Vt94QAC',
@@ -314,7 +308,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '07Mxx00000F2Xx6UAF',
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU',
@@ -322,7 +316,7 @@ describe('Run Apex tests asynchronously', () => {
           StackTrace: null,
           Message: null,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Pass,
+          Outcome: 'Pass',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -356,7 +350,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU'
@@ -374,7 +368,7 @@ describe('Run Apex tests asynchronously', () => {
           Message: null,
           AsyncApexJobId: testRunId,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Pass,
+          Outcome: 'Pass',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -413,7 +407,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU'
@@ -431,7 +425,7 @@ describe('Run Apex tests asynchronously', () => {
           Message: 'System.AssertException: Assertion Failed',
           AsyncApexJobId: testRunId,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Fail,
+          Outcome: 'Fail',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -470,7 +464,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU'
@@ -489,7 +483,7 @@ describe('Run Apex tests asynchronously', () => {
           Message: 'System.AssertException: Assertion Failed',
           AsyncApexJobId: testRunId,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Fail,
+          Outcome: 'Fail',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -586,7 +580,7 @@ describe('Run Apex tests asynchronously', () => {
       records: [
         {
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU'
@@ -676,7 +670,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '7092M000000Vt94QAC',
           AsyncApexJobId: testRunId,
-          Status: ApexTestRunResultStatus.Completed,
+          Status: 'Completed',
           StartTime: testStartTime,
           TestTime: null,
           UserId: '005xx000000abcDAAU',
@@ -684,7 +678,7 @@ describe('Run Apex tests asynchronously', () => {
           StackTrace: null,
           Message: null,
           MethodName: 'testLoggerLog',
-          Outcome: ApexTestResultOutcome.Pass,
+          Outcome: 'Pass',
           ApexLogId: null,
           ApexClass: {
             Id: '01pxx00000O6tXZQAZ',
@@ -745,9 +739,9 @@ describe('Run Apex tests asynchronously', () => {
     const maxRecordCount = 700;
 
     for (let i = 0; i < maxRecordCount; i++) {
-      const record = {
+      const record: ApexTestQueueItemRecord = {
         Id: `7092M000000Vt94QAC-${i}`,
-        Status: ApexTestQueueItemStatus.Completed,
+        Status: 'Completed',
         ApexClassId: '01p2M00000O6tXZQAZ',
         TestRunResultId: '05m2M000000TgYuQAK'
       };
@@ -856,9 +850,9 @@ describe('Run Apex tests asynchronously', () => {
 
       let count = 0;
       while (count < 1800) {
-        const record = {
+        const record: ApexTestQueueItemRecord = {
           Id: `7092M000000Vt94QAC-${count}`,
-          Status: ApexTestQueueItemStatus.Completed,
+          Status: 'Completed',
           ApexClassId: '01p2M00000O6tXZQAZ',
           TestRunResultId: '05m2M000000TgYuQAK'
         };
@@ -915,7 +909,7 @@ describe('Run Apex tests asynchronously', () => {
             Message: null,
             AsyncApexJobId: testRunId,
             MethodName: 'testLoggerLog',
-            Outcome: ApexTestResultOutcome.Pass,
+            Outcome: 'Pass',
             ApexLogId: null,
             ApexClass: {
               Id: '01pxx00000O6tXZQAZ',
@@ -954,7 +948,7 @@ describe('Run Apex tests asynchronously', () => {
               url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
             },
             Id: testRunId,
-            Status: ApexTestQueueItemStatus.Processing
+            Status: 'Processing'
           },
           {
             attributes: {
@@ -962,7 +956,7 @@ describe('Run Apex tests asynchronously', () => {
               url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
             },
             Id: testRunId,
-            Status: ApexTestQueueItemStatus.Processing
+            Status: 'Processing'
           }
         ]
       } as unknown as ApexTestQueueItem;
@@ -982,7 +976,7 @@ describe('Run Apex tests asynchronously', () => {
             url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
           },
           Id: testRunId,
-          Status: ApexTestQueueItemStatus.Aborted
+          Status: 'Aborted'
         },
         {
           attributes: {
@@ -990,7 +984,7 @@ describe('Run Apex tests asynchronously', () => {
             url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
           },
           Id: testRunId,
-          Status: ApexTestQueueItemStatus.Aborted
+          Status: 'Aborted'
         }
       ] as unknown as ApexTestQueueItemRecord[]);
     });
@@ -998,7 +992,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should abort test run on cancellation requested', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       };
       const testAsyncRequest = {
         method: 'POST',
@@ -1020,7 +1014,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Queued,
+            Status: 'Queued',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1035,7 +1029,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             Id: '7092M000000Vt94QAC',
-            Status: ApexTestQueueItemStatus.Processing,
+            Status: 'Processing',
             ApexClassId: '01p2M00000O6tXZQAZ',
             TestRunResultId: '05m2M000000TgYuQAK'
           }
@@ -1049,7 +1043,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Aborted,
+            Status: 'Aborted',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1087,7 +1081,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should format test error when running asynchronous tests', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       };
       const testAsyncRequest = {
         method: 'POST',
@@ -1107,7 +1101,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Queued,
+            Status: 'Queued',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1122,7 +1116,7 @@ describe('Run Apex tests asynchronously', () => {
       try {
         await testSrv.runTestAsynchronous(
           {
-            testLevel: TestLevel.RunLocalTests
+            testLevel: 'RunLocalTests'
           },
           false,
           false,
@@ -1142,7 +1136,7 @@ describe('Run Apex tests asynchronously', () => {
       $$.SANDBOX.stub(utils, 'queryNamespaces').throws(new Error(errMsg));
       const testSrv = new TestService(mockConnection);
       try {
-        await testSrv.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'MyApexClass.MyTest');
+        await testSrv.buildAsyncPayload('RunSpecifiedTests', 'MyApexClass.MyTest');
         fail('Should have failed');
       } catch (e) {
         expect(formatSpy.calledOnce).toBe(true);
@@ -1163,7 +1157,7 @@ describe('Run Apex tests asynchronously', () => {
           records: [
             {
               AsyncApexJobId: testRunId,
-              Status: ApexTestRunResultStatus.Queued,
+              Status: 'Queued',
               StartTime: testStartTime,
               TestTime: null,
               UserId: '005xx000000abcDAAU'
@@ -1177,7 +1171,7 @@ describe('Run Apex tests asynchronously', () => {
           records: [
             {
               AsyncApexJobId: testRunId,
-              Status: ApexTestRunResultStatus.Completed,
+              Status: 'Completed',
               StartTime: testStartTime,
               TestTime: null,
               UserId: '005xx000000abcDAAU'
@@ -1191,7 +1185,7 @@ describe('Run Apex tests asynchronously', () => {
           totalSize: 1,
           records: [
             {
-              Status: ApexTestQueueItemStatus.Completed,
+              Status: 'Completed',
               Id: 'xxx',
               ApexClassId: 'xxxx',
               TestRunResultId: 'xxx'
@@ -1221,7 +1215,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Completed,
+            Status: 'Completed',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1235,7 +1229,7 @@ describe('Run Apex tests asynchronously', () => {
           totalSize: 1,
           records: [
             {
-              Status: ApexTestQueueItemStatus.Completed,
+              Status: 'Completed',
               Id: 'xxx',
               ApexClassId: 'xxxx',
               TestRunResultId: 'xxx'
@@ -1265,7 +1259,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Completed,
+            Status: 'Completed',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1279,7 +1273,7 @@ describe('Run Apex tests asynchronously', () => {
           totalSize: 1,
           records: [
             {
-              Status: ApexTestQueueItemStatus.Completed,
+              Status: 'Completed',
               Id: 'xxx',
               ApexClassId: 'xxxx',
               TestRunResultId: 'xxx'
@@ -1380,7 +1374,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should return test run ID when polling client times out', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       };
       const testAsyncRequest = {
         method: 'POST',
@@ -1400,7 +1394,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Queued,
+            Status: 'Queued',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1413,7 +1407,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             Id: '7092M000000Vt94QAC',
-            Status: ApexTestQueueItemStatus.Processing,
+            Status: 'Processing',
             ApexClassId: '01p2M00000O6tXZQAZ',
             TestRunResultId: '05m2M000000TgYuQAK'
           }
@@ -1449,7 +1443,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should handle PollingClientTimeout error gracefully', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       };
       const testAsyncRequest = {
         method: 'POST',
@@ -1469,7 +1463,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             AsyncApexJobId: testRunId,
-            Status: ApexTestRunResultStatus.Queued,
+            Status: 'Queued',
             StartTime: testStartTime,
             TestTime: null,
             UserId: '005xx000000abcDAAU'
@@ -1482,7 +1476,7 @@ describe('Run Apex tests asynchronously', () => {
         records: [
           {
             Id: '7092M000000Vt94QAC',
-            Status: ApexTestQueueItemStatus.Processing,
+            Status: 'Processing',
             ApexClassId: '01p2M00000O6tXZQAZ',
             TestRunResultId: '05m2M000000TgYuQAK'
           }
@@ -1531,19 +1525,19 @@ describe('Run Apex tests asynchronously', () => {
           {
             Id: 'apex1',
             ApexClassId: '01p000000000001',
-            Status: ApexTestQueueItemStatus.Completed,
+            Status: 'Completed',
             TestRunResultId: 'result1'
           } as ApexTestQueueItemRecord,
           {
             Id: 'flow1',
             ApexClassId: null,
-            Status: ApexTestQueueItemStatus.Completed,
+            Status: 'Completed',
             TestRunResultId: 'result2'
           } as ApexTestQueueItemRecord,
           {
             Id: 'apex2',
             ApexClassId: '01p000000000002',
-            Status: ApexTestQueueItemStatus.Completed,
+            Status: 'Completed',
             TestRunResultId: 'result3'
           } as ApexTestQueueItemRecord
         ]
@@ -1646,11 +1640,11 @@ describe('Run Apex tests asynchronously', () => {
       // Verify results structure and categories
       expect(results).toHaveLength(2);
 
-      const apexResult = results.find((r: any) => r.category === TestCategory.Apex);
+      const apexResult = results.find((r: any) => r.category === 'Apex');
       expect(apexResult).toBeDefined();
       expect(apexResult!.records).toHaveLength(2);
 
-      const flowResult = results.find((r: any) => r.category === TestCategory.Flow);
+      const flowResult = results.find((r: any) => r.category === 'Flow');
       expect(flowResult).toBeDefined();
       expect(flowResult!.records).toHaveLength(1);
     });
@@ -1723,7 +1717,7 @@ describe('Create Result Files', () => {
     writeFileSpy = sandboxStub1.stub(fs, 'writeFile');
     // sandboxStub1.stub(fs, 'close');
     sandboxStub1.stub(fs, 'open');
-    testServiceSpy = sandboxStub1.stub(TestService.prototype, 'createStream').returns(
+    testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
       new Writable({
         write(chunk: unknown, encoding, callback) {
           callback();
@@ -1750,9 +1744,9 @@ describe('Create Result Files', () => {
   });
 
   it('should still create test-run-id.txt if result format is specified with TestRunId result', async () => {
-    const config = {
+    const config: OutputDirConfig = {
       dirPath: 'path/to/directory',
-      resultFormats: [ResultFormat.tap]
+      resultFormats: ['tap']
     };
 
     const testSrv = new TestService(mockConnection);
@@ -1778,7 +1772,7 @@ describe('Create Result Files', () => {
   it('should create the json files if json result format is specified', async () => {
     const config = {
       dirPath: 'path/to/directory',
-      resultFormats: [ResultFormat.json]
+      resultFormats: ['json']
     } as OutputDirConfig;
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles(testResultData, config);
@@ -1790,7 +1784,7 @@ describe('Create Result Files', () => {
   it('should create the junit result files if junit result format is specified', async () => {
     const config = {
       dirPath: 'path/to/directory',
-      resultFormats: [ResultFormat.junit]
+      resultFormats: ['junit']
     } as OutputDirConfig;
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles(testResultData, config);
@@ -1803,7 +1797,7 @@ describe('Create Result Files', () => {
   it('should create the tap result files if result format is specified', async () => {
     const config = {
       dirPath: 'path/to/directory',
-      resultFormats: [ResultFormat.tap]
+      resultFormats: ['tap']
     } as OutputDirConfig;
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles(testResultData, config);

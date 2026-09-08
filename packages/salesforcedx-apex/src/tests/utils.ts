@@ -17,7 +17,6 @@ import {
   ApexTestSetupData,
   NamespaceInfo,
   TestCategory,
-  TestCategoryPrefix,
   TestResult,
   TestResultRaw
 } from './types';
@@ -227,9 +226,9 @@ export const calculateCodeCoverage = async (
 };
 
 export const computeTestCategory = (testNamespace: string | null): TestCategory =>
-  isFlowTest(testNamespace) ? TestCategory.Flow : TestCategory.Apex;
+  isFlowTest(testNamespace) ? 'Flow' : 'Apex';
 
-export const isFlowTest = (test: string | null): boolean => test?.startsWith(TestCategoryPrefix.FlowTest) ?? false;
+export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
   // Assuming all necessary properties are present and optional properties are handled

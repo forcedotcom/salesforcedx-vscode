@@ -6,7 +6,7 @@
  */
 
 import * as util from 'node:util';
-import { ApexTestResultOutcome, TestResult } from '../../src/tests/types';
+import { TestResult } from '../../src/tests/types';
 
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
@@ -42,7 +42,7 @@ export const coverageResult: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'should_create_account',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
@@ -61,7 +61,7 @@ export const coverageResult: TestResult = {
       message: '',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
@@ -118,7 +118,7 @@ export const setupResult: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'should_create_account',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
@@ -137,7 +137,7 @@ export const setupResult: TestResult = {
       message: '',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
@@ -190,7 +190,7 @@ export const coverageFailResult: TestResult = {
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testMissingAnimal',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
@@ -235,7 +235,7 @@ export const successResult: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'should_create_account',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
@@ -254,7 +254,7 @@ export const successResult: TestResult = {
       message: '',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
@@ -298,7 +298,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'should_create_account',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
@@ -317,7 +317,7 @@ export const testResults: TestResult = {
       message: '',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
@@ -336,7 +336,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testGetCurrentUser',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000003qSzaAAE',
@@ -355,7 +355,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testResetMyPassword',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000003qSzaAAE',
@@ -374,7 +374,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testGetCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
@@ -393,7 +393,7 @@ export const testResults: TestResult = {
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testMissingAnimal',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
@@ -412,7 +412,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testProcessing',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000i6dtAAA',
@@ -431,7 +431,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testDashboardPal',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000i4L1AAI',
@@ -450,7 +450,7 @@ export const testResults: TestResult = {
       message: 'System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCountContacts',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
@@ -469,7 +469,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCountContactsEmptyList',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
@@ -488,7 +488,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCountContactsNullList',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
@@ -507,7 +507,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ime6AAA',
@@ -526,7 +526,7 @@ export const testResults: TestResult = {
       message: 'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testGetCallout',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytK6AAI',
@@ -545,7 +545,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testPostCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytK6AAI',
@@ -564,7 +564,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testAddContact',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000iADsAAM',
@@ -583,7 +583,7 @@ export const testResults: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testLeadProcessing',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000iAZFAA2',
@@ -755,7 +755,7 @@ export const testResultsWithCategory: TestResult = {
       message: null,
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'should_create_account',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
@@ -775,7 +775,7 @@ export const testResultsWithCategory: TestResult = {
       message: '',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCallout',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
@@ -795,7 +795,7 @@ export const testResultsWithCategory: TestResult = {
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testMissingAnimal',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',

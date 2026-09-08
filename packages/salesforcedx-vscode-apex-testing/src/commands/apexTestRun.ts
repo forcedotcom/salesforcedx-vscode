@@ -7,7 +7,7 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
+import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -161,7 +161,7 @@ const buildTestPayload = async (
   data: ApexTestQuickPickItem,
   codeCoverage: boolean
 ): Promise<AsyncTestConfiguration> => {
-  const testLevel = TestLevel.RunSpecifiedTests;
+  const testLevel = 'RunSpecifiedTests';
   switch (data.type) {
     case 'Class':
       return await testService.buildAsyncPayload(
@@ -175,10 +175,10 @@ const buildTestPayload = async (
     case 'Suite':
       return await testService.buildAsyncPayload(testLevel, undefined, undefined, data.label, undefined, !codeCoverage);
     case 'AllLocal':
-      return { testLevel: TestLevel.RunLocalTests };
+      return { testLevel: 'RunLocalTests' };
     case 'All':
-      return { testLevel: TestLevel.RunAllTestsInOrg };
+      return { testLevel: 'RunAllTestsInOrg' };
     default:
-      return { testLevel: TestLevel.RunAllTestsInOrg };
+      return { testLevel: 'RunAllTestsInOrg' };
   }
 };

@@ -7,38 +7,17 @@
 
 import { ApexDiagnostic } from '../utils';
 
-export const enum TestLevel {
-  /**
-   * All tests in your org are run, except the ones that originate from installed managed packages
-   */
-  RunLocalTests = 'RunLocalTests',
-  /**
-   * All tests are in your org and in installed managed packages are run
-   */
-  RunAllTestsInOrg = 'RunAllTestsInOrg',
-  /**
-   * Only the tests that you specify are run
-   */
-  RunSpecifiedTests = 'RunSpecifiedTests'
-}
+/**
+ * Specifies which Apex tests run.
+ *
+ * - `RunLocalTests`: all local tests except those from installed managed packages
+ * - `RunAllTestsInOrg`: all local and managed-package tests
+ * - `RunSpecifiedTests`: only explicitly selected tests
+ */
+export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
 
-export const enum TestCategory {
-  /**
-   * Apex test classes and methods written in Apex code
-   */
-  Apex = 'Apex',
-  /**
-   * Flow tests that validate Salesforce Flow functionality
-   */
-  Flow = 'Flow'
-}
-
-export const enum TestCategoryPrefix {
-  /**
-   * Prefix identifier used to detect Flow tests in test names
-   */
-  FlowTest = 'FlowTesting.'
-}
+/** Test implementation category. */
+export type TestCategory = 'Apex' | 'Flow';
 
 export type AsyncTestConfiguration = {
   /**
@@ -81,14 +60,7 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export enum ResultFormat {
-  junit = 'junit',
-  tap = 'tap',
-  json = 'json',
-  human = 'human',
-  markdown = 'markdown',
-  text = 'text'
-}
+export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
 
 export type OutputDirConfig = {
   dirPath: string;
@@ -199,12 +171,7 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export const enum ApexTestResultOutcome {
-  Pass = 'Pass',
-  Fail = 'Fail',
-  CompileFail = 'CompileFail',
-  Skip = 'Skip'
-}
+export type ApexTestResultOutcome = 'Pass' | 'Fail' | 'CompileFail' | 'Skip';
 
 type FlowTestResultRecord = {
   Id: string;
@@ -300,15 +267,14 @@ export type FlowTestResult = {
   records: FlowTestResultRecord[];
 };
 
-export const enum ApexTestRunResultStatus {
-  Queued = 'Queued',
-  Processing = 'Processing',
-  Aborted = 'Aborted',
-  Passed = 'Passed',
-  Failed = 'Failed',
-  Completed = 'Completed',
-  Skipped = 'Skipped'
-}
+export type ApexTestRunResultStatus =
+  | 'Queued'
+  | 'Processing'
+  | 'Aborted'
+  | 'Passed'
+  | 'Failed'
+  | 'Completed'
+  | 'Skipped';
 
 export type ApexTestRunResult = {
   /**
@@ -353,15 +319,14 @@ export type ApexTestRunResult = {
   UserId: string;
 };
 
-export const enum ApexTestQueueItemStatus {
-  Holding = 'Holding',
-  Queued = 'Queued',
-  Preparing = 'Preparing',
-  Processing = 'Processing',
-  Aborted = 'Aborted',
-  Completed = 'Completed',
-  Failed = 'Failed'
-}
+export type ApexTestQueueItemStatus =
+  | 'Holding'
+  | 'Queued'
+  | 'Preparing'
+  | 'Processing'
+  | 'Aborted'
+  | 'Completed'
+  | 'Failed';
 
 export type ApexTestQueueItemRecord = {
   Id: string;
@@ -623,4 +588,5 @@ export type ApexTestProgressValue =
       testRunId: string;
     };
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type TestSuiteMembershipRecord = { ApexClassId: string };

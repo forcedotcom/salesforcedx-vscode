@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type { ApexDiagnostic, CommonOptions, Row } from './types';
+export type { ApexDiagnostic, CommonOptions, LogLevel, Row } from './types';
 export { Table } from './table';
 export { getCurrentTime, formatStartTime, msToSecond } from './dateUtil';
 export { refreshAuth } from './authUtil';

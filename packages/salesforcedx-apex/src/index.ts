@@ -13,9 +13,7 @@ export { LogService } from './logs';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
 export {
   JUnitReporter,
-  JUnitFormatTransformer,
   TapReporter,
-  TapFormatTransformer,
   HumanReporter,
   CoverageReporter,
   DefaultReportOptions,
@@ -25,34 +23,38 @@ export {
 export type {
   CoverageReporterOptions,
   CoverageReportFormats,
+  MarkdownTextFormatTransformerOptions,
   MarkdownTextReporterOptions,
   OutputFormat,
   TestSortOrder
 } from './reporters';
-export {
-  ApexTestResultOutcome,
-  ApexTestRunResultStatus,
-  ResultFormat,
-  TestLevel,
-  TestService,
-  writeResultFiles,
-  writeAsyncResultsToFile
-} from './tests';
+export { TestService } from './tests';
 export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
+  ApexTestQueueItem,
+  ApexTestQueueItemRecord,
+  ApexTestQueueItemStatus,
   ApexTestProgressValue,
   ApexTestResultData,
+  ApexTestResultDataRaw,
+  ApexTestResultOutcome,
+  ApexTestRunResultStatus,
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
+  ResultFormat,
   SyncTestConfiguration,
   TestItem,
+  TestLevel,
   TestResult,
+  TestResultRaw,
   TestRunIdResult,
+  TestSuiteMembershipRecord,
   PerClassCoverage
 } from './tests';
-export { Table } from './utils';
-export type { ApexDiagnostic, Row } from './utils';
+export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils';

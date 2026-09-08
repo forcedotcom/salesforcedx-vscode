@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { type ApexDiagnostic, ApexTestResultData, TestLevel, TestResult } from '@salesforce/apex-node';
+import { type ApexDiagnostic, ApexTestResultData, TestResult } from '@salesforce/apex-node';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -50,7 +50,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
     (testService, cc) =>
       testService.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         tests.join(),
         undefined,
         undefined,

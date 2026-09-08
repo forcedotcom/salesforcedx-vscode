@@ -24,7 +24,7 @@ import {
 import { encodeBody } from './utils';
 
 export class ExecuteService {
-  public readonly connection: Connection;
+  private readonly connection: Connection;
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -53,7 +53,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public async getApexCode(options: ApexExecuteOptions): Promise<string> {
+  private async getApexCode(options: ApexExecuteOptions): Promise<string> {
     if (options.apexCode) {
       return String(options.apexCode);
     } else if (options.apexFilePath) {
@@ -66,7 +66,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public readApexFile(filepath: string): string {
+  private readApexFile(filepath: string): string {
     if (!existsSync(filepath)) {
       throw new Error(nls.localize('fileNotFoundError', filepath));
     }
@@ -74,7 +74,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public async getUserInput(): Promise<string> {
+  private async getUserInput(): Promise<string> {
     process.stdout.write(nls.localize('execAnonInputPrompt'));
     return new Promise<string>((resolve, reject) => {
       const readInterface = readline.createInterface(process.stdin, process.stdout);
@@ -119,7 +119,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
+  private jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
     const envelope = soapResponse[soapEnv];
     if (!envelope) {
       throw new Error(nls.localize('unexpectedExecuteCommandError', ''));
@@ -150,7 +150,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public async connectionRequest(requestData: HttpRequest): Promise<SoapResponse> {
+  private async connectionRequest(requestData: HttpRequest): Promise<SoapResponse> {
     return this.connection.request(requestData);
   }
 }
