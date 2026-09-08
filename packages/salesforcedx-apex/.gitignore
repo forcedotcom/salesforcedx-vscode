@@ -42,6 +42,7 @@ lib-cov
 
 # Coverage directory used by tools like istanbul
 coverage
+temp
 *.lcov
 
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
@@ -94,4 +95,3 @@ jspm_packages/
 
 # Salesforce CLI
 .sfdx
-

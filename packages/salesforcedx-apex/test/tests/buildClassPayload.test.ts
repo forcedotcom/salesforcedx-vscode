@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { TestLevel, TestService } from '../../src/tests';
+import { TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;
@@ -31,11 +31,11 @@ describe('buildAsyncClassPayload with namespaces', () => {
 
   it('should build async payload for single class without namespace', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, 'MyTestClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'MyTestClass');
 
     expect(payload).toEqual({
       tests: [{ className: 'MyTestClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -45,11 +45,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'myNamespace.MyTestClass'
-    );
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'myNamespace.MyTestClass');
 
     expect(payload).toEqual({
       tests: [
@@ -57,7 +53,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
           className: 'myNamespace.MyTestClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -68,11 +64,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: true, namespace: 'CodeBuilder' }
     ]);
-    const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'CodeBuilder.ApplicationTest'
-    );
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'CodeBuilder.ApplicationTest');
 
     expect(payload).toEqual({
       tests: [
@@ -80,7 +72,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
           className: 'CodeBuilder.ApplicationTest'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -93,7 +85,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
       { installedNs: true, namespace: 'installedPkg' }
     ]);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       undefined,
       'orgNs.TestClass1,installedPkg.TestClass2,TestClass3'
     );
@@ -110,7 +102,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
           className: 'TestClass3'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -121,11 +113,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'differentNs' }
     ]);
-    const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'unknownNs.MyTestClass'
-    );
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'unknownNs.MyTestClass');
 
     // When namespace is not found, treat the whole thing as a class name
     expect(payload).toEqual({
@@ -134,7 +122,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
           className: 'unknownNs.MyTestClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -146,7 +134,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
       { installedNs: false, namespace: 'myNs' }
     ]);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       undefined,
       'myNs.Class1,myNs.Class2,myNs.Class3'
     );
@@ -163,7 +151,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
           className: 'myNs.Class3'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -190,7 +178,7 @@ describe('buildSyncPayload with class namespaces', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNs' }
     ]);
-    const payload = await testService.buildSyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myNs.MyTestClass');
+    const payload = await testService.buildSyncPayload('RunSpecifiedTests', undefined, 'myNs.MyTestClass');
 
     expect(payload).toEqual({
       tests: [
@@ -198,7 +186,7 @@ describe('buildSyncPayload with class namespaces', () => {
           className: 'myNs.MyTestClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -209,11 +197,7 @@ describe('buildSyncPayload with class namespaces', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: true, namespace: 'installedPkg' }
     ]);
-    const payload = await testService.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'installedPkg.MyTestClass'
-    );
+    const payload = await testService.buildSyncPayload('RunSpecifiedTests', undefined, 'installedPkg.MyTestClass');
 
     expect(payload).toEqual({
       tests: [
@@ -221,7 +205,7 @@ describe('buildSyncPayload with class namespaces', () => {
           className: 'installedPkg.MyTestClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs

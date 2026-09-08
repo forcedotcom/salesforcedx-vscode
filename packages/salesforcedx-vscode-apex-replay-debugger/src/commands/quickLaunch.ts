@@ -5,14 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApexTestResultData,
-  LogService,
-  ResultFormat,
-  TestLevel,
-  TestResult,
-  TestService
-} from '@salesforce/apex-node';
+import { ApexTestResultData, LogService, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -46,7 +39,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const singleTestName = testName ? `${testClass}.${testName}` : undefined;
   const payload = yield* Effect.promise(() =>
     testService.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       singleTestName,
       singleTestName ? undefined : testClass,
       undefined,
@@ -58,7 +51,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
   const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
   yield* Effect.promise(() =>
-    testService.writeResultFiles(result, { dirPath, resultFormats: [ResultFormat.json] }, retrieveTestCodeCoverage())
+    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveTestCodeCoverage())
   );
 
   const tests: ApexTestResultData[] = result.tests;

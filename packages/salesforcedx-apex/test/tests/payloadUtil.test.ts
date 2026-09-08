@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { nls } from '../../src/i18n';
-import { TestCategory, TestLevel, TestService } from '../../src/tests';
+import { TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;
@@ -34,11 +34,11 @@ describe('Build async payload', () => {
 
   it('should build async payload for tests without namespace', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([]);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myClass.myTest');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myClass.myTest');
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -46,11 +46,11 @@ describe('Build async payload', () => {
 
   it('should build async payload for test with namespace when org returns 0 namespaces', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([]);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myNamespace.myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass');
 
     expect(payload).toEqual({
       tests: [{ className: 'myNamespace', testMethods: ['myClass'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -60,7 +60,7 @@ describe('Build async payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myNamespace.myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass');
 
     expect(payload).toEqual({
       tests: [
@@ -68,7 +68,7 @@ describe('Build async payload', () => {
           className: 'myNamespace.myClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // Still queries namespaces to distinguish namespace.Class from Class.method
@@ -79,7 +79,7 @@ describe('Build async payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: true, namespace: 'myNamespace' }
     ]);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myNamespace.myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass');
 
     expect(payload).toEqual({
       tests: [
@@ -87,7 +87,7 @@ describe('Build async payload', () => {
           className: 'myNamespace.myClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // Still queries namespaces to distinguish namespace.Class from Class.method
@@ -99,7 +99,7 @@ describe('Build async payload', () => {
       { installedNs: false, namespace: 'myNamespace' }
     ]);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       'myNamespace.myClass,myNamespace.mySecondClass'
     );
 
@@ -112,7 +112,7 @@ describe('Build async payload', () => {
           className: 'myNamespace.mySecondClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -120,7 +120,7 @@ describe('Build async payload', () => {
 
   it('should build async payload for tests with 3 parts', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myNamespace.myClass.myTest');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass.myTest');
 
     expect(payload).toEqual({
       tests: [
@@ -129,7 +129,7 @@ describe('Build async payload', () => {
           testMethods: ['myTest']
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -137,10 +137,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for tests with only classname', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, 'myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myClass');
     expect(payload).toEqual({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -148,10 +148,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for tests with only classid', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, '01p4x00000KWt3T');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', '01p4x00000KWt3T');
     expect(payload).toEqual({
       tests: [{ classId: '01p4x00000KWt3T' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -159,10 +159,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for class with only classname', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'myClass');
     expect(payload).toEqual({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -170,10 +170,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for class specified by id', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, '01p4x00000KWt3TAAT');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, '01p4x00000KWt3TAAT');
     expect(payload).toEqual({
       tests: [{ classId: '01p4x00000KWt3TAAT' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -181,10 +181,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for class specified by id with incorrect number of digits', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, '01p4x00000KWt3TAATP');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, '01p4x00000KWt3TAATP');
     expect(payload).toEqual({
       tests: [{ className: '01p4x00000KWt3TAATP' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -194,10 +194,10 @@ describe('Build async payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myNamespace.myClass');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'myNamespace.myClass');
     expect(payload).toEqual({
       tests: [{ className: 'myNamespace.myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -206,10 +206,10 @@ describe('Build async payload', () => {
 
   it('should build async payload for suite', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, undefined, 'mySuite');
+    const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, undefined, 'mySuite');
     expect(payload).toEqual({
       suiteNames: 'mySuite',
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -218,7 +218,7 @@ describe('Build async payload', () => {
   it('should include skipCodeCoverage in async payload when tests are provided', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([]);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       'myClass.myTest',
       undefined,
       undefined,
@@ -228,7 +228,7 @@ describe('Build async payload', () => {
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: true
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -237,7 +237,7 @@ describe('Build async payload', () => {
   it('should include skipCodeCoverage in async payload when classNames are provided', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       undefined,
       'myClass',
       undefined,
@@ -247,7 +247,7 @@ describe('Build async payload', () => {
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: true
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -256,7 +256,7 @@ describe('Build async payload', () => {
   it('should include skipCodeCoverage in async payload when suiteNames are provided', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       undefined,
       undefined,
       'mySuite',
@@ -266,7 +266,7 @@ describe('Build async payload', () => {
 
     expect(payload).toEqual({
       suiteNames: 'mySuite',
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: true
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -275,7 +275,7 @@ describe('Build async payload', () => {
   it('should include skipCodeCoverage as false in async payload when skipCodeCoverage is false', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([]);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       'myClass.myTest',
       undefined,
       undefined,
@@ -285,7 +285,7 @@ describe('Build async payload', () => {
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -295,18 +295,18 @@ describe('Build async payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
     // Mock the buildClassPayloadForFlow method
     const mockFlowPayload = {
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       tests: [{ className: 'FlowTestClass' }],
       skipCodeCoverage: true
     };
     $$.SANDBOX.stub(testService as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      'RunSpecifiedTests',
       undefined,
       'FlowTestClass',
       undefined,
-      TestCategory.Flow,
+      'Flow',
       true
     );
 
@@ -338,11 +338,11 @@ describe('Build sync payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testSrv.buildSyncPayload(TestLevel.RunSpecifiedTests, 'myClass.myTest');
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest');
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -352,7 +352,7 @@ describe('Build sync payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testSrv.buildSyncPayload(TestLevel.RunSpecifiedTests, 'myNamespace.myClass.myTest');
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myNamespace.myClass.myTest');
 
     expect(payload).toEqual({
       tests: [
@@ -361,7 +361,7 @@ describe('Build sync payload', () => {
           testMethods: ['myTest']
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -369,11 +369,11 @@ describe('Build sync payload', () => {
 
   it('should build synchronous payload for class without namespace', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
-    const payload = await testSrv.buildSyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myClass');
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', undefined, 'myClass');
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).toBe(true);
@@ -383,11 +383,11 @@ describe('Build sync payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testSrv.buildSyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myNamespace.myClass');
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', undefined, 'myNamespace.myClass');
 
     expect(payload).toEqual({
       tests: [{ className: 'myNamespace.myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
@@ -396,32 +396,23 @@ describe('Build sync payload', () => {
 
   it('should throw an error if multiple classes are specified', async () => {
     await expect(
-      testSrv.buildSyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass.myTest, myNamespace.otherClass.otherTest'
-      )
+      testSrv.buildSyncPayload('RunSpecifiedTests', 'myNamespace.myClass.myTest, myNamespace.otherClass.otherTest')
     ).rejects.toThrow(nls.localize('syncClassErr'));
   });
 
   it('should throw an error if no tests or classes are specified', async () => {
-    await expect(testSrv.buildSyncPayload(TestLevel.RunLocalTests)).rejects.toThrow(nls.localize('payloadErr'));
+    await expect(testSrv.buildSyncPayload('RunLocalTests')).rejects.toThrow(nls.localize('payloadErr'));
   });
 
   it('should include skipCodeCoverage in sync payload when tests are provided', async () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testSrv.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
-      'myClass.myTest',
-      undefined,
-      undefined,
-      true
-    );
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest', undefined, undefined, true);
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: true
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -431,17 +422,11 @@ describe('Build sync payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'myNamespace' }
     ]);
-    const payload = await testSrv.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
-      'myClass.myTest',
-      undefined,
-      undefined,
-      false
-    );
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest', undefined, undefined, false);
 
     expect(payload).toEqual({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).toBe(true);
@@ -451,19 +436,13 @@ describe('Build sync payload', () => {
     const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
     // Mock the buildClassPayloadForFlow method
     const mockFlowPayload = {
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       tests: [{ className: 'FlowTestClass' }],
       skipCodeCoverage: true
     };
     $$.SANDBOX.stub(testSrv as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
-    const payload = await testSrv.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'FlowTestClass',
-      TestCategory.Flow,
-      true
-    );
+    const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', undefined, 'FlowTestClass', 'Flow', true);
 
     expect(payload).toEqual(mockFlowPayload);
     expect(payload).toHaveProperty('skipCodeCoverage', true);

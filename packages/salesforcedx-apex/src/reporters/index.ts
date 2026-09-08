@@ -13,3 +13,4 @@ export type { CoverageReporterOptions, CoverageReportFormats } from './coverageR
 export { TapFormatTransformer } from './tapFormatTransform';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './markdownTextReporter';
 export { MarkdownTextFormatTransformer } from './markdownTextFormatTransformer';
+export type { MarkdownTextFormatTransformerOptions } from './markdownTextFormatTransformer';
