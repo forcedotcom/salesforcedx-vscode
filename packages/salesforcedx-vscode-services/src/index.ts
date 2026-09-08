@@ -315,7 +315,10 @@ export type {
   DescribeSObjectResult,
   RestSObjectDescribeTransmogrifierInput,
   TransmogrifierInput,
-  TransmogrifierService
+  TransmogrifierService,
+  WorkspaceSObjectMetadata,
+  WorkspaceSObjectMetadataDocument,
+  WorkspaceSObjectMetadataTransmogrifierInput
 } from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
