@@ -12,39 +12,51 @@ import { Buffer } from 'node:buffer';
 import * as vscode from 'vscode';
 import { IndexedDBStorageService, parseMyDomain } from '../../../src/virtualFsProvider/indexedDbStorage';
 
-const makeRequest = <T>(result: () => T): IDBRequest<T> => {
+const makeRequest = <T>(result: () => T, complete: () => void): IDBRequest<T> => {
   const request = {
     error: null,
     result: undefined as T,
     onerror: null as ((event: Event) => void) | null,
     onsuccess: null as ((event: Event) => void) | null
   };
-  queueMicrotask(() => {
+  setTimeout(() => {
     request.result = result();
     request.onsuccess?.({ target: request } as unknown as Event);
-  });
+    complete();
+  }, 0);
   return request as unknown as IDBRequest<T>;
 };
 
 const installIndexedDb = (): void => {
   const entries = new Map<IDBValidKey, unknown>();
-  const store = {
-    delete: (key: IDBValidKey) =>
-      makeRequest(() => {
-        entries.delete(key);
-      }),
-    get: (key: IDBValidKey) => makeRequest(() => entries.get(key)),
-    getAll: () => makeRequest(() => [...entries.values()]),
-    put: (value: unknown, key: IDBValidKey) =>
-      makeRequest(() => {
-        entries.set(key, value);
-        return key;
-      })
-  } as unknown as IDBObjectStore;
   const db = {
     close: jest.fn(),
     objectStoreNames: { contains: () => true },
-    transaction: () => ({ objectStore: () => store })
+    transaction: () => {
+      const transaction = {
+        abort: jest.fn(),
+        error: null,
+        onabort: null as ((event: Event) => void) | null,
+        oncomplete: null as ((event: Event) => void) | null,
+        onerror: null as ((event: Event) => void) | null,
+        objectStore: () => store
+      };
+      const complete = (): void => transaction.oncomplete?.(new Event('complete'));
+      const store = {
+        delete: (key: IDBValidKey) =>
+          makeRequest(() => {
+            entries.delete(key);
+          }, complete),
+        get: (key: IDBValidKey) => makeRequest(() => entries.get(key), complete),
+        getAll: () => makeRequest(() => [...entries.values()], complete),
+        put: (value: unknown, key: IDBValidKey) =>
+          makeRequest(() => {
+            entries.set(key, value);
+            return key;
+          }, complete)
+      } as unknown as IDBObjectStore;
+      return transaction;
+    }
   } as unknown as IDBDatabase;
 
   class TestOpenRequest {
