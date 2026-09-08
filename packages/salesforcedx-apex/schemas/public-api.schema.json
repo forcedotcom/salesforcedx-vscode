@@ -1,6 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$defs": {
+    "ApexConnectionError": {
+      "type": "object",
+      "required": ["message", "_tag"],
+      "properties": {
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexConnectionError"] }
+      },
+      "additionalProperties": false
+    },
     "ApexCodeCoverage": {
       "type": "object",
       "required": ["done", "totalSize", "records"],
@@ -380,6 +390,35 @@
       },
       "additionalProperties": false
     },
+    "ApexOperationError": {
+      "type": "object",
+      "required": ["operation", "message", "_tag"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/NonEmptyTrimmedString" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexOperationError"] }
+      },
+      "additionalProperties": false
+    },
+    "NonEmptyTrimmedString": {
+      "type": "string",
+      "description": "a non empty string",
+      "title": "nonEmptyString",
+      "pattern": "^\\S[\\s\\S]*\\S$|^\\S$|^$",
+      "minLength": 1
+    },
+    "ApexResponseDecodeError": {
+      "type": "object",
+      "required": ["operation", "message", "_tag"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/NonEmptyTrimmedString" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexResponseDecodeError"] }
+      },
+      "additionalProperties": false
+    },
     "AsyncTestArrayConfiguration": {
       "type": "object",
       "required": ["tests", "testLevel"],
@@ -676,6 +715,7 @@
     }
   },
   "anyOf": [
+    { "$ref": "#/$defs/ApexConnectionError" },
     { "$ref": "#/$defs/ApexCodeCoverage" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
@@ -692,6 +732,8 @@
     { "$ref": "#/$defs/ApexTestResultOutcome" },
     { "$ref": "#/$defs/ApexTestRunResultStatus" },
     { "$ref": "#/$defs/ApexTestSetupData" },
+    { "$ref": "#/$defs/ApexOperationError" },
+    { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
     { "$ref": "#/$defs/AsyncTestConfiguration" },
     { "$ref": "#/$defs/CodeCoverageResult" },

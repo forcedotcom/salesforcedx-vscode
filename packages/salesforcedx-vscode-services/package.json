@@ -40,6 +40,7 @@
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
+    "@salesforce/apex-node": "*",
     "@salesforce/core": "^9.1.9",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
@@ -98,6 +99,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
+        "../salesforcedx-apex:compile",
         "generate-types",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
