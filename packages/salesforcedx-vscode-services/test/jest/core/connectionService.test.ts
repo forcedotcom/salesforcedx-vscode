@@ -20,8 +20,10 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
+  createWebAuthInfo,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
+  resolveUsername,
   updateDefaultOrgIdentity
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
@@ -39,6 +41,7 @@ const USERNAME = 'expired@test.com';
 const ALIAS = 'ExpiredOrg';
 const INSTANCE_URL = 'https://expired.my.salesforce.com';
 const LOGIN_BUTTON = 'Login';
+const WEB_ACCESS_TOKEN = '00Dxx0000000001!opaque_session_token';
 
 const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<ConfigService> =>
   Layer.succeed(
@@ -438,6 +441,37 @@ describe('updateDefaultOrgIdentity', () => {
       instanceName: 'USA9S',
       username: 'user@example.com'
     });
+  });
+});
+
+describe('browser access-token auth', () => {
+  beforeEach(() => {
+    authInfoCreateMock.mockReset();
+  });
+
+  it('uses the session token as AuthInfo username to avoid the OAuth user-info lookup', async () => {
+    const authInfo = { getFields: () => ({}), save: jest.fn() } as unknown as AuthInfo;
+    authInfoCreateMock.mockResolvedValue(authInfo);
+
+    await Effect.runPromise(createWebAuthInfo(INSTANCE_URL, WEB_ACCESS_TOKEN));
+
+    expect(authInfoCreateMock).toHaveBeenCalledWith({
+      username: WEB_ACCESS_TOKEN,
+      accessTokenOptions: {
+        accessToken: WEB_ACCESS_TOKEN,
+        loginUrl: INSTANCE_URL,
+        instanceUrl: INSTANCE_URL
+      }
+    });
+  });
+
+  it('does not expose the session token as the org username', () => {
+    const conn = {
+      getUsername: () => WEB_ACCESS_TOKEN,
+      getAuthInfoFields: () => ({ accessToken: WEB_ACCESS_TOKEN, orgId: '00Dxx0000000001' })
+    } as unknown as Connection;
+
+    expect(resolveUsername(conn)).toBeUndefined();
   });
 });
 

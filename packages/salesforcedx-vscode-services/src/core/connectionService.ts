@@ -116,11 +116,16 @@ export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedTo
   }
 ) {}
 
-/** side effect: save the auth info in the background */
-const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
+/**
+ * Create browser auth without the OAuth user-info lookup. Web Console supplies a session token, and some
+ * impersonated sessions reject that lookup even though the token is valid for normal API requests. AuthInfo
+ * saving remains a background side effect (and is a no-op for session-token auth).
+ */
+export const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
+        username: accessToken,
         accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
       }),
     catch: error => {
@@ -203,8 +208,12 @@ const connectionCache = Effect.runSync(
   })
 );
 
-const resolveUsername = (conn: Connection): string | undefined =>
-  conn.getUsername() ?? conn.getAuthInfoFields().username;
+/** The access-token auth path uses the token as AuthInfo's internal username; never expose it as an org username. */
+export const resolveUsername = (conn: Connection): string | undefined => {
+  const fields = conn.getAuthInfoFields();
+  const username = conn.getUsername() ?? fields.username;
+  return username === fields.accessToken ? undefined : username;
+};
 
 type IdentityResult = { username: string; userId: string };
 
