@@ -14,7 +14,7 @@ on:
         required: false
         type: string
       isHotfix:
-        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef (which runs its own compile+test gate instead - see .github/workflows/build-release.yml). Do not use for regular nightly tags.'
+        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
         required: false
         default: false
         type: boolean

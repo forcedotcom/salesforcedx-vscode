@@ -120,7 +120,6 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
    │ │ • Uses version from source's package.json (must    │        │      │
    │ │   be unique, not already published to marketplace) │        │      │
    │ │ • No automated version bump or branch creation     │        │      │
-   │ │ • Runs unit tests (compile + test) before tagging  │        │      │
    │ │ • Builds VSIXs from exact ref                      │        │      │
    │ │ • Creates GitHub pre-release with nightly tag      │        │      │
    │ └────────────────────────────────────────────────────┤        │      │

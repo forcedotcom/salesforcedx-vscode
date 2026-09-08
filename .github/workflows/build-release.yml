@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       startFromRef:
-        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation. Unit tests (compile + test) run automatically; E2E and full PR review are still skipped. Ensure ref is reviewed/merged to develop before using.'
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation and runs no tests here - promote-to-prerelease.yml/publishVSCode.yml/publishOpenVSX.yml test the commit directly (isHotfix=true) before it goes live. Ensure ref is reviewed/merged to develop before using.'
         required: false
         type: string
       prereleaseTag:
@@ -144,14 +144,6 @@ jobs:
           fi
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-          # startFromRef bypasses nightly validation, so it's the only source that
-          # hasn't already passed develop's required unit-test checks - see used_start_from_ref below
-          if [ -n "$START_FROM_REF" ]; then
-            echo "used_start_from_ref=true" >> $GITHUB_OUTPUT
-          else
-            echo "used_start_from_ref=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Calculate release version
         id: calculate-version
@@ -309,21 +301,6 @@ jobs:
           echo "Checking out source ref for emergency pre-release: $SOURCE_REF"
           git checkout "$SOURCE_REF"
           echo "✓ Checked out source at $(git rev-parse HEAD)"
-
-      - name: Install dependencies for emergency ref
-        if: steps.detect-tag.outputs.used_start_from_ref == 'true'
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
-      - name: Test emergency ref before tagging
-        if: steps.detect-tag.outputs.used_start_from_ref == 'true'
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-          WIREIT_PARALLEL: 1
-        run: |
-          # startFromRef skips develop's required unit-test checks (build-and-test / unit-tests),
-          # so run them here before tagging - this is the only gate this code path gets
-          npm run compile
-          npm run test
 
       - name: Create and push release tag
         env:

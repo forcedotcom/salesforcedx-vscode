@@ -118,7 +118,7 @@ gh workflow run build-release.yml \
 
 Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
 
-**Validation:** Unit tests (compile + test) run at 2 stages: (1) build-release.yml at build time (fast fail on develop's dispatch-trigger SHA); (2) promote-to-prerelease.yml (authoritative gate, tests exact hotfix commit being promoted when isHotfix=true). E2E & full PR review skipped; ensure ref carefully reviewed before use.
+**Validation:** Unit tests (compile + test) run at the authoritative gate: promote-to-prerelease.yml tests exact hotfix commit being promoted when isHotfix=true. E2E & full PR review skipped; ensure ref carefully reviewed before use.
 
 ### Step 2: Publish to marketplace as pre-release
 
@@ -151,7 +151,7 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates isolated `release-staging/v67.12.1` branch with version bump. Unit tests (compile + test) run automatically before tagging. E2E tests and full PR review are skipped. Test VSIXs and publish as stable release.
+Creates isolated `release-staging/v67.12.1` branch with version bump. publishVSCode.yml and publishOpenVSX.yml test the commit (compile + test, isHotfix=true) before publishing. E2E tests and full PR review are skipped. Test VSIXs and publish as stable release.
 
 ## References
 
