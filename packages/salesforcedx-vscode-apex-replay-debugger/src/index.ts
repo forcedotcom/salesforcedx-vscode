@@ -16,10 +16,9 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { getDialogStartingPath } from './activation/getDialogStartingPath';
+import { updateLastOpened } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { salesforceApexExtension } from './apexExtension';
 import {
@@ -35,7 +34,6 @@ import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
 import {
   DEBUGGER_TYPE,
-  LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE
@@ -47,38 +45,16 @@ import { disposeRuntime, getRuntime } from './services/runtime';
 export { retrieveLineBreakpointInfo } from './apexExtension';
 export { writeToDebuggerOutputWindow } from './channels';
 
-const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
-  const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
-  const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
-    const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
-      canSelectFiles: true,
-      canSelectFolders: false,
-      canSelectMany: false,
-      defaultUri: dialogStartingPathUri
-    });
-    if (fileUris?.length === 1) {
-      updateLastOpened(extensionContext, fileUris[0].fsPath);
-      return fileUris[0].fsPath;
-    }
-  });
+const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
     async (editorUri: URI) => {
       const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
 
       if (resolved) {
-        updateLastOpened(extensionContext, resolved.fsPath);
+        updateLastOpened(extensionContext, resolved);
       }
       await launchFromLogFile(resolved?.fsPath);
-    }
-  );
-
-  const launchFromLogFilePathCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.logfile.path',
-    async (logFilePath, anonApexFilePath?: string, anonApexLineOffset?: number) => {
-      if (logFilePath) {
-        await launchFromLogFile(logFilePath, true, anonApexFilePath, anonApexLineOffset);
-      }
     }
   );
 
@@ -97,24 +73,17 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
 
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
-    launchApexReplayDebuggerWithCurrentFile
+    () => launchApexReplayDebuggerWithCurrentFile(extensionContext)
   );
 
   return vscode.Disposable.from(
-    promptForLogCmd,
     launchFromLogFileCmd,
-    launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
     anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
-};
-
-export const updateLastOpened = (extensionContext: vscode.ExtensionContext, logPath: string) => {
-  extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
-  extensionContext.workspaceState.update(LAST_OPENED_LOG_FOLDER_KEY, path.dirname(logPath));
 };
 
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
@@ -167,11 +136,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const commands = yield* Effect.promise(() => registerCommands(extensionContext));
+  const commands = registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
-    new DebugConfigurationProvider()
+    new DebugConfigurationProvider(extensionContext)
   );
   // Resolve the services channel eagerly: it is created on first resolution, so without this
   // 'Apex Replay Debugger' is missing from the Output dropdown until the first debugger write.
