@@ -57,16 +57,19 @@ test('Deploy On Save (Code Builder): automatically deploys the fixture class whe
   });
 
   await test.step('enable deploy-on-save', async () => {
-    // useMetadataExtensionCommands ensures the metadata extension's deploy-on-save service owns saves.
-    // The service is created once at activation (its "Deploy on save service initialized" line is
-    // emitted then — long before this spec runs on the shared persistent workbench — so it is not
-    // reliably visible in the channel here). getDeployOnSaveEnabled is read per save, so enabling the
-    // setting now is sufficient; the save-triggered deploy below is the authoritative signal.
+    // push-or-deploy-on-save.enabled is the ONLY setting the deploy-on-save service reads: its save
+    // stream filters on getDeployOnSaveEnabled() per save (deployOnSaveService.ts), and the metadata
+    // extension registers that service unconditionally at activation. The service is created once at
+    // activation — long before this spec runs on the shared persistent workbench — so its init line is
+    // not reliably visible in the channel here; the save-triggered deploy below is the authoritative
+    // signal. Do NOT set salesforcedx-vscode-core.useMetadataExtensionCommands here: it is a legacy
+    // config key that nothing in the current build reads, AND it is not a contributed setting, so the
+    // Settings UI renders no result row for it — upsertSettings' search would wait 15s for a row that
+    // can never attach and fail every retry (the exact failure that regressed this spec).
     // The Settings-UI search row can transiently flake on the shared workbench; upsertSettings only
     // toggles when the current value differs, so retrying the whole call is safe and idempotent.
     await expect(async () => {
       await upsertSettings(page, {
-        'salesforcedx-vscode-core.useMetadataExtensionCommands': 'true',
         [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
       });
     }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
