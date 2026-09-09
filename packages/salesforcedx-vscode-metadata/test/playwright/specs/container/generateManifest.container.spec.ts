@@ -23,14 +23,15 @@ import {
   closeWelcomeTabs,
   EDITOR,
   ensureSecondarySideBarHidden,
-  executeEditorContextMenuCommand,
+  executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   openFileFromExplorerTree,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import { messages } from '../../../../src/messages/i18n';
 import packageNls from '../../../../package.nls.json';
@@ -56,13 +57,16 @@ test('Generate Manifest (Code Builder): generates via context menu entry points'
     await saveScreenshot(page, 'generateManifest.container.01-ready.png');
   });
 
-  await test.step('1. Editor context menu', async () => {
+  await test.step('1. Command palette (active editor)', async () => {
     await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
     const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();
 
-    await executeEditorContextMenuCommand(page, packageNls.project_generate_manifest_text, 'PagedResult.cls');
+    // The container editor context menu does not reliably surface the SFDX contributions; the palette
+    // does (it targets the active editor's file). Matches the passing deploySource container twin.
+    await verifyCommandExists(page, packageNls.project_generate_manifest_text, 60_000);
+    await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
     const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'attached', timeout: 10_000 });

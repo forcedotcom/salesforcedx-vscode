@@ -56,16 +56,16 @@ test('Deploy On Save (Code Builder): automatically deploys the fixture class whe
     await saveScreenshot(page, 'deployOnSave.container.01-ready.png');
   });
 
-  await test.step('enable deploy-on-save and confirm the service is initialized', async () => {
+  await test.step('enable deploy-on-save', async () => {
     // useMetadataExtensionCommands ensures the metadata extension's deploy-on-save service owns saves.
+    // The service is created once at activation (its "Deploy on save service initialized" line is
+    // emitted then — long before this spec runs on the shared persistent workbench — so it is not
+    // reliably visible in the channel here). getDeployOnSaveEnabled is read per save, so enabling the
+    // setting now is sufficient; the save-triggered deploy below is the authoritative signal.
     await upsertSettings(page, {
       'salesforcedx-vscode-core.useMetadataExtensionCommands': 'true',
       [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
     });
-
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
   });
 
   await test.step('edit + save the fixture class to trigger a deploy', async () => {

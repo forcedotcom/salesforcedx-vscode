@@ -18,6 +18,7 @@
 
 import {
   clearAllNotifications,
+  clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
@@ -33,8 +34,6 @@ import {
   verifyCommandExists,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
-import { expect } from '@playwright/test';
-import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
 import packageNls from '../../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
@@ -66,9 +65,14 @@ test('Retrieve Source Path (Code Builder): retrieves the fixture class via explo
     await editor.click();
     await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
 
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
+
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 60_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+    // The transient "Deploying" toast is racy on a shared org where the class may already be present;
+    // assert deploy completion via the output channel instead (matches deleteSource container twin).
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'retrieveSourcePath.container.02-deployed.png');
   });
 

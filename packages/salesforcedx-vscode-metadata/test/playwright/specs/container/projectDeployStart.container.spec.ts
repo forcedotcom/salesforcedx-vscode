@@ -75,7 +75,10 @@ test('Project Deploy Start (Code Builder): pushes source to the boot org', async
     await selectOutputChannel(page, 'Salesforce Metadata');
     await clearOutputChannel(page);
 
-    await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_default_org_text);
+    // Specs share one persistent workbench and boot org, so the class can already differ remotely
+    // (source-tracking conflict). Use the ignore-conflicts push so the deploy stays deterministic on
+    // the shared org rather than stalling on the conflict-resolution prompt.
+    await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
     await saveScreenshot(page, 'projectDeployStart.container.03-after-command.png');
 
     await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });

@@ -31,10 +31,10 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
-import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
 import { messages } from '../../../../src/messages/i18n';
 import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
@@ -61,12 +61,21 @@ test('Delete Source (Code Builder): deletes a class from project and org via com
     await createApexClass(page, className);
     await saveScreenshot(page, 'deleteSource.container.02-created.png');
 
+    // Focus the freshly created class and wait until the palette deploy command is contributed for it.
+    // The editor context keys (sf:in_package_directories) settle a beat after the file opens, so
+    // deploying immediately can miss the "SFDX: Deploy This Source to Org" palette entry.
+    const createdEditor = page.locator(`[data-uri*="${className}.cls"]`).first();
+    await createdEditor.waitFor({ state: 'visible', timeout: 15_000 });
+    await createdEditor.click();
+    await verifyCommandExists(page, messages.deploy_this_source_text, 60_000);
+
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
 
     await executeCommandWithCommandPalette(page, messages.deploy_this_source_text);
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+    // The transient "Deploying" toast can be missed on a fast container deploy; assert completion via
+    // the output channel instead.
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'deleteSource.container.03-deployed.png');
   });

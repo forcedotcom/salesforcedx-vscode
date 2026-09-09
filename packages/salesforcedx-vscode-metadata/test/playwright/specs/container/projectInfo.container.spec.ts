@@ -85,8 +85,13 @@ test('Project Info (Code Builder): writes report and opens file', async ({ page 
     await expect(editorContent.getByText('## Metadata'), 'Editor should have ## Metadata section').toBeVisible({
       timeout: 5000
     });
+    // The mounted fixture has many metadata types, so the long Metadata table pushes the Environment
+    // section below the fold. The editor virtualizes off-screen lines, so scroll to the end of the
+    // document (Ctrl+End renders the trailing Environment + Extensions sections) before asserting.
+    await editorContent.click();
+    await page.keyboard.press('Control+End');
     await expect(editorContent.getByText('## Environment'), 'Editor should have ## Environment section').toBeVisible({
-      timeout: 5000
+      timeout: 10_000
     });
     await saveScreenshot(page, 'projectInfo.container.06-content-verified.png');
   });

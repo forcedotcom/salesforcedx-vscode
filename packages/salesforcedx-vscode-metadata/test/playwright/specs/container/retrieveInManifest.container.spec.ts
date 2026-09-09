@@ -21,6 +21,7 @@ import {
   activeQuickInputTextField,
   activeQuickInputWidget,
   clearAllNotifications,
+  clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
@@ -29,7 +30,6 @@ import {
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
   saveScreenshot,
   selectOutputChannel,
@@ -39,8 +39,6 @@ import {
   verifyCommandExists,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
-import { expect } from '@playwright/test';
-import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
 import { messages } from '../../../../src/messages/i18n';
 import packageNls from '../../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../../constants';
@@ -74,18 +72,14 @@ test('Retrieve In Manifest (Code Builder): retrieves via editor and explorer ent
     await editor.click();
     await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
 
-    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 60_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
 
-    const deployError = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Failed to deploy|deploy.*failed/i })
-      .first();
-    const hasError = await deployError.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasError) {
-      throw new Error(`Deploy failed with error notification: ${await deployError.textContent()}`);
-    }
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+    // The transient "Deploying" toast is racy on a shared org where the class may already be present;
+    // assert deploy completion via the output channel instead (matches deleteSource container twin).
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'retrieveInManifest.container.02-deployed.png');
   });
 
