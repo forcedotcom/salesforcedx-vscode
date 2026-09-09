@@ -98,18 +98,28 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('verify suite appears in Testing sidebar', async () => {
-    const panel = await openTestExplorerAndDiscover(page);
-
-    // The "Apex Test Suites" parent item should be visible
-    const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
-    await expect(suiteParent).toBeVisible({ timeout: 30_000 });
-
-    // Expand the "Apex Test Suites" parent so child suite items become visible in the tree
-    await expandTreeRow(panel, 'Apex Test Suites');
-
-    // The specific suite name should be visible as a baseline before deletion
-    const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
-    await expect(suiteItem).toBeVisible({ timeout: 15_000 });
+    // The "Apex Test Suites" parent and its suite children are populated from an org Tooling API query
+    // (retrieveAllSuites) that only runs on each "Test: Refresh Tests". A just-created suite can lag org
+    // read-consistency, so a single discovery right after creation often returns zero suites and the
+    // parent node never renders. Re-run discovery until the org reports the suite, then confirm it in the
+    // tree. This is a baseline before deletion; the "disappears without manual refresh" assertion below
+    // is what proves the auto-refresh behavior under test.
+    await expect
+      .poll(
+        async () => {
+          const panel = await openTestExplorerAndDiscover(page);
+          const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
+          if (!(await suiteParent.isVisible().catch(() => false))) {
+            return false;
+          }
+          // Expand the "Apex Test Suites" parent so child suite items become visible in the tree.
+          await expandTreeRow(panel, 'Apex Test Suites');
+          const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+          return suiteItem.isVisible().catch(() => false);
+        },
+        { timeout: 120_000, intervals: [3000] }
+      )
+      .toBe(true);
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
