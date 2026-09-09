@@ -23,15 +23,13 @@
  * ExampleClass.cls already exists in the bind-mounted fixture.
  */
 
-import { expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import {
   clearOutputChannel,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  openFileFromExplorerTree,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
@@ -41,6 +39,7 @@ import {
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 import { containerTest as test } from '../../fixtures/containerFixtures';
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../../utils/containerApexLspUtils';
 
 const APEX_LANGUAGE_SERVER_CHANNEL = 'Apex Language Server';
 // `package.nls.json#apex_language_server_restart` — palette command title.
@@ -51,15 +50,6 @@ const RESTART_ONLY_LABEL = 'Restart Only';
 const PRELUDE_STARTING = 'Apex Prelude Service STARTING';
 
 const getApexLanguageStatusButton = (page: Page, textRegex: RegExp) => page.getByRole('button', { name: textRegex });
-
-/**
- * UI-only Apex LSP readiness: wait for the "Indexing complete" language-status button. The desktop
- * twin also checks StandardApexLibrary on disk, but the container's workspace is inside the image
- * (and boots pre-indexed), so the button alone is the reliable in-browser signal.
- */
-const waitForApexLspReady = async (page: Page): Promise<void> => {
-  await expect(getApexLanguageStatusButton(page, /Indexing complete/)).toBeVisible({ timeout: 120_000 });
-};
 
 /**
  * Click the Apex LSP language status button to open its hover, then click "Restart Apex Language
@@ -102,12 +92,14 @@ const selectRestartOnlyQuickPick = async (page: Page): Promise<void> => {
   // The restart command opens this quick pick more slowly in the container (browser round-trip +
   // Node host) than in Electron, so give it more room than the desktop twin's 10s.
   await widget.waitFor({ state: 'visible', timeout: 30_000 });
-  const row = widget
-    .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: new RegExp(`^${RESTART_ONLY_LABEL}$`) })
-    .first();
-  await row.waitFor({ state: 'visible', timeout: 30_000 });
-  await row.click();
+  // Match the option by its exact accessible name rather than the row's full text. In the container
+  // the "Restart Only" quick-pick row renders a trailing keybinding badge ("Control+K Control+C"),
+  // so the desktop twin's anchored `hasText: /^Restart Only$/` row filter never matched (the row's
+  // text is "Restart Only" + the keybinding) — the quick pick was open the whole time. `exact: true`
+  // keeps this from also matching "Clean Apex DB and Restart".
+  const option = widget.getByRole('option', { name: RESTART_ONLY_LABEL, exact: true }).first();
+  await option.waitFor({ state: 'visible', timeout: 30_000 });
+  await option.click();
 };
 
 /**
@@ -148,7 +140,7 @@ test.describe('Apex LSP restart (Code Builder)', () => {
   test.beforeEach(async ({ page }) => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await openFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
     await waitForApexLspReady(page);
   });
 

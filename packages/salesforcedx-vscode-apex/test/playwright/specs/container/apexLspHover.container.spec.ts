@@ -21,27 +21,18 @@
  * (the "Indexing complete" language-status button) instead.
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  openFileFromExplorerTree,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { containerTest as test } from '../../fixtures/containerFixtures';
-
-/**
- * UI-only Apex LSP readiness: wait for the "Indexing complete" language-status button. The desktop
- * twin also checks StandardApexLibrary on disk, but the container's workspace is inside the image
- * (and boots pre-indexed), so the button alone is the reliable in-browser signal.
- */
-const waitForApexLspReady = async (page: Page): Promise<void> => {
-  await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
-};
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../../utils/containerApexLspUtils';
 
 test('Apex LSP (Code Builder): hover shows method signature for SayHello', async ({ page }) => {
   test.setTimeout(3 * 60 * 1000);
@@ -56,7 +47,7 @@ test('Apex LSP (Code Builder): hover shows method signature for SayHello', async
   });
 
   await test.step('open ExampleClass.cls and wait for Apex LSP ready', async () => {
-    await openFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
     await waitForApexLspReady(page);
     await saveScreenshot(page, 'apexLspHover.container.02-lsp-ready.png');
   });

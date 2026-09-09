@@ -24,13 +24,12 @@
  * settings the twin injects via fixtures already ship in the mounted `.vscode/settings.json`.
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   goToLineColumn,
-  openFileFromExplorerTree,
   saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -38,15 +37,7 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { containerTest as test } from '../../fixtures/containerFixtures';
-
-/**
- * UI-only Apex LSP readiness: wait for the "Indexing complete" language-status button. The desktop
- * twin also checks StandardApexLibrary on disk, but the container's workspace is inside the image
- * (and boots pre-indexed), so the button alone is the reliable in-browser signal.
- */
-const waitForApexLspReady = async (page: Page): Promise<void> => {
-  await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
-};
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../../utils/containerApexLspUtils';
 
 test('Apex LSP (Code Builder): indexing, go-to-definition, autocompletion', async ({ page }) => {
   test.setTimeout(6 * 60 * 1000);
@@ -65,13 +56,13 @@ test('Apex LSP (Code Builder): indexing, go-to-definition, autocompletion', asyn
   });
 
   await test.step('open ExampleClass.cls and wait for indexing complete', async () => {
-    await openFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
     await waitForApexLspReady(page);
     await saveScreenshot(page, 'apexLsp.container.02-indexing-complete.png');
   });
 
   await test.step('Go to Definition from ExampleClassTest into ExampleClass', async () => {
-    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['force-app', 'main', 'default', 'classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', ['force-app', 'main', 'default', 'classes']);
     // Wait for ExampleClassTest.cls to become the active tab before issuing editor commands;
     // openFileFromExplorerTree resolves on any visible editor, which may be the previously-opened
     // ExampleClass.cls — causing Go to Definition to target the wrong file.
@@ -110,7 +101,7 @@ test('Apex LSP (Code Builder): indexing, go-to-definition, autocompletion', asyn
   });
 
   await test.step('Autocompletion suggests SayHello and inserts call', async () => {
-    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['force-app', 'main', 'default', 'classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', ['force-app', 'main', 'default', 'classes']);
     // Wait for ExampleClassTest.cls to become the active tab (same race as Go to Definition step).
     const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
@@ -146,7 +137,7 @@ test('Apex LSP (Code Builder): indexing, go-to-definition, autocompletion', asyn
     // Open's file-search index may not have discovered it yet. The ['scripts', 'apex'] path
     // tolerates VS Code compact-folder rendering (missing intermediate rows are skipped, leaf still
     // reached).
-    await openFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
+    await openApexFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
     const anonTab = page.getByRole('tab', { name: 'ExampleAnon.apex', exact: true }).first();
     await expect(anonTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
 
