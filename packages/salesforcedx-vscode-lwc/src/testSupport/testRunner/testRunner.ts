@@ -11,12 +11,10 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
 import { telemetryService } from '../../telemetry';
-import { isTestCaseInfo, TestExecutionInfo } from '../types';
+import { isTestCaseInfo, type TestExecutionInfo, type TestRunType } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
-
-export type TestRunType = 'run' | 'debug' | 'watch';
 
 /**
  * Returns the path to pass to Jest's --runTestsByPath.

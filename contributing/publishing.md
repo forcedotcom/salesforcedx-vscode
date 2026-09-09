@@ -84,7 +84,7 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Pre-release Promotion
 
-**Pre-release promotion:** `promote-nightly-to-prerelease.yml` (Wednesdays 8 AM UTC) runs 3-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success (not unit-tests/build-all, which only exist on PR commits); (3) promote creates tracking tag for release flow. Safe rollback window before general release.
+**Pre-release promotion:** `promote-to-prerelease.yml` (Wednesdays 8 AM UTC) runs 3-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success, or tests hotfix commit directly when `-f isHotfix=true` (not unit-tests/build-all, which only exist on PR commits); (3) promote creates tracking tag for release flow. Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
 
@@ -100,6 +100,7 @@ Published releases extract extension names from VSIX filenames in release assets
 2. Trigger [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) to build release VSIXs
 3. Download + test VSIX files from GitHub pre-release
 4. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`)
+   - For stable hotfixes only (with `-f isHotfix=true`): also dispatch [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) with `-f release-tag="v67.12.0" -f isHotfix=true` for full registry coverage
 5. Approve marketplace publish gates
 6. Marketplace updates (usually within minutes)
 
