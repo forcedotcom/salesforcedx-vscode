@@ -371,8 +371,6 @@ function UserProfile() {
 }
 ```
 
-See `references/effect-atom-patterns.md` for families, React hooks, side-effect atoms with finalizers, localStorage, and anti-patterns.
-
 ## SubscriptionRef
 
 `SubscriptionRef<A>` is a mutable ref whose `.changes` stream **always emits the current value as element 0**, then all future mutations.
@@ -519,8 +517,6 @@ For detailed patterns, consult these reference files in the `references/` direct
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
 - `layer-patterns.md` - Dependency composition, testing layers
-- `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
-- `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
 - `anti-patterns.md` - Complete list of forbidden patterns
 - `diagnostics-findings.md` - Effect LS finding → fix, per rule
 - `observability-patterns.md` - Logging, metrics, config patterns
