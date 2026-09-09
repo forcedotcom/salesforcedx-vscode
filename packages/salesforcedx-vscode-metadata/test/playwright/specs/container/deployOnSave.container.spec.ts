@@ -35,7 +35,11 @@ import {
   clearOutputChannel
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../../src/constants';
+import {
+  CORE_CONFIG_SECTION,
+  DEPLOY_ON_SAVE_ENABLED,
+  DEPLOY_ON_SAVE_IGNORE_CONFLICTS
+} from '../../../../src/constants';
 import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
@@ -66,11 +70,20 @@ test('Deploy On Save (Code Builder): automatically deploys the fixture class whe
     // config key that nothing in the current build reads, AND it is not a contributed setting, so the
     // Settings UI renders no result row for it — upsertSettings' search would wait 15s for a row that
     // can never attach and fail every retry (the exact failure that regressed this spec).
+    // Also set ignoreConflictsOnPush=true: the boot org is a source-TRACKING scratch org (tracking orgs
+    // always run conflict detection — it cannot be disabled via detectConflictsForDeployAndRetrieve),
+    // and on the shared persistent workbench PagedResult.cls already has remote changes from earlier
+    // specs. Without this, the save-triggered deploy fires with ignoreConflicts:false, conflict
+    // detection blocks it ("Conflicts detected. Resolve conflicts before deploying"), "Deployed Source"
+    // never appears, and each retry burns the full DEPLOY_TIMEOUT (which blew the 40-min job cap).
+    // This spec verifies that a save TRIGGERS a deploy that reaches the org — conflict handling is a
+    // separate concern — so ignoring conflicts is the correct configuration here.
     // The Settings-UI search row can transiently flake on the shared workbench; upsertSettings only
     // toggles when the current value differs, so retrying the whole call is safe and idempotent.
     await expect(async () => {
       await upsertSettings(page, {
-        [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
+        [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true',
+        [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_IGNORE_CONFLICTS}`]: 'true'
       });
     }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
   });
