@@ -24,7 +24,7 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
          │                                                   │
          ▼                                                   │
 ┌─────────────────────────────────────────────────────────────────┐
-│  promote-nightly-to-prerelease.yml (AUTOMATED CRON)             │
+│  promote-to-prerelease.yml (AUTOMATED CRON)                     │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ ✓ Finds most recent nightly (min-tag-age: 0 days)            │
@@ -127,10 +127,13 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            │                                                       │      │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐
-   │ Step 2: promote-nightly-to-prerelease.yml            │
+   │ Step 2: promote-to-prerelease.yml                    │
    │ -f releaseTag=v67.13.7-nightly.develop.20260821      │
+   │ -f isHotfix=true                                     │
    │ (~2 minutes)                                         │
    │ ┌────────────────────────────────────────────────────┤
+   │ │ • Skips nightly-pipeline gate-check (doesn't exist)│
+   │ │ • Tests hotfix commit directly (compile + test)    │
    │ │ • Publishes to VS Code Marketplace                 │
    │ │ • Publishes to Open VSX                            │
    │ │ • Available to all users immediately               │
@@ -163,14 +166,28 @@ EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!               │
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ build-and-release-patch-branch.yml                              │
+   │ build-and-release-patch-branch.yml                   │
    │ • Auto-increments (v67.12.0 → v67.12.1)              │
-   │ • Builds VSIXs                                       │
+   │ • Builds VSIXs (no automated test gate - manual QA   │
+   │   in step 5 below is the only validation)            │
    └───────┬──────────────────────────────────────────────┘
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ publishVSCode.yml → Marketplace                      │
+   │ Manual QA: download + install VSIXs, smoke test      │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ publishVSCode.yml + publishOpenVSX.yml               │
+   │ Both dispatched with -f isHotfix=true, release-tag   │
+   │ • Test patch commit (compile + test)                 │
+   │ • Publish stable to VS Code Marketplace & Open VSX   │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ LIVE ON BOTH REGISTRIES (as stable)                  │
    └──────────────────────────────────────────────────────┘
                                                                   │       │
 ═══════════════════════════════════════════════════════════════════════════
@@ -230,7 +247,7 @@ Emergency Path: ❌ None (wait 7+ days)
 ```
 WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ promote-nightly-to-prerelease.yml (AUTOMATED 8 AM UTC)
+                              ├─ promote-to-prerelease.yml (AUTOMATED 8 AM UTC)
                               │    • Finds most recent nightly (min-tag-age: 0 days)
                               │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
