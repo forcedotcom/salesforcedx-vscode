@@ -11,7 +11,6 @@ import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
@@ -21,12 +20,6 @@ import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
 import { getRuntime } from '../services/runtime';
 
 const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
-
-class SelectedLogFileReadError extends Schema.TaggedError<SelectedLogFileReadError>()('SelectedLogFileReadError', {
-  message: Schema.String,
-  filePath: Schema.String,
-  cause: Schema.String
-}) {}
 
 type SelectedLogFile = {
   readonly contents: string;
@@ -55,17 +48,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   const filePath = fileUris[0].fsPath;
   yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));
   const contents = yield* api.services.FsService.readFile(filePath).pipe(
-    Effect.mapError(
-      cause =>
-        new SelectedLogFileReadError({
-          message: `Failed to read selected log file: ${errorToString(cause)}`,
-          filePath,
-          cause: errorToString(cause)
-        })
-    ),
-    Effect.tapError(error =>
-      Effect.logError('Failed to read selected log file', { filePath: error.filePath, cause: error.cause })
-    )
+    Effect.tapError(error => Effect.logError('Failed to read selected log file', error))
   );
   return { contents, path: filePath, name: getBasename(filePath) } satisfies SelectedLogFile;
 });
