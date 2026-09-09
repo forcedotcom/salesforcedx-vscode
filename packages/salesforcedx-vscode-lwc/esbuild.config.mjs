@@ -40,7 +40,7 @@ const browserBuild = await build({
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
-  external: ['vscode', '@salesforce/lightning-lsp-common'],
+  external: ['vscode'],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
@@ -84,7 +84,6 @@ await build({
   loader: { '.json': 'json' },
   external: [
     'vscode',
-    '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support'
     // @babel/core is NOT external - it needs to be bundled for browser to avoid dynamic require errors
