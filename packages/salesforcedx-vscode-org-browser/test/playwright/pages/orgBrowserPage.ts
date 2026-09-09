@@ -8,6 +8,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
   saveScreenshot,
+  showExplorer,
   typingSpeed,
   waitForWorkspaceReady,
   TAB
@@ -42,7 +43,13 @@ export class OrgBrowserPage {
 
   /** Wait for the project file system to be loaded in Explorer */
   public async waitForProject(): Promise<void> {
-    await waitForWorkspaceReady(this.page, 60_000);
+    // `waitForWorkspaceReady` looks for the `sfdx-project.json` tree item, which is only in the DOM
+    // while the Explorer is the active sidebar view. The container specs share one long-lived
+    // workbench and repeatedly switch the primary sidebar to the Org Browser view (or hide it), so
+    // reveal the Explorer first — otherwise the check burns its full timeout waiting for a node that
+    // cannot appear. Bounded well under the per-test cap so a genuine miss fails fast, not in minutes.
+    await showExplorer(this.page).catch(() => {});
+    await waitForWorkspaceReady(this.page, 30_000);
   }
 
   /** Open the Org Browser by clicking its activity bar item */
