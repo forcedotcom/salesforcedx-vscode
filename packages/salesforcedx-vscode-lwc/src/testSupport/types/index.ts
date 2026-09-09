@@ -13,6 +13,8 @@ import { URI } from 'vscode-uri';
  */
 export type TestResultStatus = 'passed' | 'failed' | 'skipped' | 'unknown';
 
+export type TestRunType = 'run' | 'debug' | 'watch';
+
 /**
  * Test Result type contains the test result status.
  * For now, failure messages are stored in DiagnosticCollection instead of here.
