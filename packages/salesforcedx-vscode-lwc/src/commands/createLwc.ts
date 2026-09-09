@@ -114,11 +114,12 @@ const determineComponentTemplate = Effect.fn('determineComponentTemplate')(funct
   );
 
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+  // defaultLwcLanguage comes from untrusted sfdx-project.json, so its runtime value may not match the narrowed
+  // type - treat anything other than 'typescript'/'javascript' (including invalid values) as unset.
   const preferredTemplate = Match.value(projectJson.get('defaultLwcLanguage')).pipe(
     Match.when('typescript', () => Option.some('typeScript' as const)),
     Match.when('javascript', () => Option.some('default' as const)),
-    Match.when(Match.undefined, () => Option.none<'typeScript' | 'default'>()),
-    Match.exhaustive
+    Match.orElse(() => Option.none<'typeScript' | 'default'>())
   );
 
   if (customTemplateNames.length === 0 && Option.isSome(preferredTemplate)) {
