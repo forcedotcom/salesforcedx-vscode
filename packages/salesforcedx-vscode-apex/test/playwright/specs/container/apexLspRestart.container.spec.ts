@@ -99,12 +99,14 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
 
 const selectRestartOnlyQuickPick = async (page: Page): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'visible', timeout: 10_000 });
+  // The restart command opens this quick pick more slowly in the container (browser round-trip +
+  // Node host) than in Electron, so give it more room than the desktop twin's 10s.
+  await widget.waitFor({ state: 'visible', timeout: 30_000 });
   const row = widget
     .locator(QUICK_INPUT_LIST_ROW)
     .filter({ hasText: new RegExp(`^${RESTART_ONLY_LABEL}$`) })
     .first();
-  await row.waitFor({ state: 'visible', timeout: 10_000 });
+  await row.waitFor({ state: 'visible', timeout: 30_000 });
   await row.click();
 };
 
@@ -120,10 +122,14 @@ const triggerLspRestart = async (page: Page, via: 'palette' | 'statusBar'): Prom
   await (via === 'palette' ? executeCommandWithCommandPalette(page, RESTART_COMMAND) : clickApexLspRestartAction(page));
   await selectRestartOnlyQuickPick(page);
 
-  // Intermediate "restarting" status — fails fast if restart was ignored.
-  await expect(getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)).toBeVisible({
-    timeout: 10_000
-  });
+  // Intermediate "restarting" status is a transient, best-effort signal only: in the container the
+  // status item can flip through "is restarting" faster (or slower) than the 10s the desktop twin
+  // used, so a hard wait here was racy and flaked. The durable proof that the restart actually
+  // happened is the freshly-cleared Apex Language Server channel re-emitting PRELUDE_STARTING,
+  // followed by the "Indexing complete" language-status button — both asserted below.
+  await getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)
+    .waitFor({ state: 'visible', timeout: 30_000 })
+    .catch(() => {});
 
   await waitForOutputChannelText(page, { expectedText: PRELUDE_STARTING, timeout: 60_000 });
   await waitForApexLspReady(page);

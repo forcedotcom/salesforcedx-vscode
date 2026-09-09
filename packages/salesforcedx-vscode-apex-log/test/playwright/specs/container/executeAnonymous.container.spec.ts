@@ -21,14 +21,17 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
+import { messages } from '../../../../src/messages/i18n';
 import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
@@ -39,6 +42,8 @@ test('Execute Anonymous Apex (Code Builder): runs a debug script against the boo
   test.setTimeout(3 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
+  // Unique name so repeated runs on the shared workbench never collide with a prior scaffold.
+  const scriptName = `CbE2eAnon${Date.now()}`;
 
   await test.step('workbench ready', async () => {
     // The containerTest fixture already awaited workbench readiness before handing over `page`.
@@ -50,7 +55,21 @@ test('Execute Anonymous Apex (Code Builder): runs a debug script against the boo
   await test.step('create an anonymous Apex script', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 120_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
-    // The command scaffolds a `.apex` file and opens it in the editor.
+
+    // The command prompts (showInputBox) for a script name before it scaffolds anything — the earlier
+    // port skipped this, so the `.apex` editor never opened. Fill the name and confirm.
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+    await quickInput.getByText(messages.create_script_name_prompt).waitFor({ state: 'visible', timeout: 15_000 });
+    await quickInput.locator('input.input').first().fill(scriptName);
+    await page.keyboard.press('Enter');
+
+    // Then it prompts for the output directory (default `scripts/apex`) — accept the first option.
+    await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
+    await waitForQuickInputFirstOption(page);
+    await page.keyboard.press('Enter');
+
+    // Now the command writes the template and opens the scaffolded `.apex` file in the editor.
     await page.locator(`${EDITOR_WITH_URI}[data-uri$=".apex"]`).first().waitFor({ state: 'visible', timeout: 30_000 });
   });
 

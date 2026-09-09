@@ -64,9 +64,10 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
     await saveScreenshot(page, 'createApexTrigger.container.02-after-command.png');
 
-    // Enter trigger name
+    // Enter trigger name. The palette command reaches the input box slower in the container than on
+    // the desktop/headless twin (browser round-trip + Node host), so 5s raced the prompt open.
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+    await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'createApexTrigger.container.03-name-prompt-visible.png');
     await page.keyboard.type(triggerName);
@@ -112,31 +113,35 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'createApexTrigger.container.10-after-accept-directory.png');
 
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 5000 });
+    // Scaffolding writes the file then opens it; in the container that round-trip is slower, so give
+    // the editor more room to appear than the desktop/headless 5s.
+    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'createApexTrigger.container.11-editor-opened.png');
   });
 
   await test.step('verify trigger was created correctly', async () => {
+    // Timeouts are generous vs. the desktop twin: the scaffold file write + explorer tree refresh
+    // lag behind the editor opening in the container.
     const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${triggerName}\\.trigger`, 'i') });
-    await expect(editorTab).toBeVisible({ timeout: 1000 });
+    await expect(editorTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'createApexTrigger.container.12-tab-visible.png');
 
     const explorerTrigger = page
       .locator('[role="treeitem"]')
       .filter({ hasText: new RegExp(`${triggerName}\\.trigger$`, 'i') })
       .first();
-    await expect(explorerTrigger).toBeVisible({ timeout: 2000 });
+    await expect(explorerTrigger).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'createApexTrigger.container.13-trigger-in-explorer.png');
 
     await expect(
       page.getByRole('treeitem', { name: new RegExp(`${triggerName}\\.trigger-meta\\.xml$`, 'i') })
-    ).toBeVisible({ timeout: 2000 });
+    ).toBeVisible({ timeout: 10_000 });
 
     const editorText = page.locator('.view-lines').first();
     await expect(editorText).toContainText(`trigger ${triggerName} on Case (after insert, after update)`, {
-      timeout: 100
+      timeout: 10_000
     });
-    await expect(editorText).toContainText('}', { timeout: 100 });
+    await expect(editorText).toContainText('}', { timeout: 10_000 });
     await saveScreenshot(page, 'createApexTrigger.container.14-trigger-content-verified.png');
   });
 
