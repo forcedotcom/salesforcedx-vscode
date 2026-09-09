@@ -17,6 +17,7 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { registerAnonymousApexExecuteCodeLensProvider } from './commands/anonymousApexExecuteCodeLensProvider';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { createApexClassCommand } from './commands/createApexClass';
 import { createApexTriggerCommand } from './commands/createApexTrigger';
@@ -36,7 +37,7 @@ import {
 import { createLogAutoCollect } from './logs/logAutoCollect';
 import { CurrentTraceFlags } from './services/apexLogState';
 import { buildAllServicesLayer } from './services/extensionProvider';
-import { getRuntime, setAllServicesLayer } from './services/runtime';
+import { disposeRuntime, getRuntime, setAllServicesLayer } from './services/runtime';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
@@ -48,7 +49,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
   await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivation());
+export const deactivate = async (): Promise<void> => {
+  await getRuntime().runPromise(deactivation()).finally(disposeRuntime);
+};
 
 const activation = Effect.fn('activation')(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -60,7 +63,6 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
   );
-
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();
 
@@ -100,7 +102,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
       Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
       Effect.forkIn(traceFlagCleanupScheduler(), scope).pipe(Effect.asVoid),
-      registerTraceFlagsCodeLensProvider(context)
+      registerTraceFlagsCodeLensProvider(context),
+      registerAnonymousApexExecuteCodeLensProvider(context)
     ],
 
     { concurrency: 'unbounded' }

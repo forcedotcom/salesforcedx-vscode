@@ -11,7 +11,6 @@ import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import { Disposable, env, workspace } from 'vscode';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
@@ -35,8 +34,7 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
 };
 const getConnectionEffect = Effect.fn('O11yReporter.getConnection')(function* () {
   const api = yield* getServicesApi;
-  const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
-  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(api.services.prebuiltServicesLayer));
 });
 
 const getConnection = (): Promise<Connection> => Effect.runPromise(getConnectionEffect());

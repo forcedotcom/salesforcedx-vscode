@@ -18,6 +18,13 @@ type LogQueryResult = {
   records: LogRecord[];
 };
 
+type LogServiceInternals = {
+  getLogById: (logId: string) => Promise<LogResult>;
+  toolingRequest: (url: string) => Promise<unknown>;
+};
+
+const logServicePrototype = LogService.prototype as unknown as LogServiceInternals;
+
 const logRecords: LogRecord[] = [
   {
     Id: '07L5tgg0005PGdTnEAL',
@@ -103,7 +110,7 @@ describe('Apex Log Service Tests', () => {
         username: testData.username
       })
     });
-    toolingRequestStub = $$.SANDBOX.stub(LogService.prototype, 'toolingRequest');
+    toolingRequestStub = $$.SANDBOX.stub(logServicePrototype, 'toolingRequest');
   });
 
   it('should return correct number of logs', async () => {
@@ -167,7 +174,7 @@ describe('Apex Log Service Tests', () => {
     const toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingQueryStub.onFirstCall().resolves(queryRecords);
 
-    const getLogByIdStub = $$.SANDBOX.stub(LogService.prototype, 'getLogById');
+    const getLogByIdStub = $$.SANDBOX.stub(logServicePrototype, 'getLogById');
     getLogByIdStub.resolves({ log: 'log' });
     const response = await apexLogGet.getLogs({
       numberOfLogs: 27

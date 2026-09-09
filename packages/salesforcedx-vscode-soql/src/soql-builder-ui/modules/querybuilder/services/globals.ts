@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isUndefined } from 'effect/Predicate';
+
 export type VSCodeWebviewApi = {
   readonly getState: () => unknown;
   readonly postMessage: (message: unknown) => void;
@@ -22,7 +24,7 @@ export const getBodyClass = (): string | null => window.document.body.getAttribu
 let vsCode: VSCodeWebviewApi | undefined;
 
 export const getVscode = (): VSCodeWebviewApi => {
-  if (vsCode === undefined) {
+  if (isUndefined(vsCode)) {
     vsCode = globalThis.acquireVsCodeApi();
   }
   return vsCode;

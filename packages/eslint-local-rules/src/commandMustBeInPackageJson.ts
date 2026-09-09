@@ -7,43 +7,11 @@
 
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { getNearestPackageJson } from './packageJsonUtils';
 
-type PackageJson = {
-  contributes?: {
-    commands?: { command: string }[];
-  };
-};
-
-/** Cache package.json contents per directory to avoid repeated reads */
-const packageJsonCache = new Map<string, PackageJson | undefined>();
-
-/** Find and read the nearest package.json, returning contributes.commands */
 const getPackageCommands = (filePath: string): Set<string> => {
-  const dir = path.dirname(filePath);
-
-  if (packageJsonCache.has(dir)) {
-    const cached = packageJsonCache.get(dir);
-    return new Set(cached?.contributes?.commands?.map(c => c.command));
-  }
-
-  // Walk up directories to find package.json
-  const parts = dir.split(path.sep);
-  for (let i = parts.length; i > 0; i--) {
-    const candidate = path.join(parts.slice(0, i).join(path.sep), 'package.json');
-    try {
-      const content = fs.readFileSync(candidate, 'utf8');
-      const parsed = JSON.parse(content) as PackageJson;
-      packageJsonCache.set(dir, parsed);
-      return new Set(parsed?.contributes?.commands?.map(c => c.command));
-    } catch {
-      // Continue searching up
-    }
-  }
-
-  packageJsonCache.set(dir, undefined);
-  return new Set();
+  const pkg = getNearestPackageJson(filePath);
+  return new Set(pkg?.contributes?.commands?.map(c => c.command));
 };
 
 type RuleOptions = [{ ignorePatterns?: string[] }];

@@ -7,6 +7,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
   closeWelcomeTabs,
+  disableMonacoAutoClosing,
   DIRTY_EDITOR,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -14,7 +15,6 @@ import {
   focusOnFilesExplorer,
   isDesktop,
   openFileByName,
-  paste,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveFile,
@@ -35,12 +35,12 @@ const replaceEditorContentAndSave = async (
   editor: ReturnType<Page['locator']>,
   content: string
 ): Promise<void> => {
+  await disableMonacoAutoClosing(page);
   await editor.click();
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
   await selectAll(page);
   await page.keyboard.press('Delete');
-  await page.evaluate((t: string) => navigator.clipboard.writeText(t), content);
-  await paste(page);
+  await page.keyboard.type(content);
   await saveFile(page);
   await expect(page.locator(DIRTY_EDITOR).first(), 'editor should be saved (no dirty indicator)').not.toBeVisible({
     timeout: 10_000

@@ -10,17 +10,12 @@ import type { Rule } from 'eslint';
 
 import { findNodeAtPath } from './jsonAstUtils';
 
-const extractCommandIds = (ast: ValueNode): Set<string> => {
+const extractCommandNodes = (ast: ValueNode): StringNode[] => {
   const commandNodes = findNodeAtPath(ast, ['contributes', 'commands', '*']);
-  return new Set(
-    commandNodes
-      .filter((node): node is ValueNode & { type: 'Object' } => node.type === 'Object')
-      .map(node => {
-        const commandMember = node.members.find(m => m.name.type === 'String' && m.name.value === 'command');
-        return commandMember?.value.type === 'String' ? commandMember.value.value : undefined;
-      })
-      .filter((id): id is string => id !== undefined)
-  );
+  return commandNodes
+    .filter((node): node is ValueNode & { type: 'Object' } => node.type === 'Object')
+    .map(node => node.members.find(m => m.name.type === 'String' && m.name.value === 'command')?.value)
+    .filter((node): node is StringNode => node?.type === 'String');
 };
 
 const extractReferencedCommands = (ast: ValueNode): Map<string, StringNode> => {
@@ -40,16 +35,23 @@ const extractReferencedCommands = (ast: ValueNode): Map<string, StringNode> => {
   );
 };
 
+const extractCommandPaletteIds = (ast: ValueNode): Set<string> =>
+  new Set(
+    findNodeAtPath(ast, ['contributes', 'menus', 'commandPalette', '*', 'command'])
+      .filter((node): node is StringNode => node.type === 'String')
+      .map(node => node.value)
+  );
+
 export const packageJsonCommandRefs: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Validate command references in package.json menus'
+      description: 'Validate command palette entries and menu command references in package.json'
     },
     schema: [],
     messages: {
       undefinedCommand: 'Command "{{command}}" referenced in menu but not defined in contributes.commands',
-      orphanedCommand: 'Command "{{command}}" is defined but never referenced in any menu'
+      missingCommandPalette: 'Command "{{command}}" is missing from contributes.menus.commandPalette'
     }
   },
   create: context => {
@@ -67,11 +69,13 @@ export const packageJsonCommandRefs: Rule.RuleModule = {
           return;
         }
 
-        const definedCommands = extractCommandIds(ast);
+        const commandNodes = extractCommandNodes(ast);
+        const definedCommandIds = new Set(commandNodes.map(commandNode => commandNode.value));
         const referencedCommands = extractReferencedCommands(ast);
+        const commandPaletteIds = extractCommandPaletteIds(ast);
 
         Array.from(referencedCommands.entries())
-          .filter(([commandId]) => !definedCommands.has(commandId))
+          .filter(([commandId]) => !definedCommandIds.has(commandId))
           .map(([commandId, commandNode]) => {
             context.report({
               node: commandNode as unknown as Rule.Node,
@@ -80,21 +84,14 @@ export const packageJsonCommandRefs: Rule.RuleModule = {
             });
           });
 
-        Array.from(definedCommands)
-          .filter(commandId => !referencedCommands.has(commandId))
-          .map(commandId => {
-            const commandMemberValue = findNodeAtPath(ast, ['contributes', 'commands', '*'])
-              .filter((cmdNode): cmdNode is ValueNode & { type: 'Object' } => cmdNode.type === 'Object')
-              .map(cmdNode => cmdNode.members.find(m => m.name.type === 'String' && m.name.value === 'command'))
-              .find(member => member?.value.type === 'String' && member.value.value === commandId)?.value;
-
-            return commandMemberValue?.type === 'String'
-              ? context.report({
-                  node: commandMemberValue as unknown as Rule.Node,
-                  messageId: 'orphanedCommand',
-                  data: { command: commandId }
-                })
-              : undefined;
+        commandNodes
+          .filter(commandNode => !commandPaletteIds.has(commandNode.value))
+          .map(commandNode => {
+            context.report({
+              node: commandNode as unknown as Rule.Node,
+              messageId: 'missingCommandPalette',
+              data: { command: commandNode.value }
+            });
           });
       }
     } as Rule.RuleListener;

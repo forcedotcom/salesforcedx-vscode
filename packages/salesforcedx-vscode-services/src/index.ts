@@ -19,11 +19,12 @@ import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef
 import { AliasService } from './core/alias';
 import { watchAliasFile } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
+import { ArtifactProjectionSchemas } from './core/artifactProjection';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { clearDefaultOrgRef, getDefaultOrgRef, getTelemetryIdentitySnapshot } from './core/defaultOrgRef';
+import { clearDefaultOrgRef, getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { LightningComponentService } from './core/lightningComponentService';
@@ -38,11 +39,13 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { preventOrgChanges } from './core/targetOrgGuard';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
@@ -73,53 +76,58 @@ import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
+import { NotificationModeService } from './vscode/notificationModeService';
 import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
-import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
+import { registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
+type PrebuiltServicesDependencies =
+  | AliasService
+  | ApexLogService
+  | ChannelService
+  | ComponentSetService
+  | LightningComponentService
+  | ConfigService
+  | ConnectionService
+  | EditorService
+  | ErrorHandlerService
+  | ExecuteAnonymousService
+  | FileChangePubSub
+  | FsService
+  | MediaService
+  | MetadataChangeNotificationService
+  | MetadataDeleteService
+  | MetadataDeployService
+  | MetadataDescribeService
+  | OrgMetadataCatalog
+  | OrgMetadataCatalogChangePubSub
+  | PromptService
+  | MetadataRegistryService
+  | MetadataRetrieveService
+  | ProjectService
+  | Resource.Resource
+  | SettingsChangePubSub
+  | SettingsService
+  | SourceTrackingService
+  | TemplateService
+  | TerminalService
+  | TraceFlagService
+  | TransmogrifierService
+  | WorkspaceService;
+
 export type SalesforceVSCodeServicesApi = {
   services: {
-    /** contains most of the dependencies prebuilt in the services extension */
-    prebuiltServicesDependencies: Context.Context<
-      | AliasService
-      | ApexLogService
-      | ChannelService
-      | ComponentSetService
-      | LightningComponentService
-      | ConfigService
-      | ConnectionService
-      | EditorService
-      | ErrorHandlerService
-      | ExecuteAnonymousService
-      | FileChangePubSub
-      | FsService
-      | MediaService
-      | MetadataChangeNotificationService
-      | MetadataDeleteService
-      | MetadataDeployService
-      | MetadataDescribeService
-      | OrgMetadataCatalog
-      | OrgMetadataCatalogChangePubSub
-      | PromptService
-      | MetadataRegistryService
-      | MetadataRetrieveService
-      | ProjectService
-      | Resource.Resource
-      | SettingsChangePubSub
-      | SettingsService
-      | SourceTrackingService
-      | TemplateService
-      | TerminalService
-      | TraceFlagService
-      | TransmogrifierService
-      | WorkspaceService
-    >;
+    /** @deprecated Use prebuiltServicesLayer so Effect runtime configuration is preserved. */
+    prebuiltServicesDependencies: Context.Context<PrebuiltServicesDependencies>;
+    /** Shared service instances and Effect runtime configuration. */
+    prebuiltServicesLayer: Layer.Layer<PrebuiltServicesDependencies>;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
+    ArtifactProjectionSchemas: typeof ArtifactProjectionSchemas;
     TemplateService: typeof TemplateService;
     TemplateType: typeof TemplateType;
     ChannelService: typeof ChannelService;
@@ -128,7 +136,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
-    registerCommandWithLayer: typeof registerCommandWithLayer;
+    preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
     EditorService: typeof EditorService;
@@ -149,6 +157,7 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: PublicSdkLayerFor;
@@ -159,7 +168,6 @@ export type SalesforceVSCodeServicesApi = {
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     ClearDefaultOrgRef: typeof clearDefaultOrgRef;
-    TelemetryIdentitySnapshot: typeof getTelemetryIdentitySnapshot;
     TerminalService: typeof TerminalService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
@@ -174,9 +182,7 @@ type PublicSdkLayerFor = (
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
 export type { AliasService } from './core/alias';
-export type { TelemetryIdentitySnapshot } from './core/defaultOrgRef';
 export {
-  ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
   ArtifactNamespaceSchema,
   ArtifactTargetKindSchema,
@@ -188,13 +194,51 @@ export {
   normalizeArtifactIdentity,
   normalizeArtifactIdentityPart,
   normalizeArtifactNamespace,
-  type ApexTypeArtifactIdentity,
   type ArtifactIdentity,
   type ArtifactNamespace,
   type ArtifactTargetKind,
   type MetadataComponentArtifactIdentity,
   type SObjectArtifactIdentity
 } from './core/artifactIdentity';
+export {
+  ArtifactPresenceSchema,
+  ArtifactProjectionSchema,
+  ArtifactProjectionSchemas,
+  ArtifactProviderKindSchema,
+  CanonicalSemanticModelSchema,
+  CatalogEntryDescriptorSchema,
+  CatalogEntryProjectionSchema,
+  DocumentUriSchema,
+  ProjectionUnavailableReasonSchema,
+  ProjectionUnavailableSchema,
+  SObjectChildRelationshipSchema,
+  SObjectFieldRuntimeCapabilitiesSchema,
+  SObjectPicklistValueSchema,
+  SObjectSemanticFieldSchema,
+  SObjectSemanticModelSchema,
+  SObjectSemanticProjectionSchema,
+  SObjectSemanticValueSchema,
+  SourceDocumentProjectionSchema,
+  SourceDocumentSchema,
+  type ArtifactPresence,
+  type ArtifactProjection,
+  type ArtifactProviderKind,
+  type CanonicalSemanticModel,
+  type CatalogEntryDescriptor,
+  type CatalogEntryProjection,
+  type DocumentUri,
+  type ProjectionUnavailable,
+  type ProjectionUnavailableReason,
+  type SObjectChildRelationship,
+  type SObjectFieldRuntimeCapabilities,
+  type SObjectPicklistValue,
+  type SObjectSemanticField,
+  type SObjectSemanticModel,
+  type SObjectSemanticProjection,
+  type SObjectSemanticValue,
+  type SourceDocument,
+  type SourceDocumentProjection
+} from './core/artifactProjection';
 export {
   TemplateService,
   type ApexClassCreateOptions,
@@ -271,7 +315,15 @@ export type {
   ListMetadataError,
   SObjectGlobalDescribeItem
 } from './core/metadataDescribeService';
-export type { DescribeSObjectResult, TransmogrifierService } from './core/transmogrifierService';
+export type {
+  DescribeSObjectResult,
+  RestSObjectDescribeTransmogrifierInput,
+  TransmogrifierInput,
+  TransmogrifierService,
+  WorkspaceSObjectMetadata,
+  WorkspaceSObjectMetadataDocument,
+  WorkspaceSObjectMetadataTransmogrifierInput
+} from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
   SObjectSchema,
@@ -279,6 +331,7 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/schemas/sObject';
+export { TransmogrifierError } from './core/transmogrifierService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
@@ -295,9 +348,18 @@ export type { FsServiceError } from './vscode/fsService';
 export { ICONS } from './vscode/mediaService';
 export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
+export {
+  NotificationModeService,
+  type ProgressAndSuccessMode,
+  type ProgressOnlyMode,
+  type SuccessOnlyMode,
+  type ToastAction
+} from './vscode/notificationModeService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* () {
+const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
+  context: vscode.ExtensionContext
+) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // seed populates defaultOrgRef.cliId + webUserId before connectionService and core can read it
   yield* seedTelemetryIdentities();
@@ -331,6 +393,15 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       )
     )
   );
+
+  if (
+    context.extensionMode === vscode.ExtensionMode.Development ||
+    context.extensionMode === vscode.ExtensionMode.Test
+  ) {
+    yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.internal.testRedactingConsoleLogger', () =>
+      Effect.logInfo('runtime logger test 00D000000000000!playwright-secret')
+    );
+  }
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // auth settings go before other things so retrieveOnLoad can use them
@@ -472,10 +543,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
+    // Layer.buildWithScope returns only Context, so restore the logger FiberRef on the managed runtime.
+    const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
+    prebuiltServicesLayer.pipe(ManagedRuntime.make, setServicesRuntime);
 
-    await activationEffect().pipe(
-      Effect.provide(builtContext),
+    await activationEffect(context).pipe(
+      Effect.provide(prebuiltServicesLayer),
       Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
       Effect.runPromise
     );
@@ -486,8 +559,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     return {
       services: {
         prebuiltServicesDependencies: builtContext,
+        prebuiltServicesLayer,
         ApexLogService,
         AliasService,
+        ArtifactProjectionSchemas,
         TemplateService,
         TemplateType,
         ChannelService,
@@ -496,8 +571,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        preventOrgChanges,
         ExecuteAnonymousService,
-        registerCommandWithLayer,
         registerCommandWithRuntime,
         EditorService,
         ErrorHandlerService,
@@ -516,6 +591,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataDeployService,
         MetadataRegistryService,
         MetadataRetrieveService,
+        NotificationModeService,
         ProjectService,
         getSdkLayerConfigFromContext,
         SdkLayerFor: publicSdkLayerFor,
@@ -525,7 +601,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         ActiveMetadataOperationRef: getActiveMetadataOperationRef,
         TargetOrgRef: getDefaultOrgRef,
         ClearDefaultOrgRef: clearDefaultOrgRef,
-        TelemetryIdentitySnapshot: getTelemetryIdentitySnapshot,
         TerminalService,
         TransmogrifierService,
         TraceFlagItemStruct,

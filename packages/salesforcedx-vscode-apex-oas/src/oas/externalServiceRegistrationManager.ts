@@ -139,6 +139,7 @@ export const handleExistingESR = async (): Promise<string> =>
 
 export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess().pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
@@ -156,13 +157,13 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
     )
   );
   const defaultESRFolder = path.join(workspaceInfo.fsPath, 'force-app', 'main', 'default', esrDefaultDirectoryName);
-  const folderUri = yield* Effect.promise(async () =>
+  const folderUri = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('select_folder_for_oas'),
       value: defaultESRFolder
     })
-  );
-  return folderUri ? path.resolve(folderUri) : undefined;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  return path.resolve(folderUri);
 });
 
 /**

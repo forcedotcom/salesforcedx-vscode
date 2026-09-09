@@ -36,9 +36,10 @@ import {
 import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
+  disposeMetadataRuntime,
   getMetadataRuntime,
+  preventOrgChanges,
   setAllServicesLayer
 } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
@@ -49,16 +50,16 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
   await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getMetadataRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getMetadataRuntime().runPromise(deactivateEffect()).finally(disposeMetadataRuntime);
+};
 
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
-
-  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
   const projectGenerateCommands =
     process.env.ESBUILD_PLATFORM === 'web'
       ? []
@@ -92,8 +93,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartCommand(false)),
       registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () => projectRetrieveStartCommand(true)),
-      registerCommand('sf.metadata.project.deploy.then.retrieve', () =>
-        projectDeployStartCommand(false).pipe(Effect.andThen(() => projectRetrieveStartCommand(false)))
+      registerCommand(
+        'sf.metadata.project.deploy.then.retrieve',
+        Effect.fn('projectDeployThenRetrieveCommand')(function* () {
+          yield* projectDeployStartCommand(false);
+          yield* projectRetrieveStartCommand(false);
+        }, preventOrgChanges)
       ),
       registerCommand('sf.metadata.retrieve.current.source.file', () =>
         retrieveSourcePathsCommand(undefined, undefined)

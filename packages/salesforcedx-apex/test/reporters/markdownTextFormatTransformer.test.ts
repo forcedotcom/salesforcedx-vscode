@@ -8,7 +8,7 @@
 import { MarkdownTextFormatTransformer } from '../../src';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, successResult } from './testResults';
-import { ApexTestResultOutcome } from '../../src/tests/types';
+import type { TestResult } from '../../src/tests/types';
 
 const { testResults } = getTestData();
 
@@ -180,17 +180,17 @@ describe('MarkdownTextFormatTransformer', () => {
     });
 
     it('should sort by severity (failures first) when sortOrder is severity', async () => {
-      const testDataWithFailures = {
+      const testDataWithFailures: TestResult = {
         ...successResult,
         tests: [
           {
             ...successResult.tests[0],
-            outcome: ApexTestResultOutcome.Pass,
+            outcome: 'Pass',
             fullName: 'PassingTest'
           },
           {
             ...successResult.tests[1],
-            outcome: ApexTestResultOutcome.Fail,
+            outcome: 'Fail',
             fullName: 'FailingTest',
             message: 'Test failed' as string | null
           }
@@ -327,7 +327,7 @@ describe('MarkdownTextFormatTransformer', () => {
         tests: [
           {
             ...successResult.tests[0],
-            outcome: ApexTestResultOutcome.Fail,
+            outcome: 'Fail',
             fullName: 'AccountServiceTest.FailingTest',
             methodName: 'FailingTest',
             message: 'Assertion failed: expected true but was false',
@@ -365,7 +365,7 @@ describe('MarkdownTextFormatTransformer', () => {
         tests: [
           {
             ...successResult.tests[0],
-            outcome: ApexTestResultOutcome.Fail,
+            outcome: 'Fail',
             fullName: 'AccountServiceTest.FailingTest',
             methodName: 'FailingTest',
             message: null as string | null,

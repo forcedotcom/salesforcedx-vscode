@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'node:os';
+import { byFieldName } from './byFieldName';
 import { MODIFIER } from './declarationGenerator';
 import { FieldDeclaration, SObjectDefinition } from './types/general';
 
@@ -33,7 +34,7 @@ export const generateFauxClassText = (definition: SObjectDefinition): string => 
   // sort, but filter out duplicates
   // which can happen due to childRelationships w/o a relationshipName
   const declarations = Array.from(definition.fields ?? [])
-    .toSorted((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .toSorted(byFieldName)
     .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name);
 
   const className = definition.name;

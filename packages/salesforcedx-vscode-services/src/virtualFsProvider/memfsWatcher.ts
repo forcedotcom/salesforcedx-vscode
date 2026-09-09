@@ -21,36 +21,42 @@ import { VirtualFsProviderError } from './virtualFsProviderError';
 // we need an emitter to send events to the fileSystemProvider using the vscode API
 export const emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
 
-const updateIDB = (storage: IndexedDBStorageService) =>
-  Effect.fn('updateIDB')(function* (event: FileChangeInfo<string>) {
+export const updateIDB = Effect.fn('updateIDB')(
+  function* (event: FileChangeInfo<string>) {
     if (!event.filename) {
       return;
     }
 
+    const storage = yield* IndexedDBStorageService;
     const { fsPath, uri: rootUri } = yield* getProjectRoot();
     const fullPath = `${fsPath}/${event.filename}`;
     const uri = URI.parse(`${rootUri}/${event.filename}`);
+    yield* Effect.annotateCurrentSpan({ filename: event.filename, eventType: event.eventType, path: fullPath });
 
-    if (event.eventType === 'rename') {
-      if (fs.existsSync(fullPath)) {
-        yield* storage.saveFile(fullPath);
-        emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
-      } else {
-        yield* storage.deleteFile(fullPath);
-        emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
-      }
-    } else if (event.eventType === 'change') {
-      yield* storage.saveFile(fullPath);
-      emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+    if (event.eventType !== 'rename' && event.eventType !== 'change') {
+      return;
     }
-  });
+
+    const exists = fs.existsSync(fullPath);
+    const createdOrChanged =
+      event.eventType === 'rename' ? vscode.FileChangeType.Created : vscode.FileChangeType.Changed;
+    emitter.fire([{ type: exists ? createdOrChanged : vscode.FileChangeType.Deleted, uri }]);
+    return exists ? yield* storage.saveFile(fullPath) : yield* storage.deleteFile(fullPath);
+  },
+  Effect.catchTag('VirtualFsProviderError', error =>
+    Effect.logWarning('updateIDB failed').pipe(
+      Effect.annotateLogs({ message: error.message }),
+      Effect.andThen(
+        Effect.flatMap(ChannelService, channel => channel.appendToChannel(`IndexedDB persist failed: ${error.message}`))
+      )
+    )
+  )
+);
 
 /** Starts watching the memfs for file changes */
 export const startWatch = Effect.fn('startWatch')(
   function* () {
     const channelService = yield* ChannelService;
-    const updater = updateIDB(yield* IndexedDBStorageService);
-
     const projectPath = (yield* getProjectRoot()).fsPath;
     yield* channelService.appendToChannel(`Starting file watcher for ${projectPath}`);
     // Ensure the directory exists before watching
@@ -69,7 +75,7 @@ export const startWatch = Effect.fn('startWatch')(
         duration: '10 millis',
         units: 1
       }),
-      Stream.mapEffect(updater),
+      Stream.mapEffect(updateIDB),
       Stream.runDrain,
       Effect.forkScoped // Run in a daemon fiber that won't block
     );

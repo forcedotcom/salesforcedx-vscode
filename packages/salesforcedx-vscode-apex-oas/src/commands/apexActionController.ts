@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { annotateRootSpan } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
+import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
@@ -26,7 +27,10 @@ import {
   withSteppedProgress
 } from '../oasUtils';
 import { LLMService } from '../services/llmService';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { ClassNotEligible, gatherContext, validateMetadata } from './metadataOrchestrator';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.create_openapi_doc_class;
 
 /** @ExportTaggedError */
 export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
@@ -47,6 +51,9 @@ const isRestOASGenEnabled = (): boolean =>
  * Creates an OpenAPI Document.
  */
 export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(function* (sourceUri: URI | URI[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+
   // Step 1: Validate eligibility
   const eligibilityResult = yield* validateMetadata(sourceUri);
 
@@ -92,26 +99,30 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
   // Steps 7-9 run inside a progress notification so the user sees activity instead of dead air between
   // accepting the folder and the final toast (the REST LLM loop alone can take tens of seconds).
-  const processedOasResult = yield* withSteppedProgress(nls.localize('generating_oas_progress_title', name), report =>
-    Effect.gen(function* () {
-      // Step 7: Use the strategy to generate the OAS
-      yield* report(nls.localize('generating_oas_progress_generating'));
-      const openApiDocument = yield* strategy.generateOAS();
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  const processedOasResult = yield* withSteppedProgress(
+    nls.localize('generating_oas_progress_title', name),
+    report =>
+      Effect.gen(function* () {
+        // Step 7: Use the strategy to generate the OAS
+        yield* report(nls.localize('generating_oas_progress_generating'));
+        const openApiDocument = yield* strategy.generateOAS();
 
-      // Step 8: Process the OAS document
-      yield* report(nls.localize('generating_oas_progress_processing'));
-      const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
-        context,
-        eligibleResult: eligibilityResult,
-        isRevalidation: false
-      });
+        // Step 8: Process the OAS document
+        yield* report(nls.localize('generating_oas_progress_processing'));
+        const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
+          context,
+          eligibleResult: eligibilityResult,
+          isRevalidation: false
+        });
 
-      // Step 9: Write OpenAPI Document to File
-      yield* report(nls.localize('generating_oas_progress_writing'));
-      const isESRDecomposed = yield* checkIfESRIsDecomposed();
-      yield* generateEsrMD(isESRDecomposed, result, fullPath);
-      return result;
-    })
+        // Step 9: Write OpenAPI Document to File
+        yield* report(nls.localize('generating_oas_progress_writing'));
+        const isESRDecomposed = yield* checkIfESRIsDecomposed();
+        yield* generateEsrMD(isESRDecomposed, result, fullPath);
+        return result;
+      }),
+    progressLocation
   );
 
   // Step 11: Gather metrics
@@ -137,5 +148,5 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
         path.basename(fullPath[1], '.externalServiceRegistration-meta.xml'),
         name
       );
-  yield* Effect.promise(() => vscode.window.showInformationMessage(message));
+  yield* notificationMode.showSuccessNotification(COMMAND, message);
 });

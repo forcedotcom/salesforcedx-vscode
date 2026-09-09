@@ -1350,4 +1350,14 @@ describe('lwcServerNode', () => {
       await server.onInitialize(initializeParams);
     });
   });
+
+  // Several tests above call onInitialize() directly (not through setupServerForTest's
+  // stub-drain-restore helper), which schedules a real performDelayedInitialization via
+  // setTimeout(0). Any still-pending one can log after this file's afterAll hooks finish,
+  // hitting an already-restored, torn-down console.info and failing the whole suite with
+  // "Cannot log after tests are done". Registered last so it runs first (Jest's afterAll
+  // hooks run LIFO), draining stragglers while console.info is still mocked above.
+  afterAll(async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+  });
 });
