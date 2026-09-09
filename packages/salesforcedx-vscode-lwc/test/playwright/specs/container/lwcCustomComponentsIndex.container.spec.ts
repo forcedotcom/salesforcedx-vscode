@@ -61,8 +61,10 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
     // The container is Linux, so the index stores a posix module path. Search the full editor model via
     // the Find widget rather than `.view-lines` textContent: the shared workbench accumulates many bundles,
     // so this index file is large and Monaco virtualizes the viewport, keeping the new entry off-screen.
+    // Pass `openSfdxCustomComponentsJson` as the reopen hook: the LSP rewrites the index asynchronously
+    // after bundle creation, so each poll attempt reloads the file from disk until the new entry lands.
     const posix = `lwc/${bundleCamel}/${bundleCamel}.js`;
-    await assertOpenEditorContainsText(page, posix);
+    await assertOpenEditorContainsText(page, posix, openSfdxCustomComponentsJson);
     await saveScreenshot(page, 'lwcIndex.container.03-index-verified.png');
   });
 

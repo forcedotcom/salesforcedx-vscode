@@ -6,6 +6,7 @@
  */
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  closeAllEditors,
   closeWelcomeTabs,
   disableMonacoAutoClosing,
   DIRTY_EDITOR,
@@ -76,6 +77,17 @@ const pickNonStickyTreeItem = async (items: Locator, description: string): Promi
  */
 const scrollExplorerTreeUntilAttached = async (page: Page, rows: Locator, description: string): Promise<void> => {
   const tree = page.locator('.explorer-folders-view .monaco-list').first();
+  // Dot-folders (e.g. `.sfdx`) sort to the very top of the tree, but this scan only steps the
+  // viewport DOWN. In the shared container workbench the tree is often already scrolled down from an
+  // earlier spec, so a top-anchored row would never mount — stepping down moves further away from it.
+  // Reset the viewport to the top once (only when the row isn't already present, so on-screen callers
+  // are unaffected) before stepping down, covering both top-anchored (`.sfdx`) and lower (`force-app`) rows.
+  if ((await rows.count()) === 0) {
+    await tree.hover().catch(() => {});
+    for (let i = 0; i < 8; i++) {
+      await page.mouse.wheel(0, -100_000);
+    }
+  }
   await expect(async () => {
     if ((await rows.count()) > 0) {
       return;
@@ -282,13 +294,29 @@ const LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS = [
  * out of the DOM — reading `.view-lines` textContent then never finds it. The editor Find widget
  * searches the full model and reveals the first match, so we drive it and assert a non-empty match
  * count (`matchesCount` reads "No results." for zero matches, otherwise "n of m").
+ *
+ * The LWC language server rewrites the index file asynchronously *after* the bundle is created, and
+ * the shared workbench may already hold a stale tab for it from an earlier spec — so the entry we
+ * search for can lag the open editor's cached model. Pass `reopen` to reload the file from disk on
+ * each attempt (close all editors, then re-open): the poll re-runs Find against fresh content until
+ * the new entry appears. Callers with an already-current editor can omit `reopen`.
  */
-export const assertOpenEditorContainsText = async (page: Page, needle: string, timeout = 90_000): Promise<void> => {
-  const editor = page.locator(EDITOR_WITH_URI).first();
-  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+export const assertOpenEditorContainsText = async (
+  page: Page,
+  needle: string,
+  reopen?: (page: Page) => Promise<void>,
+  timeout = 90_000
+): Promise<void> => {
   const findWidget = page.locator('.editor-widget.find-widget');
   const matchesCount = findWidget.locator('.matchesCount');
   await expect(async () => {
+    if (reopen) {
+      // Force a fresh read from disk: a refocus of an already-open tab keeps the stale cached model.
+      await closeAllEditors(page);
+      await reopen(page);
+    }
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();
     await page.keyboard.press('Control+f');
     await findWidget.waitFor({ state: 'visible', timeout: 10_000 });
