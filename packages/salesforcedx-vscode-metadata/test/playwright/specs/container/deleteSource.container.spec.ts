@@ -19,13 +19,13 @@
 import {
   clearAllNotifications,
   clearOutputChannel,
+  clickModalDialogButton,
   closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  NOTIFICATION_LIST_ITEM,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -94,13 +94,12 @@ test('Delete Source (Code Builder): deletes a class from project and org via com
     await executeCommandWithCommandPalette(page, messages.delete_source_text);
     await saveScreenshot(page, 'deleteSource.container.04-after-delete-command.png');
 
-    // Confirm the delete via the notification button.
-    const deleteConfirmation = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: messages.delete_source_confirmation_message })
-      .first();
+    // The delete confirmation is a modal warning dialog (showWarningMessage({ modal: true })), not a
+    // notification. Match the passing web twin: assert the dialog then click its "Delete Source" button.
+    const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
     await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
-    await deleteConfirmation.getByRole('button', { name: messages.confirm_delete_source_button_text }).click();
+    await expect(deleteConfirmation).toContainText(messages.delete_source_confirmation_message);
+    await clickModalDialogButton(page, messages.confirm_delete_source_button_text);
     await saveScreenshot(page, 'deleteSource.container.05-confirmed.png');
 
     await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });

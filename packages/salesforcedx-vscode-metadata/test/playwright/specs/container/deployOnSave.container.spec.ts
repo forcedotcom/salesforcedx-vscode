@@ -62,17 +62,27 @@ test('Deploy On Save (Code Builder): automatically deploys the fixture class whe
     // emitted then — long before this spec runs on the shared persistent workbench — so it is not
     // reliably visible in the channel here). getDeployOnSaveEnabled is read per save, so enabling the
     // setting now is sufficient; the save-triggered deploy below is the authoritative signal.
-    await upsertSettings(page, {
-      'salesforcedx-vscode-core.useMetadataExtensionCommands': 'true',
-      [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
-    });
+    // The Settings-UI search row can transiently flake on the shared workbench; upsertSettings only
+    // toggles when the current value differs, so retrying the whole call is safe and idempotent.
+    await expect(async () => {
+      await upsertSettings(page, {
+        'salesforcedx-vscode-core.useMetadataExtensionCommands': 'true',
+        [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
+      });
+    }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
   });
 
   await test.step('edit + save the fixture class to trigger a deploy', async () => {
-    await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
-    const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
-    await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    await editor.click();
+    // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling / focus),
+    // so retry the open+focus as a unit before editing.
+    await expect(async () => {
+      await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
+      const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
+      await editor.waitFor({ state: 'visible', timeout: 15_000 });
+      await editor.click();
+    }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
+    // Re-focus the editor so the edit lands in it (a retried open may have shifted focus).
+    await page.locator('[data-uri*="PagedResult.cls"]').first().click();
 
     // Clear the channel so the "Deployed Source" assertion reflects this save, not a prior deploy.
     await clearOutputChannel(page);

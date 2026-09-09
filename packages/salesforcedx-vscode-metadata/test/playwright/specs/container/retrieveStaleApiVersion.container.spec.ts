@@ -125,7 +125,11 @@ test('manifest version tracks mid-session sourceApiVersion edit without reload (
   await test.step('workbench ready', async () => {
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await verifyCommandExists(page, packageNls.project_generate_manifest_text, 60_000);
+    // Wait on a command that is always contributed once the extension activates. The Generate Manifest
+    // command is context-gated (it only surfaces when an editor inside a package directory is active),
+    // so probing for it here — before any file is open — flakes with "not found" on the shared workbench.
+    // "SFDX: Create Apex Class" (needed by the very next step) is the reliable activation signal.
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 60_000);
     await saveScreenshot(page, 'retrieveStaleApiVersion.container.01-ready.png');
   });
 

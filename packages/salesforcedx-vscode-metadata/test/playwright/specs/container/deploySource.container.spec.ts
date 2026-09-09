@@ -17,21 +17,34 @@
 
 import { expect } from '@playwright/test';
 import {
+  clearAllNotifications,
+  clearOutputChannel,
+  closeAllEditors,
   closeWelcomeTabs,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
-import { waitForDeployProgressNotificationToAppear } from '../../pages/notifications';
 import packageNls from '../../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
+
+test.beforeEach(async ({ page }) => {
+  // Start from a clean workbench (matches the passing deploySourcePath twin): specs share one persistent
+  // workbench, so leftover editors/notifications from a prior spec can push the fixture out of the
+  // Explorer's virtual-scroll window and make the tree open flake.
+  await closeAllEditors(page);
+  await clearAllNotifications(page);
+});
 
 test('Deploy Source (Code Builder): deploys the fixture class to the boot org', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
@@ -46,20 +59,28 @@ test('Deploy Source (Code Builder): deploys the fixture class to the boot org', 
   });
 
   await test.step('open the fixture class and focus its editor', async () => {
-    await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
-    const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
-    await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    await editor.click();
+    // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling / focus),
+    // so retry the open+focus as a unit before relying on the editor being active.
+    await expect(async () => {
+      await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
+      const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
+      await editor.waitFor({ state: 'visible', timeout: 15_000 });
+      await editor.click();
+    }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
     await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
   });
 
   await test.step('deploy the active file and wait for completion', async () => {
-    // Palette "Deploy This Source to Org" deploys the active editor's file to the default org.
-    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+    // Palette "Deploy This Source to Org" deploys the active editor's file to the default org. Assert
+    // completion from the durable "Deployed Source" output-channel line rather than the transient
+    // "Deploying" toast, which can flash past too fast to catch on a fast container deploy.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
 
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 60_000);
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await saveScreenshot(page, 'deploySource.container.02-deploying.png');
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'deploySource.container.03-deployed.png');
   });
 

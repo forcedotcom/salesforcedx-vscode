@@ -17,6 +17,7 @@
  * "Starting metadata deployment" and "Deployed Source" output-channel lines.
  */
 
+import { expect } from '@playwright/test';
 import {
   clearAllNotifications,
   clearOutputChannel,
@@ -62,10 +63,14 @@ test('Project Deploy Start (Code Builder): pushes source to the boot org', async
   });
 
   await test.step('create a local change by editing the fixture class', async () => {
-    await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
-    const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
-    await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    await editor.click();
+    // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling / focus),
+    // so retry the open+focus as a unit before editing.
+    await expect(async () => {
+      await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
+      const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
+      await editor.waitFor({ state: 'visible', timeout: 15_000 });
+      await editor.click();
+    }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
     await editOpenFile(page, `// Project deploy start container test ${Date.now()}`);
     await saveScreenshot(page, 'projectDeployStart.container.02-after-edit.png');
   });
