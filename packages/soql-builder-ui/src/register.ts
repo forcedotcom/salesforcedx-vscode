@@ -8,6 +8,7 @@
 import { SoqlBuilderElement } from './components/soqlBuilderElement.js';
 import { SoqlFieldsElement } from './components/soqlFieldsElement.js';
 import { SoqlFromElement } from './components/soqlFromElement.js';
+import { SoqlLimitElement } from './components/soqlLimitElement.js';
 
 export const registerSoqlBuilderElements = (): void => {
   if (!customElements.get('soql-builder-fields')) {
@@ -15,6 +16,9 @@ export const registerSoqlBuilderElements = (): void => {
   }
   if (!customElements.get('soql-builder-from')) {
     customElements.define('soql-builder-from', SoqlFromElement);
+  }
+  if (!customElements.get('soql-builder-limit')) {
+    customElements.define('soql-builder-limit', SoqlLimitElement);
   }
   if (!customElements.get('soql-builder-app')) {
     customElements.define('soql-builder-app', SoqlBuilderElement);

@@ -67,6 +67,7 @@ export const messages = {
   label_nulls_last: 'Nulls Last',
 
   // limit
+  error_invalid_limit: 'Enter a whole number greater than or equal to 0.',
   label_limit: 'Limit',
   placeholder_limit: 'Limit...',
 

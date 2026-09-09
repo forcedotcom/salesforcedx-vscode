@@ -36,6 +36,7 @@ import {
   type Condition,
   type Query
 } from '@salesforce/soql-model';
+import * as Match from 'effect/Match';
 import * as Predicate from 'effect/Predicate';
 
 const literalFromModel = (literal: unknown): SoqlLiteral | undefined =>
@@ -92,6 +93,22 @@ const conditionOperators: Readonly<Record<SoqlWhereCondition['condition']['opera
   INCLUDES: ConditionOperator.Includes,
   EXCLUDES: ConditionOperator.Excludes
 };
+
+const limitToModel = Match.type<SoqlBuilderQuery['limit']>().pipe(
+  Match.tagsExhaustive({
+    Empty: () => undefined,
+    Invalid: () => undefined,
+    Valid: ({ value }) => new LimitImpl(value)
+  })
+);
+
+const limitToTelemetry = Match.type<SoqlBuilderQuery['limit']>().pipe(
+  Match.tagsExhaustive({
+    Empty: () => undefined,
+    Invalid: () => undefined,
+    Valid: ({ value }) => value
+  })
+);
 
 export const parseSoqlBuilderQuery = (statement: string): SoqlBuilderQuery => {
   const model = deserialize(statement);
@@ -204,7 +221,7 @@ const buildQueryModel = (query: SoqlBuilderQuery): Query => {
     undefined,
     undefined,
     orderByExpressions.length > 0 ? new OrderByImpl(orderByExpressions) : undefined,
-    query.limit._tag === 'Valid' ? new LimitImpl(query.limit.value) : undefined
+    limitToModel(query.limit)
   );
   if (query.headerComments) model.headerComments = new HeaderCommentsImpl(query.headerComments);
   model.allRows = query.allRows;
@@ -219,7 +236,7 @@ export const createSoqlBuilderTelemetry = (query: SoqlBuilderQuery) => ({
     Predicate.isUndefined(error.grammarRule) ? error.type : `${error.type}:${error.grammarRule}`
   ),
   fields: query.fields.length,
-  limit: query.limit._tag === 'Valid' ? query.limit.value : undefined,
+  limit: limitToTelemetry(query.limit),
   orderBy: query.orderBy.length,
   sObject: query.sObject?.includes('__c') ? 'custom' : 'standard',
   unsupported: query.unsupportedSyntax.map(unsupported => unsupported.reason.reasonCode)
