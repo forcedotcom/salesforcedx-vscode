@@ -127,6 +127,58 @@ jobs:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
 
+  # promote-nightly-to-prerelease.yml committed this week's changelog delta to develop
+  # labeled with the prerelease version. Now that it has shipped stable, relabel that same
+  # develop history entry (root CHANGELOG.md + the pack's CHANGELOG.md) to the stable version.
+  relabel-changelog:
+    needs: [prepare-release-metadata, publish]
+    if: needs.publish.result == 'success' && !inputs.dry-run
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+      RELEASE_VERSION: ${{ needs.prepare-release-metadata.outputs.CBW_RELEASE_VERSION }}
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Relabel develop's changelog history to the stable version
+        run: |
+          # build-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
+          # even when the source was startFromRef rather than an actual nightly tag -- the
+          # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
+          NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
+          if [ -z "$NIGHTLY_TAG" ]; then
+            echo "No 'Built from nightly' reference found in release $RELEASE_TAG (likely a hotfix/startFromRef build) - skipping relabel."
+            exit 0
+          fi
+
+          PRERELEASE_VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+          if [ -z "$PRERELEASE_VERSION" ] || [ "$PRERELEASE_VERSION" = "$RELEASE_VERSION" ]; then
+            echo "Nothing to relabel (no prerelease version found, or already matches stable version)."
+            exit 0
+          fi
+
+          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" CHANGELOG.md
+          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
+
+          git add CHANGELOG.md packages/salesforcedx-vscode/CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit"
+          else
+            git commit -m "chore: relabel changelog v${PRERELEASE_VERSION} to v${RELEASE_VERSION} [skip ci]"
+            git pull --rebase origin develop
+            git push origin develop
+          fi
+
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
   # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
   # Uses repository_dispatch (not workflow_call) because GitHub Actions blocks

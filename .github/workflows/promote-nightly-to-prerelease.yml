@@ -57,9 +57,89 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           required-checks: '["nightly-release / package / Package", "nightly-release / Create GitHub Releases"]'
 
-  # Step 3: Promote to prerelease (only runs if gate-check passed)
-  promote:
+  # Step 3: Generate this week's changelog delta (commits since last week's promoted
+  # prerelease), bake it into the pack's prerelease VSIX asset so the Marketplace/Open VSX
+  # Changelog tab shows only this week's changes, and commit the same delta to develop so
+  # root CHANGELOG.md keeps the full cumulative history. Must complete before `promote`,
+  # since the reusable promote workflow re-downloads this exact release asset.
+  changelog:
     needs: [find-nightly, gate-check]
+    if: ${{ inputs.dry-run != true }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+      NIGHTLY_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Determine prerelease version
+        id: version
+        run: |
+          VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract version from nightly tag: $NIGHTLY_TAG"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate this week's changelog delta
+        env:
+          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: npx ts-node scripts/generate-release-delta-changelog.ts "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
+
+      - name: Inject changelog into the prerelease VSIX
+        env:
+          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          VSIX="salesforcedx-vscode-${PRERELEASE_VERSION}.vsix"
+          gh release download "$NIGHTLY_TAG" --pattern "$VSIX" --clobber
+
+          # vsce stores the file lowercase inside the vsix; must match exactly or zip
+          # adds a second, differently-cased entry instead of replacing this one.
+          mkdir -p extension
+          cp packages/salesforcedx-vscode/CHANGELOG.md extension/changelog.md
+          zip "$VSIX" extension/changelog.md
+
+          gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
+          rm -rf extension "$VSIX"
+
+      - name: Commit changelog delta to develop (full history)
+        env:
+          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node scripts/prepend-release-changelog.js
+          git add packages/salesforcedx-vscode/CHANGELOG.md CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit"
+          else
+            git commit -m "chore: changelog for prerelease v${PRERELEASE_VERSION} [skip ci]"
+            git pull --rebase origin develop
+            git push origin develop
+          fi
+
+  # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).
+  # `changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well as
+  # success -- otherwise dry-run would never reach the reusable workflow's own dry-run path.
+  promote:
+    needs: [find-nightly, gate-check, changelog]
+    if: always() && needs.gate-check.result == 'success' && (needs.changelog.result == 'success' || needs.changelog.result == 'skipped')
     uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
