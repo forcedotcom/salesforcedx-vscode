@@ -11,9 +11,13 @@ name: Code Builder E2E (Playwright)
 # §9.1 "WF drives ORCH", §15). CI does the ghcr `docker login` (its GITHUB_TOKEN) and dev-hub auth;
 # CB_SKIP_GHCR_LOGIN tells the orchestrator to use that ambient docker auth instead of gh/CR_PAT.
 #
-# Advisory, not blocking (plan §10.4): the e2e.yml leaf that invokes this marks it continue-on-error,
-# so a red here is a signal to investigate, not an automatic release stop. Runs on nightly + release
-# flows (via e2e.yml) and on demand (workflow_dispatch); not per-PR yet (plan §10.1).
+# Advisory, not blocking (plan §10.4): a red here is a signal to investigate, not an automatic
+# release stop. GitHub forbids continue-on-error on a reusable-workflow `uses:` job, so the e2e.yml
+# leaf that invokes this CAN'T suppress the failure — a red DOES mark that e2e.yml run failed.
+# Advisory-ness therefore lives outside these workflows: the CB check is NON-REQUIRED for
+# merge/release branch protection, and a human confirms a real regression before it delays anything.
+# Runs on nightly + release flows (via e2e.yml) and on demand (workflow_dispatch); not per-PR yet
+# (plan §10.1).
 
 on:
   workflow_dispatch:
@@ -65,6 +69,9 @@ jobs:
       # gh (used by the orchestrator for `gh run download` of the VSIX artifact + provenance) reads
       # this. The job's packages:read + contents:read cover both.
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ghcr `docker login` token. Set at job level (not on the login step) because the retry step
+      # runs a composite action, and step-level env is not reliably propagated into composite steps.
+      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # We `docker login` below; tell the orchestrator to rely on that ambient auth, not gh/CR_PAT.
       CB_SKIP_GHCR_LOGIN: '1'
       RUN_ID: ${{ inputs.runId }}
@@ -78,7 +85,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -106,9 +113,14 @@ jobs:
       # Actions access grants salesforcedx-vscode read, so no App/PAT/private key is needed. The
       # orchestrator sees CB_SKIP_GHCR_LOGIN and reuses this login instead of doing its own.
       - name: Log in to ghcr.io
-        env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          # GITHUB_ACTOR is a runner-provided default env var, so it's safe to reference in the
+          # command string (no `${{ }}` interpolation → no injection). Retry a transient ghcr hiccup
+          # like the other network steps in this job instead of failing the whole run on one blip.
+          command: bash -c 'echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin'
+          retry_wait_seconds: 30
 
       - name: Auth to dev hub
         uses: salesforcecli/github-workflows/.github/actions/retry@main

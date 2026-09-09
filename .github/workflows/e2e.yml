@@ -147,8 +147,9 @@ jobs:
   # this e2e.yml run failed (GitHub forbids continue-on-error on a reusable-workflow `uses:` job, so
   # the workflow itself can't suppress it). Advisory-ness therefore lives outside the workflow: the
   # CB check is NON-REQUIRED for merge/release protection, release automation gates on the build (not
-  # this post-hoc run), and a human confirms a real regression before it delays anything. Threads the
-  # build runId like the other leaves; needs no vscode_version (runs the shipping VSIX in-container).
+  # this post-hoc run), and a human confirms a real regression before it delays anything. Unlike the
+  # other leaves, this one threads the build runId (to fetch that run's VSIX) and needs no
+  # vscode_version (it runs the shipping VSIX in-container, not against a host VS Code).
   # — W-23898524
   playwright-code-builder:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}

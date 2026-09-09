@@ -59,7 +59,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const REPO_ROOT = resolve(__dirname, '..');
-const CONTAINER_NAME = 'codebuilder-e2e-local';
+// Read from env so the orchestrator and the CI workflow's cleanup step (`docker rm -f "$CONTAINER_NAME"`)
+// share one name; falls back to the local default. Keeps the two from silently desyncing on a rename.
+const CONTAINER_NAME = process.env.CONTAINER_NAME ?? 'codebuilder-e2e-local';
 // Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
 // workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
 const ORG_ALIAS = process.env.MINIMAL_ORG_ALIAS ?? 'minimalTestOrg';
@@ -297,13 +299,24 @@ log(`Pulling ${image}`);
 try {
   pull(image);
 } catch {
-  console.error(
-    '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
-      '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
-      '        gh auth refresh -h github.com -s read:packages\n' +
-      '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
-      '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
-  );
+  if (process.env.CB_SKIP_GHCR_LOGIN) {
+    // The caller (e.g. CI) did the ghcr `docker login`, so this is NOT a gh/CR_PAT scope issue —
+    // don't send triage down the `gh auth refresh` path. It's the ambient login's access or the tag.
+    console.error(
+      '\nCould not pull the Code Builder image. CB_SKIP_GHCR_LOGIN is set, so the ghcr `docker login`\n' +
+        '    was done by the caller — this is not a gh/CR_PAT scope problem. Check that the login\n' +
+        '    credential has read on the image repo (in CI, the job needs packages:read) and that the\n' +
+        `    tag exists: ${image}`
+    );
+  } else {
+    console.error(
+      '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
+        '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
+        '        gh auth refresh -h github.com -s read:packages\n' +
+        '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
+        '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
+    );
+  }
   process.exit(1);
 }
 
@@ -374,6 +387,16 @@ const modernVsixName = (pkgDir: string): string | null => {
 if (opts.runId) {
   if (!has('gh')) {
     console.error('--run-id needs the gh CLI to download the artifact. Install gh and run: gh auth login');
+    process.exit(1);
+  }
+  // The preflight only validates `gh auth status` when it owns the ghcr login; under
+  // CB_SKIP_GHCR_LOGIN that branch is skipped, so an expired/under-scoped token would otherwise
+  // sail through and crash mid-download with a raw `gh run download` error. Check it here too.
+  if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
+    console.error(
+      '--run-id needs gh authenticated to github.com to download the artifact.\n' +
+        '    In CI, ensure GH_TOKEN is set (with actions:read + contents:read); locally run: gh auth login'
+    );
     process.exit(1);
   }
   log(`Downloading VSIX artifact from Build All run ${opts.runId}`);
