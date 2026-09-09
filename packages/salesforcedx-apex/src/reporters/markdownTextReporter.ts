@@ -7,9 +7,12 @@
 
 import { TestResult, ApexTestResultData } from '../tests/types';
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type OutputFormat = 'markdown' | 'text';
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type TestSortOrder = 'runtime' | 'coverage' | 'severity';
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export interface MarkdownTextReporterOptions {
   /**
    * Output format: 'markdown' or 'text'

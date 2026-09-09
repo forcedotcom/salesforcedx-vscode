@@ -10,7 +10,8 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
+import { TestResult } from '../../src';
+import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;
@@ -54,7 +55,7 @@ describe('writeAsyncResultsToFile', () => {
         message: null as string | null,
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncMethod1',
-        outcome: ApexTestResultOutcome.Pass,
+        outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
@@ -73,7 +74,7 @@ describe('writeAsyncResultsToFile', () => {
         message: 'Async test failed',
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncMethod2',
-        outcome: ApexTestResultOutcome.Fail,
+        outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
         apexClass: {
           id: '01p000000000002AAA',
@@ -248,7 +249,7 @@ describe('writeAsyncResultsToFile', () => {
         message: i % 5 === 0 ? 'Test failed' : (null as string | null),
         asyncApexJobId: '707000000000001AAA',
         methodName: `testMethod${i}`,
-        outcome: i % 5 === 0 ? ApexTestResultOutcome.Fail : ApexTestResultOutcome.Pass,
+        outcome: i % 5 === 0 ? 'Fail' : 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: `01p00000000000${i.toString().padStart(4, '0')}AAA`,
@@ -355,7 +356,7 @@ describe('writeAsyncResultsToFile', () => {
           message: null as string | null,
           asyncApexJobId: '707000000000001AAA',
           methodName: 'testWithNulls',
-          outcome: ApexTestResultOutcome.Pass,
+          outcome: 'Pass',
           apexLogId: null as string | null,
           apexClass: {
             id: '01p000000000001AAA',

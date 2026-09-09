@@ -1,0 +1,715 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "ApexCodeCoverage": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/ApexCodeCoverageRecord" } }
+      },
+      "additionalProperties": false
+    },
+    "ApexCodeCoverageRecord": {
+      "type": "object",
+      "required": ["ApexClassOrTrigger", "ApexTestClassId", "TestMethodName", "NumLinesCovered", "NumLinesUncovered"],
+      "properties": {
+        "ApexClassOrTrigger": {
+          "type": "object",
+          "required": ["Id", "Name"],
+          "properties": { "Id": { "type": "string" }, "Name": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "ApexTestClassId": { "type": "string" },
+        "TestMethodName": { "type": "string" },
+        "NumLinesCovered": { "type": "number" },
+        "NumLinesUncovered": { "type": "number" },
+        "Coverage": {
+          "type": "object",
+          "required": ["coveredLines", "uncoveredLines"],
+          "properties": {
+            "coveredLines": { "type": "array", "items": { "type": "number" } },
+            "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApexCodeCoverageAggregate": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" } }
+      },
+      "additionalProperties": false
+    },
+    "ApexCodeCoverageAggregateRecord": {
+      "type": "object",
+      "required": ["ApexClassOrTrigger", "NumLinesCovered", "NumLinesUncovered", "Coverage"],
+      "properties": {
+        "ApexClassOrTrigger": {
+          "type": "object",
+          "required": ["Id", "Name"],
+          "properties": { "Id": { "type": "string" }, "Name": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "NumLinesCovered": { "type": "number" },
+        "NumLinesUncovered": { "type": "number" },
+        "Coverage": {
+          "type": "object",
+          "required": ["coveredLines", "uncoveredLines"],
+          "properties": {
+            "coveredLines": { "type": "array", "items": { "type": "number" } },
+            "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApexDiagnostic": {
+      "type": "object",
+      "required": ["exceptionMessage", "compileProblem", "exceptionStackTrace"],
+      "properties": {
+        "lineNumber": { "type": "number" },
+        "columnNumber": { "type": "number" },
+        "exceptionMessage": { "type": "string" },
+        "compileProblem": { "type": "string" },
+        "exceptionStackTrace": { "type": "string" },
+        "className": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexExecuteOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "json": { "type": "boolean" },
+        "loglevel": { "$ref": "#/$defs/LogLevel" },
+        "targetUsername": { "type": "string" },
+        "apexFilePath": { "type": "string" },
+        "apexCode": {
+          "anyOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "required": ["type", "data"],
+              "properties": {
+                "type": { "type": "string", "enum": ["Buffer"] },
+                "data": { "type": "array", "items": { "type": "number" } }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "userInput": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "LogLevel": { "type": "string", "enum": ["trace", "debug", "info", "warn", "error", "fatal"] },
+    "ApexLogGetOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "json": { "type": "boolean" },
+        "loglevel": { "$ref": "#/$defs/LogLevel" },
+        "numberOfLogs": { "type": "number" },
+        "logId": { "type": "string" },
+        "outputDir": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestProgressValue": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["type", "value", "message"],
+          "properties": {
+            "type": { "type": "string", "enum": ["StreamingClientProgress"] },
+            "value": { "type": "string", "enum": ["streamingTransportUp", "streamingTransportDown"] },
+            "message": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value", "testRunId", "message"],
+          "properties": {
+            "type": { "type": "string", "enum": ["StreamingClientProgress"] },
+            "value": { "type": "string", "enum": ["streamingProcessingTestRun"] },
+            "testRunId": { "type": "string" },
+            "message": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value", "testRunId", "message"],
+          "properties": {
+            "type": { "type": "string", "enum": ["PollingClientProgress"] },
+            "value": { "type": "string", "enum": ["pollingProcessingTestRun"] },
+            "testRunId": { "type": "string" },
+            "message": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value"],
+          "properties": {
+            "type": { "type": "string", "enum": ["TestQueueProgress"] },
+            "value": { "$ref": "#/$defs/ApexTestQueueItem" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value", "message"],
+          "properties": {
+            "type": { "type": "string", "enum": ["FormatTestResultProgress"] },
+            "value": { "type": "string", "enum": ["retrievingTestRunSummary", "queryingForAggregateCodeCoverage"] },
+            "message": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value", "message", "testRunId"],
+          "properties": {
+            "type": { "type": "string", "enum": ["AbortTestRunProgress"] },
+            "value": { "type": "string", "enum": ["abortingTestRun", "abortingTestRunRequested"] },
+            "message": { "type": "string" },
+            "testRunId": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ApexTestQueueItem": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/ApexTestQueueItemRecord" } }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestQueueItemRecord": {
+      "type": "object",
+      "required": ["Id", "Status", "ApexClassId", "TestRunResultId"],
+      "properties": {
+        "Id": { "type": "string" },
+        "Status": { "$ref": "#/$defs/ApexTestQueueItemStatus" },
+        "ApexClassId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "TestRunResultId": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestQueueItemStatus": {
+      "type": "string",
+      "enum": ["Holding", "Queued", "Preparing", "Processing", "Aborted", "Completed", "Failed"]
+    },
+    "ApexTestResultData": {
+      "type": "object",
+      "required": [
+        "id",
+        "queueItemId",
+        "stackTrace",
+        "message",
+        "asyncApexJobId",
+        "methodName",
+        "outcome",
+        "apexLogId",
+        "apexClass",
+        "runTime",
+        "testTimestamp",
+        "fullName"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "queueItemId": { "type": "string" },
+        "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "asyncApexJobId": { "type": "string" },
+        "methodName": { "type": "string" },
+        "outcome": { "$ref": "#/$defs/ApexTestResultOutcome" },
+        "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "apexClass": {
+          "type": "object",
+          "required": ["id", "name", "namespacePrefix", "fullName"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "namespacePrefix": { "type": "string" },
+            "fullName": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "runTime": { "type": "number" },
+        "testTimestamp": { "type": "string" },
+        "fullName": { "type": "string" },
+        "perClassCoverage": { "type": "array", "items": { "$ref": "#/$defs/PerClassCoverage" } },
+        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" },
+        "category": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestResultOutcome": { "type": "string", "enum": ["Pass", "Fail", "CompileFail", "Skip"] },
+    "PerClassCoverage": {
+      "type": "object",
+      "required": [
+        "apexClassOrTriggerName",
+        "apexClassOrTriggerId",
+        "apexTestClassId",
+        "apexTestMethodName",
+        "numLinesCovered",
+        "numLinesUncovered",
+        "percentage"
+      ],
+      "properties": {
+        "apexClassOrTriggerName": { "type": "string" },
+        "apexClassOrTriggerId": { "type": "string" },
+        "apexTestClassId": { "type": "string" },
+        "apexTestMethodName": { "type": "string" },
+        "numLinesCovered": { "type": "number" },
+        "numLinesUncovered": { "type": "number" },
+        "percentage": { "type": "string" },
+        "coverage": {
+          "type": "object",
+          "required": ["coveredLines", "uncoveredLines"],
+          "properties": {
+            "coveredLines": { "type": "array", "items": { "type": "number" } },
+            "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestResultDataRaw": {
+      "type": "object",
+      "required": [
+        "id",
+        "queueItemId",
+        "stackTrace",
+        "message",
+        "asyncApexJobId",
+        "methodName",
+        "outcome",
+        "apexLogId",
+        "apexClass",
+        "runTime",
+        "testTimestamp",
+        "fullName"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "queueItemId": { "type": "string" },
+        "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "asyncApexJobId": { "type": "string" },
+        "methodName": { "type": "string" },
+        "outcome": { "$ref": "#/$defs/ApexTestResultOutcome" },
+        "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "apexClass": {
+          "type": "object",
+          "required": ["id", "name", "namespacePrefix", "fullName"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "namespacePrefix": { "type": "string" },
+            "fullName": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "runTime": { "type": "number" },
+        "testTimestamp": { "type": "string" },
+        "fullName": { "type": "string" },
+        "perClassCoverage": { "type": "array", "items": { "$ref": "#/$defs/PerClassCoverage" } },
+        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" },
+        "category": { "type": "string" },
+        "isTestSetup": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestRunResultStatus": {
+      "type": "string",
+      "enum": ["Queued", "Processing", "Aborted", "Passed", "Failed", "Completed", "Skipped"]
+    },
+    "ApexTestSetupData": {
+      "type": "object",
+      "required": [
+        "id",
+        "stackTrace",
+        "message",
+        "asyncApexJobId",
+        "methodName",
+        "apexLogId",
+        "apexClass",
+        "testSetupTime",
+        "testTimestamp",
+        "fullName"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "asyncApexJobId": { "type": "string" },
+        "methodName": { "type": "string" },
+        "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "apexClass": {
+          "type": "object",
+          "required": ["id", "name", "namespacePrefix", "fullName"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "namespacePrefix": { "type": "string" },
+            "fullName": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "testSetupTime": { "type": "number" },
+        "testTimestamp": { "type": "string" },
+        "fullName": { "type": "string" },
+        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" }
+      },
+      "additionalProperties": false
+    },
+    "AsyncTestArrayConfiguration": {
+      "type": "object",
+      "required": ["tests", "testLevel"],
+      "properties": {
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/TestItem" } },
+        "maxFailedTests": { "type": "number" },
+        "testLevel": { "$ref": "#/$defs/TestLevel" },
+        "exitOnTestRunId": { "type": "boolean" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "category": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "TestItem": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "className": { "type": "string" },
+        "classId": { "type": "string" },
+        "testMethods": { "type": "array", "items": { "type": "string" } },
+        "namespace": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "TestLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+    "AsyncTestConfiguration": {
+      "type": "object",
+      "required": ["testLevel"],
+      "properties": {
+        "classNames": { "type": "string" },
+        "classids": { "type": "string" },
+        "suiteNames": { "type": "string" },
+        "suiteids": { "type": "string" },
+        "maxFailedTests": { "type": "number" },
+        "testLevel": { "$ref": "#/$defs/TestLevel" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "exitOnTestRunId": { "type": "boolean" },
+        "category": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "CodeCoverageResult": {
+      "type": "object",
+      "required": [
+        "apexId",
+        "name",
+        "type",
+        "numLinesCovered",
+        "numLinesUncovered",
+        "percentage",
+        "coveredLines",
+        "uncoveredLines"
+      ],
+      "properties": {
+        "apexId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["ApexClass", "ApexTrigger"] },
+        "numLinesCovered": { "type": "number" },
+        "numLinesUncovered": { "type": "number" },
+        "percentage": { "type": "string" },
+        "coveredLines": { "type": "array", "items": { "type": "number" } },
+        "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "CommonOptions": {
+      "type": "object",
+      "required": [],
+      "properties": { "json": { "type": "boolean" }, "loglevel": { "$ref": "#/$defs/LogLevel" } },
+      "additionalProperties": false
+    },
+    "ExecuteAnonymousResponse": {
+      "type": "object",
+      "required": ["compiled", "success"],
+      "properties": {
+        "compiled": { "type": "boolean" },
+        "success": { "type": "boolean" },
+        "logs": { "type": "string" },
+        "diagnostic": { "type": "array", "items": { "$ref": "#/$defs/ApexDiagnostic" } }
+      },
+      "additionalProperties": false
+    },
+    "LogRecord": {
+      "type": "object",
+      "required": [
+        "Id",
+        "Application",
+        "DurationMilliseconds",
+        "Location",
+        "LogLength",
+        "LogUser",
+        "Operation",
+        "Request",
+        "StartTime",
+        "Status"
+      ],
+      "properties": {
+        "Id": { "type": "string" },
+        "Application": { "type": "string" },
+        "DurationMilliseconds": { "type": "number" },
+        "Location": { "type": "string" },
+        "LogLength": { "type": "number" },
+        "LogUser": {
+          "type": "object",
+          "required": ["attributes", "Name"],
+          "properties": {
+            "attributes": {
+              "type": "object",
+              "required": [],
+              "properties": {},
+              "additionalProperties": { "$id": "/schemas/unknown", "title": "unknown" }
+            },
+            "Name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "Operation": { "type": "string" },
+        "Request": { "type": "string" },
+        "StartTime": { "type": "string" },
+        "Status": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "LogResult": {
+      "type": "object",
+      "required": ["log"],
+      "properties": { "logPath": { "type": "string" }, "log": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "OutputDirConfig": {
+      "type": "object",
+      "required": ["dirPath"],
+      "properties": {
+        "dirPath": { "type": "string" },
+        "resultFormats": { "type": "array", "items": { "$ref": "#/$defs/ResultFormat" } },
+        "fileInfos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["filename", "content"],
+            "properties": {
+              "filename": { "type": "string" },
+              "content": {
+                "anyOf": [
+                  { "type": "string" },
+                  {
+                    "$id": "/schemas/object",
+                    "anyOf": [{ "type": "object" }, { "type": "array" }],
+                    "description": "an object in the TypeScript meaning, i.e. the `object` type",
+                    "title": "object"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResultFormat": { "type": "string", "enum": ["junit", "tap", "json", "human", "markdown", "text"] },
+    "SyncTestConfiguration": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "classNames": { "type": "string" },
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/TestItem" } },
+        "testLevel": { "type": "string" },
+        "maxFailedTests": { "type": "number" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "category": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "TestResult": {
+      "type": "object",
+      "required": ["summary", "tests"],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "required": [
+            "failRate",
+            "testsRan",
+            "orgId",
+            "outcome",
+            "passing",
+            "failing",
+            "skipped",
+            "passRate",
+            "skipRate",
+            "testStartTime",
+            "testExecutionTimeInMs",
+            "testTotalTimeInMs",
+            "commandTimeInMs",
+            "hostname",
+            "username",
+            "testRunId",
+            "userId"
+          ],
+          "properties": {
+            "failRate": { "type": "string" },
+            "testsRan": { "type": "number" },
+            "orgId": { "type": "string" },
+            "outcome": { "type": "string" },
+            "passing": { "type": "number" },
+            "failing": { "type": "number" },
+            "skipped": { "type": "number" },
+            "passRate": { "type": "string" },
+            "skipRate": { "type": "string" },
+            "testStartTime": { "type": "string" },
+            "testExecutionTimeInMs": { "type": "number" },
+            "testTotalTimeInMs": { "type": "number" },
+            "testSetupTimeInMs": { "type": "number" },
+            "commandTimeInMs": { "type": "number" },
+            "hostname": { "type": "string" },
+            "username": { "type": "string" },
+            "testRunId": { "type": "string" },
+            "userId": { "type": "string" },
+            "testRunCoverage": { "type": "string" },
+            "orgWideCoverage": { "type": "string" },
+            "totalLines": { "type": "number" },
+            "coveredLines": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/ApexTestResultData" } },
+        "setup": { "type": "array", "items": { "$ref": "#/$defs/ApexTestSetupData" } },
+        "codecoverage": { "type": "array", "items": { "$ref": "#/$defs/CodeCoverageResult" } }
+      },
+      "additionalProperties": false
+    },
+    "TestResultRaw": {
+      "type": "object",
+      "required": ["summary", "tests"],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "required": [
+            "failRate",
+            "testsRan",
+            "orgId",
+            "outcome",
+            "passing",
+            "failing",
+            "skipped",
+            "passRate",
+            "skipRate",
+            "testStartTime",
+            "testExecutionTimeInMs",
+            "testTotalTimeInMs",
+            "commandTimeInMs",
+            "hostname",
+            "username",
+            "testRunId",
+            "userId"
+          ],
+          "properties": {
+            "failRate": { "type": "string" },
+            "testsRan": { "type": "number" },
+            "orgId": { "type": "string" },
+            "outcome": { "type": "string" },
+            "passing": { "type": "number" },
+            "failing": { "type": "number" },
+            "skipped": { "type": "number" },
+            "passRate": { "type": "string" },
+            "skipRate": { "type": "string" },
+            "testStartTime": { "type": "string" },
+            "testExecutionTimeInMs": { "type": "number" },
+            "testTotalTimeInMs": { "type": "number" },
+            "testSetupTimeInMs": { "type": "number" },
+            "commandTimeInMs": { "type": "number" },
+            "hostname": { "type": "string" },
+            "username": { "type": "string" },
+            "testRunId": { "type": "string" },
+            "userId": { "type": "string" },
+            "testRunCoverage": { "type": "string" },
+            "orgWideCoverage": { "type": "string" },
+            "totalLines": { "type": "number" },
+            "coveredLines": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/ApexTestResultDataRaw" } },
+        "codecoverage": { "type": "array", "items": { "$ref": "#/$defs/CodeCoverageResult" } }
+      },
+      "additionalProperties": false
+    },
+    "TestRunIdResult": {
+      "type": "object",
+      "required": ["testRunId"],
+      "properties": { "testRunId": { "type": "string" } },
+      "additionalProperties": false
+    }
+  },
+  "anyOf": [
+    { "$ref": "#/$defs/ApexCodeCoverage" },
+    { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
+    { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
+    { "$ref": "#/$defs/ApexCodeCoverageRecord" },
+    { "$ref": "#/$defs/ApexDiagnostic" },
+    { "$ref": "#/$defs/ApexExecuteOptions" },
+    { "$ref": "#/$defs/ApexLogGetOptions" },
+    { "$ref": "#/$defs/ApexTestProgressValue" },
+    { "$ref": "#/$defs/ApexTestQueueItem" },
+    { "$ref": "#/$defs/ApexTestQueueItemRecord" },
+    { "$ref": "#/$defs/ApexTestQueueItemStatus" },
+    { "$ref": "#/$defs/ApexTestResultData" },
+    { "$ref": "#/$defs/ApexTestResultDataRaw" },
+    { "$ref": "#/$defs/ApexTestResultOutcome" },
+    { "$ref": "#/$defs/ApexTestRunResultStatus" },
+    { "$ref": "#/$defs/ApexTestSetupData" },
+    { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
+    { "$ref": "#/$defs/AsyncTestConfiguration" },
+    { "$ref": "#/$defs/CodeCoverageResult" },
+    { "$ref": "#/$defs/CommonOptions" },
+    { "$ref": "#/$defs/ExecuteAnonymousResponse" },
+    { "$ref": "#/$defs/LogLevel" },
+    { "$ref": "#/$defs/LogRecord" },
+    { "$ref": "#/$defs/LogResult" },
+    { "$ref": "#/$defs/OutputDirConfig" },
+    { "$ref": "#/$defs/PerClassCoverage" },
+    { "$ref": "#/$defs/ResultFormat" },
+    { "$ref": "#/$defs/SyncTestConfiguration" },
+    { "$ref": "#/$defs/TestItem" },
+    { "$ref": "#/$defs/TestLevel" },
+    { "$ref": "#/$defs/TestResult" },
+    { "$ref": "#/$defs/TestResultRaw" },
+    { "$ref": "#/$defs/TestRunIdResult" }
+  ],
+  "description": "JSON-representable values accepted or returned by the supported @salesforce/apex-node API.",
+  "title": "@salesforce/apex-node public JSON API"
+}
