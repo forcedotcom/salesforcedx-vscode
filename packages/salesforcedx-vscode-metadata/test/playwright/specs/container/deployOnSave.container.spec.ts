@@ -87,7 +87,15 @@ test('Deploy On Save (Code Builder): automatically deploys the fixture class whe
     // Re-focus the editor so the edit lands in it (a retried open may have shifted focus).
     await page.locator('[data-uri*="PagedResult.cls"]').first().click();
 
-    // Clear the channel so the "Deployed Source" assertion reflects this save, not a prior deploy.
+    // Select the quiet 'Salesforce Metadata' channel and clear THAT, so the "Deployed Source"
+    // assertion reflects this save, not a prior deploy. clearOutputChannel clears whatever channel is
+    // active and then waits (2s) for it to be completely empty — if the active channel is a streaming
+    // one (Apex Language Server / Salesforce CLI keep emitting on the shared workbench), that empty
+    // check can never pass and times out. The metadata channel only writes during a deploy, so
+    // selecting it first means we clear a quiet channel that stays empty until the save-triggered
+    // deploy runs. (An earlier metadata spec has already created this channel on the shared workbench.)
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
     await clearOutputChannel(page);
     await editOpenFile(page, `// Deploy on save container test ${Date.now()}`);
     await saveScreenshot(page, 'deployOnSave.container.02-after-edit-and-save.png');
