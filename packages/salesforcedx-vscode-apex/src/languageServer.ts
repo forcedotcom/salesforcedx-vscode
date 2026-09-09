@@ -26,6 +26,7 @@ import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
+import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
@@ -280,5 +281,6 @@ const provideCodeLenses = async (
     getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
-  return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
+  const rewritten = lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
+  return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);
 };

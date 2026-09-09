@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 
 import {
+  clickCodeLens,
   closeEditor,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
@@ -85,7 +86,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
     await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-document.success.png');
-    // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
+    // Close debug.log so the .apex file is active for the next step
     await closeEditor(page);
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
@@ -142,7 +143,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("Integer x = 'bad';");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const errorNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /Line \d+.*Column \d+/ })
@@ -158,7 +159,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('fixed');");
-    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /executed successfully/i })
