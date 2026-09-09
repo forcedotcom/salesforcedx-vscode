@@ -45,7 +45,15 @@ export const messages = {
   lwc_component_name_prompt: 'Enter Lightning Web Component name',
   lwc_component_name_placeholder: 'e.g. myComponent',
   lwc_output_dir_prompt: 'Select output directory',
-  lwc_select_component_type: 'Select component type',
+  template_type_prompt: 'Select template type',
+  lwc_builtin_templates_label: 'Built-In Templates',
+  lwc_custom_templates_label: 'Custom Templates',
+  lwc_preferred_template_label: 'Preferred Template',
+  lwc_custom_template_override_description: 'Custom template (overrides built-in "%s")',
+  lwc_template_default_description: 'Standard Lightning Web Component (JavaScript)',
+  lwc_template_typescript_description: 'Standard Lightning Web Component (TypeScript)',
+  lwc_template_analytics_dashboard_description: 'CRM Analytics dashboard component',
+  lwc_template_analytics_dashboard_with_step_description: 'CRM Analytics dashboard component with step',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   rename_component_input_dup_file_name_error:

@@ -176,14 +176,15 @@ export const createLwcViaSfdxCommand = async (page: Page, componentName: string)
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-  // Step 1 (optional): Select component type (JavaScript / TypeScript) — newer extension versions skip this picker.
-  const hasTypePicker = await quickInput
+  // Step 1: Select template — picker is skipped when sfdx-project.json sets defaultLwcLanguage with no custom templates;
+  // otherwise, 'default' is pinned first in the built-in/custom template picker.
+  const hasTemplatePicker = await quickInput
     .locator(QUICK_INPUT_LIST_ROW)
     .first()
     .waitFor({ state: 'visible', timeout: 2000 })
     .then(() => true)
     .catch(() => false);
-  if (hasTypePicker) {
+  if (hasTemplatePicker) {
     await page.keyboard.press('Enter');
   }
 

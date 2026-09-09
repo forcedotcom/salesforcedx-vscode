@@ -243,6 +243,7 @@ export {
   TemplateService,
   type ApexClassCreateOptions,
   type ApexTriggerCreateOptions,
+  type LightningComponentCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,
