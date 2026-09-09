@@ -14,10 +14,8 @@
  * org needed — so it is a deterministic signal that the LSP incrementally re-indexes in the container.
  */
 
-import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
-  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -25,7 +23,13 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { containerTest as test } from '../../fixtures/containerFixtures';
-import { createLwc, openLwcFile, openSfdxCustomComponentsJson, waitForLwcLspReady } from '../../utils/lwcUtils';
+import {
+  assertOpenEditorContainsText,
+  createLwc,
+  openLwcFile,
+  openSfdxCustomComponentsJson,
+  waitForLwcLspReady
+} from '../../utils/lwcUtils';
 
 test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without reloading VS Code (Code Builder)', async ({
   page
@@ -54,13 +58,11 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
 
   await test.step('custom-components.json lists the new module path', async () => {
     await openSfdxCustomComponentsJson(page);
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="custom-components.json"]`);
+    // The container is Linux, so the index stores a posix module path. Search the full editor model via
+    // the Find widget rather than `.view-lines` textContent: the shared workbench accumulates many bundles,
+    // so this index file is large and Monaco virtualizes the viewport, keeping the new entry off-screen.
     const posix = `lwc/${bundleCamel}/${bundleCamel}.js`;
-    const winish = `lwc\\${bundleCamel}\\${bundleCamel}.js`;
-    await expect(async () => {
-      const text = (await editor.locator('.view-lines').textContent()) ?? '';
-      expect(text.includes(posix) || text.includes(winish)).toBe(true);
-    }).toPass({ timeout: 90_000 });
+    await assertOpenEditorContainsText(page, posix);
     await saveScreenshot(page, 'lwcIndex.container.03-index-verified.png');
   });
 
