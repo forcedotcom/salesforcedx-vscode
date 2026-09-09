@@ -156,7 +156,10 @@ jobs:
           # adds a second, differently-cased entry instead of replacing this one.
           mkdir -p extension
           cp packages/salesforcedx-vscode/CHANGELOG.md extension/changelog.md
-          zip "$VSIX" extension/changelog.md
+          # -X: omit Unix UID/GID + timestamp extra fields. vsce's own zip writer never
+          # sets them; without -X, Open VSX's scanner blocks the whole VSIX with
+          # "contains zip entries with potentially harmful extra fields".
+          zip -X "$VSIX" extension/changelog.md
 
           gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
           rm -rf extension "$VSIX"
