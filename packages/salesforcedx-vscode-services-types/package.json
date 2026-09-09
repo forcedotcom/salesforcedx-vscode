@@ -50,8 +50,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "generate-src",
-        "../salesforcedx-vscode-services:compile"
+        "generate-src"
       ],
       "files": [
         "src/**/*.ts",
