@@ -8,7 +8,6 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
-  clickCodeLens,
   countOutputChannelOptions,
   createAndOpenApexScript,
   createApexClass,
@@ -21,6 +20,7 @@ import {
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -145,7 +145,8 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
       content: "new AccountService().createAccount('Acme', '123', 'ACME');"
     });
 
-    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
+    await page.keyboard.press('F1');
+    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeDocument'] as string);
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)

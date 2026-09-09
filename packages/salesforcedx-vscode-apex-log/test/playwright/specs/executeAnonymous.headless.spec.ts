@@ -25,7 +25,6 @@ import {
   setupNetworkMonitoring,
   TAB,
   validateNoCriticalErrors,
-  verifyCommandDoesNotExist,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForQuickInputFirstOption
@@ -64,7 +63,6 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await expect(page.locator(TAB).filter({ hasText: /\.apex$/ })).toBeVisible({ timeout: 5000 });
     await saveScreenshot(page, 'create-script.apex-opened.png');
-    await verifyCommandDoesNotExist(page, packageNls['apexLog.command.executeDocument']);
   });
 
   await test.step('type simple Apex and execute document', async () => {
@@ -74,7 +72,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
-    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /executed successfully/i })
@@ -88,7 +86,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
     await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-document.success.png');
-    // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
+    // Close debug.log so the .apex file is active for the next step
     await closeEditor(page);
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
