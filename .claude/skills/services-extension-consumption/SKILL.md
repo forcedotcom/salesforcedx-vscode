@@ -28,7 +28,9 @@ const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
 ## Prebuilt vs Per-Extension Services
 
-`api.services.prebuiltServicesDependencies` — pre-built `Context.Context` from services extension activation. Wrap with `Layer.succeedContext(...)`.
+`api.services.prebuiltServicesLayer` — shared service instances plus runtime configuration, including the redacting logger. Provide or merge this layer directly.
+
+`api.services.prebuiltServicesDependencies` — deprecated context-only compatibility field. It omits FiberRef runtime configuration; new consumers must use `prebuiltServicesLayer`.
 
 Shares singleton instances (caches, watchers) across extensions; avoids re-building stateful services.
 
@@ -385,7 +387,7 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 
 ## Common Patterns
 
-- Start with `Layer.succeedContext(api.services.prebuiltServicesDependencies)` — don't add individual `*.Default` for services already there
+- Start with `api.services.prebuiltServicesLayer` — don't add individual `*.Default` for services already there
 - Only add per-extension layers on top
 - `import { ICONS }` outside Effect; `MediaService` inside Effect
 - `ChannelServiceLayer` before `ErrorHandlerService`
@@ -395,7 +397,7 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 - `registerCommandWithRuntime` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
 
-## Don't: rebuild services already in prebuiltServicesDependencies
+## Don't: rebuild services already in prebuiltServicesLayer
 
 ```typescript
 // WRONG — creates new singleton instances, duplicating caches/watchers/state
@@ -411,7 +413,7 @@ return Layer.mergeAll(
 
 // CORRECT — share the already-built singletons
 return Layer.mergeAll(
-  Layer.succeedContext(api.services.prebuiltServicesDependencies),
+  api.services.prebuiltServicesLayer,
   ExtensionProviderServiceLive,
   api.services.ExtensionContextServiceLayer(context),
   api.services.SdkLayerFor(context),
@@ -424,4 +426,4 @@ return Layer.mergeAll(
 
 Invoke the `effect-advocate` subagent on plans and diffs — its top-priority finding category is "you re-implemented something that already exists in `salesforcedx-vscode-services`."
 
-`prebuiltServicesDependencies` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.
+`prebuiltServicesLayer` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.

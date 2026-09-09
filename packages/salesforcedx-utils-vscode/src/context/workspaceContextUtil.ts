@@ -9,7 +9,6 @@ import { Connection, StateAggregator } from '@salesforce/core';
 import { Global } from '@salesforce/core/global';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -34,8 +33,7 @@ export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
  */
 const getValidatedConnection = Effect.fn('WorkspaceContextUtil.getConnection')(function* () {
   const api = yield* getServicesApi;
-  const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
-  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(api.services.prebuiltServicesLayer));
 });
 
 /**

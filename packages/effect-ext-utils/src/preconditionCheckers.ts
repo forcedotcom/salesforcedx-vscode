@@ -6,7 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { getServicesApi } from './extensionProvider';
 import { nls } from './messages';
@@ -22,7 +21,7 @@ export const sfProjectPreconditionChecker = {
       Effect.gen(function* () {
         const api = yield* getServicesApi;
         const isProject = yield* api.services.ProjectService.isSalesforceProject().pipe(
-          Effect.provide(Layer.succeedContext(api.services.prebuiltServicesDependencies))
+          Effect.provide(api.services.prebuiltServicesLayer)
         );
         if (!isProject) {
           return yield* Effect.sync(() => {

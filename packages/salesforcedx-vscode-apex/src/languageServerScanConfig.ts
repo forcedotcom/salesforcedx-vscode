@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import type * as Layer from 'effect/Layer';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
@@ -30,7 +30,7 @@ type MetadataRegistryServiceLike = {
 type SalesforceVSCodeServicesApiLike = {
   services: {
     MetadataRegistryService: MetadataRegistryServiceLike;
-    prebuiltServicesDependencies: Context.Context<unknown>;
+    prebuiltServicesLayer: Layer.Layer<unknown>;
   };
 };
 
@@ -88,7 +88,7 @@ export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConf
           const apexFolderNames = getApexFolderNames(registryAccess);
           return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
         }),
-        Effect.provide(servicesApi.services.prebuiltServicesDependencies)
+        Effect.provide(servicesApi.services.prebuiltServicesLayer)
       )
     );
   } catch {

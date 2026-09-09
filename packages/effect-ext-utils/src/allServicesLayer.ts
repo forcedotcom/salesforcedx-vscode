@@ -36,7 +36,7 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
       const channelLayer = api.services.ChannelServiceLayer(pjson.displayName ?? fallbackDisplayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
       return Layer.mergeAll(
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
+        api.services.prebuiltServicesLayer,
         ExtensionProviderServiceLive,
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
