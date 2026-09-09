@@ -20,16 +20,18 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { expect } from '@playwright/test';
 import { containerTest as test } from '../../fixtures/containerFixtures';
-import { messages } from '../../../../src/messages/i18n';
 
 const CORE_CHANNEL = 'Salesforce CLI';
 
 /*
  * Container twin of coreOutputChannel.headless: proves the Code Builder container wires a single
- * services-owned 'Salesforce CLI' output channel. The container harness installs no
- * redhat.vscode-xml, so initializeMetadataSupport hits the no-redhat branch and writes through the
- * legacy wrapper backed by the single services channel — asserting the channel exists, is written
- * to, and is not duplicated. Org-free: no target-org is required.
+ * services-owned 'Salesforce CLI' output channel. Unlike the desktop harness (which controls its
+ * extension set), the container runs the FULL installed set, so whether redhat.vscode-xml is present
+ * — and which initializeMetadataSupport branch fires (no-redhat / setup-success / setup-failed /
+ * version regression) — is image-dependent. Every one of those branches logs a "metadata XML …"
+ * status line through the legacy wrapper backed by the single services channel, so we assert on that
+ * shared substring rather than one image-specific message: the point is that metadataXmlSupport wrote
+ * to the channel, that the channel exists, and that it is not duplicated. Org-free: no target-org.
  */
 test("Core output channel (Code Builder): single 'Salesforce CLI' channel, wired to services layer", async ({
   page
@@ -49,12 +51,10 @@ test("Core output channel (Code Builder): single 'Salesforce CLI' channel, wired
   await test.step('metadataXmlSupport wrote to the services-owned channel via getCoreChannelService', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, CORE_CHANNEL, 30_000);
-    // Core harness installs no redhat.vscode-xml, so initializeMetadataSupport hits the no-redhat
-    // branch and writes this via the legacy wrapper backed by the single services channel.
-    await waitForOutputChannelText(page, {
-      expectedText: messages.metadata_xml_no_redhat_extension_found,
-      timeout: 30_000
-    });
+    // Every initializeMetadataSupport branch (no-redhat / setup-success / setup-failed / version
+    // regression) logs a "metadata XML …" line. Assert that shared substring so this holds whatever
+    // redhat.vscode-xml state the image ships — proving metadataXmlSupport wrote to the channel.
+    await waitForOutputChannelText(page, { expectedText: 'metadata XML', timeout: 30_000 });
     await saveScreenshot(page, 'coreOutputChannel.container.02-text-verified.png');
   });
 

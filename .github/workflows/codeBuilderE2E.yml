@@ -46,8 +46,36 @@ concurrency:
 
 jobs:
   code-builder-e2e:
+    # Sharded per-package (plan §10.3 revisited): one serial container running all ~75 specs blew the
+    # 60-min job cap, so each package's suite runs in its own job (own image pull, own scratch org,
+    # own container — fully isolated, so parallel jobs can't collide on the shared workbench/org that
+    # forced serial execution before). fail-fast: false so one red package doesn't cancel the rest
+    # (we want the full pass/fail picture); max-parallel bounds concurrent scratch orgs against the
+    # dev hub. Grouping packages into fewer jobs later is a one-line matrix edit — the orchestrator's
+    # --only already accepts a comma-separated list.
+    name: code-builder-e2e (${{ matrix.package }})
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        package:
+          - salesforcedx-vscode-core
+          - salesforcedx-vscode-apex
+          - salesforcedx-vscode-apex-debugger
+          - salesforcedx-vscode-apex-log
+          - salesforcedx-vscode-apex-oas
+          - salesforcedx-vscode-apex-replay-debugger
+          - salesforcedx-vscode-apex-testing
+          - salesforcedx-vscode-lightning
+          - salesforcedx-vscode-lwc
+          - salesforcedx-vscode-metadata
+          - salesforcedx-vscode-org
+          - salesforcedx-vscode-org-browser
+          - salesforcedx-vscode-services
+          - salesforcedx-vscode-soql
+          - salesforcedx-vscode-visualforce
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 40
     permissions:
       contents: read
       # Pull the private CB image with this repo's GITHUB_TOKEN — the package's Manage Actions
@@ -71,6 +99,11 @@ jobs:
       # Rolling tag by default. A trusted dispatch/call input; kept in env (never inlined into a
       # run: command) to avoid script injection.
       IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+      # The package this shard runs (from the matrix); via env, not inlined, per the same rule.
+      PACKAGE: ${{ matrix.package }}
+      # Sharded jobs are small (one package), so don't abort at the 3rd failure — run every spec so
+      # the report shows the package's true pass/fail count (0 = no Playwright maxFailures cap).
+      CB_MAX_FAILURES: '0'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -121,16 +154,16 @@ jobs:
       # scratch org, run + seed + swap + restart + verify gate, then run the container specs and tear
       # the container down. Same pipeline a developer runs locally.
       - name: Run Code Builder E2E (orchestrator)
-        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
+        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
 
-      # Every package with a container suite writes its own report/results dir (the orchestrator runs
-      # each package's `test:container` against the one container), so glob across packages rather
-      # than hardcoding core.
+      # This shard runs one package (--only), so only that package's report/results dir exists; the
+      # glob matches just it. Name the artifact per-package — upload-artifact@v4 rejects duplicate
+      # names across matrix jobs.
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-codebuilder
+          name: playwright-report-codebuilder-${{ matrix.package }}
           path: packages/*/playwright-report
           if-no-files-found: ignore
 
@@ -138,7 +171,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-codebuilder
+          name: playwright-test-results-codebuilder-${{ matrix.package }}
           path: packages/*/test-results
           if-no-files-found: ignore
 

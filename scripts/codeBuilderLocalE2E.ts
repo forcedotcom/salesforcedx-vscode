@@ -34,6 +34,8 @@
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
  *   --run-id <id>     Pull the VSIX from that Build All run instead of building locally.
  *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
+ *   --only <pkgs>     Run only these package suite(s) (comma-separated, e.g. salesforcedx-vscode-lwc).
+ *                     The CI matrix passes one per job to shard the suite under the job timeout.
  *   --no-teardown     Leave the container + scratch org up for debugging (default tears down).
  *   --keep-org        Reuse an existing `minimalTestOrg` scratch org if present (default reuses).
  *   --image-tag <tag> Code Builder image tag (default: latest).
@@ -93,6 +95,10 @@ type Options = {
   teardown: boolean;
   imageTag: string;
   debug: boolean;
+  // Restrict the run to these package(s) (comma-separated). Undefined runs every discovered suite.
+  // The CI workflow shards per-package by passing one name per matrix job so the full suite fits in
+  // the job timeout; locally you can scope to the package you're iterating on.
+  only?: string[];
 };
 
 const parseArgs = (argv: string[]): Options => {
@@ -115,6 +121,12 @@ const parseArgs = (argv: string[]): Options => {
         break;
       case '--grep':
         parsed.grep = need('--grep', argv[++i]);
+        break;
+      case '--only':
+        parsed.only = need('--only', argv[++i])
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
         break;
       case '--no-teardown':
         parsed.teardown = false;
@@ -493,6 +505,24 @@ const main = async (): Promise<number> => {
     mounts: [{ hostPath: FIXTURE_HOST_DIR, containerPath: FIXTURE_MOUNT_PATH }]
   });
 
+  // A bind mount keeps the host's ownership, so the container's workbench user can't write into the
+  // fixture — VS Code's attempt to persist workspace settings (`.vscode/settings.json`) then fails
+  // with EACCES, which breaks any spec that upserts a setting AND the metadata-XML (Red Hat) setup
+  // that writes one on activation. Make the mounted tree writable by any uid so those writes land.
+  // `a+rwX` only adds the execute bit to dirs/already-exec files, so it doesn't flip tracked file
+  // modes (git sees no change). Runs as root inside the container; a failure is a warning, not fatal.
+  log('Making the mounted fixture writable by the container user (chmod a+rwX)');
+  const chmodMount = spawnSync(
+    'docker',
+    ['exec', '-u', 'root', handle.name, 'chmod', '-R', 'a+rwX', FIXTURE_MOUNT_PATH],
+    {
+      stdio: 'ignore'
+    }
+  );
+  if (chmodMount.status !== 0) {
+    console.warn('    WARNING: could not chmod the mounted fixture — settings-writing specs may hit EACCES.');
+  }
+
   // Point code-server at the mounted fixture + disable workspace trust (one toolkit exec does both).
   log('Seeding workspace (point code-server at the mounted fixture, disable workspace trust)');
   seedWorkspace(handle);
@@ -516,7 +546,18 @@ const main = async (): Promise<number> => {
   // same workbench. Every suite runs even if an earlier one fails, so one invocation surfaces all
   // failures rather than stopping at the first. No --reporter override: a CLI --reporter REPLACES
   // the config's reporter list, which would drop the CI junit reporter createContainerConfig selects.
-  const containerPackages = discoverContainerPackages();
+  const discovered = discoverContainerPackages();
+  // --only shards the run to the named package(s); the CI matrix passes one per job so the whole
+  // suite fits in the per-job timeout. An --only name that matches nothing is a typo/misconfig — fail
+  // loud rather than silently running zero specs (which would look like a spurious pass).
+  const containerPackages = opts.only ? discovered.filter(p => opts.only!.includes(p)) : discovered;
+  if (opts.only) {
+    const unknown = opts.only.filter(p => !discovered.includes(p));
+    if (unknown.length > 0) {
+      console.error(`--only names have no container suite: ${unknown.join(', ')}. Known: ${discovered.join(', ')}`);
+      return 1;
+    }
+  }
   log(`Running container Playwright specs for ${containerPackages.length} package(s): ${containerPackages.join(', ')}`);
 
   const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL };

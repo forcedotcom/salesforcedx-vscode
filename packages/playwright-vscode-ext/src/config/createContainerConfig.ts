@@ -56,7 +56,11 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
       }
     },
     timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? 360 * 1000),
-    maxFailures: process.env.CI ? 3 : 0,
+    // Cap failures in CI so a broadly-broken run stops fast — EXCEPT when CB_MAX_FAILURES is set
+    // (0 = no cap), which the sharded per-package workflow uses to get a true pass/fail count for the
+    // whole package instead of aborting at the 3rd failure and marking the rest "did not run".
+    maxFailures:
+      process.env.CB_MAX_FAILURES !== undefined ? Number(process.env.CB_MAX_FAILURES) : process.env.CI ? 3 : 0,
     projects: [
       {
         name: 'chromium',
