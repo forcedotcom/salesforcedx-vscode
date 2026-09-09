@@ -48,7 +48,9 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   const filePath = fileUris[0].fsPath;
   yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));
   const contents = yield* api.services.FsService.readFile(filePath).pipe(
-    Effect.tapError(error => Effect.logError('Failed to read selected log file', error))
+    Effect.tapError(error =>
+      Effect.logError('Failed to read selected log file', { filePath: error.filePath, cause: error.message })
+    )
   );
   return { contents, path: filePath, name: getBasename(filePath) } satisfies SelectedLogFile;
 });
