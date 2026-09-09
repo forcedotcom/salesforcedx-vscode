@@ -67,12 +67,17 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     // The command drives a five-prompt sequence (no template pick when the workspace has no custom
     // apextrigger templates): name -> sObject -> events -> output dir. Each prompt reuses the same
     // quick-input widget, so we can't key off widget visibility alone (it never hides between
-    // prompts). Instead wait for each prompt's own placeholder text before sending keystrokes, so
-    // container latency (browser round-trip + Node host + org describe) can't make us type into a
-    // not-yet-ready widget.
+    // prompts). Instead wait for each prompt's own prompt/placeholder text before sending
+    // keystrokes, so container latency (browser round-trip + Node host + org describe) can't make us
+    // type into a not-yet-ready widget.
+    //
+    // The name prompt is a `showInputBox({ prompt })` — its text renders as a visible message node,
+    // so `getByText` matches. The sObject/events/output-dir prompts are `showQuickPick`s whose
+    // `placeHolder` renders ONLY as the input's `placeholder` attribute (never a text node), so they
+    // must be matched with `getByPlaceholder`, not `getByText`.
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
 
-    // 1) Trigger name (InputBox).
+    // 1) Trigger name (InputBox — prompt is a visible message node).
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
     await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'createApexTrigger.container.03-name-prompt-visible.png');
@@ -82,11 +87,10 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
 
     // 2) sObject. The command runs `MetadataDescribeService.listSObjects()` against the boot org
     // before showing this prompt — a describe round-trip that is far slower in the container. Wait
-    // for the sObject prompt's placeholder (only rendered once the describe resolved and the
-    // QuickPick opened) with a generous timeout before typing, then pick the "Case" standard object.
-    await quickInput
-      .getByText(messages.apex_trigger_sobject_prompt)
-      .waitFor({ state: 'visible', timeout: 90_000 });
+    // for the sObject QuickPick's placeholder attribute (only present once the describe resolved and
+    // the QuickPick opened) with a generous timeout before typing, then pick the "Case" standard
+    // object.
+    await page.getByPlaceholder(messages.apex_trigger_sobject_prompt).waitFor({ state: 'visible', timeout: 90_000 });
     await saveScreenshot(page, 'createApexTrigger.container.05-sobject-prompt-visible.png');
     await page.keyboard.type('Case');
     // Live QuickPick when the org returned sObjects; text InputBox fallback when the describe was empty.
@@ -100,7 +104,7 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     // 3) Trigger events (multi-select QuickPick). On open, "before insert" (item 0) is pre-checked and
     // active. Deselect it, then check "after insert" (item 3) and "after update" (item 4) so the
     // scaffolded trigger declares `(after insert, after update)`.
-    await quickInput.getByText(messages.apex_trigger_events_prompt).waitFor({ state: 'visible', timeout: 30_000 });
+    await page.getByPlaceholder(messages.apex_trigger_events_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'createApexTrigger.container.07-events-prompt-visible.png');
 
@@ -121,7 +125,7 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     await saveScreenshot(page, 'createApexTrigger.container.08-after-select-events.png');
 
     // 4) Output directory (QuickPick) — accept the default `triggers` folder.
-    await quickInput.getByText(messages.output_dir_prompt).waitFor({ state: 'visible', timeout: 30_000 });
+    await page.getByPlaceholder(messages.output_dir_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'createApexTrigger.container.09-directory-prompt-visible.png');
     await page.keyboard.press('Enter');
