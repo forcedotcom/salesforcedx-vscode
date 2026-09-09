@@ -64,20 +64,32 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
     await saveScreenshot(page, 'createApexTrigger.container.02-after-command.png');
 
-    // Enter trigger name. The palette command reaches the input box slower in the container than on
-    // the desktop/headless twin (browser round-trip + Node host), so 5s raced the prompt open.
+    // The command drives a five-prompt sequence (no template pick when the workspace has no custom
+    // apextrigger templates): name -> sObject -> events -> output dir. Each prompt reuses the same
+    // quick-input widget, so we can't key off widget visibility alone (it never hides between
+    // prompts). Instead wait for each prompt's own placeholder text before sending keystrokes, so
+    // container latency (browser round-trip + Node host + org describe) can't make us type into a
+    // not-yet-ready widget.
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
+
+    // 1) Trigger name (InputBox).
     await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await saveScreenshot(page, 'createApexTrigger.container.03-name-prompt-visible.png');
     await page.keyboard.type(triggerName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'createApexTrigger.container.04-after-type-name.png');
 
-    // Select sObject — QuickPick when org is connected, text input fallback otherwise
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    // 2) sObject. The command runs `MetadataDescribeService.listSObjects()` against the boot org
+    // before showing this prompt — a describe round-trip that is far slower in the container. Wait
+    // for the sObject prompt's placeholder (only rendered once the describe resolved and the
+    // QuickPick opened) with a generous timeout before typing, then pick the "Case" standard object.
+    await quickInput
+      .getByText(messages.apex_trigger_sobject_prompt)
+      .waitFor({ state: 'visible', timeout: 90_000 });
     await saveScreenshot(page, 'createApexTrigger.container.05-sobject-prompt-visible.png');
     await page.keyboard.type('Case');
+    // Live QuickPick when the org returned sObjects; text InputBox fallback when the describe was empty.
     const hasSObjectList = await page.locator('.quick-input-list').isVisible();
     if (hasSObjectList) {
       await waitForQuickInputFirstOption(page);
@@ -85,37 +97,43 @@ test('Apex Generate Trigger (Code Builder): creates a trigger via command palett
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'createApexTrigger.container.06-after-select-sobject.png');
 
-    // Select trigger events (multi-select QuickPick)
-    // Default pre-checked: "before insert". Deselect it, then select "after insert" and "after update".
+    // 3) Trigger events (multi-select QuickPick). On open, "before insert" (item 0) is pre-checked and
+    // active. Deselect it, then check "after insert" (item 3) and "after update" (item 4) so the
+    // scaffolded trigger declares `(after insert, after update)`.
+    await quickInput.getByText(messages.apex_trigger_events_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'createApexTrigger.container.07-events-prompt-visible.png');
 
-    // "before insert" is first and focused — deselect it
+    // Deselect the pre-checked "before insert" (active row on open).
+    await page.keyboard.press('Space');
+
+    // Move to "after insert" (item 3: before insert, before update, before delete, after insert) and check it.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Space');
 
-    // Navigate down to "after insert" (4th item: before insert, before update, before delete, after insert)
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('Space');
-
-    // Navigate down to "after update" (5th item)
+    // Move to "after update" (item 4) and check it.
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Space');
 
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'createApexTrigger.container.08-after-select-events.png');
 
-    // Select output directory
+    // 4) Output directory (QuickPick) — accept the default `triggers` folder.
+    await quickInput.getByText(messages.output_dir_prompt).waitFor({ state: 'visible', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'createApexTrigger.container.09-directory-prompt-visible.png');
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'createApexTrigger.container.10-after-accept-directory.png');
 
     // Scaffolding writes the file then opens it; in the container that round-trip is slower, so give
-    // the editor more room to appear than the desktop/headless 5s.
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
+    // the editor more room to appear than the desktop/headless 5s. Target the scaffolded `.trigger`
+    // by URI so a stale editor can't satisfy the wait.
+    await page
+      .locator(`${EDITOR_WITH_URI}[data-uri*="${triggerName}.trigger"]`)
+      .first()
+      .waitFor({ state: 'visible', timeout: 60_000 });
     await saveScreenshot(page, 'createApexTrigger.container.11-editor-opened.png');
   });
 
