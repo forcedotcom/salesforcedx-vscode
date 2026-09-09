@@ -12,6 +12,7 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { launchFromLogFile } from './launchFromLogFile';
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -35,14 +36,7 @@ const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger'
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   if (!logs) return false;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
-  yield* Effect.promise(() =>
-    vscode.commands.executeCommand(
-      'sf.launch.replay.debugger.logfile.path',
-      logFilePath.fsPath,
-      anonApexFilePath,
-      anonApexLineOffset
-    )
-  );
+  yield* Effect.promise(() => launchFromLogFile(logFilePath.fsPath, true, anonApexFilePath, anonApexLineOffset));
   return true;
 });
 
