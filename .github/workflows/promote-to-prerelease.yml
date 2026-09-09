@@ -1,4 +1,4 @@
-name: Promote Nightly to Pre-release
+name: Promote to Pre-release
 
 on:
   schedule:
@@ -13,13 +13,18 @@ on:
         description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Leave empty to auto-detect most recent CI-passing nightly.'
         required: false
         type: string
+      isHotfix:
+        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
+        required: false
+        default: false
+        type: boolean
       dry-run:
         description: 'Run in dry-run mode (no actual publishing or tagging)'
         required: false
         default: false
         type: boolean
 
-# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-nightly-to-prerelease.yml)
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-prerelease.yml)
 # Do not define it here to avoid deadlock
 
 permissions:
@@ -43,6 +48,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history to check out an arbitrary hotfix commit-sha below
 
       - name: Check CI status
         # Gate on the nightly's own build/release success, NOT unit-tests/build-all.
@@ -51,11 +58,45 @@ jobs:
         # exists after squash-merge, so they can't be found on the develop nightly commit.
         # The meaningful, available signals here are that the nightly compiled/packaged the
         # VSIXs and published the GitHub release cleanly.
+        #
+        # Skipped for isHotfix: tags built via build-release.yml's startFromRef never go
+        # through this repo's nightly pipeline, so these check-run names never exist on that
+        # commit regardless of outcome. See "Test hotfix commit directly" below instead.
+        if: ${{ !inputs.isHotfix }}
         uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
         with:
           commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           required-checks: '["nightly-release / package / Package", "nightly-release / Create GitHub Releases"]'
+
+      - name: Setup Node.js
+        if: ${{ inputs.isHotfix }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Checkout hotfix commit
+        # No nightly-pipeline check-runs exist for a hotfix commit (it never went through
+        # build-extension-list/nightly-release), so verify it here instead: check out the
+        # exact commit being promoted and run the same compile+test gate develop's branch
+        # protection would have required had this gone through a normal PR.
+        if: ${{ inputs.isHotfix }}
+        env:
+          COMMIT_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
+        run: git checkout "$COMMIT_SHA"
+
+      - name: Install dependencies for hotfix commit
+        if: ${{ inputs.isHotfix }}
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Run tests for hotfix commit
+        if: ${{ inputs.isHotfix }}
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          WIREIT_PARALLEL: 1
+        run: |
+          npm run compile
+          npm run test
 
   # Step 3: Generate this week's changelog delta (commits since last week's promoted
   # prerelease), bake it into the pack's prerelease VSIX asset so the Marketplace/Open VSX
