@@ -8,6 +8,7 @@
 import {
   SoqlBuilderMessageChannelError,
   SoqlBuilderQueryError,
+  SoqlLimitSchema,
   SoqlBuilderStateSchema,
   createInitialSoqlBuilderQuery,
   createInitialSoqlBuilderState,
@@ -74,6 +75,8 @@ const serializeQuery = (query: SoqlBuilderQuery) => tryQueryOperation(() => seri
 const LegacySavedStateSchema = Schema.Struct({
   originalSoqlStatement: Schema.String
 });
+
+const limitsEqual = Schema.equivalence(SoqlLimitSchema);
 
 const decodeSavedState = (input: unknown) =>
   Schema.decodeUnknown(SoqlBuilderStateSchema)(input).pipe(
@@ -152,8 +155,22 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
       return nextState;
     });
 
+  const saveQueryState = (query: SoqlBuilderQuery) =>
+    SubscriptionRef.updateAndGet(state, current => ({ ...current, query })).pipe(
+      Effect.flatMap(nextState => saveViewState(messageService, nextState))
+    );
+
   const modifyQuery = (update: (current: SoqlBuilderState) => SoqlBuilderQuery) =>
-    SubscriptionRef.get(state).pipe(Effect.flatMap(current => publishQuery(current, update(current))));
+    SubscriptionRef.get(state).pipe(
+      Effect.flatMap(current => {
+        const query = update(current);
+        if (query === current.query) return Effect.void;
+        return Match.value(query.limit).pipe(
+          Match.tag('Invalid', () => saveQueryState(query)),
+          Match.orElse(() => publishQuery(current, query).pipe(Effect.asVoid))
+        );
+      })
+    );
 
   const handleMessage = Match.type<HostToUiSoqlEditorEvent>().pipe(
     Match.discriminatorsExhaustive('type')({
@@ -349,16 +366,11 @@ const makeVscodeSoqlBuilderService = Effect.gen(function* () {
           orderBy: query.orderBy.filter(orderBy => orderBy.field !== action.fieldName)
         }))
       ),
-      LimitChanged: Effect.fn('VscodeSoqlBuilderService.dispatchLimitChanged')(function* (action) {
-        if (action.limit._tag === 'Invalid') {
-          const current = yield* SubscriptionRef.get(state);
-          const nextState = { ...current, query: { ...current.query, limit: action.limit } };
-          yield* SubscriptionRef.set(state, nextState);
-          yield* saveViewState(messageService, nextState);
-          return;
-        }
-        yield* modifyQuery(({ query }) => ({ ...query, limit: action.limit }));
-      }),
+      LimitChanged: Effect.fn('VscodeSoqlBuilderService.dispatchLimitChanged')(action =>
+        modifyQuery(({ query }) =>
+          limitsEqual(query.limit, action.limit) ? query : { ...query, limit: action.limit }
+        )
+      ),
       AllRowsChanged: Effect.fn('VscodeSoqlBuilderService.dispatchAllRowsChanged')(action =>
         modifyQuery(({ query }) => ({ ...query, allRows: action.allRows }))
       ),
