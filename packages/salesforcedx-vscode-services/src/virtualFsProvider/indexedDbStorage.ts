@@ -204,7 +204,6 @@ const writeFileWithOrWithoutDir = Effect.fn('IndexedDBStorageService.writeFileWi
   yield* Effect.try({
     try: () => {
       fs.mkdirSync(dirname(entry.path), { recursive: true });
-      // Use base64 to preserve binary data (e.g., git objects)
       fs.writeFileSync(entry.path, Buffer.from(data));
     },
     catch: error =>
