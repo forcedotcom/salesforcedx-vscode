@@ -45,6 +45,7 @@ See [wireit skill](../wireit/SKILL.md)
 ### tips
 
 - `commands` show in command palette by default; suppress via `never`/`when` under `commandPalette`
+- command titles (`%key%` → `package.nls.json`), menus, notification slots: [command-ui](../command-ui/SKILL.md)
 - commands need a unique ID; 2 extensions with the same config → UI warning
 - never a `default:true` boolean config (hard to override user/workspace)
 
