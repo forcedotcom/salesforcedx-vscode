@@ -105,7 +105,9 @@ jobs:
   # since the reusable promote workflow re-downloads this exact release asset.
   changelog:
     needs: [find-nightly, gate-check]
-    if: ${{ inputs.dry-run != true }}
+    # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate,
+    # so gate-check's success must be checked explicitly here too -- same as `promote` below.
+    if: always() && needs.gate-check.result == 'success' && inputs.dry-run != true
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
@@ -141,11 +143,16 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate this week's changelog delta
+        id: delta
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: npx ts-node scripts/generate-release-delta-changelog.ts "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
 
       - name: Inject changelog into the prerelease VSIX
+        # Skip when nothing new was generated (e.g. only chore/ci commits this week) --
+        # otherwise this would re-ship last week's changelog mislabeled with this week's
+        # version, since the file is untouched from the last run.
+        if: steps.delta.outputs.generated == 'true'
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -165,6 +172,7 @@ jobs:
           rm -rf extension "$VSIX"
 
       - name: Commit changelog delta to develop (full history)
+        if: steps.delta.outputs.generated == 'true'
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -174,8 +182,21 @@ jobs:
             echo "No changelog changes to commit"
           else
             git commit -m "chore: changelog for prerelease v${PRERELEASE_VERSION} [skip ci]"
-            git pull --rebase origin develop
-            git push origin develop
+
+            pushed=false
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin develop && git push origin develop; then
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, retrying in $((attempt * 5))s..."
+              sleep $((attempt * 5))
+            done
+
+            if [ "$pushed" != "true" ]; then
+              echo "::error::Failed to push changelog to develop after 5 attempts"
+              exit 1
+            fi
           fi
 
   # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).

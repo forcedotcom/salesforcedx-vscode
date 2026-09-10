@@ -215,8 +215,21 @@ jobs:
             echo "No changelog changes to commit"
           else
             git commit -m "chore: relabel changelog v${PRERELEASE_VERSION} to v${RELEASE_VERSION} [skip ci]"
-            git pull --rebase origin develop
-            git push origin develop
+
+            pushed=false
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin develop && git push origin develop; then
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, retrying in $((attempt * 5))s..."
+              sleep $((attempt * 5))
+            done
+
+            if [ "$pushed" != "true" ]; then
+              echo "::error::Failed to push relabeled changelog to develop after 5 attempts"
+              exit 1
+            fi
           fi
 
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
