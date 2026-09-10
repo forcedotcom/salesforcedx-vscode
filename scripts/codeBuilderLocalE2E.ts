@@ -618,6 +618,30 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
     .split(',')
     .map(s => s.trim())
     .filter(Boolean);
+  if (aliases.length === 0) {
+    return;
+  }
+  // Run a bash LOGIN shell (`-lc`) inside the container so its profile is sourced and `sf` is on
+  // PATH (a plain `bash -c` is non-login and may not find it). SF_*_DISABLE_TELEMETRY suppresses the
+  // CLI's first-run data-collection notice, which otherwise prints to stderr and muddies diagnostics.
+  const execInContainer = (script: string, input?: string) =>
+    spawnSync(
+      'docker',
+      [
+        'exec',
+        '-i',
+        '-e',
+        'SF_DISABLE_TELEMETRY=true',
+        '-e',
+        'SFDX_DISABLE_TELEMETRY=true',
+        containerName,
+        'bash',
+        '-lc',
+        script
+      ],
+      { input, encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS }
+    );
+
   for (const alias of aliases) {
     log(`Authenticating extra org '${alias}' into the container`);
     // --verbose surfaces sfdxAuthUrl (a refresh-token URL) for a scratch org. Untyped parse to match
@@ -635,13 +659,13 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
       console.warn(`    WARNING: could not read sfdxAuthUrl for '${alias}' on the host — skipping.`);
       continue;
     }
-    // `bash -lc` (LOGIN shell) so the container's profile is sourced and `sf` is on PATH — a plain
-    // `bash -c` is non-login and may not find `sf`. Capture stdout/stderr (not ignore) so a failure
-    // surfaces the real CLI error instead of a bare warning.
-    const login = spawnSync(
-      'docker',
-      ['exec', '-i', containerName, 'bash', '-lc', `sf org login sfdx-url --sfdx-url-stdin --alias ${alias}`],
-      { input: authUrl, encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS }
+    // Feed the auth URL via a temp FILE (`--sfdx-url-file`), not `--sfdx-url-stdin`: the stdin flag's
+    // arg parsing swallowed the following `--alias` value on the image's CLI ("Unexpected argument"),
+    // whereas `--sfdx-url-file` is stable across CLI versions. Write the file (0600), log in, remove it.
+    const urlFile = `/tmp/cb-e2e-authurl-${alias}`;
+    execInContainer(`umask 077; cat > ${urlFile}`, authUrl);
+    const login = execInContainer(
+      `sf org login sfdx-url --sfdx-url-file ${urlFile} --alias ${alias}; rc=$?; rm -f ${urlFile}; exit $rc`
     );
     if (login.status !== 0) {
       console.warn(`    WARNING: 'sf org login sfdx-url' for '${alias}' failed inside the container:`);
@@ -651,6 +675,9 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
       if (login.stderr?.trim()) {
         console.warn(`      stderr: ${login.stderr.trim()}`);
       }
+      // Pin the CLI's actual flag surface so a further failure is diagnosable without another round.
+      const help = execInContainer('sf org login sfdx-url --help');
+      console.warn(`      --- sf org login sfdx-url --help ---\n${(help.stdout || help.stderr || '').trim()}`);
     }
   }
 };
