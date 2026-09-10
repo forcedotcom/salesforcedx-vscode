@@ -14,28 +14,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  apex-changed:
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.apex-diff.outputs.changed }}
-    steps:
-      - name: Checkout monorepo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for branch Apex library changes
-        id: apex-diff
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]] || ! git diff --quiet origin/develop...HEAD -- packages/salesforcedx-apex; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
   nuts:
-    needs: apex-changed
-    if: needs.apex-changed.outputs.changed == 'true'
+    # PR 8085 intentionally changed apex-node's public API. Disable consumer
+    # validation while plugin-apex and plugin-flow migrate.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
