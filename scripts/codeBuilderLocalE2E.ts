@@ -28,9 +28,6 @@
  *     (Falls back to a CR_PAT env var if you'd rather supply your own classic PAT.)
  *   - sf CLI logged in to a dev hub (for the scratch org)
  *
- * Env: set CB_SKIP_GHCR_LOGIN=1 when the caller has already `docker login`-ed to ghcr (e.g. CI,
- * which authenticates with its GITHUB_TOKEN) so this script skips its own gh/CR_PAT login.
- *
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
  *   --run-id <id>     Pull the VSIX from that Build All run instead of building locally.
  *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
@@ -50,18 +47,27 @@ import {
   seedWorkspace,
   swap,
   teardown,
+  type BootEnv,
   type CommandRunner,
   type ContainerHandle
 } from '@salesforce/playwright-vscode-ext';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
+import {
+  closeSync,
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const REPO_ROOT = resolve(__dirname, '..');
-// Read from env so the orchestrator and the CI workflow's cleanup step (`docker rm -f "$CONTAINER_NAME"`)
-// share one name; falls back to the local default. Keeps the two from silently desyncing on a rename.
-const CONTAINER_NAME = process.env.CONTAINER_NAME ?? 'codebuilder-e2e-local';
+const CONTAINER_NAME = 'codebuilder-e2e-local';
 // Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
 // workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
 const ORG_ALIAS = process.env.MINIMAL_ORG_ALIAS ?? 'minimalTestOrg';
@@ -101,9 +107,11 @@ const parseArgs = (argv: string[]): Options => {
   const parsed: Options = { teardown: true, imageTag: 'latest', debug: false };
   // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
   // `undefined` and fall through silently — `--run-id` with no value would quietly do a local build
-  // instead of the intended artifact run. Fail loud instead.
+  // instead of the intended artifact run. A flag directly followed by another flag (`--run-id
+  // --debug`) is the same mistake: it would swallow `--debug` as the value. Reject both — a value
+  // that starts with `-` is never a legitimate run id / grep pattern / image tag here.
   const need = (flag: string, value: string | undefined): string => {
-    if (value === undefined) {
+    if (value === undefined || value.startsWith('-')) {
       console.error(`Option ${flag} requires a value.`);
       process.exit(2);
     }
@@ -144,11 +152,19 @@ const parseArgs = (argv: string[]): Options => {
 
 const log = (msg: string): void => console.log(`\n==> ${msg}`);
 
-/* execFileSync wrappers: `sh` inherits stdio (side-effect commands), `capture` returns stdout. */
-const sh = (file: string, args: string[], shOpts: { cwd?: string; env?: NodeJS.ProcessEnv } = {}): void => {
-  execFileSync(file, args, { stdio: 'inherit', ...shOpts });
-};
-const capture = (file: string, args: string[]): string => execFileSync(file, args, { encoding: 'utf-8' }).trim();
+/*
+ * Every external command carries a timeout so a wedged `gh`/`git`/`sf`/`docker` call can't hang the
+ * whole loop forever (the toolkit's own CommandRunner does the same). Metadata reads are quick, so a
+ * couple of minutes is a generous ceiling; the long-running VSIX build/download get their own larger
+ * ceilings where they're spawned.
+ */
+const CAPTURE_TIMEOUT_MS = 2 * 60_000;
+const BUILD_TIMEOUT_MS = 30 * 60_000;
+const DOWNLOAD_TIMEOUT_MS = 15 * 60_000;
+
+/* execFileSync wrappers: `capture` returns stdout; both bound by a timeout so nothing hangs forever. */
+const capture = (file: string, args: string[]): string =>
+  execFileSync(file, args, { encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS }).trim();
 const tryCapture = (file: string, args: string[]): string | null => {
   try {
     return capture(file, args);
@@ -156,6 +172,57 @@ const tryCapture = (file: string, args: string[]): string | null => {
     return null;
   }
 };
+
+/*
+ * Async, timeout-guarded child runner for the two long, backgroundable steps (VSIX build / artifact
+ * download). It runs concurrently with the synchronous docker + scratch-org setup, which blocks the
+ * event loop — so its output goes straight to a log file (not a pipe we'd have to drain) to avoid
+ * pipe-buffer backpressure stalling the child, and is surfaced only on failure rather than
+ * interleaved with the foreground logs. The log lives under vsixDir, which cleanup removes.
+ */
+let vsixChild: ChildProcess | undefined;
+const runAsync = (file: string, args: string[], asyncOpts: { cwd?: string; timeoutMs: number }): Promise<void> =>
+  new Promise((res, rej) => {
+    const logFile = join(vsixDir, `build-${Date.now()}.log`);
+    const fd = openSync(logFile, 'w');
+    const child = spawn(file, args, { cwd: asyncOpts.cwd, stdio: ['ignore', fd, fd] });
+    vsixChild = child;
+    let settled = false;
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGKILL');
+    }, asyncOpts.timeoutMs);
+    const finish = (err?: Error): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      closeSync(fd);
+      vsixChild = undefined;
+      if (err) {
+        try {
+          process.stderr.write(readFileSync(logFile, 'utf-8'));
+        } catch {
+          /* best-effort log dump */
+        }
+        rej(err);
+      } else {
+        res();
+      }
+    };
+    child.on('error', err => finish(err));
+    child.on('close', code => {
+      if (timedOut) {
+        finish(new Error(`${file} ${args.join(' ')} timed out after ${asyncOpts.timeoutMs}ms`));
+      } else if (code === 0) {
+        finish();
+      } else {
+        finish(new Error(`${file} ${args.join(' ')} exited ${code ?? 'null'}`));
+      }
+    });
+  });
 
 const opts = parseArgs(process.argv.slice(2));
 const image = `ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${opts.imageTag}`;
@@ -165,6 +232,9 @@ const vsixDir = mkdtempSync(join(tmpdir(), 'cb-e2e-vsix-'));
 // for a container that never launched. Holds the typed handle the toolkit teardown needs.
 let handle: ContainerHandle | undefined;
 const cleanup = (): void => {
+  // A backgrounded VSIX build/download may still be running if setup failed out from under it;
+  // kill it so a fatal path doesn't orphan a multi-minute build.
+  vsixChild?.kill('SIGKILL');
   rmSync(vsixDir, { recursive: true, force: true });
   if (!handle) {
     return;
@@ -229,12 +299,8 @@ if (!has('docker')) {
 /*
  * ghcr auth uses your own GitHub identity via the gh CLI — the team has read on the image repo and
  * the package inherits it, so no shared token. gh is required unless the dev supplies a CR_PAT.
- *
- * CB_SKIP_GHCR_LOGIN opts out entirely: the caller has already `docker login`-ed to ghcr (CI does
- * this with its GITHUB_TOKEN), so this script relies on that ambient auth and neither logs in nor
- * requires gh for login. gh may still be needed for --run-id, which re-checks it at download time.
  */
-if (!process.env.CB_SKIP_GHCR_LOGIN && !process.env.CR_PAT) {
+if (!process.env.CR_PAT) {
   if (!has('gh')) {
     problems.push(
       `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
@@ -265,60 +331,6 @@ const dockerLogin = (user: string, token: string): boolean =>
     input: token,
     stdio: ['pipe', 'ignore', 'ignore']
   }).status === 0;
-
-if (process.env.CB_SKIP_GHCR_LOGIN) {
-  // The caller already authenticated docker to ghcr (e.g. CI's `docker login` with GITHUB_TOKEN).
-  log('Skipping ghcr login (CB_SKIP_GHCR_LOGIN set — using ambient docker auth)');
-} else if (process.env.CR_PAT) {
-  log('Logging in to ghcr.io');
-  // Explicit PAT wins if provided (classic PAT with read:packages, SSO-authorized for forcedotcom).
-  // GitHub accepts any non-empty username with a PAT, so 'oauth' is a safe placeholder here.
-  if (!dockerLogin('oauth', process.env.CR_PAT)) {
-    console.error('docker login with CR_PAT failed — the token is empty or malformed.');
-    process.exit(1);
-  }
-} else {
-  log('Logging in to ghcr.io');
-  // Preflight guaranteed gh is installed and logged in to github.com. Pull as the dev's own user.
-  const user = tryCapture('gh', ['api', 'user', '-q', '.login']);
-  const token = tryCapture('gh', ['auth', 'token', '-h', 'github.com']);
-  if (!user || !token) {
-    console.error('Could not read your GitHub identity from gh — run `gh auth login` and re-run.');
-    process.exit(1);
-  }
-  // Login validates the credential, not its scopes — it succeeds even without read:packages. The
-  // scope (and repo-access) check happens at pull time below, so a scope problem surfaces there.
-  if (!dockerLogin(user, token)) {
-    console.error('docker login to ghcr.io failed — your gh credential looks invalid. Try `gh auth login`.');
-    process.exit(1);
-  }
-}
-
-/* --- pull the image (toolkit lifecycle) ------------------------------------ */
-log(`Pulling ${image}`);
-try {
-  pull(image);
-} catch {
-  if (process.env.CB_SKIP_GHCR_LOGIN) {
-    // The caller (e.g. CI) did the ghcr `docker login`, so this is NOT a gh/CR_PAT scope issue —
-    // don't send triage down the `gh auth refresh` path. It's the ambient login's access or the tag.
-    console.error(
-      '\nCould not pull the Code Builder image. CB_SKIP_GHCR_LOGIN is set, so the ghcr `docker login`\n' +
-        '    was done by the caller — this is not a gh/CR_PAT scope problem. Check that the login\n' +
-        '    credential has read on the image repo (in CI, the job needs packages:read) and that the\n' +
-        `    tag exists: ${image}`
-    );
-  } else {
-    console.error(
-      '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
-        '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
-        '        gh auth refresh -h github.com -s read:packages\n' +
-        '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
-        '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
-    );
-  }
-  process.exit(1);
-}
 
 /*
  * The VSIX version isn't release-bumped, so it matches the marketplace build too — the semver can't
@@ -383,100 +395,138 @@ const modernVsixName = (pkgDir: string): string | null => {
   }
 };
 
-/* --- gather the VSIX under test -------------------------------------------- */
-if (opts.runId) {
-  if (!has('gh')) {
-    console.error('--run-id needs the gh CLI to download the artifact. Install gh and run: gh auth login');
+/* --- gather the VSIX under test (backgroundable) --------------------------- */
+const acquireVsix = async (): Promise<string[]> => {
+  if (opts.runId) {
+    if (!has('gh')) {
+      console.error('--run-id needs the gh CLI to download the artifact. Install gh and run: gh auth login');
+      process.exit(1);
+    }
+    log(`Downloading VSIX artifact from Build All run ${opts.runId}`);
+    await runAsync(
+      'gh',
+      ['run', 'download', opts.runId, '-n', ARTIFACT_NAME, '-D', vsixDir, '-R', 'forcedotcom/salesforcedx-vscode'],
+      { timeoutMs: DOWNLOAD_TIMEOUT_MS }
+    );
+    logRunProvenance(opts.runId);
+  } else {
+    log('Building VSIX from your working tree (npm run vscode:package) — running alongside docker + org setup');
+    await runAsync('npm', ['run', 'vscode:package'], { cwd: REPO_ROOT, timeoutMs: BUILD_TIMEOUT_MS });
+    // vscode:package drops a .vsix in each package dir; gather them the way CI's Build All does,
+    // keeping only each package's own-version (modern) VSIX (see modernVsixName).
+    const packagesDir = join(REPO_ROOT, 'packages');
+    for (const pkg of readdirSync(packagesDir)) {
+      const pkgDir = join(packagesDir, pkg);
+      let entries: string[];
+      try {
+        entries = readdirSync(pkgDir);
+      } catch {
+        continue;
+      }
+      const modernVsix = modernVsixName(pkgDir);
+      for (const f of entries.filter(e => e === modernVsix)) {
+        cpSync(join(pkgDir, f), join(vsixDir, f));
+      }
+    }
+    logLocalProvenance();
+  }
+  const vsixPaths = readdirSync(vsixDir)
+    .filter(f => f.endsWith('.vsix'))
+    .map(f => join(vsixDir, f));
+  if (vsixPaths.length === 0) {
+    console.error('No VSIX found to test');
     process.exit(1);
   }
-  // The preflight only validates `gh auth status` when it owns the ghcr login; under
-  // CB_SKIP_GHCR_LOGIN that branch is skipped, so an expired/under-scoped token would otherwise
-  // sail through and crash mid-download with a raw `gh run download` error. Check it here too.
-  if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
+  log(`Testing ${vsixPaths.length} VSIX from ${vsixDir}`);
+  return vsixPaths;
+};
+
+/* --- ghcr login + image pull + scratch org (the synchronous setup) --------- */
+const setUpInfra = (): BootEnv => {
+  log('Logging in to ghcr.io');
+  if (process.env.CR_PAT) {
+    // Explicit PAT wins if provided (classic PAT with read:packages, SSO-authorized for forcedotcom).
+    // GitHub accepts any non-empty username with a PAT, so 'oauth' is a safe placeholder here.
+    if (!dockerLogin('oauth', process.env.CR_PAT)) {
+      console.error('docker login with CR_PAT failed — the token is empty or malformed.');
+      process.exit(1);
+    }
+  } else {
+    // Preflight guaranteed gh is installed and logged in to github.com. Pull as the dev's own user.
+    const user = tryCapture('gh', ['api', 'user', '-q', '.login']);
+    const token = tryCapture('gh', ['auth', 'token', '-h', 'github.com']);
+    if (!user || !token) {
+      console.error('Could not read your GitHub identity from gh — run `gh auth login` and re-run.');
+      process.exit(1);
+    }
+    // Login validates the credential, not its scopes — it succeeds even without read:packages. The
+    // scope (and repo-access) check happens at pull time below, so a scope problem surfaces there.
+    if (!dockerLogin(user, token)) {
+      console.error('docker login to ghcr.io failed — your gh credential looks invalid. Try `gh auth login`.');
+      process.exit(1);
+    }
+  }
+
+  log(`Pulling ${image}`);
+  try {
+    pull(image);
+  } catch {
     console.error(
-      '--run-id needs gh authenticated to github.com to download the artifact.\n' +
-        '    In CI, ensure GH_TOKEN is set (with actions:read + contents:read); locally run: gh auth login'
+      '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
+        '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
+        '        gh auth refresh -h github.com -s read:packages\n' +
+        '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
+        '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
     );
     process.exit(1);
   }
-  log(`Downloading VSIX artifact from Build All run ${opts.runId}`);
-  sh('gh', [
-    'run',
-    'download',
-    opts.runId,
-    '-n',
-    ARTIFACT_NAME,
-    '-D',
-    vsixDir,
-    '-R',
-    'forcedotcom/salesforcedx-vscode'
-  ]);
-  logRunProvenance(opts.runId);
-} else {
-  log('Building VSIX from your working tree (npm run vscode:package)');
-  sh('npm', ['run', 'vscode:package'], { cwd: REPO_ROOT });
-  // vscode:package drops a .vsix in each package dir; gather them the way CI's Build All does,
-  // keeping only each package's own-version (modern) VSIX (see modernVsixName).
-  const packagesDir = join(REPO_ROOT, 'packages');
-  for (const pkg of readdirSync(packagesDir)) {
-    const pkgDir = join(packagesDir, pkg);
-    let entries: string[];
-    try {
-      entries = readdirSync(pkgDir);
-    } catch {
-      continue;
-    }
-    const modernVsix = modernVsixName(pkgDir);
-    for (const f of entries.filter(e => e === modernVsix)) {
-      cpSync(join(pkgDir, f), join(vsixDir, f));
+
+  if (runSf(['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }) === 0) {
+    log(`Reusing existing scratch org ${ORG_ALIAS}`);
+  } else {
+    log(`Creating scratch org ${ORG_ALIAS}`);
+    /*
+     * Mirror the documented minimal-org shape (references/local-setup.md): a bare developer-edition
+     * scratch org created from a throwaway project, no repo project-scratch-def needed.
+     */
+    const proj = mkdtempSync(join(tmpdir(), 'cb-e2e-proj-'));
+    mkdirSync(join(proj, 'force-app'), { recursive: true });
+    const sfdxProject = {
+      packageDirectories: [{ path: 'force-app', default: true }],
+      namespace: '',
+      sfdcLoginUrl: 'https://login.salesforce.com',
+      sourceApiVersion: '64.0'
+    };
+    writeFileSync(join(proj, 'sfdx-project.json'), JSON.stringify(sfdxProject));
+    const created = runSf(['org', 'create', 'scratch', '-d', '-w', '30', '-a', ORG_ALIAS, '--edition', 'developer'], {
+      cwd: proj
+    });
+    rmSync(proj, { recursive: true, force: true });
+    if (created !== 0) {
+      console.error(
+        'Scratch org create failed — is a dev hub set as default? (sf org login web --set-default-dev-hub)'
+      );
+      process.exit(1);
     }
   }
-  logLocalProvenance();
-}
-const vsixPaths = readdirSync(vsixDir)
-  .filter(f => f.endsWith('.vsix'))
-  .map(f => join(vsixDir, f));
-if (vsixPaths.length === 0) {
-  console.error('No VSIX found to test');
-  process.exit(1);
-}
-log(`Testing ${vsixPaths.length} VSIX from ${vsixDir}`);
 
-/* --- scratch org ----------------------------------------------------------- */
-if (runSf(['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }) === 0) {
-  log(`Reusing existing scratch org ${ORG_ALIAS}`);
-} else {
-  log(`Creating scratch org ${ORG_ALIAS}`);
-  /*
-   * Mirror the documented minimal-org shape (references/local-setup.md): a bare developer-edition
-   * scratch org created from a throwaway project, no repo project-scratch-def needed.
-   */
-  const proj = mkdtempSync(join(tmpdir(), 'cb-e2e-proj-'));
-  mkdirSync(join(proj, 'force-app'), { recursive: true });
-  const sfdxProject = {
-    packageDirectories: [{ path: 'force-app', default: true }],
-    namespace: '',
-    sfdcLoginUrl: 'https://login.salesforce.com',
-    sourceApiVersion: '64.0'
-  };
-  writeFileSync(join(proj, 'sfdx-project.json'), JSON.stringify(sfdxProject));
-  const created = runSf(['org', 'create', 'scratch', '-d', '-w', '30', '-a', ORG_ALIAS, '--edition', 'developer'], {
-    cwd: proj
-  });
-  rmSync(proj, { recursive: true, force: true });
-  if (created !== 0) {
-    console.error('Scratch org create failed — is a dev hub set as default? (sf org login web --set-default-dev-hub)');
-    process.exit(1);
-  }
-}
-
-// Boot env for the container's start-time org login. resolveOrgBootEnv reads the REAL access token
-// from `sf org auth show-access-token` (not the redacted `org display`) — the #7718 lesson, now
-// encapsulated in the toolkit. Routed through sfRunner for the npx-sf fallback.
-const bootEnv = resolveOrgBootEnv(ORG_ALIAS, { runner: sfRunner });
+  // Boot env for the container's start-time org login. resolveOrgBootEnv reads the REAL access token
+  // from `sf org auth show-access-token` (not the redacted `org display`) — the #7718 lesson, now
+  // encapsulated in the toolkit. Routed through sfRunner for the npx-sf fallback.
+  return resolveOrgBootEnv(ORG_ALIAS, { runner: sfRunner });
+};
 
 /* --- stand up + swap + gate (all via the toolkit) -------------------------- */
 const main = async (): Promise<number> => {
+  // The VSIX build/download is the single longest step, and it's independent of the docker image
+  // pull and the scratch org. acquireVsix() spawns its child process first (real OS process, so it
+  // keeps running even while the event loop is blocked), then setUpInfra() does the synchronous
+  // docker + org work while that child makes progress — so the two slow halves of the loop overlap
+  // instead of running back-to-back. We collect the build result once the setup is done.
+  const vsixReady = acquireVsix();
+  const bootEnv = setUpInfra();
+  const vsixPaths = await vsixReady;
+
   log(`Starting container ${CONTAINER_NAME}`);
   // A stale container from a prior --no-teardown run would collide on the name; clear it first.
   spawnSync('docker', ['rm', '-f', CONTAINER_NAME], { stdio: 'ignore' });
