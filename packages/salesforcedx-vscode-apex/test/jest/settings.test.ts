@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { retrieveAAMethodAnnotations, retrieveEnableSyncInitJobs } from '../../src/settings';
+import {
+  retrieveAAMethodAnnotations,
+  retrieveAAMethodRestAnnotations,
+  retrieveEnableSyncInitJobs
+} from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
   const vscodeMocked = jest.mocked(vscode);
@@ -30,13 +34,17 @@ describe('settings Unit Tests.', () => {
 
   it('Should be able to get retrieveAAMethodAnnotations setting.', () => {
     getConfigurationMock.mockReturnValue({
-      get: getFn.mockReturnValue(['UserDefinedModifier'])
+      get: getFn.mockReturnValue(['AuraEnabled', 'UserDefinedModifier', 'UserDefinedModifier'])
     } as any);
 
     const result = retrieveAAMethodAnnotations();
     expect(result).toEqual(['AuraEnabled', 'UserDefinedModifier']);
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
+  });
+
+  it('Should preserve retrieveAAMethodRestAnnotations setting order.', () => {
+    expect(retrieveAAMethodRestAnnotations()).toEqual(['HttpDelete', 'HttpGet', 'HttpPatch', 'HttpPost', 'HttpPut']);
   });
 
   it('Should be able to get lspParityCapabilities setting.', () => {

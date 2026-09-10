@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Arr from 'effect/Array';
+import * as HashSet from 'effect/HashSet';
 import * as vscode from 'vscode';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
@@ -24,6 +24,17 @@ const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 
+const toOrderedValues = (orderedValues: readonly string[], values: HashSet.HashSet<string>): string[] =>
+  HashSet.toValues(values).toSorted((left, right) => orderedValues.indexOf(left) - orderedValues.indexOf(right));
+
+const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] => {
+  const orderedValues = [...defaults, ...configuredValues];
+  const values = HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues));
+  return toOrderedValues(orderedValues, values);
+};
+
+const hashSetValues = (values: readonly string[]): string[] => toOrderedValues(values, HashSet.fromIterable(values));
+
 export const retrieveEnableSyncInitJobs = (): boolean =>
   vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 
@@ -38,55 +49,55 @@ export const retrieveAAClassDefModifiers = (): string[] => {
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.definition-modifiers', []);
 
-  return Arr.dedupe([...APEX_ACTION_CLASS_DEF_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_CLASS_DEF_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAClassAccessModifiers = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.access-modifiers', []);
-  return Arr.dedupe([...APEX_ACTION_CLASS_ACCESS_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_CLASS_ACCESS_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAMethodDefModifiers = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.definition-modifiers', []);
-  return Arr.dedupe([...APEX_ACTION_METHOD_DEF_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_METHOD_DEF_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAMethodAccessModifiers = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.access-modifiers', []);
-  return Arr.dedupe([...APEX_ACTION_METHOD_ACCESS_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_METHOD_ACCESS_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAPropDefModifiers = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
-  return Arr.dedupe([...APEX_ACTION_PROP_DEF_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_PROP_DEF_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAPropAccessModifiers = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
-  return Arr.dedupe([...APEX_ACTION_PROP_ACCESS_MODIFIERS, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_PROP_ACCESS_MODIFIERS, userDefinedModifiers);
 };
 
 export const retrieveAAMethodAnnotations = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
-  return Arr.dedupe([...APEX_ACTION_METHOD_ANNOTATION, ...userDefinedModifiers]);
+  return unionValues(APEX_ACTION_METHOD_ANNOTATION, userDefinedModifiers);
 };
 
 // The REST-related annotations should not be edited by users
-export const retrieveAAClassRestAnnotations = (): string[] => Arr.dedupe(APEX_ACTION_CLASS_REST_ANNOTATION);
+export const retrieveAAClassRestAnnotations = (): string[] => hashSetValues(APEX_ACTION_CLASS_REST_ANNOTATION);
 
-export const retrieveAAMethodRestAnnotations = (): string[] => Arr.dedupe(APEX_ACTION_METHOD_REST_ANNOTATION);
+export const retrieveAAMethodRestAnnotations = (): string[] => hashSetValues(APEX_ACTION_METHOD_REST_ANNOTATION);
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
   vscode.workspace
