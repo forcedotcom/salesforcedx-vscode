@@ -35,12 +35,14 @@ export const soqlBuilderElementStyles = css`
   }
 
   soql-builder-fields,
-  soql-builder-from {
+  soql-builder-from,
+  soql-builder-limit {
     display: contents;
   }
 
   soql-builder-fields .input,
-  soql-builder-from .input {
+  soql-builder-from .input,
+  soql-builder-limit .input {
     display: grid;
     gap: 4px;
     min-width: 0;
@@ -49,6 +51,28 @@ export const soqlBuilderElementStyles = css`
   soql-builder-from .required {
     color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
     margin-inline-start: 2px;
+  }
+
+  soql-builder-limit .required {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    margin-inline-start: 2px;
+  }
+
+  soql-builder-limit .limit-input {
+    justify-items: start;
+  }
+
+  soql-builder-limit vscode-textfield {
+    width: 8rem;
+  }
+
+  soql-builder-limit .all-rows-input {
+    grid-column: 2;
+  }
+
+  soql-builder-limit .validation-error {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    font-size: 0.92em;
   }
 
   soql-builder-from .status {
