@@ -1,6 +1,7 @@
 # Code Builder E2E — Container Spec Parity Gap Report
 
 **Generated:** 2026-09-09
+**Updated:** 2026-09-10 — REVIEW items in categories **A**, **B**, and **C.9** have been addressed. See the status tags in the **Consolidated REVIEW items** section below. All applied fixes were validated **15/15 green** in CB e2e run `34427132932`; C.9 was confirmed **not-workable** (packaging gap) with evidence.
 **Branch:** `jh/W-23898517-cb-e2e-verify-gate` (parity work on `jh/W-23898526-cb-e2e-parity`, PR #8102)
 **Scope:** Every `*.container.spec.ts` under `packages/*/test/playwright/specs/container/` compared against the origin Playwright spec (`.headless.spec.ts` / `.desktop.spec.ts`) it was ported from.
 
@@ -12,58 +13,58 @@ Each Code Builder (CB) container spec is a port of an existing desktop/headless 
 - **`[INTENTIONAL-GAP]`** — a deliberate coverage reduction where the dropped behavior is still covered by the twin.
 - **`[REVIEW]`** — a potential **unintended** gap, silent divergence, or weakened assertion worth a human decision.
 
-Methodology: one read-only review agent per package read both the container spec and its twin(s) in full. No code was changed.
+Methodology: one read-only review agent per package read both the container spec and its twin(s) in full. No code was changed during the review pass. The fixes recorded under the status tags below were applied afterward (2026-09-10) and CI-validated; the per-package detail sections further down remain the original point-in-time analysis.
 
 ## Summary
 
-| Package | Container specs | REVIEW items | Status |
+| Package | Container specs | REVIEW items | Status (updated 2026-09-10) |
 |---|---|---|---|
-| salesforcedx-vscode-apex | 4 | 3 | ⚠️ review |
-| salesforcedx-vscode-apex-debugger | 1 | 1 | ⚠️ review (naming only) |
-| salesforcedx-vscode-apex-log | 8 | 2 | ⚠️ review |
+| salesforcedx-vscode-apex | 4 | 3 | 🟡 1 fixed · 1 accepted gap (C.9) · 1 info (D) |
+| salesforcedx-vscode-apex-debugger | 1 | 1 | ⏸ not addressed (naming only) |
+| salesforcedx-vscode-apex-log | 8 | 2 | ✅ resolved |
 | salesforcedx-vscode-apex-oas | 3 | 0 | ✅ clean |
 | salesforcedx-vscode-apex-replay-debugger | 1 | 0 | ✅ clean |
-| salesforcedx-vscode-apex-testing | 9 | 1 | ⚠️ review |
+| salesforcedx-vscode-apex-testing | 9 | 1 | ✅ resolved |
 | salesforcedx-vscode-core | 3 | 0 | ✅ clean |
 | salesforcedx-vscode-lightning | 4 | 0 | ✅ clean |
 | salesforcedx-vscode-lwc | 10 | 0 | ✅ clean (2 specs expand coverage) |
-| salesforcedx-vscode-metadata | 17 | 3 | ⚠️ review |
+| salesforcedx-vscode-metadata | 17 | 3 | 🟡 2 fixed · 1 not in scope (C.10) |
 | salesforcedx-vscode-org | 6 | 0 | ✅ clean |
 | salesforcedx-vscode-org-browser | 4 | 0 | ✅ clean |
 | salesforcedx-vscode-services | 1 | 0 | ✅ clean |
-| salesforcedx-vscode-soql | 2 | 1 | ⚠️ review |
-| salesforcedx-vscode-visualforce | 2 | 1 | ⚠️ review |
-| **Total** | **75** | **12** | |
+| salesforcedx-vscode-soql | 2 | 1 | ✅ resolved |
+| salesforcedx-vscode-visualforce | 2 | 1 | ✅ resolved |
+| **Total** | **75** | **12** | **8 fixed · 1 not-workable · 3 out of scope** |
 
-**Headline:** 8 of 15 packages are clean 1:1 ports (differences purely `[ENV]`). 12 `[REVIEW]` items across 7 packages need a keep/fix/accept decision. The dominant pattern in the clean packages is that container specs are *stricter* than their twins (they add console/network monitoring the desktop twins often lack).
+**Headline:** 8 of 15 packages were clean 1:1 ports from the start (differences purely `[ENV]`). Of the 12 `[REVIEW]` items, the requested A/B/C.9 set — **8 items** — are now **fixed and CI-validated** (run `34427132932`, 15/15 green); **1** (C.9 apexSnippets) is confirmed **not-workable** (a Code Builder image packaging gap, evidence below); and **3** were outside the requested scope and remain as-is (C.10 packageInstall, D clean-DB branch, E debugger-twin naming). The dominant pattern in the clean packages is that container specs are *stricter* than their twins (they add console/network monitoring the desktop twins often lack).
 
-## Consolidated REVIEW items (needs your decision)
+## Consolidated REVIEW items — resolution status (2026-09-10)
 
-Ordered roughly by coverage impact. Each links to the package section below for `file:line` detail.
+Ordered roughly by coverage impact. Each links to the package section below for `file:line` detail. **Status legend:** ✅ **FIXED** (applied + CI-validated in run `34427132932`) · ⛔ **NOT-WORKABLE** (accepted gap, evidence given) · ⏸ **NOT ADDRESSED** (outside the requested A/B/C.9 scope). Commit SHAs are on `jh/W-23898526-cb-e2e-parity`.
 
 ### A. Behavior dropped, not covered elsewhere in the container suite
-1. **soql / soqlRunQuery** — ports only the REST "Run Query" code-lens flow; drops **4 of 5** execution flows: palette current-file, palette selected-text, the **Tooling API** path, and the **ALL ROWS → /queryAll** routing verification. The Tooling and ALL ROWS cases each verify distinct backend routing nothing else covers in-container. Undocumented.
-2. **apex-log / executeAnonymous** — collapses a 5-scenario twin (document, selection, compile-error, diagnostics-cleared) down to **execute-document only**. Selection, compile-error, and diagnostics-cleared paths dropped with no in-spec justification.
-3. **apex-testing / testExplorer** — container spec is **discovery-only**; the twin's tree-item **"Run Test" action** path and the **Test Results "Pass Rate"** panel verification are not re-covered by any container spec (run specs use only palette/code-lens entrypoints).
-4. **metadata / generateManifest** — swaps the twin's **editor-context-menu** entry point for the command palette, leaving the context-menu path unverified — even though sibling metadata specs drive the editor context menu fine in-container.
-5. **visualforce / visualforceLsp** — drops the **hover** test the twin covers (headless:104-149); container keeps only completion. Undocumented (likely smoke-scope).
-6. **metadata / sourceDiffMultiple** — drops the twin's **"first diff opens automatically"** assertion (on top of the ENV-justified diff-count genericization).
+1. ✅ **FIXED** (`fc4ac6ccb`) — **soql / soqlRunQuery** — ports only the REST "Run Query" code-lens flow; dropped **4 of 5** execution flows: palette current-file, palette selected-text, the **Tooling API** path, and the **ALL ROWS → /queryAll** routing verification. *Resolution:* all 4 flows restored, ported faithfully from the twin; ALL ROWS/Tooling keyed off the `records returned` signal the twin itself relies on (the Node-host HTTP call is invisible to Playwright in both modes).
+2. ✅ **FIXED** (`a4c48cc6e`) — **apex-log / executeAnonymous** — collapsed a 5-scenario twin down to **execute-document only**. *Resolution:* selection, compile-error, and diagnostics-cleared scenarios restored (selection via triple-click + `(N selected)` guard; diagnostics via Problems-panel count → fix → re-run).
+3. ✅ **FIXED** (`d10adf1b4`) — **apex-testing / testExplorer** — was **discovery-only**; the tree-item **"Run Test" action** and **Test Results "Pass Rate"** panel were uncovered. *Resolution:* added a new sibling spec `testExplorerRun.container.spec.ts` covering both (discovery spec left intact).
+4. ✅ **FIXED** (`c0a6e80e5`) — **metadata / generateManifest** — swapped the **editor-context-menu** entry point for the palette. *Resolution:* context-menu entrypoint restored via `executeEditorContextMenuCommand` (the same pattern 3 sibling metadata specs use in-container — the "doesn't surface" claim was disproven).
+5. ✅ **FIXED** (`ba3ac8db1`) — **visualforce / visualforceLsp** — dropped the **hover** test (headless:104-149). *Resolution:* hover test restored as a second `test()` block (completion test intact).
+6. ✅ **FIXED** (`c0a6e80e5`) — **metadata / sourceDiffMultiple** — dropped the **"first diff opens automatically"** assertion. *Resolution:* restored with a generic `↔` diff-tab match that tolerates shared-workbench state (ENV-justified count genericization kept).
 
 ### B. Assertions weakened (still pass, but verify less)
-7. **apex / apexLspRestart** — the intermediate **"Apex Language Server is restarting"** check is downgraded from the twin's fail-fast `expect(...).toBeVisible()` to a swallowed `.waitFor(...).catch(() => {})`. The twin uses it as a guard against a no-op restart spuriously passing; verify the cleared-channel + `PRELUDE_STARTING` re-emit is an equivalent guard.
-8. **apex-log / traceFlagsCrud** — swaps the twin's **named** debug-level preset selection (`'Yes (Apex=DEBUG, VF=INFO, DB=INFO)'`) for `selectFirstQuickInputOption` (L156), weakening which preset is asserted.
+7. ✅ **FIXED** (`a6a952028`) — **apex / apexLspRestart** — the intermediate **"is restarting"** check was a swallowed `.waitFor(...).catch(() => {})`. *Resolution:* replaced with a real fail-fast no-op guard — the freshly-cleared output channel must re-emit `Apex Prelude Service STARTING` (only a real restart prints it, so a no-op leaves the cleared channel empty and the wait throws). The transient "restarting" UI state is genuinely not reliably observable over the browser round-trip; this durable signal is a stronger guard.
+8. ✅ **FIXED** (`a4c48cc6e`) — **apex-log / traceFlagsCrud** — swapped the **named** debug-level preset for `selectFirstQuickInputOption` (L156). *Resolution:* named preset selected by accessible name (tolerates keybinding badge) + asserts `"apexCode": "DEBUG"` took effect.
 
 ### C. Whole spec disabled (`test.fixme`) → zero container coverage
-9. **apex / apexSnippets** — entire spec is `test.fixme`. The reason ("System Debug" snippet contribution not confirmed present in the CB image; picker never opens) may indicate a **real product/packaging gap** — that the Code Builder image doesn't ship the apex.json snippet contribution — not just a flaky test. Worth confirming what the image ships.
-10. **metadata / packageInstall** — `test.fixme` (on Playwright retries the 04t is already installed, so the install flow short-circuits). Zero container coverage of package install.
+9. ⛔ **NOT-WORKABLE** (`a6a952028` — fixme retained, evidence documented) — **apex / apexSnippets**. *Investigation:* the `System Debug` snippet ships **only** from the marketplace extension `salesforce.apex-language-server-extension`. No monorepo package contributes an apex snippet, and the Code Builder extension-swap **wipes that extension by publisher glob** (`packages/playwright-vscode-ext/src/codeBuilder/swap.ts:98-105`) then installs only the monorepo-built VSIXes — so the snippet is absent from the image and the picker never opens. This is a genuine **product/packaging gap**, not a test bug. It becomes testable only if (a) the snippet is shipped from a repo-built extension, or (b) the swap preserves/installs that marketplace extension. **→ candidate for a product follow-up ticket.**
+10. ⏸ **NOT ADDRESSED** (outside requested scope) — **metadata / packageInstall** — `test.fixme` (on Playwright retries the 04t is already installed, so the install flow short-circuits). Remains a known gap; not in the A/B/C.9 fix set.
 
 > Also `test.fixme` but already documented/accepted from the stabilization work: **apex-testing / apexTestSuiteDelete** (org read-consistency lag; suite *creation* stays covered by `apexTestSuite.container`).
 
 ### D. ENV-justified but never exercised in-container (informational)
-11. **apex / apexLspRestart** — the **"Clean Apex DB and Restart"** quick-pick branch and its `StandardApexLibrary` disk removal/recreation assertions are dropped from the container matrix (no `workspaceDir` for disk assertions in the browser-driven spec). Covered only by the desktop twin.
+11. ⏸ **NOT ADDRESSED** (informational; ENV-justified, accepted) — **apex / apexLspRestart** — the **"Clean Apex DB and Restart"** quick-pick branch and its `StandardApexLibrary` disk removal/recreation assertions are dropped from the container matrix (no `workspaceDir` for disk assertions in the browser-driven spec). Covered only by the desktop twin.
 
 ### E. Classification/naming (not a coverage gap)
-12. **apex-debugger / debuggerStop twin** — the origin is named `debuggerStop.headless.spec.ts` but actually runs on a **real desktop Electron fixture** (`debuggerDesktopTest`) against a minimal scratch org — a naming/classification mismatch, not a coverage gap.
+12. ⏸ **NOT ADDRESSED** (naming only) — **apex-debugger / debuggerStop twin** — the origin is named `debuggerStop.headless.spec.ts` but actually runs on a **real desktop Electron fixture** (`debuggerDesktopTest`) against a minimal scratch org — a naming/classification mismatch, not a coverage gap.
 
 ---
 
