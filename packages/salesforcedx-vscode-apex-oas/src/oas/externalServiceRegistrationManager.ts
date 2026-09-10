@@ -27,11 +27,6 @@ import {
 } from '../oasUtils';
 
 /** @ExportTaggedError */
-export class EsrWriteFailed extends Data.TaggedError('EsrWriteFailed')<{
-  readonly message: string;
-}> {}
-
-/** @ExportTaggedError */
 export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
   readonly message: string;
 }> {}
@@ -46,11 +41,6 @@ export type EsrContext = {
   newPath: string;
   providerType: string | undefined;
 };
-
-const toEsrWriteFailed = (e: { function: string; filePath: string; cause: { message: string } }) =>
-  new EsrWriteFailed({
-    message: nls.localize('artifact_failed', `${e.function} failed for ${e.filePath}: ${e.cause.message}`)
-  });
 
 /** Type guard to check if an object is an OpenAPI OperationObject */
 const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
@@ -354,15 +344,11 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = api.services.FsService;
   const exists = yield* fsService.fileOrFolderExists(ctx.newPath);
-  const existingContent = exists
-    ? yield* fsService.readFile(ctx.newPath).pipe(Effect.catchTag('FsServiceError', toEsrWriteFailed))
-    : undefined;
+  const existingContent = exists ? yield* fsService.readFile(ctx.newPath) : undefined;
   //Step 1: Build the content of the ESR Xml file
-  const updatedContent = yield* buildESRXml(ctx, existingContent).pipe(
-    Effect.catchTag('FsServiceError', toEsrWriteFailed)
-  );
+  const updatedContent = yield* buildESRXml(ctx, existingContent);
   //Step 2: Write OpenAPI Document to File
-  yield* writeAndOpenEsrFile(ctx, updatedContent).pipe(Effect.catchTag('FsServiceError', toEsrWriteFailed));
+  yield* writeAndOpenEsrFile(ctx, updatedContent);
   // Step 3: If the user chose to merge, open a diff between the original and new ESR files
   yield* displayFileDifferences(ctx);
 
