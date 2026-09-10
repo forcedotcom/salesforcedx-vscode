@@ -30,13 +30,14 @@ import {
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
-  selectFirstQuickInputOption,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 
+import { messages } from '../../../../src/messages/i18n';
 import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 import { waitForTraceFlagStatusBar } from '../../helpers';
@@ -153,9 +154,18 @@ test('Trace Flags CRUD (Code Builder): open, create/delete current user trace fl
     await quickInput.locator('input.input').fill(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 });
+    // Pick the NAMED "Yes (Apex=DEBUG, VF=INFO, DB=INFO)" preset rather than blindly taking the
+    // first row. In the container, QuickPick option rows can carry a trailing keybinding badge, so
+    // match by accessible name (substring — tolerates the badge) instead of exact full-row text.
+    await selectQuickInputOption(page, messages.trace_flag_create_log_level_use_defaults_yes, {
+      optionVisibleTimeout: 10_000
+    });
 
+    // The debug level lands in the virtual doc under its master label...
     await openTraceFlagsAndExpectContent(page, debugLevelMasterLabel);
+    // ...and carries the preset's Apex=DEBUG level, proving the named "Yes" preset (not some other
+    // pick) actually took effect. ReplayDebuggerLevels uses FINEST, so this is the created level.
+    await openTraceFlagsAndExpectContent(page, '"apexCode": "DEBUG"');
     await saveScreenshot(page, 'traceFlagsCrud.container.04-debug-level-created.png');
   });
 
