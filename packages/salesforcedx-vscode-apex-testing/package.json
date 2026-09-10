@@ -71,7 +71,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-apex:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services:compile"
