@@ -13,16 +13,16 @@ import { URI, Utils } from 'vscode-uri';
 export const createLanguageClient = async (
   extensionUri: URI,
   initializationOptions: LwcInitializationOptions,
-  packageDirectories?: string[]
+  packageDirectoryUris?: URI[]
 ) => {
   const base = URI.from(extensionUri);
   if (process.env.ESBUILD_PLATFORM === 'web') {
     const serverPath = Utils.joinPath(base, 'dist', 'web', 'lwcServer.js').toString();
     const { createLanguageClient: createWebLanguageClient } = await import('./web.js');
-    return createWebLanguageClient(serverPath, initializationOptions, packageDirectories);
+    return createWebLanguageClient(serverPath, initializationOptions, packageDirectoryUris);
   } else {
     const serverPath = Utils.joinPath(base, 'dist', 'lwcServer.js').fsPath;
     const { createLanguageClient: createNodeLanguageClient } = await import('./node.js');
-    return createNodeLanguageClient(serverPath, initializationOptions, packageDirectories);
+    return createNodeLanguageClient(serverPath, initializationOptions, packageDirectoryUris);
   }
 };
