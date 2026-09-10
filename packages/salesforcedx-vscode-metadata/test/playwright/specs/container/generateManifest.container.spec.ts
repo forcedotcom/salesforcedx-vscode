@@ -23,7 +23,7 @@ import {
   closeWelcomeTabs,
   EDITOR,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   openFileFromExplorerTree,
@@ -57,16 +57,17 @@ test('Generate Manifest (Code Builder): generates via context menu entry points'
     await saveScreenshot(page, 'generateManifest.container.01-ready.png');
   });
 
-  await test.step('1. Command palette (active editor)', async () => {
+  await test.step('1. Editor context menu', async () => {
     await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
     const editor = page.locator('[data-uri*="PagedResult.cls"]').first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();
 
-    // The container editor context menu does not reliably surface the SFDX contributions; the palette
-    // does (it targets the active editor's file). Matches the passing deploySource container twin.
+    // Right-click in the editor → "SFDX: Generate Manifest File", matching the headless twin's editor
+    // entry point. The editor context menu surfaces SFDX contributions in-container, as the passing
+    // deploySourcePath / deployManifest / retrieveInManifest container twins exercise the same path.
     await verifyCommandExists(page, packageNls.project_generate_manifest_text, 60_000);
-    await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
+    await executeEditorContextMenuCommand(page, packageNls.project_generate_manifest_text, 'PagedResult.cls');
 
     const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'attached', timeout: 10_000 });

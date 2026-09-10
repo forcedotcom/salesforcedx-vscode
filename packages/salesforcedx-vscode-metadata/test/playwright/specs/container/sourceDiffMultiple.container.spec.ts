@@ -17,6 +17,7 @@
  * tab must open — no absolute component/file counts. The full retrieve/CLI path web mode cannot cover.
  */
 
+import { expect } from '@playwright/test';
 import {
   clearAllNotifications,
   clearOutputChannel,
@@ -97,6 +98,19 @@ test('Source Diff multiple (Code Builder): opens a diff and populates conflict t
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
     await waitForOutputChannelText(page, { expectedText: 'Diff completed for', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'sourceDiffMultiple.container.05-output-complete.png');
+  });
+
+  await test.step('first diff opens automatically', async () => {
+    // Parity with the headless twin's "first diff opens automatically" assertion: the multi-file diff
+    // auto-opens the first component's diff before any tree interaction. Because the shared workbench may
+    // hold other locally changed classes, the first component is not necessarily classNameA, so assert
+    // generically that a diff editor tab (remote ↔ local) opened on its own — matching the ENV-justified
+    // count genericization already applied above.
+    await expect(
+      page.getByRole('tab', { name: /↔/ }).first(),
+      'A diff editor tab should open automatically after invoking multi-file diff'
+    ).toBeVisible({ timeout: 30_000 });
+    await saveScreenshot(page, 'sourceDiffMultiple.container.055-first-diff-auto-open.png');
   });
 
   await test.step('conflict tree shows both created classes', async () => {
