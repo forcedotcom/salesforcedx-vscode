@@ -180,7 +180,7 @@ jobs:
       # orchestrator auths it into the container via CB_EXTRA_ORG_ALIASES (below). No -d: the boot org
       # ($MINIMAL_ORG_ALIAS) stays the default; multi-org specs switch to this alias with save/restore.
       - name: Create non-tracking scratch org (multi-org specs)
-        if: matrix.package == 'salesforcedx-vscode-org'
+        if: contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core", "salesforcedx-vscode-apex-testing"]'), matrix.package)
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
@@ -194,7 +194,7 @@ jobs:
       # need extra orgs; empty elsewhere (the orchestrator no-ops).
       - name: Run Code Builder E2E (orchestrator)
         env:
-          CB_EXTRA_ORG_ALIASES: ${{ matrix.package == 'salesforcedx-vscode-org' && 'nonTrackingTestOrg' || '' }}
+          CB_EXTRA_ORG_ALIASES: ${{ contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core", "salesforcedx-vscode-apex-testing"]'), matrix.package) && 'nonTrackingTestOrg' || '' }}
         run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
 
       # This shard runs one package (--only), so only that package's report/results dir exists; the
@@ -232,6 +232,6 @@ jobs:
 
       # Same for the extra multi-org scratch org, when this shard created one.
       - name: Cleanup non-tracking scratch org
-        if: always() && matrix.package == 'salesforcedx-vscode-org'
+        if: always() && contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core", "salesforcedx-vscode-apex-testing"]'), matrix.package)
         continue-on-error: true
         run: sf org delete scratch -o nonTrackingTestOrg --no-prompt || true

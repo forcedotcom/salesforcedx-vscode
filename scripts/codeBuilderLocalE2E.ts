@@ -672,13 +672,6 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
         console.warn(`      stderr: ${login.stderr.trim()}`);
       }
     }
-    // Diagnostic (spike): confirm the exec's user/HOME match the workbench and whether the
-    // container's own `sf` lists the org — distinguishes an sf-side auth problem from the extension
-    // caching/filtering externally-added auths. Kept terse; remove once multi-org is proven.
-    const diag = execInContainer(
-      'printf "user=%s home=%s\\n" "$(whoami)" "$HOME"; sf org list --json 2>&1 | head -c 1400'
-    );
-    console.log(`    [diag] ${alias}: ${(diag.stdout || diag.stderr || '').trim()}`);
   }
 };
 
