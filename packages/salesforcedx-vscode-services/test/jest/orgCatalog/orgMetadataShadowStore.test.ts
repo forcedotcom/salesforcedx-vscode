@@ -106,9 +106,9 @@ describe('OrgMetadataShadowStore', () => {
     const preparation = await Effect.runPromise(
       Effect.gen(function* () {
         return yield* (yield* OrgMetadataShadowStore).prepare(
-          '00D',
-          { xmlName: 'ApexClass', fullName: 'FooTest' },
-          'revision-1'
+          'org/id % ü',
+          { xmlName: 'Type/% 名', fullName: 'Folder %/Component 名' },
+          'rev/% ü'
         );
       }).pipe(
         Effect.provide(OrgMetadataShadowStore.DefaultWithoutDependencies),
@@ -117,10 +117,12 @@ describe('OrgMetadataShadowStore', () => {
       )
     );
 
-    expect(preparation.stagingUri.path).toContain(
-      '/.sf/orgs/00D/remoteMetadata/catalog-staging/ApexClass/FooTest/revision-1.__staging__'
+    expect(preparation.stagingUri.path).toBe(
+      '/workspace/.sf/orgs/org%2Fid%20%25%20%C3%BC/remoteMetadata/catalog-staging/Type%2F%25%20%E5%90%8D/Folder%20%25/Component%20%E5%90%8D/rev%2F%25%20%C3%BC.__staging__'
     );
-    expect(preparation.rootUri.path).toContain('/.sf/orgs/00D/metadata-shadow/ApexClass/FooTest/revisions/revision-1');
+    expect(preparation.rootUri.path).toBe(
+      '/workspace/.sf/orgs/org%2Fid%20%25%20%C3%BC/metadata-shadow/Type%2F%25%20%E5%90%8D/Folder%20%25/Component%20%E5%90%8D/revisions/rev%2F%25%20%C3%BC'
+    );
   });
 
   it('prepares a shared SDR staging directory for batch materialization', async () => {

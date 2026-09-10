@@ -7,6 +7,7 @@
 
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
+import * as Encoding from 'effect/Encoding';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -41,7 +42,7 @@ export type OrgMetadataShadowArtifact = {
   readonly materializedAt: string;
 };
 
-const encodedSegments = (value: string): string[] => value.split('/').map(encodeURIComponent);
+const encodedSegments = (value: string) => Effect.all(value.split('/').map(Encoding.encodeUriComponent));
 
 const relativePath = (root: URI, child: URI): string | undefined => {
   const prefix = root.path.endsWith('/') ? root.path : `${root.path}/`;
@@ -76,12 +77,12 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
         workspace.uri,
         '.sf',
         'orgs',
-        encodeURIComponent(orgId),
+        yield* Encoding.encodeUriComponent(orgId),
         SHADOW_DIRECTORY,
-        encodeURIComponent(reference.xmlName),
-        ...encodedSegments(reference.fullName),
+        yield* Encoding.encodeUriComponent(reference.xmlName),
+        ...(yield* encodedSegments(reference.fullName)),
         'revisions',
-        encodeURIComponent(remoteLastModifiedDate ?? 'unversioned')
+        yield* Encoding.encodeUriComponent(remoteLastModifiedDate ?? 'unversioned')
       );
     });
 
@@ -132,12 +133,12 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
         workspace.uri,
         '.sf',
         'orgs',
-        encodeURIComponent(orgId),
+        yield* Encoding.encodeUriComponent(orgId),
         SDR_STAGING_DIRECTORY,
         CATALOG_STAGING_DIRECTORY,
-        encodeURIComponent(reference.xmlName),
-        ...encodedSegments(reference.fullName),
-        `${encodeURIComponent(remoteLastModifiedDate ?? 'unversioned')}.__staging__`
+        yield* Encoding.encodeUriComponent(reference.xmlName),
+        ...(yield* encodedSegments(reference.fullName)),
+        `${yield* Encoding.encodeUriComponent(remoteLastModifiedDate ?? 'unversioned')}.__staging__`
       );
       yield* fsService.safeDelete(stagingUri, { recursive: true });
       yield* fsService.createDirectory(stagingUri);
@@ -150,7 +151,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
         workspace.uri,
         '.sf',
         'orgs',
-        encodeURIComponent(orgId),
+        yield* Encoding.encodeUriComponent(orgId),
         SDR_STAGING_DIRECTORY,
         CATALOG_STAGING_DIRECTORY,
         'batch.__staging__'

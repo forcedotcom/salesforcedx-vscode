@@ -109,17 +109,17 @@ describe('OrgMetadataCatalogStore', () => {
 
   it('atomically publishes and reloads a schema-valid per-org snapshot', async () => {
     const { files, renames, run, writes } = makeHarness();
-    const stored = snapshot('00D-one');
+    const stored = snapshot('org/id % ü');
 
     const [uri, loaded] = await run(
       Effect.gen(function* () {
         const store = yield* OrgMetadataCatalogStore;
         const savedUri = yield* store.save(stored);
-        return [savedUri, yield* store.load('00D-one')] as const;
+        return [savedUri, yield* store.load(stored.orgId)] as const;
       })
     );
 
-    expect(uri.path).toBe('/workspace/.sf/orgs/00D-one/metadata-catalog/catalog.json');
+    expect(uri.path).toBe('/workspace/.sf/orgs/org%2Fid%20%25%20%C3%BC/metadata-catalog/catalog.json');
     expect(loaded).toEqual(stored);
     expect(writes).toEqual([`${uri.toString()}.__staging__`]);
     expect(renames).toEqual([[`${uri.toString()}.__staging__`, uri.toString(), { overwrite: true }]]);

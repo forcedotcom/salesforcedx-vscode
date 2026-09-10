@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Encoding from 'effect/Encoding';
 import { isError } from 'effect/Predicate';
 import * as http from 'node:http';
 
@@ -84,14 +85,7 @@ const parseBody = (body: string) =>
   );
 
 const decodeBase64Env = (base64Env: string) =>
-  Effect.try({
-    try: () => {
-      const decoded = Buffer.from(base64Env, 'base64');
-      const asString = decoded.toString('utf-8');
-      return extractJsonObjects(asString);
-    },
-    catch: error => (isError(error) ? error : new Error(String(error)))
-  });
+  Encoding.decodeBase64String(base64Env).pipe(Effect.map(extractJsonObjects));
 
 const logRequest = (method: string | undefined, url: string | undefined, headers: http.IncomingHttpHeaders): void => {
   const timestamp = new Date().toISOString();
