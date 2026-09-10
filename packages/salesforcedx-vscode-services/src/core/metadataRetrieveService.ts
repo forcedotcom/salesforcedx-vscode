@@ -21,6 +21,7 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -59,8 +60,9 @@ const retrieveSpanAttributes = (retrieveOutcome: RetrieveResult) => {
     filePropertyCount: Arr.ensure(retrieveOutcome.response.fileProperties).filter(
       property => property?.type && property.fullName
     ).length,
-    retrieveMessageCount:
-      retrieveOutcome.response.messages === undefined ? 0 : Arr.ensure(retrieveOutcome.response.messages).length,
+    retrieveMessageCount: isUndefined(retrieveOutcome.response.messages)
+      ? 0
+      : Arr.ensure(retrieveOutcome.response.messages).length,
     zipFileLength: retrieveOutcome.response.zipFile.length
   };
 };

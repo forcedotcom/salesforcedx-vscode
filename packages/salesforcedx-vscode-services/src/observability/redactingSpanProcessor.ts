@@ -6,7 +6,7 @@
  */
 import type { AttributeValue, Attributes } from '@opentelemetry/api';
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
-import { isNotUndefined, isNullable, isString } from 'effect/Predicate';
+import { isNotUndefined, isNullable, isString, isUndefined } from 'effect/Predicate';
 import { redactSensitiveData } from './redactSensitiveData';
 
 const isStringArray = (value: AttributeValue): value is (string | null | undefined)[] =>
@@ -27,7 +27,7 @@ const redactAttributeValue = (value: AttributeValue): AttributeValue => {
 /** Rewrite string / string[] leaves. Does not recurse into objects. */
 const redactAttributes = (attributes: Attributes): void => {
   Object.entries(attributes).forEach(([key, value]) => {
-    if (value === undefined) return;
+    if (isUndefined(value)) return;
     const redacted = redactAttributeValue(value);
     if (redacted !== value) attributes[key] = redacted;
   });
@@ -59,7 +59,7 @@ export class RedactingSpanProcessor extends NoopSpanProcessor {
       : span.status.message;
     span.events.forEach(event => {
       event.name = redactSensitiveData(event.name);
-      if (event.attributes !== undefined) redactAttributes(event.attributes);
+      if (isNotUndefined(event.attributes)) redactAttributes(event.attributes);
     });
     span.links
       .map(link => link.attributes)

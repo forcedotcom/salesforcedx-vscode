@@ -170,7 +170,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       });
 
       yield* Effect.annotateCurrentSpan({
-        deployStatus: deployOutcome.response?.status,
+        deployStatus: deployOutcome.response.status,
         fileResponseCount: deployOutcome.getFileResponses().length
       });
 
