@@ -162,9 +162,22 @@ jobs:
           command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, create the
-      # scratch org, run + seed + swap + restart + verify gate, then run the container specs and tear
-      # the container down. Same pipeline a developer runs locally.
+      # Create the minimal scratch org here (like coreE2E and the other e2e workflows) rather than in
+      # the orchestrator: the orchestrator delegates org setup to the toolkit's createMinimalOrg, whose
+      # requireOrgInCI intentionally refuses to CREATE in CI and only REUSES a pre-existing org. So the
+      # org is created up front under $MINIMAL_ORG_ALIAS and the orchestrator reuses it. (Locally there
+      # is no such step; createMinimalOrg creates the org itself since CI is unset.) rm -rf keeps the
+      # generate idempotent if the retry wrapper re-runs after a transient failure.
+      - name: Create minimal scratch org
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-org-project && sf project generate -n cb-e2e-org-project && cd cb-e2e-org-project && sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
+
+      # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
+      # org created above (via createMinimalOrg), run + seed + swap + restart + verify gate, then run the
+      # container specs and tear the container down. Same pipeline a developer runs locally.
       - name: Run Code Builder E2E (orchestrator)
         run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
 

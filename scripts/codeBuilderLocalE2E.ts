@@ -44,8 +44,9 @@
 
 import {
   assertVerified,
+  createMinimalOrg,
   FIXTURE_MOUNT_PATH,
-  pull,
+  MINIMAL_ORG_ALIAS,
   resolveOrgBootEnv,
   restart,
   run as runContainer,
@@ -57,17 +58,7 @@ import {
   type ContainerHandle
 } from '@salesforce/playwright-vscode-ext';
 import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
-import {
-  closeSync,
-  cpSync,
-  mkdirSync,
-  mkdtempSync,
-  openSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync
-} from 'node:fs';
+import { closeSync, cpSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -77,9 +68,11 @@ const REPO_ROOT = resolve(__dirname, '..');
 // silently desyncs from the other and the cleanup's `|| true` quietly no-ops against a stale name,
 // leaking an orphaned container on the runner. Falls back to the local default.
 const CONTAINER_NAME = process.env.CONTAINER_NAME ?? 'codebuilder-e2e-local';
-// Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
-// workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
-const ORG_ALIAS = process.env.MINIMAL_ORG_ALIAS ?? 'minimalTestOrg';
+// Reuse the toolkit's minimal-org alias so createMinimalOrg (used below) and this orchestrator agree
+// on one org, and so the CI workflow's create + cleanup steps target the same alias (the workflow
+// sets MINIMAL_ORG_ALIAS to this same literal). createMinimalOrg pins this alias internally, so we
+// adopt its exported constant rather than an env override it would ignore.
+const ORG_ALIAS = MINIMAL_ORG_ALIAS;
 // Host port the workbench is published on. The container serves code-server on CONTAINER_PORT
 // (58080); the lifecycle `run` maps this host port to it.
 const PUBLISHED_PORT = 8123;
@@ -182,13 +175,11 @@ const log = (msg: string): void => console.log(`\n==> ${msg}`);
 const CAPTURE_TIMEOUT_MS = 2 * 60_000;
 const BUILD_TIMEOUT_MS = 30 * 60_000;
 const DOWNLOAD_TIMEOUT_MS = 15 * 60_000;
-// `sf org create scratch -w 30` legitimately runs up to ~30 min, and a per-package spec run can take
-// tens of minutes, so these ceilings are high enough never to trip a healthy run but still kill a
-// truly wedged child instead of hanging the loop forever (the header's "every external command
-// carries a timeout" guarantee). spawnSync/execFileSync timeouts are OS-enforced on the child, so
-// they fire even while the event loop is blocked by other synchronous setup — the `-w` poll bound
-// does NOT protect against a CLI process that never returns.
-const ORG_TIMEOUT_MS = 35 * 60_000;
+// The image pull and the per-package spec run get generous ceilings — high enough never to trip a
+// healthy run, low enough to kill a truly wedged child instead of hanging the loop forever (the
+// header's "every external command carries a timeout" guarantee). The pull runs async (see runAsync)
+// so its timer fires on time; the specs spawnSync timeout is OS-enforced on the child.
+const PULL_TIMEOUT_MS = 15 * 60_000;
 const SPECS_TIMEOUT_MS = 35 * 60_000;
 
 /* execFileSync wrappers: `capture` returns stdout; both bound by a timeout so nothing hangs forever. */
@@ -203,19 +194,19 @@ const tryCapture = (file: string, args: string[]): string | null => {
 };
 
 /*
- * Async, timeout-guarded child runner for the two long, backgroundable steps (VSIX build / artifact
- * download). It runs concurrently with the synchronous docker + scratch-org setup, which blocks the
- * event loop — so its output goes straight to a log file (not a pipe we'd have to drain) to avoid
- * pipe-buffer backpressure stalling the child, and is surfaced only on failure rather than
- * interleaved with the foreground logs. The log lives under vsixDir, which cleanup removes.
+ * Async, timeout-guarded child runner for the long, backgroundable steps (VSIX build/download and
+ * the image pull). Several can be in flight at once (build + pull overlap), so we track them in a Set
+ * and SIGKILL any survivors in cleanup. Output goes straight to a per-child log file (not a pipe we'd
+ * have to drain) to avoid pipe-buffer backpressure stalling the child, and is surfaced only on
+ * failure. Logs live under vsixDir, which cleanup removes.
  */
-let vsixChild: ChildProcess | undefined;
+const activeChildren = new Set<ChildProcess>();
 const runAsync = (file: string, args: string[], asyncOpts: { cwd?: string; timeoutMs: number }): Promise<void> =>
   new Promise((res, rej) => {
-    const logFile = join(vsixDir, `build-${Date.now()}.log`);
+    const logFile = join(vsixDir, `child-${activeChildren.size}-${Date.now()}.log`);
     const fd = openSync(logFile, 'w');
     const child = spawn(file, args, { cwd: asyncOpts.cwd, stdio: ['ignore', fd, fd] });
-    vsixChild = child;
+    activeChildren.add(child);
     let settled = false;
     let timedOut = false;
     const timer = setTimeout(() => {
@@ -229,7 +220,7 @@ const runAsync = (file: string, args: string[], asyncOpts: { cwd?: string; timeo
       settled = true;
       clearTimeout(timer);
       closeSync(fd);
-      vsixChild = undefined;
+      activeChildren.delete(child);
       if (err) {
         try {
           process.stderr.write(readFileSync(logFile, 'utf-8'));
@@ -261,9 +252,11 @@ const vsixDir = mkdtempSync(join(tmpdir(), 'cb-e2e-vsix-'));
 // for a container that never launched. Holds the typed handle the toolkit teardown needs.
 let handle: ContainerHandle | undefined;
 const cleanup = (): void => {
-  // A backgrounded VSIX build/download may still be running if setup failed out from under it;
-  // kill it so a fatal path doesn't orphan a multi-minute build.
-  vsixChild?.kill('SIGKILL');
+  // Backgrounded children (VSIX build/download, image pull) may still be running if setup failed out
+  // from under them; SIGKILL any survivors so a fatal path doesn't orphan a multi-minute child.
+  for (const child of activeChildren) {
+    child.kill('SIGKILL');
+  }
   rmSync(vsixDir, { recursive: true, force: true });
   if (!handle) {
     return;
@@ -293,22 +286,12 @@ const brewOr = (formula: string, other: string): string => (onMac ? `brew instal
 
 const has = (file: string): boolean => spawnSync(file, ['--version'], { stdio: 'ignore' }).status === 0;
 
-/* sf is npx-able (@salesforce/cli), so a missing global install is a warning, not a blocker —
- * fall back to `npx @salesforce/cli`. docker and gh are not npx-able and must be installed. */
+/* sf is npx-able (@salesforce/cli), so a missing global install is a warning, not a blocker for the
+ * calls this script makes directly (resolveOrgBootEnv, via sfRunner below) — fall back to
+ * `npx @salesforce/cli`. Note: the toolkit's createMinimalOrg invokes `sf` directly, so org
+ * create/reuse still needs a real sf install. docker and gh are not npx-able and must be installed. */
 const sfInstalled = has('sf');
 const sfCmd = (): [string, string[]] => (sfInstalled ? ['sf', []] : ['npx', ['-y', '@salesforce/cli']]);
-const runSf = (args: string[], sfOpts: { cwd?: string; stdio?: 'inherit' | 'ignore' } = {}): number => {
-  const [file, prefix] = sfCmd();
-  // ORG_TIMEOUT_MS backstop so a wedged dev-hub/sf process (org display / org create scratch) can't
-  // hang the loop forever; on timeout spawnSync returns status null → 1, treated as a failure below.
-  return (
-    spawnSync(file, [...prefix, ...args], {
-      stdio: sfOpts.stdio ?? 'inherit',
-      cwd: sfOpts.cwd,
-      timeout: ORG_TIMEOUT_MS
-    }).status ?? 1
-  );
-};
 /*
  * A CommandRunner (the toolkit's injection seam) that routes `sf` through the npx fallback when sf
  * isn't on PATH, so resolveOrgBootEnv works on a box without a global sf install — the same
@@ -517,8 +500,61 @@ const acquireVsix = async (): Promise<string[]> => {
   return vsixPaths;
 };
 
-/* --- ghcr login + image pull + scratch org (the synchronous setup) --------- */
-const setUpInfra = (): BootEnv => {
+/*
+ * Pull the image asynchronously (via spawn) rather than the toolkit's synchronous `pull`: an async
+ * child doesn't block the event loop — so the concurrent VSIX build/download timer fires on time —
+ * and it can overlap the org create/reuse below. Retry a few times to ride out a transient ghcr
+ * hiccup, matching the retry the toolkit's synchronous runner gave the old `pull` call.
+ */
+const pullImage = async (): Promise<void> => {
+  log(`Pulling ${image}`);
+  const attempts = 3;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await runAsync('docker', ['pull', image], { timeoutMs: PULL_TIMEOUT_MS });
+      return;
+    } catch {
+      if (attempt < attempts) {
+        log(`Image pull attempt ${attempt}/${attempts} failed; retrying…`);
+      }
+    }
+  }
+  if (process.env.CB_SKIP_GHCR_LOGIN) {
+    // Login here was the caller's ambient `docker login` (in CI, the job GITHUB_TOKEN), not gh/CR_PAT,
+    // so the gh/CR_PAT remediation would point at the wrong cause. A 403 means that ambient login lacks
+    // read on the image repo, or the requested tag does not exist.
+    console.error(
+      `\nCould not pull ${image} (CB_SKIP_GHCR_LOGIN set — relying on the caller's ambient docker login).\n` +
+        '    A 403 here means that login (in CI, the job GITHUB_TOKEN) lacks read on the image repo, or the\n' +
+        "    image tag does not exist. Check the job's packages:read permission and the --image-tag value."
+    );
+  } else {
+    console.error(
+      '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
+        '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
+        '        gh auth refresh -h github.com -s read:packages\n' +
+        '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
+        '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
+    );
+  }
+  process.exit(1);
+};
+
+/*
+ * Ensure the minimal scratch org exists, delegating to the toolkit's createMinimalOrg (used by nearly
+ * every other package's fixtures) instead of hand-rolling the temp-project + `sf org create scratch`
+ * scaffolding. It reuses an existing minimalTestOrg when present and otherwise creates one — EXCEPT in
+ * CI, where createMinimalOrg's requireOrgInCI intentionally refuses to create, so the
+ * codeBuilderE2E.yml workflow creates the org up front (matching coreE2E et al.) and this call just
+ * reuses it. Async, so it overlaps the image pull.
+ */
+const ensureOrg = async (): Promise<void> => {
+  log(`Ensuring scratch org ${ORG_ALIAS} (reuse if present, else create)`);
+  await createMinimalOrg();
+};
+
+/* --- ghcr login (sync, quick) + image pull + scratch org (async, overlapped) --- */
+const setUpInfra = async (): Promise<BootEnv> => {
   if (process.env.CB_SKIP_GHCR_LOGIN) {
     // The caller already authenticated docker to ghcr (e.g. CI's `docker login` with GITHUB_TOKEN).
     log('Skipping ghcr login (CB_SKIP_GHCR_LOGIN set — using ambient docker auth)');
@@ -540,65 +576,25 @@ const setUpInfra = (): BootEnv => {
       process.exit(1);
     }
     // Login validates the credential, not its scopes — it succeeds even without read:packages. The
-    // scope (and repo-access) check happens at pull time below, so a scope problem surfaces there.
+    // scope (and repo-access) check happens at pull time, so a scope problem surfaces there.
     if (!dockerLogin(user, token)) {
       console.error('docker login to ghcr.io failed — your gh credential looks invalid. Try `gh auth login`.');
       process.exit(1);
     }
   }
 
-  log(`Pulling ${image}`);
+  // The image pull and the org create/reuse are independent multi-minute operations — run them
+  // concurrently (both async, so neither blocks the event loop or the other). pullImage exits the
+  // process on its own failure; a failure from createMinimalOrg surfaces here.
   try {
-    pull(image);
-  } catch {
-    if (process.env.CB_SKIP_GHCR_LOGIN) {
-      // Login here was the caller's ambient `docker login` (in CI, the job GITHUB_TOKEN), not gh/CR_PAT,
-      // so the gh/CR_PAT remediation below would point at the wrong cause. A 403 on this path means that
-      // ambient login lacks read on the image repo, or the requested image tag does not exist.
-      console.error(
-        `\nCould not pull ${image} (CB_SKIP_GHCR_LOGIN set — relying on the caller's ambient docker login).\n` +
-          '    A 403 here means that login (in CI, the job GITHUB_TOKEN) lacks read on the image repo, or the\n' +
-          "    image tag does not exist. Check the job's packages:read permission and the --image-tag value."
-      );
-    } else {
-      console.error(
-        '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
-          '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
-          '        gh auth refresh -h github.com -s read:packages\n' +
-          '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
-          '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
-      );
-    }
+    await Promise.all([pullImage(), ensureOrg()]);
+  } catch (err) {
+    console.error(`Scratch org setup failed: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(
+      '    In CI the org must be created by the workflow first; locally, ensure a dev hub is set as default\n' +
+        '    (sf org login web --set-default-dev-hub).'
+    );
     process.exit(1);
-  }
-
-  if (runSf(['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }) === 0) {
-    log(`Reusing existing scratch org ${ORG_ALIAS}`);
-  } else {
-    log(`Creating scratch org ${ORG_ALIAS}`);
-    /*
-     * Mirror the documented minimal-org shape (references/local-setup.md): a bare developer-edition
-     * scratch org created from a throwaway project, no repo project-scratch-def needed.
-     */
-    const proj = mkdtempSync(join(tmpdir(), 'cb-e2e-proj-'));
-    mkdirSync(join(proj, 'force-app'), { recursive: true });
-    const sfdxProject = {
-      packageDirectories: [{ path: 'force-app', default: true }],
-      namespace: '',
-      sfdcLoginUrl: 'https://login.salesforce.com',
-      sourceApiVersion: '64.0'
-    };
-    writeFileSync(join(proj, 'sfdx-project.json'), JSON.stringify(sfdxProject));
-    const created = runSf(['org', 'create', 'scratch', '-d', '-w', '30', '-a', ORG_ALIAS, '--edition', 'developer'], {
-      cwd: proj
-    });
-    rmSync(proj, { recursive: true, force: true });
-    if (created !== 0) {
-      console.error(
-        'Scratch org create failed — is a dev hub set as default? (sf org login web --set-default-dev-hub)'
-      );
-      process.exit(1);
-    }
   }
 
   // Boot env for the container's start-time org login. resolveOrgBootEnv reads the REAL access token
@@ -609,14 +605,11 @@ const setUpInfra = (): BootEnv => {
 
 /* --- stand up + swap + gate (all via the toolkit) -------------------------- */
 const main = async (): Promise<number> => {
-  // The VSIX build/download is the single longest step, and it's independent of the docker image
-  // pull and the scratch org. acquireVsix() spawns its child process first (real OS process, so it
-  // keeps running even while the event loop is blocked), then setUpInfra() does the synchronous
-  // docker + org work while that child makes progress — so the two slow halves of the loop overlap
-  // instead of running back-to-back. We collect the build result once the setup is done.
-  const vsixReady = acquireVsix();
-  const bootEnv = setUpInfra();
-  const vsixPaths = await vsixReady;
+  // The three slow, independent operations — VSIX build/download, image pull, and org create/reuse —
+  // all run concurrently: acquireVsix() and setUpInfra() are both async (setUpInfra overlaps the pull
+  // and the org internally), and none blocks the event loop, so the loop's expensive halves overlap
+  // instead of running back-to-back. Collect both results together.
+  const [vsixPaths, bootEnv] = await Promise.all([acquireVsix(), setUpInfra()]);
 
   log(`Starting container ${CONTAINER_NAME}`);
   // A stale container from a prior --no-teardown run would collide on the name; clear it first.
