@@ -27,7 +27,7 @@ await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, nu
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
-  external: ['vscode', 'applicationinsights', '@salesforce/lightning-lsp-common', 'vscode-html-languageservice'],
+  external: ['vscode', 'applicationinsights', 'vscode-html-languageservice'],
   entryPoints: ['../salesforcedx-aura-language-server/out/src/server.js'],
   outfile: './dist/auraServer.js',
   bundle: true,
