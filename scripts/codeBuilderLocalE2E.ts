@@ -635,13 +635,22 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
       console.warn(`    WARNING: could not read sfdxAuthUrl for '${alias}' on the host — skipping.`);
       continue;
     }
+    // `bash -lc` (LOGIN shell) so the container's profile is sourced and `sf` is on PATH — a plain
+    // `bash -c` is non-login and may not find `sf`. Capture stdout/stderr (not ignore) so a failure
+    // surfaces the real CLI error instead of a bare warning.
     const login = spawnSync(
       'docker',
-      ['exec', '-i', containerName, 'bash', '-c', `sf org login sfdx-url --sfdx-url-stdin --alias ${alias}`],
-      { input: authUrl, stdio: ['pipe', 'ignore', 'ignore'], timeout: CAPTURE_TIMEOUT_MS }
+      ['exec', '-i', containerName, 'bash', '-lc', `sf org login sfdx-url --sfdx-url-stdin --alias ${alias}`],
+      { input: authUrl, encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS }
     );
     if (login.status !== 0) {
-      console.warn(`    WARNING: 'sf org login sfdx-url' for '${alias}' failed inside the container.`);
+      console.warn(`    WARNING: 'sf org login sfdx-url' for '${alias}' failed inside the container:`);
+      if (login.stdout?.trim()) {
+        console.warn(`      stdout: ${login.stdout.trim()}`);
+      }
+      if (login.stderr?.trim()) {
+        console.warn(`      stderr: ${login.stderr.trim()}`);
+      }
     }
   }
 };
