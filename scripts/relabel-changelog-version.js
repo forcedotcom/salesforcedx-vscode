@@ -15,22 +15,13 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { getRepoRoot } = require('./repo-root');
 
 const [, , fromVersion, toVersion, filePathArg] = process.argv;
 
 if (!fromVersion || !toVersion) {
   console.error('Usage: relabel-changelog-version.js <fromVersion> <toVersion> [filePath]');
   process.exit(1);
-}
-
-function getRepoRoot() {
-  try {
-    return execSync('git rev-parse --show-toplevel', { encoding: 'utf8' }).trim();
-  } catch {
-    console.error('Error: Not in a git repository');
-    process.exit(1);
-  }
 }
 
 const filePath = filePathArg ? path.resolve(filePathArg) : path.join(getRepoRoot(), 'CHANGELOG.md');

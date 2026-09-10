@@ -190,7 +190,8 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
-      - name: Relabel develop's changelog history to the stable version
+      - name: Determine prerelease version to relabel
+        id: relabel-version
         run: |
           # build-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
           # even when the source was startFromRef rather than an actual nightly tag -- the
@@ -198,39 +199,33 @@ jobs:
           NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
           if [ -z "$NIGHTLY_TAG" ]; then
             echo "No 'Built from nightly' reference found in release $RELEASE_TAG (likely a hotfix/startFromRef build) - skipping relabel."
+            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           PRERELEASE_VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
           if [ -z "$PRERELEASE_VERSION" ] || [ "$PRERELEASE_VERSION" = "$RELEASE_VERSION" ]; then
             echo "Nothing to relabel (no prerelease version found, or already matches stable version)."
+            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
+          echo "prerelease_version=$PRERELEASE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Relabel develop's changelog history to the stable version
+        if: steps.relabel-version.outputs.prerelease_version != ''
+        env:
+          PRERELEASE_VERSION: ${{ steps.relabel-version.outputs.prerelease_version }}
+        run: |
           node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" CHANGELOG.md
           node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
 
-          git add CHANGELOG.md packages/salesforcedx-vscode/CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "No changelog changes to commit"
-          else
-            git commit -m "chore: relabel changelog v${PRERELEASE_VERSION} to v${RELEASE_VERSION} [skip ci]"
-
-            pushed=false
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin develop && git push origin develop; then
-                pushed=true
-                break
-              fi
-              echo "Push attempt $attempt failed, retrying in $((attempt * 5))s..."
-              sleep $((attempt * 5))
-            done
-
-            if [ "$pushed" != "true" ]; then
-              echo "::error::Failed to push relabeled changelog to develop after 5 attempts"
-              exit 1
-            fi
-          fi
+      - name: Commit relabeled changelog to develop
+        if: steps.relabel-version.outputs.prerelease_version != ''
+        uses: ./.github/actions/commitAndPushToDevelop
+        with:
+          files: CHANGELOG.md packages/salesforcedx-vscode/CHANGELOG.md
+          message: "chore: relabel changelog v${{ steps.relabel-version.outputs.prerelease_version }} to v${{ env.RELEASE_VERSION }} [skip ci]"
 
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
   # Default (unset): dispatch after publish. Use when publishing without CBW promotion.

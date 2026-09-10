@@ -171,33 +171,16 @@ jobs:
           gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
           rm -rf extension "$VSIX"
 
-      - name: Commit changelog delta to develop (full history)
+      - name: Prepend delta to root CHANGELOG (full history)
         if: steps.delta.outputs.generated == 'true'
-        env:
-          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          node scripts/prepend-release-changelog.js
-          git add packages/salesforcedx-vscode/CHANGELOG.md CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "No changelog changes to commit"
-          else
-            git commit -m "chore: changelog for prerelease v${PRERELEASE_VERSION} [skip ci]"
+        run: node scripts/prepend-release-changelog.js
 
-            pushed=false
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin develop && git push origin develop; then
-                pushed=true
-                break
-              fi
-              echo "Push attempt $attempt failed, retrying in $((attempt * 5))s..."
-              sleep $((attempt * 5))
-            done
-
-            if [ "$pushed" != "true" ]; then
-              echo "::error::Failed to push changelog to develop after 5 attempts"
-              exit 1
-            fi
-          fi
+      - name: Commit changelog delta to develop
+        if: steps.delta.outputs.generated == 'true'
+        uses: ./.github/actions/commitAndPushToDevelop
+        with:
+          files: packages/salesforcedx-vscode/CHANGELOG.md CHANGELOG.md
+          message: "chore: changelog for prerelease v${{ steps.version.outputs.version }} [skip ci]"
 
   # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).
   # `changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well as
