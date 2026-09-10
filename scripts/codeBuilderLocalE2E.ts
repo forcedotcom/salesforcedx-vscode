@@ -609,8 +609,9 @@ const setUpInfra = async (): Promise<BootEnv> => {
  * non-tracking, Dreamhouse) need more. `CB_EXTRA_ORG_ALIASES` (comma-separated host aliases the CI
  * workflow pre-created) drives this: for each we resolve its access token + instance URL on the host
  * and run `sf org login access-token` INSIDE the container so the alias resolves there too. Called
- * BEFORE the restart below so the re-activated extensions enumerate the full org list — the container
- * filesystem (and thus these logins) persists across `restart`. No-op when the env var is unset.
+ * AFTER the restart (the restart re-runs the image's boot org auth, which re-initializes the auth dir
+ * and would wipe an earlier login); the org extension reads the org list fresh on each picker open, so
+ * a login before the specs run is enumerated without a window reload. No-op when the env var is unset.
  * The boot org stays the default; specs that switch to an extra org save/restore the default themselves.
  */
 const authExtraOrgsIntoContainer = (containerName: string): void => {
@@ -719,10 +720,6 @@ const main = async (): Promise<number> => {
   log('Seeding workspace (point code-server at the mounted fixture, disable workspace trust)');
   seedWorkspace(handle);
 
-  // Auth any extra pre-created orgs into the container now — BEFORE the restart below, so the
-  // re-activated extensions enumerate them (no-op unless CB_EXTRA_ORG_ALIASES is set).
-  authExtraOrgsIntoContainer(handle.name);
-
   // Swap the built VSIXes into the override dirs and capture the manifest the gate checks against.
   log('Swapping in built extensions');
   const manifest = swap(handle.name, vsixPaths, { publisherPrefix: PUBLISHER_PREFIX });
@@ -735,6 +732,12 @@ const main = async (): Promise<number> => {
   // mismatch means the swap did not take, not a spec bug — assertVerified throws loud saying so.
   log('Verifying extension versions (gate)');
   assertVerified(handle.name, manifest);
+
+  // Auth extra orgs AFTER the restart: the restart re-runs the image's boot org auth, which
+  // re-initializes the auth dir and would wipe a login done earlier. The org extension reads the org
+  // list fresh on every picker open, so a login now (before the specs run) is enumerated without any
+  // window reload. No-op unless CB_EXTRA_ORG_ALIASES is set.
+  authExtraOrgsIntoContainer(handle.name);
 
   /* --- run the specs ------------------------------------------------------- */
   // Run every package's container suite against the one shared container, SEQUENTIALLY: a single
