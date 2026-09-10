@@ -31,7 +31,7 @@ const url = yield* api.services.SettingsService.getInstanceUrl();
 
 ### getAccessToken
 
-Get access token (web):
+Web access token as `Redacted.Redacted<string>` (`toString` → `<redacted>`). Unwrap with `Redacted.value` only for the connection cache key / Salesforce Core auth:
 
 ```typescript
 const token = yield* api.services.SettingsService.getAccessToken();
@@ -97,3 +97,4 @@ const apiVersion = yield* api.services.SettingsService.getApiVersion();
 - `setValue` defaults to `ConfigurationTarget.Global`; pass a `target` arg (e.g. `Workspace`) to override
 - Empty strings = missing for web settings
 - Default API version: '64.0'
+- `getAccessToken` Redacted vs span redaction: `packages/salesforcedx-vscode-services/CONTEXT.md` glossary

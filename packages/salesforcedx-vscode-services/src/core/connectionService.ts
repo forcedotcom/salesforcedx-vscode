@@ -13,6 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -30,7 +31,7 @@ import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
   instanceUrl: string;
-  accessToken: string;
+  accessToken: Redacted.Redacted<string>;
 };
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
@@ -117,11 +118,11 @@ export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedTo
 ) {}
 
 /** side effect: save the auth info in the background */
-const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
+const createWebAuthInfo = (instanceUrl: string, accessToken: Redacted.Redacted<string>) =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
-        accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
+        accessTokenOptions: { accessToken: Redacted.value(accessToken), loginUrl: instanceUrl, instanceUrl }
       }),
     catch: error => {
       const { cause } = unknownToErrorCause(error);
@@ -178,12 +179,12 @@ const createWebConnection = (key: string) => {
 };
 
 // use string cache keys, objects don't seem to work
-const toKey = (instanceUrl: string, accessToken: string, apiVersion: string): string =>
-  `${instanceUrl}###${accessToken}###${apiVersion}`;
+const toKey = (instanceUrl: string, accessToken: Redacted.Redacted<string>, apiVersion: string): string =>
+  `${instanceUrl}###${Redacted.value(accessToken)}###${apiVersion}`;
 
 const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   const [instanceUrl, accessToken, apiVersion] = key.split('###');
-  return { instanceUrl, accessToken, apiVersion };
+  return { instanceUrl, accessToken: Redacted.make(accessToken), apiVersion };
 };
 
 const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {

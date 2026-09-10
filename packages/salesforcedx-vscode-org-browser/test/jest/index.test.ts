@@ -50,6 +50,7 @@ import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
+import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
@@ -151,7 +152,7 @@ const MockSettingsServiceLayer = Layer.succeed(
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
-    getAccessToken: () => Effect.succeed('mock-token'),
+    getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
