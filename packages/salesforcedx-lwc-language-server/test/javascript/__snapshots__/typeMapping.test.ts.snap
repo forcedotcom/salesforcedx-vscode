@@ -1,0 +1,804 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Should handle mapping when there is a property with only a setter 1`] = `
+{
+  "classMembers": [
+    {
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 7,
+        },
+        "start": {
+          "column": 4,
+          "line": 5,
+        },
+      },
+      "name": "property",
+      "type": "property",
+    },
+  ],
+  "declarationLoc": {
+    "end": {
+      "column": 1,
+      "line": 8,
+    },
+    "start": {
+      "column": 0,
+      "line": 3,
+    },
+  },
+  "decorators": [],
+  "doc": "* NoGetter doc",
+  "exports": [
+    {
+      "type": "ExportDefaultDeclaration",
+    },
+  ],
+}
+`;
+
+exports[`can map new metadata to old metadata 1`] = `
+{
+  "classMembers": [
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 12,
+        },
+        "start": {
+          "column": 4,
+          "line": 10,
+        },
+      },
+      "name": "todo",
+      "type": "property",
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 10,
+          "line": 17,
+        },
+        "start": {
+          "column": 4,
+          "line": 16,
+        },
+      },
+      "name": "index",
+      "type": "property",
+      "value": {
+        "type": "unresolved",
+        "value": undefined,
+      },
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 36,
+          "line": 19,
+        },
+        "start": {
+          "column": 4,
+          "line": 19,
+        },
+      },
+      "name": "initializedAsApiNumber",
+      "type": "property",
+      "value": {
+        "type": "number",
+        "value": 5,
+      },
+    },
+    {
+      "decorator": "track",
+      "loc": {
+        "end": {
+          "column": 40,
+          "line": 20,
+        },
+        "start": {
+          "column": 4,
+          "line": 20,
+        },
+      },
+      "name": "initializedAsTrackNumber",
+      "type": "property",
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 23,
+          "line": 22,
+        },
+        "start": {
+          "column": 4,
+          "line": 22,
+        },
+      },
+      "name": "indexSameLine",
+      "type": "property",
+      "value": {
+        "type": "unresolved",
+        "value": undefined,
+      },
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 53,
+          "line": 24,
+        },
+        "start": {
+          "column": 4,
+          "line": 24,
+        },
+      },
+      "name": "initializedWithImportedVal",
+      "type": "property",
+      "value": {
+        "type": "unresolved",
+        "value": undefined,
+      },
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 55,
+          "line": 26,
+        },
+        "start": {
+          "column": 4,
+          "line": 26,
+        },
+      },
+      "name": "arrOfStuff",
+      "type": "property",
+      "value": {
+        "type": "array",
+        "value": [
+          {
+            "type": "number",
+            "value": 1,
+          },
+          {
+            "type": "string",
+            "value": "a",
+          },
+          {
+            "type": "boolean",
+            "value": false,
+          },
+          {
+            "type": "unresolved",
+            "value": undefined,
+          },
+          {
+            "type": "null",
+            "value": null,
+          },
+        ],
+      },
+    },
+    {
+      "decorator": "track",
+      "loc": {
+        "end": {
+          "column": 24,
+          "line": 29,
+        },
+        "start": {
+          "column": 4,
+          "line": 28,
+        },
+      },
+      "name": "trackedPrivateIndex",
+      "type": "property",
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 30,
+          "line": 31,
+        },
+        "start": {
+          "column": 4,
+          "line": 31,
+        },
+      },
+      "name": "stringVal",
+      "type": "property",
+      "value": {
+        "type": "string",
+        "value": "foobar",
+      },
+    },
+    {
+      "decorator": "track",
+      "loc": {
+        "end": {
+          "column": 45,
+          "line": 32,
+        },
+        "start": {
+          "column": 4,
+          "line": 32,
+        },
+      },
+      "name": "trackedThing",
+      "type": "property",
+    },
+    {
+      "decorator": "track",
+      "loc": {
+        "end": {
+          "column": 52,
+          "line": 34,
+        },
+        "start": {
+          "column": 4,
+          "line": 34,
+        },
+      },
+      "name": "trackedArr",
+      "type": "property",
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 29,
+          "line": 36,
+        },
+        "start": {
+          "column": 4,
+          "line": 36,
+        },
+      },
+      "name": "callback",
+      "type": "property",
+      "value": {
+        "type": "unresolved",
+        "value": undefined,
+      },
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 24,
+          "line": 38,
+        },
+        "start": {
+          "column": 4,
+          "line": 38,
+        },
+      },
+      "name": "fooNull",
+      "type": "property",
+      "value": {
+        "type": "null",
+        "value": null,
+      },
+    },
+    {
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 41,
+        },
+        "start": {
+          "column": 4,
+          "line": 40,
+        },
+      },
+      "name": "onclickAction",
+      "type": "method",
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 6,
+          "line": 47,
+        },
+        "start": {
+          "column": 4,
+          "line": 43,
+        },
+      },
+      "name": "superComplex",
+      "type": "property",
+      "value": {
+        "type": "object",
+        "value": {
+          "andThen": {
+            "type": "null",
+            "value": null,
+          },
+          "some": {
+            "type": "string",
+            "value": "value",
+          },
+          "someOther": {
+            "type": "array",
+            "value": [
+              {
+                "type": "string",
+                "value": "deep",
+              },
+              {
+                "type": "number",
+                "value": 1,
+              },
+              {
+                "type": "object",
+                "value": {
+                  "value": {
+                    "type": "string",
+                    "value": "here",
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    {
+      "decorator": "api",
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 50,
+        },
+        "start": {
+          "column": 4,
+          "line": 49,
+        },
+      },
+      "name": "apiMethod",
+      "type": "method",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 67,
+          "line": 52,
+        },
+        "start": {
+          "column": 4,
+          "line": 52,
+        },
+      },
+      "name": "wiredProperty",
+      "type": "property",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 84,
+          "line": 53,
+        },
+        "start": {
+          "column": 4,
+          "line": 53,
+        },
+      },
+      "name": "wiredPropertyWithNestedParam",
+      "type": "property",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 96,
+          "line": 54,
+        },
+        "start": {
+          "column": 4,
+          "line": 54,
+        },
+      },
+      "name": "wiredPropertyWithNestedObjParam",
+      "type": "property",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 59,
+        },
+        "start": {
+          "column": 4,
+          "line": 56,
+        },
+      },
+      "name": "myWiredMethod",
+      "type": "method",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 73,
+          "line": 61,
+        },
+        "start": {
+          "column": 4,
+          "line": 61,
+        },
+      },
+      "name": "apexWiredProperty",
+      "type": "property",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 76,
+          "line": 63,
+        },
+        "start": {
+          "column": 4,
+          "line": 63,
+        },
+      },
+      "name": "apexWiredInitVal",
+      "type": "property",
+    },
+    {
+      "decorator": "wire",
+      "loc": {
+        "end": {
+          "column": 6,
+          "line": 72,
+        },
+        "start": {
+          "column": 4,
+          "line": 65,
+        },
+      },
+      "name": "apexWiredInitArr",
+      "type": "property",
+    },
+    {
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 76,
+        },
+        "start": {
+          "column": 4,
+          "line": 74,
+        },
+      },
+      "name": "privateComputedValue",
+      "type": "property",
+    },
+    {
+      "loc": {
+        "end": {
+          "column": 5,
+          "line": 79,
+        },
+        "start": {
+          "column": 4,
+          "line": 78,
+        },
+      },
+      "name": "methodWithArguments",
+      "type": "method",
+    },
+  ],
+  "declarationLoc": {
+    "end": {
+      "column": 1,
+      "line": 80,
+    },
+    "start": {
+      "column": 0,
+      "line": 8,
+    },
+  },
+  "decorators": [
+    {
+      "targets": [
+        {
+          "name": "todo",
+          "type": "property",
+        },
+        {
+          "name": "index",
+          "type": "property",
+          "value": {
+            "type": "unresolved",
+            "value": undefined,
+          },
+        },
+        {
+          "name": "initializedAsApiNumber",
+          "type": "property",
+          "value": {
+            "type": "number",
+            "value": 5,
+          },
+        },
+        {
+          "name": "indexSameLine",
+          "type": "property",
+          "value": {
+            "type": "unresolved",
+            "value": undefined,
+          },
+        },
+        {
+          "name": "initializedWithImportedVal",
+          "type": "property",
+          "value": {
+            "type": "unresolved",
+            "value": undefined,
+          },
+        },
+        {
+          "name": "arrOfStuff",
+          "type": "property",
+          "value": {
+            "type": "array",
+            "value": [
+              {
+                "type": "number",
+                "value": 1,
+              },
+              {
+                "type": "string",
+                "value": "a",
+              },
+              {
+                "type": "boolean",
+                "value": false,
+              },
+              {
+                "type": "unresolved",
+                "value": undefined,
+              },
+              {
+                "type": "null",
+                "value": null,
+              },
+            ],
+          },
+        },
+        {
+          "name": "stringVal",
+          "type": "property",
+          "value": {
+            "type": "string",
+            "value": "foobar",
+          },
+        },
+        {
+          "name": "callback",
+          "type": "property",
+          "value": {
+            "type": "unresolved",
+            "value": undefined,
+          },
+        },
+        {
+          "name": "fooNull",
+          "type": "property",
+          "value": {
+            "type": "null",
+            "value": null,
+          },
+        },
+        {
+          "name": "superComplex",
+          "type": "property",
+          "value": {
+            "type": "object",
+            "value": {
+              "andThen": {
+                "type": "null",
+                "value": null,
+              },
+              "some": {
+                "type": "string",
+                "value": "value",
+              },
+              "someOther": {
+                "type": "array",
+                "value": [
+                  {
+                    "type": "string",
+                    "value": "deep",
+                  },
+                  {
+                    "type": "number",
+                    "value": 1,
+                  },
+                  {
+                    "type": "object",
+                    "value": {
+                      "value": {
+                        "type": "string",
+                        "value": "here",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        {
+          "name": "apiMethod",
+          "type": "method",
+        },
+      ],
+      "type": "api",
+    },
+    {
+      "targets": [
+        {
+          "adapter": {
+            "name": "fancyAdapterId",
+            "reference": "local/foobar",
+          },
+          "name": "wiredProperty",
+          "params": {},
+          "static": {
+            "bar": {
+              "type": "string",
+              "value": "baz",
+            },
+            "blip": {
+              "type": "number",
+              "value": 111,
+            },
+          },
+          "type": "property",
+        },
+        {
+          "adapter": {
+            "name": "fancyAdapterId",
+            "reference": "local/foobar",
+          },
+          "name": "wiredPropertyWithNestedParam",
+          "params": {},
+          "static": {
+            "bar": {
+              "type": "string",
+              "value": "baz",
+            },
+            "blip": {
+              "type": "array",
+              "value": [
+                111,
+              ],
+            },
+          },
+          "type": "property",
+        },
+        {
+          "adapter": {
+            "name": "fancyAdapterId",
+            "reference": "local/foobar",
+          },
+          "name": "wiredPropertyWithNestedObjParam",
+          "params": {},
+          "static": {
+            "bar": {
+              "type": "string",
+              "value": "baz",
+            },
+            "blip": {
+              "type": "unresolved",
+              "value": undefined,
+            },
+          },
+          "type": "property",
+        },
+        {
+          "adapter": {
+            "name": "otherAdapterId",
+            "reference": "local/foobar",
+          },
+          "name": "myWiredMethod",
+          "params": {},
+          "static": {
+            "foo": {
+              "type": "string",
+              "value": "bar",
+            },
+          },
+          "type": "method",
+        },
+        {
+          "adapter": {
+            "name": "apexMethodName",
+            "reference": "@salesforce/apex/Namespace.Classname.apexMethodReference",
+          },
+          "name": "apexWiredProperty",
+          "params": {
+            "searchKey": "searchKey",
+          },
+          "static": {},
+          "type": "property",
+        },
+        {
+          "adapter": {
+            "name": "apexMethodName",
+            "reference": "@salesforce/apex/Namespace.Classname.apexMethodReference",
+          },
+          "name": "apexWiredInitVal",
+          "params": {
+            "searchKey": "searchKey",
+          },
+          "static": {},
+          "type": "property",
+        },
+        {
+          "adapter": {
+            "name": "apexMethodName",
+            "reference": "@salesforce/apex/Namespace.Classname.apexMethodReference",
+          },
+          "name": "apexWiredInitArr",
+          "params": {
+            "searchKey": "searchKey",
+          },
+          "static": {},
+          "type": "property",
+        },
+      ],
+      "type": "wire",
+    },
+    {
+      "targets": [
+        {
+          "name": "initializedAsTrackNumber",
+          "type": "property",
+        },
+        {
+          "name": "trackedPrivateIndex",
+          "type": "property",
+        },
+        {
+          "name": "trackedThing",
+          "type": "property",
+        },
+        {
+          "name": "trackedArr",
+          "type": "property",
+        },
+      ],
+      "type": "track",
+    },
+  ],
+  "doc": "* Foo doc",
+  "exports": [
+    {
+      "type": "ExportDefaultDeclaration",
+    },
+    {
+      "type": "ExportNamedDeclaration",
+      "value": "Foo",
+    },
+    {
+      "type": "ExportAllDeclaration",
+    },
+  ],
+}
+`;

@@ -163,11 +163,15 @@ window.soqlBuilderHarness = {
     fake = Effect.runSync(makeFakeSoqlBuilderService(latestState));
     element = document.createElement('soql-builder-app');
     element.labels = {
+      allRows: 'Include deleted/archived records',
       clearAllFields: 'Clear All',
       count: 'COUNT()',
       fields: 'Fields',
       from: 'From',
       inputs: 'Query inputs',
+      invalidLimit: 'Enter a whole number greater than or equal to 0.',
+      limit: 'Limit',
+      limitPlaceholder: 'Limit...',
       loading: 'Loading...',
       noDefaultOrg: 'No default org',
       noResults: 'No results found.',

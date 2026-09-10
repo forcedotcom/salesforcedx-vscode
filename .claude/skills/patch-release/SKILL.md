@@ -59,10 +59,11 @@ Run manual QA tests. See [docs/release-testing-guide.md](../../../docs/release-t
 
 ### 6. Publish to marketplace
 
-If tests pass:
+If tests pass, dispatch both workflows for full coverage (VS Code Marketplace + Open VSX):
 
 ```sh
-gh workflow run publishVSCode.yml -f releaseVersion="67.12.1" --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishVSCode.yml -f version="v67.12.1" -f isHotfix=true --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishOpenVSX.yml -f release-tag="v67.12.1" -f isHotfix=true --repo forcedotcom/salesforcedx-vscode
 ```
 
 ### 7. Cherry-pick fixes to develop
@@ -117,11 +118,14 @@ gh workflow run build-release.yml \
 
 Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
 
+**Validation:** Unit tests (compile + test) run at the authoritative gate: promote-to-prerelease.yml tests exact hotfix commit being promoted when isHotfix=true. E2E & full PR review skipped; ensure ref carefully reviewed before use.
+
 ### Step 2: Publish to marketplace as pre-release
 
 ```sh
-gh workflow run promote-nightly-to-prerelease.yml \
+gh workflow run promote-to-prerelease.yml \
   -f releaseTag="v67.13.7-nightly.develop.20260820" \
+  -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
@@ -147,7 +151,7 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates isolated `release-staging/v67.12.1` branch with version bump. Test and publish as stable release.
+Creates isolated `release-staging/v67.12.1` branch with version bump. publishVSCode.yml and publishOpenVSX.yml test the commit (compile + test, isHotfix=true) before publishing. E2E tests and full PR review are skipped. Test VSIXs and publish as stable release.
 
 ## References
 
