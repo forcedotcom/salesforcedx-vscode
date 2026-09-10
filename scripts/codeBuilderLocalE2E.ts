@@ -72,7 +72,11 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const REPO_ROOT = resolve(__dirname, '..');
-const CONTAINER_NAME = 'codebuilder-e2e-local';
+// Read from env so the orchestrator and the CI workflow's cleanup step (`docker rm -f
+// "$CONTAINER_NAME"`) share one name — mirroring ORG_ALIAS below. Otherwise a rename in one file
+// silently desyncs from the other and the cleanup's `|| true` quietly no-ops against a stale name,
+// leaking an orphaned container on the runner. Falls back to the local default.
+const CONTAINER_NAME = process.env.CONTAINER_NAME ?? 'codebuilder-e2e-local';
 // Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
 // workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
 const ORG_ALIAS = process.env.MINIMAL_ORG_ALIAS ?? 'minimalTestOrg';
@@ -117,10 +121,12 @@ const parseArgs = (argv: string[]): Options => {
   // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
   // `undefined` and fall through silently — `--run-id` with no value would quietly do a local build
   // instead of the intended artifact run. A flag directly followed by another flag (`--run-id
-  // --debug`) is the same mistake: it would swallow `--debug` as the value. Reject both — a value
-  // that starts with `-` is never a legitimate run id / grep pattern / image tag here.
+  // --debug`) is the same mistake: it would swallow `--debug` as the value. Reject both by rejecting a
+  // value that begins with `--`, since every flag here is `--xxx`. We deliberately do NOT reject a
+  // single leading `-`: that is a legitimate value (e.g. `--grep '-@slow'`, a regex starting with a
+  // hyphen), which the stricter `startsWith('-')` check wrongly refused.
   const need = (flag: string, value: string | undefined): string => {
-    if (value === undefined || value.startsWith('-')) {
+    if (value === undefined || value.startsWith('--')) {
       console.error(`Option ${flag} requires a value.`);
       process.exit(2);
     }
@@ -176,6 +182,14 @@ const log = (msg: string): void => console.log(`\n==> ${msg}`);
 const CAPTURE_TIMEOUT_MS = 2 * 60_000;
 const BUILD_TIMEOUT_MS = 30 * 60_000;
 const DOWNLOAD_TIMEOUT_MS = 15 * 60_000;
+// `sf org create scratch -w 30` legitimately runs up to ~30 min, and a per-package spec run can take
+// tens of minutes, so these ceilings are high enough never to trip a healthy run but still kill a
+// truly wedged child instead of hanging the loop forever (the header's "every external command
+// carries a timeout" guarantee). spawnSync/execFileSync timeouts are OS-enforced on the child, so
+// they fire even while the event loop is blocked by other synchronous setup — the `-w` poll bound
+// does NOT protect against a CLI process that never returns.
+const ORG_TIMEOUT_MS = 35 * 60_000;
+const SPECS_TIMEOUT_MS = 35 * 60_000;
 
 /* execFileSync wrappers: `capture` returns stdout; both bound by a timeout so nothing hangs forever. */
 const capture = (file: string, args: string[]): string =>
@@ -285,7 +299,15 @@ const sfInstalled = has('sf');
 const sfCmd = (): [string, string[]] => (sfInstalled ? ['sf', []] : ['npx', ['-y', '@salesforce/cli']]);
 const runSf = (args: string[], sfOpts: { cwd?: string; stdio?: 'inherit' | 'ignore' } = {}): number => {
   const [file, prefix] = sfCmd();
-  return spawnSync(file, [...prefix, ...args], { stdio: sfOpts.stdio ?? 'inherit', cwd: sfOpts.cwd }).status ?? 1;
+  // ORG_TIMEOUT_MS backstop so a wedged dev-hub/sf process (org display / org create scratch) can't
+  // hang the loop forever; on timeout spawnSync returns status null → 1, treated as a failure below.
+  return (
+    spawnSync(file, [...prefix, ...args], {
+      stdio: sfOpts.stdio ?? 'inherit',
+      cwd: sfOpts.cwd,
+      timeout: ORG_TIMEOUT_MS
+    }).status ?? 1
+  );
 };
 /*
  * A CommandRunner (the toolkit's injection seam) that routes `sf` through the npx fallback when sf
@@ -293,11 +315,13 @@ const runSf = (args: string[], sfOpts: { cwd?: string; stdio?: 'inherit' | 'igno
  * convenience the scratch-org helpers below rely on. Non-`sf` files pass straight through.
  */
 const sfRunner: CommandRunner = (file, args) => {
+  // Bound like capture() above — resolveOrgBootEnv's `sf org auth show-access-token` is a quick
+  // metadata read, so CAPTURE_TIMEOUT_MS is a generous ceiling that still prevents an indefinite hang.
   if (file === 'sf') {
     const [f, prefix] = sfCmd();
-    return execFileSync(f, [...prefix, ...args], { encoding: 'utf-8' });
+    return execFileSync(f, [...prefix, ...args], { encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS });
   }
-  return execFileSync(file, args, { encoding: 'utf-8' });
+  return execFileSync(file, args, { encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS });
 };
 
 const problems: string[] = [];
@@ -440,8 +464,18 @@ const discoverContainerPackages = (): string[] => {
 /* --- gather the VSIX under test (backgroundable) --------------------------- */
 const acquireVsix = async (): Promise<string[]> => {
   if (opts.runId) {
+    // `gh run download` needs gh both INSTALLED and AUTHENTICATED. The preflight only checks gh auth
+    // when it owns the login (skipped under CB_SKIP_GHCR_LOGIN / CR_PAT — exactly the CI path, which
+    // always passes --run-id), so re-check both here. Otherwise an expired/under-scoped token sails
+    // through and surfaces only as a raw crash from `gh run download` mid-run.
     if (!has('gh')) {
       console.error('--run-id needs the gh CLI to download the artifact. Install gh and run: gh auth login');
+      process.exit(1);
+    }
+    if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
+      console.error(
+        '--run-id needs gh authenticated to github.com — run `gh auth login` (or refresh an expired token).'
+      );
       process.exit(1);
     }
     log(`Downloading VSIX artifact from Build All run ${opts.runId}`);
@@ -517,13 +551,24 @@ const setUpInfra = (): BootEnv => {
   try {
     pull(image);
   } catch {
-    console.error(
-      '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
-        '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
-        '        gh auth refresh -h github.com -s read:packages\n' +
-        '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
-        '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
-    );
+    if (process.env.CB_SKIP_GHCR_LOGIN) {
+      // Login here was the caller's ambient `docker login` (in CI, the job GITHUB_TOKEN), not gh/CR_PAT,
+      // so the gh/CR_PAT remediation below would point at the wrong cause. A 403 on this path means that
+      // ambient login lacks read on the image repo, or the requested image tag does not exist.
+      console.error(
+        `\nCould not pull ${image} (CB_SKIP_GHCR_LOGIN set — relying on the caller's ambient docker login).\n` +
+          '    A 403 here means that login (in CI, the job GITHUB_TOKEN) lacks read on the image repo, or the\n' +
+          "    image tag does not exist. Check the job's packages:read permission and the --image-tag value."
+      );
+    } else {
+      console.error(
+        '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
+          '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
+          '        gh auth refresh -h github.com -s read:packages\n' +
+          '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
+          '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
+      );
+    }
     process.exit(1);
   }
 
@@ -656,7 +701,15 @@ const main = async (): Promise<number> => {
     if (opts.grep) {
       testArgs.push('--', '--grep', opts.grep);
     }
-    const specs = spawnSync('npm', testArgs, { cwd: REPO_ROOT, stdio: 'inherit', env: testEnv });
+    // SPECS_TIMEOUT_MS backstop: a single stuck browser/page is a routine Playwright failure mode, and
+    // this is the most expensive step (after the pull + org setup). Without it a wedged run hangs the
+    // loop forever here; on timeout the child is killed and the package counts as failed.
+    const specs = spawnSync('npm', testArgs, {
+      cwd: REPO_ROOT,
+      stdio: 'inherit',
+      env: testEnv,
+      timeout: SPECS_TIMEOUT_MS
+    });
     if ((specs.status ?? 1) !== 0) {
       failed.push(pkg);
     }
