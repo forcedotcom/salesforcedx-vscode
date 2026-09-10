@@ -222,22 +222,23 @@ Accessor pattern: call methods directly, don't assign to variable first.
 
 ### File Watching
 
-FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
+`FileChangePubSub` — workspace FS (`**/*`), including project `.sf/config.json`. Filter `event.uri` / `uri.path` / `Utils.*`, not `uri.fsPath`.
+
+Global `~/.sf/config.json` and `~/.sfdx/alias.json`: `HostFileWatcher` (internal, `@salesforce/core/fs`). Not on the public API; services already watch them. See [FileChangePubSub vs HostFileWatcher](../../../packages/salesforcedx-vscode-services/CONTEXT.md#filechangepubsub-vs-hostfilewatcher).
 
 ```typescript
-import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 
-const fileWatcher = yield * api.services.FileWatcherService;
+const pubsub = yield* api.services.FileChangePubSub;
 
-yield* Stream.fromPubSub(fileWatcher.pubsub).pipe(
-    Stream.filter(event => /* match event.uri to your pattern */),
-    Stream.runForEach(event =>
-      Effect.sync(() => {
-        // Handle event: { type: 'create'|'change'|'delete', uri }
-      })
-    )
-  );
+yield* Stream.fromPubSub(pubsub).pipe(
+  Stream.filter(event => /* event.uri / uri.path / Utils.*; not uri.fsPath */),
+  Stream.runForEach(event =>
+    Effect.sync(() => {
+      // { type: 'create'|'change'|'delete', uri }
+    })
+  )
+);
 ```
 
 ### Config Watching
