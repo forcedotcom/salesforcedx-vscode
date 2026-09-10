@@ -169,7 +169,10 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
-      yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+      yield* Effect.annotateCurrentSpan({
+        deployStatus: deployOutcome.response?.status,
+        fileResponseCount: deployOutcome.getFileResponses().length
+      });
 
       // If the server honored the cancel, surface it as UserCancellationError so the
       // command pipeline silently swallows it (same UX as if cancel arrived in time).

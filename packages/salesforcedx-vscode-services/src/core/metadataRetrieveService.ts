@@ -11,9 +11,11 @@ import {
   type MetadataMember,
   MetadataApiRetrieve,
   ComponentSet,
-  type RegistryAccess
+  type RegistryAccess,
+  type RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
@@ -35,13 +37,33 @@ import { dedupeMetadataChanges, MetadataChangeNotificationService } from './meta
 import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
-import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
+import { isSDRFailure, isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 import { SourceTrackingService, type SourceTrackingOptions } from './sourceTrackingService';
 
 export class MetadataRetrieveError extends Data.TaggedError('MetadataRetrieveError')<{
   readonly cause: unknown;
 }> {}
+
+/** Scalars from a retrieve result for span attributes. Omits zipFile, ComponentSet, and file lists. */
+const retrieveSpanAttributes = (retrieveOutcome: RetrieveResult) => {
+  const fileResponses = retrieveOutcome.getFileResponses();
+  return {
+    retrieveId: retrieveOutcome.response.id,
+    retrieveStatus: retrieveOutcome.response.status,
+    retrieveSuccess: retrieveOutcome.response.success,
+    retrieveDone: retrieveOutcome.response.done,
+    componentCount: retrieveOutcome.components.size,
+    fileResponseCount: fileResponses.length,
+    failedFileResponseCount: fileResponses.filter(isSDRFailure).length,
+    filePropertyCount: Arr.ensure(retrieveOutcome.response.fileProperties).filter(
+      property => property?.type && property.fullName
+    ).length,
+    retrieveMessageCount:
+      retrieveOutcome.response.messages === undefined ? 0 : Arr.ensure(retrieveOutcome.response.messages).length,
+    zipFileLength: retrieveOutcome.response.zipFile.length
+  };
+};
 
 type PerformRetrieveOperationInput = {
   componentSet: ComponentSet;
@@ -226,10 +248,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
-      yield* Effect.annotateCurrentSpan({
-        retrieveOutcome,
-        fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath)
-      });
+      yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));
       const orgId = input.expectedOrgId ?? input.connection.getAuthInfoFields().orgId;
       // only do tracking in the case where we retrieve to project
       if (input.merge) {

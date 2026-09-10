@@ -50,12 +50,12 @@
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
     "jsforce": "^3.10.24",
-    "jsonpath-plus": "10.4.0",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
+    "jsonpath-plus": "10.4.0",
     "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
   },

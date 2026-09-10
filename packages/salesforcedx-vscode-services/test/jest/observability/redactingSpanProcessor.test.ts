@@ -308,4 +308,20 @@ describe('RedactingSpanProcessor', () => {
     expect(span.attributes.command).toBe('sf.lightning.generate.aura.component');
     expect(span.attributes.tags).toBe(seenArrays[0]);
   });
+
+  it('does not throw when an attribute value is a cyclic object', () => {
+    const parent: { name: string; child?: unknown } = { name: 'Account' };
+    parent.child = parent;
+    const span = endSpanThrough(s => {
+      (s as Span).attributes.retrieveOutcome = parent as never;
+    });
+    expect(span.attributes.retrieveOutcome).toBe(parent);
+  });
+
+  it('redacts a 3135-element string[] without throwing', () => {
+    const paths = Array.from({ length: 3134 }, (_, i) => `/tmp/Cls${i}.cls`);
+    const span = endSpanThrough(s => s.setAttribute('fileResponses', [...paths, 'user@example.com']));
+    expect(span.attributes.fileResponses).toHaveLength(3135);
+    expect((span.attributes.fileResponses as string[]).at(-1)).toBe('<REDACTED USERNAME OR EMAIL>');
+  });
 });

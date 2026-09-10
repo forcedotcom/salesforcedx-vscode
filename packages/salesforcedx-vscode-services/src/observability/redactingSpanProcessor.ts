@@ -4,29 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { AttributeValue, Attributes } from '@opentelemetry/api';
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
-import { isNotUndefined, isString } from 'effect/Predicate';
-import { JSONPath } from 'jsonpath-plus';
+import { isNotUndefined, isNullable, isString } from 'effect/Predicate';
 import { redactSensitiveData } from './redactSensitiveData';
 
-type StringMatch = {
-  value: unknown;
-  parent: object;
-  parentProperty: PropertyKey;
+const isStringArray = (value: AttributeValue): value is (string | null | undefined)[] =>
+  Array.isArray(value) && value.every(item => isNullable(item) || isString(item));
+
+const redactAttributeValue = (value: AttributeValue): AttributeValue => {
+  if (isString(value)) {
+    const redacted = redactSensitiveData(value);
+    return redacted === value ? value : redacted;
+  }
+  if (isStringArray(value)) {
+    const redacted = value.map(item => (isString(item) ? redactSensitiveData(item) : item));
+    return redacted.every((item, i) => item === value[i]) ? value : redacted;
+  }
+  return value;
 };
 
-/** Rewrite every descendant string value without traversing SpanImpl's SDK internals. */
-const redactStringValues = (json: object): void => {
-  JSONPath({
-    path: '$..*@string()',
-    json,
-    resultType: 'all',
-    eval: false,
-    callback: (_match, _type, result: StringMatch) => {
-      if (!isString(result.value)) return;
-      const redacted = redactSensitiveData(result.value);
-      if (redacted !== result.value) Reflect.set(result.parent, result.parentProperty, redacted);
-    }
+/** Rewrite string / string[] leaves. Does not recurse into objects. */
+const redactAttributes = (attributes: Attributes): void => {
+  Object.entries(attributes).forEach(([key, value]) => {
+    if (value === undefined) return;
+    const redacted = redactAttributeValue(value);
+    if (redacted !== value) attributes[key] = redacted;
   });
 };
 
@@ -50,13 +53,18 @@ export class RedactingSpanProcessor extends NoopSpanProcessor {
     // do not traverse SpanImpl itself: trace/span IDs, link contexts, timing, kind, instrumentation scope,
     // resource schema, and processor/exporter internals must remain unchanged.
     span.updateName(redactSensitiveData(span.name));
-    redactStringValues(span.attributes);
-    redactStringValues(span.status);
-    redactStringValues(span.events);
+    redactAttributes(span.attributes);
+    span.status.message = isString(span.status.message)
+      ? redactSensitiveData(span.status.message)
+      : span.status.message;
+    span.events.forEach(event => {
+      event.name = redactSensitiveData(event.name);
+      if (event.attributes !== undefined) redactAttributes(event.attributes);
+    });
     span.links
       .map(link => link.attributes)
       .filter(isNotUndefined)
-      .forEach(redactStringValues);
-    redactStringValues(span.resource.attributes);
+      .forEach(redactAttributes);
+    redactAttributes(span.resource.attributes);
   }
 }
