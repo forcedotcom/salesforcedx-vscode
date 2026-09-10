@@ -67,16 +67,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Try E2E tests first. On wireit cache hit, the command is skipped — we never need Playwright browsers.
       # E2E_NO_RETRIES=1 disables Playwright retries in config so failures are fast on a cache miss.
@@ -140,4 +132,3 @@ jobs:
           path: packages/salesforcedx-vscode-apex/test-results
           if-no-files-found: ignore
           retention-days: 14
-
