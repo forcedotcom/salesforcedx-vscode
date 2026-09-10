@@ -175,10 +175,26 @@ jobs:
           retry_wait_seconds: 30
           command: bash -c 'rm -rf cb-e2e-org-project && sf project generate -n cb-e2e-org-project && cd cb-e2e-org-project && sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
 
+      # Multi-org specs (org picker/switch) need a SECOND org beyond the boot org. Create a non-tracking
+      # scratch org — only for the package(s) that use it (keeps scratch-org spend + time down). The
+      # orchestrator auths it into the container via CB_EXTRA_ORG_ALIASES (below). No -d: the boot org
+      # ($MINIMAL_ORG_ALIAS) stays the default; multi-org specs switch to this alias with save/restore.
+      - name: Create non-tracking scratch org (multi-org specs)
+        if: matrix.package == 'salesforcedx-vscode-org'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-nt-project && sf project generate -n cb-e2e-nt-project && cd cb-e2e-nt-project && sf org create scratch -y 1 -f config/project-scratch-def.json -a nonTrackingTestOrg --no-track-source --json --wait 30'
+
       # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
-      # org created above (via createMinimalOrg), run + seed + swap + restart + verify gate, then run the
-      # container specs and tear the container down. Same pipeline a developer runs locally.
+      # org created above (via createMinimalOrg), auth any CB_EXTRA_ORG_ALIASES into the container, run +
+      # seed + swap + restart + verify gate, then run the container specs and tear the container down.
+      # Same pipeline a developer runs locally. CB_EXTRA_ORG_ALIASES is set only for packages whose specs
+      # need extra orgs; empty elsewhere (the orchestrator no-ops).
       - name: Run Code Builder E2E (orchestrator)
+        env:
+          CB_EXTRA_ORG_ALIASES: ${{ matrix.package == 'salesforcedx-vscode-org' && 'nonTrackingTestOrg' || '' }}
         run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
 
       # This shard runs one package (--only), so only that package's report/results dir exists; the
@@ -213,3 +229,9 @@ jobs:
         if: always()
         continue-on-error: true
         run: sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+
+      # Same for the extra multi-org scratch org, when this shard created one.
+      - name: Cleanup non-tracking scratch org
+        if: always() && matrix.package == 'salesforcedx-vscode-org'
+        continue-on-error: true
+        run: sf org delete scratch -o nonTrackingTestOrg --no-prompt || true

@@ -603,6 +603,49 @@ const setUpInfra = async (): Promise<BootEnv> => {
   return resolveOrgBootEnv(ORG_ALIAS, { runner: sfRunner });
 };
 
+/*
+ * Auth additional pre-created orgs INTO the running container (beyond the boot org). The image's boot
+ * script authenticates only one org (SF_ACCESS_TOKEN/INSTANCE_URL); multi-org specs (org picker/switch,
+ * non-tracking, Dreamhouse) need more. `CB_EXTRA_ORG_ALIASES` (comma-separated host aliases the CI
+ * workflow pre-created) drives this: for each we read its sfdx auth URL on the host and run
+ * `sf org login sfdx-url` INSIDE the container so the alias resolves there too. Called BEFORE the
+ * restart below so the re-activated extensions enumerate the full org list — the container filesystem
+ * (and thus these logins) persists across `restart`. No-op when the env var is unset (the common path).
+ * The boot org stays the default; specs that switch to an extra org save/restore the default themselves.
+ */
+const authExtraOrgsIntoContainer = (containerName: string): void => {
+  const aliases = (process.env.CB_EXTRA_ORG_ALIASES ?? '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  for (const alias of aliases) {
+    log(`Authenticating extra org '${alias}' into the container`);
+    // --verbose surfaces sfdxAuthUrl (a refresh-token URL) for a scratch org. Untyped parse to match
+    // this file's other `sf --json` reads; a missing URL is a warning, not fatal (its specs will fail).
+    const raw = tryCapture('sf', ['org', 'display', '--verbose', '-o', alias, '--json']);
+    let authUrl: string | undefined;
+    if (raw) {
+      try {
+        authUrl = JSON.parse(raw)?.result?.sfdxAuthUrl;
+      } catch {
+        /* fall through to the guard below */
+      }
+    }
+    if (!authUrl) {
+      console.warn(`    WARNING: could not read sfdxAuthUrl for '${alias}' on the host — skipping.`);
+      continue;
+    }
+    const login = spawnSync(
+      'docker',
+      ['exec', '-i', containerName, 'bash', '-c', `sf org login sfdx-url --sfdx-url-stdin --alias ${alias}`],
+      { input: authUrl, stdio: ['pipe', 'ignore', 'ignore'], timeout: CAPTURE_TIMEOUT_MS }
+    );
+    if (login.status !== 0) {
+      console.warn(`    WARNING: 'sf org login sfdx-url' for '${alias}' failed inside the container.`);
+    }
+  }
+};
+
 /* --- stand up + swap + gate (all via the toolkit) -------------------------- */
 const main = async (): Promise<number> => {
   // The three slow, independent operations — VSIX build/download, image pull, and org create/reuse —
@@ -648,6 +691,10 @@ const main = async (): Promise<number> => {
   // Point code-server at the mounted fixture + disable workspace trust (one toolkit exec does both).
   log('Seeding workspace (point code-server at the mounted fixture, disable workspace trust)');
   seedWorkspace(handle);
+
+  // Auth any extra pre-created orgs into the container now — BEFORE the restart below, so the
+  // re-activated extensions enumerate them (no-op unless CB_EXTRA_ORG_ALIASES is set).
+  authExtraOrgsIntoContainer(handle.name);
 
   // Swap the built VSIXes into the override dirs and capture the manifest the gate checks against.
   log('Swapping in built extensions');
