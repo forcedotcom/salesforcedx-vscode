@@ -21,7 +21,7 @@
 
 - **redaction** here = string scrubbing of span payload values by `redactSensitiveData` (`observability/redactSensitiveData.ts`), replacing secret and PII shapes with `<REDACTED …>` labels
 - pattern-based and lossy: no way back to the original value, no wrapper type
-- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); not used anywhere in this repo today
+- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); wraps Web Console access tokens after settings validation, with explicit unwrapping only for the connection cache key and Salesforce Core auth
 - _Avoid_: calling `redactSensitiveData` output "a Redacted" — different mechanism, different guarantees
 
 ### Effect boundary

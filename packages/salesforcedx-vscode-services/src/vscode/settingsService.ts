@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Redacted from 'effect/Redacted';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
 import {
@@ -119,6 +120,10 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)));
     });
 
+    const getRedactedAccessToken = Effect.fn('SettingsService.getRedactedAccessToken')(function* () {
+      return Redacted.make(yield* getAccessToken());
+    });
+
     const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
       return yield* Effect.try({
         try: () => {
@@ -223,6 +228,8 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       getInstanceUrl,
       /** Get the Salesforce access token from settings */
       getAccessToken,
+      /** Get the Salesforce access token from settings as a redacted value */
+      getRedactedAccessToken,
       /** Get the Salesforce API version from settings. In the form of '67.0' */
       getApiVersion,
       /** Set the Salesforce instance URL in settings */
