@@ -34,7 +34,8 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
