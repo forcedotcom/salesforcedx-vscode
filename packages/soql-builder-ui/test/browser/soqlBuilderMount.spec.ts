@@ -6,7 +6,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { expectFormAssociation, fieldsSelect, fromSelect, mountBuilder } from './helpers.js';
+import { expectFormAssociation, fieldsSelect, fromSelect, limitTextfield, mountBuilder } from './helpers.js';
 
 test('mounts with accessible roles, labels, keyboard focus, and form association', async ({ page }) => {
   await mountBuilder(page, { query: { sObject: 'Account' } });
@@ -15,6 +15,8 @@ test('mounts with accessible roles, labels, keyboard focus, and form association
     await expect(page.getByRole('form', { name: 'Query inputs' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'From' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Fields' })).toBeVisible();
+    await expect(page.getByRole('spinbutton', { name: 'Limit' })).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: 'Include deleted/archived records' })).toBeVisible();
     await expect(page.getByRole('status')).toContainText('Query preview');
     await expectFormAssociation(page);
   });
@@ -24,5 +26,10 @@ test('mounts with accessible roles, labels, keyboard focus, and form association
     await expect.poll(() => fromSelect(page).evaluate(node => node.matches(':focus-within'))).toBe(true);
     await page.keyboard.press('Tab');
     await expect.poll(() => fieldsSelect(page).evaluate(node => node.matches(':focus-within'))).toBe(true);
+
+    await page.getByRole('spinbutton', { name: 'Limit' }).focus();
+    await expect.poll(() => limitTextfield(page).evaluate(node => node.matches(':focus-within'))).toBe(true);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('checkbox', { name: 'Include deleted/archived records' })).toBeFocused();
   });
 });

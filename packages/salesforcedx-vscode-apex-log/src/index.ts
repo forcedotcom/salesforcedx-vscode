@@ -17,6 +17,7 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { registerAnonymousApexExecuteCodeLensProvider } from './commands/anonymousApexExecuteCodeLensProvider';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { createApexClassCommand } from './commands/createApexClass';
 import { createApexTriggerCommand } from './commands/createApexTrigger';
@@ -101,7 +102,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       Effect.forkIn(createTraceFlagStatusBar(), scope).pipe(Effect.asVoid),
       Effect.forkIn(createLogAutoCollect(), scope).pipe(Effect.asVoid),
       Effect.forkIn(traceFlagCleanupScheduler(), scope).pipe(Effect.asVoid),
-      registerTraceFlagsCodeLensProvider(context)
+      registerTraceFlagsCodeLensProvider(context),
+      registerAnonymousApexExecuteCodeLensProvider(context)
     ],
 
     { concurrency: 'unbounded' }

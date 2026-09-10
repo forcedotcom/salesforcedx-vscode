@@ -14,11 +14,15 @@ import { soqlBuilderElementStyles } from './soqlBuilderElement.styles.js';
 export { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 
 export type SoqlBuilderLabels = {
+  readonly allRows: string;
   readonly clearAllFields: string;
   readonly count: string;
   readonly fields: string;
   readonly from: string;
   readonly inputs: string;
+  readonly invalidLimit: string;
+  readonly limit: string;
+  readonly limitPlaceholder: string;
   readonly loading: string;
   readonly noDefaultOrg: string;
   readonly noResults: string;
@@ -64,6 +68,7 @@ export class SoqlBuilderElement extends LitElement {
     const hasRecoverableFieldsError = state.query.parseErrors.some(error =>
       ['EMPTY', 'NOSELECT', 'NOSELECTIONS'].includes(error.type)
     );
+    const recoverableLimitError = state.query.parseErrors.find(error => error.type === 'INCOMPLETELIMIT');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty statement must still render as `nothing`, unlike a merely-unset one; `??` would not collapse ''
     const queryPreview = state.query.originalSoqlStatement ? state.query.originalSoqlStatement : nothing;
     return html`
@@ -107,6 +112,19 @@ export class SoqlBuilderElement extends LitElement {
                       }}
                       .selectedFieldNames=${state.query.fields}
                     ></soql-builder-fields>
+                  </div>
+                  <div class="control">
+                    <soql-builder-limit
+                      .allRows=${state.query.allRows}
+                      .labels=${{
+                        allRows: this.labels.allRows,
+                        invalid: this.labels.invalidLimit,
+                        limit: this.labels.limit,
+                        placeholder: this.labels.limitPlaceholder
+                      }}
+                      .limit=${state.query.limit}
+                      .recoverableErrorMessage=${recoverableLimitError?.message}
+                    ></soql-builder-limit>
                   </div>
                 </form>
                 <section class="preview" role="status" aria-live="polite">
