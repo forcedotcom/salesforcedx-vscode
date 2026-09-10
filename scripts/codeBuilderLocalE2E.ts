@@ -622,16 +622,17 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
   if (aliases.length === 0) {
     return;
   }
-  // Run a bash LOGIN shell (`-lc`) inside the container so its profile is sourced and `sf` is on
-  // PATH (a plain `bash -c` is non-login and may not find it). SF_*_DISABLE_TELEMETRY suppresses the
-  // CLI's first-run data-collection notice; extraEnv carries the org's access token to the login.
+  // Exec as the `codebuilder` user (NOT the default root): the workbench/extension run as codebuilder
+  // and read its ~/.sf, so a login done as root (in /root/.sf) is invisible to the org picker. A bash
+  // LOGIN shell (`-lc`) sources codebuilder's profile so `sf` is on PATH and HOME=/home/codebuilder.
+  // SF_*_DISABLE_TELEMETRY suppresses the CLI first-run notice; extraEnv carries the org access token.
   const execInContainer = (script: string, extraEnv: Record<string, string> = {}) => {
     const envArgs = Object.entries({
       SF_DISABLE_TELEMETRY: 'true',
       SFDX_DISABLE_TELEMETRY: 'true',
       ...extraEnv
     }).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
-    return spawnSync('docker', ['exec', '-i', ...envArgs, containerName, 'bash', '-lc', script], {
+    return spawnSync('docker', ['exec', '-i', '-u', 'codebuilder', ...envArgs, containerName, 'bash', '-lc', script], {
       encoding: 'utf-8',
       timeout: CAPTURE_TIMEOUT_MS
     });
