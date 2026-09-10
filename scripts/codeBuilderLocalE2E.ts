@@ -607,10 +607,10 @@ const setUpInfra = async (): Promise<BootEnv> => {
  * Auth additional pre-created orgs INTO the running container (beyond the boot org). The image's boot
  * script authenticates only one org (SF_ACCESS_TOKEN/INSTANCE_URL); multi-org specs (org picker/switch,
  * non-tracking, Dreamhouse) need more. `CB_EXTRA_ORG_ALIASES` (comma-separated host aliases the CI
- * workflow pre-created) drives this: for each we read its sfdx auth URL on the host and run
- * `sf org login sfdx-url` INSIDE the container so the alias resolves there too. Called BEFORE the
- * restart below so the re-activated extensions enumerate the full org list — the container filesystem
- * (and thus these logins) persists across `restart`. No-op when the env var is unset (the common path).
+ * workflow pre-created) drives this: for each we resolve its access token + instance URL on the host
+ * and run `sf org login access-token` INSIDE the container so the alias resolves there too. Called
+ * BEFORE the restart below so the re-activated extensions enumerate the full org list — the container
+ * filesystem (and thus these logins) persists across `restart`. No-op when the env var is unset.
  * The boot org stays the default; specs that switch to an extra org save/restore the default themselves.
  */
 const authExtraOrgsIntoContainer = (containerName: string): void => {
@@ -623,61 +623,52 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
   }
   // Run a bash LOGIN shell (`-lc`) inside the container so its profile is sourced and `sf` is on
   // PATH (a plain `bash -c` is non-login and may not find it). SF_*_DISABLE_TELEMETRY suppresses the
-  // CLI's first-run data-collection notice, which otherwise prints to stderr and muddies diagnostics.
-  const execInContainer = (script: string, input?: string) =>
-    spawnSync(
-      'docker',
-      [
-        'exec',
-        '-i',
-        '-e',
-        'SF_DISABLE_TELEMETRY=true',
-        '-e',
-        'SFDX_DISABLE_TELEMETRY=true',
-        containerName,
-        'bash',
-        '-lc',
-        script
-      ],
-      { input, encoding: 'utf-8', timeout: CAPTURE_TIMEOUT_MS }
-    );
+  // CLI's first-run data-collection notice; extraEnv carries the org's access token to the login.
+  const execInContainer = (script: string, extraEnv: Record<string, string> = {}) => {
+    const envArgs = Object.entries({
+      SF_DISABLE_TELEMETRY: 'true',
+      SFDX_DISABLE_TELEMETRY: 'true',
+      ...extraEnv
+    }).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
+    return spawnSync('docker', ['exec', '-i', ...envArgs, containerName, 'bash', '-lc', script], {
+      encoding: 'utf-8',
+      timeout: CAPTURE_TIMEOUT_MS
+    });
+  };
 
   for (const alias of aliases) {
     log(`Authenticating extra org '${alias}' into the container`);
-    // --verbose surfaces sfdxAuthUrl (a refresh-token URL) for a scratch org. Untyped parse to match
-    // this file's other `sf --json` reads; a missing URL is a warning, not fatal (its specs will fail).
-    const raw = tryCapture('sf', ['org', 'display', '--verbose', '-o', alias, '--json']);
-    let authUrl: string | undefined;
-    if (raw) {
-      try {
-        authUrl = JSON.parse(raw)?.result?.sfdxAuthUrl;
-      } catch {
-        /* fall through to the guard below */
-      }
-    }
-    if (!authUrl) {
-      console.warn(`    WARNING: could not read sfdxAuthUrl for '${alias}' on the host — skipping.`);
+    // Auth each extra org the SAME way the image boots the default org: via its real access token +
+    // instance URL (`sf org login access-token`), NOT sfdx-url. `sf org display --verbose --json`
+    // REDACTS sfdxAuthUrl on recent CLIs (the #7718 redaction class), so a url-based login fails
+    // INVALID_SFDX_AUTH_URL. resolveOrgBootEnv reads the UN-redacted token via `sf org auth
+    // show-access-token` — exactly the source the boot env uses — routed through sfRunner (npx-sf
+    // fallback). A resolve failure is a warning, not fatal (that org's specs will then fail loudly).
+    let orgEnv: BootEnv;
+    try {
+      orgEnv = resolveOrgBootEnv(alias, { runner: sfRunner });
+    } catch (err) {
+      console.warn(
+        `    WARNING: could not resolve access token / instance URL for '${alias}' on the host — skipping. ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
       continue;
     }
-    // Feed the auth URL via a temp FILE (`--sfdx-url-file`), not `--sfdx-url-stdin`: the stdin flag's
-    // arg parsing swallowed the following `--alias` value on the image's CLI ("Unexpected argument"),
-    // whereas `--sfdx-url-file` is stable across CLI versions. Write the file (0600), log in, remove it.
-    const urlFile = `/tmp/cb-e2e-authurl-${alias}`;
-    execInContainer(`umask 077; cat > ${urlFile}`, authUrl);
+    // Token via SF_ACCESS_TOKEN env, instance URL via flag; --no-prompt skips the "access tokens are
+    // less secure" confirmation. This mirrors the container's own boot-time org login.
     const login = execInContainer(
-      `sf org login sfdx-url --sfdx-url-file ${urlFile} --alias ${alias}; rc=$?; rm -f ${urlFile}; exit $rc`
+      `sf org login access-token --instance-url ${orgEnv.instanceUrl} --alias ${alias} --no-prompt`,
+      { SF_ACCESS_TOKEN: orgEnv.accessToken }
     );
     if (login.status !== 0) {
-      console.warn(`    WARNING: 'sf org login sfdx-url' for '${alias}' failed inside the container:`);
+      console.warn(`    WARNING: 'sf org login access-token' for '${alias}' failed inside the container:`);
       if (login.stdout?.trim()) {
         console.warn(`      stdout: ${login.stdout.trim()}`);
       }
       if (login.stderr?.trim()) {
         console.warn(`      stderr: ${login.stderr.trim()}`);
       }
-      // Pin the CLI's actual flag surface so a further failure is diagnosable without another round.
-      const help = execInContainer('sf org login sfdx-url --help');
-      console.warn(`      --- sf org login sfdx-url --help ---\n${(help.stdout || help.stderr || '').trim()}`);
     }
   }
 };
