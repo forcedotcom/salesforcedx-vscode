@@ -146,7 +146,7 @@ jobs:
         id: delta
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
-        run: npx ts-node scripts/generate-release-delta-changelog.ts "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
+        run: npm run changelog:delta -- "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
 
       - name: Inject changelog into the prerelease VSIX
         # Skip when nothing new was generated (e.g. only chore/ci commits this week) --
