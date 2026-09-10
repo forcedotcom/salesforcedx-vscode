@@ -259,7 +259,7 @@ describe('createTable', () => {
     const charsBeforeType = lines[0].substring(0, headerTypePos);
 
     // Should be exactly 4 spaces (2 for column + 2 for separator)
-    expect(charsBeforeType.length).toBe(4);
+    expect(charsBeforeType).toHaveLength(4);
     expect(charsBeforeType).toBe('    ');
 
     // Separator should have: 2 dashes (column) + 2 spaces (separator) = 4 chars before second column
@@ -408,8 +408,8 @@ describe('createTable', () => {
     const dataStarts = findColumnStarts(dataRow);
 
     // All rows should have columns starting at the same positions
-    expect(headerStarts.length).toBe(separatorStarts.length);
-    expect(headerStarts.length).toBe(dataStarts.length);
+    expect(headerStarts).toHaveLength(separatorStarts.length);
+    expect(headerStarts).toHaveLength(dataStarts.length);
 
     headerStarts.forEach((start, i) => {
       expect(separatorStarts[i]).toBe(start);

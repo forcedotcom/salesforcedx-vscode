@@ -3,6 +3,7 @@
 .vscode-test-web/**
 .vscode-web/**
 .wireit/**
+.fastcontext/**
 node_modules
 out/**
 src/**

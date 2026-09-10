@@ -43,11 +43,11 @@ jest.mock('@salesforce/core', () => ({
 }));
 jest.mock('@salesforce/effect-ext-utils', () => {
   const E = require('effect/Effect');
-  const Ctx = require('effect/Context');
+  const Layer = require('effect/Layer');
   return {
     getServicesApi: E.succeed({
       services: {
-        prebuiltServicesDependencies: Ctx.empty(),
+        prebuiltServicesLayer: Layer.empty,
         ConnectionService: {
           getConnection: (...args: unknown[]) => mockGetConnectionSvc(...args),
           validateAccessTokenOrPromptReauth: (...args: unknown[]) => mockValidateReauthSvc(...args)

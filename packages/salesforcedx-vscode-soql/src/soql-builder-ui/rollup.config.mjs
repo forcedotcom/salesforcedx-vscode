@@ -96,6 +96,15 @@ export default {
     alias({
       entries: [
         { find: 'os', replacement: 'os-browserify/browser' },
+        // The published services API is CommonJS. Resolve its browser-safe schema from the canonical ESM source
+        // so Rollup can tree-shake Effect instead of retaining the complete Schema module through a CJS require.
+        {
+          find: '@salesforce/vscode-services',
+          replacement: path.resolve(
+            __dirname,
+            '../../../salesforcedx-vscode-services/src/core/schemas/sObject.ts'
+          )
+        },
         // Non-component module: messages catalog (path ends with messages/i18n.ts for eslint-local-rules)
         {
           find: 'querybuilder/messages',

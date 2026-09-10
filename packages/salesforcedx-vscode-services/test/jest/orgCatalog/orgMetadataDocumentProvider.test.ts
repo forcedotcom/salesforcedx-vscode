@@ -13,16 +13,9 @@ import {
   isCatalogRelevantWorkspaceUri,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import type { OrgMetadataDocumentLocation } from '../../../src/orgCatalog/orgMetadataReference';
 
 const documentUri = (orgId: string, fullName: string): URI =>
   URI.parse(`sf-org-metadata:/orgs/${orgId}/ApexClass/${fullName}.cls`);
-
-const parseDocumentUri = (uri: URI): OrgMetadataDocumentLocation | undefined => {
-  const [, orgs, orgId, xmlName, encodedFullName] = uri.path.split('/');
-  if (orgs !== 'orgs' || !orgId || !xmlName || !encodedFullName) return undefined;
-  return { orgId, xmlName, fullName: encodedFullName.replace(/\.cls$/u, '') };
-};
 
 describe('OrgMetadataDocumentProvider lifecycle', () => {
   afterEach(() => {
@@ -38,9 +31,13 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
 
     await provider.provideTextDocumentContent(orgOneUri);
     await provider.provideTextDocumentContent(orgTwoUri);
-    provider.removeInactiveOrgUris('org-two', parseDocumentUri);
-    provider.notifyCatalogChanged('org-two', parseDocumentUri);
-    provider.notifyCatalogChanged('org-one', parseDocumentUri);
+    const orgIds = new Map([
+      [orgOneUri.toString(), 'org-one'],
+      [orgTwoUri.toString(), 'org-two']
+    ]);
+    provider.removeInactiveOrgUris('org-two', orgIds);
+    provider.notifyCatalogChanged('org-two', orgIds);
+    provider.notifyCatalogChanged('org-one', orgIds);
 
     expect(notified).toEqual([orgTwoUri.toString()]);
     provider.dispose();
@@ -64,7 +61,7 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
       }
     });
 
-    await Effect.runPromise(closeInactiveOrgDocuments('org-two', parseDocumentUri));
+    await Effect.runPromise(closeInactiveOrgDocuments('org-two'));
 
     expect(close).toHaveBeenCalledWith([staleTextTab, staleDiffTab], true);
   });

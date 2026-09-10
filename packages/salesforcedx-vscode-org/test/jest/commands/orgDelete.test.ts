@@ -38,26 +38,38 @@ type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isS
 // (e.g. the source tracking status bar icons) reset instead of lingering on the now-deleted org (W-23950821).
 const mockClearDefaultOrgRef = jest.fn(() => Effect.void);
 
-const buildServices = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) => ({
+const buildServices = (
+  orgInfo: OrgSnapshot,
+  confirm: boolean,
+  simpleExec: jest.Mock,
+  onAppend: jest.Mock = jest.fn(() => Effect.void)
+) => ({
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       confirm ? Effect.void : Effect.fail(userCancellationError),
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect
   }),
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void }),
+  ChannelService: Effect.succeed({
+    appendToChannel: (msg: string) => onAppend(msg),
+    showChannel: Effect.void
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  }),
   TargetOrgRef: () => SubscriptionRef.make(orgInfo),
   ClearDefaultOrgRef: mockClearDefaultOrgRef
 });
 
-const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) =>
+const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock, onAppend?: jest.Mock) =>
   Effect.runPromiseExit(
     orgDeleteDefaultCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec) })
+        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec, onAppend) })
       } as unknown as ExtensionProviderService)
     ) as Effect.Effect<void, unknown, never>
   );
@@ -121,6 +133,15 @@ describe('orgDeleteDefaultCommand', () => {
     expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
   });
 
+  it('appends a fallback success message when sf emits empty stdout', async () => {
+    const simpleExec = jest.fn(() => Effect.succeed(''));
+    const onAppend = jest.fn(() => Effect.void);
+    const exit = await run({ username: 'me@scratch.org', isScratch: true }, true, simpleExec, onAppend);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(onAppend).toHaveBeenCalledWith('Successfully deleted org me@scratch.org.');
+  });
+
   it('fails with UserCancellationError and does not exec when the user declines', async () => {
     const simpleExec = jest.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', isScratch: true }, false, simpleExec);
@@ -137,8 +158,7 @@ describe('orgDeleteDefaultCommand', () => {
 // Mirrors the real TerminalServiceError (terminalService.ts) so the partial-failure test exercises the
 // actual error shape the catchTag captures, not a hand-rolled stand-in.
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
 // Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
@@ -155,7 +175,7 @@ const appendToChannel = jest.fn<Effect.Effect<void>, [string]>();
 const buildUsernameServices = (simpleExec: jest.Mock) => ({
   PromptService: Effect.succeed({
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect.pipe(
           Effect.catchAllCause(cause =>
@@ -168,7 +188,11 @@ const buildUsernameServices = (simpleExec: jest.Mock) => ({
         )
   }),
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void })
+  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  })
 });
 
 const runUsername = (simpleExec: jest.Mock) =>
@@ -221,8 +245,7 @@ describe('orgDeleteUsernameCommand', () => {
             try: () => Promise.reject(new Error('Command failed: non-zero exit')),
             catch: e =>
               new TerminalServiceError({
-                message: e instanceof Error ? e.message : 'exec failed',
-                command: args.command
+                message: e instanceof Error ? e.message : 'exec failed'
               })
           })
         : Effect.succeed('deleted')
@@ -269,6 +292,16 @@ describe('orgDeleteUsernameCommand', () => {
     }
     // cache flush does NOT run: the fiber short-circuited before reaching it
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+  });
+
+  it('appends a fallback success message per org when sf emits empty stdout', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg] }));
+    const simpleExec = jest.fn(() => Effect.succeed(''));
+
+    const exit = await runUsername(simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('Successfully deleted org a@scratch.org.');
   });
 
   it('does not delete or flush when the picker cancels', async () => {

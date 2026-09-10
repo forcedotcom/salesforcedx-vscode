@@ -49,6 +49,9 @@ export const messages = {
   action_add: 'Add',
 
   // fields
+  action_clear_all_fields: 'Clear All',
+  action_select_all_fields: 'Select All',
+  label_count: 'COUNT()',
   label_fields: 'Fields',
 
   // from
@@ -64,6 +67,7 @@ export const messages = {
   label_nulls_last: 'Nulls Last',
 
   // limit
+  error_invalid_limit: 'Enter a whole number greater than or equal to 0.',
   label_limit: 'Limit',
   placeholder_limit: 'Limit...',
 
@@ -76,7 +80,7 @@ export const messages = {
 
   // query preview
   label_soql_query: 'SOQL Query',
-  label_soql_query_inputs: 'SOQL query inputs',
+  label_soql_query_inputs: 'SOQL Query Inputs',
 
   // placeholders
   placeholder_search_object: 'Search object...',

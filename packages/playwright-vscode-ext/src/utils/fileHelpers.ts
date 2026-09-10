@@ -14,7 +14,6 @@ import {
   goToFile,
   goToLineColumn,
   newUntitledTextFile,
-  paste,
   saveFile,
   selectAll
 } from '../pages/nativeCommands';
@@ -127,6 +126,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
   if (content !== undefined && content.length > 0) {
     // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
     await ensureSecondarySideBarHidden(page);
+    await disableMonacoAutoClosing(page);
 
     // Focus the editor - click and verify it's ready for input by checking view lines are present
     await editor.click();
@@ -138,12 +138,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
     // Delete the selected content
     await page.keyboard.press('Delete');
 
-    // Write to clipboard (evaluate completes when write is done)
-    // Note: Clipboard permissions are granted globally in playwright config (createWebConfig.ts & createDesktopConfig.ts)
-    await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
-
-    // Paste the content
-    await paste(page);
+    await page.keyboard.type(content);
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await saveFile(page);
@@ -467,8 +462,6 @@ export const setupLogoutTestOrgAndAuth = async (page: Page, checkWelcomeTabs = t
 
 /** Create an Apex test class and deploy it to the org. */
 export const createAndDeployApexTestClass = async (page: Page, className: string, content: string): Promise<void> => {
-  // Disable auto-closing brackets temporarily to avoid duplicates when typing
-  await disableMonacoAutoClosing(page);
   await createApexClass(page, className, content);
 
   // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion

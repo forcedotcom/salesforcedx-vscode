@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { AndOr, ConditionOperator, SObjectFieldType } from './model/model';
-export type { ErrorType, LiteralType, Query, Select, SelectExprs, UiOperatorValue } from './model/model';
+export { AndOr, ConditionOperator, NullsOrder, Order, SObjectFieldType } from './model/model';
+export type { Condition, ErrorType, LiteralType, Query, Select, SelectExprs, UiOperatorValue } from './model/model';
 export {
   REASON_UNMODELED_COMPLEXGROUP,
   REASON_UNMODELED_FUNCTIONREFERENCE,

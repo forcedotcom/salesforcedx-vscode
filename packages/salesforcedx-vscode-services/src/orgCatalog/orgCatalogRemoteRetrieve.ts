@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -47,8 +48,6 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       OrgMetadataReferenceService,
       OrgMetadataShadowStore
     ]);
-    const documentUri = (orgId: string, reference: OrgMetadataComponentReference) =>
-      references.documentUri({ orgId, ...reference });
     const listStagedFiles = Effect.fn('OrgCatalogRemoteRetrieve.listStagedFiles')(function* (rootUri: URI) {
       const initial: { readonly pending: readonly URI[]; readonly files: readonly URI[] } = {
         pending: [rootUri],
@@ -74,16 +73,19 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       return result.files;
     });
 
-    const sourceBasenames = (orgId: string, reference: OrgMetadataComponentReference) => {
-      const logicalBasename = Utils.basename(documentUri(orgId, reference));
+    const sourceBasenames = Effect.fn('OrgCatalogRemoteRetrieve.sourceBasenames')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      const logicalBasename = Utils.basename(yield* references.documentUri({ orgId, ...reference }));
       const leafName = reference.fullName.split(/[/.]/).at(-1) ?? reference.fullName;
-      const suffix = references.getTypeSuffix(reference.xmlName);
+      const suffix = yield* references.getTypeSuffix(reference.xmlName);
       return new Set<string>([
         logicalBasename,
         `${logicalBasename}-meta.xml`,
         ...(suffix ? [`${leafName}.${suffix}`, `${leafName}.${suffix}-meta.xml`] : [])
       ]);
-    };
+    });
 
     const materializeOne = Effect.fn('OrgCatalogRemoteRetrieve.materializeOne')(function* (
       orgId: string,
@@ -95,7 +97,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet([member]);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
@@ -107,11 +109,11 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 .flatMap(response => (response.filePath ? [response.filePath] : []));
               const stagedFiles = yield* listStagedFiles(stagingUri);
               const reportedUris = yield* Effect.forEach(
-                [...new Set([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths])],
+                Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
                 path => fsService.toUri(path),
                 { concurrency: 'unbounded' }
               );
-              const basenames = sourceBasenames(orgId, reference);
+              const basenames = yield* sourceBasenames(orgId, reference);
               const sourceContentUri = sourceComponent?.content
                 ? yield* fsService.toUri(sourceComponent.content)
                 : undefined;
@@ -178,7 +180,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       const componentSet = yield* metadataRetrieveService.buildComponentSet(members);
       const nonEmptyComponentSet = yield* componentSetService.ensureNonEmptyComponentSet(componentSet);
       return yield* metadataRetrieveService
-        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, orgId)
+        .retrieveComponentSetToDirectory(nonEmptyComponentSet, stagingUri, { expectedOrgId: orgId })
         .pipe(
           Effect.flatMap(result =>
             Effect.gen(function* () {
@@ -206,11 +208,11 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                         : []
                     );
                     const reportedUris = yield* Effect.forEach(
-                      [...new Set([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths])],
+                      Arr.dedupe([...result.components.getComponentFilenamesByNameAndType(member), ...responsePaths]),
                       path => fsService.toUri(path),
                       { concurrency: 'unbounded' }
                     );
-                    const basenames = sourceBasenames(orgId, reference);
+                    const basenames = yield* sourceBasenames(orgId, reference);
                     const discoveredUris = stagedFiles.filter(uri => basenames.has(Utils.basename(uri)));
                     const sourceComponentUris = yield* Effect.forEach(
                       sourceComponentFilePaths(sourceComponent),

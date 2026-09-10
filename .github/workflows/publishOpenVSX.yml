@@ -15,6 +15,11 @@ on:
         description: 'Download and inspect VSIXs without publishing or polling Open VSX'
         type: boolean
         default: false
+      isHotfix:
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-release.yml startFromRef, which have no other automated test gate.'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   prepare-release-metadata:
@@ -38,6 +43,41 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-release.yml's
+  # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
+  # so there's no existing signal that the release commit was tested. Skipped for normal releases,
+  # which already passed develop's required checks before ever becoming a release tag.
+  gate-check:
+    needs: [prepare-release-metadata]
+    if: github.event.inputs.isHotfix == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history to check out the release tag below
+
+      - name: Checkout hotfix commit
+        env:
+          RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+        run: git checkout "$RELEASE_TAG"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Install dependencies for hotfix commit
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Run tests for hotfix commit
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          WIREIT_PARALLEL: 1
+        run: |
+          npm run compile
+          npm run test
+
   ctc-open:
     needs: [prepare-release-metadata]
     if: inputs.dry-run != true
@@ -45,12 +85,12 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata']
-    if: always() && needs.prepare-release-metadata.result == 'success' && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
+    needs: ['ctc-open', 'prepare-release-metadata', 'gate-check']
+    if: always() && needs.prepare-release-metadata.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
+    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run }}
+      dry-run: ${{ inputs.dry-run == true }}
     secrets: inherit
 
   verify-published:
@@ -59,6 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      # No checkout, so give the gh CLI its repo context for `gh release download`.
+      GH_REPO: ${{ github.repository }}
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
     steps:
@@ -71,7 +113,7 @@ jobs:
           gh release download "$RELEASE_TAG" -D ./extensions
       - name: Verify published versions landed on OpenVSX
         run: |
-          TIMEOUT="${POLL_TIMEOUT:-600}"
+          TIMEOUT="${POLL_TIMEOUT:-1200}"
           INTERVAL="${POLL_INTERVAL:-30}"
           deadline=$(( $(date +%s) + TIMEOUT ))
           pending=()

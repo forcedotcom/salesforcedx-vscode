@@ -24,6 +24,7 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
 import { OrgCatalogDocuments } from './orgCatalog/orgCatalogDocuments';
 import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
@@ -81,5 +82,6 @@ export const globalLayers = Layer.mergeAll(
   TerminalService.Default,
   TransmogrifierService.Default,
   TraceFlagService.Default,
-  WorkspaceService.Default
+  WorkspaceService.Default,
+  redactingConsoleLoggerLayer
 );

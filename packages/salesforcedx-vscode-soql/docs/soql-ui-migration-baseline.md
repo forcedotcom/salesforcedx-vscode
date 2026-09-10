@@ -70,11 +70,16 @@ npm run test:soql-builder-ui --workspace salesforcedx-vscode-soql -- --runInBand
 
 | Artifact | Baseline raw | Baseline gzip | Maximum raw | Maximum gzip |
 | --- | ---: | ---: | ---: | ---: |
-| Legacy builder application | 880,931 B | 231,443 B | 925,000 B | 242,000 B |
+| Legacy builder application | 933,725 B | 246,879 B | 981,000 B | 260,000 B |
 | Query-results first-party shell | 14,293 B | 4,856 B | 16,000 B | 5,500 B |
 | Retained Tabulator vendor assets | 377,590 B | 80,815 B | 378,000 B | 81,000 B |
 
 Tabulator is measured separately because it is retained. A Lit results PR must not present the vendor bytes as framework growth. Migration builds report legacy and Lit entry sizes independently; production VSIX builds must continue excluding inactive migration entries until final cutover.
+
+PR #8026 advances the legacy-builder baseline from 880,931 raw / 231,443 gzip bytes to 933,725 raw /
+246,879 gzip bytes because message-boundary validation now consumes the complete shared Salesforce object schema. The
+new maximums retain approximately five percent headroom rather than treating that intentional schema coverage as an
+unbounded allowance for future growth.
 
 ## Performance and lifecycle gates
 
@@ -142,16 +147,3 @@ Capture representative complete-builder and results states in these four VS Code
 The builder state contains From, multiple Fields, Where, Order By, Limit, All Rows, and preview. The results state uses the wide, related, 51-row fixture with the second page and max-row hint visible. Capture at 1440x900 and at a 480 px editor width. Store screenshots as CI artifacts named `soql-ui-baseline-<target>-<commit>`; do not silently update an accepted reference. Review foreground/background, borders, focus, disabled controls, validation, selection, hover, scrollbars, grouped headers, pagination, and icon visibility against VS Code tokens.
 
 Screenshot collection remains an environment gate: a PR without desktop and web artifacts has not completed Story 1 even if unit tests pass.
-
-## Local E2E evidence — 2026-08-19
-
-The focused builder scenario was run locally against a one-day `minimalTestOrg` created through the globally authenticated `vscodeOrg` Dev Hub. The scratch org was deleted successfully after the run. No credentials were copied into the repository or test artifacts.
-
-```bash
-npm run test:web --workspace salesforcedx-vscode-soql -- --grep "SOQL Builder"
-npm run test:desktop --workspace salesforcedx-vscode-soql -- --grep "SOQL Builder"
-```
-
-On web and macOS desktop, the complete builder scenario reached its final validation step after exercising query construction, Run Query, Get Query Plan, and builder/text-editor round trips. Both targets then failed the existing global console-error gate under VS Code 1.134.0 because the VS Code workbench reported that `chat.contextContributions` depends on the unavailable `chatSessionRoutingProviderService`. The desktop run also reported that the local O11y span exporter could not reach its divert endpoint.
-
-These errors originate outside the SOQL webviews, but they remain unsuppressed. The SOQL Lit migration assignee owns reconciliation with the shared Playwright/VS Code test infrastructure before Story 1 closes. The captured default-dark screenshot confirms the completed builder state but does not replace the required four-theme builder/results matrix.

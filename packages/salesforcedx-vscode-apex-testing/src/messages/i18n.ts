@@ -58,6 +58,8 @@ export const messages = {
   apex_test_suite_empty_message:
     'This test suite is empty and cannot be run. Add test classes to the suite before running.',
   apex_test_suite_no_suites_message: 'No Apex test suites found.',
+  apex_test_mixed_selection_not_supported_message:
+    'Running a mix of individual Apex tests and Apex test suites is not supported. Select either individual tests or test suites, not both.',
   apex_test_suite_membership_delete_failed_message: 'Failed to delete %d membership(s)',
   apex_test_discovery_fetch_failed_message: 'Failed to fetch test discovery page: %s',
   apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
@@ -79,11 +81,12 @@ export const messages = {
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
   apex_test_report_open_action: 'Open Report',
-  apex_test_report_ready_message: 'Apex test report is ready: %s',
   apex_test_report_written_to_message: 'Apex test report saved to: %s',
+  apex_test_report_generation_failed_message: 'Failed to generate Apex test report: %s',
   apex_test_report_markdown_preview_tip:
     'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
   apex_test_successful_execution_message: '%s successfully ran',
+  apex_test_successful_execution_with_report_message: '%s successfully ran. Apex test report is ready: %s',
   apex_test_failed_execution_message: '%s failed to run',
   test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',

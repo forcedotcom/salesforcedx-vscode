@@ -203,4 +203,29 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('const DoubleField:number;');
     expect(typeText).toContain('export default DoubleField;');
   });
+
+  it('Should list field declarations alphabetically by name', () => {
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+    const fields = [
+      '{"name": "StringField", "type": "string", "referenceTo": []}',
+      '{"name": "BooleanField", "type" : "boolean", "referenceTo": []}',
+      '{"name": "DateField", "type" : "date", "referenceTo": []}'
+    ];
+    const objDef = generateSObjectDefinition(JSON.parse(`${fieldsHeader}${fields.join(',')}${closeHeader}`));
+    const typeText = generateTypeText(objDef);
+    const names = [...typeText.matchAll(/@salesforce\/schema\/Custom__c\.(\w+)/g)].map(m => m[1]);
+    expect(names).toEqual(['BooleanField', 'DateField', 'StringField']);
+  });
+
+  it('Should keep only the first of same-name field declarations', () => {
+    const typeText = generateTypeText({
+      name: 'Custom__c',
+      fields: [
+        { modifier: 'global', type: 'String', name: 'Dup' },
+        { modifier: 'global', type: 'Boolean', name: 'Dup' }
+      ]
+    });
+    expect([...typeText.matchAll(/@salesforce\/schema\/Custom__c\.(\w+)/g)].map(m => m[1])).toEqual(['Dup']);
+  });
 });

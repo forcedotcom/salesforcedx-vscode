@@ -12,11 +12,17 @@ import type {
   OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import type { URI } from 'vscode-uri';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
-import { componentIdentity, referencesToAffectedSObjects, typeCacheKey } from './orgCatalogKeys';
+import {
+  componentIdentity,
+  findInventoryComponent,
+  referencesToAffectedSObjects,
+  typeCacheKey
+} from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
@@ -52,7 +58,7 @@ export const compareTrackingObservations = (
   previous: ReadonlyMap<string, RemoteTrackingObservation>,
   current: ReadonlyMap<string, RemoteTrackingObservation>
 ): OrgMetadataComponentReference[] => [
-  ...[...new Set([...previous.keys(), ...current.keys()])]
+  ...Arr.dedupe([...previous.keys(), ...current.keys()])
     .filter(key => previous.get(key)?.signature !== current.get(key)?.signature)
     .flatMap(key => {
       const observation = current.get(key) ?? previous.get(key);
@@ -100,6 +106,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         components: readonly {
           readonly type: string;
           readonly fullName: string;
+          readonly namespacePrefix?: string;
           readonly lastModifiedDate?: string;
           readonly workspaceUri?: URI;
         }[]
@@ -107,13 +114,23 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         if (components.length === 0) return;
         yield* state.ensureHydrated(orgId);
         const observedAt = new Date().toISOString();
+        const documentUris = yield* Effect.forEach(
+          components,
+          component =>
+            referenceService
+              .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
+              .pipe(Effect.map(documentUri => [`${component.type}\0${component.fullName}`, documentUri] as const)),
+          { concurrency: 'unbounded' }
+        ).pipe(Effect.map(entries => new Map(entries)));
         yield* state.updateInventories(current => {
           const next = new Map(current);
           components.forEach(component => {
             const reference = { xmlName: component.type, fullName: component.fullName };
             const key = typeCacheKey(orgId, component.type);
             const inventory = next.get(key);
-            const previous = inventory?.components.get(component.fullName);
+            const previous = inventory
+              ? findInventoryComponent(inventory.components, reference, component.namespacePrefix ?? null)
+              : undefined;
             const entry: OrgMetadataCatalogEntry = {
               ...previous,
               orgId,
@@ -123,9 +140,10 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   ? 'metadata-api+workspace'
                   : provenance,
               reference,
-              documentUri: referenceService.documentUri({ orgId, ...reference }),
+              documentUri: documentUris.get(`${component.type}\0${component.fullName}`) ?? previous!.documentUri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,
               kind: 'component',
+              namespacePrefix: component.namespacePrefix ?? previous?.namespacePrefix,
               inOrg: true,
               inWorkspace: Boolean(component.workspaceUri) || (previous?.inWorkspace ?? false),
               workspaceUri: component.workspaceUri ?? previous?.workspaceUri,
@@ -135,7 +153,10 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
             next.set(key, {
               observedAt,
               complete: inventory?.complete ?? false,
-              components: new Map(inventory?.components).set(component.fullName, entry),
+              components: new Map(inventory?.components).set(
+                componentIdentity(reference, component.namespacePrefix ?? null),
+                entry
+              ),
               folders: inventory?.folders ?? new Map()
             });
           });
@@ -265,7 +286,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         yield* state.ensureHydrated(orgId);
         const revisionByIdentity = new Map(
           remoteChanges.map(change => [
-            `${change.type}\0${change.name}`,
+            componentIdentity({ xmlName: change.type, fullName: change.name }),
             JSON.stringify([
               change.revisionCounter,
               change.lastModifiedDate,
@@ -317,7 +338,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           fullName: change.fullName
         }));
         const affectedTypes = new Set(references.map(reference => reference.xmlName));
-        const identities = new Set(references.map(componentIdentity));
+        const identities = new Set(references.map(reference => componentIdentity(reference)));
         const affectedSObjects = referencesToAffectedSObjects(references);
         yield* state.invalidateTypes(orgId, affectedTypes);
         yield* state.removeTracking(orgId, identities);

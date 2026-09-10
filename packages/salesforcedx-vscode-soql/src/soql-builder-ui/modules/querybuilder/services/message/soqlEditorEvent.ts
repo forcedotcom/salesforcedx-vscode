@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SObjectSchema } from '@salesforce/vscode-services';
 import * as Schema from 'effect/Schema';
 
 export const MessageType = {
@@ -27,27 +28,14 @@ export const MessageType = {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
-const SObjectFieldSchema = Schema.Struct({
-  name: Schema.String,
-  type: Schema.String,
-  nillable: Schema.Boolean,
-  picklistValues: Schema.optional(Schema.NullOr(Schema.Array(Schema.Unknown))),
-  filterable: Schema.optional(Schema.Boolean),
-  groupable: Schema.optional(Schema.Boolean),
-  label: Schema.optional(Schema.String),
-  sortable: Schema.optional(Schema.Boolean)
-});
-
-const SObjectMetadataSchema = Schema.Struct({
-  fields: Schema.Array(SObjectFieldSchema)
-});
-
-export type SObjectMetadata = typeof SObjectMetadataSchema.Type;
+export type SObjectMetadata = Pick<typeof SObjectSchema.Type, 'fields'>;
 
 const eventWithoutPayload = <T extends MessageType>(type: T) => Schema.Struct({ type: Schema.Literal(type) });
 
 const UiActivatedEventSchema = eventWithoutPayload(MessageType.UI_ACTIVATED);
-const SObjectsRequestEventSchema = eventWithoutPayload(MessageType.SOBJECTS_REQUEST);
+const SObjectsRequestEventSchema = Schema.Struct({
+  type: Schema.Literal(MessageType.SOBJECTS_REQUEST)
+});
 const RunSoqlQueryEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY);
 const RunSoqlQueryDoneEventSchema = eventWithoutPayload(MessageType.RUN_SOQL_QUERY_DONE);
 const ConnectionChangedEventSchema = eventWithoutPayload(MessageType.CONNECTION_CHANGED);
@@ -69,7 +57,7 @@ const SObjectMetadataRequestEventSchema = Schema.Struct({
 });
 const SObjectMetadataResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECT_METADATA_RESPONSE),
-  payload: SObjectMetadataSchema
+  payload: SObjectSchema
 });
 const SObjectsResponseEventSchema = Schema.Struct({
   type: Schema.Literal(MessageType.SOBJECTS_RESPONSE),

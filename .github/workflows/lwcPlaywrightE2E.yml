@@ -53,16 +53,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
@@ -158,16 +150,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       - name: Try E2E tests
         id: try-run
@@ -235,7 +219,7 @@ jobs:
 
   e2e-desktop-run-tests:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -257,16 +241,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       - name: Try E2E tests
         id: try-run
@@ -356,16 +332,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       - name: Try E2E tests
         id: try-run

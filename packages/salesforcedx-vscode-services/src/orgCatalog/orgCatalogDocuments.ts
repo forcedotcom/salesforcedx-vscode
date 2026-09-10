@@ -21,10 +21,9 @@ export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('
       OrgCatalogRemoteSource,
       OrgMetadataReferenceService
     ]);
-    const parseDocumentUri = references.parseDocumentUri;
 
     const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
-      const location = parseDocumentUri(uri);
+      const location = yield* references.parseDocumentUri(uri);
       if (location?.orgId !== activeOrgId) {
         return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
       }

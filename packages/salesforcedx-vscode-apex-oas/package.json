@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.13.7",
+  "version": "67.17.10",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "effect": "^3.21.2",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.23.1",
-    "@stoplight/spectral-functions": "1.10.2",
+    "@stoplight/spectral-functions": "1.10.5",
     "@stoplight/spectral-rulesets": "1.22.6",
     "ejs": "3.1.10",
     "fast-xml-parser": "^5.7.1",
@@ -326,6 +326,57 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_oas_enable_rest_gen%"
+        },
+        "salesforcedx-vscode-apex-oas.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-apex-oas.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SFDX: Create OpenAPI Document from This Class": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_create_openapi_doc_description%"
+            },
+            "SFDX: Validate OpenAPI Document": {
+              "type": "string",
+              "enum": [
+                "successToast",
+                "successStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%"
+              ],
+              "description": "%notifications_validate_oas_document_description%"
+            }
+          },
+          "additionalProperties": false
         }
       }
     }

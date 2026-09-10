@@ -5,17 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer as buildBaseServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import type { ExtensionContext } from 'vscode';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- any for services avoids circular type dep; never for errors prevents type poisoning through Effect.provide
-type OpaqueServicesLayer = Layer.Layer<any, never>;
+export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
+  Layer.unwrapEffect(
+    Effect.map(getServicesApi, api =>
+      Layer.merge(
+        buildBaseServicesLayer(context, fallbackDisplayName),
+        api.services.NotificationModeService.Default(
+          'salesforcedx-vscode-apex-replay-debugger',
+          'sf-apex-replay-debugger-notifications',
+          'Salesforce: Apex Replay Debugger Notifications'
+        )
+      )
+    )
+  );
 
 // eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
-export let AllServicesLayer: OpaqueServicesLayer;
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts any layer error type, narrows to never to contain the cast
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- deliberate narrowing: any→never for errors prevents type poisoning through Effect.provide
-  AllServicesLayer = layer as OpaqueServicesLayer;
+  AllServicesLayer = layer;
 };

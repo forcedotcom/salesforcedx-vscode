@@ -13,6 +13,7 @@ import { MetadataRegistryService } from '../../../src/core/metadataRegistryServi
 import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
+  orgIdFromOrgMetadataUri,
   OrgMetadataReferenceService
 } from '../../../src/orgCatalog/orgMetadataReference';
 
@@ -26,8 +27,15 @@ describe('org metadata document references', () => {
     )
   );
 
-  const run = <A>(body: (service: InstanceType<typeof OrgMetadataReferenceService>) => A): A =>
-    Effect.runSync(OrgMetadataReferenceService.pipe(Effect.map(body), Effect.provide(referenceLayer)));
+  const run = <A, E extends Error>(
+    body: (service: InstanceType<typeof OrgMetadataReferenceService>) => Effect.Effect<A, E>
+  ): A =>
+    Effect.runSync(
+      OrgMetadataReferenceService.pipe(
+        Effect.flatMap(service => body(service).pipe(Effect.orDie)),
+        Effect.provide(referenceLayer)
+      )
+    );
 
   it('round-trips an Apex class with an editor-friendly extension', () => {
     const uri = run(service =>
@@ -127,6 +135,13 @@ describe('org metadata document references', () => {
     expect(
       run(service => service.parseDocumentUri(URI.parse(`${ORG_METADATA_SCHEME}:/ApexClass/MyTest.cls`)))
     ).toBeUndefined();
+  });
+
+  it('reads org id from the URI path without registry access', () => {
+    expect(
+      orgIdFromOrgMetadataUri(URI.parse(`${ORG_METADATA_SCHEME}:/orgs/00Dxx0000000001/ApexClass/MyTest.cls`))
+    ).toBe('00Dxx0000000001');
+    expect(orgIdFromOrgMetadataUri(URI.file('/ApexClass/MyTest.cls'))).toBeUndefined();
   });
 
   it('recognizes only complete, non-empty component references', () => {

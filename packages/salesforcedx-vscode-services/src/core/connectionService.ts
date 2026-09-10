@@ -334,14 +334,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
-            const resolved = yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            const desktopConn = yield* connectionCache.get(resolved);
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            yield* validateAccessTokenOrPromptReauth(desktopConn);
-            return desktopConn;
+            return yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
+              Effect.map(Option.getOrElse(() => usernameOrAlias)),
+              Effect.flatMap(resolved => connectionCache.get(resolved)),
+              Effect.tap(validateAccessTokenOrPromptReauth)
+            );
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
@@ -366,7 +365,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       const observedOrgId = connection.getAuthInfoFields().orgId;
       if (observedOrgId === expectedOrgId) return connection;
       return yield* new InactiveOrgOperationError({
-        message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
+        message: nls.localize('org_operation_target_changed', expectedOrgId),
         expectedOrgId,
         ...(observedOrgId ? { observedOrgId } : {})
       });

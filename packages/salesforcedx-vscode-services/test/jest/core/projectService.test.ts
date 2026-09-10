@@ -11,9 +11,15 @@ import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import { SfProject } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ProjectService, setProjectOpenedContext } from '../../../src/core/projectService';
+import {
+  canonicalProjectNamespace,
+  isWorkspaceNamespaceEligible,
+  ProjectService,
+  setProjectOpenedContext
+} from '../../../src/core/projectService';
 import { NoWorkspaceOpenError, WorkspaceService } from '../../../src/vscode/workspaceService';
 
 const workspaceLayer = (uri: URI | undefined) =>
@@ -89,5 +95,60 @@ describe('ProjectService opened context', () => {
     expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(1, 'setContext', 'sf:project_opened', true);
     expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(2, 'setContext', 'sf:project_opened', false);
     expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('ProjectService namespace', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it.each([
+    ['MyPackage', 'MyPackage'],
+    ['  MyPackage  ', 'MyPackage'],
+    ['', null],
+    ['   ', null],
+    [undefined, null],
+    [42, null]
+  ])('normalizes project namespace %p to %p', (value, expected) => {
+    expect(canonicalProjectNamespace(value)).toBe(expected);
+  });
+
+  it.each([
+    ['MyPackage', 'mypackage', true],
+    [null, null, true],
+    ['MyPackage', null, false],
+    [null, 'MyPackage', false],
+    ['MyPackage', 'OtherPackage', false]
+  ] as const)(
+    'evaluates requested namespace %p against project namespace %p',
+    (requestedNamespace, projectNamespace, expected) => {
+      expect(isWorkspaceNamespaceEligible(requestedNamespace, projectNamespace)).toBe(expected);
+    }
+  );
+
+  it('reads canonical namespace casing through ProjectService', async () => {
+    jest.spyOn(SfProject, 'resolve').mockResolvedValue({
+      getSfProjectJson: () => ({ getContents: () => ({ namespace: 'MyPackage' }) })
+    } as unknown as SfProject);
+
+    const namespace = await Effect.runPromise(
+      ProjectService.getProjectNamespace().pipe(Effect.provide(layerFor(URI.file('/project-namespace'))))
+    );
+
+    expect(namespace).toBe('MyPackage');
+  });
+
+  it('reports a missing Salesforce project as a typed resolution failure', async () => {
+    jest.spyOn(SfProject, 'resolve').mockRejectedValue(new Error('not a Salesforce project'));
+
+    const exit = await Effect.runPromiseExit(
+      ProjectService.getProjectNamespace().pipe(Effect.provide(layerFor(URI.file('/missing-project-namespace'))))
+    );
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(Exit.isFailure(exit) ? Option.getOrUndefined(Cause.failureOption(exit.cause)) : undefined).toMatchObject({
+      _tag: 'FailedToResolveSfProjectError'
+    });
   });
 });

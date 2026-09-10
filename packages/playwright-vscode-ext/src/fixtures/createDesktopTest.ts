@@ -426,9 +426,6 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         const setupPage = async (app: ElectronApplication): Promise<Page> => {
           const page = await waitForWorkbenchWindow(app, WORKBENCH_TIMEOUT_MS);
 
-          // Grant clipboard permissions for desktop (Electron)
-          await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-
           // Capture console logs (especially errors) for debugging
           page.on('console', msg => {
             if (

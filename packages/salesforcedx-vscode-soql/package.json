@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.13.7",
+  "version": "67.17.10",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -42,6 +42,7 @@
     "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
@@ -61,7 +62,7 @@
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "@salesforce/core": "^9.0.0",
+    "@salesforce/core": "^9.1.9",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
@@ -81,7 +82,7 @@
     "compile": "wireit",
     "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist dist-migration coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "build:soql-builder-lit": "wireit",
@@ -160,6 +161,7 @@
         "../soql-model:compile"
       ],
       "files": [
+        "../salesforcedx-vscode-services/src/core/schemas/sObject.ts",
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/rollup.config.mjs"
@@ -191,9 +193,11 @@
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
       "dependencies": [
+        "../soql-builder-ui:compile",
         "../soql-model:compile"
       ],
       "files": [
+        "src/soql-builder-ui/lit/**/*.ts",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",
         "src/soql-builder-ui/jestSetup/**",
@@ -261,15 +265,16 @@
       ]
     },
     "vscode:bundle:migration": {
-      "command": "node ./esbuild.config.mjs --lit-migration",
+      "command": "node scripts/build-lit-migration.mjs",
       "dependencies": [
         "compile",
         "copy:grammars",
-        "build:soql-builder-lit",
         "test:lit-foundation"
       ],
       "files": [
         "esbuild.config.mjs",
+        "scripts/build-lit-migration.mjs",
+        "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
@@ -277,7 +282,7 @@
         "src/soql-data-view/**"
       ],
       "output": [
-        "dist"
+        "dist-migration"
       ]
     },
     "vscode:bundle:local": {
@@ -367,7 +372,8 @@
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "../soql-builder-ui:test:browser"
       ],
       "files": [
         "test/playwright/**/*.ts",
@@ -426,11 +432,12 @@
       ]
     },
     "vscode:package:migration": {
-      "command": "vsce package --allow-package-all-secrets --out salesforcedx-vscode-soql-lit-migration.vsix",
+      "command": "node scripts/package-lit-migration.mjs",
       "dependencies": [
         "vscode:bundle:migration"
       ],
       "files": [
+        "scripts/package-lit-migration.mjs",
         ".vscodeignore",
         "package.json",
         "package.nls*.json",
@@ -602,6 +609,67 @@
           "default": 50000,
           "minimum": 1,
           "description": "%soql_max_query_limit%"
+        },
+        "salesforcedx-vscode-soql.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-soql.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SOQL Text Editor Run Query": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressStatusBarSuccessStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%"
+              ],
+              "description": "%notifications_soql_text_editor_run_query_description%"
+            },
+            "SOQL Builder Run Query": {
+              "type": "string",
+              "enum": [
+                "progressToast",
+                "progressStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
+              ],
+              "description": "%notifications_soql_builder_run_query_description%"
+            },
+            "Save Query Results": {
+              "type": "string",
+              "enum": [
+                "successToast",
+                "successStatusBar",
+                "successOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
+              ],
+              "description": "%notifications_save_query_results_description%"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },

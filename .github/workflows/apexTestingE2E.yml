@@ -58,16 +58,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
@@ -98,41 +90,47 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
-            --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
-
-      - name: Generate non-tracking project
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: sf project generate -n non-tracking-project
-
-      - name: Create scratch org
+      - name: Install Playwright and create scratch orgs
         if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
+          retry() {
+            local retry_wait_seconds=$1
+            local attempt command_pid timeout_pid
+            shift
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep "$retry_wait_seconds"; fi
+            done
+            return 1
+          }
 
-      - name: Create minimal scratch org
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
-        working-directory: non-tracking-project
+          retry 60 npx playwright install chromium --with-deps &
+          playwright_pid=$!
+
+          (
+            sf project generate -n non-tracking-project
+            retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+            cd non-tracking-project
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ) &
+          scratch_org_setup_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$scratch_org_setup_pid" || failed=1
+          exit "$failed"
 
       - name: Run Apex Testing E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -240,16 +238,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
@@ -280,41 +270,47 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
-            --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
-
-      - name: Generate non-tracking project
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: sf project generate -n non-tracking-project
-
-      - name: Create scratch org
+      - name: Install Playwright and create scratch orgs
         if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
+          retry() {
+            local retry_wait_seconds=$1
+            local attempt command_pid timeout_pid
+            shift
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep "$retry_wait_seconds"; fi
+            done
+            return 1
+          }
 
-      - name: Create minimal scratch org
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
-        working-directory: non-tracking-project
+          retry 60 npx playwright install chromium --with-deps &
+          playwright_pid=$!
+
+          (
+            sf project generate -n non-tracking-project
+            retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+            cd non-tracking-project
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ) &
+          scratch_org_setup_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$scratch_org_setup_pid" || failed=1
+          exit "$failed"
 
       - name: Run Apex Testing E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'

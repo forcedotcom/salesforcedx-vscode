@@ -20,6 +20,7 @@ import {
   tsConfigTemplateJson,
   type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as Arr from 'effect/Array';
 import * as ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -57,31 +58,27 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
             const pkgRoot = normalizePath(path.join(root, pkg.path));
 
             const lwcFiles = await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', pkgRoot);
-            const lwcDirs = [
-              ...new Set(
-                lwcFiles
-                  .map(p => {
-                    const parts = normalizePath(p).split('/');
-                    const i = parts.lastIndexOf('lwc');
-                    return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
-                  })
-                  .filter((d): d is NormalizedPath => d !== null)
-              )
-            ];
+            const lwcDirs = Arr.dedupe(
+              lwcFiles
+                .map(p => {
+                  const parts = normalizePath(p).split('/');
+                  const i = parts.lastIndexOf('lwc');
+                  return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
+                })
+                .filter((d): d is NormalizedPath => d !== null)
+            );
             roots.lwc.push(...lwcDirs);
 
             const auraFiles = await this.fileSystemAccessor.findFilesWithGlobAsync('**/aura/**', pkgRoot);
-            const auraDirs = [
-              ...new Set(
-                auraFiles
-                  .map(p => {
-                    const parts = normalizePath(p).split('/');
-                    const i = parts.lastIndexOf('aura');
-                    return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
-                  })
-                  .filter((d): d is NormalizedPath => d !== null)
-              )
-            ];
+            const auraDirs = Arr.dedupe(
+              auraFiles
+                .map(p => {
+                  const parts = normalizePath(p).split('/');
+                  const i = parts.lastIndexOf('aura');
+                  return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
+                })
+                .filter((d): d is NormalizedPath => d !== null)
+            );
             roots.aura.push(...auraDirs);
           }
         }
@@ -94,17 +91,15 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           '*/modules/**/lwc/**',
           workspaceRoot
         );
-        const lwcRootDirs = [
-          ...new Set(
-            pathsUnderLwc
-              .map(p => {
-                const segments = normalizePath(p).split('/');
-                const i = segments.lastIndexOf('lwc');
-                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
-              })
-              .filter((root): root is NormalizedPath => root != null)
-          )
-        ];
+        const lwcRootDirs = Arr.dedupe(
+          pathsUnderLwc
+            .map(p => {
+              const segments = normalizePath(p).split('/');
+              const i = segments.lastIndexOf('lwc');
+              return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
+            })
+            .filter((root): root is NormalizedPath => root != null)
+        );
         roots.lwc.push(...lwcRootDirs);
         return roots;
       }
@@ -115,18 +110,16 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
             this.fileSystemAccessor.findFilesWithGlobAsync('modules/**/lwc/**', normalizePath(ws))
           )
         );
-        const lwcRootDirs = [
-          ...new Set(
-            pathsUnderModulesLwc
-              .flatMap(paths => paths ?? [])
-              .map(p => {
-                const segments = normalizePath(p).split('/');
-                const i = segments.lastIndexOf('lwc');
-                return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
-              })
-              .filter((r): r is NormalizedPath => r != null)
-          )
-        ];
+        const lwcRootDirs = Arr.dedupe(
+          pathsUnderModulesLwc
+            .flatMap(paths => paths ?? [])
+            .map(p => {
+              const segments = normalizePath(p).split('/');
+              const i = segments.lastIndexOf('lwc');
+              return i === -1 ? null : normalizePath(segments.slice(0, i + 1).join('/'));
+            })
+            .filter((r): r is NormalizedPath => r != null)
+        );
         roots.lwc.push(...lwcRootDirs);
         return roots;
       }
@@ -138,20 +131,18 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         const workspaceRoot = normalizePath(this.workspaceRoots[0]);
         const pathsUnderLwc = await this.fileSystemAccessor.findFilesWithGlobAsync('**/lwc/**', workspaceRoot);
         const IGNORED_DIRS = new Set(['node_modules', 'bin', 'target', 'jest-modules', 'repository', 'git']);
-        const lwcRootDirs = [
-          ...new Set(
-            pathsUnderLwc
-              .map(p => {
-                const segments = normalizePath(p).split('/');
-                const i = segments.lastIndexOf('lwc');
-                if (i === -1) return null;
-                const rootPath = normalizePath(segments.slice(0, i + 1).join('/'));
-                const hasIgnored = segments.slice(0, i + 1).some(seg => IGNORED_DIRS.has(seg));
-                return hasIgnored ? null : rootPath;
-              })
-              .filter((root): root is NormalizedPath => root != null)
-          )
-        ];
+        const lwcRootDirs = Arr.dedupe(
+          pathsUnderLwc
+            .map(p => {
+              const segments = normalizePath(p).split('/');
+              const i = segments.lastIndexOf('lwc');
+              if (i === -1) return null;
+              const rootPath = normalizePath(segments.slice(0, i + 1).join('/'));
+              const hasIgnored = segments.slice(0, i + 1).some(seg => IGNORED_DIRS.has(seg));
+              return hasIgnored ? null : rootPath;
+            })
+            .filter((root): root is NormalizedPath => root != null)
+        );
         roots.lwc.push(...lwcRootDirs);
         return roots;
       }

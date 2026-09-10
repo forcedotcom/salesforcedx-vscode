@@ -7,8 +7,10 @@
 import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -83,11 +85,11 @@ const byTypeAndMarkers = (): Order.Order<OrgAuthorization> =>
 
 const byAliasFirst: Order.Order<OrgAuthorization> = Order.mapInput(
   Order.reverse(Order.boolean),
-  (o: OrgAuthorization) => !!o.aliases?.[0]
+  (o: OrgAuthorization) => Option.getOrElse(Option.map(Arr.head(o.aliases ?? []), Boolean), () => false)
 );
 
 const byAliasOrUsername: Order.Order<OrgAuthorization> = Order.mapInput(Order.string, (o: OrgAuthorization) =>
-  (o.aliases?.[0] ?? o.username ?? '').toLowerCase()
+  Option.getOrElse(Arr.head(o.aliases ?? []), () => o.username ?? '').toLowerCase()
 );
 
 /** Sort: Scratch, Sandbox, Other, DevHub, Defaults; within each, aliases first then alphabetical. Exported for test. */
@@ -116,7 +118,7 @@ const orgAuthToQuickPickItem =
       label,
       description: descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined,
       orgUsername: orgAuth.username,
-      orgAlias: orgAuth.aliases?.[0],
+      orgAlias: Option.getOrElse(Arr.head(orgAuth.aliases ?? []), () => undefined),
       orgType
     };
   };
@@ -280,7 +282,7 @@ const getStatusBarContent = Effect.fn('updateTargetOrgDisplay', {
     : false;
   const orgType = getOrgTypeFromInfo(orgInfo);
   const typeIcon = getIconForOrgType(orgType);
-  const displayName = aliases?.[0] ?? username;
+  const displayName = Option.getOrElse(Arr.head(aliases ?? []), () => username);
   const text = `${typeIcon} ${displayName}${isExpired ? ` ${ICONS.WARNING}` : ''}`;
 
   const tooltip = new vscode.MarkdownString();

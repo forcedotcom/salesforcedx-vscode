@@ -6,7 +6,7 @@
  */
 
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import type { DebugProtocol } from '@vscode/debugprotocol';
 
 export class BreakpointUtil {
   private static instance: BreakpointUtil;
