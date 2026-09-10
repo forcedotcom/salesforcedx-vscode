@@ -114,15 +114,17 @@ const triggerLspRestart = async (page: Page, via: 'palette' | 'statusBar'): Prom
   await (via === 'palette' ? executeCommandWithCommandPalette(page, RESTART_COMMAND) : clickApexLspRestartAction(page));
   await selectRestartOnlyQuickPick(page);
 
-  // Intermediate "restarting" status is a transient, best-effort signal only: in the container the
-  // status item can flip through "is restarting" faster (or slower) than the 10s the desktop twin
-  // used, so a hard wait here was racy and flaked. The durable proof that the restart actually
-  // happened is the freshly-cleared Apex Language Server channel re-emitting PRELUDE_STARTING,
-  // followed by the "Indexing complete" language-status button — both asserted below.
-  await getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)
-    .waitFor({ state: 'visible', timeout: 30_000 })
-    .catch(() => {});
-
+  // Fail-fast no-op guard. The desktop twin proves the restart command was not ignored by asserting
+  // the transient "Apex Language Server is restarting" status button (toBeVisible, 10s). That
+  // transient state cannot be observed reliably here: the language-status flip is pushed from the
+  // Node extension host to the browser over a round-trip, so a fast restart can settle back to
+  // "Indexing complete" between DOM polls and the assertion flakes (the earlier code swallowed the
+  // wait with `.catch(() => {})`, so it guarded nothing). We instead guard on a DURABLE signal.
+  // clearOutputChannel above asserted the Apex Language Server channel is completely EMPTY, and only
+  // a real jorje (re)start prints its startup prelude into that channel. A no-op restart leaves the
+  // freshly-cleared channel empty, so this wait throws ("Output channel did not have content") — the
+  // same fail-fast the twin's restarting-button check gives, without the transient-state race. Then
+  // waitForApexLspReady confirms the server re-reached "Indexing complete" after the fresh start.
   await waitForOutputChannelText(page, { expectedText: PRELUDE_STARTING, timeout: 60_000 });
   await waitForApexLspReady(page);
 };

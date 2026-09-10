@@ -61,11 +61,19 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
-// fixme: the `System Debug` snippet comes from the marketplace `salesforce.apex-language-server-extension`
-// (the desktop twin injects it via a dedicated `marketplaceExtensions` fixture); its snippet
-// contribution is not confirmed present/loaded in the swapped Code Builder image, so "Snippets:
-// Insert Snippet" opens no picker (15s waitFor timeout). Re-enable once the image is verified to
-// ship the apex.json snippet contribution.
+// fixme: NOT-WORKABLE — packaging gap confirmed. The `System Debug` snippet is an apex.json snippet
+// contributed ONLY by the marketplace extension `salesforce.apex-language-server-extension`; no
+// package in this monorepo declares `contributes.snippets` for apex (only salesforcedx-vscode-lwc
+// contributes snippets, and no apex.json snippet file exists here), which is why the desktop twin
+// has to inject that marketplace extension via its `marketplaceExtensions` fixture
+// (desktopFixtures.ts). The CB container swap wipes every `salesforce.*` extension by publisher glob
+// (`rm -rf .../salesforce.*`, PUBLISHER_PREFIX='salesforce' — scripts/codeBuilderLocalE2E.ts +
+// packages/playwright-vscode-ext/src/codeBuilder/swap.ts) and reinstalls ONLY the monorepo-built
+// VSIXes. The monorepo builds no `apex-language-server-extension`, so after the swap that extension
+// (and its apex.json snippet) is absent from the image. "Snippets: Insert Snippet" therefore opens
+// no apex picker (15s waitFor timeout). This cannot pass until either the snippet ships from an
+// extension built in this repo (e.g. salesforcedx-vscode-apex) or the swap preserves/installs
+// salesforce.apex-language-server-extension.
 test.fixme('Apex snippets (Code Builder): Insert Snippet applies System Debug in .cls', async ({ page }) => {
   test.setTimeout(6 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
