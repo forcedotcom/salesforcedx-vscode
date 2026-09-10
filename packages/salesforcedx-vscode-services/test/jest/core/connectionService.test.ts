@@ -621,7 +621,7 @@ describe('ConnectionService.getConnection (Web Console)', () => {
           WebSettingsService,
           WebSettingsService.make({
             getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
-            getRedactedAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
             getApiVersion: () => WebEffect.succeed('67.0')
           } as never)
         )

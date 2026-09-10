@@ -25,22 +25,11 @@ const runGetApiVersion = (): Promise<string> =>
 const runGetAccessToken = () =>
   Effect.runPromise(SettingsService.getAccessToken().pipe(Effect.provide(SettingsService.Default)));
 
-const runGetRedactedAccessToken = () =>
-  Effect.runPromise(SettingsService.getRedactedAccessToken().pipe(Effect.provide(SettingsService.Default)));
-
 describe('SettingsService.getAccessToken', () => {
-  it('returns the trimmed token as a string', async () => {
-    mockGetConfiguration(' access-token ');
-
-    expect(await runGetAccessToken()).toBe('access-token');
-  });
-});
-
-describe('SettingsService.getRedactedAccessToken', () => {
   it('returns the trimmed token as a redacted value', async () => {
     mockGetConfiguration(' access-token ');
 
-    const accessToken = await runGetRedactedAccessToken();
+    const accessToken = await runGetAccessToken();
 
     expect(String(accessToken)).toBe('<redacted>');
     expect(Redacted.value(accessToken)).toBe('access-token');

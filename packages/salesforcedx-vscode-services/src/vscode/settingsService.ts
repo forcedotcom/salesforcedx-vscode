@@ -117,11 +117,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             message: `Failed to get access token: ${cause.message ?? String(cause)}`
           });
         }
-      }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)));
-    });
-
-    const getRedactedAccessToken = Effect.fn('SettingsService.getRedactedAccessToken')(function* () {
-      return Redacted.make(yield* getAccessToken());
+      }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)), Effect.map(Redacted.make));
     });
 
     const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
@@ -226,10 +222,8 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       setValue,
       /** Get the Salesforce instance URL from settings */
       getInstanceUrl,
-      /** Get the Salesforce access token from settings */
-      getAccessToken,
       /** Get the Salesforce access token from settings as a redacted value */
-      getRedactedAccessToken,
+      getAccessToken,
       /** Get the Salesforce API version from settings. In the form of '67.0' */
       getApiVersion,
       /** Set the Salesforce instance URL in settings */

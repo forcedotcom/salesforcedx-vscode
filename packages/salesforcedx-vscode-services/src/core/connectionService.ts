@@ -320,7 +320,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
             const instanceUrl = yield* settingsService.getInstanceUrl();
-            const accessToken = yield* settingsService.getRedactedAccessToken();
+            const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
