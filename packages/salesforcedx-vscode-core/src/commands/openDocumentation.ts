@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'node:path';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import {
   APEX_CLASSES_PATH,
   APEX_FILE_NAME_EXTENSION,
@@ -17,30 +19,51 @@ import {
   SOQL_FILE_NAME_EXTENSION
 } from '../constants';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
-export const openDocumentation = (): void => {
-  let docUrl = '';
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const filePath = editor.document.fileName;
-    const extension = path.extname(filePath);
+export const openDocumentationCommand = Effect.fn('openDocumentationCommand')(function* () {
+  const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+  const activeEditorUri = yield* servicesApi.services.EditorService.getActiveEditorUri().pipe(
+    Effect.catchTag('NoActiveEditorError', () => Effect.void)
+  );
+  const activeFilePath = activeEditorUri?.fsPath;
+  const extension = activeEditorUri ? Utils.extname(activeEditorUri) : undefined;
+  const documentationType = Match.value(activeFilePath).pipe(
+    Match.when(Match.undefined, () => 'default' as const),
+    Match.when(
+      filePath => filePath.includes(AURA_PATH),
+      () => 'aura' as const
+    ),
+    Match.when(
+      filePath => filePath.includes(APEX_CLASSES_PATH) || extension === APEX_FILE_NAME_EXTENSION,
+      () => 'apex' as const
+    ),
+    Match.when(
+      () => extension === SOQL_FILE_NAME_EXTENSION,
+      () => 'soql' as const
+    ),
+    Match.when(
+      filePath => filePath.includes(LWC_PATH),
+      () => 'lwc' as const
+    ),
+    Match.when(
+      filePath => filePath.includes(FUNCTIONS_PATH),
+      () => 'functions' as const
+    ),
+    Match.orElse(() => 'default' as const)
+  );
+  const docUrl = Match.value(documentationType).pipe(
+    Match.when('aura', () => nls.localize('aura_doc_url')),
+    Match.when('apex', () => nls.localize('apex_doc_url')),
+    Match.when('soql', () => nls.localize('soql_doc_url')),
+    Match.when('lwc', () => nls.localize('lwc_doc_url')),
+    Match.when('functions', () => nls.localize('functions_doc_url')),
+    Match.when('default', () => nls.localize('default_doc_url')),
+    Match.exhaustive
+  );
 
-    if (filePath.includes(AURA_PATH)) {
-      docUrl = nls.localize('aura_doc_url');
-    } else if (filePath.includes(APEX_CLASSES_PATH) || extension === APEX_FILE_NAME_EXTENSION) {
-      docUrl = nls.localize('apex_doc_url');
-    } else if (extension === SOQL_FILE_NAME_EXTENSION) {
-      docUrl = nls.localize('soql_doc_url');
-    } else if (filePath.includes(LWC_PATH)) {
-      docUrl = nls.localize('lwc_doc_url');
-    } else if (filePath.includes(FUNCTIONS_PATH)) {
-      docUrl = nls.localize('functions_doc_url');
-    }
-  }
-
-  if (docUrl === '') {
-    docUrl = nls.localize('default_doc_url');
-  }
-
-  void vscode.env.openExternal(URI.parse(docUrl));
-};
+  yield* Effect.sync(() =>
+    telemetryService.sendCommandEvent('sf.open.documentation', undefined, { type: documentationType })
+  );
+  yield* Effect.promise(() => vscode.env.openExternal(URI.parse(docUrl)));
+});
