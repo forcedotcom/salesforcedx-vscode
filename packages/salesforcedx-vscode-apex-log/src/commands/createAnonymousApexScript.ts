@@ -8,6 +8,7 @@
 import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import * as String from 'effect/String';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -26,10 +27,7 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
         return undefined;
       }
     })
-  ).pipe(
-    Effect.map(raw => raw?.trim()),
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
