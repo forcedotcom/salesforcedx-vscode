@@ -6,6 +6,7 @@
  */
 
 import { StackFrame } from '@vscode/debugadapter';
+import { isNotNull, isNull, isUndefined } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import {
   ApexExecutionOverlayResultCommandSuccess,
@@ -38,7 +39,7 @@ const isAddress = (value: any): boolean => typeof value === 'string' && value.st
 
 const createStringFromExtentValue = (value: any): string =>
   // can't toString undefined or null
-  value === undefined || value === null ? String(value) : value.toString();
+  isUndefined(value) || isNull(value) ? String(value) : value.toString();
 
 const PRIMITIVE_TYPES = new Set([
   LC_APEX_PRIMITIVE_BLOB,
@@ -70,7 +71,7 @@ const getKeyTypeForMap = (typeName: string, collectionType: string): string => {
 const isTriggerExtent = (outerExtent: HeapDumpExtents): boolean =>
   (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN || isCollectionType(outerExtent.typeName)) &&
   outerExtent.count > 0 &&
-  outerExtent.extent[0].symbols !== null &&
+  isNotNull(outerExtent.extent[0].symbols) &&
   outerExtent.extent[0].symbols.length > 0 &&
   outerExtent.extent[0].symbols[0].startsWith(EXTENT_TRIGGER_PREFIX);
 
@@ -438,7 +439,7 @@ export class HeapDumpService {
     // and we can't reset set the value now.
     if (visitedMap.has(refVariable.ref)) {
       const visitedVar = visitedMap.get(refVariable.ref)!;
-      if (visitedVar !== null) {
+      if (isNotNull(visitedVar)) {
         if (visitedVar.name !== varName) {
           const updatedNameVarContainer = this.copyReferenceContainer(visitedVar, varName, false);
           updateAfterVarCreation.push(updatedNameVarContainer);
