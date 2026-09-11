@@ -238,15 +238,75 @@ const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
   return result.reason;
 };
 
+const argumentsBeforeDoubleDash = arguments_ => {
+  const doubleDash = arguments_.indexOf('--');
+  return doubleDash < 0 ? arguments_ : arguments_.slice(0, doubleDash);
+};
+
+const hasShortOption = (arguments_, options) =>
+  argumentsBeforeDoubleDash(arguments_).some(
+    argument =>
+      argument.startsWith('-') &&
+      !argument.startsWith('--') &&
+      [...argument.slice(1)].some(option => options.includes(option))
+  );
+
+const hasLongOption = (arguments_, option) =>
+  argumentsBeforeDoubleDash(arguments_).some(argument => argument === option || argument.startsWith(`${option}=`));
+
+const effectiveTracking = arguments_ =>
+  argumentsBeforeDoubleDash(arguments_).reduce((tracking, argument) => {
+    if (argument === '--no-track') return false;
+    return argument === '--track' || argument.startsWith('--track=') || hasShortOption([argument], 't')
+      ? true
+      : tracking;
+  }, undefined);
+
+const branchDoesNotCreate = arguments_ =>
+  hasShortOption(arguments_, 'alrvdDmMcCu') ||
+  [
+    '--all',
+    '--remotes',
+    '--delete',
+    '--move',
+    '--copy',
+    '--list',
+    '--show-current',
+    '--edit-description',
+    '--set-upstream-to',
+    '--unset-upstream',
+    '--contains',
+    '--no-contains',
+    '--merged',
+    '--no-merged',
+    '--points-at',
+    '--column',
+    '--sort',
+    '--format'
+  ].some(option => hasLongOption(arguments_, option));
+
 const trackedBaseBranchDenial = ({ command, cwd }) =>
   inspectCommand(command, cwd, tokens => {
     const git = gitCommand(tokens);
-    if (!git || git.arguments.includes('--no-track')) return undefined;
-    const namesRemoteBase = git.arguments.some(argument => argument === 'origin/develop' || argument === 'origin/main');
+    if (!git) return undefined;
+    const arguments_ = git.subcommand === 'checkout' ? argumentsBeforeDoubleDash(git.arguments) : git.arguments;
+    const remoteBaseIndex = arguments_.findIndex(
+      argument => argument === 'origin/develop' || argument === 'origin/main'
+    );
+    const namesBranchBeforeRemoteBase = arguments_
+      .slice(0, remoteBaseIndex)
+      .some(argument => !argument.startsWith('-'));
+    const tracking = effectiveTracking(git.arguments);
     const createsBranch =
       (git.subcommand === 'worktree' && git.arguments[0] === 'add') ||
-      (git.subcommand === 'checkout' && git.arguments.includes('-b'));
-    return namesRemoteBase && createsBranch ? TRACKED_BASE_BRANCH_REASON : undefined;
+      (git.subcommand === 'checkout' && (hasShortOption(git.arguments, 'bB') || tracking === true)) ||
+      (git.subcommand === 'switch' &&
+        (hasShortOption(git.arguments, 'cC') ||
+          hasLongOption(git.arguments, '--create') ||
+          hasLongOption(git.arguments, '--force-create') ||
+          tracking === true)) ||
+      (git.subcommand === 'branch' && !branchDoesNotCreate(git.arguments) && namesBranchBeforeRemoteBase);
+    return remoteBaseIndex >= 0 && tracking !== false && createsBranch ? TRACKED_BASE_BRANCH_REASON : undefined;
   }).reason;
 
 export const commandDenial = (input, policy = 'all') =>
