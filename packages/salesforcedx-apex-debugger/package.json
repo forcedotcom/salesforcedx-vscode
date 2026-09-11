@@ -35,7 +35,8 @@
     "bundle:debugger": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
+    "check:circular-deps": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit"
   },
@@ -100,6 +101,7 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
+        "check:circular-deps",
         "compile"
       ],
       "files": [
@@ -110,6 +112,18 @@
         "package.nls.json"
       ],
       "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
     }
   }
 }

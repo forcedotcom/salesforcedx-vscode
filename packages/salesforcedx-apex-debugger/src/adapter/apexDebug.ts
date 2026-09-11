@@ -75,9 +75,10 @@ import {
   StreamingService
 } from '../core';
 import { extractJsonObject } from '../extractJsonObject';
-import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
+import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../vscodeDebuggerMessage';
+import { WorkspaceSettings } from '../workspaceSettings';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
