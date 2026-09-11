@@ -12,6 +12,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
+import { HostFileWatcher } from './core/hostFileWatcher';
 import { LightningComponentService } from './core/lightningComponentService';
 import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
@@ -54,6 +55,7 @@ export const globalLayers = Layer.mergeAll(
   ExecuteAnonymousService.Default,
   ExtensionsService.Default,
   FileChangePubSub.Default,
+  HostFileWatcher.Default,
   ApexLogService.Default,
   ComponentSetService.Default,
   LightningComponentService.Default,
