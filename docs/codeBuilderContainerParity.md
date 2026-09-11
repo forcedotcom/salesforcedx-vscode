@@ -97,7 +97,7 @@ The 46 not-ported specs by blocking constraint:
 | Reads span/telemetry files | 5 |
 | Webview-only surface | 2 |
 | Slow/mutating positive retrieve | 2 |
-| Needs desktop window reload / native file-watch event | 2 |
+| Reload-flakiness in web / native file-watch event not delivered | 2 |
 | Dev/Test-only internal command | 1 |
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
 | **Reachable but not yet ported** | **2** |
@@ -139,11 +139,15 @@ webviews).
 **Slow/mutating positive retrieve (writes metadata into the shared fixture)** — services:
 `retrieveOnLoadMetadata`, `retrieveOnLoadRetry` (the no-op branch is covered by `retrieveOnLoad`).
 
-**Needs a desktop window reload or native file-watch event the web container can't deliver** —
-org-browser: `orgBrowser.filterToggle.desktop`; lwc: `lwcLspSfdxProjectWatcher` (mutates
-`sfdx-project.json` and asserts the debounced FS-watcher restarts the LWC LSP — code-server doesn't
-deliver the cross-extension-host config/FS event at runtime, the same limitation behind the
-`test.fixme`'d tracking specs).
+**Reload-flakiness in web, or a native file-watch event the container can't deliver** — org-browser:
+`orgBrowser.filterToggle.desktop`; lwc: `lwcLspSfdxProjectWatcher`. `reloadWindow` (`Developer: Reload
+Window`) *does* work in code-server — the block is narrower: `filterToggle` verifies state persistence
+*across a reload*, and in the web/dev harness a reload is a full page reload that re-fetches extension
+bundles from the dev web server (a flakiness source unrelated to the assertion), so the desktop twin
+covers it more reliably. `lwcLspSfdxProjectWatcher` mutates `sfdx-project.json` and asserts the
+debounced FS-watcher restarts the LWC LSP — that relies on a cross-extension-host config/FS **event**
+code-server doesn't deliver at runtime (the real limitation behind the `test.fixme`'d tracking specs),
+which a reload would mask rather than test.
 
 **Dev/Test-only internal command absent in the container** — services: `redactingConsoleLogger`. It
 drives `sf.internal.testRedactingConsoleLogger`, which core registers only when
@@ -177,9 +181,11 @@ and org-browser `customObject`/`customTab`/`folderedReport`/`textFilterDreamhous
 **Documented `test.fixme` (code-server limitation):** metadata `nonTrackingOrgTrackingCommandsHidden`
 and `nonTrackingOrgTrackingUIHidden`. The metadata source-tracking status bar re-evaluates only on a
 `~/.sf/config.json` file event, which code-server does not deliver cross-extension-host for a RUNTIME
-org switch — so the tracking UI doesn't hide after switching to a non-tracking org without a window
-reload the web container can't perform. (`sourceTrackingStatusBar` avoids this by testing the boot
-org, which is tracking + default from activation.)
+org switch — so the tracking UI doesn't hide after switching to a non-tracking org. A window reload
+*would* refresh it (reload works in code-server), but that would mask the real gap — the metadata
+extension is a separate host and should observe the switch without a reload — so these are `fixme`'d
+pending a product fix rather than papered over. (`sourceTrackingStatusBar` avoids this by testing the
+boot org, which is tracking + default from activation.)
 
 ## Reachable but not yet ported
 
@@ -253,11 +259,12 @@ helpers** in `playwright-vscode-ext`; specs hand-roll it plus a local `continueD
 ## Workspace-shape portability assessment
 
 The 11 "different workspace shape" specs are the largest not-ported bucket. A feasibility review found
-**8 of 11 reachable, 3 effectively blocked** — but every reachable path must change the shape at
-**boot** (via what `coder.json` opens / whether an org is authed), never at **runtime**. Closing the
-workspace or removing the boot org mid-session rides the same cross-extension-host event / window-reload
-limitation already `test.fixme`'d for the tracking specs, and corrupts the one shared serial workbench
-for every subsequent spec.
+**8 of 11 reachable, 3 effectively blocked** — but every reachable path must change the shape at a
+**phase boundary** (re-seed `coder.json` + `restart()`, which the orchestrator already does), never by
+mutating the shape *mid-suite*. Closing the workspace or removing the boot org in the middle of the one
+shared serial session corrupts the workbench every subsequent spec depends on. (This is a shared-session-
+integrity cost, not a code-server limitation — a reload/`restart()` at a phase boundary is fully
+supported; `reloadWindow` works in code-server.)
 
 | Spec(s) | Shape needed | Verdict |
 | --- | --- | --- |
@@ -265,7 +272,7 @@ for every subsequent spec.
 | apex-log/apex-testing `noProjectVisibility`, metadata `noProjectCommandsHidden`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **MEDIUM** — org-agnostic palette-visibility checks; add an orchestrator phase that re-seeds `coder.json` to a non-project / no folder + existing `restart()`. Touches only orchestrator/config, not the shared fixture |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **MEDIUM** — needs a **second** multi-package mount. Do NOT convert the shared fixture to multi-package: it would make every class/trigger-create command start prompting a dir picker → regresses existing apex specs |
 | apex-log/apex-testing `noOrgVisibility` | DX project open, **no org** | **MEDIUM–HARD** — needs a dedicated **no-org container boot** (make `bootEnv`/org optional in `lifecycle.ts` + orchestrator); can't be a mid-run phase since `restart()` re-auths the org |
-| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold a new project on disk | **HARD / blocked** — assert files via host `node:fs` (container FS is invisible unless under the bind mount), target dir `/home/codebuilder` isn't mounted, and Create Project ends with `vscode.openFolder` → reloads the shared workbench (the unreliable path). Low value-to-cost |
+| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold a new project on disk | **HARD / blocked** — assert files via host `node:fs` (container FS is invisible unless under the bind mount), target dir `/home/codebuilder` isn't mounted, and Create Project ends with `vscode.openFolder` (changing the opened folder — a harder operation than a plain reload, and it re-navigates the shared workbench). Low value-to-cost |
 
 **Cheapest path (highest reachable-count-per-effort):** ship `manifestCommandVisibility` first (no shape
 change). Then cover the four visibility specs with **one** added orchestrator capability — re-seed
