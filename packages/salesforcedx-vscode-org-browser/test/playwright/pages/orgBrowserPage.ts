@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNull } from 'effect/Predicate';
 import { Page, Locator, expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
@@ -77,7 +78,7 @@ export class OrgBrowserPage {
     const firstRootItem = this.sidebar.getByRole('treeitem', { level: 1 }).first();
     if ((await firstRootItem.count()) === 0) return 0;
     const setSize = await firstRootItem.getAttribute('aria-setsize');
-    return setSize === null ? 0 : Number(setSize);
+    return isNull(setSize) ? 0 : Number(setSize);
   }
 
   /** Poll {@link getRootTypeCount} until it reaches `expected` (the tree re-fetches asynchronously after a filter toggle). */

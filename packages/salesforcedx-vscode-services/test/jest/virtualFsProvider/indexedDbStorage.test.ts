@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { createFsFromVolume, Volume } from 'memfs';
 import { Buffer } from 'node:buffer';
 import * as vscode from 'vscode';
-import { IndexedDBStorageService, parseMyDomain } from '../../../src/virtualFsProvider/indexedDbStorage';
+import { IndexedDBStorageService } from '../../../src/virtualFsProvider/indexedDbStorage';
 
 const makeRequest = <T>(result: () => T, complete: () => void): IDBRequest<T> => {
   const request = {
@@ -79,48 +79,6 @@ const installIndexedDb = (): void => {
     }
   });
 };
-
-describe('parseMyDomain', () => {
-  it('extracts myDomain from production URL', () => {
-    expect(parseMyDomain('https://acme.my.salesforce.com')).toBe('acme');
-  });
-
-  it('extracts myDomain from sandbox URL', () => {
-    expect(parseMyDomain('https://acme--dev.sandbox.my.salesforce.com')).toBe('acme--dev.sandbox');
-  });
-
-  it('extracts myDomain from scratch org URL', () => {
-    expect(parseMyDomain('https://mycorp.scratch.my.salesforce.com')).toBe('mycorp.scratch');
-  });
-
-  it('extracts myDomain from military URL', () => {
-    expect(parseMyDomain('https://acme.my.salesforce.mil')).toBe('acme');
-  });
-
-  it('extracts myDomain from alternative domain URL', () => {
-    expect(parseMyDomain('https://acme.my-salesforce.com')).toBe('acme');
-  });
-
-  it('extracts myDomain from China domain URL', () => {
-    expect(parseMyDomain('https://acme.my.sfcrmproducts.cn')).toBe('acme');
-  });
-
-  it('extracts myDomain from URL with trailing path', () => {
-    expect(parseMyDomain('https://acme.my.salesforce.com/')).toBe('acme');
-  });
-
-  it('extracts myDomain from URL with path', () => {
-    expect(parseMyDomain('https://acme.my.salesforce.com/lightning/setup/SetupOneHome/home')).toBe('acme');
-  });
-
-  it('falls back to full hostname for unknown domain', () => {
-    expect(parseMyDomain('https://unknown.example.com')).toBe('unknown.example.com');
-  });
-
-  it('falls back to full hostname for internal vpod domain', () => {
-    expect(parseMyDomain('https://acme.vpod.force.com')).toBe('acme.vpod.force.com');
-  });
-});
 
 describe('IndexedDBStorageService', () => {
   beforeEach(() => {

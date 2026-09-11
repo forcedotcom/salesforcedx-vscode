@@ -6,32 +6,7 @@
  */
 
 import type { ChannelService } from '../commands/channelService';
-import * as vscode from 'vscode';
-
-/** Must match the org extension id in its `package.json` (`publisher`.`name`). */
-const SALESFORCE_VSCODE_ORG_EXTENSION_ID = 'salesforce.salesforcedx-vscode-org';
-
 /** Public API returned by Salesforce Org Management `activate()` (same shape as Core extension `channelService`). */
 export type SalesforceVSCodeOrgApi = {
   channelService: Pick<ChannelService, 'appendLine' | 'showChannelOutput'>;
-};
-
-/** Resolves when the org extension is present and activated; otherwise `undefined` (no throw). */
-export const getSalesforceVSCodeOrgExtension = async (): Promise<
-  vscode.Extension<SalesforceVSCodeOrgApi> | undefined
-> => {
-  const salesforceVSCodeOrgExtension = vscode.extensions.getExtension<SalesforceVSCodeOrgApi>(
-    SALESFORCE_VSCODE_ORG_EXTENSION_ID
-  );
-  if (!salesforceVSCodeOrgExtension) {
-    return undefined;
-  }
-  if (!salesforceVSCodeOrgExtension.isActive) {
-    try {
-      await salesforceVSCodeOrgExtension.activate();
-    } catch {
-      return undefined;
-    }
-  }
-  return salesforceVSCodeOrgExtension;
 };
