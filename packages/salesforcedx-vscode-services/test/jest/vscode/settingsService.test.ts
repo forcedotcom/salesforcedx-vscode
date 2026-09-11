@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Redacted from 'effect/Redacted';
 import * as vscode from 'vscode';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
@@ -20,6 +21,20 @@ const mockGetConfiguration = (value: string | undefined): void => {
 
 const runGetApiVersion = (): Promise<string> =>
   Effect.runPromise(SettingsService.getApiVersion().pipe(Effect.provide(SettingsService.Default)));
+
+const runGetAccessToken = () =>
+  Effect.runPromise(SettingsService.getAccessToken().pipe(Effect.provide(SettingsService.Default)));
+
+describe('SettingsService.getAccessToken', () => {
+  it('returns the trimmed token as a redacted value', async () => {
+    mockGetConfiguration(' access-token ');
+
+    const accessToken = await runGetAccessToken();
+
+    expect(String(accessToken)).toBe('<redacted>');
+    expect(Redacted.value(accessToken)).toBe('access-token');
+  });
+});
 
 describe('SettingsService.getApiVersion', () => {
   it('falls back to 67.0 when the setting is unset', async () => {

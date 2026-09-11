@@ -9,7 +9,7 @@ import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -540,7 +540,7 @@ const DISPLAY_OBJECT_MAX_DEPTH = 10;
  * Formats a value inside an object/array for display (shows `null` / `undefined` as words).
  */
 const formatNestedDisplayValue = (value: unknown, depthRemaining: number): string => {
-  if (value === null) {
+  if (isNull(value)) {
     return 'null';
   }
   if (isUndefined(value)) {

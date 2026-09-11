@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.4",
+  "version": "67.17.11",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -71,7 +71,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-apex:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services:compile"

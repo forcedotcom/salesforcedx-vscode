@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
+import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -201,7 +201,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const testService = new TestService(connection);
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
-            payload: { testLevel: TestLevel.RunAllTestsInOrg, skipCodeCoverage: !codeCoverage },
+            payload: { testLevel: 'RunAllTestsInOrg' as const, skipCodeCoverage: !codeCoverage },
             hasSuite: false,
             hasClass: false
           }

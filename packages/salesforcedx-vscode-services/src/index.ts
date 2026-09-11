@@ -19,6 +19,7 @@ import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef
 import { AliasService } from './core/alias';
 import { watchAliasFile } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
+import { ArtifactProjectionSchemas } from './core/artifactProjection';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
@@ -44,6 +45,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
@@ -83,45 +85,49 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
+type PrebuiltServicesDependencies =
+  | AliasService
+  | ApexLogService
+  | ChannelService
+  | ComponentSetService
+  | LightningComponentService
+  | ConfigService
+  | ConnectionService
+  | EditorService
+  | ErrorHandlerService
+  | ExecuteAnonymousService
+  | FileChangePubSub
+  | FsService
+  | MediaService
+  | MetadataChangeNotificationService
+  | MetadataDeleteService
+  | MetadataDeployService
+  | MetadataDescribeService
+  | OrgMetadataCatalog
+  | OrgMetadataCatalogChangePubSub
+  | PromptService
+  | MetadataRegistryService
+  | MetadataRetrieveService
+  | ProjectService
+  | Resource.Resource
+  | SettingsChangePubSub
+  | SettingsService
+  | SourceTrackingService
+  | TemplateService
+  | TerminalService
+  | TraceFlagService
+  | TransmogrifierService
+  | WorkspaceService;
+
 export type SalesforceVSCodeServicesApi = {
   services: {
-    /** contains most of the dependencies prebuilt in the services extension */
-    prebuiltServicesDependencies: Context.Context<
-      | AliasService
-      | ApexLogService
-      | ChannelService
-      | ComponentSetService
-      | LightningComponentService
-      | ConfigService
-      | ConnectionService
-      | EditorService
-      | ErrorHandlerService
-      | ExecuteAnonymousService
-      | FileChangePubSub
-      | FsService
-      | MediaService
-      | MetadataChangeNotificationService
-      | MetadataDeleteService
-      | MetadataDeployService
-      | MetadataDescribeService
-      | OrgMetadataCatalog
-      | OrgMetadataCatalogChangePubSub
-      | PromptService
-      | MetadataRegistryService
-      | MetadataRetrieveService
-      | ProjectService
-      | Resource.Resource
-      | SettingsChangePubSub
-      | SettingsService
-      | SourceTrackingService
-      | TemplateService
-      | TerminalService
-      | TraceFlagService
-      | TransmogrifierService
-      | WorkspaceService
-    >;
+    /** @deprecated Use prebuiltServicesLayer so Effect runtime configuration is preserved. */
+    prebuiltServicesDependencies: Context.Context<PrebuiltServicesDependencies>;
+    /** Shared service instances and Effect runtime configuration. */
+    prebuiltServicesLayer: Layer.Layer<PrebuiltServicesDependencies>;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
+    ArtifactProjectionSchemas: typeof ArtifactProjectionSchemas;
     TemplateService: typeof TemplateService;
     TemplateType: typeof TemplateType;
     ChannelService: typeof ChannelService;
@@ -177,7 +183,6 @@ type PublicSdkLayerFor = (
 >;
 export type { AliasService } from './core/alias';
 export {
-  ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
   ArtifactNamespaceSchema,
   ArtifactTargetKindSchema,
@@ -189,13 +194,51 @@ export {
   normalizeArtifactIdentity,
   normalizeArtifactIdentityPart,
   normalizeArtifactNamespace,
-  type ApexTypeArtifactIdentity,
   type ArtifactIdentity,
   type ArtifactNamespace,
   type ArtifactTargetKind,
   type MetadataComponentArtifactIdentity,
   type SObjectArtifactIdentity
 } from './core/artifactIdentity';
+export {
+  ArtifactPresenceSchema,
+  ArtifactProjectionSchema,
+  ArtifactProjectionSchemas,
+  ArtifactProviderKindSchema,
+  CanonicalSemanticModelSchema,
+  CatalogEntryDescriptorSchema,
+  CatalogEntryProjectionSchema,
+  DocumentUriSchema,
+  ProjectionUnavailableReasonSchema,
+  ProjectionUnavailableSchema,
+  SObjectChildRelationshipSchema,
+  SObjectFieldRuntimeCapabilitiesSchema,
+  SObjectPicklistValueSchema,
+  SObjectSemanticFieldSchema,
+  SObjectSemanticModelSchema,
+  SObjectSemanticProjectionSchema,
+  SObjectSemanticValueSchema,
+  SourceDocumentProjectionSchema,
+  SourceDocumentSchema,
+  type ArtifactPresence,
+  type ArtifactProjection,
+  type ArtifactProviderKind,
+  type CanonicalSemanticModel,
+  type CatalogEntryDescriptor,
+  type CatalogEntryProjection,
+  type DocumentUri,
+  type ProjectionUnavailable,
+  type ProjectionUnavailableReason,
+  type SObjectChildRelationship,
+  type SObjectFieldRuntimeCapabilities,
+  type SObjectPicklistValue,
+  type SObjectSemanticField,
+  type SObjectSemanticModel,
+  type SObjectSemanticProjection,
+  type SObjectSemanticValue,
+  type SourceDocument,
+  type SourceDocumentProjection
+} from './core/artifactProjection';
 export {
   TemplateService,
   type ApexClassCreateOptions,
@@ -272,7 +315,15 @@ export type {
   ListMetadataError,
   SObjectGlobalDescribeItem
 } from './core/metadataDescribeService';
-export type { DescribeSObjectResult, TransmogrifierService } from './core/transmogrifierService';
+export type {
+  DescribeSObjectResult,
+  RestSObjectDescribeTransmogrifierInput,
+  TransmogrifierInput,
+  TransmogrifierService,
+  WorkspaceSObjectMetadata,
+  WorkspaceSObjectMetadataDocument,
+  WorkspaceSObjectMetadataTransmogrifierInput
+} from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
   SObjectSchema,
@@ -280,6 +331,7 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/schemas/sObject';
+export { TransmogrifierError } from './core/transmogrifierService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
@@ -305,7 +357,9 @@ export {
 } from './vscode/notificationModeService';
 
 /** Effect that runs when the extension is activated after FS setup */
-const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* () {
+const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
+  context: vscode.ExtensionContext
+) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // seed populates defaultOrgRef.cliId + webUserId before connectionService and core can read it
   yield* seedTelemetryIdentities();
@@ -339,6 +393,15 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       )
     )
   );
+
+  if (
+    context.extensionMode === vscode.ExtensionMode.Development ||
+    context.extensionMode === vscode.ExtensionMode.Test
+  ) {
+    yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.internal.testRedactingConsoleLogger', () =>
+      Effect.logInfo('runtime logger test 00D000000000000!playwright-secret')
+    );
+  }
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // auth settings go before other things so retrieveOnLoad can use them
@@ -480,10 +543,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
+    // Layer.buildWithScope returns only Context, so restore the logger FiberRef on the managed runtime.
+    const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
+    prebuiltServicesLayer.pipe(ManagedRuntime.make, setServicesRuntime);
 
-    await activationEffect().pipe(
-      Effect.provide(builtContext),
+    await activationEffect(context).pipe(
+      Effect.provide(prebuiltServicesLayer),
       Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
       Effect.runPromise
     );
@@ -494,8 +559,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     return {
       services: {
         prebuiltServicesDependencies: builtContext,
+        prebuiltServicesLayer,
         ApexLogService,
         AliasService,
+        ArtifactProjectionSchemas,
         TemplateService,
         TemplateType,
         ChannelService,
