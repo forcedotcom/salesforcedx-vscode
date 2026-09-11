@@ -18,11 +18,11 @@ on:
         required: false
         type: string
       releaseVersion:
-        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate (bump minor from prerelease).'
+        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate: stable mode bumps minor from the prerelease tag; publishAsPrerelease mode bumps patch on top of the higher of Marketplace/Open VSX''s latest published version.'
         required: false
         type: string
       publishAsPrerelease:
-        description: 'Publish as pre-release instead of stable? Use for emergency pre-release hotfixes. When true, releaseVersion is used as-is without bumping.'
+        description: 'Publish as pre-release instead of stable? Use for emergency pre-release hotfixes. When releaseVersion is provided it is used as-is; when left empty it is auto-calculated from the registries.'
         required: false
         default: false
         type: boolean
@@ -153,20 +153,16 @@ jobs:
           SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
         run: |
           if [ "$PUBLISH_AS_PRERELEASE" = "true" ]; then
-            # Pre-release mode: Use provided version as-is or derive from source tag
+            # Pre-release mode: use provided version as-is, or auto-calculate the next
+            # patch on top of whichever registry (Marketplace/Open VSX) is further ahead -
+            # the two can drift out of sync, so there's no single tag to derive this from.
             if [ -n "$INPUT_VERSION" ]; then
               # Strip leading 'v' if present to avoid double prefix
               VERSION="${INPUT_VERSION#v}"
               echo "Using provided pre-release version: $VERSION"
             else
-              # Extract version from source tag if it's a nightly/prerelease tag
-              VERSION=$(echo "$SOURCE_TAG" | grep -oP '\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?' || echo "")
-              if [ -z "$VERSION" ]; then
-                echo "::error::Cannot derive version from source tag: $SOURCE_TAG"
-                echo "::error::Please provide releaseVersion input for pre-release mode"
-                exit 1
-              fi
-              echo "Derived pre-release version from source: $VERSION"
+              VERSION=$(node scripts/calculate-prerelease-hotfix-version.js)
+              echo "Auto-calculated pre-release version from registries: $VERSION"
             fi
             IS_PRERELEASE="true"
           else
