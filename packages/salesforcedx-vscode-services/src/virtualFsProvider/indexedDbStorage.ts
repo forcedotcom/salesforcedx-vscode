@@ -22,19 +22,6 @@ import {
 import { settleIdbTransaction } from './idbTransaction';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
-const SALESFORCE_DOMAIN_SUFFIXES = [
-  '.my.salesforce.com',
-  '.my.salesforce.mil',
-  '.my-salesforce.com',
-  '.my.sfcrmproducts.cn'
-] as const;
-
-export const parseMyDomain = (instanceUrl: string): string => {
-  const { hostname } = new URL(instanceUrl);
-  const suffix = SALESFORCE_DOMAIN_SUFFIXES.find(s => hostname.endsWith(s));
-  return suffix ? hostname.slice(0, -suffix.length) : hostname;
-};
-
 const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
