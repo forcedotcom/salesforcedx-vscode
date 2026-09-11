@@ -31,6 +31,11 @@ type ContainerConfigOptions = {
 export const createContainerConfig = (options: ContainerConfigOptions) =>
   defineConfig({
     testDir: options.testDir,
+    // CB_GREP filters specs by title regex. Passed as an env var (not a `--grep` CLI arg) because the
+    // orchestrator forwards it through `npm run … -w <pkg>` → wireit, which does NOT shell-quote
+    // forwarded args — a value with spaces or a `|` alternation (e.g. two spec titles) would be split
+    // and mis-parsed. An env var travels intact through spawnSync's `env`, so any title regex works.
+    grep: process.env.CB_GREP ? new RegExp(process.env.CB_GREP) : undefined,
     fullyParallel: options.fullyParallel ?? false,
     forbidOnly: !!process.env.CI,
     workers: options.workers ?? 1,

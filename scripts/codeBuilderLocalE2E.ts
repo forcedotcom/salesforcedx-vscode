@@ -97,6 +97,25 @@ const FIXTURE_HOST_DIR = join(
   'container-workspace'
 );
 
+/*
+ * A SECOND, deliberately non-SFDX fixture (no sfdx-project.json). Mounted alongside the DX fixture so
+ * the orchestrator can, after the standard container suites run, re-seed coder.json to point
+ * code-server here + restart() — giving the "no project open" visibility suites
+ * (test:container:noproject) the workspace shape they need. Kept as its own mount (not a subfolder of
+ * the DX fixture) so opening it never sees the DX project's sfdx-project.json up the tree.
+ */
+const NOPROJECT_FIXTURE_HOST_DIR = join(
+  REPO_ROOT,
+  'packages',
+  'salesforcedx-vscode-core',
+  'test',
+  'playwright',
+  'fixtures',
+  'container-noproject'
+);
+/** Where the non-project fixture is bind-mounted in the container (distinct from FIXTURE_MOUNT_PATH). */
+const NOPROJECT_MOUNT_PATH = '/home/codebuilder/noproject-workspace';
+
 type Options = {
   runId?: string;
   grep?: string;
@@ -428,7 +447,7 @@ const modernVsixName = (pkgDir: string): string | null => {
  * adding a container suite to a new package wires it in with no edit here. core sorts first (its
  * specs smoke-test the mounted fixture), the rest alphabetically.
  */
-const discoverContainerPackages = (): string[] => {
+const discoverPackagesWithScript = (scriptName: string): string[] => {
   const packagesDir = join(REPO_ROOT, 'packages');
   const CORE = 'salesforcedx-vscode-core';
   return readdirSync(packagesDir)
@@ -436,13 +455,16 @@ const discoverContainerPackages = (): string[] => {
       try {
         // Untyped JSON.parse to match this file's other package.json reads (e.g. modernVsixName).
         const { scripts } = JSON.parse(readFileSync(join(packagesDir, pkg, 'package.json'), 'utf-8'));
-        return Boolean(scripts?.['test:container']);
+        return Boolean(scripts?.[scriptName]);
       } catch {
         return false;
       }
     })
     .toSorted((a, b) => (a === CORE ? -1 : b === CORE ? 1 : a.localeCompare(b)));
 };
+
+/** The standard (DX-project-shape) container suites — every package declaring `test:container`. */
+const discoverContainerPackages = (): string[] => discoverPackagesWithScript('test:container');
 
 /* --- gather the VSIX under test (backgroundable) --------------------------- */
 const acquireVsix = async (): Promise<string[]> => {
@@ -695,8 +717,13 @@ const main = async (): Promise<number> => {
     url: CODE_BUILDER_URL,
     bootEnv,
     // No SFDX_COBU_PROJECTNAME — that generate path would collide with the mount and only runs first
-    // boot. seedWorkspace points code-server at the mount instead.
-    mounts: [{ hostPath: FIXTURE_HOST_DIR, containerPath: FIXTURE_MOUNT_PATH }]
+    // boot. seedWorkspace points code-server at a mount instead. Both fixture shapes are mounted up
+    // front (the DX project the standard suites use, and the non-project folder the noproject phase
+    // re-seeds to); seedWorkspace validates its fixturePath against these recorded mounts.
+    mounts: [
+      { hostPath: FIXTURE_HOST_DIR, containerPath: FIXTURE_MOUNT_PATH },
+      { hostPath: NOPROJECT_FIXTURE_HOST_DIR, containerPath: NOPROJECT_MOUNT_PATH }
+    ]
   });
 
   // A bind mount keeps the host's ownership, so the container's workbench user can't write into the
@@ -705,16 +732,14 @@ const main = async (): Promise<number> => {
   // that writes one on activation. Make the mounted tree writable by any uid so those writes land.
   // `a+rwX` only adds the execute bit to dirs/already-exec files, so it doesn't flip tracked file
   // modes (git sees no change). Runs as root inside the container; a failure is a warning, not fatal.
-  log('Making the mounted fixture writable by the container user (chmod a+rwX)');
-  const chmodMount = spawnSync(
-    'docker',
-    ['exec', '-u', 'root', handle.name, 'chmod', '-R', 'a+rwX', FIXTURE_MOUNT_PATH],
-    {
+  log('Making the mounted fixtures writable by the container user (chmod a+rwX)');
+  for (const mountPath of [FIXTURE_MOUNT_PATH, NOPROJECT_MOUNT_PATH]) {
+    const chmodMount = spawnSync('docker', ['exec', '-u', 'root', handle.name, 'chmod', '-R', 'a+rwX', mountPath], {
       stdio: 'ignore'
+    });
+    if (chmodMount.status !== 0) {
+      console.warn(`    WARNING: could not chmod ${mountPath} — settings-writing specs may hit EACCES.`);
     }
-  );
-  if (chmodMount.status !== 0) {
-    console.warn('    WARNING: could not chmod the mounted fixture — settings-writing specs may hit EACCES.');
   }
 
   // Point code-server at the mounted fixture + disable workspace trust (one toolkit exec does both).
@@ -760,30 +785,72 @@ const main = async (): Promise<number> => {
   }
   log(`Running container Playwright specs for ${containerPackages.length} package(s): ${containerPackages.join(', ')}`);
 
-  const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL };
+  // CB_FIXTURE_HOST_DIR: the HOST side of the bind mount. Specs that need to place files INTO the
+  // opened workspace (e.g. metadata manifestCommandVisibility, which writes a *Package.xml + a plain
+  // .xml at the project root) write here with node:fs — the bind mount reflects the write into the
+  // container's opened folder. The container path (FIXTURE_MOUNT_PATH) is where code-server reads;
+  // the host path is where a host-side spec can write. Both local and CI drive this orchestrator, so
+  // this one env var covers both.
+  const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL, CB_FIXTURE_HOST_DIR: FIXTURE_HOST_DIR };
   if (opts.debug) {
     testEnv.PWDEBUG = '1';
   }
+  // --grep is forwarded to Playwright via CB_GREP (an env var), NOT a `--grep` CLI arg: the suites run
+  // through `npm run … -w <pkg>` → wireit, which does not shell-quote forwarded args, so a title regex
+  // with spaces or a `|` alternation would be split/mis-parsed. createContainerConfig reads CB_GREP.
+  if (opts.grep) {
+    testEnv.CB_GREP = opts.grep;
+  }
 
-  const failed: string[] = [];
-  for (const pkg of containerPackages) {
-    log(`Specs: ${pkg}`);
-    const testArgs = ['run', 'test:container', '-w', pkg];
-    if (opts.grep) {
-      testArgs.push('--', '--grep', opts.grep);
+  // Run one npm script across the given packages sequentially, returning the ones that failed.
+  // `label` distinguishes the phases in the log (DX-project vs no-project). Shared by both phases so
+  // the run-a-suite mechanics (grep passthrough, SPECS_TIMEOUT_MS backstop, per-package failure
+  // collection) live in one place.
+  const runSuites = (packages: string[], scriptName: string, label: string): string[] => {
+    const suiteFailed: string[] = [];
+    for (const pkg of packages) {
+      log(`Specs [${label}]: ${pkg}`);
+      // grep is passed via testEnv.CB_GREP (see above), not a forwarded --grep arg, so the argv is a
+      // fixed, quoting-safe token list.
+      const testArgs = ['run', scriptName, '-w', pkg];
+      // SPECS_TIMEOUT_MS backstop: a single stuck browser/page is a routine Playwright failure mode,
+      // and this is the most expensive step (after the pull + org setup). Without it a wedged run
+      // hangs the loop forever here; on timeout the child is killed and the package counts as failed.
+      const specs = spawnSync('npm', testArgs, {
+        cwd: REPO_ROOT,
+        stdio: 'inherit',
+        env: testEnv,
+        timeout: SPECS_TIMEOUT_MS
+      });
+      if ((specs.status ?? 1) !== 0) {
+        suiteFailed.push(pkg);
+      }
     }
-    // SPECS_TIMEOUT_MS backstop: a single stuck browser/page is a routine Playwright failure mode, and
-    // this is the most expensive step (after the pull + org setup). Without it a wedged run hangs the
-    // loop forever here; on timeout the child is killed and the package counts as failed.
-    const specs = spawnSync('npm', testArgs, {
-      cwd: REPO_ROOT,
-      stdio: 'inherit',
-      env: testEnv,
-      timeout: SPECS_TIMEOUT_MS
-    });
-    if ((specs.status ?? 1) !== 0) {
-      failed.push(pkg);
-    }
+    return suiteFailed;
+  };
+
+  // Phase 1 — standard container suites against the DX-project shape (the seeded fixture).
+  const failed = runSuites(containerPackages, 'test:container', 'dx-project');
+
+  // Phase 2 — no-project shape. Any package declaring `test:container:noproject` needs a workspace
+  // with NO sfdx-project.json open (project-gated commands must be hidden). Change the shape at a
+  // phase boundary — re-seed coder.json to the non-project mount + restart() — never mid-suite in the
+  // shared session. Discovered self-maintaining like phase 1; a no-op when no package declares it.
+  const noProjectPackages = opts.only
+    ? discoverPackagesWithScript('test:container:noproject').filter(p => opts.only!.includes(p))
+    : discoverPackagesWithScript('test:container:noproject');
+  if (noProjectPackages.length > 0) {
+    log(`Re-seeding code-server at the non-project folder (${NOPROJECT_MOUNT_PATH}) + restarting`);
+    seedWorkspace(handle, { fixturePath: NOPROJECT_MOUNT_PATH });
+    // restart() resolves only once the workbench URL answers again, so returning from it is the proof
+    // code-server reopened the re-seeded non-project folder cleanly (the workspace-shape re-seed spike).
+    await restart(handle);
+    log(`Workbench came up after re-seed+restart to the non-project shape (re-seed spike: PASS)`);
+    // Re-run the verify gate: the restart re-scans the overrides, so confirm the swapped extensions
+    // are STILL present at the expected bytes. Without this a lost extension would make the
+    // "commands hidden" assertions pass for the wrong reason (no extension = no commands either).
+    assertVerified(handle.name, manifest);
+    failed.push(...runSuites(noProjectPackages, 'test:container:noproject', 'no-project'));
   }
 
   if (failed.length > 0) {
