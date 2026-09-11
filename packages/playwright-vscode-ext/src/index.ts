@@ -158,6 +158,21 @@ export {
 export { clickCodeLens } from './pages/codeLens';
 
 export {
+  DEBUG_TOOLBAR,
+  DEBUG_CALL_STACK,
+  DEBUG_VARIABLES,
+  assertDebugToolbarVisible,
+  showRunAndDebugView,
+  getCallStackRows,
+  openVariablesView,
+  expandAllVariableScopes,
+  getVariableRow,
+  expandNestedVariable,
+  continueDebugSession,
+  stopDebugSession
+} from './pages/debug';
+
+export {
   clickOrgPickerStatusBar,
   expectOrgPickerStatusBar,
   expectOrgPickerActionItems,

@@ -6,42 +6,48 @@
  */
 
 /*
- * Spike (ADR 0022, W-23898526): the FIRST live apex-replay DAP session driven through code-server.
- * The gating unknown for porting the interactive-debug specs is whether a real replay session — a
- * local Node adapter (`type: apex-replay`) replaying a debug log — launches and renders the debug UI
- * (`.debug-toolbar`, `.debug-call-stack`, `.debug-variables`) in the container's browser-served
- * workbench, then continues/stops cleanly. This ports the SIMPLEST launch path from
- * debugAnonymousApex.desktop (Launch Apex Replay Debugger with Selected File on a `.apex` script),
- * adapted to the boot (default target) org — no per-test org creation, no trace flag (the anonymous
- * debug delegate produces the log inline). Hardened for the shared, persistent workbench: a unique
- * per-run script name, beforeEach reset, and a guaranteed debug-session teardown in afterEach so a
- * leaked session can't poison the next test.
+ * Container twin of apexReplayDebugger.desktop (ADR 0022, W-23898526). Covers the MULTI-LAUNCH flow
+ * distinct from debugAnonymousApex.container: create a trace flag, exec anon to produce a standalone
+ * `.log`, then launch a replay session from three different entry points —
+ *   - "Launch with Selected File" on the `.log` file
+ *   - "Launch with Last Log File"
+ *   - "Launch with Selected File" on a test `.cls`
+ * — continuing each to completion, then delete the trace flag. Runs against the container's boot
+ * (default target) org; per-test org creation is dropped. Hardened for the shared, persistent
+ * workbench: unique per-run class/script names, a beforeEach reset, and an afterEach that stops any
+ * leaked session.
  */
 
 import { expect } from '@playwright/test';
 import {
+  APEX_TRACE_FLAG_STATUS_BAR,
   clearAllNotifications,
+  clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
+  continueDebugSession,
+  createApexClass,
   createAndOpenApexScript,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   openFileByName,
+  removeAllDebugLevels,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  stopDebugSession,
   validateNoCriticalErrors,
-  WORKBENCH
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
+import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
+import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
-import { continueDebugSession } from '../../helpers/debugHelpers';
 
-const DEBUG_TOOLBAR = '.debug-toolbar';
-
-// Shared, persistent workbench: reset editors and notifications before each test rather than
-// assuming a clean slate. No org setup — every test uses the container's boot (default) org.
 test.beforeEach(async ({ page }) => {
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
@@ -49,60 +55,126 @@ test.beforeEach(async ({ page }) => {
   await clearAllNotifications(page);
 });
 
-// Guaranteed debug-session teardown: a session left running would poison the next test in the shared
-// workbench. If the toolbar is still up (a mid-test failure never reached the clean stop), stop the
-// session and wait for it to disappear. Best-effort — never fail teardown itself.
 test.afterEach(async ({ page }) => {
-  const toolbar = page.locator(DEBUG_TOOLBAR);
-  if (await toolbar.isVisible().catch(() => false)) {
-    await executeCommandWithCommandPalette(page, 'Debug: Stop').catch(() => {});
-    await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
-      .catch(() => {});
-  }
+  await stopDebugSession(page);
 });
 
-test('Apex Replay Debugger (Code Builder): launches a replay session and renders the debug view', async ({ page }) => {
+test('Apex Replay Debugger (Code Builder): trace flag, exec anon, replay from log file, last log, and test class', async ({
+  page
+}) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  // Unique per-run name so the shared, persistent workbench never collides with a script left by a
-  // prior run.
-  const scriptName = `ReplaySpike_${Date.now().toString(36)}`;
+  const uid = Date.now().toString(36);
+  const exampleClass = `ExampleApexClass_${uid}`;
+  const exampleTestClass = `ExampleApexClass_${uid}Test`;
+  const runScript = `RunExample_${uid}`;
 
-  await test.step('create and open an anonymous apex script in the boot-org workspace', async () => {
+  const exampleClassContent = [
+    `public with sharing class ${exampleClass} {`,
+    '  public static void SayHello(string name){',
+    "    System.debug('Hello, ' + name + '!');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  const exampleTestContent = [
+    '@IsTest',
+    `public class ${exampleTestClass} {`,
+    '  @IsTest',
+    '  static void validateSayHello() {',
+    "    System.debug('Starting validate');",
+    `    ${exampleClass}.SayHello('Cody');`,
+    "    System.assertEquals(1, 1, 'all good');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  await test.step('deploy an Apex class and its test to the boot org', async () => {
     await ensureSecondarySideBarHidden(page);
-    await createAndOpenApexScript(page, { name: scriptName, content: "System.debug('replay spike');" });
-    await saveScreenshot(page, 'setup.anon-script-open.png');
+    await createApexClass(page, exampleClass, exampleClassContent);
+    await createApexClass(page, exampleTestClass, exampleTestContent);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await executeCommandWithCommandPalette(
+      page,
+      metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
+    );
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 90_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
+    await saveScreenshot(page, 'setup.classes-deployed.png');
   });
 
-  await test.step('launch the replay debugger with the selected file — toolbar must appear', async () => {
-    await openFileByName(page, `${scriptName}.apex`);
+  await test.step('wait for Apex LS indexing to complete', async () => {
+    // Apex LS must finish indexing before the test-class launch resolves the class name; CI is slower.
+    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
+    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
+  });
+
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
+  });
+
+  await test.step('create trace flag for current user', async () => {
+    await executeCommandWithCommandPalette(
+      page,
+      apexLogNls['apexLog.command.traceFlagsCreateForCurrentUser'] as string
+    );
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
+    await expect(statusBar).toBeVisible({ timeout: 60_000 });
+  });
+
+  await test.step('exec anon that calls the class so the org captures a debug log', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await clearOutputChannel(page);
+
+    await createAndOpenApexScript(page, { name: runScript, content: `${exampleClass}.SayHello('Cody');` });
+    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
+
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 30_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
+    const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await saveScreenshot(page, 'step.exec-anon-done.png');
+  });
+
+  await test.step('launch replay with the selected .log file', async () => {
+    // Click the .log tab directly so it is the active editor: launchApexReplayDebuggerWithCurrentFile
+    // reads activeTextEditor and only sets LAST_OPENED_LOG_KEY when the active file is a .log — the
+    // key the next "launch from last log file" step relies on.
+    const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    await logTab.click({ force: true });
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
-    // Replay pauses on entry: the debug toolbar appearing is the gating unknown — a live DAP session
-    // driven through code-server. Long timeout covers executing the anon apex against the boot org
-    // and the adapter spawning server-side.
-    await expect(page.locator(DEBUG_TOOLBAR)).toBeVisible({ timeout: 60_000 });
-    await saveScreenshot(page, 'step.replay-launched.png');
-  });
-
-  await test.step('the Run and Debug view renders a call stack and a variables element', async () => {
-    // Launching replay does not open the Run and Debug viewlet — show it, then confirm the debug DOM
-    // (client-agnostic Monaco) actually renders in the browser-served workbench.
-    await executeCommandWithCommandPalette(page, 'View: Show Run and Debug');
-    const callStackRow = page.locator(`${WORKBENCH} .debug-call-stack .monaco-list-row`);
-    await expect(callStackRow.first()).toBeVisible({ timeout: 30_000 });
-
-    await executeCommandWithCommandPalette(page, 'Run and Debug: Focus on Variables View');
-    const variablesView = page.locator(`${WORKBENCH} .debug-variables`);
-    await expect(variablesView).toBeVisible({ timeout: 30_000 });
-    await saveScreenshot(page, 'step.debug-view-rendered.png');
-  });
-
-  await test.step('continue and end the debug session cleanly', async () => {
     await continueDebugSession(page);
-    await saveScreenshot(page, 'step.session-ended.png');
+    await saveScreenshot(page, 'step.replay-from-log.png');
+  });
+
+  await test.step('launch replay with the last log file', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.launch_from_last_log_file as string);
+    await continueDebugSession(page);
+    await saveScreenshot(page, 'step.replay-from-last-log.png');
+  });
+
+  await test.step('launch replay with the test class', async () => {
+    await openFileByName(page, `${exampleTestClass}.cls`);
+    await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
+    await continueDebugSession(page);
+    await saveScreenshot(page, 'step.replay-from-test-class.png');
+  });
+
+  await test.step('turn off trace flag', async () => {
+    await executeCommandWithCommandPalette(
+      page,
+      apexLogNls['apexLog.command.traceFlagsDeleteForCurrentUser'] as string
+    );
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ });
+    await expect(statusBar).toBeVisible({ timeout: 30_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
