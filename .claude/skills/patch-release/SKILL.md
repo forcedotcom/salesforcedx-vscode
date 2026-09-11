@@ -116,7 +116,7 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
+Creates GitHub pre-release with VSIXs. Auto-calculates patch from max(Marketplace, Open VSX) + 1, or supply `-f releaseVersion=X.Y.Z` to override. Tags source ref with nightly tag.
 
 **Validation:** Unit tests (compile + test) run at the authoritative gate: promote-to-prerelease.yml tests exact hotfix commit being promoted when isHotfix=true. E2E & full PR review skipped; ensure ref carefully reviewed before use.
 
