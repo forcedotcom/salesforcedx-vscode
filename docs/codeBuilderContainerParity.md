@@ -27,17 +27,20 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 90 specs across 15 packages
+## Coverage summary — 91 specs across 15 packages
 
 Includes the multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs into the container and switching the default with
 save/restore; 2 more are ported but `test.fixme` for a documented code-server limitation.
 
+Count is container spec **files**: 89 active + 2 `test.fixme`. Two origin specs are reachable but not
+yet ported — see "Reachable but not yet ported" below.
+
 | Package | Specs | Container specs |
 | --- | --: | --- |
 | `salesforcedx-vscode-metadata` | 23 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
-| `salesforcedx-vscode-apex-testing` | 11 | testExplorer, runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, **orgOnlyClassRetrieve, inWorkspaceFilter** |
+| `salesforcedx-vscode-apex-testing` | 12 | testExplorer(+Run), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, **orgOnlyClassRetrieve, inWorkspaceFilter** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
 | `salesforcedx-vscode-apex-log` | 8 | executeAnonymous, logRetrieval, apexGenerateClass, apexTestClassCreate, createApexTrigger, autoCollection, traceFlagsCrud, traceFlagExpiry |
 | `salesforcedx-vscode-org` | 8 | orgDisplay, aliasList, orgOpen, orgCommands, orgDeleteCommandVisibility, orgLoginAccessToken, **orgPicker, orgPickers** |
@@ -62,7 +65,8 @@ constraint:
 
 **Interactive debug session (DAP launch/attach/breakpoints/replay)** — apex-replay-debugger:
 `apexReplayDebugger`, `apexReplayDebuggerVariables`, `checkpoints`, `debugAnonymousApex`,
-`debugApexTests`; apex-debugger: `isvDebugBootstrap`; lwc: `lwcDebugTests`.
+`debugApexTests`, `promptForLogFile` (F5-launches a debug config to reach the log-file quick input);
+apex-debugger: `isvDebugBootstrap`; lwc: `lwcDebugTests`.
 
 **Rate-limited A4V/Einstein LLM (OpenAPI generation)** — apex-oas: `composedCaseManager`,
 `composedManualMerge`, `composedOverwrite`, `decomposedSimpleAccount`, `contextMenuEditor`,
@@ -90,8 +94,16 @@ webviews).
 **Slow/mutating positive retrieve (writes metadata into the shared fixture)** — services:
 `retrieveOnLoadMetadata`, `retrieveOnLoadRetry` (the no-op branch is covered by `retrieveOnLoad`).
 
-**Needs a desktop window reload the web container can't do** — org-browser:
-`orgBrowser.filterToggle.desktop`.
+**Needs a desktop window reload or native file-watch event the web container can't deliver** —
+org-browser: `orgBrowser.filterToggle.desktop`; lwc: `lwcLspSfdxProjectWatcher` (mutates
+`sfdx-project.json` and asserts the debounced FS-watcher restarts the LWC LSP — code-server doesn't
+deliver the cross-extension-host config/FS event at runtime, the same limitation behind the
+`test.fixme`'d tracking specs).
+
+**Dev/Test-only internal command absent in the container** — services: `redactingConsoleLogger`. It
+drives `sf.internal.testRedactingConsoleLogger`, which core registers only when
+`extensionMode === Development || Test`. The container runs swapped-in **packaged** extensions in
+Normal mode, so the command doesn't exist.
 
 **Needs a fixture dev-dependency not in the workspace** — lwc: `lwcRunTests` (`@salesforce/sfdx-lwc-jest`).
 
@@ -123,6 +135,23 @@ and `nonTrackingOrgTrackingUIHidden`. The metadata source-tracking status bar re
 org switch — so the tracking UI doesn't hide after switching to a non-tracking org without a window
 reload the web container can't perform. (`sourceTrackingStatusBar` avoids this by testing the boot
 org, which is tracking + default from activation.)
+
+## Reachable but not yet ported
+
+Two origin specs land in none of the blocking constraints above — they *can* run in the container and
+are simply not ported yet (both added to develop after the initial parity sweep):
+
+- **metadata `analyticsTemplates`** — creates an Analytics/wave sample template via palette + explorer
+  context menu and checks the 7 scaffold files appear. Fully local `TemplateService.create` scaffold:
+  no org, no CLI plugin, no webview. A straight port on the same pattern as `generateManifest` /
+  lightning `auraTemplates` (unique `Date.now()` names to stay clean on the shared fixture).
+- **metadata `taggedErrorChannelOutput`** — runs deploy-in-manifest with no manifest and asserts the
+  channel output carries the tagged `[ManifestSelectionRequiredError]`. The error fires on the
+  manifest-selection guard before any org round-trip; the only desktop-ism is a `createMinimalOrg`
+  call to make the command available, which is exactly the boot-org rewire used by the other ported
+  org specs.
+
+Neither is in the current stack; they're the next low-risk coverage additions if we want them.
 
 ## Adding a container suite to a package
 
