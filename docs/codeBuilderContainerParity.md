@@ -58,6 +58,51 @@ yet ported — see "Reachable but not yet ported" below.
 The orchestrator auto-discovers every package that declares a `test:container` script, so adding a
 suite to a new package wires it in with no orchestrator edit.
 
+### Origin-spec coverage tally
+
+How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs
+it was ported from. **Origin** counts product specs only — the 10 `playwright-vscode-ext` specs test
+the shared test *library* itself, not a product feature, so they're excluded. **Ported** is origin
+specs that now have container coverage; the container has 5 more spec *files* than that (91 total)
+from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, metadata `deploySource`,
+2 org-browser variants).
+
+| Package | Origin | Ported | Not ported |
+| --- | --: | --: | --: |
+| `salesforcedx-vscode-metadata` | 32 | 22 | 10 |
+| `salesforcedx-vscode-apex-testing` | 14 | 11 | 3 |
+| `salesforcedx-vscode-lwc` | 13 | 10 | 3 |
+| `salesforcedx-vscode-apex-log` | 12 | 8 | 4 |
+| `salesforcedx-vscode-org` | 12 | 8 | 4 |
+| `salesforcedx-vscode-apex-oas` | 9 | 3 | 6 |
+| `salesforcedx-vscode-apex-replay-debugger` | 7 | 1 | 6 |
+| `salesforcedx-vscode-org-browser` | 7 | 6 | 1 |
+| `salesforcedx-vscode-lightning` | 6 | 4 | 2 |
+| `salesforcedx-vscode-apex` | 5 | 4 | 1 |
+| `salesforcedx-vscode-services` | 4 | 1 | 3 |
+| `salesforcedx-vscode-soql` | 4 | 2 | 2 |
+| `salesforcedx-vscode-core` | 3 | 3 | 0 |
+| `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
+| `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
+| **Total** | **132** | **86 (65%)** | **46** |
+
+The 46 not-ported specs by blocking constraint:
+
+| Blocking constraint | Count |
+| --- | --: |
+| Different workspace shape (no-folder / empty / multi-package) | 11 |
+| Interactive debug session / DAP | 8 |
+| Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
+| Destructive org lifecycle / second org user | 6 |
+| Reads span/telemetry files | 5 |
+| Webview-only surface | 2 |
+| Slow/mutating positive retrieve | 2 |
+| Needs desktop window reload / native file-watch event | 2 |
+| Dev/Test-only internal command | 1 |
+| Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
+| **Reachable but not yet ported** | **2** |
+| **Total** | **46** |
+
 ## Not ported (and why)
 
 These specs cannot run in the container and stay desktop/web-only. Grouped by the blocking
