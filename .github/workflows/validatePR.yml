@@ -26,50 +26,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-          cache: npm
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - run: npm run compile -w @salesforce/eslint-plugin-vscode-extensions
+          install: 'false'
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
+      - run: pnpm --filter @salesforce/eslint-plugin-vscode-extensions compile
         name: Compile ESLint rules
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
   validate-actions:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-          cache: npm
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          install: 'false'
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Validate GitHub Actions
-        run: npm run check:actions
+        run: pnpm check:actions
   check-knip:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-          cache: npm
+          install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Check knip
-        run: npm run check:knip
+        run: pnpm check:knip
   check-effect-diagnostics:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-          cache: npm
+          install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Check Effect LS diagnostics
-        run: npm run check:effect-diagnostics
+        run: pnpm check:effect-diagnostics

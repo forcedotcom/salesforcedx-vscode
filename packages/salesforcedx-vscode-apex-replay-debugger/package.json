@@ -43,6 +43,7 @@
     "@salesforce/core": "^9.1.9",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-apex-testing": "*",
     "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*"
   },

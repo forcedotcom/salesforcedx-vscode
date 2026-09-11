@@ -32,15 +32,16 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
+    "salesforcedx-vscode-services": "*",
     "effect": "^3.21.2",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^9.1.9",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -61,7 +62,7 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "pnpm test:desktop --debug"
   },
   "wireit": {
     "compile": {

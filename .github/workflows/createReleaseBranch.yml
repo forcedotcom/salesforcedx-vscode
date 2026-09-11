@@ -48,14 +48,17 @@ jobs:
           ref: 'develop'
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Create and Push the Release Branch
         id: create_step
         run: |

@@ -76,7 +76,7 @@ jobs:
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -87,7 +87,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w ${{ matrix.package }}
+          ${{ matrix.test_runner_prefix }}pnpm --filter ${{ matrix.package }} test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -112,7 +112,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Generate minimal project
@@ -137,7 +137,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w ${{ matrix.package }}
+          ${{ matrix.test_runner_prefix }}pnpm --filter ${{ matrix.package }} test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -148,7 +148,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w ${{ matrix.package }} -- --last-failed
+          ${{ matrix.test_runner_prefix }}pnpm --filter ${{ matrix.package }} test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

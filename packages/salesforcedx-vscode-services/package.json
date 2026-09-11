@@ -31,6 +31,7 @@
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@effect/opentelemetry": "0.63.0",
     "@effect/platform": "^0.96.1",
+    "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
@@ -55,7 +56,9 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@jest/globals": "30.4.1",
     "@salesforce/playwright-vscode-ext": "*",
+    "jest-mock": "30.4.1",
     "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
   },
@@ -73,8 +76,8 @@
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm test:web --headed",
+    "test:web:debug": "pnpm test:web --debug",
     "test:e2e": "wireit",
     "o11y:debug": "wireit",
     "spans:server": "wireit",
@@ -251,7 +254,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "pnpm exec vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle:local"

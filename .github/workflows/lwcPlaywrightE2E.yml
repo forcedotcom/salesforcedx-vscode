@@ -58,7 +58,7 @@ jobs:
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -67,7 +67,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc
+          pnpm --filter salesforcedx-vscode-lwc test:web
 
       - name: Kill process on port 3001
         if: steps.try-run.outcome == 'failure'
@@ -83,7 +83,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Run LWC Playwright web tests (parallel)
@@ -93,7 +93,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc
+          pnpm --filter salesforcedx-vscode-lwc test:web
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -101,7 +101,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed
+          pnpm --filter salesforcedx-vscode-lwc test:web -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -164,7 +164,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- headless
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- headless
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -176,7 +176,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Run LWC Playwright desktop tests (parallel)
@@ -185,14 +185,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- headless
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- headless
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed headless
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- --last-failed headless
 
       - name: Copy span files to test-results
         if: always()
@@ -255,7 +255,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- lwcRunTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -267,7 +267,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Run LWC run-tests desktop (parallel)
@@ -276,14 +276,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- lwcRunTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- --last-failed lwcRunTests
 
       - name: Copy span files to test-results
         if: always()
@@ -346,7 +346,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- lwcDebugTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -358,7 +358,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Run LWC debug-tests desktop (parallel)
@@ -367,14 +367,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- lwcDebugTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-lwc test:desktop -- --last-failed lwcDebugTests
 
       - name: Copy span files to test-results
         if: always()

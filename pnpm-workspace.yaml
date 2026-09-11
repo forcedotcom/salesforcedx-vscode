@@ -1,0 +1,38 @@
+packages:
+  - packages/*
+
+engineStrict: true
+linkWorkspacePackages: true
+preferWorkspacePackages: true
+saveExact: true
+
+overrides:
+  '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
+  jest: 30.4.2
+  playwright-core: 1.60.0
+  vscode-languageserver-textdocument: 1.0.12
+  wireit>brace-expansion: 4.0.1
+
+peerDependencyRules:
+  allowedVersions:
+    '@babel/eslint-parser>eslint': '10'
+    '@lwc/eslint-plugin-lwc>eslint': '10'
+    '@salesforce/eslint-config-lwc>eslint': '10'
+    '@salesforce/eslint-plugin-lightning>eslint': '10'
+    'esbuild-plugins-node-modules-polyfill>esbuild': '0.28'
+    'eslint-plugin-import>eslint': '10'
+allowBuilds:
+  '@parcel/watcher': true
+  '@playwright/browser-chromium': true
+  '@scarf/scarf': true
+  '@vscode/vsce-sign': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  husky: true
+  keytar: true
+  msgpackr-extract: true
+  node: true
+  protobufjs: true
+  ttf2woff2: true
+  unrs-resolver: true
