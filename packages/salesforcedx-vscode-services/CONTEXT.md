@@ -52,3 +52,15 @@
 - The scheme is a document integration point, not a filesystem: there is no `FileSystemProvider`, public write API, or consumer registration.
 - Services owns cache invalidation on workspace/default-org changes and closes documents belonging to an inactive org.
 - Rationale and rejected alternatives: [ADR 0001](./docs/adr/0001-org-catalog-over-shared-vfs.md).
+
+### FileChangePubSub vs HostFileWatcher
+
+- **FileChangePubSub**: workspace FS events (`**/*`) from `FileWatcherLayer`. Project `.sf/config.json`, `sfdx-project.json`, test results, etc.
+- **HostFileWatcher**: host-FS files outside the workspace via `@salesforce/core/fs` (`fs.promises.watch`; node desktop, memfs web). `watchConfigFiles` → `~/.sf/config.json`; `watchAliasFile` → `~/.sfdx/alias.json`.
+- project `.sf/config.json`: `Utils.basename`/`dirname` on `event.uri` (not `fsPath`)
+- global config path: `join(Global.SF_DIR, configFileName)` (host-FS; `node:path` ok)
+- missing file/dir → ENOENT → `HostFileNotFoundError`, retried 250ms via `Schedule.whileInput(isTagged('HostFileNotFoundError'))`; other fs errors → `HostFileWatchError` (not retried)
+- Span `HostFileWatcher.watch` attributes include `path`
+- `watchConfigFiles` isolates `HostFileWatchError` on the global stream so project `.sf/config.json` watching continues
+- HostFileWatcher is internal (`globalLayers`); not on the public `services` API
+- _Avoid_: `FileChangePubSub` / `FileWatcherService` for global `~/.sf/config.json` or `~/.sfdx/alias.json`
