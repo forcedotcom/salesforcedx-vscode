@@ -21,7 +21,7 @@
 
 - **redaction** here = string scrubbing of span payload values by `redactSensitiveData` (`observability/redactSensitiveData.ts`), replacing secret and PII shapes with `<REDACTED …>` labels
 - pattern-based and lossy: no way back to the original value, no wrapper type
-- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); not used anywhere in this repo today
+- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); `SettingsService.getAccessToken` returns `Redacted.Redacted<string>`, unwrapped only for the connection cache key and Salesforce Core auth
 - _Avoid_: calling `redactSensitiveData` output "a Redacted" — different mechanism, different guarantees
 
 ### Effect boundary
@@ -52,3 +52,15 @@
 - The scheme is a document integration point, not a filesystem: there is no `FileSystemProvider`, public write API, or consumer registration.
 - Services owns cache invalidation on workspace/default-org changes and closes documents belonging to an inactive org.
 - Rationale and rejected alternatives: [ADR 0001](./docs/adr/0001-org-catalog-over-shared-vfs.md).
+
+### FileChangePubSub vs HostFileWatcher
+
+- **FileChangePubSub**: workspace FS events (`**/*`) from `FileWatcherLayer`. Project `.sf/config.json`, `sfdx-project.json`, test results, etc.
+- **HostFileWatcher**: host-FS files outside the workspace via `@salesforce/core/fs` (`fs.promises.watch`; node desktop, memfs web). `watchConfigFiles` → `~/.sf/config.json`; `watchAliasFile` → `~/.sfdx/alias.json`.
+- project `.sf/config.json`: `Utils.basename`/`dirname` on `event.uri` (not `fsPath`)
+- global config path: `join(Global.SF_DIR, configFileName)` (host-FS; `node:path` ok)
+- missing file/dir → ENOENT → `HostFileNotFoundError`, retried 250ms via `Schedule.whileInput(isTagged('HostFileNotFoundError'))`; other fs errors → `HostFileWatchError` (not retried)
+- Span `HostFileWatcher.watch` attributes include `path`
+- `watchConfigFiles` isolates `HostFileWatchError` on the global stream so project `.sf/config.json` watching continues
+- HostFileWatcher is internal (`globalLayers`); not on the public `services` API
+- _Avoid_: `FileChangePubSub` / `FileWatcherService` for global `~/.sf/config.json` or `~/.sfdx/alias.json`

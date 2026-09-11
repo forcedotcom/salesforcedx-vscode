@@ -122,6 +122,7 @@
     "postinstall": "wireit",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
+    "changelog:delta": "ts-node ./scripts/generate-release-delta-changelog.ts",
     "clean": "npm run clean -ws --if-present && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
@@ -133,6 +134,7 @@
     "test:ai-safeguards": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
+    "test:container:local": "wireit",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
@@ -303,6 +305,12 @@
       ],
       "output": []
     },
+    "test:container:local": {
+      "command": "ts-node scripts/codeBuilderLocalE2E.ts",
+      "dependencies": [
+        "./packages/playwright-vscode-ext:compile"
+      ]
+    },
     "vscode:bundle": {
       "dependencies": [
         "./packages/salesforcedx-vscode-core:vscode:bundle",
@@ -325,7 +333,6 @@
     "vscode:package:legacy": {
       "dependencies": [
         "./packages/salesforcedx-vscode-core:vscode:package:legacy",
-        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
@@ -334,7 +341,6 @@
     "vscode:package:legacy:prerelease": {
       "dependencies": [
         "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
-        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
@@ -348,6 +354,7 @@
         "./packages/salesforcedx-vscode-apex-log:vscode:package",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package",
+        "./packages/salesforcedx-vscode-lwc:vscode:package",
         "./packages/salesforcedx-vscode-visualforce:vscode:package",
         "./packages/salesforcedx-vscode-soql:vscode:package",
         "./packages/salesforcedx-vscode-org:vscode:package",
@@ -364,6 +371,7 @@
         "./packages/salesforcedx-vscode-apex-log:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-visualforce:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-soql:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-org:vscode:package:prerelease",

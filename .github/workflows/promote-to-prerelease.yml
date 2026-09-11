@@ -1,0 +1,198 @@
+name: Promote to Pre-release
+
+on:
+  schedule:
+    # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
+    # Creates tracking tag for NEXT week's build-release.yml (which runs at 7 AM)
+    # IMPORTANT: Runs AFTER build-release (7 AM) so that stable builds use last week's
+    # tested prerelease (7+ days on marketplace), not today's newly promoted one
+    - cron: '0 8 * * 3'
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: 'Specific release tag to publish (e.g., v67.13.7-nightly.develop.20260820). Leave empty to auto-detect most recent CI-passing nightly.'
+        required: false
+        type: string
+      isHotfix:
+        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
+        required: false
+        default: false
+        type: boolean
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing or tagging)'
+        required: false
+        default: false
+        type: boolean
+
+# NOTE: Concurrency is handled by the reusable workflow (vscode-promote-prerelease.yml)
+# Do not define it here to avoid deadlock
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+  checks: read
+
+jobs:
+  # Step 1: Find nightly candidate (THIS REPO CONTROLS CRITERIA)
+  find-nightly:
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-find-nightly-candidate.yml@main
+    with:
+      release-tag: ${{ inputs.releaseTag || '' }}
+      min-tag-age-days: '0'
+
+  # Step 2: Gate-check CI status (THIS REPO CONTROLS CRITERIA)
+  gate-check:
+    needs: find-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history to check out an arbitrary hotfix commit-sha below
+
+      - name: Check CI status
+        # Gate on the nightly's own build/release success, NOT unit-tests/build-all.
+        # Unit + e2e tests already ran on the PR (via validatePR.yml) before the change
+        # merged to develop. Those PR check-runs live on the PR head commit, which no longer
+        # exists after squash-merge, so they can't be found on the develop nightly commit.
+        # The meaningful, available signals here are that the nightly compiled/packaged the
+        # VSIXs and published the GitHub release cleanly.
+        #
+        # Skipped for isHotfix: tags built via build-release.yml's startFromRef never go
+        # through this repo's nightly pipeline, so these check-run names never exist on that
+        # commit regardless of outcome. See "Test hotfix commit directly" below instead.
+        if: ${{ !inputs.isHotfix }}
+        uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
+        with:
+          commit-sha: ${{ needs.find-nightly.outputs.commit-sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          required-checks: '["nightly-release / package / Package", "nightly-release / Create GitHub Releases"]'
+
+      - name: Setup Node.js
+        if: ${{ inputs.isHotfix }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Checkout hotfix commit
+        # No nightly-pipeline check-runs exist for a hotfix commit (it never went through
+        # build-extension-list/nightly-release), so verify it here instead: check out the
+        # exact commit being promoted and run the same compile+test gate develop's branch
+        # protection would have required had this gone through a normal PR.
+        if: ${{ inputs.isHotfix }}
+        env:
+          COMMIT_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
+        run: git checkout "$COMMIT_SHA"
+
+      - name: Install dependencies for hotfix commit
+        if: ${{ inputs.isHotfix }}
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Run tests for hotfix commit
+        if: ${{ inputs.isHotfix }}
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          WIREIT_PARALLEL: 1
+        run: |
+          npm run compile
+          npm run test
+
+  # Step 3: Generate this week's changelog delta (commits since last week's promoted
+  # prerelease), bake it into the pack's prerelease VSIX asset so the Marketplace/Open VSX
+  # Changelog tab shows only this week's changes, and commit the same delta to develop so
+  # root CHANGELOG.md keeps the full cumulative history. Must complete before `promote`,
+  # since the reusable promote workflow re-downloads this exact release asset.
+  changelog:
+    needs: [find-nightly, gate-check]
+    # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate,
+    # so gate-check's success must be checked explicitly here too -- same as `promote` below.
+    if: always() && needs.gate-check.result == 'success' && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+      NIGHTLY_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Determine prerelease version
+        id: version
+        run: |
+          VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract version from nightly tag: $NIGHTLY_TAG"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate this week's changelog delta
+        id: delta
+        env:
+          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run changelog:delta -- "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
+
+      - name: Inject changelog into the prerelease VSIX
+        # Skip when nothing new was generated (e.g. only chore/ci commits this week) --
+        # otherwise this would re-ship last week's changelog mislabeled with this week's
+        # version, since the file is untouched from the last run.
+        if: steps.delta.outputs.generated == 'true'
+        env:
+          PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          VSIX="salesforcedx-vscode-${PRERELEASE_VERSION}.vsix"
+          gh release download "$NIGHTLY_TAG" --pattern "$VSIX" --clobber
+
+          # vsce stores the file lowercase inside the vsix; must match exactly or zip
+          # adds a second, differently-cased entry instead of replacing this one.
+          mkdir -p extension
+          cp packages/salesforcedx-vscode/CHANGELOG.md extension/changelog.md
+          # -X: omit Unix UID/GID + timestamp extra fields. vsce's own zip writer never
+          # sets them; without -X, Open VSX's scanner blocks the whole VSIX with
+          # "contains zip entries with potentially harmful extra fields".
+          zip -X "$VSIX" extension/changelog.md
+
+          gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
+          rm -rf extension "$VSIX"
+
+      - name: Prepend delta to root CHANGELOG (full history)
+        if: steps.delta.outputs.generated == 'true'
+        run: node scripts/prepend-release-changelog.js
+
+      - name: Commit changelog delta to develop
+        if: steps.delta.outputs.generated == 'true'
+        uses: ./.github/actions/commitAndPushToDevelop
+        with:
+          files: packages/salesforcedx-vscode/CHANGELOG.md CHANGELOG.md
+          message: "chore: changelog for prerelease v${{ steps.version.outputs.version }} [skip ci]"
+
+  # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).
+  # `changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well as
+  # success -- otherwise dry-run would never reach the reusable workflow's own dry-run path.
+  promote:
+    needs: [find-nightly, gate-check, changelog]
+    if: always() && needs.gate-check.result == 'success' && (needs.changelog.result == 'success' || needs.changelog.result == 'skipped')
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    with:
+      release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
+      vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
+      exclude-web-vsix: 'false'
+      extension-name: 'salesforcedx-vscode'
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit

@@ -1,0 +1,50 @@
+name: commitAndPushToDevelop
+description: "Stages files, commits if there are changes, and pushes to develop, retrying on a concurrent-push race"
+
+inputs:
+  files:
+    description: 'Space-separated list of file paths to git add'
+    required: true
+  message:
+    description: 'Commit message'
+    required: true
+
+outputs:
+  committed:
+    description: "'true' if a commit was made and pushed; 'false' if there was nothing to commit"
+    value: ${{ steps.commit.outputs.committed }}
+
+runs:
+  using: composite
+  steps:
+    - id: commit
+      shell: bash
+      env:
+        FILES: ${{ inputs.files }}
+        MESSAGE: ${{ inputs.message }}
+      run: |
+        git add $FILES
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        git commit -m "$MESSAGE"
+
+        pushed=false
+        for attempt in 1 2 3 4 5; do
+          if git pull --rebase origin develop && git push origin develop; then
+            pushed=true
+            break
+          fi
+          echo "Push attempt $attempt failed, retrying in $((attempt * 5))s..."
+          sleep $((attempt * 5))
+        done
+
+        if [ "$pushed" != "true" ]; then
+          echo "::error::Failed to push to develop after 5 attempts"
+          exit 1
+        fi
+
+        echo "committed=true" >> "$GITHUB_OUTPUT"

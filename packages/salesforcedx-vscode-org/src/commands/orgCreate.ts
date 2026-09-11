@@ -184,10 +184,6 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
-  // NOTE: the old executor sent telemetryService.sendException('org_create', message) here and
-  // 'org_create_scratch' on parse errors. Both are intentionally dropped: migrated Effect org commands
-  // (orgOpen, orgDeleteDefaultCommand) emit no failure-exception telemetry; OrgCreateParseError flows to
-  // ErrorHandlerService for user-facing rendering instead.
   const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
     const channel = yield* api.services.ChannelService;
     yield* channel.appendToChannel(message);

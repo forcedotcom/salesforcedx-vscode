@@ -7,7 +7,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v6
       id: restore
       with:
         path: .vscode-test/vscode-*
@@ -24,7 +24,7 @@ runs:
             echo "Fallback: using on-disk version $onDisk instead of pinned ${{ inputs.vscode-version }}"
           fi
         fi
-    - uses: actions/cache/save@v4
+    - uses: actions/cache/save@v6
       if: always() && steps.restore.outputs.cache-hit != 'true'
       with:
         path: .vscode-test/vscode-*

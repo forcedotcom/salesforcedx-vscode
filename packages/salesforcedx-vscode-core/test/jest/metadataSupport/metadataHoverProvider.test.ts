@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { isNotNull } from 'effect/Predicate';
 import { MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
 import {
   MetadataHoverProvider,
@@ -60,7 +61,7 @@ const createMockDocument = (fileName: string, content: string) =>
       const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
       let match;
 
-      while ((match = xmlElementRegex.exec(line)) !== null) {
+      while (isNotNull((match = xmlElementRegex.exec(line)))) {
         const [fullMatch, , elementName] = match;
         const matchStart = match.index;
         const matchEnd = match.index + fullMatch.length;

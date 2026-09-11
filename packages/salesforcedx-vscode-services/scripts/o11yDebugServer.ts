@@ -6,7 +6,8 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import * as Encoding from 'effect/Encoding';
+import { isError, isNull } from 'effect/Predicate';
 import * as http from 'node:http';
 
 const PORT = 3002;
@@ -44,7 +45,7 @@ const extractJsonObjects = (str: string): string[] => {
   const findMatches = (startIdx: number): number[] => {
     pattern.lastIndex = startIdx;
     const match = pattern.exec(str);
-    if (match === null || match.index >= str.length) return allMatchIndices;
+    if (isNull(match) || match.index >= str.length) return allMatchIndices;
     allMatchIndices.push(match.index);
     return findMatches(match.index + 1);
   };
@@ -84,14 +85,7 @@ const parseBody = (body: string) =>
   );
 
 const decodeBase64Env = (base64Env: string) =>
-  Effect.try({
-    try: () => {
-      const decoded = Buffer.from(base64Env, 'base64');
-      const asString = decoded.toString('utf-8');
-      return extractJsonObjects(asString);
-    },
-    catch: error => (isError(error) ? error : new Error(String(error)))
-  });
+  Encoding.decodeBase64String(base64Env).pipe(Effect.map(extractJsonObjects));
 
 const logRequest = (method: string | undefined, url: string | undefined, headers: http.IncomingHttpHeaders): void => {
   const timestamp = new Date().toISOString();

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.9",
+  "version": "67.17.11",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -220,7 +220,7 @@
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-lwc:vscode:package:legacy",
+        "../salesforcedx-vscode-lwc:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

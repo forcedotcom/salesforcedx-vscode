@@ -69,7 +69,7 @@ function getCommits(releaseBranch: string, previousBranch: string): string[] {
 /**
  * Parse the commits and return them as a list of hashmaps.
  */
-function parseCommits(commits: string[]): CommitMap[] {
+function parseCommits(commits: string[], dedupeAgainstExisting = true): CommitMap[] {
   logger(`\nStep 4: Determine which commits we want to share in the changelog`);
   let commitMaps: CommitMap[] = [];
   for (let i = 0; i < commits.length; i++) {
@@ -78,7 +78,7 @@ function parseCommits(commits: string[]): CommitMap[] {
       commitMaps.push(commitMap);
     }
   }
-  return filterExistingPREntries(commitMaps);
+  return dedupeAgainstExisting ? filterExistingPREntries(commitMaps) : commitMaps;
 }
 
 function buildMapFromCommit(commit: string): CommitMap {
@@ -269,4 +269,24 @@ export function updateChangeLog(remoteReleaseBranch: string, remotePreviousBranc
     console.log(`No commits found, so we can skip this week's release. Carry on!`);
     process.exit(0);
   }
+}
+
+/**
+ * Generates a changelog for commits in (fromRef, toRef], overwriting CHANGE_LOG_PATH with
+ * only that range. Unlike updateChangeLog, this operates on the current working tree (no
+ * branch checkout) and doesn't dedupe against the existing file, since the range is fresh
+ * and disjoint by construction. Returns false and leaves the file untouched when the range
+ * has no qualifying commits.
+ */
+export function generateDeltaChangeLog(fromRef: string, toRef: string, version: string): boolean {
+  const parsedCommits = parseCommits(getCommits(toRef, fromRef), false);
+  if (parsedCommits.length === 0) {
+    console.log(`No qualifying commits found between ${fromRef} and ${toRef}. Skipping changelog generation.`);
+    return false;
+  }
+
+  const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
+  const changeLog = getChangeLogText(version, groupedMessages);
+  writeChangeLog(changeLog);
+  return true;
 }

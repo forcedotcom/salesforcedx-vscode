@@ -4,13 +4,13 @@ on:
   schedule:
     # Wednesdays at 7 AM UTC
     # Builds stable release from LAST week's marketplace pre-release (which has been tested for 7+ days)
-    # IMPORTANT: Runs BEFORE promote-nightly-to-prerelease (8 AM) to ensure we build from last week's
+    # IMPORTANT: Runs BEFORE promote-to-prerelease (8 AM) to ensure we build from last week's
     # tested prerelease, not the one being promoted today
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
       startFromRef:
-        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation - ensure ref is reviewed/merged to develop before using.'
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation and runs no tests here - promote-to-prerelease.yml/publishVSCode.yml/publishOpenVSX.yml test the commit directly (isHotfix=true) before it goes live. Ensure ref is reviewed/merged to develop before using.'
         required: false
         type: string
       prereleaseTag:
@@ -106,7 +106,7 @@ jobs:
 
           else
             # Priority 3: Auto-detect latest nightly published to marketplace as prerelease
-            # The promote-nightly-to-prerelease workflow (nightly → marketplace prerelease) creates
+            # The promote-to-prerelease workflow (nightly → marketplace prerelease) creates
             # marketplace-prerelease-* tracking tags pointing to the Wednesday candidate commit
             TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
 
@@ -325,6 +325,30 @@ jobs:
 
       - name: Install dependencies with updated versions
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Relabel this week's changelog for stable release
+        # promote-to-prerelease.yml already generated and committed this week's
+        # delta to develop (labeled with the prerelease version); pull that exact content
+        # and relabel its header to the stable version being built here. Emergency
+        # pre-releases skip this -- they don't go through the weekly promote cycle. Stable
+        # hotfixes built via startFromRef also skip it (SOURCE_TAG there is an arbitrary
+        # ref, not a nightly tag), keeping whatever changelog is already in the working tree.
+        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          if [[ ! "$SOURCE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$ ]]; then
+            echo "Source ref '$SOURCE_TAG' is not a nightly tag (hotfix/startFromRef build) - nothing to relabel."
+            exit 0
+          fi
+          PRERELEASE_VERSION=$(echo "$SOURCE_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+
+          git fetch origin develop
+          git show origin/develop:packages/salesforcedx-vscode/CHANGELOG.md > packages/salesforcedx-vscode/CHANGELOG.md
+          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
+
+          echo "✓ Relabeled changelog v$PRERELEASE_VERSION → v$RELEASE_VERSION"
 
       - name: Build VSIXs
         run: npm run vscode:package

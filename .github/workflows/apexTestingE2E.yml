@@ -58,16 +58,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
@@ -88,6 +80,10 @@ jobs:
           E2E_NO_RETRIES: 1
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -246,16 +242,8 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
