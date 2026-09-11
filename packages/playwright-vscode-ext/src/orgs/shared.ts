@@ -38,12 +38,43 @@ export const runScratchOrgCreate = async (command: string, cwd: string): Promise
   }
 };
 
-/** Try to use existing org, return auth fields if found */
+/*
+ * Is the org described by `sf org display --json` actually alive and reusable? A cached scratch org
+ * can be Deleted/expired while `sf org auth show-access-token` still hands back a STALE cached token —
+ * reuse it and the CB container boot fails to log in ("Unable to automatically login to org during
+ * start"), surfacing downstream as a confusing `NoTargetOrgConfiguredError`. So we reuse an alias only
+ * when `org display` shows no positive evidence of death: a live connection, a non-Deleted status, and
+ * (for scratch orgs) an expiration still in the future. Missing fields are treated as "no evidence of
+ * death" so a non-scratch/older-CLI happy path isn't broken by an over-eager check.
+ */
+const isOrgAlive = (result: OrgDisplayResult['result']): boolean => {
+  if (result.status !== undefined && result.status === 'Deleted') {
+    return false;
+  }
+  if (result.connectedStatus !== undefined && result.connectedStatus !== 'Connected') {
+    return false;
+  }
+  if (result.expirationDate !== undefined) {
+    const expiresAt = Date.parse(result.expirationDate);
+    if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/** Try to use existing org, return auth fields if found AND the org is actually alive (not dead/expired) */
 export const tryUseExistingOrg = async (orgAlias: string): Promise<OrgAuthResult | undefined> => {
   try {
     const displayResponse = JSON.parse(
       (await execAsync(`sf org display -o ${orgAlias} --json`, { env })).stdout
     ) as OrgDisplayResult;
+
+    // Liveness gate BEFORE reading the token: `show-access-token` returns a stale cached token even
+    // for a Deleted/expired org, so trusting it would hand back a dead org. Fall through to create.
+    if (!isOrgAlive(displayResponse.result)) {
+      return undefined;
+    }
 
     const tokenResponse = JSON.parse(
       (await execAsync(`sf org auth show-access-token -o ${orgAlias} --json`, { env })).stdout
