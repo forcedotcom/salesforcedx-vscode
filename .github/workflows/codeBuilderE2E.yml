@@ -187,14 +187,35 @@ jobs:
           retry_wait_seconds: 30
           command: bash -c 'rm -rf cb-e2e-nt-project && sf project generate -n cb-e2e-nt-project && cd cb-e2e-nt-project && sf org create scratch -y 1 -f config/project-scratch-def.json -a nonTrackingTestOrg --no-track-source --json --wait 30'
 
+      # Some specs (org-browser custom object/tab/report; metadata sObject refresh) need an org that has
+      # real custom metadata a bare scratch org lacks. Provision a Dreamhouse org (clone + create + deploy
+      # + permset) — only for those package(s). No -d: the boot org stays default; those specs switch to
+      # this alias with save/restore. Dreamhouse deploy is slow, hence the tight package gate.
+      - name: Create Dreamhouse scratch org (custom-metadata specs)
+        if: contains(fromJSON('["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]'), matrix.package)
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-dh && git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc cb-e2e-dh && cd cb-e2e-dh && sf org create scratch -y 1 -f config/project-scratch-def.json -a orgBrowserDreamhouseTestOrg --json --wait 30 && sf project deploy start -o orgBrowserDreamhouseTestOrg && sf org assign permset -n dreamhouse -o orgBrowserDreamhouseTestOrg'
+
+      # Resolve which extra orgs the orchestrator auths into the container for THIS package (comma-sep).
+      # org/core switch to a non-tracking org; org-browser browses a Dreamhouse org; metadata uses both.
+      - name: Resolve extra org aliases (per package)
+        run: |
+          case "$PACKAGE" in
+            salesforcedx-vscode-metadata) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg,orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-org-browser) echo "CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-org | salesforcedx-vscode-core) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg" >> "$GITHUB_ENV" ;;
+            *) echo "CB_EXTRA_ORG_ALIASES=" >> "$GITHUB_ENV" ;;
+          esac
+
       # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
       # org created above (via createMinimalOrg), auth any CB_EXTRA_ORG_ALIASES into the container, run +
       # seed + swap + restart + verify gate, then run the container specs and tear the container down.
-      # Same pipeline a developer runs locally. CB_EXTRA_ORG_ALIASES is set only for packages whose specs
-      # need extra orgs; empty elsewhere (the orchestrator no-ops).
+      # Same pipeline a developer runs locally. CB_EXTRA_ORG_ALIASES (set above) is empty for packages
+      # whose specs need no extra org (the orchestrator no-ops).
       - name: Run Code Builder E2E (orchestrator)
-        env:
-          CB_EXTRA_ORG_ALIASES: ${{ contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core"]'), matrix.package) && 'nonTrackingTestOrg' || '' }}
         run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
 
       # This shard runs one package (--only), so only that package's report/results dir exists; the
@@ -235,3 +256,9 @@ jobs:
         if: always() && contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core"]'), matrix.package)
         continue-on-error: true
         run: sf org delete scratch -o nonTrackingTestOrg --no-prompt || true
+
+      # And the Dreamhouse org, when this shard created one.
+      - name: Cleanup Dreamhouse scratch org
+        if: always() && contains(fromJSON('["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]'), matrix.package)
+        continue-on-error: true
+        run: sf org delete scratch -o orgBrowserDreamhouseTestOrg --no-prompt || true
