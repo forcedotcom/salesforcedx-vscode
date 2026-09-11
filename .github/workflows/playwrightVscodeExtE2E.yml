@@ -67,6 +67,10 @@ jobs:
         run: |
           npm run test:web -w @salesforce/playwright-vscode-ext
 
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
+
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
         with:
