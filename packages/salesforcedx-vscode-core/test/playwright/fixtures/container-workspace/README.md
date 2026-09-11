@@ -3,12 +3,14 @@
 A minimal, version-controlled SFDX project mounted into the Code Builder container so container
 Playwright specs open a workspace with real metadata instead of the image's bare generated project.
 
-The mount + open is handled by the `seedWorkspace` function (exported from
-`@salesforce/playwright-vscode-ext`; invoked by the orchestrator/CI): the host dir is bind-mounted
-to `/home/codebuilder/fixture-project`, and `coder.json` is written via `docker exec` to point
-code-server at it. This deliberately bypasses the image's `SFDX_COBU_PROJECTNAME` generate path —
-that runs only on first boot behind the `~/.codebuilder` gate and lives in image code the CB team
-owns. See ADR 0022.
+Mount + open handled by `seedWorkspace` (from `@salesforce/playwright-vscode-ext`; orchestrator/CI):
+host dir bind-mounts to `/home/codebuilder/fixture-project`, `coder.json` written via `docker exec`
+to point code-server at it. Bypasses image `SFDX_COBU_PROJECTNAME` generate path (runs only first boot
+behind `~/.codebuilder` gate; image-owned code). See ADR 0022.
+
+Specs that write files INTO the opened workspace (e.g., metadata `manifestCommandVisibility` adding
+test `.xml` files) access the host path via `CB_FIXTURE_HOST_DIR` env var (set by orchestrator),
+then use `node:fs` — the bind mount reflects writes into the container's opened folder.
 
 This one fixture is shared by every package's container specs (it is the single mounted workspace,
 so the container opens it once and all specs run against it). Keep it small and add metadata only

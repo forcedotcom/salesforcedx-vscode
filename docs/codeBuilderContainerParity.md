@@ -27,18 +27,18 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 91 specs across 15 packages
+## Coverage summary — 93 specs across 15 packages
 
-Includes the multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
-org-blocked specs now run by authing extra orgs into the container and switching the default with
-save/restore; 2 more are ported but `test.fixme` for a documented code-server limitation.
+Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
+org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
+`test.fixme` for code-server limits. Includes phase-2 no-project shape ports: 2 specs now run after
+orchestrator re-seeds to non-project workspace.
 
-Count is container spec **files**: 89 active + 2 `test.fixme`. Two origin specs are reachable but not
-yet ported — see "Reachable but not yet ported" below.
+Count is container spec **files**: 91 active + 2 `test.fixme`.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
-| `salesforcedx-vscode-metadata` | 23 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
+| `salesforcedx-vscode-metadata` | 23 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
 | `salesforcedx-vscode-apex-testing` | 12 | testExplorer(+Run), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, **orgOnlyClassRetrieve, inWorkspaceFilter** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
@@ -90,7 +90,7 @@ The 46 not-ported specs by blocking constraint:
 
 | Blocking constraint | Count |
 | --- | --: |
-| Different workspace shape (no-folder / empty / multi-package) | 11 |
+| Different workspace shape (no-folder / empty / multi-package) | 9 |
 | Interactive debug session / DAP | 8 |
 | Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
 | Destructive org lifecycle / second org user | 6 |
@@ -101,7 +101,7 @@ The 46 not-ported specs by blocking constraint:
 | Dev/Test-only internal command | 1 |
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
 | **Reachable but not yet ported** | **2** |
-| **Total** | **46** |
+| **Total** | **44** |
 
 ## Not ported (and why)
 
@@ -126,9 +126,10 @@ Dreamhouse-metadata specs that only READ or SWITCH between pre-provisioned orgs 
 "Multi-org container support".)
 
 **Requires a different workspace shape (no-folder / empty / multi-package)** — metadata:
-`createProject`, `createProjectEmptyWindow`, `createProjectWithManifest`, `emptyWorkspaceSfdxCommands`,
-`manifestCommandVisibility`, `noProjectCommandsHidden`; apex-log: `apexGenerateClassMultiPackageDirs`,
-`noOrgVisibility`, `noProjectVisibility`; apex-testing: `noOrgVisibility`, `noProjectVisibility`.
+`createProject`, `createProjectEmptyWindow`, `createProjectWithManifest`, `emptyWorkspaceSfdxCommands`;
+apex-log: `apexGenerateClassMultiPackageDirs`, `noOrgVisibility`, `noProjectVisibility`; apex-testing:
+`noOrgVisibility`, `noProjectVisibility`. (metadata `manifestCommandVisibility` and `noProjectCommandsHidden`
+now ported — see "Workspace-shape portability assessment" below.)
 
 **Reads local span/telemetry files or needs the spans:server** — apex: `apexTelemetrySpans`;
 metadata: `cliEnvSpans`; lightning: `telemetryOutput`, `spanRedaction`; org: `telemetryIdentitySeeding`.
@@ -258,38 +259,46 @@ helpers** in `playwright-vscode-ext`; specs hand-roll it plus a local `continueD
 
 ## Workspace-shape portability assessment
 
-The 11 "different workspace shape" specs are the largest not-ported bucket. A feasibility review found
-**8 of 11 reachable, 3 effectively blocked** — but every reachable path must change the shape at a
-**phase boundary** (re-seed `coder.json` + `restart()`, which the orchestrator already does), never by
-mutating the shape *mid-suite*. Closing the workspace or removing the boot org in the middle of the one
-shared serial session corrupts the workbench every subsequent spec depends on. (This is a shared-session-
-integrity cost, not a code-server limitation — a reload/`restart()` at a phase boundary is fully
-supported; `reloadWindow` works in code-server.)
+The 9 remaining "different workspace shape" specs are blocked by harness constraints. Every shape change
+must occur at a **phase boundary** (re-seed `coder.json` + `restart()` at suite transitions), never
+mid-suite—mutating the shared serial session corrupts the workbench for downstream specs. This is a
+shared-session integrity cost, not a code-server limit; `restart()` at phase boundaries works fully.
 
 | Spec(s) | Shape needed | Verdict |
 | --- | --- | --- |
-| metadata `manifestCommandVisibility` | standard project + org (= the current fixture) | **EASY** — not a shape problem; just write `*Package.xml`/`.xml` into the mounted fixture + clean up, drop `createMinimalOrg` (org is ambient) |
-| apex-log/apex-testing `noProjectVisibility`, metadata `noProjectCommandsHidden`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **MEDIUM** — org-agnostic palette-visibility checks; add an orchestrator phase that re-seeds `coder.json` to a non-project / no folder + existing `restart()`. Touches only orchestrator/config, not the shared fixture |
-| apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **MEDIUM** — needs a **second** multi-package mount. Do NOT convert the shared fixture to multi-package: it would make every class/trigger-create command start prompting a dir picker → regresses existing apex specs |
-| apex-log/apex-testing `noOrgVisibility` | DX project open, **no org** | **MEDIUM–HARD** — needs a dedicated **no-org container boot** (make `bootEnv`/org optional in `lifecycle.ts` + orchestrator); can't be a mid-run phase since `restart()` re-auths the org |
-| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold a new project on disk | **HARD / blocked** — assert files via host `node:fs` (container FS is invisible unless under the bind mount), target dir `/home/codebuilder` isn't mounted, and Create Project ends with `vscode.openFolder` (changing the opened folder — a harder operation than a plain reload, and it re-navigates the shared workbench). Low value-to-cost |
+| metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `CB_FIXTURE_HOST_DIR` env; runs against ambient boot org in phase 1 |
+| metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — ported; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
+| apex-log/apex-testing `noProjectVisibility`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **READY** — reachable; palette-visibility checks are org-agnostic; reuse phase 2 machinery (re-seed to non-project / no-folder mount + `restart()`), autodiscover via `test:container:noproject` script |
+| apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **READY** — needs 2nd multi-package mount; don't convert shared fixture to multi-package (regresses picker-on-create for existing apex specs) |
+| apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **BLOCKED** — needs dedicated no-org boot (make `bootEnv` optional in lifecycle); can't be mid-run phase since `restart()` re-auths org |
+| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold new project on disk | **BLOCKED** — container FS invisible outside bind mounts; `vscode.openFolder` (harder than reload, re-navigates workbench); low value-to-cost |
 
-**Cheapest path (highest reachable-count-per-effort):** ship `manifestCommandVisibility` first (no shape
-change). Then cover the four visibility specs with **one** added orchestrator capability — re-seed
-`coder.json` (non-project folder, and no-folder) + a second trivial non-project mount, sequenced with
-the existing `restart()` — which touches only orchestrator/config and leaves the 86 ported specs
-untouched. Multi-package and no-org boot are each a further self-contained mount/boot variant.
-
-**Spike first:** whether a re-seed + `restart()` reliably reopens a *different* `coder.json` shape
-(folder / no-folder) cleanly on the CB image. That boot-time re-seed behavior isn't exercised anywhere
-today and gates the whole phased design.
+**Phase 2 infrastructure:** Orchestrator now runs a second phase after standard suites (phase 1).
+Re-seeds `coder.json` to a 2nd non-project mount (`container-noproject` fixture), `restart()`s, re-runs
+verify gate, then runs any package's `test:container:noproject` suite (auto-discovered). New env vars:
+`CB_FIXTURE_HOST_DIR` (host path of DX fixture bind mount, for specs writing files), `CB_GREP` (grep
+passed via env, not CLI arg, to preserve shell quoting through wireit/npm). New plumbing:
+`discoverPackagesWithScript()` generalized for any script name, second bind mount in container config.
 
 ## Adding a container suite to a package
+
+**Phase 1 (standard DX-project fixture):**
 
 1. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs/container' })`.
 2. `test/playwright/fixtures/containerFixtures.ts` → `export const containerTest = createContainerTest()`.
 3. `test/playwright/specs/container/<name>.container.spec.ts` importing `containerTest` and only
-   plain-`Page` helpers from `@salesforce/playwright-vscode-ext`. Drive the boot org, harden for the
-   shared workbench (unique names, `beforeEach` cleanup), and drop `isDesktop()` gates.
-4. Add a `test:container` script + wireit block mirroring the other packages.
-5. The orchestrator discovers the suite automatically. Update the tables above.
+   plain-`Page` helpers from `@salesforce/playwright-vscode-ext`. Drive the boot org, harden for shared
+   workbench (unique names, `beforeEach` cleanup), drop `isDesktop()` gates.
+4. Add `test:container` script + wireit block (mirrors other packages; accept `CODE_BUILDER_URL` env,
+   forward `CB_GREP` to Playwright).
+5. Orchestrator auto-discovers. Update coverage tables.
+
+**Phase 2 (no-project workspace shape):**
+
+For specs requiring a no-project folder (project-gated commands must be hidden):
+
+1. `test/playwright/playwright.config.container.noproject.ts` → `createContainerConfig({ testDir: './specs/container-noproject' })`.
+2. `test/playwright/specs/container-noproject/<name>.container.spec.ts` — same patterns as phase 1.
+3. Add `test:container:noproject` script + wireit block (same env vars as `test:container`).
+4. Orchestrator auto-discovers `test:container:noproject` scripts; runs phase 2 after phase 1. Specs
+   run against the mounted non-project folder after re-seed + `restart()`.
