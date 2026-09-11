@@ -27,20 +27,24 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 75 specs across 15 packages
+## Coverage summary — 90 specs across 15 packages
+
+Includes the multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
+org-blocked specs now run by authing extra orgs into the container and switching the default with
+save/restore; 2 more are ported but `test.fixme` for a documented code-server limitation.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
-| `salesforcedx-vscode-metadata` | 17 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall |
+| `salesforcedx-vscode-metadata` | 23 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
-| `salesforcedx-vscode-apex-testing` | 9 | testExplorer, runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration |
+| `salesforcedx-vscode-apex-testing` | 11 | testExplorer, runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, **orgOnlyClassRetrieve, inWorkspaceFilter** |
+| `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
 | `salesforcedx-vscode-apex-log` | 8 | executeAnonymous, logRetrieval, apexGenerateClass, apexTestClassCreate, createApexTrigger, autoCollection, traceFlagsCrud, traceFlagExpiry |
-| `salesforcedx-vscode-org` | 6 | orgDisplay, aliasList, orgOpen, orgCommands, orgDeleteCommandVisibility, orgLoginAccessToken |
+| `salesforcedx-vscode-org` | 8 | orgDisplay, aliasList, orgOpen, orgCommands, orgDeleteCommandVisibility, orgLoginAccessToken, **orgPicker, orgPickers** |
 | `salesforcedx-vscode-apex` | 4 | apexLsp (go-to-def/autocomplete), apexLspHover, apexLspRestart, apexSnippets |
 | `salesforcedx-vscode-lightning` | 4 | auraLspAutocompletion, auraLspGoToDefinition, auraRename, auraTemplates |
-| `salesforcedx-vscode-org-browser` | 4 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter |
+| `salesforcedx-vscode-core` | 4 | configList, seededWorkspace, coreOutputChannel, **workspaceContextOrgSwitch** |
 | `salesforcedx-vscode-apex-oas` | 3 | ineligibleClass, mixedFrameworksClass, restResourceNoHttpMethod (all pre-LLM eligibility guards) |
-| `salesforcedx-vscode-core` | 3 | configList, seededWorkspace, coreOutputChannel |
 | `salesforcedx-vscode-soql` | 2 | soqlRunQuery, soqlQueryPlan |
 | `salesforcedx-vscode-visualforce` | 2 | visualforceLsp, visualforceTemplates |
 | `salesforcedx-vscode-services` | 1 | retrieveOnLoad (activation + no-op branch) |
@@ -64,21 +68,18 @@ constraint:
 `composedManualMerge`, `composedOverwrite`, `decomposedSimpleAccount`, `contextMenuEditor`,
 `contextMenuExplorer`.
 
-**Requires a different org (non-tracking / second org / dev hub / web login / delete / logout)** —
-metadata: `nonTrackingOrgDeployRetrieveManifest`, `nonTrackingOrgDeployRetrieveOperations`,
-`nonTrackingOrgTrackingCommandsHidden`, `nonTrackingOrgTrackingUIHidden`, `deleteBundleSource`;
-apex-testing: `clearOnLogout`, `orgOnlyClassRetrieve`, `inWorkspaceFilter`; apex-log:
-`traceFlagsForOtherUser`; org: `orgLoginWeb`, `orgDeleteUsername`, `orgListClean`, `orgPicker`,
-`orgPickers`; core: `workspaceContextOrgSwitch`.
+**Destructive org lifecycle (web login / delete / logout / list-clean) or a second org USER** —
+metadata: `deleteBundleSource`; apex-testing: `clearOnLogout`; apex-log: `traceFlagsForOtherUser`
+(needs a second user in the org); org: `orgLoginWeb`, `orgDeleteUsername`, `orgListClean`. These
+mutate or destroy org auth on the ONE shared serial session (or need a second user), which the
+multi-org capability below deliberately does not provide. (Non-tracking, org-picker, org-switch, and
+Dreamhouse-metadata specs that only READ or SWITCH between pre-provisioned orgs ARE now ported — see
+"Multi-org container support".)
 
 **Requires a different workspace shape (no-folder / empty / multi-package)** — metadata:
 `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest`, `emptyWorkspaceSfdxCommands`,
 `manifestCommandVisibility`, `noProjectCommandsHidden`; apex-log: `apexGenerateClassMultiPackageDirs`,
 `noOrgVisibility`, `noProjectVisibility`; apex-testing: `noOrgVisibility`, `noProjectVisibility`.
-
-**Requires custom/Dreamhouse org metadata a bare scratch org lacks** — org-browser:
-`orgBrowser.customObject`, `orgBrowser.customTab`, `orgBrowser.folderedReport` (+ the `Broker__c`
-subtests of `textFilter`); metadata: `refreshSObjectDefinitions`, `sourceTrackingStatusBar`.
 
 **Reads local span/telemetry files or needs the spans:server** — apex: `apexTelemetrySpans`;
 metadata: `cliEnvSpans`; lightning: `telemetryOutput`, `spanRedaction`; org: `telemetryIdentitySeeding`.
@@ -93,6 +94,35 @@ webviews).
 `orgBrowser.filterToggle.desktop`.
 
 **Needs a fixture dev-dependency not in the workspace** — lwc: `lwcRunTests` (`@salesforce/sfdx-lwc-jest`).
+
+## Multi-org container support
+
+The container boots ONE org (token injection). To cover specs that need a NON-tracking org, a second
+org to pick/switch between, or Dreamhouse custom metadata, the harness now authenticates ADDITIONAL
+pre-created orgs into the running container:
+
+- The CI workflow (`codeBuilderE2E.yml`) provisions the extra org(s) per package — a `--no-track-source`
+  scratch org (`nonTrackingTestOrg`) and/or a Dreamhouse org (`orgBrowserDreamhouseTestOrg`, cloned +
+  deployed + permset) — and passes their aliases via `CB_EXTRA_ORG_ALIASES`.
+- The orchestrator (`scripts/codeBuilderLocalE2E.ts`, `authExtraOrgsIntoContainer`) resolves each org's
+  access token + instance URL on the host (un-redacted, via `resolveOrgBootEnv`) and runs
+  `sf org login access-token` INSIDE the container **as the `codebuilder` user** (the workbench user,
+  so `~/.sf` matches) **after the restart** (the boot re-auth would otherwise wipe it). The org
+  extension reads the org list fresh on each picker open, so no window reload is needed.
+- Specs switch the default org via the shared `switchDefaultOrgViaPicker` helper (a re-driving poll)
+  and RESTORE the boot org in a `finally`, so the shared serial session isn't contaminated.
+
+Ported this way: org `orgPicker`/`orgPickers`, core `workspaceContextOrgSwitch`, apex-testing
+`orgOnlyClassRetrieve`/`inWorkspaceFilter` (boot org — org-only is presence, not tracking), metadata
+`nonTrackingOrgDeployRetrieve(Manifest/Operations)`/`refreshSObjectDefinitions`/`sourceTrackingStatusBar`,
+and org-browser `customObject`/`customTab`/`folderedReport`/`textFilterDreamhouse`.
+
+**Documented `test.fixme` (code-server limitation):** metadata `nonTrackingOrgTrackingCommandsHidden`
+and `nonTrackingOrgTrackingUIHidden`. The metadata source-tracking status bar re-evaluates only on a
+`~/.sf/config.json` file event, which code-server does not deliver cross-extension-host for a RUNTIME
+org switch — so the tracking UI doesn't hide after switching to a non-tracking org without a window
+reload the web container can't perform. (`sourceTrackingStatusBar` avoids this by testing the boot
+org, which is tracking + default from activation.)
 
 ## Adding a container suite to a package
 
