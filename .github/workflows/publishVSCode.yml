@@ -167,7 +167,7 @@ jobs:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
 
-  # promote-nightly-to-prerelease.yml committed this week's changelog delta to develop
+  # promote-to-prerelease.yml committed this week's changelog delta to develop
   # labeled with the prerelease version. Now that it has shipped stable, relabel that same
   # develop history entry (root CHANGELOG.md + the pack's CHANGELOG.md) to the stable version.
   relabel-changelog:

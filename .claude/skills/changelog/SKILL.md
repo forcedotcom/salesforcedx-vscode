@@ -6,7 +6,7 @@ review: never
 
 # Changelog Polish
 
-Improve the automated changelog delta committed to `develop` by `promote-nightly-to-prerelease.yml`.
+Improve the automated changelog delta committed to `develop` by `promote-to-prerelease.yml`.
 
 Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` contains full historical changelog (automatically prepended by `scripts/prepend-release-changelog.js`, run as part of the same promote job) — do not edit manually. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
 
@@ -145,11 +145,11 @@ Use these `chore:` subjects for polish commits on `develop`:
 
 ## Reference: changelog lifecycle
 
-These describe the pipeline behavior in `promote-nightly-to-prerelease.yml`, `scripts/generate-release-delta-changelog.ts` + `scripts/change-log-generator-utils.ts`. Background context for understanding auto-generated commits; typically not interacted with during polish.
+These describe the pipeline behavior in `promote-to-prerelease.yml`, `scripts/generate-release-delta-changelog.ts` + `scripts/change-log-generator-utils.ts`. Background context for understanding auto-generated commits; typically not interacted with during polish.
 
 ### Generate → Prepend → Polish → Relabel
 
-1. **Generation + Prepend** (`promote-nightly-to-prerelease.yml`'s `changelog` job, weekly on `develop`): `npm run changelog:delta` writes this week's delta to `packages/salesforcedx-vscode/CHANGELOG.md`, then `scripts/prepend-release-changelog.js` immediately copies that same content into root `CHANGELOG.md`. Both are labeled with the **prerelease** version (e.g. `67.17.9`).
+1. **Generation + Prepend** (`promote-to-prerelease.yml`'s `changelog` job, weekly on `develop`): `npm run changelog:delta` writes this week's delta to `packages/salesforcedx-vscode/CHANGELOG.md`, then `scripts/prepend-release-changelog.js` immediately copies that same content into root `CHANGELOG.md`. Both are labeled with the **prerelease** version (e.g. `67.17.9`).
 2. **Polish** (`develop`, this skill): Human edits `packages/salesforcedx-vscode/CHANGELOG.md` any time before the next `build-release.yml` run. **Note:** because prepend already ran in step 1, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit — see the open question below if this matters for your case.
 3. **Relabel to stable** (`build-release.yml`, next Wednesday 7 AM UTC): pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 2), relabels the header from the prerelease version to the stable version, and bakes it into the stable VSIX.
 4. **Relabel history** (`publishVSCode.yml`, on final stable publish): relabels the same header in develop's `CHANGELOG.md` and `packages/salesforcedx-vscode/CHANGELOG.md` from prerelease → stable version, so the committed history matches what shipped.

@@ -327,7 +327,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       - name: Relabel this week's changelog for stable release
-        # promote-nightly-to-prerelease.yml already generated and committed this week's
+        # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content
         # and relabel its header to the stable version being built here. Emergency
         # pre-releases skip this -- they don't go through the weekly promote cycle. Stable
