@@ -24,16 +24,8 @@ const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 
-const toOrderedValues = (orderedValues: readonly string[], values: HashSet.HashSet<string>): string[] =>
-  HashSet.toValues(values).toSorted((left, right) => orderedValues.indexOf(left) - orderedValues.indexOf(right));
-
-const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] => {
-  const orderedValues = [...defaults, ...configuredValues];
-  const values = HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues));
-  return toOrderedValues(orderedValues, values);
-};
-
-const hashSetValues = (values: readonly string[]): string[] => toOrderedValues(values, HashSet.fromIterable(values));
+const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] =>
+  HashSet.toValues(HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues)));
 
 export const retrieveEnableSyncInitJobs = (): boolean =>
   vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
@@ -95,9 +87,9 @@ export const retrieveAAMethodAnnotations = (): string[] => {
 };
 
 // The REST-related annotations should not be edited by users
-export const retrieveAAClassRestAnnotations = (): string[] => hashSetValues(APEX_ACTION_CLASS_REST_ANNOTATION);
+export const retrieveAAClassRestAnnotations = (): string[] => APEX_ACTION_CLASS_REST_ANNOTATION;
 
-export const retrieveAAMethodRestAnnotations = (): string[] => hashSetValues(APEX_ACTION_METHOD_REST_ANNOTATION);
+export const retrieveAAMethodRestAnnotations = (): string[] => APEX_ACTION_METHOD_REST_ANNOTATION;
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
   vscode.workspace
