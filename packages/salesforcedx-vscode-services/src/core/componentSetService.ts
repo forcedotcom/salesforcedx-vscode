@@ -12,7 +12,10 @@ import {
   ComponentSet,
   type ComponentSet as ComponentSetType,
   type FileResponseSuccess,
-  type MetadataMember
+  ManifestResolver,
+  type MetadataComponent,
+  type MetadataMember,
+  type RegistryAccess
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
@@ -56,6 +59,128 @@ export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToB
 ) {}
 
 const getComponentState = (component: FileResponseSuccess) => toComponentStatusChangeType(component.state);
+
+const MANIFEST_COMPONENT_BATCH_SIZE = 1000;
+
+type BotVersionFilter = NonNullable<ComponentSetType['botVersionFilters']>[number];
+
+const parseBotVersionFullName = (fullName: string): BotVersionFilter => {
+  const numberedVersion = /^(.+)\.v(\d+)$/.exec(fullName);
+  if (numberedVersion) {
+    return { botName: numberedVersion[1], versionFilter: Number(numberedVersion[2]) };
+  }
+  if (fullName.endsWith('.*')) {
+    return { botName: fullName.slice(0, -2), versionFilter: 'all' };
+  }
+  const lastDot = fullName.lastIndexOf('.');
+  return {
+    botName: lastDot > 0 ? fullName.slice(0, lastDot) : fullName,
+    versionFilter: 'highest'
+  };
+};
+
+const addManifestComponentBatch = ({
+  componentSet,
+  include,
+  components,
+  registry
+}: {
+  componentSet: ComponentSetType;
+  include: ComponentSetType;
+  components: readonly MetadataComponent[];
+  registry: RegistryAccess;
+}): BotVersionFilter[] => {
+  const componentsAndFilters = components.map(manifestComponent => {
+    if (manifestComponent.type.name === 'BotVersion') {
+      const botVersionFilter = parseBotVersionFullName(manifestComponent.fullName);
+      return {
+        component: {
+          fullName: botVersionFilter.botName,
+          type: registry.getTypeByName('Bot')
+        },
+        botVersionFilter
+      };
+    }
+    return { component: manifestComponent, botVersionFilter: undefined };
+  });
+
+  componentsAndFilters.forEach(({ component }) => {
+    include.add(component);
+    componentSet.add(component);
+  });
+
+  return componentsAndFilters.flatMap(({ botVersionFilter }) => (botVersionFilter ? [botVersionFilter] : []));
+};
+
+const addManifestComponentsInBatches = ({
+  componentSet,
+  include,
+  components,
+  registry
+}: {
+  componentSet: ComponentSetType;
+  include: ComponentSetType;
+  components: readonly MetadataComponent[];
+  registry: RegistryAccess;
+}): void => {
+  const botVersionFilters = Array.from(
+    { length: Math.ceil(components.length / MANIFEST_COMPONENT_BATCH_SIZE) },
+    (_, batchIndex) => batchIndex
+  ).flatMap(batchIndex => {
+    const batchStart = batchIndex * MANIFEST_COMPONENT_BATCH_SIZE;
+    const batch = components.slice(batchStart, batchStart + MANIFEST_COMPONENT_BATCH_SIZE);
+    return addManifestComponentBatch({ componentSet, include, components: batch, registry });
+  });
+
+  if (botVersionFilters.length > 0) {
+    componentSet.botVersionFilters = botVersionFilters;
+  }
+};
+
+const failedToBuildComponentSetFromManifest = (error: unknown): FailedToBuildComponentSetError => {
+  const { cause } = unknownToErrorCause(error);
+  return new FailedToBuildComponentSetError({
+    message: `Failed to build ComponentSet from manifest: ${cause.message}`,
+    cause
+  });
+};
+
+const buildComponentSetFromManifest = Effect.fn('ComponentSetService.buildComponentSetFromManifest')(function* ({
+  manifestPath,
+  resolveSourcePaths,
+  registry
+}: {
+  manifestPath: string;
+  resolveSourcePaths: string[];
+  registry: RegistryAccess;
+}) {
+  const manifest = yield* Effect.tryPromise({
+    try: () => new ManifestResolver(undefined, registry).resolve(manifestPath),
+    catch: failedToBuildComponentSetFromManifest
+  });
+
+  return yield* Effect.try({
+    try: () => {
+      const componentSet = new ComponentSet([], registry);
+      const include = new ComponentSet([], registry);
+      componentSet.sourceApiVersion = manifest.apiVersion;
+      componentSet.fullName = manifest.fullName;
+
+      addManifestComponentsInBatches({ componentSet, include, components: manifest.components, registry });
+
+      const sourceComponents = ComponentSet.fromSource({ fsPaths: resolveSourcePaths, include, registry });
+      componentSet.forceIgnoredPaths = sourceComponents.forceIgnoredPaths;
+      // ComponentSet exposes only a mutating add operation.
+      // eslint-disable-next-line functional/no-loop-statements
+      for (const sourceComponent of sourceComponents) {
+        componentSet.add(sourceComponent);
+      }
+
+      return componentSet;
+    },
+    catch: failedToBuildComponentSetFromManifest
+  });
+});
 
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
   accessors: true,
@@ -132,22 +257,11 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
           { concurrency: 'unbounded' }
         );
 
-        const componentSet = yield* Effect.tryPromise({
-          try: async () =>
-            ComponentSet.fromManifest({
-              manifestPath,
-              // Get package directories as full paths
-              resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
-              forceAddWildcards: true,
-              registry: registryAccess
-            }),
-          catch: e => {
-            const { cause } = unknownToErrorCause(e);
-            return new FailedToBuildComponentSetError({
-              message: `Failed to build ComponentSet from manifest: ${cause.message}`,
-              cause
-            });
-          }
+        const componentSet = yield* buildComponentSetFromManifest({
+          manifestPath,
+          // Get package directories as full paths
+          resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
+          registry: registryAccess
         });
 
         yield* setComponentSetProperties({ componentSet, project, configAggregator });
