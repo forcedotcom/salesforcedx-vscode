@@ -52,12 +52,16 @@ export const renameAuraCommand = Effect.fn('renameAuraCommand')(function* (
       ),
     onSome: Effect.succeed
   });
-  if (getBundleKind(bundleUri) !== 'aura') {
-    return yield* new NotInBundleError({
-      sourceUri: resolvedSource.toString(),
-      message: 'Source path is not within an aura bundle'
-    });
-  }
+  yield* Effect.succeed(getBundleKind(bundleUri)).pipe(
+    Effect.filterOrFail(
+      kind => kind === 'aura',
+      () =>
+        new NotInBundleError({
+          sourceUri: resolvedSource.toString(),
+          message: 'Source path is not within an aura bundle'
+        })
+    )
+  );
 
   const oldName = Utils.basename(bundleUri);
 
