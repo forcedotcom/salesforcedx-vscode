@@ -38,7 +38,7 @@ Count is container spec **files**: 91 active + 2 `test.fixme`.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
-| `salesforcedx-vscode-metadata` | 23 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
+| `salesforcedx-vscode-metadata` | 25 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, **nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
 | `salesforcedx-vscode-apex-testing` | 12 | testExplorer(+Run), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, **orgOnlyClassRetrieve, inWorkspaceFilter** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
@@ -63,13 +63,13 @@ suite to a new package wires it in with no orchestrator edit.
 How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs
 it was ported from. **Origin** counts product specs only — the 10 `playwright-vscode-ext` specs test
 the shared test *library* itself, not a product feature, so they're excluded. **Ported** is origin
-specs that now have container coverage; the container has 5 more spec *files* than that (91 total)
+specs that now have container coverage; the container has 5 more spec *files* than that (93 total)
 from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, metadata `deploySource`,
 2 org-browser variants).
 
 | Package | Origin | Ported | Not ported |
 | --- | --: | --: | --: |
-| `salesforcedx-vscode-metadata` | 32 | 22 | 10 |
+| `salesforcedx-vscode-metadata` | 32 | 24 | 8 |
 | `salesforcedx-vscode-apex-testing` | 14 | 11 | 3 |
 | `salesforcedx-vscode-lwc` | 13 | 10 | 3 |
 | `salesforcedx-vscode-apex-log` | 12 | 8 | 4 |
@@ -84,9 +84,9 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-core` | 3 | 3 | 0 |
 | `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
-| **Total** | **132** | **86 (65%)** | **46** |
+| **Total** | **132** | **88 (67%)** | **44** |
 
-The 46 not-ported specs by blocking constraint:
+The 44 not-ported specs by blocking constraint:
 
 | Blocking constraint | Count |
 | --- | --: |
