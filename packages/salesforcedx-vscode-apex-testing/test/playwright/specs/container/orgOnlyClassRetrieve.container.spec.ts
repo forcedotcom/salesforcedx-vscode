@@ -110,13 +110,9 @@ const deployOrgOnlyClassFromHost = async (className: string, methodName: string)
   await fs.rm(tmpRoot, { recursive: true, force: true }).catch(() => {});
 };
 
-/** Best-effort removal of the org-only class from the shared boot org, so it doesn't accumulate. */
-const deleteClassFromOrg = async (className: string): Promise<void> => {
-  await execAsync(
-    `sf project delete source --metadata ApexClass:${className} --target-org ${MINIMAL_ORG_ALIAS} --no-prompt --json`,
-    { env }
-  ).catch(() => {});
-};
+// No org cleanup: the boot org is a per-CI-run scratch org deleted at job teardown, and the class name
+// is uniquely stamped so it never collides on a locally-reused org. (A prior `sf project delete source`
+// here was a no-op anyway — it ran outside any SFDX project dir and failed before touching the org.)
 
 // Shared persistent workbench: reset editor + notification state before each test.
 test.beforeEach(async ({ page }) => {
@@ -139,48 +135,44 @@ test('Org-only Apex class (Code Builder): retrieve via code lens opens the on-di
   const className = `OrgOnlyRetrieve${Date.now()}`;
   const methodName = 'retrievedFromOrg';
 
-  try {
-    await test.step('deploy an org-only Apex test class to the boot org (host CLI, not in workspace)', async () => {
-      await ensureSecondarySideBarHidden(page);
-      await deployOrgOnlyClassFromHost(className, methodName);
-      await saveScreenshot(page, 'orgOnlyRetrieve.container.setup.org-only-deployed.png');
-    });
+  await test.step('deploy an org-only Apex test class to the boot org (host CLI, not in workspace)', async () => {
+    await ensureSecondarySideBarHidden(page);
+    await deployOrgOnlyClassFromHost(className, methodName);
+    await saveScreenshot(page, 'orgOnlyRetrieve.container.setup.org-only-deployed.png');
+  });
 
-    await test.step('discover and open the org-only class virtual doc', async () => {
-      // Discovery (Tooling API query of the default org) surfaces the class; it resolves to no
-      // workspace file, so it is tagged org-only and its method navigates to the catalog document.
-      const panel = await openTestExplorerAndDiscover(page);
-      const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
-      await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
-      // Expand the class to reveal its leaf method, then double-click it — only a leaf with a range
-      // triggers VS Code's "go to test" navigation, which opens the sf-org-metadata virtual doc (the
-      // one place the retrieve code lens renders).
-      await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
-      const methodItem = findTestExplorerItem(page, methodName);
-      await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
-      await methodItem.dblclick();
-      // Assert the virtual doc actually opened before clicking the code lens, so a broken
-      // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
-      await expect(page.locator(ORG_METADATA_EDITOR).first()).toBeVisible({ timeout: 60_000 });
-      await saveScreenshot(page, 'orgOnlyRetrieve.container.01-virtual-doc-opened.png');
-    });
+  await test.step('discover and open the org-only class virtual doc', async () => {
+    // Discovery (Tooling API query of the default org) surfaces the class; it resolves to no
+    // workspace file, so it is tagged org-only and its method navigates to the catalog document.
+    const panel = await openTestExplorerAndDiscover(page);
+    const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
+    await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
+    // Expand the class to reveal its leaf method, then double-click it — only a leaf with a range
+    // triggers VS Code's "go to test" navigation, which opens the sf-org-metadata virtual doc (the
+    // one place the retrieve code lens renders).
+    await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
+    const methodItem = findTestExplorerItem(page, methodName);
+    await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
+    await methodItem.dblclick();
+    // Assert the virtual doc actually opened before clicking the code lens, so a broken
+    // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
+    await expect(page.locator(ORG_METADATA_EDITOR).first()).toBeVisible({ timeout: 60_000 });
+    await saveScreenshot(page, 'orgOnlyRetrieve.container.01-virtual-doc-opened.png');
+  });
 
-    await test.step('click the retrieve code lens and verify the retrieved .cls opens', async () => {
-      await clickCodeLens(page, RETRIEVE_CODELENS, { timeout: 180_000 });
-      await saveScreenshot(page, 'orgOnlyRetrieve.container.02-retrieve-clicked.png');
+  await test.step('click the retrieve code lens and verify the retrieved .cls opens', async () => {
+    await clickCodeLens(page, RETRIEVE_CODELENS, { timeout: 180_000 });
+    await saveScreenshot(page, 'orgOnlyRetrieve.container.02-retrieve-clicked.png');
 
-      // The retrieved on-disk class opens in the editor (showTextDocument with the URI from
-      // getRetrievedFileUri) — passes only if getRetrievedFileUri returned a valid URI end-to-end.
-      // (Unlike the desktop twin we assert via the editor rather than host fs.access: the retrieve
-      // writes into the container's mounted workspace, whose host path specs don't have.)
-      await expect(page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`).first()).toBeVisible({
-        timeout: 60_000
-      });
-      await saveScreenshot(page, 'orgOnlyRetrieve.container.03-retrieved-cls-open.png');
+    // The retrieved on-disk class opens in the editor (showTextDocument with the URI from
+    // getRetrievedFileUri) — passes only if getRetrievedFileUri returned a valid URI end-to-end.
+    // (Unlike the desktop twin we assert via the editor rather than host fs.access: the retrieve
+    // writes into the container's mounted workspace, whose host path specs don't have.)
+    await expect(page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`).first()).toBeVisible({
+      timeout: 60_000
     });
-  } finally {
-    await deleteClassFromOrg(className);
-  }
+    await saveScreenshot(page, 'orgOnlyRetrieve.container.03-retrieved-cls-open.png');
+  });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
