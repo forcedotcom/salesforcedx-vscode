@@ -7,10 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import {
-  isConflictDetectionEnabled,
-  isConflictDetectionEnabledSync
-} from '../../../src/conflict/conflictDetectionSettings';
+import { isConflictDetectionEnabled } from '../../../src/conflict/conflictDetectionSettings';
 
 jest.mock('vscode', () => ({
   workspace: {
@@ -60,37 +57,6 @@ describe('conflictDetectionSettings', () => {
       mockGet.mockReturnValue(true);
 
       const result = await Effect.runPromise(isConflictDetectionEnabled());
-
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('isConflictDetectionEnabledSync', () => {
-    it('should return true when setting is true (conflict detection enabled by default)', () => {
-      mockGet.mockReturnValue(true);
-
-      const result = isConflictDetectionEnabledSync();
-
-      expect(result).toBe(true);
-      expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
-    });
-
-    it('should return false when setting is false (conflict detection disabled)', () => {
-      mockGet.mockReturnValue(false);
-
-      const result = isConflictDetectionEnabledSync();
-
-      expect(result).toBe(false);
-      expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
-    });
-
-    it('should return true when setting is undefined (default behavior)', () => {
-      // When setting is not set, vscode returns the default value (true)
-      mockGet.mockReturnValue(true);
-
-      const result = isConflictDetectionEnabledSync();
 
       expect(result).toBe(true);
     });

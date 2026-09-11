@@ -24,11 +24,3 @@ export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled'
   const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
   return config.get<boolean>('sourceTracking.enableConflictDetection', true);
 });
-
-/**
- * Synchronous version for non-Effect contexts.
- */
-export const isConflictDetectionEnabledSync = (): boolean => {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
-  return config.get<boolean>('sourceTracking.enableConflictDetection', true);
-};
