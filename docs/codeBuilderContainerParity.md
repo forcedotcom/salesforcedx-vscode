@@ -250,6 +250,33 @@ helpers** in `playwright-vscode-ext`; specs hand-roll it plus a local `continueD
    org setup for the boot org (as `errorPaths.container` already does).
 7. **BLOCKED:** `isvDebugBootstrap` real bootstrap — org-side `ApexDebuggerSession` unavailable in CI.
 
+## Workspace-shape portability assessment
+
+The 11 "different workspace shape" specs are the largest not-ported bucket. A feasibility review found
+**8 of 11 reachable, 3 effectively blocked** — but every reachable path must change the shape at
+**boot** (via what `coder.json` opens / whether an org is authed), never at **runtime**. Closing the
+workspace or removing the boot org mid-session rides the same cross-extension-host event / window-reload
+limitation already `test.fixme`'d for the tracking specs, and corrupts the one shared serial workbench
+for every subsequent spec.
+
+| Spec(s) | Shape needed | Verdict |
+| --- | --- | --- |
+| metadata `manifestCommandVisibility` | standard project + org (= the current fixture) | **EASY** — not a shape problem; just write `*Package.xml`/`.xml` into the mounted fixture + clean up, drop `createMinimalOrg` (org is ambient) |
+| apex-log/apex-testing `noProjectVisibility`, metadata `noProjectCommandsHidden`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **MEDIUM** — org-agnostic palette-visibility checks; add an orchestrator phase that re-seeds `coder.json` to a non-project / no folder + existing `restart()`. Touches only orchestrator/config, not the shared fixture |
+| apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **MEDIUM** — needs a **second** multi-package mount. Do NOT convert the shared fixture to multi-package: it would make every class/trigger-create command start prompting a dir picker → regresses existing apex specs |
+| apex-log/apex-testing `noOrgVisibility` | DX project open, **no org** | **MEDIUM–HARD** — needs a dedicated **no-org container boot** (make `bootEnv`/org optional in `lifecycle.ts` + orchestrator); can't be a mid-run phase since `restart()` re-auths the org |
+| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold a new project on disk | **HARD / blocked** — assert files via host `node:fs` (container FS is invisible unless under the bind mount), target dir `/home/codebuilder` isn't mounted, and Create Project ends with `vscode.openFolder` → reloads the shared workbench (the unreliable path). Low value-to-cost |
+
+**Cheapest path (highest reachable-count-per-effort):** ship `manifestCommandVisibility` first (no shape
+change). Then cover the four visibility specs with **one** added orchestrator capability — re-seed
+`coder.json` (non-project folder, and no-folder) + a second trivial non-project mount, sequenced with
+the existing `restart()` — which touches only orchestrator/config and leaves the 86 ported specs
+untouched. Multi-package and no-org boot are each a further self-contained mount/boot variant.
+
+**Spike first:** whether a re-seed + `restart()` reliably reopens a *different* `coder.json` shape
+(folder / no-folder) cleanly on the CB image. That boot-time re-seed behavior isn't exercised anywhere
+today and gates the whole phased design.
+
 ## Adding a container suite to a package
 
 1. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs/container' })`.
