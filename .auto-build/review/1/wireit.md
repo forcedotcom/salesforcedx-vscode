@@ -1,0 +1,3 @@
+status: invalid
+why: Before this change, `registerCommands()` was called inside `activateEffect()` after the same `internalDev` return. Thus `sf.open.documentation` was already unregistered in internal-development mode; this implementation does not introduce the claimed regression.
+- [P1] `packages/salesforcedx-vscode-core/src/index.ts:80-86`: `sf.open.documentation` is registered only after the `internalDev` early return. Before this change, `registerCommands()` registered it after `activateEffect()` returned, including when `salesforcedx-vscode-core.internal-development` was enabled. That setting now leaves a contributed command without a handler. Register it before the return, or preserve an unconditional registration path.

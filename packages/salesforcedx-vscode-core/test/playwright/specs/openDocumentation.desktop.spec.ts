@@ -10,7 +10,6 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  NOTIFICATION_LIST_ITEM,
   openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -24,7 +23,20 @@ import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
 import { noOrgDesktopTest as test } from '../fixtures/desktopFixtures';
 
-test('Open Documentation: registered command is invocable for the active editor', async ({ page, workspaceDir }) => {
+const CORE_TELEMETRY_FILE = 'salesforcedx-vscode-core-telemetry.json';
+
+type TelemetryEvent = { command: string; data: Record<string, unknown> };
+
+const readTelemetryEvents = async (workspaceDir: string): Promise<TelemetryEvent[]> => {
+  try {
+    const raw = await fs.readFile(path.join(workspaceDir, CORE_TELEMETRY_FILE), 'utf-8');
+    return JSON.parse(`[${raw.trim().replace(/,\s*$/, '')}]`) as TelemetryEvent[];
+  } catch {
+    return [];
+  }
+};
+
+test('Open Documentation: registered command executes for the active editor', async ({ page, workspaceDir }) => {
   test.setTimeout(60_000);
 
   const consoleErrors = setupConsoleMonitoring(page);
@@ -41,13 +53,21 @@ test('Open Documentation: registered command is invocable for the active editor'
     await openFileByName(page, 'Example.cls');
   });
 
-  await test.step('invoke the registered command without a missing-handler error', async () => {
+  await test.step('invoke the registered command and observe its telemetry event', async () => {
     await verifyCommandExists(page, packageNls.open_documentation_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.open_documentation_text);
-    const missingHandlerErrors = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /command 'sf\.open\.documentation' not found/i });
-    await expect(missingHandlerErrors, 'sf.open.documentation should have a registered handler').toHaveCount(0);
+    await expect
+      .poll(
+        async () =>
+          (await readTelemetryEvents(workspaceDir)).some(
+            event =>
+              event.command === 'commandExecution' &&
+              event.data.commandName === 'sf.open.documentation' &&
+              event.data.type === 'apex'
+          ),
+        { message: 'sf.open.documentation should emit Apex command telemetry', timeout: 30_000 }
+      )
+      .toBe(true);
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
