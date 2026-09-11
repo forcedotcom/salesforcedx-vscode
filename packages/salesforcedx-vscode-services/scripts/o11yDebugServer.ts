@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';
-import { isError } from 'effect/Predicate';
+import { isError, isNull } from 'effect/Predicate';
 import * as http from 'node:http';
 
 const PORT = 3002;
@@ -45,7 +45,7 @@ const extractJsonObjects = (str: string): string[] => {
   const findMatches = (startIdx: number): number[] => {
     pattern.lastIndex = startIdx;
     const match = pattern.exec(str);
-    if (match === null || match.index >= str.length) return allMatchIndices;
+    if (isNull(match) || match.index >= str.length) return allMatchIndices;
     allMatchIndices.push(match.index);
     return findMatches(match.index + 1);
   };
