@@ -6,6 +6,7 @@
  */
 
 import type { Page, Locator } from '@playwright/test';
+import { isNotNull } from 'effect/Predicate';
 import { EDITOR_WITH_URI, CONTEXT_MENU } from '../utils/locators';
 import { focusOnFilesExplorer } from './nativeCommands';
 
@@ -27,7 +28,7 @@ const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Loc
     const count = await allEditors.count();
     const dataUris = (
       await Promise.all(Array.from({ length: count }, (_, i) => allEditors.nth(i).getAttribute('data-uri')))
-    ).filter((uri): uri is string => uri !== null);
+    ).filter((uri): uri is string => isNotNull(uri));
     throw new Error(
       `No editor found with fileName containing "${fileName}". Available data-uris: ${dataUris.join(', ')}`,
       { cause }

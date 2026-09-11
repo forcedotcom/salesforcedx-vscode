@@ -17,6 +17,7 @@ import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isNull } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -235,7 +236,7 @@ const closeSessionScope = (scope: Scope.CloseableScope, exit: Exit.Exit<unknown,
 const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: ElectronApplication) {
   const child = app.process();
   const kill = Effect.suspend(() =>
-    typeof child.pid === 'number' && child.exitCode === null
+    typeof child.pid === 'number' && isNull(child.exitCode)
       ? Effect.try({
           try: () => process.kill(process.platform === 'win32' ? child.pid! : -child.pid!, 'SIGKILL'),
           catch: cause =>
