@@ -114,3 +114,53 @@ export const expectOrgPickerListsOrg = async (
     `Org picker should list org "${alias}"`
   ).toBeVisible({ timeout: opts?.timeout ?? 10_000 });
 };
+
+/**
+ * Switch the default org through the status-bar picker AND confirm it took, re-driving the whole
+ * interaction if the status bar hasn't settled to `expectLabel`.
+ *
+ * Why this exists (container flake): `clickOrgPickerStatusBar` → `selectOrgInPicker` →
+ * `expectOrgPickerStatusBar` composed inline is racy in the loaded Code Builder container. When a
+ * picker row click doesn't register (or the `TargetOrgRef` config write / status-bar watcher lags),
+ * the default never changes, so a plain `expectOrgPickerStatusBar` just waits for a label that will
+ * never appear and times out. A longer timeout alone can't fix that — the switch must be re-driven.
+ *
+ * Each `toPass` attempt: if the bar already shows `expectLabel`, done; otherwise dismiss any stray
+ * picker, re-open it via the label the bar currently shows (`fromLabel`), optionally assert the
+ * target org is listed (`assertListsOrg`, the pre-switch staleness guard), select the target
+ * (`filterText`, an alias or username), then confirm the bar settled. `toPass` retries the whole
+ * block, so a dropped click or a slow watcher refresh no longer fails the switch.
+ */
+export const switchDefaultOrgViaPicker = async (
+  page: Page,
+  opts: {
+    /** Label the status bar shows BEFORE the switch (used to locate + click the picker on each retry). */
+    fromLabel: string | RegExp;
+    /** Text typed into the picker to filter to the target org row (its alias, or username if unaliased). */
+    filterText: string;
+    /** Label the status bar must show AFTER the switch settles (the target org's alias or username). */
+    expectLabel: string | RegExp;
+    /** Optional pre-select staleness guard: assert the picker lists this org before selecting. */
+    assertListsOrg?: string;
+    /** Overall budget for the switch to take + the status bar to reflect it (default 60s). */
+    timeout?: number;
+  }
+): Promise<void> => {
+  const confirmItem = orgPickerStatusBarItem(page, opts.expectLabel);
+  await expect(async () => {
+    // Already settled on the target org — the switch took (possibly on a prior attempt).
+    if (await confirmItem.isVisible().catch(() => false)) {
+      return;
+    }
+    // Close any picker left open by a dropped click on the previous attempt, then re-drive.
+    await page.keyboard.press('Escape').catch(() => {});
+    await clickOrgPickerStatusBar(page, opts.fromLabel);
+    if (opts.assertListsOrg !== undefined) {
+      await expectOrgPickerListsOrg(page, opts.assertListsOrg);
+    }
+    await selectOrgInPicker(page, opts.filterText);
+    await expect(confirmItem, `Org picker status bar should show ${String(opts.expectLabel)}`).toBeVisible({
+      timeout: 20_000
+    });
+  }).toPass({ timeout: opts.timeout ?? 60_000 });
+};

@@ -25,7 +25,6 @@ import {
   activeQuickInputWidget,
   clearAllNotifications,
   clearOutputChannel,
-  clickOrgPickerStatusBar,
   closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
@@ -35,16 +34,15 @@ import {
   execAsync,
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
-  expectOrgPickerListsOrg,
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
   openFileFromExplorerTree,
   saveScreenshot,
-  selectOrgInPicker,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
+  switchDefaultOrgViaPicker,
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForOutputChannelText
@@ -99,11 +97,14 @@ test('Non-Tracking Org (Code Builder): deploy/retrieve via manifest work without
   try {
     await test.step('switch default org to nonTrackingTestOrg and assert it took', async () => {
       await expectOrgPickerStatusBar(page, bootOrgLabel);
-      await clickOrgPickerStatusBar(page, bootOrgLabel);
-      await expectOrgPickerListsOrg(page, NON_TRACKING_ORG_ALIAS);
-      await selectOrgInPicker(page, NON_TRACKING_ORG_ALIAS);
+      // Re-drives the picker if the status-bar switch doesn't take (container config-watcher race).
       switchedToExtra = true;
-      await expectOrgPickerStatusBar(page, NON_TRACKING_ORG_ALIAS);
+      await switchDefaultOrgViaPicker(page, {
+        fromLabel: bootOrgLabel,
+        filterText: NON_TRACKING_ORG_ALIAS,
+        expectLabel: NON_TRACKING_ORG_ALIAS,
+        assertListsOrg: NON_TRACKING_ORG_ALIAS
+      });
       await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.container.02-switched-to-nontracking.png');
     });
 
@@ -166,9 +167,13 @@ test('Non-Tracking Org (Code Builder): deploy/retrieve via manifest work without
     await closeAllEditors(page).catch(() => {});
     if (switchedToExtra) {
       await test.step('restore default org back to the boot org', async () => {
-        await clickOrgPickerStatusBar(page, NON_TRACKING_ORG_ALIAS);
-        await selectOrgInPicker(page, bootOrgLabel);
-        await expectOrgPickerStatusBar(page, bootOrgLabel);
+        // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
+        // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
+        await switchDefaultOrgViaPicker(page, {
+          fromLabel: NON_TRACKING_ORG_ALIAS,
+          filterText: bootOrgLabel,
+          expectLabel: bootOrgLabel
+        });
         await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.container.06-restored-boot-org.png');
       });
     }

@@ -162,7 +162,8 @@ export {
   expectOrgPickerStatusBar,
   expectOrgPickerActionItems,
   expectOrgPickerListsOrg,
-  selectOrgInPicker
+  selectOrgInPicker,
+  switchDefaultOrgViaPicker
 } from './pages/statusBar';
 
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
