@@ -111,7 +111,7 @@ const processOrder = Effect.fn("OrderService.process")(function* (orderId: Order
 - Individual item details
 - Internal implementation state
 - Sensitive data (PII, secrets)
-- Nested objects / file-path arrays (`RetrieveResult`, `zipFile`, `ComponentSet`, `fileResponses`) — counts and status scalars instead (`fileResponseCount`, `retrieveStatus`, `zipFileLength`)
+- Nested objects / file-path arrays / auth payloads (`RetrieveResult`, `zipFile`, `ComponentSet`, `fileResponses`, `listMetadata` result, IndexedDB `entries`, command `args`, `authInfo.getFields()`) — counts and status scalars instead (`fileResponseCount`, `resultCount`, `entryCount`, `argCount`, `retrieveStatus`, `zipFileLength`)
 
 ### Current vs Root Span
 

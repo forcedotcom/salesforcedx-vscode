@@ -216,7 +216,7 @@ Two helpers, different targets:
 
 Rule of thumb: if the consumer is local debugging, use `Effect.annotateCurrentSpan`. If the consumer is production telemetry (org IDs, feature flags, user-meaningful identifiers), use `annotateRootSpan`.
 
-Prefer scalars and counts over nested objects or file-path arrays (`RetrieveResult`, `zipFile`, `ComponentSet`, `fileResponses`). Use status and size fields such as `fileResponseCount`, `retrieveStatus`, and `zipFileLength`.
+Prefer scalars and counts over nested objects, file-path arrays, or auth payloads (`RetrieveResult`, `zipFile`, `ComponentSet`, `fileResponses`, `listMetadata` result, IndexedDB `entries`, command `args`, `authInfo.getFields()`). Use status and size fields such as `fileResponseCount`, `resultCount`, `entryCount`, `argCount`, `retrieveStatus`, and `zipFileLength`.
 
 ```typescript
 import { annotateRootSpan } from '@salesforce/effect-ext-utils';

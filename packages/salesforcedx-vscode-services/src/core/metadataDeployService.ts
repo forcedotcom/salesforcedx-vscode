@@ -59,11 +59,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const localComponentSets = yield* trackingService.getLocalChangesAsComponentSet();
 
       yield* Effect.annotateCurrentSpan({
-        files: localComponentSets
-          .flatMap(cs => Array.from(cs.getSourceComponents()))
-          .flatMap(c => [c.xml, c.content])
-          .filter(isString)
-          .join(','),
+        componentCount: localComponentSets.map(cs => cs.size).reduce((n, size) => n + size, 0),
+        componentSetCount: localComponentSets.length,
         projectDirectory: localComponentSets[0]?.projectDirectory
       });
       return localComponentSets[0] ?? new ComponentSet();
@@ -119,10 +116,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       options?: { progressLocation?: vscode.ProgressLocation }
     ) {
       yield* Effect.all(
-        [
-          workspaceService.getWorkspaceInfoOrThrow(),
-          Effect.annotateCurrentSpan({ components: components.map(c => `${c.type.name}:${c.fullName}`) })
-        ],
+        [workspaceService.getWorkspaceInfoOrThrow(), Effect.annotateCurrentSpan({ componentCount: components.size })],
         { concurrency: 'unbounded' }
       );
 

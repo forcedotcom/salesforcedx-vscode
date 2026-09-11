@@ -131,7 +131,6 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
       });
     }
   }).pipe(
-    Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
     Effect.tap(authInfo =>
       // to keep things snappy, save happens in the background
       Effect.fork(
@@ -144,10 +143,7 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
               cause
             });
           }
-        }).pipe(
-          Effect.tap(savedAuthInfo => Effect.annotateCurrentSpan({ authFields: savedAuthInfo.getFields() })),
-          Effect.withSpan('saveAuthInfo')
-        )
+        }).pipe(Effect.withSpan('saveAuthInfo'))
       )
     ),
 

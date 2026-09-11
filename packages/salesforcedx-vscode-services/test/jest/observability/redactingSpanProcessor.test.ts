@@ -14,7 +14,6 @@ import {
 } from '@opentelemetry/api';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { BasicTracerProvider, type ReadableSpan, type Span, type SpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { JSONPath } from 'jsonpath-plus';
 import { RedactingSpanProcessor } from '../../../src/observability/redactingSpanProcessor';
 
 // shaped like a real opaque access token, with the -/=/+ tail bytes core's regex would leave behind
@@ -41,16 +40,22 @@ const snapshotSpan = (span: Span | ReadableSpan) =>
     instrumentationScope: span.instrumentationScope
   });
 
-type StringLeaf = {
-  pointer: string;
-  value: unknown;
-};
+const escapeJsonPointerSegment = (segment: string): string => segment.replaceAll('~', '~0').replaceAll('/', '~1');
+
+const stringLeafEntries = (value: unknown, pointer: string): [string, string][] =>
+  typeof value === 'string'
+    ? [[pointer, value]]
+    : Array.isArray(value)
+      ? value.flatMap((item, index) => stringLeafEntries(item, `${pointer}/${index}`))
+      : value !== null && typeof value === 'object'
+        ? Object.entries(value).flatMap(([key, child]) =>
+            stringLeafEntries(child, `${pointer}/${escapeJsonPointerSegment(key)}`)
+          )
+        : [];
 
 const stringLeavesByPointer = (json: object): Record<string, string> =>
   Object.fromEntries(
-    JSONPath<StringLeaf[]>({ path: '$..*@string()', json, resultType: 'all', eval: false })
-      .filter((match): match is StringLeaf & { value: string } => typeof match.value === 'string')
-      .map(match => [match.pointer, match.value])
+    Object.entries(json).flatMap(([key, value]) => stringLeafEntries(value, `/${escapeJsonPointerSegment(key)}`))
   );
 
 const changedStringPaths = (before: object, after: object): string[] => {

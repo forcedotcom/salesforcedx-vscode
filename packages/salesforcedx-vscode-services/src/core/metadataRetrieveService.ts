@@ -183,7 +183,10 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       sourcePaths: string[],
       filterMembers: MetadataMember[]
     ) {
-      yield* Effect.annotateCurrentSpan({ filterMembers, sourcePaths });
+      yield* Effect.annotateCurrentSpan({
+        filterMemberCount: filterMembers.length,
+        sourcePathCount: sourcePaths.length
+      });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
       const cs = yield* Effect.try({
