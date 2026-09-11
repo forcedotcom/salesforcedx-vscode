@@ -26,7 +26,7 @@ export const openDocumentationCommand = Effect.fn('openDocumentationCommand')(fu
   const activeEditorUri = yield* servicesApi.services.EditorService.getActiveEditorUri().pipe(
     Effect.catchTag('NoActiveEditorError', () => Effect.void)
   );
-  const activeFilePath = activeEditorUri?.fsPath;
+  const activeFilePath = activeEditorUri?.path;
   const extension = activeEditorUri ? Utils.extname(activeEditorUri) : undefined;
   const documentationType = Match.value(activeFilePath).pipe(
     Match.when(Match.undefined, () => 'default' as const),

@@ -17,10 +17,5 @@ export const desktopTest = createDesktopTest({
 
 export const noOrgDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  userSettings: {
-    'telemetry.telemetryLevel': 'all',
-    'salesforcedx-vscode-core.telemetry.enabled': true,
-    'salesforcedx-vscode-core.advanced.localTelemetryLogging': 'true',
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': false
-  }
+  userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });
