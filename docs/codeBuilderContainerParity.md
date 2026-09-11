@@ -198,6 +198,58 @@ are simply not ported yet (both added to develop after the initial parity sweep)
 
 Neither is in the current stack; they're the next low-risk coverage additions if we want them.
 
+## Debug / DAP portability assessment
+
+The 8 interactive-debug specs are the largest not-ported bucket. A feasibility review found **7 are
+realistically reachable and 1 is permanently blocked** — but the whole group is gated on one unproven
+assumption, so it is scoped here rather than attempted blind.
+
+**Why it isn't already done:** the two shipped container debug twins
+(`apex-replay-debugger/.../container/errorPaths` and `apex-debugger/.../container/debuggerStop`) were
+*deliberately* scoped to the command/notification paths that launch **no** debug session — because the
+container fixture exposes only a `page` (no host-filesystem handle to the workspace) and the shared
+serial workbench makes a running debug session hazardous. Nobody has yet driven a **live DAP session**
+through code-server over the browser.
+
+**Adapters:** apex-replay is a bundled **local Node** adapter (`type:"apex-replay"`, replays a log
+file, no org streaming) — it runs in the container's server-side Node extension host exactly as on
+desktop, nothing web-guards it. lwc debug uses VS Code's built-in **js-debug** node adapter. The
+interactive/ISV apex debugger (`type:"apex"`) needs a **live org-side `ApexDebuggerSession`** behind an
+ISV/Debug-Only license — not creatable against a CI scratch org.
+
+**Debug UI driving:** all existing debug driving is client-agnostic Monaco DOM (`.debug-toolbar`,
+`.debug-variables`, `.debug-call-stack`, `.repl`, gutter glyphs) + F5/F9 + palette — none of it is
+Electron-specific, so it *should* work against code-server. There are currently **no shared debug-view
+helpers** in `playwright-vscode-ext`; specs hand-roll it plus a local `continueDebugSession`.
+
+| Spec | Adapter / flow | Verdict |
+| --- | --- | --- |
+| `apexReplayDebugger` | local Node replay; launch + continue | reachable (gated on spike) |
+| `apexReplayDebuggerVariables` | local Node replay; breakpoint + VARIABLES tree — full debug UI | reachable (highest value) |
+| `checkpoints` | local Node replay + org checkpoint upload | reachable |
+| `debugAnonymousApex` | local Node replay; debug codelens/selection | reachable |
+| `debugApexTests` | local Node replay; Test Explorer "Debug Test" | reachable |
+| `promptForLogFile` | F5 to reach log-file quick input | reachable (needs seeded `launch.json`) |
+| `lwcDebugTests` | js-debug + jest `--inspect-brk` | reachable (needs `sfdx-lwc-jest` baked into fixture + result-verify rework) |
+| `isvDebugBootstrap` | live ISV org-side debug session | **blocked** (only its command-availability/cancel slice ports) |
+
+**What it would take (ranked):**
+
+1. **Spike (HARD, do first):** launch the apex-replay Node adapter in the running container and confirm
+   `.debug-toolbar` + `.debug-variables` render and F5-continue works over the browser. The port's
+   viability hinges on this — there is zero precedent of a live DAP session in code-server.
+2. **(MEDIUM)** Add reusable debug-view helpers to `playwright-vscode-ext` (continue/step/toggle-
+   breakpoint/read-variables/end-session) with a hazard-safe `afterEach` session-teardown guard.
+3. **(MEDIUM)** Seed an inert `launch.json` into the fixture (for `promptForLogFile`) and add
+   `beforeEach` breakpoint/checkpoint reset + running-session guard for the shared workbench.
+4. **(MEDIUM)** Give container specs a host-readable handle to the mounted fixture, or convert
+   fs-polling assertions (`promptForLogFile`, `lwcDebugTests`) to UI-state assertions.
+5. **(MEDIUM–HARD)** Bake `@salesforce/sfdx-lwc-jest` + an LWC-with-test into the container fixture/image
+   for `lwcDebugTests`.
+6. **(MEDIUM, gated on 1)** Port the 6 replay/LWC specs — swap fixture to `containerTest`, drop per-test
+   org setup for the boot org (as `errorPaths.container` already does).
+7. **BLOCKED:** `isvDebugBootstrap` real bootstrap — org-side `ApexDebuggerSession` unavailable in CI.
+
 ## Adding a container suite to a package
 
 1. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs/container' })`.
