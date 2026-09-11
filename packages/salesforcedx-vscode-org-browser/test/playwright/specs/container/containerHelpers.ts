@@ -18,7 +18,14 @@
  * This is not a `*.spec.ts` file, so Playwright does not collect it as a test.
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import {
+  DREAMHOUSE_ORG_ALIAS,
+  env,
+  execAsync,
+  MINIMAL_ORG_ALIAS,
+  switchDefaultOrgViaPicker
+} from '@salesforce/playwright-vscode-ext';
 import type { OrgBrowserPage } from '../../pages/orgBrowserPage';
 
 const FILTER_TOOLBAR_BUTTON = '[aria-label="Filter by Type/Component"], [aria-label="Edit Filter (active)"]';
@@ -53,3 +60,47 @@ export const normalizeOrgBrowserFilters = async (orgBrowserPage: OrgBrowserPage)
   // Leave the view closed so each test's openOrgBrowser() opens it fresh with a single click.
   await activityBarItem.click();
 };
+
+/**
+ * Resolve an org's username from the host CLI. The container boots the minimal org UNALIASED, so the
+ * in-container picker/status bar show its USERNAME (not its host alias) — the label the switch helpers
+ * must target. The Dreamhouse extra org keeps its alias in-container. Returns undefined when the alias
+ * isn't authed on the host (a local run without the multi-org + Dreamhouse setup), so callers `test.skip`.
+ */
+const resolveOrgUsername = async (alias: string): Promise<string | undefined> => {
+  const { stdout } = await execAsync(`sf org display -o ${alias} --json`, { env });
+  const parsed = JSON.parse(stdout) as { result?: { username?: string } };
+  return parsed.result?.username;
+};
+
+/**
+ * Resolve the boot org's in-container label (its username) and confirm the Dreamhouse extra org is
+ * authed. Container Dreamhouse specs `test.skip` when either is missing (CI-only capability via
+ * CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg for this package).
+ */
+export const resolveMultiOrgLabels = async (): Promise<{ bootOrgUsername?: string; dreamhouseAuthed?: string }> => {
+  const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
+  const dreamhouseAuthed = await resolveOrgUsername(DREAMHOUSE_ORG_ALIAS).catch(() => undefined);
+  return { bootOrgUsername, dreamhouseAuthed };
+};
+
+/** Switch the default org from the boot org to the aliased Dreamhouse org via the status-bar picker. */
+export const switchToDreamhouseOrg = (page: Page, bootOrgLabel: string): Promise<void> =>
+  switchDefaultOrgViaPicker(page, {
+    fromLabel: bootOrgLabel,
+    filterText: DREAMHOUSE_ORG_ALIAS,
+    expectLabel: DREAMHOUSE_ORG_ALIAS,
+    assertListsOrg: DREAMHOUSE_ORG_ALIAS
+  });
+
+/**
+ * Restore the default org back to the boot org (by username) through the SAME picker UI. REQUIRED in a
+ * `finally`: the shared serial container session must not be left defaulted to the Dreamhouse org, or
+ * later container specs (which assume the boot org) run against the wrong org.
+ */
+export const restoreBootOrg = (page: Page, bootOrgLabel: string): Promise<void> =>
+  switchDefaultOrgViaPicker(page, {
+    fromLabel: DREAMHOUSE_ORG_ALIAS,
+    filterText: bootOrgLabel,
+    expectLabel: bootOrgLabel
+  });
