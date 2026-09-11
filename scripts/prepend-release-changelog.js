@@ -13,19 +13,9 @@
  * The script reads the package CHANGELOG and prepends to root if the version isn't already there.
  */
 
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-
-// Validate we're at repo root
-function getRepoRoot() {
-  try {
-    return execSync('git rev-parse --show-toplevel', { encoding: 'utf8' }).trim();
-  } catch {
-    console.error('❌ Error: Not in a git repository');
-    process.exit(1);
-  }
-}
+const { getRepoRoot } = require('./repo-root');
 
 const REPO_ROOT = getRepoRoot();
 const ROOT_CHANGELOG_PATH = path.join(REPO_ROOT, 'CHANGELOG.md');
