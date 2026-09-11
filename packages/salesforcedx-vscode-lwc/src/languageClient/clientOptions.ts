@@ -25,13 +25,14 @@ export const buildDocumentSelector = (schemes: string[]): DocumentSelector =>
  *
  * When package directory URIs are provided, watchers are scoped to only those directories
  * to avoid scanning the entire workspace (including node_modules, .git, etc.).
+ * Each URI is already a complete watcher base, so this does not depend on workspace.workspaceFolders.
  * Falls back to ** patterns if no package directories are available.
  *
  * @param packageDirectoryUris - Package directories from sfdx-project.json.
  */
 const getSynchronizeFileEvents = (packageDirectoryUris?: URI[]) => {
   // If we have package directories, scope watchers to only those paths for better performance
-  if (packageDirectoryUris && packageDirectoryUris.length > 0) {
+  if (packageDirectoryUris?.length) {
     return packageDirectoryUris.flatMap(packageDirectoryUri => {
       const relativePattern = (pattern: string): RelativePattern => new RelativePattern(packageDirectoryUri, pattern);
 
