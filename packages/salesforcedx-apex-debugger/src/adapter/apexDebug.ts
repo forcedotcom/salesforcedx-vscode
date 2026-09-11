@@ -29,6 +29,7 @@ import {
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
+import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
 import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
@@ -169,7 +170,7 @@ export class ApexVariable extends Variable {
       return value.nameForMessages;
     }
 
-    if (value.value === undefined || value.value === null) {
+    if (value.value === undefined || isNull(value.value)) {
       // We want to explicitly display null for null values (no type info for strings).
       return 'null';
     }

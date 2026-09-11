@@ -6,6 +6,7 @@
  */
 
 import { StackFrame } from '@vscode/debugadapter';
+import { isNotNull } from 'effect/Predicate';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { HeapDumpResult, LaunchRequestArguments } from '../adapter/types';
@@ -107,11 +108,13 @@ export class LogContext {
     return (
       this.logLines &&
       this.logLines.length > 0 &&
-      this.logLines[0].match(
-        // Matches logs with APEX_CODE,FINEST and VISUALFORCE at FINER or FINEST level.
-        // The optional semicolons (;?) handle cases where Visualforce is the last category.
-        /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;?.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;?.*)/
-      ) !== null
+      isNotNull(
+        this.logLines[0].match(
+          // Matches logs with APEX_CODE,FINEST and VISUALFORCE at FINER or FINEST level.
+          // The optional semicolons (;?) handle cases where Visualforce is the last category.
+          /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;?.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;?.*)/
+        )
+      )
     );
   }
 

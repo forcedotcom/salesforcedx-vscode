@@ -19,6 +19,7 @@ import {
   ClassMember as InternalClassMember,
   Location as InternalLocation
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { isNotNull } from 'effect/Predicate';
 import {
   Metadata as InternalMetadata,
   ModuleExports as InternalModuleExports,
@@ -275,10 +276,10 @@ const getMemberMethod = (methodObj: ClassMethod): InternalClassMember | null => 
 const getMembers = (classObj: Class): InternalClassMember[] => {
   const properties: InternalClassMember[] = classObj.properties
     .map(getMemberProperty)
-    .filter((member): member is InternalClassMember => member !== null);
+    .filter((member): member is InternalClassMember => isNotNull(member));
   const methods: InternalClassMember[] = classObj.methods
     .map(getMemberMethod)
-    .filter((member): member is InternalClassMember => member !== null);
+    .filter((member): member is InternalClassMember => isNotNull(member));
 
   // In the original metadata, the properties & methods were intermixed in the order
   // that they appeared in the component code. Since the new metadata exposes this information
@@ -515,7 +516,7 @@ const getDecorators = (classObj: Class): InternalDecorator[] => {
         }
       : null;
 
-  return [api, wire, track].filter((decorator): decorator is InternalDecorator => decorator !== null);
+  return [api, wire, track].filter((decorator): decorator is InternalDecorator => isNotNull(decorator));
 };
 
 const getExports = (lwcExports: LwcExport[]): InternalModuleExports[] =>

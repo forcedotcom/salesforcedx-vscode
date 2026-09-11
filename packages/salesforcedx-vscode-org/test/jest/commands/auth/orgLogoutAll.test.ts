@@ -7,6 +7,7 @@
 
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { isNotNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
@@ -21,7 +22,7 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 jest.mock('../../../../src/orgPicker/orgList', () => ({
   buildOrgQuickPickItems: (auths: Array<{ username: string }>) =>
     auths.map(a => ({ label: a.username, orgUsername: a.username })),
-  isOrgItem: (item: unknown): boolean => typeof item === 'object' && item !== null && 'orgUsername' in item
+  isOrgItem: (item: unknown): boolean => typeof item === 'object' && isNotNull(item) && 'orgUsername' in item
 }));
 
 const mockGetFreshAuthorizations = jest.fn<Effect.Effect<unknown, never, never>, []>();

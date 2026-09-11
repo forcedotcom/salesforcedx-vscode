@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotNull } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
@@ -146,7 +147,7 @@ export class VariableAssignmentState implements DebugLogState {
       if (refContainer) {
         const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
         container.variables.set(key, tmpContainer);
-      } else if (rawValue !== null && typeof rawValue === 'object') {
+      } else if (isNotNull(rawValue) && typeof rawValue === 'object') {
         // Nested object/array (parent SObject rel, multi-level hierarchy, or child subquery
         // records). Build an expandable child container and recurse. type='' is acceptable:
         // VARIABLE_ASSIGNMENT JSON carries no nested SObject type metadata (only field

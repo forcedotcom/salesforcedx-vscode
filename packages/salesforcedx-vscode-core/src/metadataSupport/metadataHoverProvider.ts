@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNotUndefined } from 'effect/Predicate';
+import { isNotNull, isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
@@ -28,7 +28,7 @@ export const isMetadataFile = (
   const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
   let match;
 
-  while ((match = xmlElementRegex.exec(documentText)) !== null) {
+  while (isNotNull((match = xmlElementRegex.exec(documentText)))) {
     const elementName = match[2];
     // Remove namespace prefix if present
     const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
@@ -55,7 +55,7 @@ export const extractMetadataType = (
   const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
   let match;
 
-  while ((match = xmlElementRegex.exec(lineText)) !== null) {
+  while (isNotNull((match = xmlElementRegex.exec(lineText)))) {
     const [fullMatch, , elementName] = match;
     const matchStart = match.index;
     const matchEnd = match.index + fullMatch.length;
@@ -76,7 +76,7 @@ export const extractMetadataType = (
   const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
   let multiLineMatch;
 
-  while ((multiLineMatch = multiLineElementRegex.exec(lineText)) !== null) {
+  while (isNotNull((multiLineMatch = multiLineElementRegex.exec(lineText)))) {
     const [fullMatch, , elementName] = multiLineMatch;
     const matchStart = multiLineMatch.index;
     const matchEnd = multiLineMatch.index + fullMatch.length;
@@ -140,7 +140,7 @@ export const findParentMetadataTypeWithLayers = (
     const selfClosingTagRegex = /<([\w:]+)(?:\s[^>]*)?\/>/g;
     const selfClosingTags = new Set<number>();
     let match;
-    while ((match = selfClosingTagRegex.exec(line)) !== null) {
+    while (isNotNull((match = selfClosingTagRegex.exec(line)))) {
       selfClosingTags.add(match.index);
     }
 
@@ -148,7 +148,7 @@ export const findParentMetadataTypeWithLayers = (
     const openingTagRegex = /<([\w:]+)(?:\s[^>]*)?>/g;
     const incompleteOpeningTagRegex = /<([\w:]+)(?:\s[^>]*)?$/;
 
-    while ((match = openingTagRegex.exec(line)) !== null) {
+    while (isNotNull((match = openingTagRegex.exec(line)))) {
       // Skip if this is a self-closing tag
       if (!selfClosingTags.has(match.index)) {
         const elementName = match[1];
@@ -166,7 +166,7 @@ export const findParentMetadataTypeWithLayers = (
 
     // Find closing tags
     const closingTagRegex = /<\/([\w:]+)>/g;
-    while ((match = closingTagRegex.exec(line)) !== null) {
+    while (isNotNull((match = closingTagRegex.exec(line)))) {
       const elementName = match[1];
       const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
       // Remove the matching opening tag from the stack
@@ -221,7 +221,7 @@ export const extractFieldInfo = (
   const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
   let match;
 
-  while ((match = xmlElementRegex.exec(line.text)) !== null) {
+  while (isNotNull((match = xmlElementRegex.exec(line.text)))) {
     const [fullMatch, , elementName] = match;
     const matchStart = match.index;
     const matchEnd = match.index + fullMatch.length;
@@ -252,7 +252,7 @@ export const extractFieldInfo = (
   const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
   let multiLineMatch;
 
-  while ((multiLineMatch = multiLineElementRegex.exec(line.text)) !== null) {
+  while (isNotNull((multiLineMatch = multiLineElementRegex.exec(line.text)))) {
     const [fullMatch, , elementName] = multiLineMatch;
     const matchStart = multiLineMatch.index;
     const matchEnd = multiLineMatch.index + fullMatch.length;

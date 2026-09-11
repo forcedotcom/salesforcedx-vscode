@@ -17,6 +17,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "@vscode/debugadapter": "1.68.0",
+    "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {

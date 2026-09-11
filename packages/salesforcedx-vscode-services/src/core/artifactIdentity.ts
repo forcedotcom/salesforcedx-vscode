@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
 export const ArtifactTargetKindSchema = Schema.Literal('metadata-component', 'sobject');
@@ -42,7 +43,7 @@ export type ArtifactIdentity = typeof ArtifactIdentitySchema.Type;
 export const normalizeArtifactIdentityPart = (value: string): string => value.toLowerCase();
 
 export const normalizeArtifactNamespace = (namespace: ArtifactNamespace): ArtifactNamespace =>
-  namespace === null ? null : normalizeArtifactIdentityPart(namespace);
+  isNull(namespace) ? null : normalizeArtifactIdentityPart(namespace);
 
 export const normalizeArtifactIdentity = (identity: ArtifactIdentity): ArtifactIdentity => ({
   ...identity,

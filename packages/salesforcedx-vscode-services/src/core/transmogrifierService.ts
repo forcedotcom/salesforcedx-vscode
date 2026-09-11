@@ -8,6 +8,7 @@
 import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isNull } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import type { URI } from 'vscode-uri';
 import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
@@ -252,17 +253,17 @@ const mapRestFieldToSemanticField = (field: SObjectField): SObjectSemanticField 
   type: field.type,
   custom: field.custom,
   defaultValue: field.defaultValue,
-  ...(field.inlineHelpText === null ? {} : { inlineHelpText: field.inlineHelpText }),
+  ...(isNull(field.inlineHelpText) ? {} : { inlineHelpText: field.inlineHelpText }),
   ...(field.length === undefined ? {} : { length: field.length }),
   ...(field.precision === undefined ? {} : { precision: field.precision }),
   ...(field.scale === undefined ? {} : { scale: field.scale }),
   referenceTo: field.referenceTo.toSorted(),
-  ...(field.relationshipName === null ? {} : { relationshipName: field.relationshipName }),
+  ...(isNull(field.relationshipName) ? {} : { relationshipName: field.relationshipName }),
   picklistValues: field.picklistValues
     .map(value => ({
       value: value.value,
       active: value.active,
-      ...(value.label === null ? {} : { label: value.label })
+      ...(isNull(value.label) ? {} : { label: value.label })
     }))
     .toSorted((left, right) => left.value.localeCompare(right.value)),
   runtimeCapabilities: {
@@ -291,7 +292,7 @@ const mapRestDescribeToSemanticModel = (
         .map(relationship => ({
           childSObject: relationship.childSObject,
           field: relationship.field,
-          ...(relationship.relationshipName === null ? {} : { relationshipName: relationship.relationshipName })
+          ...(isNull(relationship.relationshipName) ? {} : { relationshipName: relationship.relationshipName })
         }))
         .toSorted((left, right) =>
           left.childSObject === right.childSObject

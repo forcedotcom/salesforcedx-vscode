@@ -21,6 +21,7 @@ import {
   type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Arr from 'effect/Array';
+import { isNotNull } from 'effect/Predicate';
 import * as ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -65,7 +66,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                   const i = parts.lastIndexOf('lwc');
                   return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
                 })
-                .filter((d): d is NormalizedPath => d !== null)
+                .filter((d): d is NormalizedPath => isNotNull(d))
             );
             roots.lwc.push(...lwcDirs);
 
@@ -77,7 +78,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                   const i = parts.lastIndexOf('aura');
                   return i === -1 ? null : normalizePath(parts.slice(0, i + 1).join('/'));
                 })
-                .filter((d): d is NormalizedPath => d !== null)
+                .filter((d): d is NormalizedPath => isNotNull(d))
             );
             roots.aura.push(...auraDirs);
           }
