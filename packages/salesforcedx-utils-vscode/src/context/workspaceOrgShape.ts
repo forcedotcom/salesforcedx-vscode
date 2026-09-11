@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgShape } from './workspaceContextUtil';
-
+export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
 export type OrgShapeInfo = { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string };
 
 /**

@@ -31,7 +31,7 @@ import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
-import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
+import { languageClientManager } from '../../src/languageUtils';
 import { ClientStatus } from '../../src/languageUtils/languageClientManager';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 
@@ -59,7 +59,7 @@ describe('index tests', () => {
     });
 
     it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
-      await indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
 
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
@@ -74,7 +74,7 @@ describe('index tests', () => {
     });
 
     it('should call setClientReady when enableSyncInitJobs is true', async () => {
-      await indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
 
       expect(setStatusSpy).not.toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).not.toHaveBeenCalled();
