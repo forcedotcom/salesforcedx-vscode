@@ -116,6 +116,28 @@ const NOPROJECT_FIXTURE_HOST_DIR = join(
 /** Where the non-project fixture is bind-mounted in the container (distinct from FIXTURE_MOUNT_PATH). */
 const NOPROJECT_MOUNT_PATH = '/home/codebuilder/noproject-workspace';
 
+/*
+ * A THIRD fixture: a DX project whose sfdx-project.json lists TWO packageDirectories (force-app +
+ * extra-pkg), each with a `classes` folder. Mounted alongside the other two so the orchestrator can,
+ * after the standard suites run, re-seed coder.json to point code-server here + restart() — giving the
+ * multi-package suites (test:container:multipackage, e.g. apex-log apexGenerateClassMultiPackageDirs)
+ * the workspace shape they need (the output-dir picker must list BOTH package dirs' classes folders).
+ * Kept as its own mount (not a second packageDirectories entry on the SHARED container-workspace
+ * fixture) so the other apex specs' single-package class/trigger-create flows never start prompting a
+ * dir picker.
+ */
+const MULTIPACKAGE_FIXTURE_HOST_DIR = join(
+  REPO_ROOT,
+  'packages',
+  'salesforcedx-vscode-core',
+  'test',
+  'playwright',
+  'fixtures',
+  'container-multipackage'
+);
+/** Where the multi-package fixture is bind-mounted in the container (distinct from the other mounts). */
+const MULTIPACKAGE_MOUNT_PATH = '/home/codebuilder/multipackage-workspace';
+
 type Options = {
   runId?: string;
   grep?: string;
@@ -761,7 +783,8 @@ const main = async (): Promise<number> => {
     // re-seeds to); seedWorkspace validates its fixturePath against these recorded mounts.
     mounts: [
       { hostPath: FIXTURE_HOST_DIR, containerPath: FIXTURE_MOUNT_PATH },
-      { hostPath: NOPROJECT_FIXTURE_HOST_DIR, containerPath: NOPROJECT_MOUNT_PATH }
+      { hostPath: NOPROJECT_FIXTURE_HOST_DIR, containerPath: NOPROJECT_MOUNT_PATH },
+      { hostPath: MULTIPACKAGE_FIXTURE_HOST_DIR, containerPath: MULTIPACKAGE_MOUNT_PATH }
     ]
   });
 
@@ -772,7 +795,7 @@ const main = async (): Promise<number> => {
   // `a+rwX` only adds the execute bit to dirs/already-exec files, so it doesn't flip tracked file
   // modes (git sees no change). Runs as root inside the container; a failure is a warning, not fatal.
   log('Making the mounted fixtures writable by the container user (chmod a+rwX)');
-  for (const mountPath of [FIXTURE_MOUNT_PATH, NOPROJECT_MOUNT_PATH]) {
+  for (const mountPath of [FIXTURE_MOUNT_PATH, NOPROJECT_MOUNT_PATH, MULTIPACKAGE_MOUNT_PATH]) {
     const chmodMount = spawnSync('docker', ['exec', '-u', 'root', handle.name, 'chmod', '-R', 'a+rwX', mountPath], {
       stdio: 'ignore'
     });
@@ -912,6 +935,28 @@ const main = async (): Promise<number> => {
     // "commands present" assertions fail for the wrong reason (or a hidden-command regression hide).
     assertVerified(handle.name, manifest);
     failed.push(...runSuites(noFolderPackages, 'test:container:nofolder', 'no-folder'));
+  }
+
+  // Phase 4 — multi-package shape. Any package declaring `test:container:multipackage` needs a DX
+  // project with TWO packageDirectories open (e.g. apex-log apexGenerateClassMultiPackageDirs: the
+  // output-dir picker must list BOTH package dirs' classes folders). Change the shape at a phase
+  // boundary — re-seed coder.json to the multi-package mount + restart() — never mid-suite in the
+  // shared session. Discovered self-maintaining like phases 1–3; a no-op when no package declares it.
+  const multiPackagePackages = opts.only
+    ? discoverPackagesWithScript('test:container:multipackage').filter(p => opts.only!.includes(p))
+    : discoverPackagesWithScript('test:container:multipackage');
+  if (multiPackagePackages.length > 0) {
+    log(`Re-seeding code-server at the multi-package project (${MULTIPACKAGE_MOUNT_PATH}) + restarting`);
+    seedWorkspace(handle, { fixturePath: MULTIPACKAGE_MOUNT_PATH });
+    // restart() resolves only once the workbench URL answers again, so returning from it is the proof
+    // code-server reopened the re-seeded multi-package project cleanly.
+    await restart(handle);
+    log('Workbench came up after re-seed+restart to the multi-package shape');
+    // Re-run the verify gate: the restart re-scans the overrides, so confirm the swapped extensions
+    // are STILL present at the expected bytes. Without this a lost extension would make the picker
+    // assertions fail for the wrong reason (no extension = no command = no picker at all).
+    assertVerified(handle.name, manifest);
+    failed.push(...runSuites(multiPackagePackages, 'test:container:multipackage', 'multi-package'));
   }
 
   if (failed.length > 0) {
