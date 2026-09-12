@@ -20,6 +20,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activateEditorTab,
   APEX_TRACE_FLAG_STATUS_BAR,
   clearAllNotifications,
   clearOutputChannel,
@@ -32,7 +33,6 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
@@ -79,11 +79,12 @@ test('Apex Replay Debugger (Code Builder): trace flag, exec anon, replay from lo
     '}'
   ].join('\n');
 
+  // Annotations kept INLINE with their declarations: once the Apex LS is warm, a bare `@IsTest` line
+  // typed into the code-server editor can have its trailing newline swallowed by a completion-accept,
+  // merging it into the next line and producing invalid Apex. Inlining avoids that.
   const exampleTestContent = [
-    '@IsTest',
-    `public class ${exampleTestClass} {`,
-    '  @IsTest',
-    '  static void validateSayHello() {',
+    `@IsTest public class ${exampleTestClass} {`,
+    '  @IsTest static void validateSayHello() {',
     "    System.debug('Starting validate');",
     `    ${exampleClass}.SayHello('Cody');`,
     "    System.assertEquals(1, 1, 'all good');",
@@ -108,8 +109,12 @@ test('Apex Replay Debugger (Code Builder): trace flag, exec anon, replay from lo
 
   await test.step('wait for Apex LS indexing to complete', async () => {
     // Apex LS must finish indexing before the test-class launch resolves the class name; CI is slower.
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
+    // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
+    // gate on the real indexing signal instead: the test class' CodeLens (Run/Debug Test) only
+    // appears once the LS has indexed it.
+    await activateEditorTab(page, `${exampleTestClass}.cls`);
+    const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
+    await expect(codelens.first()).toBeVisible({ timeout: 120_000 });
   });
 
   await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
@@ -162,7 +167,7 @@ test('Apex Replay Debugger (Code Builder): trace flag, exec anon, replay from lo
   });
 
   await test.step('launch replay with the test class', async () => {
-    await openFileByName(page, `${exampleTestClass}.cls`);
+    await activateEditorTab(page, `${exampleTestClass}.cls`);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.replay-from-test-class.png');

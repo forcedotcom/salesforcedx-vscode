@@ -21,6 +21,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activateEditorTab,
   assertDebugToolbarVisible,
   clearAllNotifications,
   clickCodeLens,
@@ -31,7 +32,6 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   getCallStackRows,
-  openFileByName,
   openVariablesView,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -79,7 +79,7 @@ test('Debug Anonymous Apex (Code Builder): Debug code lens, Launch with Selected
 
   // ── Case 1: "Debug" code lens ──────────────────────────────────────────────
   await test.step('click "Debug" code lens — debugger must launch and complete', async () => {
-    await openFileByName(page, `${scriptName}.apex`);
+    await activateEditorTab(page, `${scriptName}.apex`);
     // The Apex LS renders "Execute | Debug" above .apex files; click the "Debug" link.
     // Long timeout covers Apex LS cold-start indexing before code lenses appear.
     await clickCodeLens(page, 'Debug', { timeout: 120_000 });
@@ -89,7 +89,7 @@ test('Debug Anonymous Apex (Code Builder): Debug code lens, Launch with Selected
 
   // ── Case 2: "Launch Apex Replay Debugger with Selected File" on .apex (+ render view) ─────
   await test.step('launch the replay debugger with the selected file — toolbar must appear', async () => {
-    await openFileByName(page, `${scriptName}.apex`);
+    await activateEditorTab(page, `${scriptName}.apex`);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry: the debug toolbar appearing is the gating unknown — a live DAP session
     // driven through code-server. Long timeout covers executing the anon apex against the boot org
@@ -114,7 +114,8 @@ test('Debug Anonymous Apex (Code Builder): Debug code lens, Launch with Selected
 
   // ── Case 3: "Debug Anonymous Apex with Editor's Selected Text" ─────────────
   await test.step('select all text and run "Debug Anonymous Apex with Editor\'s Selected Text"', async () => {
-    await openFileByName(page, `${scriptName}.apex`);
+    // The .apex is already open from the earlier cases; activate its tab directly.
+    await activateEditorTab(page, `${scriptName}.apex`);
 
     // Select the entire file contents — keep editor focus so editorHasSelection is true.
     const editorArea = page.locator('.editor-instance .view-lines').first();

@@ -6,8 +6,29 @@
  */
 
 import { expect, type Locator, type Page } from '@playwright/test';
-import { WORKBENCH } from '../utils/locators';
+import { escapeRegExp } from '../utils/helpers';
+import { EDITOR_WITH_URI, WORKBENCH } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
+
+/**
+ * Activate an already-open editor tab by file name and wait for its editor to render.
+ *
+ * Prefer this over Quick Open (`openFileByName`) for a file created earlier in the same test: on the
+ * browser-served (code-server) workbench Quick Open intermittently returns the match grouped under a
+ * "recently opened" / "other commands" header, and the reconstructed row resolves but is not
+ * clickable — a flaky `locator.click: Element is not visible`. Clicking the stable editor tab is
+ * reliable. The debug specs create their `.cls`/`.apex` files (which leaves them open in a tab)
+ * before driving a launch, so the tab is always present.
+ */
+export const activateEditorTab = async (page: Page, fileName: string, timeout = 15_000): Promise<void> => {
+  const tab = page.getByRole('tab', { name: new RegExp(escapeRegExp(fileName)) }).first();
+  await tab.waitFor({ state: 'visible', timeout });
+  await tab.click({ force: true });
+  await page
+    .locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`)
+    .first()
+    .waitFor({ state: 'visible', timeout: 10_000 });
+};
 
 /** The floating debug toolbar (Continue / Step / Stop). Present whenever a DAP session is live. */
 export const DEBUG_TOOLBAR = '.debug-toolbar';
@@ -44,19 +65,37 @@ export const openVariablesView = async (page: Page, timeout = 30_000): Promise<L
 };
 
 /**
- * Expand every collapsed scope row (Local/Static) in the VARIABLES tree so locals render.
- * Always clicks the FIRST remaining collapsed row: clicking a twistie mutates the live NodeList, so
- * an index-based loop would target shifted rows and could re-collapse a scope. Driving the
- * first-collapsed row to zero is stable.
+ * Expand every collapsed scope row (Local/Static/Global) in the VARIABLES tree so locals render.
+ * Clicks each top-level (aria-level="1") scope's twistie once, tracked by aria-label. An empty scope
+ * (e.g. Global with no variables) never leaves the collapsed state, so we must NOT drive the
+ * collapsed set to zero (that would spin until timeout on the empty scope) — instead attempt each
+ * scope exactly once. Clicking a twistie mutates the live list, so re-query after each click.
  */
 export const expandAllVariableScopes = async (variablesView: Locator, timeout = 30_000): Promise<void> => {
-  const firstCollapsed = variablesView.locator('.monaco-list-row[aria-expanded="false"]').first();
-  await expect(async () => {
-    if (await firstCollapsed.isVisible()) {
-      await firstCollapsed.locator('.monaco-tl-twistie').click({ force: true });
+  const deadline = Date.now() + timeout;
+  const attempted = new Set<string>();
+  while (Date.now() < deadline) {
+    const collapsed = variablesView.locator('.monaco-list-row[aria-level="1"][aria-expanded="false"]');
+    const count = await collapsed.count();
+    let clickedOne = false;
+    for (let i = 0; i < count; i++) {
+      const row = collapsed.nth(i);
+      const label = (await row.getAttribute('aria-label').catch(() => null)) ?? `row-${i}`;
+      if (attempted.has(label)) {
+        continue;
+      }
+      attempted.add(label);
+      await row
+        .locator('.monaco-tl-twistie')
+        .click({ force: true })
+        .catch(() => {});
+      clickedOne = true;
+      break; // list mutated by the expand; re-query from the top
     }
-    await expect(firstCollapsed).toBeHidden();
-  }).toPass({ timeout });
+    if (!clickedOne) {
+      break; // every collapsed scope has been attempted once
+    }
+  }
 };
 
 /**

@@ -18,6 +18,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
+  activateEditorTab,
   clearAllNotifications,
   clickCodeLens,
   closeAllEditors,
@@ -28,7 +29,6 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -146,11 +146,14 @@ test('Debug Apex Tests (Code Builder): CodeLens and Test Explorer entry points',
     '}'
   ].join('\n');
 
+  // Annotations are kept INLINE with their declarations (not on their own line). Once the Apex LS is
+  // warm, a bare `@IsTest` line typed into the code-server editor triggers a completion popup whose
+  // Enter (the next newline) gets swallowed as an accept, merging the annotation into the following
+  // declaration and producing invalid Apex ("must be declared as IsTest" / "must have public
+  // visibility"). Inlining removes the bare-annotation-then-Enter that causes the merge.
   const class1TestContent = [
-    '@IsTest',
-    `public class ${class1Test} {`,
-    '  @IsTest',
-    '  static void validateSayHello() {',
+    `@IsTest public class ${class1Test} {`,
+    '  @IsTest static void validateSayHello() {',
     "    System.debug('Starting validate');",
     `    ${class1}.SayHello('Cody');`,
     "    System.assertEquals(1, 1, 'all good');",
@@ -166,12 +169,11 @@ test('Debug Apex Tests (Code Builder): CodeLens and Test Explorer entry points',
     '}'
   ].join('\n');
 
-  // Distinct method name from class1Test so the Test Explorer treeitem label is unique.
+  // Distinct method name from class1Test so the Test Explorer treeitem label is unique. Annotations
+  // kept inline (see class1TestContent) to avoid the warm-LS suggestion-accept newline merge.
   const class2TestContent = [
-    '@IsTest',
-    `public class ${class2Test} {`,
-    '  @IsTest',
-    '  static void validateSayHelloTwo() {',
+    `@IsTest public class ${class2Test} {`,
+    '  @IsTest static void validateSayHelloTwo() {',
     "    System.debug('Starting validate');",
     `    ${class2}.SayHello('Cody');`,
     "    System.assertEquals(1, 1, 'all good');",
@@ -197,16 +199,17 @@ test('Debug Apex Tests (Code Builder): CodeLens and Test Explorer entry points',
   });
 
   await test.step('wait for CodeLens in the test class', async () => {
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-    await openFileByName(page, `${class1Test}.cls`);
+    // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
+    // gate on the real indexing signal: the test class' CodeLens (Run/Debug Test) only appears once
+    // the Apex LS has indexed it.
+    await activateEditorTab(page, `${class1Test}.cls`);
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 120_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
   await test.step('Debug All Tests via class-level CodeLens', async () => {
-    await openFileByName(page, `${class1Test}.cls`);
+    await activateEditorTab(page, `${class1Test}.cls`);
     await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -214,7 +217,7 @@ test('Debug Apex Tests (Code Builder): CodeLens and Test Explorer entry points',
   });
 
   await test.step('Debug Test via method-level CodeLens', async () => {
-    await openFileByName(page, `${class2Test}.cls`);
+    await activateEditorTab(page, `${class2Test}.cls`);
     await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);

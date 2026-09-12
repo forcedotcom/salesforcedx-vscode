@@ -169,7 +169,8 @@ export {
   getVariableRow,
   expandNestedVariable,
   continueDebugSession,
-  stopDebugSession
+  stopDebugSession,
+  activateEditorTab
 } from './pages/debug';
 
 export {

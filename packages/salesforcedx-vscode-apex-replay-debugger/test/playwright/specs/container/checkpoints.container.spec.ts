@@ -21,6 +21,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activateEditorTab,
   APEX_TRACE_FLAG_STATUS_BAR,
   clearAllNotifications,
   clearOutputChannel,
@@ -35,7 +36,6 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
@@ -108,7 +108,7 @@ test('Checkpoints (Code Builder): Toggle Checkpoint, Update Checkpoints in Org, 
   });
 
   await test.step('toggle a checkpoint at the `return newAcct;` line', async () => {
-    await openFileByName(page, `${className}.cls`);
+    await activateEditorTab(page, `${className}.cls`);
     // Click directly on the `return newAcct;` line — sfToggleCheckpoint reads
     // activeTextEditor.selection.start.line, so the caret must sit on a valid statement.
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
@@ -133,14 +133,21 @@ test('Checkpoints (Code Builder): Toggle Checkpoint, Update Checkpoints in Org, 
     // Dedupe guard (W-23465461): exactly one 'Apex Replay Debugger' output channel.
     const channelCount = await countOutputChannelOptions(page, 'Apex Replay Debugger');
     expect(channelCount, "expected exactly one 'Apex Replay Debugger' output channel").toBe(1);
-    await clearOutputChannel(page);
 
-    await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);
+    // Step 2 ("Retrieving source and line information") calls the Apex LS, whose readiness gate waits
+    // only ~3s. On a cold code-server the LS indexing can still be running, so the command aborts
+    // before step 6. There is no CodeLens on this plain (non-test) class to gate LS readiness on, so
+    // retry the command — clearing the channel each attempt — until it reaches step 6, riding out the
+    // LS cold-start. When the LS is already warm (shared workbench) the first attempt succeeds.
+    await expect(async () => {
+      await clearOutputChannel(page);
+      await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);
+      await waitForOutputChannelText(page, {
+        expectedText: 'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation',
+        timeout: 45_000
+      });
+    }).toPass({ timeout: 240_000 });
 
-    await waitForOutputChannelText(page, {
-      expectedText: 'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation',
-      timeout: 120_000
-    });
     await waitForOutputChannelText(page, {
       expectedText: 'Ended SFDX: Update Checkpoints in Org',
       timeout: 60_000

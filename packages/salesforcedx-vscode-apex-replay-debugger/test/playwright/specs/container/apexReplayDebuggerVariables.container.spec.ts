@@ -21,6 +21,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activateEditorTab,
   clearAllNotifications,
   closeAllEditors,
   closeWelcomeTabs,
@@ -34,7 +35,6 @@ import {
   expandNestedVariable,
   getCallStackRows,
   getVariableRow,
-  openFileByName,
   openVariablesView,
   saveScreenshot,
   selectOutputChannel,
@@ -107,7 +107,7 @@ test('Apex Replay Debugger Variables (Code Builder): nested related-object VARIA
   });
 
   await test.step('set breakpoint on the System.debug line in the class', async () => {
-    await openFileByName(page, `${className}.cls`);
+    await activateEditorTab(page, `${className}.cls`);
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     const debugLine = editor.locator('.view-line').filter({ hasText: 'System.debug(c);' }).first();
@@ -120,7 +120,7 @@ test('Apex Replay Debugger Variables (Code Builder): nested related-object VARIA
   });
 
   await test.step('launch replay via the anon script and pause at the breakpoint', async () => {
-    await openFileByName(page, `${scriptName}.apex`);
+    await activateEditorTab(page, `${scriptName}.apex`);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry first (debug toolbar appears)
     await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 60_000 });
