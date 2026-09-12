@@ -15,15 +15,14 @@
  */
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
   clickCodeLens,
-  closeAllEditors,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -40,8 +39,7 @@ import { TEST_RUN_TIMEOUT } from '../../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../../helpers/testExplorerHelpers';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

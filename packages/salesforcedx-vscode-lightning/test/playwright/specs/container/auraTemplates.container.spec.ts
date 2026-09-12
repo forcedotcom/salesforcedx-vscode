@@ -18,17 +18,15 @@
 import { containerTest as test } from '../../fixtures/containerFixtures';
 import { expect, type Page } from '@playwright/test';
 import {
-  clearAllNotifications,
+  resetContainerWorkbench,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   verifyCommandExists,
-  closeWelcomeTabs,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
   saveScreenshot,
   QUICK_INPUT_WIDGET,
   EDITOR_WITH_URI,
-  ensureSecondarySideBarHidden,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../../package.nls.json';
@@ -42,9 +40,7 @@ test.describe('Aura Templates (Code Builder)', () => {
     consoleErrors = setupConsoleMonitoring(page);
     networkErrors = setupNetworkMonitoring(page);
     // The containerTest fixture already awaited workbench readiness before handing over `page`.
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await clearAllNotifications(page);
+    await resetContainerWorkbench(page);
   });
 
   const createAuraTemplate = async (page: Page, command: string, name: string, expectedFiles: string[]) => {

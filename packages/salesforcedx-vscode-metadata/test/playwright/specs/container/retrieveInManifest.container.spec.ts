@@ -20,7 +20,6 @@
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
-  clearAllNotifications,
   clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
@@ -31,6 +30,7 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -47,8 +47,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 const FIXTURE_CLASS = 'PagedResult';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Retrieve In Manifest (Code Builder): retrieves via editor and explorer entry points', async ({ page }) => {

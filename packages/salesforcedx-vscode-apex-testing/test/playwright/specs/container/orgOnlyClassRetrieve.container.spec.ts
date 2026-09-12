@@ -36,15 +36,14 @@ import * as path from 'node:path';
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clickCodeLens,
-  closeAllEditors,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   env,
   execAsync,
   MINIMAL_ORG_ALIAS,
   ORG_METADATA_EDITOR,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -116,8 +115,7 @@ const deployOrgOnlyClassFromHost = async (className: string, methodName: string)
 
 // Shared persistent workbench: reset editor + notification state before each test.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Org-only Apex class (Code Builder): retrieve via code lens opens the on-disk .cls', async ({ page }) => {

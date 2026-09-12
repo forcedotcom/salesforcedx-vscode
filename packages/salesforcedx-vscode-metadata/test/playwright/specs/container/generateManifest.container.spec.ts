@@ -18,7 +18,6 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
-  clearAllNotifications,
   closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
@@ -27,6 +26,7 @@ import {
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -38,8 +38,7 @@ import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Generate Manifest (Code Builder): generates via context menu entry points', async ({ page }) => {

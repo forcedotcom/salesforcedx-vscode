@@ -23,10 +23,7 @@ import { expect } from '@playwright/test';
 import {
   activateEditorTab,
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
-  closeWelcomeTabs,
   continueDebugSession,
   countOutputChannelOptions,
   createApexClass,
@@ -37,6 +34,7 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -57,10 +55,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 const HEAP_DUMP_ERROR_TEXT = /Problems were encountered while retrieving heap dump information/;
 
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Stop the session AND remove checkpoints/breakpoints — a leaked checkpoint would pause an unrelated

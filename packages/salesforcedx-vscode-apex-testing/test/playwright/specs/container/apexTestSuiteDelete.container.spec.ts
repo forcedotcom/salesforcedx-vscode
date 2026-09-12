@@ -17,9 +17,7 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
@@ -27,6 +25,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -46,8 +45,7 @@ import { createApexTestSuiteViaPalette, createLocalApexTestSuiteFile } from '../
 const TEST_CLASS = 'PagedResultTest';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

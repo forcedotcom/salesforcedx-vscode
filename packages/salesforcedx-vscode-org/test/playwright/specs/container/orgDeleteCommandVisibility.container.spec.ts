@@ -16,10 +16,9 @@
  */
 
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -32,8 +31,7 @@ import packageNls from '../../../../package.nls.json';
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('org extension (Code Builder): SFDX: Delete Default Org is visible when the default org is a scratch org', async ({

@@ -21,9 +21,7 @@
  */
 
 import {
-  clearAllNotifications,
   clickOrgPickerStatusBar,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   env,
@@ -32,6 +30,7 @@ import {
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOrgInPicker,
   setupConsoleMonitoring,
@@ -57,8 +56,7 @@ const resolveOrgUsername = async (alias: string): Promise<string> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // fixme (W-23898526): the metadata extension's source-tracking status bar does NOT re-evaluate when the

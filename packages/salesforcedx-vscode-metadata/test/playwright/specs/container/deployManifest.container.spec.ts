@@ -20,7 +20,6 @@
 import { expect } from '@playwright/test';
 import {
   captureOutputChannelDetails,
-  clearAllNotifications,
   closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
@@ -32,6 +31,7 @@ import {
   openFileByName,
   openFileFromExplorerTree,
   activeQuickInputWidget,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -48,8 +48,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Deploy Manifest (Code Builder): deploys the fixture manifest via all entry points', async ({ page }) => {

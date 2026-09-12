@@ -23,16 +23,14 @@ import { expect } from '@playwright/test';
 import {
   activateEditorTab,
   assertDebugToolbarVisible,
-  clearAllNotifications,
   clickCodeLens,
-  closeAllEditors,
-  closeWelcomeTabs,
   continueDebugSession,
   createAndOpenApexScript,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   getCallStackRows,
   openVariablesView,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -48,10 +46,7 @@ const ANON_APEX_CONTENT = "System.debug('hello from anonymous apex');";
 // Shared, persistent workbench: reset editors and notifications before each test rather than
 // assuming a clean slate. No org setup — every test uses the container's boot (default) org.
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Guaranteed debug-session teardown: a session left running would poison the next test in the shared

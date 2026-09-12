@@ -16,15 +16,14 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -81,8 +80,7 @@ const selectTestClassInQuickPick = async (page: Page, testClassName: string): Pr
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

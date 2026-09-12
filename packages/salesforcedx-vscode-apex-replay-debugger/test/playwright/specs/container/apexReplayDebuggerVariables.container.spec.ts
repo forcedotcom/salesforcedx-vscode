@@ -22,20 +22,17 @@
 import { expect } from '@playwright/test';
 import {
   activateEditorTab,
-  clearAllNotifications,
-  closeAllEditors,
-  closeWelcomeTabs,
   createApexClass,
   createAndOpenApexScript,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   expandAllVariableScopes,
   expandNestedVariable,
   getCallStackRows,
   getVariableRow,
   openVariablesView,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -65,10 +62,7 @@ const nestedClassContent = [
 ].join('\n');
 
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Stop the session AND remove all breakpoints — a leaked breakpoint would pause an unrelated later

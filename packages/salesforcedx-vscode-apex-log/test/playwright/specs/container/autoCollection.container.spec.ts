@@ -19,13 +19,12 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
-  closeAllEditors,
   closeSettingsTab,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -42,8 +41,7 @@ const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalS
 
 // Shared persistent workbench: reset editors + notifications between specs.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Self-clean: remove the trace flag this spec created and restore the poll interval to its default so

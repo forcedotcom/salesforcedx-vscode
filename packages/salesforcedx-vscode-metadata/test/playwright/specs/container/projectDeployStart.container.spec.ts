@@ -19,15 +19,14 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   closeWelcomeTabs,
   editOpenFile,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -42,8 +41,7 @@ import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Project Deploy Start (Code Builder): pushes source to the boot org', async ({ page }) => {

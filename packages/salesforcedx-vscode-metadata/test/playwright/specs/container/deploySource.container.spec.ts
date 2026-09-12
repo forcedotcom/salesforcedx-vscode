@@ -17,15 +17,14 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -42,8 +41,7 @@ test.beforeEach(async ({ page }) => {
   // Start from a clean workbench (matches the passing deploySourcePath twin): specs share one persistent
   // workbench, so leftover editors/notifications from a prior spec can push the fixture out of the
   // Explorer's virtual-scroll window and make the tree open flake.
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Deploy Source (Code Builder): deploys the fixture class to the boot org', async ({ page }) => {

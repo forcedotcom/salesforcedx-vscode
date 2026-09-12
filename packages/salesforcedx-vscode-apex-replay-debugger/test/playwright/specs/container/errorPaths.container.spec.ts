@@ -19,17 +19,14 @@
 import { expect } from '@playwright/test';
 import {
   activateEditorTab,
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
-  closeWelcomeTabs,
   createApexClass,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -46,10 +43,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 // Shared, persistent workbench: reset editors and notifications before each test rather than
 // assuming a clean slate. No org setup — every test uses the container's boot (default) org.
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // ── Spec 1: Unsupported file type ─────────────────────────────────────────────

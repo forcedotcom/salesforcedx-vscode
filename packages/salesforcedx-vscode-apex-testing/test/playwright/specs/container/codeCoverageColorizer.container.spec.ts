@@ -18,15 +18,14 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   createApexClass,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -56,8 +55,7 @@ const countOverlaysWithBg = async (editor: ReturnType<Page['locator']>, targetRg
   }, targetRgba);
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

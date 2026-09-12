@@ -26,11 +26,10 @@
 import { type Page } from '@playwright/test';
 import {
   clearOutputChannel,
-  closeWelcomeTabs,
   ensureOutputPanelOpen,
-  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -140,8 +139,7 @@ const matrix = [
 
 test.describe('Apex LSP restart (Code Builder)', () => {
   test.beforeEach(async ({ page }) => {
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
+    await resetContainerWorkbench(page);
     await openApexFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes']);
     await waitForApexLspReady(page);
   });

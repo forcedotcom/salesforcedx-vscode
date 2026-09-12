@@ -18,13 +18,12 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -37,8 +36,7 @@ import packageNls from '../../../../package.nls.json';
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('org extension (Code Builder): Authorize an Org using Session ID prompts then cancels cleanly on Esc', async ({

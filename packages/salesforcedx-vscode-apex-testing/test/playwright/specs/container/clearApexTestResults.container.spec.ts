@@ -17,14 +17,13 @@
 import { expect } from '@playwright/test';
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -46,8 +45,7 @@ import {
 } from '../../helpers/testExplorerHelpers';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

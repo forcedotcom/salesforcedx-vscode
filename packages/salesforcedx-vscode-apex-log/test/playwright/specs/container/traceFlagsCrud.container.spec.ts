@@ -18,8 +18,6 @@
 import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
-  closeAllEditors,
   closeSettingsTab,
   closeWelcomeTabs,
   CODELENS_ITEM,
@@ -29,6 +27,7 @@ import {
   find,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   selectQuickInputOption,
   setupConsoleMonitoring,
@@ -68,8 +67,7 @@ const openTraceFlagsAndExpectContent = async (page: Page, query: string): Promis
 
 // Shared persistent workbench: reset editors + notifications between specs.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Self-clean the org-global trace flag and debug level this spec creates, even if a step failed.

@@ -19,16 +19,14 @@
 import { expect, type Page } from '@playwright/test';
 import {
   activateEditorTab,
-  clearAllNotifications,
   clickCodeLens,
-  closeAllEditors,
-  closeWelcomeTabs,
   continueDebugSession,
   createApexClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -117,10 +115,7 @@ const waitForSuccessNotification = async (page: Page): Promise<void> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test.afterEach(async ({ page }) => {

@@ -20,8 +20,6 @@
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   DIRTY_EDITOR,
@@ -32,6 +30,7 @@ import {
   focusOnFilesExplorer,
   openFileByName,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -108,8 +107,7 @@ const generateManifest = async (page: Page, fileName: string) => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('manifest version tracks mid-session sourceApiVersion edit without reload (Code Builder)', async ({ page }) => {

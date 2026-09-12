@@ -27,9 +27,7 @@
 
 import {
   activeQuickInputWidget,
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   closeWelcomeTabs,
   DREAMHOUSE_ORG_ALIAS,
   ensureOutputPanelOpen,
@@ -39,6 +37,7 @@ import {
   executeCommandWithCommandPalette,
   MINIMAL_ORG_ALIAS,
   QUICK_INPUT_LIST_ROW,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -62,8 +61,7 @@ const resolveOrgUsername = async (alias: string): Promise<string | undefined> =>
 // Shared, long-lived workbench: reset editor + notification state before each test rather than assuming a
 // clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Refresh SObject Definitions (Code Builder): refreshes custom sObjects from the switched Dreamhouse org', async ({

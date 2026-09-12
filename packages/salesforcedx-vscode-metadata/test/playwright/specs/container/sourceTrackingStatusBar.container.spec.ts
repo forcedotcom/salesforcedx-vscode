@@ -31,13 +31,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   editOpenFile,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -55,8 +54,7 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../../src/con
 // Shared persistent workbench: reset editor + notification state before each test rather than assuming a
 // clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Source Tracking Status Bar (Code Builder): reflects local changes through a deploy cycle on the boot org', async ({

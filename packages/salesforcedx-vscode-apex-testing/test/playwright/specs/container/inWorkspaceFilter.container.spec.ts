@@ -47,14 +47,13 @@ import * as path from 'node:path';
 
 import { expect, type Locator } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearFilter,
-  closeAllEditors,
   ensureSecondarySideBarHidden,
   env,
   execAsync,
   focusAndTypeInFilter,
   MINIMAL_ORG_ALIAS,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -176,8 +175,7 @@ const deployWorkspaceAndOrgOnlyClasses = async (orgOnlyClassName: string): Promi
 
 // Shared persistent workbench: reset editor + notification state before each test.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Apex @in-workspace filter (Code Builder): shows local classes and hides org-only classes', async ({ page }) => {

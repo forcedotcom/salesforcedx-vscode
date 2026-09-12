@@ -53,8 +53,6 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
@@ -66,6 +64,7 @@ import {
   NON_TRACKING_ORG_ALIAS,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOrgInPicker,
   selectOutputChannel,
@@ -103,8 +102,7 @@ const expectNoErrorNotification = async (page: Page): Promise<void> => {
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('org extension (Code Builder): migrated pickers enumerate BOTH orgs across display/delete/logout (non-destructive)', async ({

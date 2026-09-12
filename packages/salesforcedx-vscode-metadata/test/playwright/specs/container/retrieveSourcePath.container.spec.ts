@@ -17,15 +17,14 @@
  */
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -41,8 +40,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 const FIXTURE_CLASS = 'PagedResult';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Retrieve Source Path (Code Builder): retrieves the fixture class via explorer context menu', async ({ page }) => {

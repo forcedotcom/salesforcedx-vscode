@@ -21,14 +21,13 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -52,8 +51,7 @@ const CLASS_CONTENT = [
 
 // Shared persistent workbench: reset editors + notifications so each spec starts from a known state.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('OAS no-http-method (Code Builder): rejects a @RestResource class with no @Http method', async ({ page }) => {

@@ -18,13 +18,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   editOpenFile,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -44,8 +43,7 @@ import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Deploy On Save (Code Builder): automatically deploys the fixture class when saved', async ({ page }) => {

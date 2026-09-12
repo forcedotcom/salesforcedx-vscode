@@ -19,12 +19,11 @@
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
+  resetContainerWorkbench,
   saveScreenshot,
   selectQuickInputOption,
   setupConsoleMonitoring,
@@ -40,8 +39,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 const ELECTRON_THEME_PACKAGE_VERSION_ID = '04t6A000002zgKSQAY';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // fixme: nondeterministic on the shared, persistent boot org. The first attempt installs the 04t (a slow,

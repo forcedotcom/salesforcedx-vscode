@@ -17,13 +17,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   focusOnFilesExplorer,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -44,8 +43,7 @@ const COMMANDS_TO_TEST = [
 ];
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('EditorWatcher (Code Builder): deploy commands show/hide based on active editor location', async ({ page }) => {

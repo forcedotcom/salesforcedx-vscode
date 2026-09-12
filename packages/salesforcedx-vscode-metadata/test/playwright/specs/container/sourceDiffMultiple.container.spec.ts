@@ -19,9 +19,7 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   deployCurrentSourceToOrg,
@@ -30,6 +28,7 @@ import {
   ensureSecondarySideBarHidden,
   executeExplorerContextMenuCommand,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -44,8 +43,7 @@ import { DEPLOY_TIMEOUT } from '../../../constants';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Source Diff multiple (Code Builder): opens a diff and populates conflict tree', async ({ page }) => {

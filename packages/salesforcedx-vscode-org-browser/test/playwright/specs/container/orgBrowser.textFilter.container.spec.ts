@@ -15,10 +15,7 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
-  closeWelcomeTabs,
-  ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
@@ -30,10 +27,7 @@ import { normalizeOrgBrowserFilters } from './containerHelpers';
 // Shared, persistent workbench: reset editors, notifications, and the persisted Org Browser filter
 // state before each test rather than assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await normalizeOrgBrowserFilters(new OrgBrowserPage(page));
 });
 

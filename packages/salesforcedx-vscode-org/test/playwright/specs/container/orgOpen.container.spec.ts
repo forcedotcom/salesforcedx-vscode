@@ -15,12 +15,11 @@
  */
 
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -37,8 +36,7 @@ const ORG_CHANNEL = 'Salesforce Org Management';
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('org extension (Code Builder): SFDX: Open Default Org surfaces the container-mode URL message', async ({

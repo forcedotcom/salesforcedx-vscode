@@ -23,7 +23,6 @@
 import { expect, type Page } from '@playwright/test';
 import {
   activeQuickInputWidget,
-  clearAllNotifications,
   closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
@@ -32,6 +31,7 @@ import {
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   removePathsInContainer,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -101,8 +101,7 @@ const verifyGeneratedTemplate = async (page: Page, name: string): Promise<void> 
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test.afterEach(async () => {

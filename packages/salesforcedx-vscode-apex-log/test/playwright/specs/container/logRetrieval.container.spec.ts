@@ -17,8 +17,6 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -26,6 +24,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   selectAll,
   selectFirstQuickInputOption,
@@ -44,8 +43,7 @@ import { waitForTraceFlagStatusBar } from '../../helpers';
 
 // Shared persistent workbench: reset editors + notifications between specs.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Self-clean the org-global trace flag this spec creates, even if a step above failed.

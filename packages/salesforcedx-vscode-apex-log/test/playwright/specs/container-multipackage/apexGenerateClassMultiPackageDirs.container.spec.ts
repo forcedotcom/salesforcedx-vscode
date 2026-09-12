@@ -21,13 +21,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   selectQuickInputOption,
   setupConsoleMonitoring,
@@ -43,8 +42,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 // Shared persistent workbench: reset editors + notifications between specs so the picker flow starts
 // from a known state.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Apex Generate Class (Code Builder): both package directory classes folders appear in the output directory picker', async ({

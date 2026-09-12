@@ -23,7 +23,6 @@
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
-  clearAllNotifications,
   clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
@@ -38,6 +37,7 @@ import {
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -66,8 +66,7 @@ const resolveOrgUsername = async (alias: string): Promise<string> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Non-Tracking Org (Code Builder): deploy/retrieve via manifest work without tracking', async ({ page }) => {

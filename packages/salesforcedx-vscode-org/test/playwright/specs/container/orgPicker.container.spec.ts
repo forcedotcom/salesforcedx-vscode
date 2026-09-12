@@ -29,9 +29,7 @@
  */
 
 import {
-  clearAllNotifications,
   clickOrgPickerStatusBar,
-  closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   env,
@@ -40,6 +38,7 @@ import {
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOrgInPicker,
   setupConsoleMonitoring,
@@ -64,8 +63,7 @@ const resolveOrgUsername = async (alias: string): Promise<string> => {
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('org extension (Code Builder): org picker surfaces the boot org AND the extra multi-org (nonTrackingTestOrg)', async ({

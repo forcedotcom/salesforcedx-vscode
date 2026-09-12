@@ -21,7 +21,6 @@ import {
   acceptNotification,
   clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   createApexClass,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
@@ -29,6 +28,7 @@ import {
   executeCommandWithCommandPalette,
   openFileByName,
   replaceLineInOpenFile,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -93,8 +93,7 @@ const runServiceTestViaPalette = async (page: Page): Promise<void> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

@@ -15,14 +15,13 @@
  */
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOption,
@@ -44,8 +43,7 @@ const TEST_CLASS_1 = 'PagedResultTest';
 const TEST_CLASS_2 = 'ExampleClassTest';
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, 'Apex Testing');
   await clearOutputChannel(page);

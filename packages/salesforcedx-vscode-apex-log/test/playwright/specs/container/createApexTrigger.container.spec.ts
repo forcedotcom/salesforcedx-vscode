@@ -15,13 +15,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -37,8 +36,7 @@ import { containerTest as test } from '../../fixtures/containerFixtures';
 // Shared persistent workbench: reset editors + notifications between specs so scaffolding assertions
 // start from a known state.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Apex Generate Trigger (Code Builder): creates a trigger via command palette', async ({ page }) => {

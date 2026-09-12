@@ -21,12 +21,11 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
   closeWelcomeTabs,
   EDITOR,
   ensureSecondarySideBarHidden,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -73,8 +72,7 @@ const plainFileName = `foo${stamp}.xml`;
 const createdFiles: string[] = [];
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test.afterEach(async () => {

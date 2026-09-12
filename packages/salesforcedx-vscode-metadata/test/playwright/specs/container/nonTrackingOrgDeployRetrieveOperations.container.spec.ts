@@ -22,7 +22,6 @@
  */
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
   clickModalDialogButton,
   closeAllEditors,
@@ -37,6 +36,7 @@ import {
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -63,8 +63,7 @@ const resolveOrgUsername = async (alias: string): Promise<string> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Non-Tracking Org (Code Builder): deploy/retrieve operations work without tracking', async ({ page }) => {

@@ -22,10 +22,7 @@ import { expect } from '@playwright/test';
 import {
   activateEditorTab,
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
-  closeWelcomeTabs,
   continueDebugSession,
   createApexClass,
   createAndOpenApexScript,
@@ -34,6 +31,7 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -49,10 +47,7 @@ import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
 
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test.afterEach(async ({ page }) => {

@@ -18,13 +18,12 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
   clearOutputChannel,
-  closeAllEditors,
   EDITOR,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveFile,
   saveScreenshot,
   selectOutputChannel,
@@ -49,8 +48,7 @@ const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
 // Shared persistent workbench: reset editors + notifications so each spec starts from a known state.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('SOQL Query Plan (Code Builder): code lens, current file, selected text via command palette', async ({ page }) => {

@@ -41,14 +41,11 @@
 
 import { expect } from '@playwright/test';
 import {
-  clearAllNotifications,
-  closeAllEditors,
-  closeWelcomeTabs,
   DREAMHOUSE_ORG_ALIAS,
-  ensureSecondarySideBarHidden,
   env,
   execAsync,
   MINIMAL_ORG_ALIAS,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -72,10 +69,7 @@ const resolveOrgUsername = async (alias: string): Promise<string | undefined> =>
 // Shared, long-lived workbench: reset editor + notification state and normalize the persisted Org
 // Browser filters (both toggles ON, no text filter) so a prior spec can't hide the org's components.
 test.beforeEach(async ({ page }) => {
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
   await normalizeOrgBrowserFilters(new OrgBrowserPage(page));
 });
 

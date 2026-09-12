@@ -20,7 +20,6 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
-  clearAllNotifications,
   closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
@@ -28,6 +27,7 @@ import {
   executeExplorerContextMenuCommand,
   NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -55,8 +55,7 @@ const assertNoDeployError = async (page: Page): Promise<void> => {
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Deploy Source Path (Code Builder): deploys the fixture class via all entry points', async ({ page }) => {

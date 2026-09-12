@@ -17,7 +17,6 @@
  */
 
 import {
-  clearAllNotifications,
   clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
@@ -29,6 +28,7 @@ import {
   executeExplorerContextMenuCommand,
   openFileByName,
   outputChannelContains,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -69,8 +69,7 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
 };
 
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('Source Diff (Code Builder): diff shows diff editor via palette and explorer', async ({ page }) => {

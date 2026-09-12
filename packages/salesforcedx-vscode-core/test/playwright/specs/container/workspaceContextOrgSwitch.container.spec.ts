@@ -47,8 +47,6 @@
  */
 
 import {
-  clearAllNotifications,
-  closeAllEditors,
   clickOrgPickerStatusBar,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
@@ -59,6 +57,7 @@ import {
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOrgInPicker,
   selectOutputChannel,
@@ -89,8 +88,7 @@ const resolveOrgUsername = async (alias: string): Promise<string> => {
 // Shared persistent workbench: reset editor + notification state before each test rather than
 // assuming a clean slate.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 test('core (Code Builder): WorkspaceContext default-org tracks a real picker switch', async ({ page }) => {

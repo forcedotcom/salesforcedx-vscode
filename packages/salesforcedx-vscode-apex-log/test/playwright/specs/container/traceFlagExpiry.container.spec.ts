@@ -20,13 +20,12 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
-  clearAllNotifications,
-  closeAllEditors,
   closeSettingsTab,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   removeAllDebugLevels,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -42,8 +41,7 @@ const DURATION_SETTING = 'salesforcedx-vscode-apex-log.traceFlagsDefaultDuration
 
 // Shared persistent workbench: reset editors + notifications between specs.
 test.beforeEach(async ({ page }) => {
-  await closeAllEditors(page);
-  await clearAllNotifications(page);
+  await resetContainerWorkbench(page);
 });
 
 // Self-clean: remove any lingering trace flag and restore the default-duration setting so later specs
