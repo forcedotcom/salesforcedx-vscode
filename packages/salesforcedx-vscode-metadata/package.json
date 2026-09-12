@@ -53,6 +53,7 @@
     "test:web:debug": "npm run test:web -- --debug",
     "test:container": "wireit",
     "test:container:noproject": "wireit",
+    "test:container:nofolder": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:desktop:conflicts": "wireit",
@@ -227,6 +228,25 @@
     },
     "test:container:noproject": {
       "command": "playwright test --config=test/playwright/playwright.config.container.noproject.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:container:nofolder": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.nofolder.ts",
       "env": {
         "CODE_BUILDER_URL": {
           "external": true

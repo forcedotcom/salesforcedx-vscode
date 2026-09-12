@@ -697,6 +697,45 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
   }
 };
 
+/*
+ * Re-seed coder.json to a NO-FOLDER window (empty query, no `folder` key) for the nofolder phase.
+ * seedWorkspace always writes `{query: {folder: …}}` against a recorded mount, so it can't express
+ * "open with no folder at all" — the shape the emptyWorkspaceSfdxCommands case A (no folder open)
+ * needs. This mirrors seed.ts's SEED_SCRIPT (atomic writes via mktemp+mv, disable workspace trust,
+ * chown to codebuilder) but sets an empty query. Writes as root (docker exec default); a failure is
+ * fatal for the phase, surfaced by the caller. Kept here (orchestrator re-seed logic), NOT in the
+ * toolkit, per the no-folder-case scope.
+ */
+const NO_FOLDER_SEED_SCRIPT = `
+set -e
+command -v jq >/dev/null 2>&1 || { echo "seed: jq not found in container (nofolder seed requires jq)" >&2; exit 127; }
+coder=/home/codebuilder/.local/share/code-server/coder.json
+settings=/home/codebuilder/.local/share/code-server/User/settings.json
+mkdir -p "$(dirname "$coder")" "$(dirname "$settings")"
+ctmp="$(mktemp)"
+jq -n '{query: {}}' > "$ctmp"
+mv "$ctmp" "$coder"
+stmp="$(mktemp)"
+current="$(jq . "$settings" 2>/dev/null || echo '{}')"
+printf '%s' "$current" | jq '.["security.workspace.trust.enabled"] = false' > "$stmp"
+mv "$stmp" "$settings"
+chown codebuilder:codebuilder "$coder" "$settings"
+`;
+
+const seedNoFolder = (containerName: string): void => {
+  const res = spawnSync('docker', ['exec', containerName, 'bash', '-c', NO_FOLDER_SEED_SCRIPT], {
+    encoding: 'utf-8',
+    timeout: CAPTURE_TIMEOUT_MS
+  });
+  if ((res.status ?? 1) !== 0) {
+    throw new Error(
+      `seedNoFolder failed for container "${containerName}" (status ${res.status ?? 'null'}): ${
+        res.stderr?.trim() || res.stdout?.trim() || 'no output'
+      }`
+    );
+  }
+};
+
 /* --- stand up + swap + gate (all via the toolkit) -------------------------- */
 const main = async (): Promise<number> => {
   // The three slow, independent operations — VSIX build/download, image pull, and org create/reuse —
@@ -851,6 +890,28 @@ const main = async (): Promise<number> => {
     // "commands hidden" assertions pass for the wrong reason (no extension = no commands either).
     assertVerified(handle.name, manifest);
     failed.push(...runSuites(noProjectPackages, 'test:container:noproject', 'no-project'));
+  }
+
+  // Phase 3 — no-folder shape. Any package declaring `test:container:nofolder` needs a window with NO
+  // folder open at all (e.g. metadata emptyWorkspaceSfdxCommands case A: the Create Project commands
+  // must still be contributed). Change the shape at a phase boundary — re-seed coder.json to an empty
+  // query (no `folder` key) + restart() — never mid-suite in the shared session. Discovered
+  // self-maintaining like phases 1–2; a no-op when no package declares it.
+  const noFolderPackages = opts.only
+    ? discoverPackagesWithScript('test:container:nofolder').filter(p => opts.only!.includes(p))
+    : discoverPackagesWithScript('test:container:nofolder');
+  if (noFolderPackages.length > 0) {
+    log('Re-seeding code-server to a no-folder window (empty coder.json query) + restarting');
+    seedNoFolder(handle.name);
+    // restart() resolves only once the workbench URL answers again, so returning from it is the proof
+    // code-server reopened cleanly with no folder.
+    await restart(handle);
+    log('Workbench came up after re-seed+restart to the no-folder shape');
+    // Re-run the verify gate: the restart re-scans the overrides, so confirm the swapped extensions
+    // are STILL present at the expected bytes. Without this a lost extension would make the
+    // "commands present" assertions fail for the wrong reason (or a hidden-command regression hide).
+    assertVerified(handle.name, manifest);
+    failed.push(...runSuites(noFolderPackages, 'test:container:nofolder', 'no-folder'));
   }
 
   if (failed.length > 0) {
