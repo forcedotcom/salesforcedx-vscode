@@ -103,7 +103,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
             });
           })
         ),
-        Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
+        Effect.tap(entries => Effect.annotateCurrentSpan(vfsSpanAttributes(entries))),
         Effect.withSpan('loadState')
       );
 
@@ -201,6 +201,16 @@ const writeFileWithOrWithoutDir = Effect.fn('IndexedDBStorageService.writeFileWi
       })
   });
 });
+
+const vfsSpanAttributes = (entries: SerializedEntryWithPath[]) => {
+  const files = entries.filter(isSerializedFileWithPath);
+  return {
+    entryCount: entries.length,
+    fileCount: files.length,
+    directoryCount: entries.filter(isSerializedDirectoryWithPath).length,
+    fileByteCount: files.map(file => file.size).reduce((n, size) => n + size, 0)
+  };
+};
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {
   const stats = fs.statSync(path);

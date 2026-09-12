@@ -222,9 +222,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           });
         }
       }).pipe(
-        Effect.tap(result => Effect.annotateCurrentSpan({ result })),
-        Effect.withSpan('listMetadata (API call)'),
         Effect.map(ensureArray),
+        Effect.tap(items => Effect.annotateCurrentSpan({ resultCount: items.length })),
+        Effect.withSpan('listMetadata (API call)'),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
         Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
         Effect.map(Arr.dedupeAdjacentWith(FilePropertiesByFullName)),
