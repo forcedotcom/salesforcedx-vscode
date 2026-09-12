@@ -1,6 +1,6 @@
 import * as constants from './change-log-constants';
 import fs from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import util from 'node:util';
 
 // Commit Map Keys
@@ -42,9 +42,11 @@ export function getPreviousReleaseBranch(): string {
  * creation date. This ensures that the first entry is the latest branch.
  */
 function getRemoteReleaseBranches(): string[] {
-  return execSync(`git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`, {
-    encoding: 'utf8'
-  })
+  return execFileSync(
+    'git',
+    ['branch', '--remotes', '--list', '--sort=-creatordate', `${constants.REMOTE_RELEASE_BRANCH_PREFIX}*`],
+    { encoding: 'utf8' }
+  )
     .replace(/\n/g, ',')
     .split(',')
     .map(Function.prototype.call, String.prototype.trim);
@@ -57,7 +59,9 @@ function getRemoteReleaseBranches(): string[] {
  */
 function getCommits(releaseBranch: string, previousBranch: string): string[] {
   logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
-  return execSync(`git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`, { encoding: 'utf8' })
+  return execFileSync('git', ['log', '--cherry-pick', '--oneline', `${releaseBranch}...${previousBranch}`], {
+    encoding: 'utf8'
+  })
     .trim()
     .split('\n');
 }
@@ -167,7 +171,7 @@ function getChangeLogText(releaseBranch: string, groupedMessages: Record<string,
 }
 
 function getFilesChanged(commitNumber: string): string {
-  return execSync('git show --pretty="" --name-only ' + commitNumber, {
+  return execFileSync('git', ['show', '--pretty=', '--name-only', commitNumber], {
     encoding: 'utf8'
   })
     .trim()
@@ -256,8 +260,7 @@ export function updateChangeLog(remoteReleaseBranch: string, remotePreviousBranc
   if (parsedCommits.length > 0) {
     const localReleaseBranch = remoteReleaseBranch.replace(constants.ORIGIN_PREFIX_ONLY, '');
     console.log(`\nChecking out ${localReleaseBranch}`);
-    const commitCommand = `git checkout ${localReleaseBranch}`;
-    execSync(commitCommand);
+    execFileSync('git', ['checkout', localReleaseBranch]);
 
     const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
     const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);
