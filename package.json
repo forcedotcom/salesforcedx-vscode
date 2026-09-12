@@ -134,6 +134,7 @@
     "lint": "wireit",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
+    "test:scripts": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "test:container:local": "wireit",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
@@ -244,6 +245,7 @@
     "test": {
       "dependencies": [
         "test:ai-safeguards",
+        "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
@@ -292,6 +294,16 @@
         "scripts/ai-auto-approve-cli.mjs",
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs"
+      ],
+      "output": []
+    },
+    "test:scripts": {
+      "command": "jest --config jest.config.js --runInBand",
+      "files": [
+        "jest.config.js",
+        "scripts/**/*.ts",
+        "scripts/tsconfig.json",
+        "tsconfig.json"
       ],
       "output": []
     },
