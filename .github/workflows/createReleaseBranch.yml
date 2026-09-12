@@ -62,7 +62,7 @@ jobs:
       - name: Create and Push the Release Branch
         id: create_step
         run: |
-          echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
+          echo "Creating a $RELEASE_TYPE release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
           node scripts/create-release-branch.js
       - id: result
         run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
@@ -71,7 +71,7 @@ jobs:
       - id: branch
         run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "Release Version is ${{ steps.version.outputs.version }}"
-      - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
+      - run: echo “Release Type is $RELEASE_TYPE”
       - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
 
   trigger_generate_changelog_workflow:

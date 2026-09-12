@@ -4,6 +4,7 @@ packages:
 engineStrict: true
 linkWorkspacePackages: true
 preferWorkspacePackages: true
+pmOnFail: ignore
 saveExact: true
 
 overrides:
