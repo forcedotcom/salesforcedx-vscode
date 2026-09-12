@@ -10,7 +10,6 @@ saveExact: true
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
   jest: 30.4.2
-  playwright-core: 1.63.0
   vscode-languageserver-textdocument: 1.0.12
   wireit>brace-expansion: 4.0.1
 
