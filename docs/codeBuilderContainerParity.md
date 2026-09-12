@@ -27,14 +27,20 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 91 specs across 15 packages
+## Coverage summary — 97 specs across 15 packages
 
 Includes the multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs into the container and switching the default with
-save/restore; 2 more are ported but `test.fixme` for a documented code-server limitation.
+save/restore; 2 more are ported but `test.fixme` for a documented code-server limitation. Also
+includes the 6 apex-replay **interactive-debug** specs — a live DAP replay session driven through
+code-server, verified green in isolation and in the full serial suite.
 
-Count is container spec **files**: 89 active + 2 `test.fixme`. Two origin specs are reachable but not
+Count is container spec **files**: 95 active + 2 `test.fixme`. Two origin specs are reachable but not
 yet ported — see "Reachable but not yet ported" below.
+
+(This `jh/W-23898526-cb-e2e-debug` branch does not include the 2 workspace-shape ports on the sibling
+`jh/W-23898526-cb-e2e-workspace-shape` branch; the combined post-merge tally is 99 specs / 94 origin
+ported. See "Branch fragmentation" note at the bottom.)
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
@@ -52,7 +58,7 @@ yet ported — see "Reachable but not yet ported" below.
 | `salesforcedx-vscode-visualforce` | 2 | visualforceLsp, visualforceTemplates |
 | `salesforcedx-vscode-services` | 1 | retrieveOnLoad (activation + no-op branch) |
 | `salesforcedx-vscode-apex-debugger` | 1 | debuggerStop (stop-session command; no DAP) |
-| `salesforcedx-vscode-apex-replay-debugger` | 1 | errorPaths (command error-paths; no debug session) |
+| `salesforcedx-vscode-apex-replay-debugger` | 7 | errorPaths + **apexReplayDebugger, apexReplayDebuggerVariables, checkpoints, debugAnonymousApex, debugApexTests, promptForLogFile** (live DAP replay session in code-server) |
 | `playwright-vscode-ext` | 0 | test library itself — validated by jest + its own `.headless` specs |
 
 The orchestrator auto-discovers every package that declares a `test:container` script, so adding a
@@ -63,7 +69,7 @@ suite to a new package wires it in with no orchestrator edit.
 How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs
 it was ported from. **Origin** counts product specs only — the 10 `playwright-vscode-ext` specs test
 the shared test *library* itself, not a product feature, so they're excluded. **Ported** is origin
-specs that now have container coverage; the container has 5 more spec *files* than that (91 total)
+specs that now have container coverage; the container has 5 more spec *files* than that (97 total)
 from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, metadata `deploySource`,
 2 org-browser variants).
 
@@ -75,7 +81,7 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-apex-log` | 12 | 8 | 4 |
 | `salesforcedx-vscode-org` | 12 | 8 | 4 |
 | `salesforcedx-vscode-apex-oas` | 9 | 3 | 6 |
-| `salesforcedx-vscode-apex-replay-debugger` | 7 | 1 | 6 |
+| `salesforcedx-vscode-apex-replay-debugger` | 7 | 7 | 0 |
 | `salesforcedx-vscode-org-browser` | 7 | 6 | 1 |
 | `salesforcedx-vscode-lightning` | 6 | 4 | 2 |
 | `salesforcedx-vscode-apex` | 5 | 4 | 1 |
@@ -84,14 +90,14 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-core` | 3 | 3 | 0 |
 | `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
-| **Total** | **132** | **86 (65%)** | **46** |
+| **Total** | **132** | **92 (70%)** | **40** |
 
-The 46 not-ported specs by blocking constraint:
+The 40 not-ported specs by blocking constraint:
 
 | Blocking constraint | Count |
 | --- | --: |
 | Different workspace shape (no-folder / empty / multi-package) | 11 |
-| Interactive debug session / DAP | 8 |
+| Interactive debug session / DAP (hard-blocked: `isvDebugBootstrap` live org session, `lwcDebugTests` jest dep) | 2 |
 | Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
 | Destructive org lifecycle / second org user | 6 |
 | Reads span/telemetry files | 5 |
@@ -101,17 +107,19 @@ The 46 not-ported specs by blocking constraint:
 | Dev/Test-only internal command | 1 |
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
 | **Reachable but not yet ported** | **2** |
-| **Total** | **46** |
+| **Total** | **40** |
 
 ## Not ported (and why)
 
 These specs cannot run in the container and stay desktop/web-only. Grouped by the blocking
 constraint:
 
-**Interactive debug session (DAP launch/attach/breakpoints/replay)** — apex-replay-debugger:
-`apexReplayDebugger`, `apexReplayDebuggerVariables`, `checkpoints`, `debugAnonymousApex`,
-`debugApexTests`, `promptForLogFile` (F5-launches a debug config to reach the log-file quick input);
-apex-debugger: `isvDebugBootstrap`; lwc: `lwcDebugTests`.
+**Interactive debug session — hard-blocked** — apex-debugger: `isvDebugBootstrap` (needs a live
+org-side `ApexDebuggerSession` behind an ISV/Debug-Only license, uncreatable in CI); lwc:
+`lwcDebugTests` (js-debug + jest, needs `@salesforce/sfdx-lwc-jest` baked into the fixture). The 6
+apex-replay debug specs (`apexReplayDebugger`, `apexReplayDebuggerVariables`, `checkpoints`,
+`debugAnonymousApex`, `debugApexTests`, `promptForLogFile`) are now **ported and green** — see the
+apex-replay-debugger row above and "Debug / DAP portability assessment".
 
 **Rate-limited A4V/Einstein LLM (OpenAPI generation)** — apex-oas: `composedCaseManager`,
 `composedManualMerge`, `composedOverwrite`, `decomposedSimpleAccount`, `contextMenuEditor`,
@@ -206,9 +214,17 @@ Neither is in the current stack; they're the next low-risk coverage additions if
 
 ## Debug / DAP portability assessment
 
-The 8 interactive-debug specs are the largest not-ported bucket. A feasibility review found **7 are
-realistically reachable and 1 is permanently blocked** — but the whole group is gated on one unproven
-assumption, so it is scoped here rather than attempted blind.
+**Status: DONE for the 6 apex-replay specs — verified green.** A feasibility review found 7 of the 8
+reachable and 1 permanently blocked; the gating unknown (can a live DAP session render through
+code-server?) was retired by a spike, and the 6 apex-replay specs are now ported and pass green both
+in isolation on a cold Apex LS and in the full serial suite. `isvDebugBootstrap` stays hard-blocked
+(live org-side session); `lwcDebugTests` needs the jest dep baked in. Notable fixes to reach green:
+replaced a context-sensitive "Indexing complete" gate with the test-class Run/Debug CodeLens gate,
+inlined `@IsTest` annotations (a completion-accept was swallowing the newline and merging the
+annotation into the class decl), a robust `activateEditorTab` helper (Quick Open intermittently
+returned an unclickable grouped row — the dominant flake), an LS-readiness retry on Update Checkpoints,
+and an `expandAllVariableScopes` rewrite (the empty Global scope never expands). The per-spec table and
+work-items below are retained for history.
 
 **Why it isn't already done:** the two shipped container debug twins
 (`apex-replay-debugger/.../container/errorPaths` and `apex-debugger/.../container/debuggerStop`) were
@@ -283,6 +299,21 @@ untouched. Multi-package and no-org boot are each a further self-contained mount
 **Spike first:** whether a re-seed + `restart()` reliably reopens a *different* `coder.json` shape
 (folder / no-folder) cleanly on the CB image. That boot-time re-seed behavior isn't exercised anywhere
 today and gates the whole phased design.
+
+## Branch fragmentation (temporary — reconcile at merge)
+
+The container-parity follow-on work is split across three sibling branches off `jh/W-23898517`/#8165,
+so this ledger's tally differs per branch until they merge:
+
+| Branch | Adds | Tally on that branch |
+| --- | --- | --: |
+| `jh/W-23898526-cb-e2e-multiorg` (#8165) | multi-org + Dreamhouse | 86 ported / 46 not-ported |
+| `jh/W-23898526-cb-e2e-workspace-shape` | +2 workspace-shape specs + re-seed phase | 88 / 44 |
+| `jh/W-23898526-cb-e2e-debug` (this branch) | +6 apex-replay debug specs | 92 / 40 |
+
+Combined post-merge: **99 container spec files, 94 origin specs ported (71%), 38 not-ported** (of which
+only ~28 are hard-blocked). Whichever branch merges last should fold in the others' rows and land the
+single combined tally.
 
 ## Adding a container suite to a package
 
