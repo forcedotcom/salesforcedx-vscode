@@ -54,9 +54,9 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:desktop --debug",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 pnpm test:web --headed",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -210,7 +210,7 @@
       "output": []
     },
     "run:web": {
-      "command": "pnpm exec vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
       "service": true,
       "dependencies": [
         "vscode:bundle",

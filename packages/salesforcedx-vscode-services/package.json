@@ -75,8 +75,8 @@
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 pnpm test:web --headed",
-    "test:web:debug": "pnpm test:web --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --debug",
     "test:e2e": "wireit",
     "o11y:debug": "wireit",
     "spans:server": "wireit",
@@ -253,7 +253,7 @@
       ]
     },
     "run:web": {
-      "command": "pnpm exec vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle:local"

@@ -66,7 +66,7 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-oas test:desktop --debug",
     "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {

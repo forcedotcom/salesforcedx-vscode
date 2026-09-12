@@ -95,10 +95,10 @@
     "test:lit-foundation": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 pnpm test:web --headed",
-    "test:web:debug": "pnpm test:web --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:bundle:migration": "wireit",
@@ -308,7 +308,7 @@
       ]
     },
     "run:web": {
-      "command": "pnpm exec vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle:local",

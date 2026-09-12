@@ -61,7 +61,7 @@
     "test:compile": "wireit",
     "vscode:package:legacy:prerelease": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-debugger test:desktop --debug",
     "test:e2e": "wireit"
   },
   "wireit": {

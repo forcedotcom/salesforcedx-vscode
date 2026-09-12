@@ -62,7 +62,7 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug"
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex test:desktop --debug"
   },
   "wireit": {
     "compile": {

@@ -47,10 +47,10 @@
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo .circular-deps.json",
     "lint": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 pnpm test:web --headed",
-    "test:web:debug": "pnpm test:web --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "pnpm test:desktop --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:desktop --debug",
     "test": "wireit"
   },
   "wireit": {
