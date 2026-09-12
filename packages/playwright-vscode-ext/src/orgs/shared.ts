@@ -48,7 +48,8 @@ export const runScratchOrgCreate = async (command: string, cwd: string): Promise
  * death" so a non-scratch/older-CLI happy path isn't broken by an over-eager check.
  */
 const isOrgAlive = (result: OrgDisplayResult['result']): boolean => {
-  if (result.status !== undefined && result.status === 'Deleted') {
+  // Case-insensitive: guard against CLI casing variants ('Deleted' / 'DELETED' / 'deleted').
+  if (result.status?.toLowerCase() === 'deleted') {
     return false;
   }
   if (result.connectedStatus !== undefined && result.connectedStatus !== 'Connected') {

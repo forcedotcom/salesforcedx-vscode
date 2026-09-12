@@ -79,7 +79,11 @@ jobs:
           - salesforcedx-vscode-soql
           - salesforcedx-vscode-visualforce
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # Multi-shape packages run several full container cycles in one job (apex-log = 4 phases:
+    # dx-project + no-project + multi-package + no-org; metadata = 3; apex-testing = 2), each a
+    # re-seed + restart + verify-gate + suite. Give headroom over the single-phase original so a
+    # heavy package can't hit the wall mid-run (with CB_MAX_FAILURES=0 there's no fast-fail cap).
+    timeout-minutes: 60
     permissions:
       contents: read
       # Pull the private CB image with this repo's GITHUB_TOKEN — the package's Manage Actions

@@ -825,6 +825,13 @@ const main = async (): Promise<number> => {
   // re-initializes the auth dir and would wipe a login done earlier. The org extension reads the org
   // list fresh on every picker open, so a login now (before the specs run) is enumerated without any
   // window reload. No-op unless CB_EXTRA_ORG_ALIASES is set.
+  //
+  // NOTE (extra orgs are PHASE-1 ONLY): the later re-seed phases (no-project/no-folder/multi-package/
+  // no-org) each `restart()` the container, which re-inits the auth dir and wipes these extra-org
+  // logins — they are NOT re-authed. This is fine today: every extra-org-dependent spec lives in the
+  // phase-1 `./specs/container` suite. If you ever add an extra-org spec to a `container-noproject`/
+  // `-nofolder`/`-multipackage` suite, re-invoke `authExtraOrgsIntoContainer(handle.name)` after that
+  // phase's restart (below) — don't rely on this phase-1 login surviving.
   authExtraOrgsIntoContainer(handle.name);
 
   /* --- run the specs ------------------------------------------------------- */
