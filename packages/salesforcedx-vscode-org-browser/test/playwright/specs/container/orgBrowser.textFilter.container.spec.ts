@@ -203,7 +203,9 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
 });
 
 /*
- * SKIPPED (not ported): the headless twin's "Type:component filters expanded children"
- * (CustomObject:Broker__c) and "combined wildcard *Object:*Broker* works" subtests both assert on
- * the Dreamhouse CustomObject `Broker__c`, which the bare boot scratch org does not contain.
+ * MOVED (not omitted): the headless twin's "Type:component filters expanded children"
+ * (CustomObject:Broker__c) and "combined wildcard *Object:*Broker* works" subtests both assert on the
+ * Dreamhouse CustomObject `Broker__c`, which the bare boot scratch org does not contain. They are now
+ * ported to orgBrowserTextFilterDreamhouse.container.spec.ts, which switches the default org to the
+ * Dreamhouse org (multi-org capability) before filtering. This spec keeps only the boot-org subtests.
  */

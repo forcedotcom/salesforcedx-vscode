@@ -18,6 +18,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activateEditorTab,
   clearAllNotifications,
   clearOutputChannel,
   closeAllEditors,
@@ -28,7 +29,6 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
   openFileFromExplorerTree,
   saveScreenshot,
   selectOutputChannel,
@@ -150,7 +150,7 @@ test('Update Checkpoints in Org (Code Builder): shows error when more than 5 che
 
   await test.step('toggle one checkpoint in each of the 6 classes', async () => {
     for (const className of classNames) {
-      await openFileByName(page, `${className}.cls`);
+      await activateEditorTab(page, `${className}.cls`);
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
       await editor.waitFor({ state: 'visible', timeout: 15_000 });
 

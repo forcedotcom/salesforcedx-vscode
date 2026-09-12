@@ -254,6 +254,21 @@ export class OrgBrowserPage {
     return true;
   }
 
+  /**
+   * Force-refresh a metadata type by clicking its "Refresh Type" toolbar button. This re-queries the
+   * CURRENT default org for that type's component list (the underlying command invalidates the cache
+   * with `consistency: 'refresh'`). Used after switching the default org so the tree re-targets the
+   * new org instead of serving the previous org's cached listing.
+   */
+  public async refreshMetadataType(typeName: string): Promise<void> {
+    const typeItem = await this.findMetadataType(typeName);
+    await typeItem.hover();
+    const refreshButton = typeItem.locator('.action-label[aria-label="Refresh Type"]').first();
+    await expect(refreshButton, 'Refresh Type button should be visible').toBeVisible({ timeout: 5000 });
+    await refreshButton.click();
+    await saveScreenshot(this.page, `orgBrowserPage.refreshMetadataType.${typeName}.png`, true);
+  }
+
   // TODO: pass in a file name you expect.  Or have a new method that just waits for that element to be visible
   /**
    * Wait for any file to open in the editor
