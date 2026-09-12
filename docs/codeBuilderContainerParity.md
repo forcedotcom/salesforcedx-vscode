@@ -27,14 +27,16 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 93 specs across 15 packages
+## Coverage summary — 99 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
 `test.fixme` for code-server limits. Includes phase-2 no-project shape ports: 2 specs now run after
-orchestrator re-seeds to non-project workspace.
+orchestrator re-seeds to non-project workspace. Includes the 6 apex-replay **interactive-debug**
+specs — a live DAP replay session driven through code-server, verified green in isolation and in the
+full serial suite.
 
-Count is container spec **files**: 91 active + 2 `test.fixme`.
+Count is container spec **files**: 97 active + 2 `test.fixme`.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
@@ -52,7 +54,7 @@ Count is container spec **files**: 91 active + 2 `test.fixme`.
 | `salesforcedx-vscode-visualforce` | 2 | visualforceLsp, visualforceTemplates |
 | `salesforcedx-vscode-services` | 1 | retrieveOnLoad (activation + no-op branch) |
 | `salesforcedx-vscode-apex-debugger` | 1 | debuggerStop (stop-session command; no DAP) |
-| `salesforcedx-vscode-apex-replay-debugger` | 1 | errorPaths (command error-paths; no debug session) |
+| `salesforcedx-vscode-apex-replay-debugger` | 7 | errorPaths + **apexReplayDebugger, apexReplayDebuggerVariables, checkpoints, debugAnonymousApex, debugApexTests, promptForLogFile** (live DAP replay session in code-server) |
 | `playwright-vscode-ext` | 0 | test library itself — validated by jest + its own `.headless` specs |
 
 The orchestrator auto-discovers every package that declares a `test:container` script, so adding a
@@ -63,7 +65,7 @@ suite to a new package wires it in with no orchestrator edit.
 How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs
 it was ported from. **Origin** counts product specs only — the 10 `playwright-vscode-ext` specs test
 the shared test *library* itself, not a product feature, so they're excluded. **Ported** is origin
-specs that now have container coverage; the container has 5 more spec *files* than that (93 total)
+specs that now have container coverage; the container has 5 more spec *files* than that (99 total)
 from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, metadata `deploySource`,
 2 org-browser variants).
 
@@ -75,7 +77,7 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-apex-log` | 12 | 8 | 4 |
 | `salesforcedx-vscode-org` | 12 | 8 | 4 |
 | `salesforcedx-vscode-apex-oas` | 9 | 3 | 6 |
-| `salesforcedx-vscode-apex-replay-debugger` | 7 | 1 | 6 |
+| `salesforcedx-vscode-apex-replay-debugger` | 7 | 7 | 0 |
 | `salesforcedx-vscode-org-browser` | 7 | 6 | 1 |
 | `salesforcedx-vscode-lightning` | 6 | 4 | 2 |
 | `salesforcedx-vscode-apex` | 5 | 4 | 1 |
@@ -84,41 +86,40 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-core` | 3 | 3 | 0 |
 | `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
-| **Total** | **132** | **88 (67%)** | **44** |
+| **Total** | **132** | **94 (71%)** | **38** |
 
-The 44 not-ported specs by blocking constraint (6 of them are actively being ported — see the
-DAP row and the "Debug / DAP portability assessment" below):
+The 38 not-ported specs by blocking constraint:
 
 | Blocking constraint | Count |
 | --- | --: |
 | Different workspace shape (no-folder / empty / multi-package) | 9 |
-| Interactive debug session / DAP — in active porting (6 apex-replay; DAP-in-code-server proven, pending green verification) | 6 |
-| Interactive debug session / DAP — hard-blocked (`isvDebugBootstrap` live org session, `lwcDebugTests` jest dep + debug) | 2 |
 | Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
 | Destructive org lifecycle / second org user | 6 |
 | Reads span/telemetry files | 5 |
+| Interactive debug session / DAP — hard-blocked (`isvDebugBootstrap` live org session, `lwcDebugTests` jest dep + debug) | 2 |
 | Webview-only surface | 2 |
 | Slow/mutating positive retrieve | 2 |
 | Reload-flakiness in web / native file-watch event not delivered | 2 |
 | Dev/Test-only internal command | 1 |
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
 | **Reachable but not yet ported** | **2** |
-| **Total** | **44** |
+| **Total** | **38** |
 
-Once the 6 apex-replay debug specs verify green, the tally becomes **94 ported (71%) / 38 not-ported**;
-of the remaining 38, only ~28 are hard-blocked (the rest are reachable-with-work: the 2 metadata
+Of the remaining 38, only ~28 are hard-blocked; the rest are reachable-with-work: the 2 metadata
 "reachable" specs, the 4 phase-2-ready workspace-shape visibility specs, and multi-package/no-org-boot
-variants).
+variants.
 
 ## Not ported (and why)
 
 These specs cannot run in the container and stay desktop/web-only. Grouped by the blocking
 constraint:
 
-**Interactive debug session (DAP launch/attach/breakpoints/replay)** — apex-replay-debugger:
-`apexReplayDebugger`, `apexReplayDebuggerVariables`, `checkpoints`, `debugAnonymousApex`,
-`debugApexTests`, `promptForLogFile` (F5-launches a debug config to reach the log-file quick input);
-apex-debugger: `isvDebugBootstrap`; lwc: `lwcDebugTests`.
+**Interactive debug session — hard-blocked** — apex-debugger: `isvDebugBootstrap` (needs a live
+org-side `ApexDebuggerSession` behind an ISV/Debug-Only license, uncreatable in CI); lwc:
+`lwcDebugTests` (js-debug + jest, needs `@salesforce/sfdx-lwc-jest` baked into the fixture). The 6
+apex-replay debug specs (`apexReplayDebugger`, `apexReplayDebuggerVariables`, `checkpoints`,
+`debugAnonymousApex`, `debugApexTests`, `promptForLogFile`) are now **ported and green** — see the
+apex-replay-debugger row above and "Debug / DAP portability assessment".
 
 **Rate-limited A4V/Einstein LLM (OpenAPI generation)** — apex-oas: `composedCaseManager`,
 `composedManualMerge`, `composedOverwrite`, `decomposedSimpleAccount`, `contextMenuEditor`,
@@ -214,12 +215,17 @@ Neither is in the current stack; they're the next low-risk coverage additions if
 
 ## Debug / DAP portability assessment
 
-The 8 interactive-debug specs are the largest not-ported bucket. A feasibility review found **7 are
-realistically reachable and 1 is permanently blocked**, and the gating unknown has since been **retired
-by a spike**: a live apex-replay DAP session launches and renders the debug view through code-server in
-the container (green at 17.3s). The 6 apex-replay specs are now in **active porting** on the
-`jh/W-23898526-cb-e2e-debug` branch (verification in progress); they stay counted as not-ported until
-they pass green. `isvDebugBootstrap` remains hard-blocked; `lwcDebugTests` needs the jest dep baked in.
+**Status: DONE for the 6 apex-replay specs — ported and verified green.** A feasibility review found
+7 of the 8 reachable and 1 permanently blocked; the gating unknown (can a live DAP session render
+through code-server?) was retired by a spike, and the 6 apex-replay specs now pass green both in
+isolation on a cold Apex LS and in the full serial suite. `isvDebugBootstrap` stays hard-blocked (live
+org-side session); `lwcDebugTests` needs the jest dep baked in. Notable fixes to reach green: replaced
+a context-sensitive "Indexing complete" gate with the test-class Run/Debug CodeLens gate, inlined
+`@IsTest` annotations (a completion-accept was swallowing the newline and merging the annotation into
+the class decl), a robust `activateEditorTab` helper (Quick Open intermittently returned an unclickable
+grouped row — the dominant flake), an LS-readiness retry on Update Checkpoints, and an
+`expandAllVariableScopes` rewrite (the empty Global scope never expands). The per-spec table and
+work-items below are retained for history.
 
 **Why it isn't already done:** the two shipped container debug twins
 (`apex-replay-debugger/.../container/errorPaths` and `apex-debugger/.../container/debuggerStop`) were
