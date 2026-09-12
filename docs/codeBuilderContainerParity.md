@@ -86,12 +86,14 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
 | **Total** | **132** | **88 (67%)** | **44** |
 
-The 44 not-ported specs by blocking constraint:
+The 44 not-ported specs by blocking constraint (6 of them are actively being ported — see the
+DAP row and the "Debug / DAP portability assessment" below):
 
 | Blocking constraint | Count |
 | --- | --: |
 | Different workspace shape (no-folder / empty / multi-package) | 9 |
-| Interactive debug session / DAP | 8 |
+| Interactive debug session / DAP — in active porting (6 apex-replay; DAP-in-code-server proven, pending green verification) | 6 |
+| Interactive debug session / DAP — hard-blocked (`isvDebugBootstrap` live org session, `lwcDebugTests` jest dep + debug) | 2 |
 | Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
 | Destructive org lifecycle / second org user | 6 |
 | Reads span/telemetry files | 5 |
@@ -102,6 +104,11 @@ The 44 not-ported specs by blocking constraint:
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
 | **Reachable but not yet ported** | **2** |
 | **Total** | **44** |
+
+Once the 6 apex-replay debug specs verify green, the tally becomes **94 ported (71%) / 38 not-ported**;
+of the remaining 38, only ~28 are hard-blocked (the rest are reachable-with-work: the 2 metadata
+"reachable" specs, the 4 phase-2-ready workspace-shape visibility specs, and multi-package/no-org-boot
+variants).
 
 ## Not ported (and why)
 
@@ -208,8 +215,11 @@ Neither is in the current stack; they're the next low-risk coverage additions if
 ## Debug / DAP portability assessment
 
 The 8 interactive-debug specs are the largest not-ported bucket. A feasibility review found **7 are
-realistically reachable and 1 is permanently blocked** — but the whole group is gated on one unproven
-assumption, so it is scoped here rather than attempted blind.
+realistically reachable and 1 is permanently blocked**, and the gating unknown has since been **retired
+by a spike**: a live apex-replay DAP session launches and renders the debug view through code-server in
+the container (green at 17.3s). The 6 apex-replay specs are now in **active porting** on the
+`jh/W-23898526-cb-e2e-debug` branch (verification in progress); they stay counted as not-ported until
+they pass green. `isvDebugBootstrap` remains hard-blocked; `lwcDebugTests` needs the jest dep baked in.
 
 **Why it isn't already done:** the two shipped container debug twins
 (`apex-replay-debugger/.../container/errorPaths` and `apex-debugger/.../container/debuggerStop`) were
