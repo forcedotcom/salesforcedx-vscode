@@ -48,6 +48,7 @@
     "test:container": "wireit",
     "test:container:noproject": "wireit",
     "test:container:multipackage": "wireit",
+    "test:container:noorg": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit",
@@ -254,6 +255,25 @@
     },
     "test:container:multipackage": {
       "command": "playwright test --config=test/playwright/playwright.config.container.multipackage.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:container:noorg": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.noorg.ts",
       "env": {
         "CODE_BUILDER_URL": {
           "external": true

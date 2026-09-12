@@ -959,6 +959,59 @@ const main = async (): Promise<number> => {
     failed.push(...runSuites(multiPackagePackages, 'test:container:multipackage', 'multi-package'));
   }
 
+  // Phase 5 — no-org shape. Any package declaring `test:container:noorg` needs the STANDARD DX project
+  // open but NO org authenticated, so the `sf:has_target_org` context key is false and org-gated
+  // commands hide (while project-only commands / the walkthrough stay visible). Unlike phases 2–4
+  // (which only re-seed coder.json + restart the SAME org-authed container), no-org needs a fresh boot
+  // WITHOUT the org env: `docker restart` reuses the env baked at `docker run`, so it re-auths the boot
+  // org — there is no restart path that "forgets" the org. So tear the org-authed container down and
+  // re-run() it org-less (bootEnv omitted) against the same DX fixture, re-swap the extensions, restart
+  // to apply, and re-run the verify gate. This is the LAST phase, so the torn-down org container never
+  // needs restoring. Discovered self-maintaining like phases 1–4; a no-op when no package declares it.
+  const noOrgPackages = opts.only
+    ? discoverPackagesWithScript('test:container:noorg').filter(p => opts.only!.includes(p))
+    : discoverPackagesWithScript('test:container:noorg');
+  if (noOrgPackages.length > 0) {
+    log('Re-booting the container org-less (no SF_ACCESS_TOKEN/INSTANCE_URL) for the no-org phase');
+    // Tear the org-authed container down; a fresh org-less container reuses the same name/port/mounts.
+    teardown(handle);
+    handle = await runContainer({
+      name: CONTAINER_NAME,
+      imageRef: image,
+      publishedPort: PUBLISHED_PORT,
+      url: CODE_BUILDER_URL,
+      // bootEnv OMITTED → no-org boot: the image authenticates no org, so sf:has_target_org is false.
+      mounts: [
+        { hostPath: FIXTURE_HOST_DIR, containerPath: FIXTURE_MOUNT_PATH },
+        { hostPath: NOPROJECT_FIXTURE_HOST_DIR, containerPath: NOPROJECT_MOUNT_PATH },
+        { hostPath: MULTIPACKAGE_FIXTURE_HOST_DIR, containerPath: MULTIPACKAGE_MOUNT_PATH }
+      ]
+    });
+    // A fresh container = fresh mounts, so re-apply the same fixture-writability chmod as the first boot.
+    log('Making the mounted fixtures writable by the container user (chmod a+rwX)');
+    for (const mountPath of [FIXTURE_MOUNT_PATH, NOPROJECT_MOUNT_PATH, MULTIPACKAGE_MOUNT_PATH]) {
+      const chmodMount = spawnSync('docker', ['exec', '-u', 'root', handle.name, 'chmod', '-R', 'a+rwX', mountPath], {
+        stdio: 'ignore'
+      });
+      if (chmodMount.status !== 0) {
+        console.warn(`    WARNING: could not chmod ${mountPath} — settings-writing specs may hit EACCES.`);
+      }
+    }
+    // Open the STANDARD DX project (same shape as phase 1); the only difference is the absent org.
+    log('Seeding workspace at the DX fixture (no-org phase)');
+    seedWorkspace(handle);
+    // The fresh container carries none of the earlier swap, so re-swap the built VSIXes + re-gate.
+    log('Re-swapping in built extensions (fresh no-org container)');
+    const noOrgManifest = swap(handle.name, vsixPaths, { publisherPrefix: PUBLISHER_PREFIX });
+    log('Restarting container (applies swap; no org to re-auth)');
+    await restart(handle);
+    log('Workbench came up after the org-less boot (no-org boot spike: PASS)');
+    // Re-run the verify gate: confirm the swapped extensions are present at the expected bytes, so a
+    // "command hidden" assertion can't pass for the wrong reason (a missing extension = no command).
+    assertVerified(handle.name, noOrgManifest);
+    failed.push(...runSuites(noOrgPackages, 'test:container:noorg', 'no-org'));
+  }
+
   if (failed.length > 0) {
     log(`Container specs failed for ${failed.length} package(s): ${failed.join(', ')}. Recent container logs:`);
     const logs = tryCapture('docker', ['logs', CONTAINER_NAME]);
