@@ -32,7 +32,7 @@ export const registerCommandWithRuntime =
         vscode.commands.registerCommand(command, (...args) =>
           runtime.runFork(
             f(...args).pipe(
-              Effect.withSpan(command, { attributes: { command, args }, root: true }),
+              Effect.withSpan(command, { attributes: { command, argCount: args.length }, root: true }),
               Effect.catchTag('UserCancellationError', () => Effect.void),
               Effect.catchAllCause(cause => errorHandler.handleCause(cause))
             )
