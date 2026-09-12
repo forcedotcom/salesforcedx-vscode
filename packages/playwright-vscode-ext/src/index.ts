@@ -242,3 +242,5 @@ export { seedWorkspace, FIXTURE_MOUNT_PATH } from './codeBuilder/seed';
 export type { SeedOptions } from './codeBuilder/seed';
 export { defaultRunner } from './codeBuilder/runner';
 export type { CommandRunner } from './codeBuilder/runner';
+export { removePathsInContainer, CONTAINER_USER } from './codeBuilder/fixtureCleanup';
+export type { RemovePathsInContainerOptions } from './codeBuilder/fixtureCleanup';

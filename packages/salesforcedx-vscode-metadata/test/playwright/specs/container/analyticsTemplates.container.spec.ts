@@ -13,8 +13,11 @@
  * there is no org round-trip, so it uses the ambient boot org shape without any org setup.
  *
  * Uses unique Date.now() names so the shared, persistent workbench never collides across runs, and
- * removes each created template directory from the bind-mounted fixture in afterEach (via
- * CB_FIXTURE_HOST_DIR, the host side of the mount) so the workspace shape is left as found.
+ * removes each created template directory in afterEach so the workspace shape is left as found. The
+ * scaffold runs the create-template command INSIDE the container, so the files are owned by the
+ * image's `codebuilder` user — a host-side node:fs remove through the bind mount fails with EACCES
+ * and leaves undeployable Analytics metadata behind, poisoning later deploy specs. So cleanup deletes
+ * inside the container as that same user via removePathsInContainer (docker exec -u codebuilder).
  */
 
 import { expect, type Page } from '@playwright/test';
@@ -28,6 +31,7 @@ import {
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
+  removePathsInContainer,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -35,7 +39,6 @@ import {
   verifyCommandExists,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import packageNls from '../../../../package.nls.json';
 import { containerTest as test } from '../../fixtures/containerFixtures';
@@ -51,16 +54,23 @@ const expectedFiles = [
 ] as const;
 
 /*
- * The host side of the bind mount, published by the orchestrator (scripts/codeBuilderLocalE2E.ts). A
- * host-side node:fs remove here deletes the template the in-container scaffold wrote through the
- * mount. Resolved once at load; a missing var is a wiring bug (the orchestrator always sets it), so
- * fail loud rather than remove from a guessed path.
+ * The container name and the CONTAINER side of the bind mount, published by the orchestrator
+ * (scripts/codeBuilderLocalE2E.ts). The create-template command scaffolds INSIDE the container as the
+ * `codebuilder` user, so cleanup must run there too (docker exec -u codebuilder) — a host-side remove
+ * of those container-owned dirs fails with EACCES. Resolved once at load; a missing var is a wiring
+ * bug (the orchestrator always sets both), so fail loud rather than remove from a guessed path.
  */
-const fixtureHostDir = process.env.CB_FIXTURE_HOST_DIR;
+const containerName = process.env.CB_CONTAINER_NAME;
+const fixtureContainerDir = process.env.CB_FIXTURE_CONTAINER_DIR;
 
 // Templates are scaffolded under the default package's waveTemplates folder (see
-// analyticsGenerateTemplate.ts). Track the created template dirs so afterEach can remove them.
-const createdTemplateDirs: string[] = [];
+// analyticsGenerateTemplate.ts). This folder does NOT exist in the committed fixture — only this spec
+// creates it — so afterEach removes the WHOLE folder (container-side, posix path) rather than each
+// template subdir, leaving no empty waveTemplates dir behind. Undefined when the wiring env var is
+// absent (guarded in the test body, which fails loud).
+const waveTemplatesContainerDir = fixtureContainerDir
+  ? path.posix.join(fixtureContainerDir, 'force-app', 'main', 'default', 'waveTemplates')
+  : undefined;
 
 const enterTemplateName = async (page: Page, name: string): Promise<void> => {
   const quickInput = activeQuickInputWidget(page);
@@ -96,8 +106,14 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.afterEach(async () => {
-  // Remove any template dirs this spec scaffolded so the shared fixture is left as found.
-  await Promise.all(createdTemplateDirs.splice(0).map(dir => fs.rm(dir, { recursive: true, force: true })));
+  // Remove the whole waveTemplates folder this spec scaffolded so the shared fixture is left exactly
+  // as found (the folder is not in the committed fixture). It is owned by the container's codebuilder
+  // user, so delete it inside the container as that user — a host-side remove would fail with EACCES
+  // and leave undeployable Analytics metadata poisoning later specs that deploy the fixture. rm -rf is
+  // idempotent, so this is a harmless no-op if the test failed before scaffolding anything.
+  if (containerName && waveTemplatesContainerDir) {
+    removePathsInContainer(containerName, [waveTemplatesContainerDir]);
+  }
 });
 
 test('Analytics Templates (Code Builder): creates sample template via command palette and explorer context menu', async ({
@@ -107,13 +123,13 @@ test('Analytics Templates (Code Builder): creates sample template via command pa
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  if (!fixtureHostDir) {
+  if (!containerName || !waveTemplatesContainerDir) {
     throw new Error(
-      'CB_FIXTURE_HOST_DIR is not set — the orchestrator (scripts/codeBuilderLocalE2E.ts) must publish the ' +
-        'host side of the fixture bind mount so this spec can clean up scaffolded templates.'
+      'CB_CONTAINER_NAME / CB_FIXTURE_CONTAINER_DIR is not set — the orchestrator ' +
+        '(scripts/codeBuilderLocalE2E.ts) must publish the container name and the container side of the ' +
+        'fixture bind mount so this spec can clean up scaffolded templates inside the container.'
     );
   }
-  const waveTemplatesHostDir = path.join(fixtureHostDir, 'force-app', 'main', 'default', 'waveTemplates');
 
   await test.step('workbench ready', async () => {
     // The containerTest fixture already awaited workbench readiness before handing over `page`.
@@ -124,7 +140,6 @@ test('Analytics Templates (Code Builder): creates sample template via command pa
 
   await test.step('create analytics template via command palette', async () => {
     const name = `AnalyticsPalette${Date.now()}`;
-    createdTemplateDirs.push(path.join(waveTemplatesHostDir, name));
     await verifyCommandExists(page, packageNls.analytics_generate_template_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.analytics_generate_template_text);
     await enterTemplateName(page, name);
@@ -137,7 +152,6 @@ test('Analytics Templates (Code Builder): creates sample template via command pa
 
   await test.step('create analytics template via explorer context menu', async () => {
     const name = `AnalyticsExplorer${Date.now()}`;
-    createdTemplateDirs.push(path.join(waveTemplatesHostDir, name));
     await closeAllEditors(page);
     // The command-palette step above scaffolded into waveTemplates, so the folder is now in the tree;
     // right-clicking it passes the folder as the output dir (no output-dir prompt on this path).

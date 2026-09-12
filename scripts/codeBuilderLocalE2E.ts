@@ -860,7 +860,18 @@ const main = async (): Promise<number> => {
   // container's opened folder. The container path (FIXTURE_MOUNT_PATH) is where code-server reads;
   // the host path is where a host-side spec can write. Both local and CI drive this orchestrator, so
   // this one env var covers both.
-  const testEnv: NodeJS.ProcessEnv = { ...process.env, CODE_BUILDER_URL, CB_FIXTURE_HOST_DIR: FIXTURE_HOST_DIR };
+  // CB_CONTAINER_NAME + CB_FIXTURE_CONTAINER_DIR: the container name and the CONTAINER side of the
+  // fixture bind mount. A spec that scaffolds files through an in-container command (e.g. analytics
+  // create-template) writes them as the image's `codebuilder` user, so a host-side node:fs remove
+  // fails with EACCES; such a spec cleans up with `docker exec -u codebuilder` against these two,
+  // deleting inside the container as the owning user (see removePathsInContainer in the toolkit).
+  const testEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    CODE_BUILDER_URL,
+    CB_FIXTURE_HOST_DIR: FIXTURE_HOST_DIR,
+    CB_CONTAINER_NAME: CONTAINER_NAME,
+    CB_FIXTURE_CONTAINER_DIR: FIXTURE_MOUNT_PATH
+  };
   if (opts.debug) {
     testEnv.PWDEBUG = '1';
   }
