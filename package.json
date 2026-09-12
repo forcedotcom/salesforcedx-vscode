@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/salesforcedx-vscode",
-  "packageManager": "pnpm@12.4.1",
+  "packageManager": "pnpm@11.24.0",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
