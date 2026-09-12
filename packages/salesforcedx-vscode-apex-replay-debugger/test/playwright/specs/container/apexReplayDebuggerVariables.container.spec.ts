@@ -110,6 +110,11 @@ test('Apex Replay Debugger Variables (Code Builder): nested related-object VARIA
     await activateEditorTab(page, `${className}.cls`);
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    // The breakpoint only BINDS (and replay pauses on it) once the Apex LS has indexed the class and
+    // can supply its line-breakpoint typeRefs. On a cold code-server the LS is still indexing, so gate
+    // on the Apex language-status "Indexing complete" button — it renders only while an Apex editor is
+    // active (the .cls above is), which is why it must be waited on here, not after a deploy.
+    await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
     const debugLine = editor.locator('.view-line').filter({ hasText: 'System.debug(c);' }).first();
     await expect(debugLine).toBeVisible({ timeout: 15_000 });
     await debugLine.click();
