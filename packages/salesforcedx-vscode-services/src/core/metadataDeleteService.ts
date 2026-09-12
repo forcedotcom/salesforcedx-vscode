@@ -49,7 +49,7 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       deleteSet.projectDirectory = componentSet.projectDirectory;
       deleteSet.apiVersion = componentSet.apiVersion;
       deleteSet.sourceApiVersion = componentSet.sourceApiVersion;
-      yield* Effect.annotateCurrentSpan({ deleteSet: deleteSet.toArray().map(c => `${c.type.name}:${c.fullName}`) });
+      yield* Effect.annotateCurrentSpan({ componentCount: deleteSet.size });
       return deleteSet;
     });
 

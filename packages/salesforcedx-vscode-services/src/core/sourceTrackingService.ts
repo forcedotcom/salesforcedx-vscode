@@ -440,7 +440,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     /** Maybe update tracking from retrieve result (both tracking files). No-op if tracking is not enabled. */
     const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
       (result: RetrieveResult, expectedOrgId?: string) =>
-        Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) }).pipe(
+        Effect.annotateCurrentSpan({ fileResponseCount: result.getFileResponses().length }).pipe(
           Effect.zipRight(
             hasTracking(expectedOrgId).pipe(
               Effect.flatMap(enabled =>
@@ -483,7 +483,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
                           Effect.withSpan('STL.UpdateTrackingFromDeploy'),
                           Effect.tapError(error => Effect.logError(error))
                         ),
-                        Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })
+                        Effect.annotateCurrentSpan({ fileResponseCount: result.getFileResponses().length })
                       ],
                       { concurrency: 'unbounded' }
                     )
