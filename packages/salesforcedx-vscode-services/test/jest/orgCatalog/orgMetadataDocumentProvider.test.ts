@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
   closeInactiveOrgDocuments,
   isCatalogRelevantWorkspaceUri,
+  orgIdentityCatalogChanges,
   OrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
 
@@ -78,5 +81,21 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
     expect(
       isCatalogRelevantWorkspaceUri(workspaceUri, URI.parse('file:///c:/workspace/force-app/main/default/Foo.cls'))
     ).toBe(true);
+  });
+});
+
+describe('orgIdentityCatalogChanges', () => {
+  it('emits kind org only when orgId changes', async () => {
+    const events = await Effect.runPromise(
+      orgIdentityCatalogChanges(
+        Stream.fromIterable([{ orgId: '00Daaa' }, { orgId: '00Daaa' }, { orgId: '00Dbbb' }, {}])
+      ).pipe(Stream.runCollect)
+    );
+
+    expect(Chunk.toArray(events)).toEqual([
+      { kind: 'org', orgId: '00Daaa' },
+      { kind: 'org', orgId: '00Dbbb' },
+      { kind: 'org', orgId: undefined }
+    ]);
   });
 });
