@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import { isNotNull, isNull } from 'effect/Predicate';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -26,10 +27,8 @@ import {
   ApexTestProgressValue,
   ApexTestQueueItem,
   ApexTestQueueItemRecord,
-  ApexTestQueueItemStatus,
   ApexTestResult,
   ApexTestResultDataRaw,
-  ApexTestResultOutcome,
   ApexTestRunResult,
   ApexTestRunResultStatus,
   AsyncTestArrayConfiguration,
@@ -38,8 +37,7 @@ import {
   TestResultRaw,
   TestRunIdResult,
   FlowTestResult,
-  ApexTestResultRecord,
-  TestCategory
+  ApexTestResultRecord
 } from './types';
 import { calculatePercentage, getJsonIndent, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
 
@@ -54,13 +52,7 @@ export const writeAsyncResultsToFile = async (formattedResults: TestResult, runI
   return await pipeline(stringifyStream, writeStream);
 };
 
-const finishedStatuses = new Set([
-  ApexTestRunResultStatus.Aborted,
-  ApexTestRunResultStatus.Failed,
-  ApexTestRunResultStatus.Completed,
-  ApexTestRunResultStatus.Passed,
-  ApexTestRunResultStatus.Skipped
-]);
+const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
 
 const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 const POLLING_FREQUENCY = Duration.seconds(1);
@@ -321,7 +313,7 @@ export class AsyncTests {
             testsComplete: true,
             testRunSummary: {
               AsyncApexJobId: testRunId,
-              Status: ApexTestRunResultStatus.Aborted,
+              Status: 'Aborted',
               StartTime: new Date().toISOString(),
               TestTime: 0,
               UserId: ''
@@ -377,11 +369,11 @@ export class AsyncTests {
 
       let outcome = testRunSummary.Status;
       if (globalTests.failed > 0) {
-        outcome = ApexTestRunResultStatus.Failed;
+        outcome = 'Failed';
       } else if (globalTests.passed === 0) {
-        outcome = ApexTestRunResultStatus.Skipped;
-      } else if (testRunSummary.Status === ApexTestRunResultStatus.Completed) {
-        outcome = ApexTestRunResultStatus.Passed;
+        outcome = 'Skipped';
+      } else if (testRunSummary.Status === 'Completed') {
+        outcome = 'Passed';
       }
 
       const rawResult: TestResultRaw = {
@@ -471,7 +463,7 @@ export class AsyncTests {
         done: flowtestResult.done,
         totalSize: tmpRecords.length,
         records: tmpRecords,
-        category: TestCategory.Flow
+        category: 'Flow'
       };
     });
   }
@@ -498,14 +490,14 @@ export class AsyncTests {
       for (const result of apexTestResults) {
         result.records.forEach(item => {
           switch (item.Outcome) {
-            case ApexTestResultOutcome.Pass:
+            case 'Pass':
               passed++;
               break;
-            case ApexTestResultOutcome.Fail:
-            case ApexTestResultOutcome.CompileFail:
+            case 'Fail':
+            case 'CompileFail':
               failed++;
               break;
-            case ApexTestResultOutcome.Skip:
+            case 'Skip':
               skipped++;
               break;
           }
@@ -571,7 +563,7 @@ export class AsyncTests {
     );
 
     for (const record of testQueueItems.records) {
-      record.Status = ApexTestQueueItemStatus.Aborted;
+      record.Status = 'Aborted';
     }
     await this.connection.tooling.update('ApexTestQueueItem', testQueueItems.records);
 
@@ -617,7 +609,7 @@ export class AsyncTests {
       const testRunApexIdResults = await this.connection.tooling.query<ApexTestQueueItemRecord>(
         `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
       );
-      return testRunApexIdResults.records.some(record => record.ApexClassId === null);
+      return testRunApexIdResults.records.some(record => isNull(record.ApexClassId));
     } catch {
       return false;
     }
@@ -670,8 +662,8 @@ export class AsyncTests {
       return { apexTestIds: [], flowTestIds: [] };
     }
     return {
-      apexTestIds: records.filter(r => r.ApexClassId !== null).map(r => r.Id),
-      flowTestIds: records.filter(r => r.ApexClassId === null).map(r => r.Id)
+      apexTestIds: records.filter(r => isNotNull(r.ApexClassId)).map(r => r.Id),
+      flowTestIds: records.filter(r => isNull(r.ApexClassId)).map(r => r.Id)
     };
   }
 
@@ -701,7 +693,7 @@ export class AsyncTests {
       result =>
         ({
           ...result,
-          category: TestCategory.Apex
+          category: 'Apex'
         }) as ApexTestResult
     );
   }

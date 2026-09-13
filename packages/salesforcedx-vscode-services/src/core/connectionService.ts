@@ -13,6 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -30,7 +31,7 @@ import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
   instanceUrl: string;
-  accessToken: string;
+  accessToken: Redacted.Redacted<string>;
 };
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
@@ -117,11 +118,11 @@ export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedTo
 ) {}
 
 /** side effect: save the auth info in the background */
-const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
+const createWebAuthInfo = (instanceUrl: string, accessToken: Redacted.Redacted<string>) =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
-        accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
+        accessTokenOptions: { accessToken: Redacted.value(accessToken), loginUrl: instanceUrl, instanceUrl }
       }),
     catch: error => {
       const { cause } = unknownToErrorCause(error);
@@ -131,7 +132,6 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
       });
     }
   }).pipe(
-    Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
     Effect.tap(authInfo =>
       // to keep things snappy, save happens in the background
       Effect.fork(
@@ -144,10 +144,7 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
               cause
             });
           }
-        }).pipe(
-          Effect.tap(savedAuthInfo => Effect.annotateCurrentSpan({ authFields: savedAuthInfo.getFields() })),
-          Effect.withSpan('saveAuthInfo')
-        )
+        }).pipe(Effect.withSpan('saveAuthInfo'))
       )
     ),
 
@@ -178,12 +175,12 @@ const createWebConnection = (key: string) => {
 };
 
 // use string cache keys, objects don't seem to work
-const toKey = (instanceUrl: string, accessToken: string, apiVersion: string): string =>
-  `${instanceUrl}###${accessToken}###${apiVersion}`;
+const toKey = (instanceUrl: string, accessToken: Redacted.Redacted<string>, apiVersion: string): string =>
+  `${instanceUrl}###${Redacted.value(accessToken)}###${apiVersion}`;
 
 const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   const [instanceUrl, accessToken, apiVersion] = key.split('###');
-  return { instanceUrl, accessToken, apiVersion };
+  return { instanceUrl, accessToken: Redacted.make(accessToken), apiVersion };
 };
 
 const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {
@@ -334,14 +331,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
-            const resolved = yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            const desktopConn = yield* connectionCache.get(resolved);
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            yield* validateAccessTokenOrPromptReauth(desktopConn);
-            return desktopConn;
+            return yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
+              Effect.map(Option.getOrElse(() => usernameOrAlias)),
+              Effect.flatMap(resolved => connectionCache.get(resolved)),
+              Effect.tap(validateAccessTokenOrPromptReauth)
+            );
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
@@ -369,7 +365,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           () => observedOrgId === expectedOrgId,
           () =>
             new InactiveOrgOperationError({
-              message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
+              message: nls.localize('org_operation_target_changed', expectedOrgId),
               expectedOrgId,
               ...(observedOrgId ? { observedOrgId } : {})
             })

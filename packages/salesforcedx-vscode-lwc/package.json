@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.15.2",
+  "version": "67.17.12",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,7 +30,6 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
-    "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
@@ -42,6 +41,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/salesforcedx-lwc-language-server": "*",
     "@types/which": "^1.3.1",
     "salesforcedx-vscode-services": "*"
   },
@@ -52,13 +52,13 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "run:web": "wireit",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package:legacy": "wireit",
+    "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "check:circular-deps": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
     "test:compile": "wireit",
     "test:web": "wireit",
@@ -67,7 +67,7 @@
     "test:desktop": "wireit",
     "test:desktop:debug": "wireit",
     "test:e2e": "wireit",
-    "vscode:package:legacy:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -173,7 +173,7 @@
         }
       },
       "dependencies": [
-        "vscode:package:legacy",
+        "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
@@ -253,10 +253,25 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json --exclude \"/node_modules/|/out/|/dist/\" 'src/**/*.ts'",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
+        "check:circular-deps",
         "compile"
       ],
       "files": [
@@ -269,54 +284,49 @@
       ],
       "output": []
     },
-    "vscode:package:legacy": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:package:legacy"
+        "vscode:bundle"
+      ],
+      "files": [
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**",
+        "snippets/**"
+      ],
+      "output": [
+        "*.vsix"
       ]
     },
-    "vscode:package:legacy:prerelease": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --pre-release",
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:package:legacy:prerelease"
+        "vscode:bundle"
       ],
-      "env": {
-        "VSCE_PRE_RELEASE": "true"
-      }
-    }
-  },
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "resources",
-      "snippets",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "browser": "./dist/web/index.js",
-      "serverPath": [
-        "dist",
-        "lwcServer.js"
+      "files": [
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**",
+        "snippets/**"
       ],
-      "dependencies": {
-        "jest-editor-support": "31.1.2",
-        "vscode-html-languageservice": "^5.5.1"
-      },
-      "devDependencies": {}
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "serverPath": [
     "dist",

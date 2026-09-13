@@ -23,7 +23,8 @@ import {
   getSeverityScore
 } from './markdownTextReporter';
 
-type MarkdownTextFormatTransformerOptions = ReadableOptions & {
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
+export type MarkdownTextFormatTransformerOptions = ReadableOptions & {
   bufferSize?: number;
   format?: 'markdown' | 'text';
   sortOrder?: 'runtime' | 'coverage' | 'severity';
@@ -33,6 +34,7 @@ type MarkdownTextFormatTransformerOptions = ReadableOptions & {
   timestamp?: Date;
 };
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export class MarkdownTextFormatTransformer extends Readable {
   private readonly logger: Logger;
   private buffer: string;

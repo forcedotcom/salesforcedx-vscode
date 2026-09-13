@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
+import * as Tracer from 'effect/Tracer';
 import { ConfigService, FailedToCreateConfigAggregatorError } from '../../../src/core/configService';
 import { ChildProcess, ExecOptions, ExecResult } from '../../../src/terminal/childProcess';
 import { TerminalService, TerminalServiceError } from '../../../src/terminal/terminalService';
@@ -55,6 +56,34 @@ const withExec = (exec: (command: string, options: ExecOptions) => Promise<ExecR
 
 const run = <A, E>(effect: Effect.Effect<A, E, TerminalService>, layer: Layer.Layer<TerminalService>) =>
   Effect.runPromise(effect.pipe(Effect.provide(layer)));
+
+const recordingTracer = (recordedSpans: { name: string; attributes: Map<string, unknown> }[]) =>
+  Layer.setTracer(
+    Tracer.make({
+      span: (name, parent, context, links, startTime, kind, options) => {
+        const attributes = new Map<string, unknown>(Object.entries(options?.attributes ?? {}));
+        recordedSpans.push({ name, attributes });
+        return {
+          _tag: 'Span',
+          name,
+          spanId: `span-${recordedSpans.length}`,
+          traceId: 'trace',
+          parent,
+          context,
+          links,
+          status: { _tag: 'Started', startTime },
+          attributes,
+          sampled: true,
+          kind,
+          end: () => {},
+          attribute: (key: string, value: unknown) => attributes.set(key, value),
+          event: () => {},
+          addLinks: () => {}
+        } as Tracer.Span;
+      },
+      context: <X>(f: () => X) => f()
+    })
+  );
 
 // the NODE_EXTRA_CA_CERTS setting falls back to the ambient env var, which a corp-proxy machine sets
 const originalCaCerts = process.env.NODE_EXTRA_CA_CERTS;
@@ -111,6 +140,39 @@ describe('TerminalService.simpleExec', () => {
 
     expect(parse).toHaveBeenCalledWith('hello world');
     expect(result).toBe('HELLO WORLD');
+  });
+
+  it('executes the original command without recording it in telemetry', async () => {
+    const command = 'sf org display --target-org user@example.com --json';
+    const exec = jest.fn<Promise<ExecResult>, [string, ExecOptions]>(() =>
+      Promise.resolve({ stdout: '{}', stderr: '' })
+    );
+    const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
+
+    await TerminalService.pipe(
+      Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+      Effect.withSpan('terminal-test'),
+      Effect.provide(withExec(exec)),
+      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.runPromise
+    );
+
+    expect(exec).toHaveBeenCalledWith(command, expect.any(Object));
+    const attributes = recordedSpans.find(span => span.name === 'TerminalService.simpleExec')?.attributes;
+    expect(attributes).toEqual(
+      new Map<string, unknown>([
+        ['terminal.timeout.ms', 30_000],
+        ['terminal.cwd.set', false],
+        ['envKeys', ['SF_LOG_LEVEL', 'SF_JSON_TO_STDOUT', 'FORCE_COLOR', 'SFDX_TOOL']],
+        ['process.exit.code', 0],
+        ['terminal.stdout.bytes', 2],
+        ['terminal.stderr.bytes', 0]
+      ])
+    );
+    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(command);
+    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(
+      'user@example.com'
+    );
   });
 
   it('passes the timeout through to exec', async () => {
@@ -361,9 +423,9 @@ describe('TerminalService.simpleExec', () => {
     expect(capture.options?.cwd).toBeUndefined();
   });
 
-  it('folds exec-rejection stdout into the error message (sf --json errors land on stdout)', async () => {
-    // node's exec rejection appends stderr to .message but never stdout; `sf --json` writes its
-    // PortInUseError payload to stdout, so the message must carry it for callers to detect.
+  it('preserves exec-rejection stdout in the error message (sf --json errors land on stdout)', async () => {
+    // `sf --json` writes its PortInUseError payload to stdout, so the reconstructed message must
+    // carry stdout for callers to detect while excluding node's command-bearing error message.
     const rejection = Object.assign(new Error('Command failed: sf org login web --json\n'), {
       stdout: '{"name":"PortInUseError","message":"local port 1717 is already in use"}',
       stderr: ''
@@ -382,7 +444,7 @@ describe('TerminalService.simpleExec', () => {
     expect(error.message).toContain('local port 1717 is already in use');
   });
 
-  it('does not duplicate stdout already present in the error message', async () => {
+  it('includes stdout once when node also copied it into its ignored error message', async () => {
     const rejection = Object.assign(new Error('Command failed: sf foo\nboom on stdout'), {
       stdout: 'boom on stdout',
       stderr: ''
@@ -400,20 +462,71 @@ describe('TerminalService.simpleExec', () => {
     expect(error.message.match(/boom on stdout/g) ?? []).toHaveLength(1);
   });
 
-  it('fails with TerminalServiceError on web', async () => {
-    process.env.ESBUILD_PLATFORM = 'web';
-    const exec = (): Promise<ExecResult> => Promise.reject(new Error('should not be called on web'));
+  it('omits the command from the typed exec failure while executing the original command', async () => {
+    const command = 'sf org display --target-org user@example.com --json';
+    const exec = jest.fn<Promise<ExecResult>, [string, ExecOptions]>(() =>
+      Promise.reject(new Error(`Command failed: ${command}\n`))
+    );
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s })),
+        Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+        Effect.flip
+      ),
+      withExec(exec)
+    );
+
+    expect(exec).toHaveBeenCalledWith(command, expect.any(Object));
+    expect('command' in error).toBe(false);
+    expect(error.message).toBe('Command failed');
+    expect(error.message).not.toContain('user@example.com');
+  });
+
+  it('records only outcome metadata when exec fails', async () => {
+    const command = 'sf org display --target-org user@example.com --json';
+    const rejection = Object.assign(new Error(`Command failed: ${command}`), {
+      code: 1,
+      stdout: 'failure',
+      stderr: 'warning',
+      cmd: command
+    });
+    const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
+
+    await TerminalService.pipe(
+      Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+      Effect.flip,
+      Effect.withSpan('terminal-test'),
+      Effect.provide(withExec(() => Promise.reject(rejection))),
+      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.runPromise
+    );
+
+    const attributes = recordedSpans.find(span => span.name === 'TerminalService.simpleExec')?.attributes;
+    expect(attributes?.get('process.exit.code')).toBe(1);
+    expect(attributes?.get('error.type')).toBe('nonzero_exit');
+    expect(attributes?.get('terminal.stdout.bytes')).toBe(7);
+    expect(attributes?.get('terminal.stderr.bytes')).toBe(7);
+    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(command);
+    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(
+      'user@example.com'
+    );
+  });
+
+  it('fails with TerminalServiceError on web', async () => {
+    process.env.ESBUILD_PLATFORM = 'web';
+    const exec = (): Promise<ExecResult> => Promise.reject(new Error('should not be called on web'));
+    const command = 'sf org display --target-org my-org --json';
+
+    const error = await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
         Effect.flip
       ),
       withExec(exec)
     );
 
     expect(error).toBeInstanceOf(TerminalServiceError);
-    expect(error.command).toBe('sf foo');
+    expect('command' in error).toBe(false);
     // the web guard short-circuits before any settings/config work
     expect(getValueMock).not.toHaveBeenCalled();
     expect(isCliTelemetryDisabledMock).not.toHaveBeenCalled();

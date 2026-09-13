@@ -30,7 +30,7 @@ const makeHarness = () => {
   const catalogChanges = Effect.runSync(PubSub.unbounded<OrgMetadataCatalogChange>({ replay: 16 }));
   const dependencies = Layer.mergeAll(
     Layer.succeed(OrgMetadataCatalogStore, {
-      load: () => Effect.succeed(undefined),
+      load: () => Effect.void,
       save: (snapshot: OrgMetadataCatalogSnapshot) =>
         Effect.sync(() => {
           saves.push(snapshot);
@@ -140,18 +140,16 @@ describe('OrgMetadataCatalogRecorder', () => {
     const { catalogChanges, layer } = makeHarness();
 
     const result = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const recorder = yield* OrgMetadataCatalogRecorder;
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          const status = [{ origin: 'remote', type: 'ApexClass', fullName: 'Foo', state: 'modify' }];
-          const remote = [{ type: 'ApexClass', name: 'Foo', revisionCounter: 1 }];
-          const first = yield* recorder.recordTrackingStatus('org-one', status, remote);
-          const event = yield* Queue.take(subscription);
-          const second = yield* recorder.recordTrackingStatus('org-one', status, remote);
-          return { event, first, second, queued: yield* Queue.size(subscription) };
-        })
-      ).pipe(Effect.provide(layer))
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const subscription = yield* PubSub.subscribe(catalogChanges);
+        const status = [{ origin: 'remote', type: 'ApexClass', fullName: 'Foo', state: 'modify' }];
+        const remote = [{ type: 'ApexClass', name: 'Foo', revisionCounter: 1 }];
+        const first = yield* recorder.recordTrackingStatus('org-one', status, remote);
+        const event = yield* Queue.take(subscription);
+        const second = yield* recorder.recordTrackingStatus('org-one', status, remote);
+        return { event, first, second, queued: yield* Queue.size(subscription) };
+      }).pipe(Effect.scoped, Effect.provide(layer))
     );
 
     expect(result.first).toEqual([{ xmlName: 'ApexClass', fullName: 'Foo' }]);
@@ -164,32 +162,30 @@ describe('OrgMetadataCatalogRecorder', () => {
     const { catalogChanges, layer } = makeHarness();
 
     const result = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const recorder = yield* OrgMetadataCatalogRecorder;
-          const state = yield* OrgCatalogState;
-          const subscription = yield* PubSub.subscribe(catalogChanges);
-          yield* state.setTracking(
-            'org-one',
-            new Map([
-              [
-                componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' }),
-                { reference: { xmlName: 'ApexClass', fullName: 'Foo' }, signature: 'modify\0revision-1' }
-              ]
-            ])
-          );
-          yield* recorder.recordOperation({
-            orgId: 'org-one',
-            operation: 'retrieve',
-            completedAt: '2026-08-06T00:00:00.000Z',
-            changes: [{ metadataType: 'ApexClass', fullName: 'Foo', changeType: 'created', fileUri: Option.none() }]
-          });
-          return {
-            event: yield* Queue.take(subscription),
-            tracking: yield* state.getTracking('org-one')
-          };
-        })
-      ).pipe(Effect.provide(layer))
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        const subscription = yield* PubSub.subscribe(catalogChanges);
+        yield* state.setTracking(
+          'org-one',
+          new Map([
+            [
+              componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' }),
+              { reference: { xmlName: 'ApexClass', fullName: 'Foo' }, signature: 'modify\0revision-1' }
+            ]
+          ])
+        );
+        yield* recorder.recordOperation({
+          orgId: 'org-one',
+          operation: 'retrieve',
+          completedAt: '2026-08-06T00:00:00.000Z',
+          changes: [{ metadataType: 'ApexClass', fullName: 'Foo', changeType: 'created', fileUri: Option.none() }]
+        });
+        return {
+          event: yield* Queue.take(subscription),
+          tracking: yield* state.getTracking('org-one')
+        };
+      }).pipe(Effect.scoped, Effect.provide(layer))
     );
 
     expect(result.event).toMatchObject({ kind: 'operation', event: { orgId: 'org-one' } });

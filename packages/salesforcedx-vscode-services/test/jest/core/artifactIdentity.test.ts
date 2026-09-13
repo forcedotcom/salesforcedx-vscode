@@ -7,8 +7,8 @@
 
 import * as Schema from 'effect/Schema';
 import {
-  ApexTypeArtifactIdentitySchema,
   ArtifactIdentitySchema,
+  SObjectArtifactIdentitySchema,
   artifactIdentitiesEqual,
   artifactIdentityKey,
   artifactNamespacesEqual,
@@ -17,10 +17,8 @@ import {
 
 describe('artifact identity', () => {
   it.each([
-    { kind: 'apex-type', namespace: null, name: 'GlobalType' },
-    { kind: 'apex-type', namespace: 'System', name: 'String' },
-    { kind: 'apex-type', namespace: 'MyPackage', name: 'Outer.Inner' },
     { kind: 'sobject', namespace: null, name: 'Widget__c' },
+    { kind: 'sobject', namespace: 'MyPackage', name: 'Widget__c' },
     { kind: 'metadata-component', metadataType: 'ApexClass', namespace: null, name: 'Example' }
   ] as const)('decodes a canonical $kind identity for $name', identity => {
     expect(Schema.decodeUnknownSync(ArtifactIdentitySchema)(identity)).toEqual(identity);
@@ -28,10 +26,10 @@ describe('artifact identity', () => {
 
   it('requires an explicit null namespace for a global identity', () => {
     expect(() =>
-      Schema.decodeUnknownSync(ApexTypeArtifactIdentitySchema)({ kind: 'apex-type', name: 'String' })
+      Schema.decodeUnknownSync(SObjectArtifactIdentitySchema)({ kind: 'sobject', name: 'Widget__c' })
     ).toThrow('namespace');
     expect(() =>
-      Schema.decodeUnknownSync(ApexTypeArtifactIdentitySchema)({ kind: 'apex-type', namespace: '', name: 'String' })
+      Schema.decodeUnknownSync(SObjectArtifactIdentitySchema)({ kind: 'sobject', namespace: '', name: 'Widget__c' })
     ).toThrow('namespace');
   });
 
@@ -60,25 +58,35 @@ describe('artifact identity', () => {
   it('matches namespace and name case-insensitively', () => {
     expect(
       artifactIdentitiesEqual(
-        { kind: 'apex-type', namespace: 'System', name: 'String' },
-        { kind: 'apex-type', namespace: 'SYSTEM', name: 'string' }
+        { kind: 'sobject', namespace: 'MyPackage', name: 'Widget__c' },
+        { kind: 'sobject', namespace: 'MYPACKAGE', name: 'widget__c' }
       )
     ).toBe(true);
     expect(artifactNamespacesEqual('MyPackage', 'mypackage')).toBe(true);
   });
 
-  it('does not conflate namespace with inner-type qualification', () => {
-    const namespacedInner = { kind: 'apex-type', namespace: 'MyPackage', name: 'Outer.Inner' } as const;
-    const dottedName = { kind: 'apex-type', namespace: null, name: 'MyPackage.Outer.Inner' } as const;
+  it('does not conflate namespace with dotted names', () => {
+    const namespaced = {
+      kind: 'metadata-component',
+      metadataType: 'ApexClass',
+      namespace: 'MyPackage',
+      name: 'Example'
+    } as const;
+    const dottedName = {
+      kind: 'metadata-component',
+      metadataType: 'ApexClass',
+      namespace: null,
+      name: 'MyPackage.Example'
+    } as const;
 
-    expect(artifactIdentitiesEqual(namespacedInner, dottedName)).toBe(false);
-    expect(artifactIdentityKey(namespacedInner)).not.toBe(artifactIdentityKey(dottedName));
+    expect(artifactIdentitiesEqual(namespaced, dottedName)).toBe(false);
+    expect(artifactIdentityKey(namespaced)).not.toBe(artifactIdentityKey(dottedName));
   });
 
   it('distinguishes target kind and metadata type', () => {
     expect(
       artifactIdentitiesEqual(
-        { kind: 'apex-type', namespace: null, name: 'Widget__c' },
+        { kind: 'metadata-component', metadataType: 'CustomObject', namespace: null, name: 'Widget__c' },
         { kind: 'sobject', namespace: null, name: 'Widget__c' }
       )
     ).toBe(false);

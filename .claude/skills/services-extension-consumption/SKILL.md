@@ -28,7 +28,9 @@ const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
 ## Prebuilt vs Per-Extension Services
 
-`api.services.prebuiltServicesDependencies` — pre-built `Context.Context` from services extension activation. Wrap with `Layer.succeedContext(...)`.
+`api.services.prebuiltServicesLayer` — shared service instances plus runtime configuration, including the redacting logger. Provide or merge this layer directly.
+
+`api.services.prebuiltServicesDependencies` — deprecated context-only compatibility field. It omits FiberRef runtime configuration; new consumers must use `prebuiltServicesLayer`.
 
 Shares singleton instances (caches, watchers) across extensions; avoids re-building stateful services.
 
@@ -69,29 +71,53 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 ```
 
-Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
+Two patterns exist depending on whether the extension adds services beyond the shared base:
+
+- **Shared base only** (`core`, `apex`, `apex-testing`, `lightning`, `lwc`, `org`, `visualforce`): import `buildAllServicesLayer` directly from `@salesforce/effect-ext-utils` and pass it to `setAllServicesLayer` at activation. No local factory needed.
+- **Extension-specific services added** (`apex-debugger`, `apex-log`, `apex-oas`, `apex-replay-debugger`, `metadata`, `org-browser`, `soql`): define a local `buildAllServicesLayer` in `services/extensionProvider.ts` that calls `buildSharedServicesLayer` from `@salesforce/effect-ext-utils` and merges the extension's own Effect services via `Layer.mergeAll`. The extra services vary — `apex-oas` adds `ApexMetadataService` and `LLMService`; extensions with the notifications system add `NotificationModeService.Default`; `org-browser` adds `OrgBrowserRetrieveService`.
 
 ## Runtime vs provide
 
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
+- **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
 - **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
-- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — keep passing the Layer; it internally uses provide.
+
+```typescript
+export const disposeRuntime = async (): Promise<void> => {
+  if (_runtime) {
+    await _runtime.dispose();
+    _runtime = undefined;
+  }
+};
+
+export const deactivate = async (): Promise<void> => {
+  await getRuntime().runPromise(deactivation()).finally(disposeRuntime);
+};
+```
+
+## Resource Lifecycle
+
+Prefer Effect scope ownership for resources created inside Effect services/layers:
+
+- Define resource-owning services with `scoped`.
+- Register VS Code `Disposable`s with `Effect.addFinalizer`.
+- Attach long-lived fibers to the owning scope with `Effect.forkIn`.
+- Dispose the owning `ManagedRuntime` on deactivation so layer finalizers run.
+- Don't expose `runDispose`/`dispose` solely for consumers to add to `context.subscriptions`.
+- Keep `context.subscriptions` for resources created outside an Effect scope.
+
+Allocation and cleanup stay together. See `../effect-best-practices/SKILL.md#effect-owned-resources`.
 
 ## Registering Commands
 
-Use `registerCommandWithLayer` (for layers) or `registerCommandWithRuntime` (for runtimes):
+Use `registerCommandWithRuntime`:
 
 ```typescript
 import { myCommandEffect } from './commands/myCommand';
 
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
-// Using Layer
-const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
-yield * registerCommand('sf.my.command', myCommandEffect);
-
-// Using Runtime
 const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
 yield * registerCommand('sf.my.command', myCommandEffect);
 ```
@@ -102,6 +128,36 @@ Commands auto:
 - Wrap with error handling
 - Trace with observability spans
 - Handle Cancellation
+
+### Activation ordering
+
+`activate()` awaits `getRuntime().runPromise(activateEffect(context))`; it does not detach the main activation Effect. Only work explicitly started with `Effect.fork*` continues after activation completes.
+
+Register all manifest-contributed UI before awaiting work that can be slow or unresolved:
+
+1. Register tree/webview providers and put any returned `Disposable` in `context.subscriptions` when it is not scope-owned.
+2. Restore the extension's persisted UI state and set its context keys.
+3. Register every contributed command.
+4. Set an extension-owned readiness context key only after steps 1-3 succeed, and use it to gate title/menu commands that would otherwise be visible.
+5. Only then await connection resolution, target-org readiness, catalog hydration, or network work. Use `Effect.forkIn` for long-lived watchers that do not need to block activation.
+
+`when` clauses can expose a contributed command before its handler has registered. A context key owned by another extension, including `sf:has_target_org`, is a visibility hint, not proof that this extension has initialized. Do not make a contributed handler's registration depend on it. Keep target-org and authorization checks in the command implementation or shared service layer.
+
+```typescript
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const provider = new MyTreeProvider();
+  context.subscriptions.push(vscode.window.registerTreeDataProvider(VIEW_ID, provider));
+
+  yield* setInitialContext();
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* registerCommand('sf.my.command', () => myCommand(provider));
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:myExtension.ready', true));
+
+  // Command registration must not wait for org-backed initialization.
+  yield* api.services.ConnectionService.getConnection();
+});
+```
 
 ### Success handling
 
@@ -160,27 +216,29 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
+- [NotificationModeService](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
 
 ### File Watching
 
-FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
+`FileChangePubSub` — workspace FS (`**/*`), including project `.sf/config.json`. Filter `event.uri` / `uri.path` / `Utils.*`, not `uri.fsPath`.
+
+Global `~/.sf/config.json` and `~/.sfdx/alias.json`: `HostFileWatcher` (internal, `@salesforce/core/fs`). Not on the public API; services already watch them. See [FileChangePubSub vs HostFileWatcher](../../../packages/salesforcedx-vscode-services/CONTEXT.md#filechangepubsub-vs-hostfilewatcher).
 
 ```typescript
-import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 
-const fileWatcher = yield * api.services.FileWatcherService;
+const pubsub = yield* api.services.FileChangePubSub;
 
-yield* Stream.fromPubSub(fileWatcher.pubsub).pipe(
-    Stream.filter(event => /* match event.uri to your pattern */),
-    Stream.runForEach(event =>
-      Effect.sync(() => {
-        // Handle event: { type: 'create'|'change'|'delete', uri }
-      })
-    )
-  );
+yield* Stream.fromPubSub(pubsub).pipe(
+  Stream.filter(event => /* event.uri / uri.path / Utils.*; not uri.fsPath */),
+  Stream.runForEach(event =>
+    Effect.sync(() => {
+      // { type: 'create'|'change'|'delete', uri }
+    })
+  )
+);
 ```
 
 ### Config Watching
@@ -274,7 +332,7 @@ export const getRuntime = () => (_runtime ??= createRuntime());
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import { nls } from './messages';
 import { myCommandEffect } from './commands/myCommand';
-import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 
 export const activate = async (context: vscode.ExtensionContext) => {
@@ -283,10 +341,11 @@ export const activate = async (context: vscode.ExtensionContext) => {
 };
 
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const providerService = yield* ExtensionProviderService;
+  const api = yield* providerService.getServicesApi;
   yield* api.services.ChannelService.appendToChannel('Extension activating');
 
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.my.command', myCommandEffect);
 
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');
@@ -329,16 +388,17 @@ For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)`
 
 ## Common Patterns
 
-- Start with `Layer.succeedContext(api.services.prebuiltServicesDependencies)` — don't add individual `*.Default` for services already there
+- Start with `api.services.prebuiltServicesLayer` — don't add individual `*.Default` for services already there
 - Only add per-extension layers on top
 - `import { ICONS }` outside Effect; `MediaService` inside Effect
 - `ChannelServiceLayer` before `ErrorHandlerService`
 - Pass `context` to `SdkLayerFor` (extracts name/version from ExtensionContext)
 - `Effect.forkIn(..., yield* getExtensionScope())` for watcher cleanup on deactivation
-- `registerCommandWithLayer` for all commands (tracing + error handling)
+- Scoped services own their VS Code disposables via finalizers; runtime disposal runs them
+- `registerCommandWithRuntime` for all commands (tracing + error handling)
 - Use `getRuntime().runPromise` / `runFork` instead of `Effect.provide(AllServicesLayer)` for execution
 
-## Don't: rebuild services already in prebuiltServicesDependencies
+## Don't: rebuild services already in prebuiltServicesLayer
 
 ```typescript
 // WRONG — creates new singleton instances, duplicating caches/watchers/state
@@ -354,7 +414,7 @@ return Layer.mergeAll(
 
 // CORRECT — share the already-built singletons
 return Layer.mergeAll(
-  Layer.succeedContext(api.services.prebuiltServicesDependencies),
+  api.services.prebuiltServicesLayer,
   ExtensionProviderServiceLive,
   api.services.ExtensionContextServiceLayer(context),
   api.services.SdkLayerFor(context),
@@ -367,4 +427,4 @@ return Layer.mergeAll(
 
 Invoke the `effect-advocate` subagent on plans and diffs — its top-priority finding category is "you re-implemented something that already exists in `salesforcedx-vscode-services`."
 
-`prebuiltServicesDependencies` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.
+`prebuiltServicesLayer` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.

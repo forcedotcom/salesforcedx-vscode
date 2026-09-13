@@ -4,45 +4,45 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import type { DocumentContext } from 'vscode-html-languageservice';
 import {
   BrowserMessageReader,
   BrowserMessageWriter,
   createConnection as createBrowserConnection
 } from 'vscode-languageserver/browser';
 import {
-  ColorPresentationParams,
-  CompletionItem,
-  CompletionList,
-  CompletionParams,
-  Connection,
+  type ColorPresentationParams,
+  type CompletionItem,
+  type CompletionList,
+  type CompletionParams,
+  type Connection,
   createConnection as createNodeConnection,
-  Disposable,
-  DocumentColorParams,
+  type Disposable,
+  type DocumentColorParams,
   DocumentRangeFormattingRequest,
-  DocumentSelector,
-  InitializeParams,
-  InitializeResult,
+  type DocumentSelector,
+  type InitializeParams,
+  type InitializeResult,
   Position,
   RequestType,
-  ServerCapabilities,
-  SignatureHelp,
-  TextDocumentPositionParams,
+  type ServerCapabilities,
+  type SignatureHelp,
+  type TextDocumentPositionParams,
   TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import {
-  ColorInformation,
+  type ColorInformation,
   ColorPresentationRequest,
-  ConfigurationParams,
+  type ConfigurationParams,
   ConfigurationRequest,
   DocumentColorRequest
 } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
+import { type Diagnostic, type DocumentLink, type SymbolInformation } from 'vscode-languageserver-types';
 import { resolveReference } from './documentLinks';
 import { format } from './modes/formatting';
-import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
+import { getLanguageModes, type LanguageModes, type Settings } from './modes/languageModes';
 
 import { pushAll } from './utils/arrays';
 

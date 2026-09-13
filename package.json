@@ -17,7 +17,7 @@
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "jsforce": "^3.10.19",
+    "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^11",
@@ -51,15 +51,15 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
-    "@typescript-eslint/eslint-plugin": "^8.66.0",
-    "@typescript-eslint/parser": "^8.66.0",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
     "assert": "2.1.0",
     "browserify-zlib": "0.2.0",
-    "check-peer-dependencies": "4.3.0",
+    "check-peer-dependencies": "4.3.4",
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
@@ -69,13 +69,13 @@
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
     "esbuild-plugins-node-modules-polyfill": "1.8.2",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-barrel-files": "^3.0.1",
-    "eslint-plugin-eslint-plugin": "7.6.1",
+    "eslint-plugin-eslint-plugin": "7.6.2",
     "eslint-plugin-functional": "9.0.5",
     "eslint-plugin-import-x": "4.17.1",
-    "eslint-plugin-jest": "29.16.0",
+    "eslint-plugin-jest": "29.16.2",
     "eslint-plugin-jest-formatting": "3.1.0",
     "eslint-plugin-jsdoc": "63.3.3",
     "eslint-plugin-local-rules": "3.0.2",
@@ -122,6 +122,7 @@
     "postinstall": "wireit",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
+    "changelog:delta": "ts-node ./scripts/generate-release-delta-changelog.ts",
     "clean": "npm run clean -ws --if-present && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
@@ -131,7 +132,9 @@
     "lint": "wireit",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
+    "test:scripts": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
+    "test:container:local": "wireit",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
@@ -181,7 +184,6 @@
         "./packages/effect-ext-utils:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
-        "./packages/salesforcedx-visualforce-markup-language-server:compile",
         "./packages/salesforcedx-visualforce-language-server:compile",
         "./packages/salesforcedx-vscode-core:compile",
         "./packages/salesforcedx-vscode-apex:compile",
@@ -215,7 +217,6 @@
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
-        "./packages/salesforcedx-visualforce-markup-language-server:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
         "./packages/salesforcedx-vscode-apex:lint",
@@ -242,6 +243,7 @@
     "test": {
       "dependencies": [
         "test:ai-safeguards",
+        "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
@@ -255,7 +257,6 @@
         "./packages/salesforcedx-lightning-lsp-common:test",
         "./packages/salesforcedx-aura-language-server:test",
         "./packages/salesforcedx-lwc-language-server:test",
-        "./packages/salesforcedx-visualforce-markup-language-server:test",
         "./packages/salesforcedx-visualforce-language-server:test",
         "./packages/salesforcedx-vscode-core:test",
         "./packages/salesforcedx-vscode-apex:test",
@@ -277,18 +278,38 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs",
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
+        ".claude/hooks/block-tracked-base-branch.sh",
         ".claude/hooks/verify-on-edit.sh",
         ".claude/hooks/verify-stop.sh",
         ".opencode/plugins/safeguards.ts",
         "scripts/ai-safeguards.mjs",
         "scripts/ai-safeguards-cli.mjs",
-        "test/ai-safeguards.test.mjs"
+        "scripts/ai-auto-approve.mjs",
+        "scripts/ai-auto-approve-cli.mjs",
+        "test/ai-safeguards.test.mjs",
+        "test/ai-auto-approve.test.mjs"
       ],
       "output": []
+    },
+    "test:scripts": {
+      "command": "jest --config jest.config.js --runInBand",
+      "files": [
+        "jest.config.js",
+        "scripts/**/*.ts",
+        "scripts/tsconfig.json",
+        "tsconfig.json"
+      ],
+      "output": []
+    },
+    "test:container:local": {
+      "command": "ts-node scripts/codeBuilderLocalE2E.ts",
+      "dependencies": [
+        "./packages/playwright-vscode-ext:compile"
+      ]
     },
     "vscode:bundle": {
       "dependencies": [
@@ -312,7 +333,6 @@
     "vscode:package:legacy": {
       "dependencies": [
         "./packages/salesforcedx-vscode-core:vscode:package:legacy",
-        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
@@ -321,7 +341,6 @@
     "vscode:package:legacy:prerelease": {
       "dependencies": [
         "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
-        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
@@ -335,6 +354,7 @@
         "./packages/salesforcedx-vscode-apex-log:vscode:package",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package",
+        "./packages/salesforcedx-vscode-lwc:vscode:package",
         "./packages/salesforcedx-vscode-visualforce:vscode:package",
         "./packages/salesforcedx-vscode-soql:vscode:package",
         "./packages/salesforcedx-vscode-org:vscode:package",
@@ -351,6 +371,7 @@
         "./packages/salesforcedx-vscode-apex-log:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-apex-testing:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-visualforce:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-soql:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-org:vscode:package:prerelease",
@@ -375,7 +396,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --extensionPath packages/salesforcedx-vscode-visualforce --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "./packages/salesforcedx-vscode-services:vscode:bundle:local",
@@ -385,6 +406,7 @@
         "./packages/salesforcedx-vscode-metadata:vscode:bundle:local",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle:local",
         "./packages/salesforcedx-vscode-soql:vscode:bundle:local",
+        "./packages/salesforcedx-vscode-visualforce:vscode:bundle:local",
         "./packages/salesforcedx-vscode-services:spans:server"
       ],
       "files": []

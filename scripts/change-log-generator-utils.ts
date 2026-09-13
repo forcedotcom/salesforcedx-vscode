@@ -1,6 +1,6 @@
 import * as constants from './change-log-constants';
 import fs from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import util from 'node:util';
 
 // Commit Map Keys
@@ -42,9 +42,11 @@ export function getPreviousReleaseBranch(): string {
  * creation date. This ensures that the first entry is the latest branch.
  */
 function getRemoteReleaseBranches(): string[] {
-  return execSync(`git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`, {
-    encoding: 'utf8'
-  })
+  return execFileSync(
+    'git',
+    ['branch', '--remotes', '--list', '--sort=-creatordate', `${constants.REMOTE_RELEASE_BRANCH_PREFIX}*`],
+    { encoding: 'utf8' }
+  )
     .replace(/\n/g, ',')
     .split(',')
     .map(Function.prototype.call, String.prototype.trim);
@@ -57,7 +59,9 @@ function getRemoteReleaseBranches(): string[] {
  */
 function getCommits(releaseBranch: string, previousBranch: string): string[] {
   logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
-  return execSync(`git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`, { encoding: 'utf8' })
+  return execFileSync('git', ['log', '--cherry-pick', '--oneline', `${releaseBranch}...${previousBranch}`], {
+    encoding: 'utf8'
+  })
     .trim()
     .split('\n');
 }
@@ -65,7 +69,7 @@ function getCommits(releaseBranch: string, previousBranch: string): string[] {
 /**
  * Parse the commits and return them as a list of hashmaps.
  */
-function parseCommits(commits: string[]): CommitMap[] {
+function parseCommits(commits: string[], dedupeAgainstExisting = true): CommitMap[] {
   logger(`\nStep 4: Determine which commits we want to share in the changelog`);
   let commitMaps: CommitMap[] = [];
   for (let i = 0; i < commits.length; i++) {
@@ -74,7 +78,7 @@ function parseCommits(commits: string[]): CommitMap[] {
       commitMaps.push(commitMap);
     }
   }
-  return filterExistingPREntries(commitMaps);
+  return dedupeAgainstExisting ? filterExistingPREntries(commitMaps) : commitMaps;
 }
 
 function buildMapFromCommit(commit: string): CommitMap {
@@ -167,7 +171,7 @@ function getChangeLogText(releaseBranch: string, groupedMessages: Record<string,
 }
 
 function getFilesChanged(commitNumber: string): string {
-  return execSync('git show --pretty="" --name-only ' + commitNumber, {
+  return execFileSync('git', ['show', '--pretty=', '--name-only', commitNumber], {
     encoding: 'utf8'
   })
     .trim()
@@ -256,8 +260,7 @@ export function updateChangeLog(remoteReleaseBranch: string, remotePreviousBranc
   if (parsedCommits.length > 0) {
     const localReleaseBranch = remoteReleaseBranch.replace(constants.ORIGIN_PREFIX_ONLY, '');
     console.log(`\nChecking out ${localReleaseBranch}`);
-    const commitCommand = `git checkout ${localReleaseBranch}`;
-    execSync(commitCommand);
+    execFileSync('git', ['checkout', localReleaseBranch]);
 
     const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
     const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);
@@ -266,4 +269,24 @@ export function updateChangeLog(remoteReleaseBranch: string, remotePreviousBranc
     console.log(`No commits found, so we can skip this week's release. Carry on!`);
     process.exit(0);
   }
+}
+
+/**
+ * Generates a changelog for commits in (fromRef, toRef], overwriting CHANGE_LOG_PATH with
+ * only that range. Unlike updateChangeLog, this operates on the current working tree (no
+ * branch checkout) and doesn't dedupe against the existing file, since the range is fresh
+ * and disjoint by construction. Returns false and leaves the file untouched when the range
+ * has no qualifying commits.
+ */
+export function generateDeltaChangeLog(fromRef: string, toRef: string, version: string): boolean {
+  const parsedCommits = parseCommits(getCommits(toRef, fromRef), false);
+  if (parsedCommits.length === 0) {
+    console.log(`No qualifying commits found between ${fromRef} and ${toRef}. Skipping changelog generation.`);
+    return false;
+  }
+
+  const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
+  const changeLog = getChangeLogText(version, groupedMessages);
+  writeChangeLog(changeLog);
+  return true;
 }

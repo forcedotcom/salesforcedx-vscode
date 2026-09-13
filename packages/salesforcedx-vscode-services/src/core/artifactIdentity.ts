@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
-export const ArtifactTargetKindSchema = Schema.Literal('metadata-component', 'sobject', 'apex-type');
+export const ArtifactTargetKindSchema = Schema.Literal('metadata-component', 'sobject');
 export type ArtifactTargetKind = typeof ArtifactTargetKindSchema.Type;
 
 export const ArtifactNamespaceSchema = Schema.NullOr(Schema.NonEmptyTrimmedString);
@@ -31,17 +32,10 @@ export const SObjectArtifactIdentitySchema = Schema.Struct({
 });
 export type SObjectArtifactIdentity = typeof SObjectArtifactIdentitySchema.Type;
 
-export const ApexTypeArtifactIdentitySchema = Schema.Struct({
-  kind: Schema.Literal('apex-type'),
-  ...ArtifactIdentityFields
-});
-export type ApexTypeArtifactIdentity = typeof ApexTypeArtifactIdentitySchema.Type;
-
 /** Provider-neutral identity shared by workspace, org, cache, and persistence providers. */
 export const ArtifactIdentitySchema = Schema.Union(
   MetadataComponentArtifactIdentitySchema,
-  SObjectArtifactIdentitySchema,
-  ApexTypeArtifactIdentitySchema
+  SObjectArtifactIdentitySchema
 );
 export type ArtifactIdentity = typeof ArtifactIdentitySchema.Type;
 
@@ -49,7 +43,7 @@ export type ArtifactIdentity = typeof ArtifactIdentitySchema.Type;
 export const normalizeArtifactIdentityPart = (value: string): string => value.toLowerCase();
 
 export const normalizeArtifactNamespace = (namespace: ArtifactNamespace): ArtifactNamespace =>
-  namespace === null ? null : normalizeArtifactIdentityPart(namespace);
+  isNull(namespace) ? null : normalizeArtifactIdentityPart(namespace);
 
 export const normalizeArtifactIdentity = (identity: ArtifactIdentity): ArtifactIdentity => ({
   ...identity,

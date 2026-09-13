@@ -26,7 +26,8 @@ export const createWebConfig = (options: WebConfigOptions) =>
     testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
-    ...(options.workers ? { workers: options.workers } : {}),
+    workers:
+      options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined),
     reporter: createReporter('test-results/junit.xml'),
     use: {
       viewport: { width: 1920, height: 1080 },
@@ -36,13 +37,11 @@ export const createWebConfig = (options: WebConfigOptions) =>
       video: process.env.CI ? 'on' : 'retain-on-failure',
       actionTimeout: 15_000,
       navigationTimeout: 30_000,
-      permissions: ['clipboard-read', 'clipboard-write'],
       launchOptions: {
         args: [
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--disable-features=IsolateOrigins,site-per-process',
-          '--enable-clipboard-read-write'
+          '--disable-features=IsolateOrigins,site-per-process'
         ]
       }
     },

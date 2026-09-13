@@ -4,11 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import * as constants from './change-log-constants';
 import * as changeLogGeneratorUtils from './change-log-generator-utils';
-
-const [_, __, releaseOverride] = process.argv;
 
 const logger = (msg: string, obj?: any) => {
   if (!obj) {
@@ -22,7 +20,7 @@ const logger = (msg: string, obj?: any) => {
  * Checks if the user has provided a release branch override. If they
  * have not, return the latest release branch.
  */
-function getCurrentRemoteReleaseBranch(): string {
+function getCurrentRemoteReleaseBranch(releaseOverride?: string): string {
   logger('\nStep 1: Determine release branch.');
   let releaseBranch;
   if (!releaseOverride) {
@@ -46,7 +44,7 @@ function getPreviousRemoteReleaseBranch(): string {
   // - subpackage tags like `vscode-i18n-v66.7.0` or `soql-common-v2.0.0`
   // - nightly prerelease tags like `v67.7.2-nightly.develop.20260803`
   // Get all matching tags, sorted by version, then filter out nightly tags
-  const allTags = execSync("git tag --list 'v[0-9]*' --sort=-version:refname", {
+  const allTags = execFileSync('git', ['tag', '--list', 'v[0-9]*', '--sort=-version:refname'], {
     encoding: 'utf8'
   })
     .trim()
@@ -74,32 +72,36 @@ function validateReleaseBranch(releaseBranch: string): void {
   }
 }
 
-const currentReleaseBranchName = getCurrentRemoteReleaseBranch();
-const previousReleaseBranchName = getPreviousRemoteReleaseBranch();
-const releaseBranchName = currentReleaseBranchName.replace('origin/', '');
+export const createReleaseNotes = (releaseOverride?: string): void => {
+  const currentReleaseBranchName = getCurrentRemoteReleaseBranch(releaseOverride);
+  const previousReleaseBranchName = getPreviousRemoteReleaseBranch();
+  const releaseBranchName = currentReleaseBranchName.replace('origin/', '');
 
-// switch to the current release branch
-logger('switch to the current release branch');
-execSync(`git checkout ${releaseBranchName}`);
+  // switch to the current release branch
+  logger('switch to the current release branch');
+  execFileSync('git', ['checkout', releaseBranchName]);
 
-changeLogGeneratorUtils.updateChangeLog(currentReleaseBranchName, previousReleaseBranchName);
+  changeLogGeneratorUtils.updateChangeLog(currentReleaseBranchName, previousReleaseBranchName);
 
-// if running on github actions
-if (process.env.GITHUB_ACTIONS) {
-  logger('\nCommit auto-generated changelog');
-  execSync(`git add ${constants.CHANGE_LOG_PATH}`);
+  // if running on github actions
+  if (process.env.GITHUB_ACTIONS) {
+    logger('\nCommit auto-generated changelog');
+    execFileSync('git', ['add', constants.CHANGE_LOG_PATH]);
 
-  execSync(`git commit -m "chore: generated CHANGELOG for ${releaseBranchName}"`);
-  execSync(`git push -u origin ${releaseBranchName}`);
-} else {
-  logger('\nOpening changelog for review');
-  //if code-insiders isn't yet set in the PATH or running user doesn't have insiders,
-  //this will use VS Code instead
-  try {
-    execSync(`code-insiders ${constants.CHANGE_LOG_PATH}`);
-  } catch {
-    execSync(`code ${constants.CHANGE_LOG_PATH}`);
+    execFileSync('git', ['commit', '-m', `chore: generated CHANGELOG for ${releaseBranchName}`]);
+    execFileSync('git', ['push', '-u', 'origin', releaseBranchName]);
+  } else {
+    logger('\nOpening changelog for review');
+    //if code-insiders isn't yet set in the PATH or running user doesn't have insiders,
+    //this will use VS Code instead
+    try {
+      execFileSync('code-insiders', [constants.CHANGE_LOG_PATH]);
+    } catch {
+      execFileSync('code', [constants.CHANGE_LOG_PATH]);
+    }
   }
-}
+};
 
-process.exit(0);
+if (require.main === module) {
+  createReleaseNotes(process.argv[2]);
+}

@@ -20,6 +20,9 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { decodeTaggedCliResponse } from '../util/cliJson';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
+
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Display Org Details';
 
 /**
  * Raised when `sf org display --json` output cannot be decoded into either result shape.
@@ -128,18 +131,23 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
  * spawn/permission error), so it stays a `TerminalServiceError` for ErrorHandlerService instead of
  * degrading into an `OrgDisplayParseError` that would hide the real diagnostic.
  */
-const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (command: string) {
+const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
+  command: string,
+  notificationCommand: ProgressOnlyCommandKey
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(notificationCommand);
 
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  return yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity }).pipe(
+  yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity }).pipe(
     Effect.catchTag('TerminalServiceError', error =>
       identifyJsonTypeInString(error.message) === 'object' ? Effect.succeed(error.message) : error
     ),
     // the sf round-trip is the slow part; Cancel interrupts it with UserCancellationError
-    promptService.withCancellableProgress(nls.localize('org_display_progress')),
+    promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
     Effect.flatMap(decodeOrgDisplayResponse),
     Effect.map(
       Match.type<OrgDisplayResponse>().pipe(
@@ -148,8 +156,12 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (command: string
         Match.exhaustive
       )
     ),
-    Effect.flatMap(channel.appendToChannel),
-    Effect.tap(channel.showChannel)
+    Effect.flatMap(text =>
+      Effect.gen(function* () {
+        yield* channel.appendToChannel(text);
+        yield* channel.showChannel;
+      })
+    )
   );
 });
 
@@ -172,7 +184,7 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
     yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgDisplay' });
   }
 
-  yield* displayOrg(`sf org display${targetOrgFlag} --json`);
+  yield* displayOrg(`sf org display${targetOrgFlag} --json`, COMMAND);
 });
 
 /**
@@ -190,5 +202,5 @@ export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(
   const { username } = yield* gatherOrgForDisplay();
 
   // quote the username: simpleExec runs the child via /bin/sh -c.
-  yield* displayOrg(`sf org display --target-org "${username}" --json`);
+  yield* displayOrg(`sf org display --target-org "${username}" --json`, COMMAND);
 });

@@ -5,11 +5,11 @@
 'use strict';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { FormattingOptions, Position, Range, TextEdit } from 'vscode-languageserver-types';
+import { type FormattingOptions, Position, Range, TextEdit } from 'vscode-languageserver-types';
 import { pushAll } from '../utils/arrays';
 import { applyEdits } from '../utils/edits';
 import { isEOL } from '../utils/strings';
-import { LanguageModes, Settings } from './languageModes';
+import { type LanguageModes, type Settings } from './languageModes';
 
 export const format = (
   languageModes: LanguageModes,

@@ -6,6 +6,7 @@
  */
 
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
@@ -174,7 +175,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         );
         const orgTypes = new Set(metadataTypes.map(type => type.xmlName));
         return yield* Effect.forEach(
-          [...new Set([...orgTypes, ...workspaceTypes])],
+          Arr.dedupe([...orgTypes, ...workspaceTypes]),
           xmlName =>
             references.documentUri({ orgId, xmlName, fullName: '__type__' }).pipe(
               Effect.map(documentUri => ({

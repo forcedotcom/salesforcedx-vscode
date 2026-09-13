@@ -4,10 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { parse, ItBlock, DescribeBlock } from 'jest-editor-support';
+import type { ItBlock, DescribeBlock } from 'jest-editor-support';
+import parseJestTest from 'jest-editor-support/build/parsers';
 import { CancellationToken, CodeLens, Command, Position, Range, TextDocument } from 'vscode';
 import { nls } from '../../messages';
 import { TestExecutionInfo } from '../types';
+
+const parse: typeof import('jest-editor-support').parse = parseJestTest;
 
 /**
  * Provide "Run Test" and "Debug Test" Code Lens for LWC tests (both it and describe blocks).

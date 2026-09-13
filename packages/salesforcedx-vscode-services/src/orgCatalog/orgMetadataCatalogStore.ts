@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Encoding from 'effect/Encoding';
 import * as Schema from 'effect/Schema';
 import { URI, Utils } from 'vscode-uri';
 import { SObjectSchema } from '../core/schemas/sObject';
@@ -134,7 +135,7 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
 
     const getRootUri = Effect.fn('OrgMetadataCatalogStore.getRootUri')(function* (orgId: string) {
       const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(workspace.uri, '.sf', 'orgs', encodeURIComponent(orgId), CATALOG_DIRECTORY);
+      return Utils.joinPath(workspace.uri, '.sf', 'orgs', yield* Encoding.encodeUriComponent(orgId), CATALOG_DIRECTORY);
     });
 
     const getSnapshotUri = Effect.fn('OrgMetadataCatalogStore.getSnapshotUri')(function* (orgId: string) {

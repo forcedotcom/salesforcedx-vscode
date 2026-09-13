@@ -70,17 +70,17 @@ const ACCOUNT_SERVICE_TEST_CONTENT = [
   '}'
 ].join('\n');
 
-const REPORT_NOTIFICATION_PATTERN = /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/;
+// Notification pattern for the consolidated success notification: "[name] successfully ran"
+const SUCCESS_NOTIFICATION_PATTERN = /successfully ran/;
 
 const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
   await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
   await selectQuickInputOptionByTyping(page, 'AccountServiceTest');
 };
 
-// Drives the Apex test runner via Command Palette and asserts the
-// "Apex test report is ready: …" notification fires. The report-ready notification ships from
-// salesforcedx-vscode-apex (no "browser" bundle), so it never appears in VS Code Web — keep
-// this scenario desktop-only until a web bundle exists for that extension.
+// Drives the Apex test runner via Command Palette and asserts the success notification fires
+// with an "Open Report" action button. The notification is managed by NotificationModeService
+// and never appears in VS Code Web, so keep this scenario desktop-only.
 (isDesktop() ? test : test.skip.bind(test))(
   'Run Apex Tests: fail then fix via deploy and redeploy',
   async ({ page }) => {
@@ -116,10 +116,10 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
 
     await test.step('verify failing test output', async () => {
       await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
-      const reportNotification = await waitForNotification(page, REPORT_NOTIFICATION_PATTERN, { timeout: 60_000 });
+      const successNotification = await waitForNotification(page, SUCCESS_NOTIFICATION_PATTERN, { timeout: 60_000 });
       await saveScreenshot(page, 'step.fail.report-notification.png');
       // Notification visibility is enough; do not click Open Report here so we can keep editing.
-      await reportNotification.waitFor({ state: 'visible', timeout: 5000 });
+      await successNotification.waitFor({ state: 'visible', timeout: 5000 });
 
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
@@ -134,7 +134,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.fail.assert-failed.png');
       // Restore panel before continuing
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      // Clear all notifications so the failing run's "Apex test report is ready" toast doesn't
+      // Clear all notifications so the failing run's success notification doesn't
       // get re-matched (and possibly re-clicked) when we verify the passing-run notification.
       await clearAllNotifications(page);
     });
@@ -177,14 +177,14 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.pass.test-started.png');
     });
 
-    await test.step('verify passing run report notification and Open Report flow', async () => {
+    await test.step('verify passing run success notification and Open Report flow', async () => {
       await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
 
-      // Click Open Report on the report-ready toast BEFORE doing any palette/maximize ops.
+      // Click Open Report on the success notification toast BEFORE doing any palette/maximize ops.
       // Palette opens/closes and a maximized output panel can hide or collapse the toast,
       // after which the locator never matches. acceptNotification waits for the notification
       // internally — no separate waitForNotification call needed.
-      await acceptNotification(page, REPORT_NOTIFICATION_PATTERN, 'Open Report', { timeout: 60_000 });
+      await acceptNotification(page, SUCCESS_NOTIFICATION_PATTERN, 'Open Report', { timeout: 60_000 });
       // Confirm a markdown preview tab opened for the test-result-*.md report.
       await expect(page.getByRole('tab', { name: /test-result-[a-zA-Z0-9]+\.md/ }).first()).toBeVisible({
         timeout: 10_000

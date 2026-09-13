@@ -21,10 +21,12 @@ import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
   InactiveOrgOperationError,
+  NoTargetOrgConfiguredError,
   updateDefaultOrgIdentity
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -118,12 +120,83 @@ describe('ConnectionService.getConnectionForOrg', () => {
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-expected' was in progress",
+          message: "The active org changed while an operation for '00D-expected' was in progress.",
           expectedOrgId: '00D-expected',
           observedOrgId: '00D-observed'
         })
       )
     );
+  });
+});
+
+describe('preventOrgChanges', () => {
+  const prepareConnection = async (orgId: string | undefined) => {
+    await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    jest.mocked(Connection.create).mockResolvedValue(makeConn({ isAccessTokenFlow: false, orgId }));
+  };
+
+  it('runs the command when the target org does not change', async () => {
+    await prepareConnection('00D-original');
+
+    await expect(
+      Effect.runPromise(preventOrgChanges(Effect.succeed('complete')).pipe(Effect.provide(buildLayer())))
+    ).resolves.toBe('complete');
+  });
+
+  it('keeps an observed target-org change cancelled after switching back', async () => {
+    await prepareConnection('00D-original');
+
+    const exit = await Effect.runPromiseExit(
+      preventOrgChanges(
+        Effect.gen(function* () {
+          const ref = yield* getDefaultOrgRef();
+          yield* SubscriptionRef.set(ref, { orgId: '00D-replacement' });
+          yield* SubscriptionRef.set(ref, { orgId: '00D-original' });
+          yield* Effect.sleep(Duration.millis(1));
+        })
+      ).pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(
+        new InactiveOrgOperationError({
+          message: "The active org changed while an operation for '00D-original' was in progress.",
+          expectedOrgId: '00D-original',
+          observedOrgId: '00D-replacement'
+        })
+      )
+    );
+  });
+
+  it('ignores target-org updates that retain the same org ID', async () => {
+    await prepareConnection('00D-original');
+
+    await expect(
+      Effect.runPromise(
+        preventOrgChanges(
+          Effect.gen(function* () {
+            yield* SubscriptionRef.set(yield* getDefaultOrgRef(), {
+              orgId: '00D-original',
+              username: 'replacement@example.com'
+            });
+            yield* Effect.sleep(Duration.millis(1));
+            return 'complete';
+          })
+        ).pipe(Effect.provide(buildLayer()))
+      )
+    ).resolves.toBe('complete');
+  });
+
+  it('fails before the command when the connection has no org ID', async () => {
+    await prepareConnection(undefined);
+
+    const exit = await Effect.runPromiseExit(
+      preventOrgChanges(Effect.succeed('not run')).pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(Exit.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' })));
   });
 });
 
@@ -504,5 +577,64 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
+  });
+});
+
+describe('ConnectionService.getConnection (Web Console)', () => {
+  const originalPlatform = process.env.ESBUILD_PLATFORM;
+
+  afterAll(() => {
+    if (isUndefined(originalPlatform)) delete process.env.ESBUILD_PLATFORM;
+    else process.env.ESBUILD_PLATFORM = originalPlatform;
+  });
+
+  it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+    process.env.ESBUILD_PLATFORM = 'web';
+    jest.resetModules();
+
+    await jest.isolateModulesAsync(async () => {
+      const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
+        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
+      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
+      const { AliasService: WebAliasService } =
+        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<
+        typeof import('../../../src/core/configService.js')
+      >('../../../src/core/configService');
+      const { ConnectionService: WebConnectionService } = jest.requireActual<
+        typeof import('../../../src/core/connectionService.js')
+      >('../../../src/core/connectionService');
+      const { SettingsService: WebSettingsService } = jest.requireActual<
+        typeof import('../../../src/vscode/settingsService.js')
+      >('../../../src/vscode/settingsService');
+      const accessToken = 'web-console-token';
+      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
+      const connection = makeConn({ isAccessTokenFlow: false });
+      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
+      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      const dependencies = WebLayer.mergeAll(
+        WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
+        WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
+        WebLayer.succeed(
+          WebSettingsService,
+          WebSettingsService.make({
+            getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
+            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+            getApiVersion: () => WebEffect.succeed('67.0')
+          } as never)
+        )
+      );
+      const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
+
+      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+
+      expect(WebAuthInfo.create).toHaveBeenCalledWith({
+        accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
+      });
+      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+    });
   });
 });

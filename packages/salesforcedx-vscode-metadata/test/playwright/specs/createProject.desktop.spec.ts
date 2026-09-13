@@ -9,12 +9,11 @@ import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   isDesktop,
   saveScreenshot,
+  selectQuickInputOption,
   verifyCommandExists,
-  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
@@ -47,15 +46,12 @@ const PROJECT_NAME = `TestProject${Date.now()}`;
 
     await test.step('run Create Project, select Standard template', async () => {
       await executeCommandWithCommandPalette(page, packageNls.project_generate_text);
-      await waitForQuickInputFirstOption(page, {
+      await selectQuickInputOption(page, /Standard/, {
         quickInputVisibleTimeout: 30_000,
         optionVisibleTimeout: 15_000,
-        retryTimeout: 60_000
+        retryTimeout: 60_000,
+        timeout: 20_000
       });
-
-      const standardRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Standard/ });
-      await standardRow.waitFor({ state: 'visible', timeout: 20_000 });
-      await standardRow.click();
       await saveScreenshot(page, 'createProject.02-standard-selected.png');
     });
 

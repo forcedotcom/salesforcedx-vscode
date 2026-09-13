@@ -60,7 +60,7 @@ const connection = yield* api.services.ConnectionService.getConnection();
 
 - Web: uses settings (instanceUrl, accessToken, apiVersion)
 - Desktop: resolves username/alias from config
-- Cached by username/instanceUrl; cache cleared when SF config files change (watcher) and after org extension refreshes config/state post-auth so `getConnection` reloads `AuthInfo` (avoids stale sessions after token refresh)
+- Cached by username/instanceUrl; cache cleared when global `~/.sf/config.json` (`HostFileWatcher`) or project `.sf/config.json` (`FileChangePubSub`) change, and after org extension refreshes config/state post-auth so `getConnection` reloads `AuthInfo` (avoids stale sessions after token refresh)
 - Auto-updates default org ref (`maybeUpdateDefaultOrgRef`) — skipped when a `username` is passed
 - Ref username: User SOQL when possible; empty → `conn.getUsername()` / AuthInfo `username`
 - Requires `ConfigService`, `SettingsService`

@@ -20,7 +20,7 @@ describe('package-json-command-refs', () => {
   describe('with Linter', () => {
     const lintJson = createJsonLinter(RULE_NAME, packageJsonCommandRefs);
 
-    it('should pass when command is defined and referenced in menu', () => {
+    it('should pass when command is defined and present in the command palette', () => {
       const code = JSON.stringify(
         {
           name: 'test',
@@ -39,14 +39,14 @@ describe('package-json-command-refs', () => {
       expect(errors).toHaveLength(0);
     });
 
-    it('should error when command is referenced but not defined', () => {
+    it('should error when a menu command is not defined', () => {
       const code = JSON.stringify(
         {
           name: 'test',
           contributes: {
             commands: [],
             menus: {
-              commandPalette: [{ command: 'test.undefinedCommand' }]
+              'view/title': [{ command: 'test.undefinedCommand' }]
             }
           }
         },
@@ -59,12 +59,12 @@ describe('package-json-command-refs', () => {
       expect(errors[0].messageId).toBe('undefinedCommand');
     });
 
-    it('should error when command is defined but never referenced (orphaned)', () => {
+    it('should error when commandPalette is missing', () => {
       const code = JSON.stringify(
         {
           name: 'test',
           contributes: {
-            commands: [{ command: 'test.orphanedCommand', title: 'Orphaned' }],
+            commands: [{ command: 'test.missing', title: 'Missing' }],
             menus: {}
           }
         },
@@ -74,10 +74,11 @@ describe('package-json-command-refs', () => {
 
       const errors = filterByRule(lintJson(code), RULE_NAME);
       expect(errors).toHaveLength(1);
-      expect(errors[0].messageId).toBe('orphanedCommand');
+      expect(errors[0].messageId).toBe('missingCommandPalette');
+      expect(errors[0].line).toBe(6);
     });
 
-    it('should check commands in view/title menu', () => {
+    it('should error when command is referenced only by another menu', () => {
       const code = JSON.stringify(
         {
           name: 'test',
@@ -93,7 +94,8 @@ describe('package-json-command-refs', () => {
       );
 
       const errors = filterByRule(lintJson(code), RULE_NAME);
-      expect(errors).toHaveLength(0);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].messageId).toBe('missingCommandPalette');
     });
 
     it('should check commands in editor/context menu', () => {
@@ -103,6 +105,7 @@ describe('package-json-command-refs', () => {
           contributes: {
             commands: [{ command: 'test.editorCmd', title: 'Editor Command' }],
             menus: {
+              commandPalette: [{ command: 'test.editorCmd' }],
               'editor/context': [{ command: 'test.editorCmd' }]
             }
           }
@@ -122,6 +125,7 @@ describe('package-json-command-refs', () => {
           contributes: {
             commands: [{ command: 'test.explorerCmd', title: 'Explorer Command' }],
             menus: {
+              commandPalette: [{ command: 'test.explorerCmd' }],
               'explorer/context': [{ command: 'test.explorerCmd' }]
             }
           }
@@ -161,10 +165,11 @@ describe('package-json-command-refs', () => {
             commands: [
               { command: 'test.cmd1', title: 'Command 1' },
               { command: 'test.cmd2', title: 'Command 2' },
-              { command: 'test.orphaned', title: 'Orphaned' }
+              { command: 'test.cmd3', title: 'Command 3' }
             ],
             menus: {
-              commandPalette: [{ command: 'test.cmd1' }, { command: 'test.cmd2' }, { command: 'test.undefined' }]
+              commandPalette: [{ command: 'test.cmd1' }],
+              'editor/context': [{ command: 'test.cmd2' }, { command: 'test.undefined' }]
             }
           }
         },
@@ -173,8 +178,17 @@ describe('package-json-command-refs', () => {
       );
 
       const errors = filterByRule(lintJson(code), RULE_NAME);
-      expect(errors).toHaveLength(2);
-      expect(errors.map(e => e.messageId).sort()).toEqual(['orphanedCommand', 'undefinedCommand']);
+      expect(errors).toHaveLength(3);
+      expect(errors.map(error => error.messageId).sort()).toEqual([
+        'missingCommandPalette',
+        'missingCommandPalette',
+        'undefinedCommand'
+      ]);
+      expect(errors.map(error => error.message).sort()).toEqual([
+        'Command "test.cmd2" is missing from contributes.menus.commandPalette',
+        'Command "test.cmd3" is missing from contributes.menus.commandPalette',
+        'Command "test.undefined" referenced in menu but not defined in contributes.commands'
+      ]);
     });
   });
 });

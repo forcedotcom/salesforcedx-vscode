@@ -9,8 +9,10 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
+import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
@@ -19,15 +21,20 @@ import { getMergedDeployFailures } from './getMergedDeployFailures';
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
+  command?: ProgressAndSuccessCommandKey;
 }) {
-  const { componentSet } = options;
+  const { componentSet, command } = options;
   clearDeployDiagnostics();
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
-  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
+  const result = yield* api.services.MetadataDeployService.deploy(componentSet, { progressLocation });
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 

@@ -8,6 +8,7 @@
 import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { Connection, Logger } from '@salesforce/core';
+import { isNotNull } from 'effect/Predicate';
 import { Progress } from '../common';
 import { nls } from '../i18n';
 import {
@@ -17,7 +18,6 @@ import {
   ApexTestSetupData,
   NamespaceInfo,
   TestCategory,
-  TestCategoryPrefix,
   TestResult,
   TestResultRaw
 } from './types';
@@ -105,7 +105,7 @@ export const queryAll = async <R extends JsforceRecord>(
 };
 
 export const getJsonIndent = (): number | undefined => {
-  if (jsonIndent !== null) {
+  if (isNotNull(jsonIndent)) {
     return jsonIndent;
   }
 
@@ -129,7 +129,7 @@ export const getJsonIndent = (): number | undefined => {
 };
 
 export const getBufferSize = (): number => {
-  if (bufferSize !== null) {
+  if (isNotNull(bufferSize)) {
     return bufferSize;
   }
 
@@ -227,9 +227,9 @@ export const calculateCodeCoverage = async (
 };
 
 export const computeTestCategory = (testNamespace: string | null): TestCategory =>
-  isFlowTest(testNamespace) ? TestCategory.Flow : TestCategory.Apex;
+  isFlowTest(testNamespace) ? 'Flow' : 'Apex';
 
-export const isFlowTest = (test: string | null): boolean => test?.startsWith(TestCategoryPrefix.FlowTest) ?? false;
+export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
   // Assuming all necessary properties are present and optional properties are handled

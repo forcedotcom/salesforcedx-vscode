@@ -50,7 +50,7 @@ const buildServices = (opts: {
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withCancellableProgress: (title: string) => {
+    withCancellableProgress: (title: string, _location?: unknown) => {
       opts.captureProgressTitle(title);
       return identity;
     }
@@ -64,6 +64,10 @@ const buildServices = (opts: {
     showChannel: Effect.sync(() => {
       opts.showChannel();
     })
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
   }),
   UserCancellationError: class {
     public readonly _tag = 'UserCancellationError';

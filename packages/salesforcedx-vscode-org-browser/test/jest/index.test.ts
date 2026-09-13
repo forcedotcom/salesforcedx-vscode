@@ -11,7 +11,8 @@ jest.mock('vscode', () => ({
     registerTreeDataProvider: jest.fn()
   },
   commands: {
-    registerCommand: jest.fn()
+    registerCommand: jest.fn(),
+    executeCommand: jest.fn()
   },
   workspace: {
     getConfiguration: jest.fn(() => ({
@@ -44,8 +45,13 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
+import * as Fiber from 'effect/Fiber';
+import * as Option from 'effect/Option';
+import * as Redacted from 'effect/Redacted';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
@@ -146,7 +152,7 @@ const MockSettingsServiceLayer = Layer.succeed(
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
-    getAccessToken: () => Effect.succeed('mock-token'),
+    getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
@@ -236,7 +242,7 @@ const mockServicesApi = {
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
     OrgMetadataCatalogChangePubSub,
     ProjectService: {} as typeof ProjectService,
-    registerCommandWithLayer: () => () => Effect.void,
+    registerCommandWithRuntime: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
     SettingsService: {} as typeof SettingsService,
     SourceTrackingService: {} as typeof SourceTrackingService,
@@ -250,8 +256,110 @@ const MockExtensionProviderServiceLive = Layer.succeed(ExtensionProviderService,
 });
 
 const mockContext = {
-  subscriptions: []
+  subscriptions: [],
+  workspaceState: {
+    get: jest.fn(),
+    update: jest.fn()
+  },
+  globalState: {
+    get: jest.fn(),
+    update: jest.fn()
+  }
 } as unknown as vscode.ExtensionContext;
+
+describe('Extension activation ordering', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockContext.subscriptions.length = 0;
+  });
+
+  it('registers the Org Browser UI before waiting for an org ID', async () => {
+    const expectedCommands = [
+      'sf.org-browser.walkthrough.open',
+      'sfdxOrgBrowser.refreshType',
+      'sfdxOrgBrowser.collapseAll',
+      'sfdxOrgBrowser.retrieveMetadata',
+      'sfdxOrgBrowser.showLocal.on',
+      'sfdxOrgBrowser.showLocal.off',
+      'sfdxOrgBrowser.showOrg.on',
+      'sfdxOrgBrowser.showOrg.off',
+      'sfdxOrgBrowser.filterText',
+      'sfdxOrgBrowser.filterText.active'
+    ];
+    const registeredCommands: string[] = [];
+    const allCommandsRegistered = Promise.withResolvers<void>();
+    const initialized = Promise.withResolvers<void>();
+    const targetOrgRef = Effect.runSync(SubscriptionRef.make({}));
+    const treeProviderDisposable = { dispose: jest.fn() };
+    jest.mocked(vscode.window.registerTreeDataProvider).mockReturnValue(treeProviderDisposable);
+    jest.mocked(vscode.commands.executeCommand).mockImplementation(async (command, key, value) => {
+      if (command === 'setContext' && key === 'sf:orgBrowser.initialized' && value === true) {
+        initialized.resolve();
+      }
+    });
+    const servicesApi = {
+      services: {
+        ChannelService,
+        ConnectionService,
+        TargetOrgRef: () => Effect.succeed(targetOrgRef),
+        registerCommandWithRuntime: () => (command: string) =>
+          Effect.sync(() => {
+            registeredCommands.push(command);
+            if (registeredCommands.length === expectedCommands.length) {
+              allCommandsRegistered.resolve();
+            }
+          })
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const providerLayer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(servicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+    const activation = activateEffect(mockContext).pipe(
+      Effect.provide(
+        Layer.mergeAll(
+          providerLayer,
+          MockChannelServiceLayer('test'),
+          MockConnectionServiceLayer,
+          MockExtensionContextServiceLayer,
+          MockErrorHandlerServiceLayer,
+          OrgMetadataCatalogChangePubSub.Default
+        )
+      )
+    );
+    const fiber = Effect.runFork(activation);
+
+    try {
+      const awaitWithTimeout = async (signal: Promise<void>, message: string): Promise<void> => {
+        const timedOut = Promise.withResolvers<never>();
+        const timeout = setTimeout(() => timedOut.reject(new Error(message)), 1000);
+        try {
+          await Promise.race([signal, timedOut.promise]);
+        } finally {
+          clearTimeout(timeout);
+        }
+      };
+      await awaitWithTimeout(allCommandsRegistered.promise, 'Command registration timed out');
+      await awaitWithTimeout(initialized.promise, 'Org Browser initialization timed out');
+
+      expect(vscode.window.registerTreeDataProvider).toHaveBeenCalledWith('sfdxOrgBrowser', expect.anything());
+      expect(mockContext.subscriptions).toContain(treeProviderDisposable);
+      expect(registeredCommands.toSorted()).toEqual(expectedCommands.toSorted());
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.initialized', false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.showLocal', true);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.showOrg', true);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'sf:orgBrowser.textFilterActive',
+        false
+      );
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.treeEmpty', false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.initialized', true);
+      expect(Option.isNone(Effect.runSync(Fiber.poll(fiber)))).toBe(true);
+    } finally {
+      await Effect.runPromise(Fiber.interrupt(fiber));
+    }
+  });
+});
 
 describe.skip('Extension', () => {
   beforeEach(() => {
@@ -275,8 +383,12 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
-            OrgMetadataCatalogChangePubSub.Default,
-            MockOrgBrowserRetrieveServiceLayer
+            MockOrgBrowserRetrieveServiceLayer,
+            Layer.succeed(NotificationModeService, {
+              getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+              showSuccessNotification: () => Effect.void
+            } as unknown as NotificationModeService),
+            OrgMetadataCatalogChangePubSub.Default
           )
         )
       )

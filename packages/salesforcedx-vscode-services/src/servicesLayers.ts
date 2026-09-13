@@ -12,6 +12,7 @@ import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
+import { HostFileWatcher } from './core/hostFileWatcher';
 import { LightningComponentService } from './core/lightningComponentService';
 import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
@@ -24,6 +25,7 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
 import { OrgCatalogDocuments } from './orgCatalog/orgCatalogDocuments';
 import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
@@ -53,6 +55,7 @@ export const globalLayers = Layer.mergeAll(
   ExecuteAnonymousService.Default,
   ExtensionsService.Default,
   FileChangePubSub.Default,
+  HostFileWatcher.Default,
   ApexLogService.Default,
   ComponentSetService.Default,
   LightningComponentService.Default,
@@ -81,5 +84,6 @@ export const globalLayers = Layer.mergeAll(
   TerminalService.Default,
   TransmogrifierService.Default,
   TraceFlagService.Default,
-  WorkspaceService.Default
+  WorkspaceService.Default,
+  redactingConsoleLoggerLayer
 );

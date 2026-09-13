@@ -5,11 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotNull } from 'effect/Predicate';
 import { TestResult, ApexTestResultData } from '../tests/types';
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type OutputFormat = 'markdown' | 'text';
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type TestSortOrder = 'runtime' | 'coverage' | 'severity';
 
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export interface MarkdownTextReporterOptions {
   /**
    * Output format: 'markdown' or 'text'
@@ -151,7 +155,7 @@ export const getSeverityScore = (
   // Subtract coverage (lower = worse, but only if it's a problem)
   if (codeCoverage && hasLowCoverage) {
     const coverage = getCoveragePercentage(test.perClassCoverage?.[0]?.percentage);
-    if (coverage !== null) {
+    if (isNotNull(coverage)) {
       score += (100 - coverage) * 100; // Lower coverage = higher score
     }
   }

@@ -8,8 +8,10 @@
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as SfTemplates from '@salesforce/templates';
+import { isNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import { URI } from 'vscode-uri';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
@@ -81,7 +83,8 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
       isSalesforceProject: () => Effect.succeed(true),
       getSfProject: () => Effect.succeed(mockSfProject),
       getProjectNamespace: () => Effect.succeed(null),
-      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(namespace === null),
+      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(isNull(namespace)),
+      projectConfigChanges: Stream.empty,
       isInPackageDirectories: () => Effect.succeed(true),
       ensureInPackageDirectories: () => Effect.void,
       getSoqlMetadataPath: () => Effect.succeed(URI.file('/test/soql')),
