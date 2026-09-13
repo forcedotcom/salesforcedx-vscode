@@ -117,24 +117,31 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
     }, safeDefault(false));
 
-    /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
+    /** Execute a process (SHELL-FREE) and parse its stdout. Desktop-only; fails with TerminalServiceError on web.
+     * stdout is trimmed before parsing.
+     * `executable` is the program to run (e.g. `sf`); `args` is its argument vector, passed to the child
+     * SEPARATELY and never concatenated into a shell string — so no arg (including a workspace-controlled file
+     * path or an org username) can be interpreted as shell syntax. This is the injection-safe boundary the
+     * org-create PVR (W-24161260) requires; do NOT reintroduce a single command string here.
      * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete).
      * `env` overrides/augments the child's environment (merged over `process.env` in childProcess).
      * `cwd` sets the child's working directory (omitted → node uses the extension-host process.cwd()); needed for
      * cwd-dependent flows like project-local `config set`/`project generate`/relative-manifest retrieves.
-     * `sf ` commands get an env assembled at exec time, lowest precedence first: `SF_LOG_LEVEL` +
+     * `sf` commands get an env assembled at exec time, lowest precedence first: `SF_LOG_LEVEL` +
      * `NODE_EXTRA_CA_CERTS` from settings, `SF_DISABLE_TELEMETRY` when telemetry is opted out, then
      * `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL`; the caller's `env` merges over all of it, so an
      * explicit override always wins. Every sf consumer therefore gets clean, color-free JSON stdout attributed
      * to these extensions, plus the user's CLI env, without repeating any of it. */
     const simpleExec = Effect.fn('TerminalService.simpleExec')(function* <A>({
-      command,
+      executable,
+      args,
       parse,
       timeout = Duration.millis(30_000),
       env,
       cwd
     }: {
-      command: string;
+      executable: string;
+      args: readonly string[];
       parse: (stdout: string) => A;
       timeout?: Duration.DurationInput;
       env?: Record<string, string>;
@@ -155,23 +162,24 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       // these extensions (same literal as TELEMETRY_HEADER, which the legacy cliCommandExecutor sets).
       // SF_DISABLE_TELEMETRY is injected only when telemetry is opted out, so re-enabling it mid-session works.
       // Caller env merges on top so an explicit override still wins.
-      const sfEnv = command.startsWith('sf ')
-        ? {
-            ...(yield* sfCliSettingsEnv()),
-            ...((yield* isTelemetryDisabled()) ? { SF_DISABLE_TELEMETRY: 'true' } : {}),
-            SF_JSON_TO_STDOUT: 'true',
-            FORCE_COLOR: '0',
-            SFDX_TOOL: 'salesforce-vscode-extensions'
-          }
-        : undefined;
+      const sfEnv =
+        executable === 'sf'
+          ? {
+              ...(yield* sfCliSettingsEnv()),
+              ...((yield* isTelemetryDisabled()) ? { SF_DISABLE_TELEMETRY: 'true' } : {}),
+              SF_JSON_TO_STDOUT: 'true',
+              FORCE_COLOR: '0',
+              SFDX_TOOL: 'salesforce-vscode-extensions'
+            }
+          : undefined;
       const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
       // annotate which env keys were set (keys only — never values, to avoid leaking secrets)
       if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
       const result = yield* Effect.tryPromise({
         // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
-        try: signal => childProcess.exec(command, { timeout: timeoutMs, signal, env: mergedEnv, cwd }),
-        // Never copy node's error.message: ExecException embeds the complete command. Rebuild a diagnostic
-        // from the low-cardinality result and stdout/stderr instead; sf JSON failures are written to stdout.
+        try: signal => childProcess.exec(executable, args, { timeout: timeoutMs, signal, env: mergedEnv, cwd }),
+        // Never copy node's error.message: it can embed the invocation. Rebuild a diagnostic from the
+        // low-cardinality result and stdout/stderr instead; sf JSON failures are written to stdout.
         catch: execFailure
       }).pipe(
         Effect.tap(execution =>

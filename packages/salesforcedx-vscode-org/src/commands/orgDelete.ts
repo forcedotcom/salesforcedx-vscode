@@ -51,19 +51,21 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   if (orgInfo.isScratch !== true && orgInfo.isSandbox !== true) {
     return yield* new OrgNotDeletableError({ message: nls.localize('org_delete_default_not_deletable') });
   }
-  const deleteSubcommand = orgInfo.isSandbox === true ? 'org delete sandbox' : 'org delete scratch';
+  const deleteKind = orgInfo.isSandbox === true ? 'sandbox' : 'scratch';
 
   // pass --target-org so the delete resolves the default org by username rather than depending on
   // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
-  const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
+  const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   const terminalService = yield* api.services.TerminalService;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, which aborts the
   // runtime AbortSignal simpleExec threads into exec, killing the long-running sf child.
+  // args passed as a discrete vector (no shell), so the username reaches sf verbatim.
   const output = yield* terminalService
     .simpleExec({
-      command: `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
+      executable: 'sf',
+      args: ['org', 'delete', deleteKind, ...targetOrgArgs, '--no-prompt'],
       parse: identity,
       timeout: DELETE_TIMEOUT
     })
@@ -111,8 +113,10 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
    * short-circuiting, so one failed org does not abort the rest. */
   const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(
     function* (org: OrgToDelete) {
+      // args passed as a discrete vector (no shell), so orgType/username reach sf verbatim.
       const output = yield* terminalService.simpleExec({
-        command: `sf org delete ${org.orgType} --target-org ${org.username} --no-prompt`,
+        executable: 'sf',
+        args: ['org', 'delete', org.orgType, '--target-org', org.username, '--no-prompt'],
         parse: identity,
         timeout: DELETE_TIMEOUT
       });

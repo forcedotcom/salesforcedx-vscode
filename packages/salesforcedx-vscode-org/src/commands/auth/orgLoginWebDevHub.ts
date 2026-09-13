@@ -35,13 +35,10 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
 
   const alias = yield* promptForAlias();
 
-  // quote alias so spaces/special chars don't split the shell command; validateAliasInput (in
-  // promptForAlias) already blocked shell metacharacters. simpleExec injects SF_JSON_TO_STDOUT +
-  // FORCE_COLOR=0 for the `sf ` prefix.
-  const command = `sf org login web --alias "${alias}" --set-default-dev-hub`;
-
+  // alias passed as a discrete argv element (no shell), so it reaches sf verbatim — no quoting needed and
+  // no shell interpretation possible. simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for `sf`.
   yield* executeOrgLoginWeb({
-    command,
+    args: ['org', 'login', 'web', '--alias', alias, '--set-default-dev-hub'],
     progressMessage: nls.localize('org_login_web_dev_hub_progress'),
     notificationCommand: COMMAND
   });

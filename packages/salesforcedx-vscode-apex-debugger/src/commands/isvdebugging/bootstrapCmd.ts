@@ -102,10 +102,13 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
   );
 };
 
-/** The forceide:// URL's `url`/`sessionId` values are interpolated into shell command strings (config set /
- * --target-org). A pasted URL is attacker-shapeable, and double-quote wrapping does NOT neutralize `$`, backtick,
- * `\`, `"` under /bin/sh, so reject any shell metacharacter here (parity with validateAliasInput's shell-safe
- * gate). Legitimate Salesforce session ids / login URLs never contain these. */
+/** The forceide:// URL's `url`/`sessionId` values flow into `sf` invocations (config set / --target-org). Those
+ * calls are shell-free (argv vector via cross-spawn, W-24161260), so shell metacharacters can NOT inject commands —
+ * that guarantee lives at the exec boundary, not here. This regex is defense-in-depth input hygiene: a pasted URL is
+ * attacker-shapeable, and rejecting these characters up front turns a malformed/hostile paste into an immediate
+ * "invalid forceide URL" instead of a puzzling downstream CLI failure. Legitimate Salesforce session ids / login
+ * URLs never contain them (`\s` is stricter than exec needs, but no real value has whitespace). Do NOT treat this as
+ * the shell-safety guard — never reintroduce a single command string upstream on the assumption this covers it. */
 const SHELL_UNSAFE = /[`$\\"'|&;<>()\s]/;
 
 const uriValidator = (value: string): string | undefined => {
@@ -223,8 +226,10 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   // No env here: simpleExec gathers NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY (plus
   // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf ` command at exec time, so corp-proxy CA certs
   // and CLI env reach these bootstrap children without being threaded through.
-  const runSf = (command: string, cwd: string) =>
-    terminalService.simpleExec({ command, parse: identity, cwd, timeout: CLI_TIMEOUT });
+  // args passed as a discrete vector (no shell), so projectName/paths/sessionId/loginUrl/package names reach
+  // sf verbatim — no quoting needed and no shell interpretation of embedded metacharacters possible (W-24161260).
+  const runSf = (args: readonly string[], cwd: string) =>
+    terminalService.simpleExec({ executable: 'sf', args, parse: identity, cwd, timeout: CLI_TIMEOUT });
 
   // Drive the whole bootstrap under a cancellable progress notification (each step reports its label). Cancel
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
@@ -241,21 +246,36 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       // 1: create project
       yield* report(nls.localize('isv_debug_bootstrap_create_project'));
       yield* runSf(
-        `sf project generate --name "${projectName}" --output-dir "${projectParentPath}" --template standard`,
+        ['project', 'generate', '--name', projectName, '--output-dir', projectParentPath, '--template', 'standard'],
         projectParentPath
       );
 
-      // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath)
+      // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath). `sf config set`
+      // takes each key=value as one token; passed as discrete argv elements so the values are never re-parsed.
       yield* report(nls.localize('isv_debug_bootstrap_configure_project'));
       yield* runSf(
-        `sf config set org-isv-debugger-sid="${sessionId}" org-isv-debugger-url="${loginUrl}" org-instance-url="${loginUrl}"`,
+        [
+          'config',
+          'set',
+          `org-isv-debugger-sid=${sessionId}`,
+          `org-isv-debugger-url=${loginUrl}`,
+          `org-instance-url=${loginUrl}`
+        ],
         projectPath
       );
 
       // 2b: update sfdx-project.json with namespace
       yield* report(nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace'));
       const orgNamespaceInfoResponseJson = yield* runSf(
-        `sf data query --query "SELECT NamespacePrefix FROM Organization LIMIT 1" --target-org "${sessionId}" --json`,
+        [
+          'data',
+          'query',
+          '--query',
+          'SELECT NamespacePrefix FROM Organization LIMIT 1',
+          '--target-org',
+          sessionId,
+          '--json'
+        ],
         projectPath
       );
       const salesforceProjectJson = yield* fs.readFile(salesforceProjectJsonUri);
@@ -275,14 +295,14 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       // 3b: retrieve unmanaged org source (--manifest is relative → resolvable at cwd=projectPath)
       yield* report(nls.localize('isv_debug_bootstrap_retrieve_org_source'));
       yield* runSf(
-        `sf project retrieve start --manifest "${relativeApexPackageXmlPath()}" --target-org "${sessionId}"`,
+        ['project', 'retrieve', 'start', '--manifest', relativeApexPackageXmlPath(), '--target-org', sessionId],
         projectPath
       );
 
       // 4: get list of installed packages
       yield* report(nls.localize('isv_debug_bootstrap_list_installed_packages'));
       const packageInfos = parsePackageInstalledListJson(
-        yield* runSf(`sf package installed list --target-org "${sessionId}" --json`, projectPath)
+        yield* runSf(['package', 'installed', 'list', '--target-org', sessionId, '--json'], projectPath)
       );
 
       // 5a: create directory where packages are to be retrieved (.sfdx/tools/installed-packages)
@@ -296,7 +316,20 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
             Effect.tap(() =>
               runSf(
                 // '.' in package name trims the folder name (salesforce.fth → salesforce), so replace it in zip-file-name
-                `sf project retrieve start --package-name "${packageInfo.name}" --target-org "${sessionId}" --target-metadata-dir "${relativeInstalledPackagesPath()}" --unzip --zip-file-name "${packageInfo.name.replaceAll('.', '-')}"`,
+                [
+                  'project',
+                  'retrieve',
+                  'start',
+                  '--package-name',
+                  packageInfo.name,
+                  '--target-org',
+                  sessionId,
+                  '--target-metadata-dir',
+                  relativeInstalledPackagesPath(),
+                  '--unzip',
+                  '--zip-file-name',
+                  packageInfo.name.replaceAll('.', '-')
+                ],
                 projectPath
               )
             )

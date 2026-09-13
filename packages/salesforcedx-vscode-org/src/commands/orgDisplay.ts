@@ -132,7 +132,7 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
  * degrading into an `OrgDisplayParseError` that would hide the real diagnostic.
  */
 const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
-  command: string,
+  args: readonly string[],
   notificationCommand: ProgressOnlyCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -142,7 +142,7 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   const progressLocation = yield* notificationMode.getProgressLocation(notificationCommand);
 
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity }).pipe(
+  yield* (yield* api.services.TerminalService).simpleExec({ executable: 'sf', args, parse: identity }).pipe(
     Effect.catchTag('TerminalServiceError', error =>
       identifyJsonTypeInString(error.message) === 'object' ? Effect.succeed(error.message) : error
     ),
@@ -179,12 +179,12 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
   // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
   // (simpleExec runs without a workspace cwd). orgOpen/orgDelete use the same pattern.
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  const targetOrgFlag = orgInfo.username ? ` --target-org "${orgInfo.username}"` : '';
+  const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   if (!orgInfo.username) {
     yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgDisplay' });
   }
 
-  yield* displayOrg(`sf org display${targetOrgFlag} --json`, COMMAND);
+  yield* displayOrg(['org', 'display', ...targetOrgArgs, '--json'], COMMAND);
 });
 
 /**
@@ -201,6 +201,6 @@ export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(
   // picker selection; UserCancellationError propagates to ErrorHandlerService (no error toast on Esc).
   const { username } = yield* gatherOrgForDisplay();
 
-  // quote the username: simpleExec runs the child via /bin/sh -c.
-  yield* displayOrg(`sf org display --target-org "${username}" --json`, COMMAND);
+  // username passed as a discrete argv element (no shell), so it reaches sf verbatim.
+  yield* displayOrg(['org', 'display', '--target-org', username, '--json'], COMMAND);
 });

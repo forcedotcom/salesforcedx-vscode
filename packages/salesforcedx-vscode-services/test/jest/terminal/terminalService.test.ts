@@ -41,9 +41,10 @@ const MockConfigServiceLayer = Layer.succeed(
   ConfigService.make({ isCliTelemetryDisabled: isCliTelemetryDisabledMock } as unknown as ConfigService)
 );
 
-// Swap the ChildProcess seam via the Effect layer instead of mocking node:child_process. This keeps
-// ts-jest on isolatedModules:true for the whole package (no commonjs downlevel needed for this suite).
-const withExec = (exec: (command: string, options: ExecOptions) => Promise<ExecResult>) =>
+// exec is now shell-free: (executable, args, options). Swap the ChildProcess seam via the Effect layer instead
+// of mocking node:child_process/cross-spawn. This keeps ts-jest on isolatedModules:true for the whole package.
+type ExecFn = (executable: string, args: readonly string[], options: ExecOptions) => Promise<ExecResult>;
+const withExec = (exec: ExecFn) =>
   TerminalService.DefaultWithoutDependencies.pipe(
     Layer.provide(
       Layer.mergeAll(
@@ -107,14 +108,14 @@ describe('TerminalService.simpleExec', () => {
   it('aborts the child signal when the fiber is interrupted', async () => {
     let capturedSignal: AbortSignal | undefined;
     // never resolves: the promise stays in flight until the runtime aborts the signal on interrupt
-    const exec = (_command: string, options: ExecOptions): Promise<ExecResult> => {
+    const exec: ExecFn = (_executable, _args, options) => {
       capturedSignal = options.signal;
       return new Promise<ExecResult>(() => {});
     };
 
     const fiber = Effect.runFork(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org delete', parse: s => s })),
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'delete'], parse: s => s })),
         Effect.provide(withExec(exec))
       )
     );
@@ -130,11 +131,11 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('trims stdout and passes it to parse on the happy path', async () => {
-    const exec = (): Promise<ExecResult> => Promise.resolve({ stdout: '  hello world  \n', stderr: '' });
+    const exec: ExecFn = () => Promise.resolve({ stdout: '  hello world  \n', stderr: '' });
     const parse = jest.fn((s: string) => s.toUpperCase());
 
     const result = await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse }))),
+      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse }))),
       withExec(exec)
     );
 
@@ -142,22 +143,24 @@ describe('TerminalService.simpleExec', () => {
     expect(result).toBe('HELLO WORLD');
   });
 
-  it('executes the original command without recording it in telemetry', async () => {
-    const command = 'sf org display --target-org user@example.com --json';
-    const exec = jest.fn<Promise<ExecResult>, [string, ExecOptions]>(() =>
+  it('executes with the executable + args separated (no shell string) without recording them in telemetry', async () => {
+    const executable = 'sf';
+    const args = ['org', 'display', '--target-org', 'user@example.com', '--json'];
+    const exec = jest.fn<Promise<ExecResult>, [string, readonly string[], ExecOptions]>(() =>
       Promise.resolve({ stdout: '{}', stderr: '' })
     );
     const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
 
     await TerminalService.pipe(
-      Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+      Effect.flatMap(terminal => terminal.simpleExec({ executable, args, parse: s => s })),
       Effect.withSpan('terminal-test'),
       Effect.provide(withExec(exec)),
       Effect.provide(recordingTracer(recordedSpans)),
       Effect.runPromise
     );
 
-    expect(exec).toHaveBeenCalledWith(command, expect.any(Object));
+    // the executable and its args reach the child SEPARATELY — never concatenated into a shell string
+    expect(exec).toHaveBeenCalledWith(executable, args, expect.any(Object));
     const attributes = recordedSpans.find(span => span.name === 'TerminalService.simpleExec')?.attributes;
     expect(attributes).toEqual(
       new Map<string, unknown>([
@@ -169,7 +172,7 @@ describe('TerminalService.simpleExec', () => {
         ['terminal.stderr.bytes', 0]
       ])
     );
-    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(command);
+    // neither the args nor the sensitive username leak into span attributes
     expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(
       'user@example.com'
     );
@@ -177,45 +180,53 @@ describe('TerminalService.simpleExec', () => {
 
   it('passes the timeout through to exec', async () => {
     let capturedOptions: ExecOptions | undefined;
-    const exec = (_command: string, options: ExecOptions): Promise<ExecResult> => {
+    const exec: ExecFn = (_executable, _args, options) => {
       capturedOptions = options;
       return Promise.resolve({ stdout: '', stderr: '' });
     };
 
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse: s => s }))
+      ),
       withExec(exec)
     );
 
     expect(capturedOptions?.timeout).toBe(30_000);
   });
 
-  // shared exec stub that captures the options simpleExec forwards to childProcess.exec
-  const capturingExec = (capture: { options?: ExecOptions }) => (_command: string, options: ExecOptions) => {
-    capture.options = options;
-    return Promise.resolve({ stdout: '', stderr: '' });
-  };
+  // shared exec stub that captures the executable/args/options simpleExec forwards to childProcess.exec
+  const capturingExec =
+    (capture: { executable?: string; args?: readonly string[]; options?: ExecOptions }): ExecFn =>
+    (executable, args, options) => {
+      capture.executable = executable;
+      capture.args = args;
+      capture.options = options;
+      return Promise.resolve({ stdout: '', stderr: '' });
+    };
 
   it('forwards a caller env unchanged and injects no sf env for a non-sf command', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
-          terminal.simpleExec({ command: 'java --version', parse: s => s, env: { FOO: 'bar' } })
+          terminal.simpleExec({ executable: 'java', args: ['--version'], parse: s => s, env: { FOO: 'bar' } })
         )
       ),
       withExec(capturingExec(capture))
     );
 
     // non-sf command: caller env passes through with no SF_JSON_TO_STDOUT/FORCE_COLOR/SFDX_TOOL injected. (The
-    // `{ ...process.env, ...env }` merge lives in resolveExecOptions, covered in childProcess.test.ts.)
+    // `{ ...process.env, ...env }` merge lives in resolveSpawnOptions, covered in childProcess.test.ts.)
     expect(capture.options?.env).toEqual({ FOO: 'bar' });
   });
 
   it('auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR + SFDX_TOOL + the default SF_LOG_LEVEL for sf commands', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -229,11 +240,29 @@ describe('TerminalService.simpleExec', () => {
     });
   });
 
+  it('injects the sf env based on the executable being `sf`, not an args prefix', async () => {
+    // a non-sf executable whose first arg happens to be 'sf' must NOT get the sf env
+    const capture: { executable?: string; options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({ executable: 'echo', args: ['sf', 'org', 'open'], parse: s => s })
+        )
+      ),
+      withExec(capturingExec(capture))
+    );
+
+    expect(capture.executable).toBe('echo');
+    expect(capture.options?.env).toBeUndefined();
+  });
+
   it('passes the configured SF_LOG_LEVEL through', async () => {
     settings.values['salesforcedx-vscode-core.SF_LOG_LEVEL'] = 'debug';
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -244,7 +273,9 @@ describe('TerminalService.simpleExec', () => {
     settings.values['salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS'] = '/certs/from-setting.pem';
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -255,7 +286,9 @@ describe('TerminalService.simpleExec', () => {
     process.env.NODE_EXTRA_CA_CERTS = '/certs/from-env.pem';
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -265,7 +298,9 @@ describe('TerminalService.simpleExec', () => {
   it('omits NODE_EXTRA_CA_CERTS when neither the setting nor the env var is set', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -277,7 +312,9 @@ describe('TerminalService.simpleExec', () => {
     settings.values['telemetry.telemetryLevel'] = 'off';
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -290,7 +327,9 @@ describe('TerminalService.simpleExec', () => {
     settings.values['salesforcedx-vscode-core.telemetry.enabled'] = false;
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -301,7 +340,9 @@ describe('TerminalService.simpleExec', () => {
     cliTelemetry.disabled = true;
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -311,7 +352,9 @@ describe('TerminalService.simpleExec', () => {
   it('omits SF_DISABLE_TELEMETRY when every telemetry switch allows it', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -323,7 +366,9 @@ describe('TerminalService.simpleExec', () => {
     cliTelemetry.fail = true;
     const capture: { options?: ExecOptions } = {};
     const result = await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -335,7 +380,9 @@ describe('TerminalService.simpleExec', () => {
     settings.fail = true;
     const capture: { options?: ExecOptions } = {};
     const result = await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -353,7 +400,12 @@ describe('TerminalService.simpleExec', () => {
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
-          terminal.simpleExec({ command: 'sf org open', parse: s => s, env: { FORCE_COLOR: '1', EXTRA: 'x' } })
+          terminal.simpleExec({
+            executable: 'sf',
+            args: ['org', 'open'],
+            parse: s => s,
+            env: { FORCE_COLOR: '1', EXTRA: 'x' }
+          })
         )
       ),
       withExec(capturingExec(capture))
@@ -375,7 +427,12 @@ describe('TerminalService.simpleExec', () => {
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
-          terminal.simpleExec({ command: 'sf org open', parse: s => s, env: { SF_LOG_LEVEL: 'trace' } })
+          terminal.simpleExec({
+            executable: 'sf',
+            args: ['org', 'open'],
+            parse: s => s,
+            env: { SF_LOG_LEVEL: 'trace' }
+          })
         )
       ),
       withExec(capturingExec(capture))
@@ -388,7 +445,7 @@ describe('TerminalService.simpleExec', () => {
     const capture: { options?: ExecOptions } = {};
     await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'java --version', parse: s => s }))
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'java', args: ['--version'], parse: s => s }))
       ),
       withExec(capturingExec(capture))
     );
@@ -404,7 +461,7 @@ describe('TerminalService.simpleExec', () => {
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
-          terminal.simpleExec({ command: 'sf project generate', parse: s => s, cwd: '/tmp/project' })
+          terminal.simpleExec({ executable: 'sf', args: ['project', 'generate'], parse: s => s, cwd: '/tmp/project' })
         )
       ),
       withExec(capturingExec(capture))
@@ -416,7 +473,9 @@ describe('TerminalService.simpleExec', () => {
   it('omits cwd from the child exec when not set', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
-      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s }))),
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse: s => s }))
+      ),
       withExec(capturingExec(capture))
     );
 
@@ -426,15 +485,18 @@ describe('TerminalService.simpleExec', () => {
   it('preserves exec-rejection stdout in the error message (sf --json errors land on stdout)', async () => {
     // `sf --json` writes its PortInUseError payload to stdout, so the reconstructed message must
     // carry stdout for callers to detect while excluding node's command-bearing error message.
-    const rejection = Object.assign(new Error('Command failed: sf org login web --json\n'), {
+    const rejection = Object.assign(new Error('Command failed with exit code 1\n'), {
+      code: 1,
       stdout: '{"name":"PortInUseError","message":"local port 1717 is already in use"}',
       stderr: ''
     });
-    const exec = (): Promise<ExecResult> => Promise.reject(rejection);
+    const exec: ExecFn = () => Promise.reject(rejection);
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org login web --json', parse: s => s })),
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({ executable: 'sf', args: ['org', 'login', 'web', '--json'], parse: s => s })
+        ),
         Effect.flip
       ),
       withExec(exec)
@@ -445,15 +507,16 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('includes stdout once when node also copied it into its ignored error message', async () => {
-    const rejection = Object.assign(new Error('Command failed: sf foo\nboom on stdout'), {
+    const rejection = Object.assign(new Error('Command failed with exit code 1\nboom on stdout'), {
+      code: 1,
       stdout: 'boom on stdout',
       stderr: ''
     });
-    const exec = (): Promise<ExecResult> => Promise.reject(rejection);
+    const exec: ExecFn = () => Promise.reject(rejection);
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s })),
+        Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse: s => s })),
         Effect.flip
       ),
       withExec(exec)
@@ -462,38 +525,38 @@ describe('TerminalService.simpleExec', () => {
     expect(error.message.match(/boom on stdout/g) ?? []).toHaveLength(1);
   });
 
-  it('omits the command from the typed exec failure while executing the original command', async () => {
-    const command = 'sf org display --target-org user@example.com --json';
-    const exec = jest.fn<Promise<ExecResult>, [string, ExecOptions]>(() =>
-      Promise.reject(new Error(`Command failed: ${command}\n`))
+  it('omits the invocation from the typed exec failure while executing the executable + args', async () => {
+    const executable = 'sf';
+    const args = ['org', 'display', '--target-org', 'user@example.com', '--json'];
+    const exec = jest.fn<Promise<ExecResult>, [string, readonly string[], ExecOptions]>(() =>
+      Promise.reject(Object.assign(new Error('Command failed with exit code 1\n'), { code: 1, stdout: '', stderr: '' }))
     );
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+        Effect.flatMap(terminal => terminal.simpleExec({ executable, args, parse: s => s })),
         Effect.flip
       ),
       withExec(exec)
     );
 
-    expect(exec).toHaveBeenCalledWith(command, expect.any(Object));
+    expect(exec).toHaveBeenCalledWith(executable, args, expect.any(Object));
     expect('command' in error).toBe(false);
-    expect(error.message).toBe('Command failed');
+    expect(error.message).toContain('Command failed');
     expect(error.message).not.toContain('user@example.com');
   });
 
   it('records only outcome metadata when exec fails', async () => {
-    const command = 'sf org display --target-org user@example.com --json';
-    const rejection = Object.assign(new Error(`Command failed: ${command}`), {
+    const args = ['org', 'display', '--target-org', 'user@example.com', '--json'];
+    const rejection = Object.assign(new Error('Command failed with exit code 1'), {
       code: 1,
       stdout: 'failure',
-      stderr: 'warning',
-      cmd: command
+      stderr: 'warning'
     });
     const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
 
     await TerminalService.pipe(
-      Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+      Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args, parse: s => s })),
       Effect.flip,
       Effect.withSpan('terminal-test'),
       Effect.provide(withExec(() => Promise.reject(rejection))),
@@ -506,7 +569,6 @@ describe('TerminalService.simpleExec', () => {
     expect(attributes?.get('error.type')).toBe('nonzero_exit');
     expect(attributes?.get('terminal.stdout.bytes')).toBe(7);
     expect(attributes?.get('terminal.stderr.bytes')).toBe(7);
-    expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(command);
     expect(JSON.stringify(recordedSpans.map(span => Object.fromEntries(span.attributes)))).not.toContain(
       'user@example.com'
     );
@@ -514,12 +576,17 @@ describe('TerminalService.simpleExec', () => {
 
   it('fails with TerminalServiceError on web', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
-    const exec = (): Promise<ExecResult> => Promise.reject(new Error('should not be called on web'));
-    const command = 'sf org display --target-org my-org --json';
+    const exec: ExecFn = () => Promise.reject(new Error('should not be called on web'));
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command, parse: s => s })),
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({
+            executable: 'sf',
+            args: ['org', 'display', '--target-org', 'my-org', '--json'],
+            parse: s => s
+          })
+        ),
         Effect.flip
       ),
       withExec(exec)

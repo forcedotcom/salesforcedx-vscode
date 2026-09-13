@@ -98,7 +98,8 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
   // absolute fsPath, NOT a workspace-relative path: simpleExec runs the sf child with no cwd (it inherits the
   // extension-host process.cwd(), not the workspace root), so a relative --definition-file would not resolve.
-  // double-quote it (at the call site) so paths containing spaces survive shell word-splitting.
+  // Passed as a discrete argv element (never a shell string), so a path with spaces OR shell metacharacters is
+  // handed to sf verbatim — no quoting/escaping needed and no shell interpretation possible (W-24161260).
   const defFilePath = selection.description;
 
   // alias default = sanitized workspace folder name (or DEFAULT_ALIAS), pre-filled as the input `value`
@@ -159,11 +160,27 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
-  // quote alias: validateInput (isValidOrgAlias) permits embedded spaces, and childProcess.exec runs
-  // via /bin/sh -c, so an unquoted `--alias my org` would word-split. Validated days contain no shell metachars.
-  const command = `sf org create scratch --definition-file "${defFilePath}" --alias "${alias}" --duration-days ${days} --set-default --json`;
+  // args are passed as a discrete vector (no shell): defFilePath/alias/days reach sf verbatim, so an
+  // embedded space or shell metacharacter is a literal argument, never interpreted (W-24161260).
   const stdout = yield* terminalService
-    .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
+    .simpleExec({
+      executable: 'sf',
+      args: [
+        'org',
+        'create',
+        'scratch',
+        '--definition-file',
+        defFilePath,
+        '--alias',
+        alias,
+        '--duration-days',
+        days,
+        '--set-default',
+        '--json'
+      ],
+      parse: identity,
+      timeout: CREATE_TIMEOUT
+    })
     .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress'), progressLocation));
 
   const response = yield* decodeOrgCreateResponse(stdout);

@@ -72,15 +72,17 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
   // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
   // (simpleExec runs without a workspace cwd). orgDelete uses the same pattern.
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
+  const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   if (!orgInfo.username) {
     yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgOpen' });
   }
 
   const terminalService = yield* api.services.TerminalService;
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
+  // args passed as a discrete vector (no shell), so the username reaches sf verbatim.
   const stdout = yield* terminalService.simpleExec({
-    command: `sf org open --url-only --json${targetOrgFlag}`,
+    executable: 'sf',
+    args: ['org', 'open', '--url-only', '--json', ...targetOrgArgs],
     parse: identity
   });
   const response = yield* decodeOrgOpenResponse(stdout);

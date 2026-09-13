@@ -31,7 +31,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * Show Output action; all other TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */
 export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (params: {
-  readonly command: string;
+  readonly args: readonly string[];
   readonly progressMessage: string;
   readonly notificationCommand: ProgressOnlyCommandKey;
 }) {
@@ -71,7 +71,7 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
   const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
 
   yield* (yield* api.services.TerminalService)
-    .simpleExec({ command: params.command, parse: identity, timeout: LOGIN_TIMEOUT })
+    .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
       (yield* api.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
       Effect.flatMap(handleSuccess),

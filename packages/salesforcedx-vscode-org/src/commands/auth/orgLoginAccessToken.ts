@@ -23,9 +23,21 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
   // a project is required so the authorized org can become its default (--set-default below).
   yield* api.services.ProjectService.getSfProject();
 
-  // args regex-validated at the prompt (reject shell metachars) AND double-quoted → exec injection-safe
+  // instanceUrl/alias passed as discrete argv elements (no shell), so they reach sf verbatim — no shell
+  // interpretation possible. Token rides SF_ACCESS_TOKEN env (never argv/span/history).
   const output = yield* (yield* api.services.TerminalService).simpleExec({
-    command: `sf org login access-token --instance-url "${instanceUrl}" --alias "${alias}" --set-default --no-prompt`,
+    executable: 'sf',
+    args: [
+      'org',
+      'login',
+      'access-token',
+      '--instance-url',
+      instanceUrl,
+      '--alias',
+      alias,
+      '--set-default',
+      '--no-prompt'
+    ],
     parse: identity,
     env: { SF_ACCESS_TOKEN: accessToken }
   });

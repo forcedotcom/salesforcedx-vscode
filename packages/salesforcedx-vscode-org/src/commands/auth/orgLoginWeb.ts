@@ -34,13 +34,10 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
 
   const { alias, loginUrl } = yield* gatherAuthParams({ instanceUrl, reauthAliasOrUsername });
 
-  // quote alias + url so spaces/special chars in the alias don't split the shell command. Note: double
-  // quotes do NOT neutralize $, backticks, or an embedded " under /bin/sh -c; real-world risk is low
-  // (alias is locally user-typed, loginUrl is validateUrl-checked) but this is not full shell escaping.
-  const command = `sf org login web --alias "${alias}" --instance-url "${loginUrl}" --set-default --json`;
-
+  // alias + url passed as discrete argv elements (no shell), so they reach sf verbatim — no quoting or
+  // escaping needed and no shell interpretation of $, backticks, or quotes is possible (W-24161260).
   yield* executeOrgLoginWeb({
-    command,
+    args: ['org', 'login', 'web', '--alias', alias, '--instance-url', loginUrl, '--set-default', '--json'],
     progressMessage: nls.localize('org_login_web_progress'),
     notificationCommand: COMMAND
   });

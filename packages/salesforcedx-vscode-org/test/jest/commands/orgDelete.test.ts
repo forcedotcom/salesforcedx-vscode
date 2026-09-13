@@ -88,7 +88,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete scratch --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -103,7 +104,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete sandbox --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -115,7 +117,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete scratch --target-org me@scratch.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'me@scratch.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -223,12 +226,14 @@ describe('orgDeleteUsernameCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenNthCalledWith(1, {
-      command: 'sf org delete scratch --target-org a@scratch.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'a@scratch.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
     expect(simpleExec).toHaveBeenNthCalledWith(2, {
-      command: 'sf org delete sandbox --target-org b@sandbox.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--target-org', 'b@sandbox.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -239,8 +244,8 @@ describe('orgDeleteUsernameCommand', () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
     // org-1 fails the way the real service does: childProcess.exec rejects on non-zero exit, wrapped in
     // Effect.tryPromise -> TerminalServiceError. A bare simpleExec loop would short-circuit here and never run org-2.
-    const simpleExec = jest.fn((args: { command: string }) =>
-      args.command.includes('a@scratch.org')
+    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org')
         ? Effect.tryPromise({
             try: () => Promise.reject(new Error('Command failed: non-zero exit')),
             catch: e =>
@@ -257,7 +262,7 @@ describe('orgDeleteUsernameCommand', () => {
     expect(simpleExec).toHaveBeenCalledTimes(2);
     expect(simpleExec).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ command: expect.stringContaining('b@sandbox.org') })
+      expect.objectContaining({ args: expect.arrayContaining(['b@sandbox.org']) })
     );
     // failure line for org-1
     expect(appendToChannel).toHaveBeenCalledWith(
@@ -276,8 +281,8 @@ describe('orgDeleteUsernameCommand', () => {
     // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
     // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
     // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)
-    const simpleExec = jest.fn((args: { command: string }) =>
-      args.command.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
+    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
     );
 
     const exit = await runUsername(simpleExec);
