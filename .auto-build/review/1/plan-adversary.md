@@ -1,0 +1,3 @@
+status: invalid
+why: The implementation only changes the package manifest version from 67.17.11 to 67.17.12; it does not publish `@salesforce/vscode-services`.
+- **medium — Unplanned public-package version change.** The only non-plan change publishes `@salesforce/vscode-services` as `67.17.12` (`packages/salesforcedx-vscode-services-types/package.json:2-4`), and that package is explicitly public (`packages/salesforcedx-vscode-services-types/package.json:28-30`). No phase authorizes a release/version bump; the plan limits manifest work to dependencies exposed by pnpm (plan:21-28) and release automation changes to pnpm lockfile handling (plan:38-45). Remove the version bump from this work item, or add a release rationale, versioning scope, and publish verification.

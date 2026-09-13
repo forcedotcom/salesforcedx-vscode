@@ -8,21 +8,9 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { ExtensionContext } from 'vscode';
 import { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 import { ExtensionProviderService, getServicesApi } from './extensionProvider';
-
-type Services = SalesforceVSCodeServicesApi['services'];
-type AllServicesLayer = Layer.Layer<
-  | Layer.Layer.Success<Services['prebuiltServicesLayer']>
-  | Layer.Layer.Success<ReturnType<Services['ExtensionContextServiceLayer']>>
-  | Layer.Layer.Success<ReturnType<Services['SdkLayerFor']>>
-  | Layer.Layer.Success<ReturnType<Services['ChannelServiceLayer']>>
-  | Layer.Layer.Success<Services['ErrorHandlerService']['Default']>
-  | ExtensionProviderService,
-  Effect.Effect.Error<typeof getServicesApi>
->;
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -36,7 +24,7 @@ const ExtensionProviderServiceLive = Layer.effect(
  * @param context the calling extension's ExtensionContext
  * @param fallbackDisplayName channel name to use if the extension's package.json has no `displayName`
  */
-export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string): AllServicesLayer =>
+export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
