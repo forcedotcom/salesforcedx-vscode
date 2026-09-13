@@ -9,7 +9,7 @@ import { code2ProtocolConverter } from '@salesforce/effect-ext-utils';
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { RelativePattern, workspace } from 'vscode';
 import type { DocumentSelector } from 'vscode-languageclient';
-import { URI, Utils } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 
 /** Languages supported by the LWC language server. */
 const LWC_DOCUMENT_SELECTOR_LANGUAGES = ['html', 'javascript', 'typescript', 'json', 'xml'] as const;
@@ -23,21 +23,18 @@ export const buildDocumentSelector = (schemes: string[]): DocumentSelector =>
 /**
  * File system watchers to synchronize with the LWC language server.
  *
- * When packageDirectories are provided, watchers are scoped to only those directories
+ * When package directory URIs are provided, watchers are scoped to only those directories
  * to avoid scanning the entire workspace (including node_modules, .git, etc.).
+ * Each URI is already a complete watcher base, so this does not depend on workspace.workspaceFolders.
  * Falls back to ** patterns if no package directories are available.
  *
- * @param packageDirectories - Array of package directory paths from sfdx-project.json (e.g., ['force-app', 'utils'])
+ * @param packageDirectoryUris - Package directories from sfdx-project.json.
  */
-const getSynchronizeFileEvents = (packageDirectories?: string[]) => {
-  const workspaceRoot = workspace.workspaceFolders?.[0];
-
+const getSynchronizeFileEvents = (packageDirectoryUris?: URI[]) => {
   // If we have package directories, scope watchers to only those paths for better performance
-  if (packageDirectories && packageDirectories.length > 0 && workspaceRoot) {
-    return packageDirectories.flatMap(pkgDir => {
-      const computedPackageUri = Utils.joinPath(workspaceRoot.uri, ...pkgDir.split(/[\\/]+/));
-      const packageUri = workspaceRoot.uri.with({ path: computedPackageUri.path });
-      const relativePattern = (pattern: string): RelativePattern => new RelativePattern(packageUri, pattern);
+  if (packageDirectoryUris?.length) {
+    return packageDirectoryUris.flatMap(packageDirectoryUri => {
+      const relativePattern = (pattern: string): RelativePattern => new RelativePattern(packageDirectoryUri, pattern);
 
       return [
         workspace.createFileSystemWatcher(relativePattern('**/*.resource')),
@@ -83,10 +80,10 @@ export type LwcInitializationOptions = {
 /** Shared language client options. Override documentSelector (and add outputChannel etc.) in node/web. */
 export const getBaseClientOptions = (
   initializationOptions: LwcInitializationOptions,
-  packageDirectories?: string[]
+  packageDirectoryUris?: URI[]
 ) => ({
   synchronize: {
-    fileEvents: getSynchronizeFileEvents(packageDirectories)
+    fileEvents: getSynchronizeFileEvents(packageDirectoryUris)
   },
   initializationOptions,
   uriConverters: sharedUriConverters
