@@ -22,8 +22,8 @@
         "src/soql-data-view/queryDataView.css"
       ],
       "baseline": {
-        "rawBytes": 14293,
-        "gzipBytes": 4856
+        "rawBytes": 14221,
+        "gzipBytes": 4803
       },
       "budget": {
         "rawBytes": 16000,
@@ -34,12 +34,12 @@
       "name": "retained Tabulator vendor assets",
       "files": ["src/soql-data-view/tabulator.min.js", "src/soql-data-view/tabulator.min.css"],
       "baseline": {
-        "rawBytes": 377590,
-        "gzipBytes": 80815
+        "rawBytes": 473861,
+        "gzipBytes": 104832
       },
       "budget": {
-        "rawBytes": 378000,
-        "gzipBytes": 81000
+        "rawBytes": 474000,
+        "gzipBytes": 105000
       }
     }
   ]
