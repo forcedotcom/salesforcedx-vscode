@@ -9,6 +9,7 @@
 
 import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { ConnectionService } from '../core/connectionService';
@@ -104,10 +105,12 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       // still observing that announcement. Re-acquiring the connection both restores defaultOrgRef
       // and gives the catalog the authoritative org id without requiring a prior metadata operation.
       const connection = yield* connectionService.getConnection();
-      const connectionOrgId = connection.getAuthInfoFields().orgId;
-      if (connectionOrgId) return connectionOrgId;
-
-      return yield* Effect.fail(vscode.FileSystemError.Unavailable('No default org is configured'));
+      return yield* Effect.succeed(connection.getAuthInfoFields().orgId).pipe(
+        Effect.filterOrFail(
+          (connectionOrgId): connectionOrgId is string => isNotUndefined(connectionOrgId) && connectionOrgId.length > 0,
+          () => vscode.FileSystemError.Unavailable('No default org is configured')
+        )
+      );
     });
 
     const resolveComponents = Effect.fn('OrgMetadataCatalog.resolveComponents')(function* (

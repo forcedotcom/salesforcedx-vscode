@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import type { ExtensionContext } from 'vscode';
 import { ExtensionContextNotAvailableError } from './extensionContextErrors';
 
@@ -13,9 +14,12 @@ import { ExtensionContextNotAvailableError } from './extensionContextErrors';
 let extensionContext: ExtensionContext | undefined;
 
 export const getExtensionContext = () =>
-  extensionContext
-    ? Effect.succeed(extensionContext)
-    : Effect.fail(new ExtensionContextNotAvailableError({ message: 'Extension context is not available' }));
+  Effect.succeed(extensionContext).pipe(
+    Effect.filterOrFail(
+      isNotUndefined,
+      () => new ExtensionContextNotAvailableError({ message: 'Extension context is not available' })
+    )
+  );
 
 // set the extension context for use OUTSIDE of the activate fn
 export const setExtensionContext = (context: ExtensionContext) => {

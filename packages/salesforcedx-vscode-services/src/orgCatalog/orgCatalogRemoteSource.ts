@@ -10,6 +10,7 @@ import type {
   OrgMetadataConsistency
 } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
@@ -49,6 +50,15 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       ]);
     const materializeSemaphore = yield* Effect.makeSemaphore(1);
 
+    const getEntryInOrg = (orgId: string, reference: OrgMetadataComponentReference) =>
+      inventories.getEntry(orgId, reference).pipe(
+        Effect.filterOrFail(
+          (candidateEntry): candidateEntry is OrgMetadataCatalogEntry =>
+            isNotUndefined(candidateEntry) && candidateEntry.inOrg,
+          () => vscode.FileSystemError.FileNotFound(`${reference.xmlName}:${reference.fullName}`)
+        )
+      );
+
     const fetchApexClass = Effect.fn('OrgCatalogRemoteSource.fetchApexClass')(function* (
       orgId: string,
       reference: OrgMetadataComponentReference
@@ -71,29 +81,31 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
         }
       });
       const record = result.records[0];
-      const body = record?.Body;
-      if (body?.includes('(hidden)')) {
+      const body = yield* Effect.succeed(record?.Body).pipe(
+        Effect.filterOrFail(
+          (candidateBody): candidateBody is string => isNotUndefined(candidateBody) && candidateBody.length > 0,
+          () =>
+            new OrgMetadataCatalogError({
+              cause: new Error('Apex class body was not returned'),
+              message: `Apex class '${reference.fullName}' has no readable source body`,
+              reference
+            })
+        )
+      );
+      if (body.includes('(hidden)')) {
         return {
           content: `// Source code for managed class '${reference.fullName}' is protected.`,
           lastModifiedDate: record?.LastModifiedDate
         };
       }
-      if (body) return { content: body, lastModifiedDate: record?.LastModifiedDate };
-      return yield* new OrgMetadataCatalogError({
-        cause: new Error('Apex class body was not returned'),
-        message: `Apex class '${reference.fullName}' has no readable source body`,
-        reference
-      });
+      return { content: body, lastModifiedDate: record?.LastModifiedDate };
     });
 
     const materializePrimaryDocument = Effect.fn('OrgCatalogRemoteSource.materializePrimaryDocument')(function* (
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const entry = yield* inventories.getEntry(orgId, reference);
-      if (!entry?.inOrg) {
-        return yield* Effect.fail(vscode.FileSystemError.FileNotFound(`${reference.xmlName}:${reference.fullName}`));
-      }
+      const entry = yield* getEntryInOrg(orgId, reference);
       const cached = yield* shadowStore.get(orgId, reference, entry.lastModifiedDate);
       if (cached) return cached;
       if (reference.xmlName !== 'ApexClass') {
@@ -121,16 +133,14 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
             remoteLastModifiedDate: shadowRevision
           })
         ),
-        Effect.flatMap(artifact =>
-          artifact
-            ? Effect.succeed(artifact)
-            : Effect.fail(
-                new OrgMetadataCatalogError({
-                  cause: new Error('Published shadow artifact could not be resolved'),
-                  message: `Failed to publish Apex class '${reference.fullName}'`,
-                  reference
-                })
-              )
+        Effect.filterOrFail(
+          isNotUndefined,
+          () =>
+            new OrgMetadataCatalogError({
+              cause: new Error('Published shadow artifact could not be resolved'),
+              message: `Failed to publish Apex class '${reference.fullName}'`,
+              reference
+            })
         ),
         Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
       );
@@ -161,12 +171,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                   (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
                   reference
                 );
-                const entry = forceRefresh ? loadedEntry : yield* inventories.getEntry(orgId, reference);
-                if (!forceRefresh && !entry?.inOrg) {
-                  return yield* Effect.fail(
-                    vscode.FileSystemError.FileNotFound(`${reference.xmlName}:${reference.fullName}`)
-                  );
-                }
+                const entry = forceRefresh ? loadedEntry : yield* getEntryInOrg(orgId, reference);
                 const artifact = forceRefresh
                   ? undefined
                   : yield* shadowStore.get(orgId, reference, entry?.lastModifiedDate);
