@@ -63,20 +63,22 @@ jobs:
         run: git checkout "$RELEASE_TAG"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Install dependencies for hotfix commit
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Run tests for hotfix commit
         env:
           NODE_OPTIONS: --max-old-space-size=8192
           WIREIT_PARALLEL: 1
         run: |
-          npm run compile
-          npm run test
+          pnpm compile
+          pnpm test
 
   ctc-open:
     needs: [prepare-release-metadata]
@@ -104,6 +106,7 @@ jobs:
       PUBLISH_VERSION: ${{ needs.prepare-release-metadata.outputs.RELEASE_VERSION }}
       RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
     steps:
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
@@ -127,7 +130,7 @@ jobs:
           while :; do
             still=()
             for id in "${pending[@]}"; do
-              if npx ovsx get "$id" --metadata -v "$PUBLISH_VERSION" >/dev/null 2>&1; then
+              if pnpm dlx ovsx@0.10.12 get "$id" --metadata -v "$PUBLISH_VERSION" >/dev/null 2>&1; then
                 echo "confirmed $id@$PUBLISH_VERSION"
               else
                 still+=("$id")

@@ -28,11 +28,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: lts/*
+          install: 'false'
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
       - name: Validate issue
         id: validate-issue
         uses: ./.github/actions/validate-issue
@@ -44,11 +45,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: lts/*
+          install: 'false'
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -62,11 +64,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: lts/*
+          install: 'false'
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -87,11 +90,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: lts/*
+          install: 'false'
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue

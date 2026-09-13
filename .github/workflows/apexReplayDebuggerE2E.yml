@@ -84,7 +84,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger
+          ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-replay-debugger test:desktop
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -108,7 +108,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Generate minimal project
@@ -132,7 +132,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger
+          ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-replay-debugger test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -143,7 +143,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --last-failed
+          ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-replay-debugger test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

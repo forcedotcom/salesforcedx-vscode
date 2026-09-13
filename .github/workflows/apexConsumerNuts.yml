@@ -36,16 +36,14 @@ jobs:
       - name: Checkout monorepo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: 'lts/*'
-          cache: 'npm'
 
-      - name: Install and build apex library
+      - name: Build apex library
         run: |
-          npm ci
-          npm run compile -w packages/salesforcedx-apex
+          pnpm --filter @salesforce/apex-node compile
           # Stamp this commit's SHA into the built output so the consumer can
           # prove it resolved THIS branch's tarball (see "Verify" step below).
           # out/src is the package's `files` allowlist, so the marker is packed.
@@ -53,9 +51,12 @@ jobs:
 
       - name: Pack apex library tarball
         run: |
-          # npm pack -w writes the tarball to the root cwd (not the package dir)
-          TGZ=$(npm pack -w packages/salesforcedx-apex --silent)
-          echo "TGZ=$(pwd)/$TGZ" >> "$GITHUB_ENV"
+          PACK_DIR="$RUNNER_TEMP/apex-consumer-nuts"
+          mkdir -p "$PACK_DIR"
+          pnpm --filter @salesforce/apex-node pack --pack-destination "$PACK_DIR" --silent
+          TGZ=$(find "$PACK_DIR" -maxdepth 1 -type f -name '*.tgz' -print -quit)
+          test -n "$TGZ"
+          echo "TGZ=$TGZ" >> "$GITHUB_ENV"
 
       - name: Install Salesforce CLI
         uses: salesforcecli/github-workflows/.github/actions/retry@main

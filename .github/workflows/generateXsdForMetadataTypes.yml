@@ -19,26 +19,27 @@ jobs:
           ref: ${{ github.event.ref }}
 
       - name: Setup node
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: 'lts/*'
-          cache: npm
+          install: 'false'
 
       - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Scrape all metadata pages
-        run: npm run scrape:all:pages
+        run: pnpm scrape:all:pages
 
       - name: Convert JSON to XSD
-        run: npm run convert:json:to:xsd
+        run: pnpm convert:json:to:xsd
 
       - name: Validate XSD
-        run: npm run validate:xsd
+        run: pnpm validate:xsd
         continue-on-error: true
 
       - name: Fix XSD errors
-        run: npm run fix:xsd:errors
+        run: pnpm fix:xsd:errors
 
       - name: Upload JSON artifact
         uses: actions/upload-artifact@v4

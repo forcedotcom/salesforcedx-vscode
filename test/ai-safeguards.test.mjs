@@ -238,7 +238,7 @@ test('completion verification runs checks in order', () => {
   const { calls, run } = fakeRun(Array.from({ length: 8 }, () => ({ ok: true, output: '' })));
   assert.equal(verifyCompletion({ root: '/tmp', run }).ok, true);
   assert.deepEqual(
-    calls.filter(call => call.command === 'npm').map(call => call.args[1]),
+    calls.filter(call => call.command === 'pnpm').map(call => call.args[0]),
     ['compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
   );
 });
@@ -253,7 +253,7 @@ test('async verification awaits nonblocking runners in order', async () => {
   assert.equal((await verifyEditAsync({ root: '/tmp', files: [], run })).ok, true);
   assert.equal((await verifyCompletionAsync({ root: '/tmp', run })).ok, true);
   assert.deepEqual(
-    calls.filter(call => call.command === 'npm').map(call => call.args[1]),
+    calls.filter(call => call.command === 'pnpm').map(call => call.args[0]),
     ['compile', 'compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
   );
 });

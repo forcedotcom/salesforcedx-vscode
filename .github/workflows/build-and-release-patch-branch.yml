@@ -45,9 +45,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Calculate patch version
         id: calculate-version
@@ -118,15 +119,16 @@ jobs:
       - name: Update package versions
         run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
 
-      - name: Update package-lock.json
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+      - name: Install dependencies from updated pnpm-lock.yaml
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Commit version updates
         env:
           VERSION: ${{ steps.calculate-version.outputs.version }}
           RELEASE_BRANCH: ${{ github.event.inputs.releaseBranch }}
         run: |
-          git add packages/*/package.json package-lock.json
+          git add packages/*/package.json pnpm-lock.yaml
           git commit -m "chore: bump versions for patch release v${VERSION}"
           git push origin "$RELEASE_BRANCH"
 
@@ -138,14 +140,14 @@ jobs:
           git push origin "$TAG"
 
       - name: Build VSIXs
-        run: npm run vscode:package
+        run: pnpm vscode:package
 
       - name: Collect VSIXs
         uses: salesforcecli/github-workflows/.github/actions/collect-vsix@main
 
       - name: Generate SHA256 checksums
         run: |
-          npm run vscode:sha256
+          pnpm vscode:sha256
           scripts/concatenate-sha256.js
           rm ./SHA256
 

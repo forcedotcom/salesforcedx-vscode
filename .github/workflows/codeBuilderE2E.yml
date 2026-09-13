@@ -6,7 +6,7 @@ name: Code Builder E2E (Playwright)
 # identical regardless of host OS, and containers are Linux (plan §10.3).
 #
 # This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.ts, run via
-# `npm run test:container:local`) rather than re-implementing the pull → swap → restart → gate →
+# `pnpm test:container:local`) rather than re-implementing the pull → swap → restart → gate →
 # specs pipeline — the orchestrator is the local twin of this job, so the two cannot drift (plan
 # §9.1 "WF drives ORCH", §15). CI does the ghcr `docker login` (its GITHUB_TOKEN) and dev-hub auth;
 # CB_SKIP_GHCR_LOGIN tells the orchestrator to use that ambient docker auth instead of gh/CR_PAT.
@@ -85,16 +85,17 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: '22.22.3'
-          cache: 'npm'
+          install: 'false'
 
       - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Install Salesforce CLI
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
@@ -106,7 +107,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       # Pull the private CB image with this repo's built-in GITHUB_TOKEN — the package's Manage
@@ -133,7 +134,7 @@ jobs:
       # scratch org, run + seed + swap + restart + verify gate, then run the container specs and tear
       # the container down. Same pipeline a developer runs locally.
       - name: Run Code Builder E2E (orchestrator)
-        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
+        run: pnpm test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
 
       - name: Upload Playwright HTML report
         if: always()
