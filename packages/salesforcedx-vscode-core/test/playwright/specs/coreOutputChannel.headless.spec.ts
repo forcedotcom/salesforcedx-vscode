@@ -11,17 +11,20 @@ import {
   countOutputChannelOptions,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 const CORE_CHANNEL = 'Salesforce CLI';
 
@@ -40,6 +43,8 @@ test("Core output channel: single 'Salesforce CLI' channel, wired to services la
   });
 
   await test.step('metadataXmlSupport wrote to the services-owned channel via getCoreChannelService', async () => {
+    await verifyCommandExists(page, packageNls.config_list_text, 30_000);
+    await executeCommandWithCommandPalette(page, packageNls.config_list_text);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, CORE_CHANNEL, 10_000);
     // Core harness installs no redhat.vscode-xml, so initializeMetadataSupport hits the no-redhat
