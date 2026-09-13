@@ -62,7 +62,13 @@ export type RunSpec = {
   imageRef: string;
   /** Host port to publish the container's code-server port to. */
   publishedPort: number;
-  bootEnv: BootEnv;
+  /**
+   * Org boot env baked into `docker run` so the image's start-time auth logs into an org. OPTIONAL:
+   * omit it for a deliberate NO-ORG boot — the container comes up with no SF_ACCESS_TOKEN/INSTANCE_URL,
+   * so the image authenticates no org and `sf:has_target_org` is false (org-gated commands hide). The
+   * default (org-authed) path always passes it; only the no-org visibility phase leaves it undefined.
+   */
+  bootEnv?: BootEnv;
   mounts?: readonly Mount[];
   /** Workbench URL; defaults to http://localhost:<publishedPort>. */
   url?: string;
@@ -140,7 +146,8 @@ export const run = async (spec: RunSpec, options: LifecycleOptions = {}): Promis
     '-d',
     '--name',
     spec.name,
-    ...bootEnvToDockerArgs(spec.bootEnv),
+    // No bootEnv → no org env args: a deliberate no-org boot (the image authenticates no org).
+    ...(spec.bootEnv ? bootEnvToDockerArgs(spec.bootEnv) : []),
     ...mountArgs,
     '-p',
     `${spec.publishedPort}:${CONTAINER_PORT}`,

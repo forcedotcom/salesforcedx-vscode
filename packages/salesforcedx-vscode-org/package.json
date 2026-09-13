@@ -55,6 +55,7 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "check:circular-deps": "wireit",
     "test:compile": "wireit",
@@ -137,6 +138,22 @@
         "package.json",
         "package.nls.json",
         "test/playwright/**/*.ts"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },

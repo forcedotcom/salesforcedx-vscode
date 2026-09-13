@@ -26,6 +26,11 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined);
   return defineConfig({
     testDir: options.testDir,
+    // Container specs (`*.container.spec.ts`, under specs/container*) drive a browser against a running
+    // Code Builder container (code-server); they can only run under createContainerConfig. Exclude them
+    // here so a broad `testDir: './specs'` never runs them in the desktop-electron project (they'd hang
+    // waiting on a container URL that isn't up — 60s timeouts in the e2e-desktop CI job).
+    testIgnore: ['**/*.container.spec.ts'],
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     ...(workers ? { workers } : {}),

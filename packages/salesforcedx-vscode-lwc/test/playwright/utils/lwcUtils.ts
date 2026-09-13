@@ -6,6 +6,7 @@
  */
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  closeAllEditors,
   closeWelcomeTabs,
   disableMonacoAutoClosing,
   DIRTY_EDITOR,
@@ -65,6 +66,42 @@ const pickNonStickyTreeItem = async (items: Locator, description: string): Promi
 };
 
 /**
+ * Bring a virtualized Files Explorer tree item into the DOM.
+ *
+ * Monaco's tree only renders rows inside (or just around) the visible viewport, so in the shared
+ * container workbench — where the explorer holds many folders/files created by earlier specs — a
+ * target row can be entirely absent from the DOM until the tree is scrolled to it. `waitFor('attached')`
+ * alone then times out even though the item exists. Scroll the explorer viewport down in steps until at
+ * least one matching row mounts (returns immediately when a row is already attached, so callers whose
+ * rows are on-screen are unaffected).
+ */
+const scrollExplorerTreeUntilAttached = async (page: Page, rows: Locator, description: string): Promise<void> => {
+  const tree = page.locator('.explorer-folders-view .monaco-list').first();
+  // Dot-folders (e.g. `.sfdx`) sort to the very top of the tree, but this scan only steps the
+  // viewport DOWN. In the shared container workbench the tree is often already scrolled down from an
+  // earlier spec, so a top-anchored row would never mount — stepping down moves further away from it.
+  // Reset the viewport to the top once (only when the row isn't already present, so on-screen callers
+  // are unaffected) before stepping down, covering both top-anchored (`.sfdx`) and lower (`force-app`) rows.
+  if ((await rows.count()) === 0) {
+    await tree.hover().catch(() => {});
+    for (let i = 0; i < 8; i++) {
+      await page.mouse.wheel(0, -100_000);
+    }
+  }
+  await expect(async () => {
+    if ((await rows.count()) > 0) {
+      return;
+    }
+    // Row not yet rendered (virtualized). Nudge the tree viewport so more rows mount, then re-check.
+    await tree.hover();
+    await page.mouse.wheel(0, 600);
+    if ((await rows.count()) === 0) {
+      throw new Error(`Files Explorer tree item ${description} not yet rendered`);
+    }
+  }).toPass({ timeout: 30_000 });
+};
+
+/**
  * Expand a folder path in the Files Explorer.
  * Reused for LWC bundles under `force-app/.../lwc` and for `.sfdx/typings/lwc` generated typings.
  */
@@ -72,7 +109,8 @@ const expandWebExplorerSegments = async (page: Page, pathSegments: string[]): Pr
   for (const segment of pathSegments) {
     const escaped = segment.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const rows = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(/|,|$)`) });
-    await rows.first().waitFor({ state: 'attached', timeout: 15_000 });
+    // Scroll the (possibly large) tree until the folder row mounts, rather than assuming it is on-screen.
+    await scrollExplorerTreeUntilAttached(page, rows, `"${segment}"`);
     // Explorer re-renders rows (sticky scroll / virtualization); a locator can detach between wait and scroll.
     // Re-resolve the row each attempt via expect().toPass().
     await expect(async () => {
@@ -115,7 +153,8 @@ const expandExplorerPathToLwcFile = async (page: Page, fileName: string): Promis
 const clickWebExplorerTreeitemExact = async (page: Page, fileName: string): Promise<void> => {
   const escaped = fileName.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const allTreeItems = page.getByRole('treeitem', { name: new RegExp(`^${escaped}(,|$)`, 'i') });
-  await allTreeItems.first().waitFor({ state: 'attached', timeout: 15_000 });
+  // Scroll the (possibly large) tree until the file row mounts, rather than assuming it is on-screen.
+  await scrollExplorerTreeUntilAttached(page, allTreeItems, `"${fileName}"`);
   await expect(async () => {
     const n = await allTreeItems.count();
     if (n === 0) {
@@ -199,7 +238,9 @@ export const createLwcViaSfdxCommand = async (page: Page, componentName: string)
   const jsEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${jsFileName}"]`);
   await jsEditor.waitFor({ state: 'visible', timeout: 45_000 });
 
-  if (componentName === 'gtdHtmlComp') {
+  // Match a bare `gtdHtmlComp` (web specs) or a unique-suffixed `gtdHtmlComp<Date.now()>` (container
+  // specs, which share one persistent workbench and must avoid name collisions) — both need the seed.
+  if (componentName.startsWith('gtdHtmlComp')) {
     await replaceEditorContentAndSave(page, jsEditor, LWC_GTD_HTML_COMP_SEED_JS);
     await openLwcFile(page, `${camelName}.html`);
     const htmlEditor = page.locator(`${EDITOR_WITH_URI}[data-uri*="${camelName}.html"]`);
@@ -244,6 +285,52 @@ const LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS = [
   { file: 'engine.d.ts', header: "declare module 'lwc'" },
   { file: 'schema.d.ts', header: "declare module '@salesforce/schema'" }
 ] as const;
+
+/**
+ * Assert the currently-open editor's document contains `needle`, robust to Monaco viewport virtualization.
+ *
+ * `.view-lines` only renders the visible viewport, so in the shared container workbench a large
+ * `custom-components.json` (many bundles from earlier specs) can keep the target entry off-screen and
+ * out of the DOM — reading `.view-lines` textContent then never finds it. The editor Find widget
+ * searches the full model and reveals the first match, so we drive it and assert a non-empty match
+ * count (`matchesCount` reads "No results." for zero matches, otherwise "n of m").
+ *
+ * The LWC language server rewrites the index file asynchronously *after* the bundle is created, and
+ * the shared workbench may already hold a stale tab for it from an earlier spec — so the entry we
+ * search for can lag the open editor's cached model. Pass `reopen` to reload the file from disk on
+ * each attempt (close all editors, then re-open): the poll re-runs Find against fresh content until
+ * the new entry appears. Callers with an already-current editor can omit `reopen`.
+ */
+export const assertOpenEditorContainsText = async (
+  page: Page,
+  needle: string,
+  reopen?: (page: Page) => Promise<void>,
+  timeout = 90_000
+): Promise<void> => {
+  const findWidget = page.locator('.editor-widget.find-widget');
+  const matchesCount = findWidget.locator('.matchesCount');
+  await expect(async () => {
+    if (reopen) {
+      // Force a fresh read from disk: a refocus of an already-open tab keeps the stale cached model.
+      await closeAllEditors(page);
+      await reopen(page);
+    }
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    await editor.click();
+    await page.keyboard.press('Control+f');
+    await findWidget.waitFor({ state: 'visible', timeout: 10_000 });
+    const input = findWidget.locator('textarea.input').first();
+    await input.waitFor({ state: 'visible', timeout: 5000 });
+    // fill() clears then sets the query atomically — no editor-focused Ctrl+A that could nuke content.
+    await input.fill(needle);
+    await expect(matchesCount, `Find widget should report a match for "${needle}"`).toBeVisible({ timeout: 5000 });
+    await expect(matchesCount, `Find widget should report a match for "${needle}"`).not.toHaveText(/No results/i, {
+      timeout: 5000
+    });
+  }).toPass({ timeout });
+  await page.keyboard.press('Escape');
+};
 
 /** Open `.sfdx/indexes/lwc/custom-components.json` (LWC component index written by the language server). */
 export const openSfdxCustomComponentsJson = async (page: Page): Promise<void> => {

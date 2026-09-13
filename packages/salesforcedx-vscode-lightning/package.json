@@ -55,6 +55,7 @@
     "check:circular-deps": "wireit",
     "test": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:desktop:ui": "VSCODE_DESKTOP=1 npm run test:desktop -- --headed",
@@ -176,6 +177,22 @@
       "output": [
         "coverage"
       ]
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "CODE_BUILDER_URL": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
