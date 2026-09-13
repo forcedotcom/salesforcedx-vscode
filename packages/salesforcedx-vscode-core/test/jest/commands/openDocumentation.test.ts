@@ -13,9 +13,12 @@ import { URI } from 'vscode-uri';
 import { EditorService, NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { openDocumentationCommand } from '../../../src/commands/openDocumentation';
 import { nls } from '../../../src/messages';
-import { telemetryService } from '../../../src/telemetry';
 
 describe('openDocumentationCommand', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it.each([
     [
       'Aura',
@@ -32,13 +35,12 @@ describe('openDocumentationCommand', () => {
       'lwc',
       nls.localize('lwc_doc_url')
     ],
-    ['Functions', '/functions/example/index.js', 'functions', nls.localize('functions_doc_url')],
     ['no active editor', undefined, 'default', nls.localize('default_doc_url')],
     ['default', '/force-app/main/default/staticresources/example-image.png', 'default', nls.localize('default_doc_url')]
   ])('opens %s documentation and emits its type', async (_label, fileName, type, expectedUrl) => {
     const openExternal = jest.fn().mockResolvedValue(true);
     (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
-    const sendCommandEvent = jest.spyOn(telemetryService, 'sendCommandEvent').mockImplementation();
+    const annotateCurrentSpan = jest.spyOn(Effect, 'annotateCurrentSpan');
     const getActiveEditorUri = () =>
       fileName
         ? Effect.succeed(URI.file(fileName))
@@ -52,7 +54,7 @@ describe('openDocumentationCommand', () => {
       openDocumentationCommand().pipe(Effect.provide(Layer.mergeAll(extensionProviderLayer, editorServiceLayer)))
     );
 
-    expect(sendCommandEvent).toHaveBeenCalledWith('sf.open.documentation', undefined, { type });
+    expect(annotateCurrentSpan).toHaveBeenCalledWith({ type });
     expect(openExternal).toHaveBeenCalledTimes(1);
     expect(openExternal.mock.calls[0][0].toString()).toBe(expectedUrl);
   });

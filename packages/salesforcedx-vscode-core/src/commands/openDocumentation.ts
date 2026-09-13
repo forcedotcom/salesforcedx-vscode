@@ -14,12 +14,10 @@ import {
   APEX_CLASSES_PATH,
   APEX_FILE_NAME_EXTENSION,
   AURA_PATH,
-  FUNCTIONS_PATH,
   LWC_PATH,
   SOQL_FILE_NAME_EXTENSION
 } from '../constants';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 export const openDocumentationCommand = Effect.fn('openDocumentationCommand')(function* () {
   const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -46,10 +44,6 @@ export const openDocumentationCommand = Effect.fn('openDocumentationCommand')(fu
       filePath => filePath.includes(LWC_PATH),
       () => 'lwc' as const
     ),
-    Match.when(
-      filePath => filePath.includes(FUNCTIONS_PATH),
-      () => 'functions' as const
-    ),
     Match.orElse(() => 'default' as const)
   );
   const docUrl = Match.value(documentationType).pipe(
@@ -57,13 +51,10 @@ export const openDocumentationCommand = Effect.fn('openDocumentationCommand')(fu
     Match.when('apex', () => nls.localize('apex_doc_url')),
     Match.when('soql', () => nls.localize('soql_doc_url')),
     Match.when('lwc', () => nls.localize('lwc_doc_url')),
-    Match.when('functions', () => nls.localize('functions_doc_url')),
     Match.when('default', () => nls.localize('default_doc_url')),
     Match.exhaustive
   );
 
-  yield* Effect.sync(() =>
-    telemetryService.sendCommandEvent('sf.open.documentation', undefined, { type: documentationType })
-  );
+  yield* Effect.annotateCurrentSpan({ type: documentationType });
   yield* Effect.promise(() => vscode.env.openExternal(URI.parse(docUrl)));
 });
