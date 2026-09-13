@@ -364,12 +364,17 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
       const connection = yield* getConnection();
       const observedOrgId = connection.getAuthInfoFields().orgId;
-      if (observedOrgId === expectedOrgId) return connection;
-      return yield* new InactiveOrgOperationError({
-        message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
-        expectedOrgId,
-        ...(observedOrgId ? { observedOrgId } : {})
-      });
+      return yield* Effect.succeed(connection).pipe(
+        Effect.filterOrFail(
+          () => observedOrgId === expectedOrgId,
+          () =>
+            new InactiveOrgOperationError({
+              message: `The active org changed while an operation for '${expectedOrgId}' was in progress`,
+              expectedOrgId,
+              ...(observedOrgId ? { observedOrgId } : {})
+            })
+        )
+      );
     });
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */

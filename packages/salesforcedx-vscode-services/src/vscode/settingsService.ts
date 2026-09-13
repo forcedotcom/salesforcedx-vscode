@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
 import {
@@ -29,15 +29,17 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 }) {}
 
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
-  isUndefined(value) || value.length === 0
-    ? Effect.fail(
+  Effect.succeed(value).pipe(
+    Effect.filterOrFail(
+      (candidateValue): candidateValue is string => isNotUndefined(candidateValue) && candidateValue.length > 0,
+      () =>
         new SettingsError({
           cause: new Error(`Value for ${key} is empty`),
           key,
           message: `Value for ${key} is empty`
         })
-      )
-    : Effect.succeed(value);
+    )
+  );
 
 /** Static service for reading and writing VS Code settings */
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {

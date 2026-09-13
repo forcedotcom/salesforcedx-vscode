@@ -10,7 +10,7 @@ import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -61,8 +61,12 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           )
         );
 
-        if (choice !== nls.localize('overwrite_button'))
-          return yield* new UserCancellationError({ message: 'User cancelled overwrite' });
+        yield* Effect.succeed(choice).pipe(
+          Effect.filterOrFail(
+            selectedChoice => selectedChoice === nls.localize('overwrite_button'),
+            () => new UserCancellationError({ message: 'User cancelled overwrite' })
+          )
+        );
       }
     );
 
@@ -76,26 +80,36 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       const choice = yield* Effect.promise(() =>
         vscode.window.showWarningMessage(params.message, { modal: true, detail: params.detail }, params.confirmLabel)
       );
-      if (choice !== params.confirmLabel)
-        return yield* new UserCancellationError({ message: 'User cancelled confirmation' });
+      yield* Effect.succeed(choice).pipe(
+        Effect.filterOrFail(
+          selectedChoice => selectedChoice === params.confirmLabel,
+          () => new UserCancellationError({ message: 'User cancelled confirmation' })
+        )
+      );
     });
 
     /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
      * Otherwise, return `value` with `undefined` removed from its type. */
-    const considerUndefinedAsCancellation: <T>(
-      value: T | undefined
-    ) => Effect.Effect<T, UserCancellationError, never> = value =>
-      isUndefined(value) || (isString(value) && value.trim().length === 0)
-        ? Effect.fail(new UserCancellationError())
-        : Effect.succeed(value);
+    const considerUndefinedAsCancellation = <T>(value: T | undefined) =>
+      Effect.succeed(value).pipe(
+        Effect.filterOrFail(
+          (candidateValue): candidateValue is T =>
+            isNotUndefined(candidateValue) && (!isString(candidateValue) || candidateValue.trim().length > 0),
+          () => new UserCancellationError()
+        )
+      );
 
     /** Multi-pick sibling of {@link considerUndefinedAsCancellation}: treats `undefined` (Esc) AND an empty
      * selection array (picked nothing then accepted) as cancellation. `canPickMany` quick picks resolve to
      * `[]` on pick-nothing, which `considerUndefinedAsCancellation` would let through. */
-    const considerEmptySelectionAsCancellation: <T>(
-      value: readonly T[] | undefined
-    ) => Effect.Effect<readonly T[], UserCancellationError, never> = value =>
-      isUndefined(value) || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value);
+    const considerEmptySelectionAsCancellation = <T>(value: readonly T[] | undefined) =>
+      Effect.succeed(value).pipe(
+        Effect.filterOrFail(
+          (candidateValue): candidateValue is readonly T[] =>
+            isNotUndefined(candidateValue) && candidateValue.length > 0,
+          () => new UserCancellationError()
+        )
+      );
 
     /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
     const findFoldersByName = (rootUri: URI, folderName: string) => {

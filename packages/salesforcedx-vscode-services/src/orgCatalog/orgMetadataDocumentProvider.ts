@@ -10,6 +10,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
@@ -131,8 +132,13 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
   const provider = new OrgMetadataDocumentProvider(uri =>
     Runtime.runPromise(runtime)(
       Effect.gen(function* () {
-        const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
-        if (!activeOrgId) return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
+        const activeOrgId = yield* SubscriptionRef.get(defaultOrgRef).pipe(
+          Effect.map(({ orgId }) => orgId),
+          Effect.filterOrFail(
+            (orgId): orgId is string => isNotUndefined(orgId) && orgId.length > 0,
+            () => vscode.FileSystemError.FileNotFound(uri)
+          )
+        );
         return yield* documents.readDocumentUri(activeOrgId, uri);
       })
     )
@@ -162,9 +168,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             Match.exhaustive
           );
           if (changedOrgId === activeOrgId) {
-            yield* Effect.sync(() =>
-              provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider))
-            );
+            yield* Effect.sync(() => provider.notifyCatalogChanged(activeOrgId, requestedUriOrgIds(provider)));
           }
         })
       )
