@@ -13,7 +13,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { setCoreChannel } from './channels';
-import { configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
+import { configListCommand, initSObjectDefinitions, openDocumentationCommand } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -31,10 +31,7 @@ import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
-  vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    registerGetTelemetryServiceCommand()
-  );
+  vscode.Disposable.from(registerGetTelemetryServiceCommand());
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   // Initialize services layer first so getRuntime() can use it.
@@ -85,6 +82,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     return;
   }
 
+  const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
+  yield* registerCommand('sf.open.documentation', openDocumentationCommand);
+
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
 
@@ -92,7 +92,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     yield* Effect.promise(() => initializeProject(extensionContext));
   }
 
-  const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.config.list', () => configListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());

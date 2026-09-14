@@ -158,6 +158,7 @@ npm-packages-offline-cache/
 graphify-out/
 
 # Claude Code worktrees
+.auto-build/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
