@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { createRecordingTracerLayer, type RecordedSpan } from '../../testUtils/recordingTracer';
@@ -627,9 +628,11 @@ describe('LwcTestController public run API', () => {
 
     // Implicit run-all routes through runAllAsDirectory, which needs a workspace folder.
     const { workspace: lwcWorkspace } = require('../../../../src/testSupport/workspace');
-    (lwcWorkspace.getTestWorkspaceFolder as jest.Mock).mockReturnValue({
-      uri: URI.file('/c/Users/RUNNER~1/work/proj')
-    });
+    (lwcWorkspace.getTestWorkspaceFolder as jest.Mock).mockReturnValue(
+      Effect.succeed({
+        uri: URI.file('/c/Users/RUNNER~1/work/proj')
+      })
+    );
 
     // Stub the runner so executeOne proceeds to the task/results phase without spawning a real jest process.
     jest

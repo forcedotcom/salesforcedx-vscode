@@ -434,8 +434,8 @@ class LwcTestController {
     return undefined;
   };
 
-  private runAllAsDirectory = (): TestDirectoryInfo | undefined => {
-    const workspaceFolder = workspace.getTestWorkspaceFolder();
+  private runAllAsDirectory = async (): Promise<TestDirectoryInfo | undefined> => {
+    const workspaceFolder = await getRuntime().runPromise(workspace.getTestWorkspaceFolder());
     if (!workspaceFolder) {
       return undefined;
     }
@@ -466,7 +466,7 @@ class LwcTestController {
       // When running without any explicit selection, delegate to a single directory-level jest run
       // so we don't spawn one task per file.
       if (isImplicitRunAll) {
-        const dirInfo = this.runAllAsDirectory();
+        const dirInfo = await this.runAllAsDirectory();
         if (!dirInfo) {
           return;
         }

@@ -112,7 +112,9 @@ export class TestRunner {
    * Generate shell execution info necessary for task execution
    */
   public async getShellExecutionInfo() {
-    const workspaceFolder = workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri);
+    const workspaceFolder = await getRuntime().runPromise(
+      workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri)
+    );
     if (workspaceFolder) {
       const jestExecutionInfo = await this.getJestExecutionInfo(workspaceFolder);
       if (jestExecutionInfo) {
