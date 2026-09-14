@@ -32,7 +32,6 @@ export const messages = {
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
-  functions_doc_url: 'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
 
   // Metadata XML Support Messages
