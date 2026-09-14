@@ -34,5 +34,8 @@ export const authFieldsFromConnection = (connection: {
   readonly getAuthInfoFields: () => unknown;
 }): Option.Option<AuthFields> => authFieldsFrom(connection.getAuthInfoFields());
 
+export const orgIdFrom = (fields: unknown): Option.Option<OrgId> =>
+  Option.flatMap(authFieldsFrom(fields), f => f.orgId);
+
 export const orgIdFromConnection = (connection: { readonly getAuthInfoFields: () => unknown }): Option.Option<OrgId> =>
-  Option.flatMap(authFieldsFromConnection(connection), fields => fields.orgId);
+  orgIdFrom(connection.getAuthInfoFields());

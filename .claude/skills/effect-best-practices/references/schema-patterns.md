@@ -31,7 +31,7 @@ Use `@Namespace/EntityName` format:
 - `@External/StripeCustomerId` - External system IDs
 - `@services/SalesforceId` / `@services/OrgId` - this repo's Salesforce record/org ids (`core/schemas/salesforceId.ts`). 15/18 char, not UUID. Org ids start `00D`
 
-`getAuthInfoFields()` / `getFields()` → `authFieldsFrom` / `authFieldsFromConnection` / `orgIdFromConnection` (`core/schemas/authFields.ts`) — all `Option`. Fields: `optionalWith(..., { as: 'Option' })`. `instanceName`: `Schema.Trim` (decode, not consumers). Invalid orgId → whole decode `None` (`decodeUnknownOption`). Fail-if-missing: `Option.match`. Do not read `.orgId` ad hoc.
+`getAuthInfoFields()` / `getFields()` → `authFieldsFrom` / `authFieldsFromConnection` / `orgIdFrom` / `orgIdFromConnection` (`core/schemas/authFields.ts`) — all `Option`. Fields: `optionalWith(..., { as: 'Option' })`. `instanceName`: `Schema.Trim` (decode, not consumers). Invalid orgId → whole decode `None` (`decodeUnknownOption`). Fail-if-missing: `Option.match`. Do not read `.orgId` ad hoc.
 
 `DefaultOrgInfoSchema.orgId` / `devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not `optionalWith` as Option. `Option.getOrUndefined` only at that `OrgId | undefined` interop (`connectionService`).
 

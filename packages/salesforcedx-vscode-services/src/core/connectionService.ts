@@ -26,7 +26,7 @@ import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
 import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
-import { authFieldsFrom, authFieldsFromConnection, orgIdFromConnection } from './schemas/authFields';
+import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { type OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -345,9 +345,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
       // Update the org ref in the background only for the default org (no explicit username).
       if (isUndefined(username)) {
-        const fields = authFieldsFromConnection(conn);
-        const orgId = Option.getOrUndefined(Option.flatMap(fields, f => f.orgId));
-        const instanceName = Option.getOrUndefined(Option.flatMap(fields, f => f.instanceName));
+        const orgId = Option.getOrUndefined(orgIdFromConnection(conn));
+        const instanceName = Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), f => f.instanceName));
         const defaultOrgRef = yield* getDefaultOrgRef();
         const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
@@ -544,7 +543,7 @@ const buildDevHubId = Effect.fn('getDevHubId')(function* (devHubUsername?: strin
   }
   // a failed lookup (e.g. devhub not yet authenticated) is swallowed to undefined and memoized like any success — not retried this session
   const authInfo = yield* createAuthInfoFromUsername(devHubUsername).pipe(Effect.orElseSucceed(() => undefined));
-  return Option.getOrUndefined(Option.flatMap(authFieldsFrom(authInfo?.getFields()), f => f.orgId));
+  return Option.getOrUndefined(orgIdFrom(authInfo?.getFields()));
 });
 
 // memoized per distinct devHubUsername at module scope so AuthInfo.create (and the getDevHubId span) runs once per devhub per session
