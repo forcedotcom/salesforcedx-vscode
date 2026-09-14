@@ -8,6 +8,7 @@
 import { isNotNull } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
+import { removeQuotesFromBlob, surroundBlobsWithQuotes } from '../core/logContextUtil';
 import { DebugLogState } from './debugLogState';
 
 export class VariableAssignmentState implements DebugLogState {
@@ -125,7 +126,7 @@ export class VariableAssignmentState implements DebugLogState {
 
   private parseJSONAndPopulate(value: string, container: ApexVariableContainer, logContext: LogContext) {
     try {
-      const modifiedValue = logContext.getUtil().surroundBlobsWithQuotes(value);
+      const modifiedValue = surroundBlobsWithQuotes(value);
       const obj = JSON.parse(modifiedValue);
       // Recurse on the already-parsed object so inner string values aren't re-quoted/re-stringified.
       this.populateFromParsed(obj, container, logContext);
@@ -157,8 +158,7 @@ export class VariableAssignmentState implements DebugLogState {
         nested.variablesRef = logContext.getVariableHandler().create(nested);
         this.populateFromParsed(rawValue, nested, logContext);
       } else {
-        const varValue =
-          typeof rawValue === 'string' ? logContext.getUtil().removeQuotesFromBlob(`'${rawValue}'`) : `${rawValue}`;
+        const varValue = typeof rawValue === 'string' ? removeQuotesFromBlob(`'${rawValue}'`) : `${rawValue}`;
         container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
       }
     });
