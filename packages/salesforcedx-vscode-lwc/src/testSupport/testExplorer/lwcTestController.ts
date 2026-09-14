@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
-import { telemetryService } from '../../telemetry';
 import { lwcTestIndexer } from '../testIndexer';
 import { taskService, SfTask } from '../testRunner/taskService';
 import { TestRunner } from '../testRunner/testRunner';
@@ -435,8 +434,8 @@ class LwcTestController {
     return undefined;
   };
 
-  private runAllAsDirectory = (): TestDirectoryInfo | undefined => {
-    const workspaceFolder = workspace.getTestWorkspaceFolder();
+  private runAllAsDirectory = async (): Promise<TestDirectoryInfo | undefined> => {
+    const workspaceFolder = await getRuntime().runPromise(workspace.getTestWorkspaceFolder());
     if (!workspaceFolder) {
       return undefined;
     }
@@ -467,7 +466,7 @@ class LwcTestController {
       // When running without any explicit selection, delegate to a single directory-level jest run
       // so we don't spawn one task per file.
       if (isImplicitRunAll) {
-        const dirInfo = this.runAllAsDirectory();
+        const dirInfo = await this.runAllAsDirectory();
         if (!dirInfo) {
           return;
         }
@@ -499,10 +498,15 @@ class LwcTestController {
     } finally {
       run.end();
       if (!isDebug) {
-        telemetryService.sendEventData(
-          LWC_TEST_RUN_LOG_NAME,
-          { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
-          { executionTime: globalThis.performance.now() - startTime }
+        getRuntime().runFork(
+          Effect.void.pipe(
+            Effect.withSpan(LWC_TEST_RUN_LOG_NAME, {
+              attributes: {
+                workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry(),
+                executionTime: globalThis.performance.now() - startTime
+              }
+            })
+          )
         );
       }
     }
