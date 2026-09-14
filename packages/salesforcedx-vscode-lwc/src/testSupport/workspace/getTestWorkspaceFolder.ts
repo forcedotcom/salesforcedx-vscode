@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import { telemetryService } from '../../telemetry';
+import { getRuntime } from '../../services/runtime';
 
 /**
  * If testUri is specified, returns the workspace folder containing the test if it exists.
@@ -24,9 +25,15 @@ export const getTestWorkspaceFolder = (testUri?: URI) => {
     const errorMessage = nls.localize('no_workspace_folder_found_for_test_text');
     console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
-    telemetryService.sendEventData('exception', {
-      name: 'lwc_test_no_workspace_folder_found_for_test',
-      message: errorMessage
-    });
+    getRuntime().runFork(
+      Effect.void.pipe(
+        Effect.withSpan('exception', {
+          attributes: {
+            name: 'lwc_test_no_workspace_folder_found_for_test',
+            message: errorMessage
+          }
+        })
+      )
+    );
   }
 };
