@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
-import * as vscode from 'vscode';
 
 type MetadataRegistry = {
   strictDirectoryNames?: Record<string, string>;
@@ -21,17 +21,6 @@ type MetadataType = {
 type RegistryAccessLike = {
   getRegistry(): MetadataRegistry;
   getTypeByName(typeName: string): MetadataType;
-};
-
-type MetadataRegistryServiceLike = {
-  getRegistryAccess: () => Effect.Effect<RegistryAccessLike>;
-};
-
-type SalesforceVSCodeServicesApiLike = {
-  services: {
-    MetadataRegistryService: MetadataRegistryServiceLike;
-    prebuiltServicesLayer: Layer.Layer<unknown>;
-  };
 };
 
 type ApexLspScanConfig = {
@@ -70,38 +59,34 @@ const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => 
   return folderNames;
 };
 
-const getServicesExtension = () =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApiLike>('salesforce.salesforcedx-vscode-services');
-
 export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
-  const servicesExtension = getServicesExtension();
-  if (!servicesExtension) {
-    return undefined;
-  }
-  const servicesApi = servicesExtension.isActive ? servicesExtension.exports : await servicesExtension.activate();
+  const excludes = await Effect.runPromise(
+    getServicesApi.pipe(
+      Effect.flatMap(servicesApi =>
+        Effect.suspend(() =>
+          servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
+            Effect.map(registryAccess => {
+              const apexFolderNames = getApexFolderNames(registryAccess);
+              return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
+            }),
+            Effect.provide(servicesApi.services.prebuiltServicesLayer)
+          )
+        ).pipe(
+          Effect.map(Option.some),
+          Effect.catchAllCause(() => Effect.succeed(Option.none<string[]>()))
+        )
+      ),
+      Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.succeed(Option.none<string[]>()))
+    )
+  );
 
-  let excludes: string[];
-  try {
-    excludes = await Effect.runPromise(
-      servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-        Effect.map(registryAccess => {
-          const apexFolderNames = getApexFolderNames(registryAccess);
-          return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
-        }),
-        Effect.provide(servicesApi.services.prebuiltServicesLayer)
-      )
-    );
-  } catch {
-    return undefined;
-  }
-
-  if (excludes.length === 0) {
+  if (Option.isNone(excludes) || excludes.value.length === 0) {
     return undefined;
   }
 
   return {
     scan: {
-      excludeFolders: excludes
+      excludeFolders: excludes.value
     }
   };
 };
