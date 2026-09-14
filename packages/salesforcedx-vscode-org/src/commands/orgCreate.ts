@@ -157,7 +157,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const terminalService = yield* api.services.TerminalService;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the sf child.
   const stdout = yield* terminalService
     .simpleExec({
       executable: 'sf',

@@ -34,7 +34,7 @@ class SimpleExecFailure extends Schema.TaggedError<SimpleExecFailure>()('SimpleE
   stderrBytes: Schema.Number
 }) {}
 
-/** node's exec `maxBuffer` default is 1MB; retrieve-scale CLI stdout exceeds it. */
+/** 100MB — retrieve-scale CLI stdout exceeds node's 1MB exec default. */
 const MAX_BUFFER = 100 * 1024 * 1024;
 
 const byteLength = (value: string): number => new TextEncoder().encode(value).byteLength;

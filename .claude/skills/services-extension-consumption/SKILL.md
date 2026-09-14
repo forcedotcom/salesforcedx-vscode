@@ -215,7 +215,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (value-based URI equality for HashSet/HashMap keys)
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
-- [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
+- [TerminalService](references/terminal-service.md) - Run argv commands (desktop-only)
 - [NotificationModeService](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
