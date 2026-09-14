@@ -26,39 +26,27 @@ export const extractAnonApexSource = (logContents: string): string | undefined =
   return sourceLines.length > 0 ? sourceLines.join('\n') : undefined;
 };
 
-export class LogContextUtil {
-  public getFileSizeFromContents(contents: string): number {
-    return contents.length;
-  }
+export const getFileSizeFromContents = (contents: string): number => contents.length;
 
-  public readLogFileFromContents(contents: string): string[] {
-    if (!contents || contents.trim() === '') {
-      return [];
-    }
-    return contents
-      .trim()
-      .split(/\r?\n/)
-      .map(line => line.trim());
+export const readLogFileFromContents = (contents: string): string[] => {
+  if (!contents || contents.trim() === '') {
+    return [];
   }
+  return contents
+    .trim()
+    .split(/\r?\n/)
+    .map(line => line.trim());
+};
 
-  public stripBrackets(value: string): string {
-    return value.replace('[', '').replace(']', '');
-  }
+export const stripBrackets = (value: string): string => value.replace('[', '').replace(']', '');
 
-  public substringUpToLastPeriod(value: string): string {
-    return value.substring(0, value.lastIndexOf('.'));
-  }
+export const substringUpToLastPeriod = (value: string): string => value.substring(0, value.lastIndexOf('.'));
 
-  public substringFromLastPeriod(value: string): string {
-    const valueSplit = value.split('.');
-    return valueSplit.length > 1 ? valueSplit.at(-1)! : value;
-  }
+export const substringFromLastPeriod = (value: string): string => {
+  const valueSplit = value.split('.');
+  return valueSplit.length > 1 ? valueSplit.at(-1)! : value;
+};
 
-  public surroundBlobsWithQuotes(value: string): string {
-    return value.replaceAll(/(BLOB\(\d+ bytes\))/g, '"$1"');
-  }
+export const surroundBlobsWithQuotes = (value: string): string => value.replaceAll(/(BLOB\(\d+ bytes\))/g, '"$1"');
 
-  public removeQuotesFromBlob(value: string): string {
-    return value.replaceAll(/'(BLOB\(\d+ bytes\))'/g, '$1');
-  }
-}
+export const removeQuotesFromBlob = (value: string): string => value.replaceAll(/'(BLOB\(\d+ bytes\))'/g, '$1');
