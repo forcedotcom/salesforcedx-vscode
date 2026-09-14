@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
@@ -30,7 +30,14 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { waitForTraceFlagStatusBar } from '../helpers';
+import { deleteActiveTraceFlag, waitForTraceFlagStatusBar } from '../helpers';
+
+const showExplorerIfHidden = async (page: Page): Promise<void> => {
+  const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
+  if (!(await explorerHeading.isVisible().catch(() => false))) {
+    await showExplorer(page);
+  }
+};
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);
@@ -49,15 +56,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 30_000);
 
     // Clean up any existing trace flags first (in case previous test failed to clean up)
-    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR);
-    const hasExistingTrace = await statusBar
-      .filter({ hasText: /Tracing until/ })
-      .isVisible()
-      .catch(() => false);
-    if (hasExistingTrace) {
-      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-      await waitForTraceFlagStatusBar(page, /No Tracing/);
-    }
+    await deleteActiveTraceFlag(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser'], 90_000);
 
     // Now create the trace flag
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
@@ -117,10 +116,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   await test.step('open logs folder and verify explorer', async () => {
     // Ensure Explorer is visible (may already be open)
     const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
-    const isExplorerVisible = await explorerHeading.isVisible().catch(() => false);
-    if (!isExplorerVisible) {
-      await showExplorer(page);
-    }
+    await showExplorerIfHidden(page);
     await expect(explorerHeading).toBeVisible({ timeout: 10_000 });
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);
     await expect(page.locator('[id="workbench.view.explorer"]')).toBeVisible({ timeout: 10_000 });

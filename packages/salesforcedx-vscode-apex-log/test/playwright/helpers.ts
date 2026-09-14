@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, Page } from '@playwright/test';
-import { APEX_TRACE_FLAG_STATUS_BAR } from '@salesforce/playwright-vscode-ext';
+import { expect, type Page } from '@playwright/test';
+import { APEX_TRACE_FLAG_STATUS_BAR, executeCommandWithCommandPalette } from '@salesforce/playwright-vscode-ext';
 
 /**
  * Wait for trace flag status bar to show expected text.
@@ -28,4 +28,16 @@ export const waitForTraceFlagStatusBar = async (
     const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: expectedTextPattern });
     await expect(statusBar).toBeVisible({ timeout: 10_000 });
   }).toPass({ timeout, intervals: [pollInterval] });
+};
+
+export const deleteActiveTraceFlag = async (
+  page: Page,
+  deleteCommandTitle: string,
+  inactiveTimeout = 60_000
+): Promise<void> => {
+  const activeTraceFlag = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
+  if (await activeTraceFlag.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await executeCommandWithCommandPalette(page, deleteCommandTitle);
+    await waitForTraceFlagStatusBar(page, /No Tracing/, inactiveTimeout);
+  }
 };

@@ -24,11 +24,13 @@ import {
   clearOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  NOTIFICATION_LIST_ITEM,
   clickModalDialogButton,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import {
+  throwIfDeployErrorNotificationVisible,
+  waitForDeployProgressNotificationToAppear
+} from '../pages/notifications';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
@@ -73,17 +75,11 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
 
       // Check for deploy error notifications
-      const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
       const deployErrorPattern = new RegExp(
         `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replace('%s', '.*')}`,
         'i'
       );
-      const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-      const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-      if (hasDeployError) {
-        const errorText = await deployErrorNotification.textContent();
-        throw new Error(`Deploy failed with error notification: ${errorText}`);
-      }
+      await throwIfDeployErrorNotificationVisible(page, deployErrorPattern);
 
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 30_000 });
     });

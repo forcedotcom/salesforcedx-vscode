@@ -13,6 +13,12 @@ import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
+const getSettingRowDataIdSelector = (settingKey: string): string => {
+  const allDotsId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
+  const firstDotId = `searchResultModel_${settingKey.replace('.', '_')}`;
+  return allDotsId === firstDotId ? `[data-id="${allDotsId}"]` : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
+};
+
 test.describe.serial('Settings', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
@@ -93,11 +99,7 @@ test.describe.serial('Settings', () => {
       await page.keyboard.press('Backspace');
       await page.keyboard.type(settingKey);
 
-      const allDotsId = `searchResultModel_${settingKey.replaceAll('.', '_')}`;
-      const firstDotId = `searchResultModel_${settingKey.replace('.', '_')}`;
-      const dataIdSelector =
-        allDotsId === firstDotId ? `[data-id="${allDotsId}"]` : `[data-id="${allDotsId}"], [data-id="${firstDotId}"]`;
-      const row = page.locator(dataIdSelector).last();
+      const row = page.locator(getSettingRowDataIdSelector(settingKey)).last();
       await row.waitFor({ state: 'visible', timeout: 15_000 });
       const minimapCheckbox = row.getByRole('checkbox').first();
       await expect(minimapCheckbox).not.toBeChecked();

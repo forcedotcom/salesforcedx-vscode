@@ -68,11 +68,21 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
+const getBundleName = (kind: 'Html' | 'Js', workerIndex: number): string =>
+  isDesktop() ? 'snippetsE2E' : `snippets${kind}${workerIndex}${Date.now()}`;
+
+const createLwcBundleOnWeb = async (page: Page, bundleName: string, screenshotName: string): Promise<void> => {
+  if (!isDesktop()) {
+    await createLwcViaSfdxCommand(page, bundleName);
+    await saveScreenshot(page, screenshotName);
+  }
+};
+
 test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  const bundleName = isDesktop() ? 'snippetsE2E' : `snippetsHtml${testInfo.workerIndex}${Date.now()}`;
+  const bundleName = getBundleName('Html', testInfo.workerIndex);
 
   await test.step('wait for Salesforce project workspace', async () => {
     await waitForVSCodeWorkbench(page);
@@ -88,10 +98,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
   });
 
   await test.step('ensure LWC bundle exists (web: create via palette)', async () => {
-    if (!isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
-    }
+    await createLwcBundleOnWeb(page, bundleName, 'lwc-snippets-html.after-create-lwc.png');
   });
 
   await test.step('open component HTML', async () => {
@@ -135,7 +142,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  const bundleName = isDesktop() ? 'snippetsE2E' : `snippetsJs${testInfo.workerIndex}${Date.now()}`;
+  const bundleName = getBundleName('Js', testInfo.workerIndex);
 
   await test.step('wait for Salesforce project workspace', async () => {
     await waitForVSCodeWorkbench(page);
@@ -149,10 +156,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
   });
 
   await test.step('ensure LWC bundle exists (web: create via palette)', async () => {
-    if (!isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
-    }
+    await createLwcBundleOnWeb(page, bundleName, 'lwc-snippets-js.after-create-lwc.png');
   });
 
   await test.step('open component JS', async () => {

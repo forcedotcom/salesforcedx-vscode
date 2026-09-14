@@ -31,6 +31,30 @@ const matrix = [
   { cleanDb: true, via: 'statusBar' as const, label: 'status bar × clean db + restart' }
 ];
 
+const removeStandardLibraryIfCleanDb = async (workspaceDir: string, cleanDb: boolean): Promise<void> => {
+  if (cleanDb) {
+    const releaseBefore = findReleaseDir(workspaceDir);
+    const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseBefore, 'StandardApexLibrary');
+    await fs.rm(stdLibDir, { recursive: true, force: true });
+    expect(existsSync(stdLibDir), 'StandardApexLibrary should be removed before restart').toBe(false);
+  }
+};
+
+const assertStandardLibraryRecreatedIfCleanDb = (
+  workspaceDir: string,
+  releaseAfter: string,
+  cleanDb: boolean
+): void => {
+  if (cleanDb) {
+    const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
+    // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
+    expect(existsSync(stdLibDir), 'StandardApexLibrary should be re-created after clean restart').toBe(true);
+  }
+};
+
+const getRestartScreenshotName = (via: (typeof matrix)[number]['via'], cleanDb: boolean): string =>
+  `step.restart-${via}-${cleanDb ? 'cleandb' : 'only'}.png`;
+
 test.describe('Apex LSP restart', () => {
   test.beforeEach(async ({ page, workspaceDir }) => {
     await openFileByName(page, 'ExampleClass.cls');
@@ -43,21 +67,12 @@ test.describe('Apex LSP restart', () => {
       const consoleErrors = setupConsoleMonitoring(page);
       const networkErrors = setupNetworkMonitoring(page);
 
-      if (cleanDb) {
-        const releaseBefore = findReleaseDir(workspaceDir);
-        const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseBefore, 'StandardApexLibrary');
-        await fs.rm(stdLibDir, { recursive: true, force: true });
-        expect(existsSync(stdLibDir), 'StandardApexLibrary should be removed before restart').toBe(false);
-      }
+      await removeStandardLibraryIfCleanDb(workspaceDir, cleanDb);
 
       const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via });
-      await saveScreenshot(page, `step.restart-${via}-${cleanDb ? 'cleandb' : 'only'}.png`);
+      await saveScreenshot(page, getRestartScreenshotName(via, cleanDb));
 
-      if (cleanDb) {
-        const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
-        // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
-        expect(existsSync(stdLibDir), 'StandardApexLibrary should be re-created after clean restart').toBe(true);
-      }
+      assertStandardLibraryRecreatedIfCleanDb(workspaceDir, releaseAfter, cleanDb);
 
       await validateNoCriticalErrors(test, consoleErrors, networkErrors);
     });

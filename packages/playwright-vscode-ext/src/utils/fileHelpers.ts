@@ -187,6 +187,13 @@ export const deployCurrentSourceToOrg = async (
   }
 };
 
+/** Deploys the current source on desktop; web deploy-on-save requires no explicit command. */
+export const deployCurrentSourceOnDesktop = async (page: Page): Promise<void> => {
+  if (isDesktop()) {
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  }
+};
+
 /**
  * Open a file by clicking its entry in the Files Explorer tree. Works on both desktop and web
  * when a workspace folder is mounted.

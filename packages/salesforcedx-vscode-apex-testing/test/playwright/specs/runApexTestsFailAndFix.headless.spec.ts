@@ -78,6 +78,19 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
   await selectQuickInputOptionByTyping(page, 'AccountServiceTest');
 };
 
+const redeployFixedAccountService = async (page: Page): Promise<void> => {
+  if (isDesktop()) {
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  } else {
+    // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save.
+    // Wait for the deploy completion line — same signal desktop uses — instead of just the
+    // class name (which would also match the prior AccountServiceTest deploy line).
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
+  }
+};
+
 // Drives the Apex test runner via Command Palette and asserts the success notification fires
 // with an "Open Report" action button. The notification is managed by NotificationModeService
 // and never appears in VS Code Web, so keep this scenario desktop-only.
@@ -153,16 +166,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
     });
 
     await test.step('redeploy fixed AccountService.cls', async () => {
-      if (isDesktop()) {
-        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-      } else {
-        // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save.
-        // Wait for the deploy completion line — same signal desktop uses — instead of just the
-        // class name (which would also match the prior AccountServiceTest deploy line).
-        await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata');
-        await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
-      }
+      await redeployFixedAccountService(page);
       await saveScreenshot(page, 'step.fix.redeployed.png');
     });
 

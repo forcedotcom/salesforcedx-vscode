@@ -23,7 +23,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { waitForTraceFlagStatusBar } from '../helpers';
+import { deleteActiveTraceFlag, waitForTraceFlagStatusBar } from '../helpers';
 
 // Budget: flag expires ~60s after creation (1-min duration); the status-bar tick fires on the next
 // Schedule.fixed(1 min) boundary, so worst case ~120s after the prior tick. 150s poll covers boundary
@@ -46,11 +46,7 @@ test('Trace flag status bar clears automatically at natural expiry (no manual de
     // left a trace flag, so match either state, then clean up below.
     await waitForTraceFlagStatusBar(page, /No Tracing|Tracing until/, 90_000);
 
-    const activeTraceFlag = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
-    if (await activeTraceFlag.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-      await waitForTraceFlagStatusBar(page, /No Tracing/, 60_000);
-    }
+    await deleteActiveTraceFlag(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
 
     await removeAllDebugLevels(page);
   });

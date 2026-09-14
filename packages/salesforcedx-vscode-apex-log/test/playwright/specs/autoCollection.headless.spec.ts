@@ -24,7 +24,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { waitForTraceFlagStatusBar } from '../helpers';
+import { deleteActiveTraceFlag, waitForTraceFlagStatusBar } from '../helpers';
 
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
@@ -48,11 +48,7 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     // its own "No Tracing" starting state, and the following steps that rely on
     // `editorHasSelection`/`sf:has_target_org` contexts have nothing to do with the failure —
     // it's pure test-isolation leakage.
-    const activeTraceFlag = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
-    if (await activeTraceFlag.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
-      await waitForTraceFlagStatusBar(page, /No Tracing/, 60_000);
-    }
+    await deleteActiveTraceFlag(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']);
 
     await removeAllDebugLevels(page);
   });

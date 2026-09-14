@@ -9,11 +9,10 @@ import { expect } from '@playwright/test';
 
 import {
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
+  deployCurrentSourceOnDesktop,
   editOpenFile,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
-  isDesktop,
   openFileByName,
   saveScreenshot,
   selectOutputChannel,
@@ -81,9 +80,7 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
     await editOpenFile(page, 'touched');
     // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
     // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
-    if (isDesktop()) {
-      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-    }
+    await deployCurrentSourceOnDesktop(page);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 60_000 });

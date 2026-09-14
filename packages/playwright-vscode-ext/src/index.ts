@@ -40,6 +40,7 @@ export {
   createFileWithContents,
   createApexClass,
   deployCurrentSourceToOrg,
+  deployCurrentSourceOnDesktop,
   openFileByName,
   openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
@@ -150,6 +151,7 @@ export {
 } from './pages/problems';
 
 export {
+  findVisibleNotification,
   waitForRunApexTestsProgressNotificationGone,
   waitForNotification,
   acceptNotification

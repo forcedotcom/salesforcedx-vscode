@@ -34,6 +34,16 @@ import { test } from '../fixtures';
 const SOQL_FILE = 'W23752055QueryResults';
 const RECORD_COUNT = 55;
 
+const deleteAccounts = async (connection: Connection | undefined, accountIds: string[]): Promise<void> => {
+  if (connection && accountIds.length > 0) {
+    const results = await connection.sobject('Account').destroy(accountIds);
+    expect(
+      results.filter(result => !result.success),
+      'all pagination records should be deleted'
+    ).toEqual([]);
+  }
+};
+
 test.describe.configure({ timeout: 240_000 });
 
 test('SOQL query results: relationship columns, pagination, resize, restoration, and exports', async ({ page }) => {
@@ -194,12 +204,6 @@ test('SOQL query results: relationship columns, pagination, resize, restoration,
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   } finally {
-    if (connection && accountIds.length > 0) {
-      const results = await connection.sobject('Account').destroy(accountIds);
-      expect(
-        results.filter(result => !result.success),
-        'all pagination records should be deleted'
-      ).toEqual([]);
-    }
+    await deleteAccounts(connection, accountIds);
   }
 });

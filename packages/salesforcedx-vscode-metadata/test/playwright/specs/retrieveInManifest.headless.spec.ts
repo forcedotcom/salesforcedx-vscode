@@ -19,7 +19,6 @@ import {
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  NOTIFICATION_LIST_ITEM,
   openFileByName,
   saveScreenshot,
   selectOutputChannel,
@@ -31,7 +30,10 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import {
+  throwIfDeployErrorNotificationVisible,
+  waitForDeployProgressNotificationToAppear
+} from '../pages/notifications';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { RETRIEVE_TIMEOUT } from '../../constants';
@@ -100,17 +102,11 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
     await expect(deployingNotification).not.toBeVisible({ timeout: RETRIEVE_TIMEOUT });
 
     // Check for deploy error notifications
-    const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
     const deployErrorPattern = new RegExp(
       `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
       'i'
     );
-    const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-    const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasDeployError) {
-      const errorText = await deployErrorNotification.textContent();
-      throw new Error(`Deploy failed with error notification: ${errorText}`);
-    }
+    await throwIfDeployErrorNotificationVisible(page, deployErrorPattern);
   });
 
   await test.step('1. Editor context menu', async () => {

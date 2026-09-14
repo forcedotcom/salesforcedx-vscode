@@ -17,7 +17,6 @@ import {
   ensureSecondarySideBarHidden,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  NOTIFICATION_LIST_ITEM,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -28,7 +27,10 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import {
+  throwIfDeployErrorNotificationVisible,
+  waitForDeployProgressNotificationToAppear
+} from '../pages/notifications';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
@@ -155,17 +157,10 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
     await saveScreenshot(page, 'step2.after-explorer-context-menu-command.png');
 
     // Check for deploy-related error notifications before waiting for deploying notification
-    const allNotifications = page.locator(NOTIFICATION_LIST_ITEM);
     await saveScreenshot(page, 'step2.checking-notifications.png');
-    const deployErrorNotification = allNotifications
-      .filter({ hasText: /Failed to deploy|ENOENT|deploy.*failed/i })
-      .first();
-    const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasDeployError) {
-      await saveScreenshot(page, 'step2.deploy-error.png');
-      const errorText = await deployErrorNotification.textContent();
-      throw new Error(`Deploy failed with error notification: ${errorText}`);
-    }
+    await throwIfDeployErrorNotificationVisible(page, /Failed to deploy|ENOENT|deploy.*failed/i, () =>
+      saveScreenshot(page, 'step2.deploy-error.png')
+    );
 
     // Verify deploy completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
@@ -208,17 +203,10 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
     await saveScreenshot(page, 'step3.after-explorer-context-menu-command.png');
 
     // Check for deploy-related error notifications before waiting for deploying notification
-    const allNotifications = page.locator(NOTIFICATION_LIST_ITEM);
     await saveScreenshot(page, 'step3.checking-notifications.png');
-    const deployErrorNotification = allNotifications
-      .filter({ hasText: /Failed to deploy|ENOENT|deploy.*failed/i })
-      .first();
-    const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasDeployError) {
-      await saveScreenshot(page, 'step3.deploy-error.png');
-      const errorText = await deployErrorNotification.textContent();
-      throw new Error(`Deploy failed with error notification: ${errorText}`);
-    }
+    await throwIfDeployErrorNotificationVisible(page, /Failed to deploy|ENOENT|deploy.*failed/i, () =>
+      saveScreenshot(page, 'step3.deploy-error.png')
+    );
 
     // Verify deploy completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);

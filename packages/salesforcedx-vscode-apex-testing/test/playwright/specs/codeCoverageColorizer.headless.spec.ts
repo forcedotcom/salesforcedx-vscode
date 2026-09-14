@@ -9,11 +9,10 @@ import { expect, type Page } from '@playwright/test';
 import {
   createApexClass,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
+  deployCurrentSourceOnDesktop,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  isDesktop,
   openFileByName,
   saveScreenshot,
   selectOutputChannel,
@@ -83,9 +82,7 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
       '}'
     ].join('\n');
     await createApexClass(page, className, branchContent);
-    if (isDesktop()) {
-      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-    }
+    await deployCurrentSourceOnDesktop(page);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
     await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });

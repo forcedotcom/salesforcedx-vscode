@@ -70,6 +70,18 @@ const CORE_TELEMETRY_FILE = 'salesforcedx-vscode-core-telemetry.json';
 
 type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unknown>; durationMs?: number };
 
+const isThisSpecSpan = (span: SpanRow): boolean =>
+  span.attributes?.orgId !== undefined && span.attributes?.telemetryTag === 'e2e-test';
+
+const selectEnrichedSpan = (rows: SpanRow[], commandSpan: SpanRow | undefined): SpanRow | undefined =>
+  commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(isThisSpecSpan);
+
+const formatCommandSpan = (commandSpan: SpanRow | undefined): string =>
+  commandSpan ? JSON.stringify(commandSpan, null, 2) : 'not flushed to file this run';
+
+const formatTelemetryFileEvents = (events: Array<{ command: string; data: Record<string, unknown> }>): string =>
+  events.length > 0 ? JSON.stringify(events, null, 2) : 'none — legacy class reporters inert in test mode';
+
 // The core ext and lightning ext each bundle their own services SDK, so each writes to its OWN
 // timestamped {SPANS_DIR}/*.jsonl. And BatchSpanProcessor buffers — a root command span isn't on
 // disk until an interval flush or (reliably) window reload/deactivate. So: reload first, then read
@@ -155,11 +167,9 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     // like workspaceOrgShape.getOrgShape) to flush, not merely for any span.
     // Also require telemetryTag 'e2e-test': the union covers every *.jsonl in SPANS_DIR, including
     // spanRedaction.desktop.spec.ts's spans, which plant a different tag on purpose.
-    const isThisSpec = (s: SpanRow): boolean =>
-      s.attributes?.orgId !== undefined && s.attributes?.telemetryTag === 'e2e-test';
     const rows = await waitFor(
       () => readAllSpanRows(),
-      r => r.some(isThisSpec),
+      r => r.some(isThisSpecSpan),
       'no orgId-enriched o11y span flushed yet'
     );
 
@@ -185,7 +195,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     );
     // Prefer the command span IF it carries orgId (it does once the default-org ref is populated), else
     // fall back to any orgId-bearing root span of THIS spec (e.g. core's workspaceOrgShape.getOrgShape).
-    const enriched = commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(isThisSpec);
+    const enriched = selectEnrichedSpan(rows, commandSpan);
     const orgAttrs: Record<string, unknown> = Object.fromEntries(
       orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
     );
@@ -201,7 +211,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     console.log(JSON.stringify(enriched?.attributes, null, 2));
 
     console.log('=== O11Y COMMAND SPAN (sf.lightning.generate.aura.component) ===');
-    console.log(commandSpan ? JSON.stringify(commandSpan, null, 2) : 'not flushed to file this run');
+    console.log(formatCommandSpan(commandSpan));
 
     expect(enriched?.attributes?.telemetryTag, 'e2e spans should carry the telemetry-tag').toBe('e2e-test');
     expect(orgAttrs.orgId, 'org-identity should populate on the enriched root span').toBeDefined();
@@ -214,9 +224,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     // dump — do NOT fail the run on its absence; the span pipeline above is the source of truth.
     const events = await readTelemetryFileEvents(workspaceDir);
     console.log('=== LEGACY TelemetryFile EVENTS (salesforcedx-vscode-core-telemetry.json) ===');
-    console.log(
-      events.length > 0 ? JSON.stringify(events, null, 2) : 'none — legacy class reporters inert in test mode'
-    );
+    console.log(formatTelemetryFileEvents(events));
   });
 
   // No validateNoCriticalErrors: this is a diagnostic dump, not a product-behavior assertion, and

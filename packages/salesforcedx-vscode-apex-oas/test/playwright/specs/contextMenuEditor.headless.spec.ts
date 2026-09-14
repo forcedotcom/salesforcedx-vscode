@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { type Page } from '@playwright/test';
 import { test } from '../fixtures';
 import {
   createApexClass,
@@ -28,6 +29,16 @@ import {
 
 test.setTimeout(360_000);
 
+const OAS_COMMAND = 'SFDX: Create OpenAPI Document from This Class';
+
+const executeEditorOasCommand = async (page: Page): Promise<void> => {
+  if (isMacDesktop()) {
+    await executeCommandWithCommandPalette(page, OAS_COMMAND);
+  } else {
+    await executeEditorContextMenuCommand(page, OAS_COMMAND);
+  }
+};
+
 // Editor context menu doesn't fire reliably on macOS Electron — legacy test fell back to palette there.
 test('OAS: editor context menu generates OAS doc', async ({ page, workspaceDir }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -48,9 +59,7 @@ test('OAS: editor context menu generates OAS doc', async ({ page, workspaceDir }
 
   await test.step('invoke OAS via editor context menu (palette fallback on macOS)', async () => {
     await openFileByName(page, 'CaseManager.cls');
-    await (isMacDesktop()
-      ? executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class')
-      : executeEditorContextMenuCommand(page, 'SFDX: Create OpenAPI Document from This Class'));
+    await executeEditorOasCommand(page);
     await confirmEsrFolderPrompt(page);
     // A monthly A4V quota outage surfaces a rate-limit notification instead of an ESR — skip, don't fail.
     await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));

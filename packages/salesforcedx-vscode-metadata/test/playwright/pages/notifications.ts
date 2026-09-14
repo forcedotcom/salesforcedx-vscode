@@ -6,7 +6,20 @@
  */
 
 import { expect, type Page, type Locator } from '@playwright/test';
-import { saveScreenshot, NOTIFICATION_LIST_ITEM } from '@salesforce/playwright-vscode-ext';
+import { findVisibleNotification, saveScreenshot, NOTIFICATION_LIST_ITEM } from '@salesforce/playwright-vscode-ext';
+
+/** Throws when a deploy error notification matching `pattern` appears. */
+export const throwIfDeployErrorNotificationVisible = async (
+  page: Page,
+  pattern: RegExp,
+  captureErrorEvidence?: () => Promise<void>
+): Promise<void> => {
+  const notification = await findVisibleNotification(page, pattern);
+  if (notification) {
+    await captureErrorEvidence?.();
+    throw new Error(`Deploy failed with error notification: ${await notification.textContent()}`);
+  }
+};
 
 /** Wait for deploy progress notification to appear */
 export const waitForDeployProgressNotificationToAppear = async (page: Page, timeout = 30_000): Promise<Locator> => {

@@ -8,6 +8,17 @@
 import { expect, type Page, type Locator } from '@playwright/test';
 import { NOTIFICATION_LIST_ITEM } from '../utils/locators';
 
+/** Returns the first visible notification matching `pattern`, or `undefined` when none appears. */
+export const findVisibleNotification = async (
+  page: Page,
+  pattern: RegExp,
+  opts?: { timeout?: number }
+): Promise<Locator | undefined> => {
+  const { timeout = 2000 } = opts ?? {};
+  const notification = page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: pattern }).first();
+  return (await notification.isVisible({ timeout }).catch(() => false)) ? notification : undefined;
+};
+
 /**
  * Resolves when no `withProgress` toast for Run Apex Tests remains (no Cancel — run finished or toast dismissed).
  * Ignores the separate "successfully ran" toast (no Cancel). Safe if progress never appeared.

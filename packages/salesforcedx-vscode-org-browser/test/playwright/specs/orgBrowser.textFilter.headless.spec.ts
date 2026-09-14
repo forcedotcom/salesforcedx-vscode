@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test } from '../fixtures';
-import { expect } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   closeWelcomeTabs,
@@ -16,6 +16,14 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 test.setTimeout(600_000);
+
+const expectVisibleItemsToHaveAccessibleName = async (items: Locator, name: RegExp): Promise<void> => {
+  for (const item of await items.all()) {
+    if (await item.isVisible()) {
+      await expect(item).toHaveAccessibleName(name);
+    }
+  }
+};
 
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
@@ -153,9 +161,7 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
   expect(afterCount).toBeGreaterThanOrEqual(1);
 
   // Virtualized trees may retain rows outside the current model. Assert only rendered rows.
-  for (const item of await items.all()) {
-    if (await item.isVisible()) await expect(item).toHaveAccessibleName(/^Apex/);
-  }
+  await expectVisibleItemsToHaveAccessibleName(items, /^Apex/);
 });
 
 test('Org Browser - text filter: wildcard component pattern *Test* filters children', async ({ page }) => {

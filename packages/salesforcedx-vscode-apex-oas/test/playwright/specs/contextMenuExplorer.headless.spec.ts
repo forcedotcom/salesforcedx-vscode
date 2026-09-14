@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { type Page } from '@playwright/test';
 import { test } from '../fixtures';
 import {
   createApexClass,
@@ -28,6 +29,17 @@ import {
 
 test.setTimeout(360_000);
 
+const OAS_COMMAND = 'SFDX: Create OpenAPI Document from This Class';
+
+const executeExplorerOasCommand = async (page: Page): Promise<void> => {
+  if (isMacDesktop()) {
+    await openFileByName(page, 'CaseManager.cls');
+    await executeCommandWithCommandPalette(page, OAS_COMMAND);
+  } else {
+    await executeExplorerContextMenuCommand(page, 'CaseManager.cls', OAS_COMMAND);
+  }
+};
+
 // Explorer context menu doesn't fire reliably on macOS Electron — legacy test fell back to palette there.
 test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -47,12 +59,7 @@ test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir
   });
 
   await test.step('invoke OAS via explorer context menu (palette fallback on macOS)', async () => {
-    if (isMacDesktop()) {
-      await openFileByName(page, 'CaseManager.cls');
-      await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
-    } else {
-      await executeExplorerContextMenuCommand(page, 'CaseManager.cls', 'SFDX: Create OpenAPI Document from This Class');
-    }
+    await executeExplorerOasCommand(page);
     await confirmEsrFolderPrompt(page);
     // A monthly A4V quota outage surfaces a rate-limit notification instead of an ESR — skip, don't fail.
     await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
