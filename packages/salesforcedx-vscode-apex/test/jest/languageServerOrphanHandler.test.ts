@@ -22,7 +22,7 @@ const HEALTHY_LIST = `1234 5678 java -jar ${UBER_JAR_NAME}`;
 type ExecResult = string | { fail: string };
 
 /** Build a stub TerminalService.simpleExec that returns canned stdout (or a TerminalServiceError) per matched command substring.
- * simpleExec is now shell-free (executable + args vector); rebuild a display string from them so the substring matchers still work. */
+ * Rebuild a display string from executable + args so the substring matchers still work. */
 const makeSimpleExec =
   (responses: { match: string; result: ExecResult }[]) =>
   ({

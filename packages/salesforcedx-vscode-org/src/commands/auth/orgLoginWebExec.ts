@@ -27,7 +27,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * their own params and pass the built command + progress label + notification command key.
  *
  * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
- * and aborts the child via the threaded AbortSignal. Port-conflict failures get a custom notification +
+ * and kills the child. Port-conflict failures get a custom notification +
  * Show Output action; all other TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */
 export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (params: {
