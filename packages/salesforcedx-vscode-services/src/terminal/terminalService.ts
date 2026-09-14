@@ -9,7 +9,6 @@ import * as Command from '@effect/platform/Command';
 import * as CommandExecutor from '@effect/platform/CommandExecutor';
 import { BadArgument, type PlatformError } from '@effect/platform/Error';
 import * as Arr from 'effect/Array';
-import * as Cause from 'effect/Cause';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -44,13 +43,9 @@ const execError = ({
   exitCode,
   stdoutBytes = 0,
   stderrBytes = 0
-}: {
-  message: string;
-  errorType: 'nonzero_exit' | 'spawn_error' | 'timeout' | 'unknown' | 'unsupported_platform';
-  exitCode?: number;
-  stdoutBytes?: number;
-  stderrBytes?: number;
-}) => new TerminalServiceError({ message, errorType, exitCode, stdoutBytes, stderrBytes });
+}: Pick<TerminalServiceError, 'message' | 'errorType'> &
+  Partial<Pick<TerminalServiceError, 'exitCode' | 'stdoutBytes' | 'stderrBytes'>>) =>
+  new TerminalServiceError({ message, errorType, exitCode, stdoutBytes, stderrBytes });
 
 const nonEmptyTrimmed = (value: string | undefined) =>
   Option.fromNullable(value).pipe(Option.map(trim), Option.filter(isNonEmpty));
@@ -96,16 +91,14 @@ const collectUtf8 = (stream: Stream.Stream<Uint8Array, PlatformError>) =>
         : Effect.succeed([next, chunk] as const);
     }),
     Stream.decodeText(),
-    Stream.mkString,
-    Effect.catchTags({
-      SystemError: platformToExecFailure,
-      BadArgument: platformToExecFailure
-    })
+    Stream.mkString
   );
 
-/** Nothing about assembling the CLI env may fail a CLI command: log the cause at debug and fall back. */
-const safeDefault = <A>(fallback: A) =>
-  Effect.catchAllCause((cause: Cause.Cause<unknown>) => Effect.logDebug(cause).pipe(Effect.as(fallback)));
+/** Log at debug and succeed with `fallback`. Settings/config/workspace misses must not fail a CLI command. */
+const fallbackTo =
+  <A>(fallback: A) =>
+  (error: unknown) =>
+    Effect.logDebug(error).pipe(Effect.as(fallback));
 
 type SimpleExecInput<A> = {
   executable: string;
@@ -147,28 +140,44 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
     const settingsService = yield* SettingsService;
 
     /** NODE_EXTRA_CA_CERTS omitted when unset — empty value breaks node's TLS bootstrap. */
-    const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(function* () {
-      const logLevel = (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal')) ?? 'fatal';
-      const caCerts =
-        (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
-        Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
-      const result: Record<string, string> = {
-        SF_LOG_LEVEL: logLevel,
-        ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
-      };
-      return result;
-    }, safeDefault<Record<string, string>>({}));
+    const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(
+      function* () {
+        const logLevel =
+          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal')) ?? 'fatal';
+        const caCerts =
+          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
+          Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
+        const result: Record<string, string> = {
+          SF_LOG_LEVEL: logLevel,
+          ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
+        };
+        return result;
+      },
+      Effect.catchTags({
+        MissingSettingsError: fallbackTo<Record<string, string>>({}),
+        ConfigError: fallbackTo<Record<string, string>>({})
+      })
+    );
 
     /** Keep in sync with utils-vscode `isTelemetryExtensionConfigurationEnabled` (same two settings, negated). */
-    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(function* () {
-      const level = yield* settingsService.getValue<string>('telemetry', 'telemetryLevel', 'all');
-      const coreEnabled = yield* settingsService.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', true);
-      return level === 'off' || coreEnabled === false;
-    }, safeDefault(false));
+    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
+      function* () {
+        const level = yield* settingsService.getValue<string>('telemetry', 'telemetryLevel', 'all');
+        const coreEnabled = yield* settingsService.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', true);
+        return level === 'off' || coreEnabled === false;
+      },
+      Effect.catchTag('MissingSettingsError', fallbackTo(false))
+    );
 
-    const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(function* () {
-      return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
-    }, safeDefault(false));
+    const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(
+      function* () {
+        return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
+      },
+      Effect.catchTags({
+        FailedToCreateConfigAggregatorError: fallbackTo(false),
+        NoWorkspaceOpenError: fallbackTo(false)
+      })
+    );
 
     /**
      * Run `executable` + `args` as an argv vector (never a shell string). Desktop-only.
@@ -206,20 +215,11 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
             Command.make(executable, ...args),
             cmd => (isUndefined(mergedEnv) ? cmd : Command.env(mergedEnv)(cmd)),
             cmd => (isUndefined(cwd) ? cmd : Command.workingDirectory(cwd)(cmd)),
-            commandExecutor.start,
-            Effect.catchTags({
-              SystemError: platformToExecFailure,
-              BadArgument: platformToExecFailure
-            })
+            commandExecutor.start
           );
-          const [stdout, stderr] = yield* Effect.all([collectUtf8(proc.stdout), collectUtf8(proc.stderr)], {
-            concurrency: 2
-          }).pipe(Effect.tapError(() => Effect.ignore(proc.kill())));
-          const code = yield* proc.exitCode.pipe(
-            Effect.catchTags({
-              SystemError: platformToExecFailure,
-              BadArgument: platformToExecFailure
-            })
+          const [stdout, stderr, code] = yield* Effect.all(
+            [collectUtf8(proc.stdout), collectUtf8(proc.stderr), proc.exitCode],
+            { concurrency: 3 }
           );
           return code === 0
             ? { stdout, stderr }
@@ -232,6 +232,10 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
               });
         })
       ).pipe(
+        Effect.catchTags({
+          SystemError: platformToExecFailure,
+          BadArgument: platformToExecFailure
+        }),
         Effect.timeoutFail({
           duration: timeout,
           onTimeout: () => execError({ errorType: 'timeout', message: 'Command failed' })

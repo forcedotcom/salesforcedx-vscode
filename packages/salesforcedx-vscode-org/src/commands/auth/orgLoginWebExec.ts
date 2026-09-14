@@ -24,7 +24,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * Both run the same CLI (the dev-hub variant only swaps `--instance-url/--set-default` for
  * `--set-default-dev-hub`), so they share: the Code Builder verification-code fork, the cancellable
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
- * their own params and pass the built command + progress label + notification command key.
+ * their own params and pass args + progress label + notification command key.
  *
  * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
  * and kills the child. Port-conflict failures get a custom notification + Show Output action; all other

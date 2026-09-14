@@ -29,7 +29,7 @@ simpleExec(args: {
 - `executable === 'sf'` gets env assembled at exec time, lowest precedence first:
   - `SF_LOG_LEVEL` from `salesforcedx-vscode-core.SF_LOG_LEVEL` (default `fatal`)
   - `NODE_EXTRA_CA_CERTS` from `salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS`, else ambient env var; omitted when neither
-  - `SF_DISABLE_TELEMETRY=true` when telemetry opted out (`telemetry.telemetryLevel: off`, `salesforcedx-vscode-core.telemetry.enabled: false`, or CLI `disable-telemetry`)
+  - `SF_DISABLE_TELEMETRY=true` when telemetry opted out (`telemetry.telemetryLevel: off`, `salesforcedx-vscode-core.telemetry.enabled: false`, or CLI `disable-telemetry`). CLI lookup failure (no workspace / aggregator) omits the key; command still runs
   - `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL='salesforce-vscode-extensions'`
   - caller `env` wins
 - settings read per exec — don't thread these yourself

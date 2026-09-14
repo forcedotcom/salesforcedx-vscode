@@ -57,7 +57,6 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@types/cross-spawn": "6.0.6",
     "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
   },

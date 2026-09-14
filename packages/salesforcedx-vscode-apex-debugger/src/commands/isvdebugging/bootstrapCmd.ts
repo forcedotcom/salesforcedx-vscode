@@ -104,15 +104,15 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
 
 /** Defense-in-depth on attacker-shapeable forceide:// pastes. Rejects chars that never appear in real
  * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
-const SHELL_UNSAFE = /[`$\\"'|&;<>()\s]/;
+const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
 const uriValidator = (value: string): string | undefined => {
   try {
     const parameter = new URL(value).searchParams;
     const url = parameter.get('url');
     const sessionId = parameter.get('sessionId');
-    // `''` passes SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
-    if (!url || !sessionId || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
+    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
   } catch {
@@ -134,8 +134,7 @@ const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(funct
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  // uriValidator (validateInput) already rejected undefined/empty url+sessionId and any shell metacharacter, so
-  // both are non-empty strings here.
+  // uriValidator already rejected empty url+sessionId, so both are non-empty here.
   const parameter = new URL(forceIdeUri).searchParams;
   const loginUrl = parameter.get('url')!;
   const sessionId = parameter.get('sessionId')!;
