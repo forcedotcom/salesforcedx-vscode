@@ -12,7 +12,7 @@ import { findVisibleNotification, saveScreenshot, NOTIFICATION_LIST_ITEM } from 
 export const throwIfDeployErrorNotificationVisible = async (
   page: Page,
   pattern: RegExp,
-  captureErrorEvidence?: () => Promise<void>
+  captureErrorEvidence?: () => Promise<unknown>
 ): Promise<void> => {
   const notification = await findVisibleNotification(page, pattern);
   if (notification) {
