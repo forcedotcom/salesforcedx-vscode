@@ -11,7 +11,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as which from 'which';
 import { nls } from '../../messages';
-import { telemetryService } from '../../telemetry';
 import { workspaceService } from './workspaceService';
 
 /**
@@ -24,10 +23,14 @@ export const getLwcTestRunnerExecutable = Effect.fn('getLwcTestRunnerExecutable'
   const isSFDX = workspaceService.isSFDXWorkspace(workspaceType);
 
   if (!isSFDX && !workspaceService.isCoreWorkspace(workspaceType)) {
-    telemetryService.sendEventData('exception', {
-      name: 'lwc_test_no_lwc_testrunner_found',
-      message: 'Unsupported workspace'
-    });
+    yield* Effect.void.pipe(
+      Effect.withSpan('exception', {
+        attributes: {
+          name: 'lwc_test_no_lwc_testrunner_found',
+          message: 'Unsupported workspace'
+        }
+      })
+    );
     return Option.none<string>();
   }
 
@@ -42,6 +45,6 @@ export const getLwcTestRunnerExecutable = Effect.fn('getLwcTestRunnerExecutable'
   const errorKey = isSFDX ? 'lwc_test_no_lwc_jest_found' : 'lwc_test_no_lwc_testrunner_found';
   const errorMessage = nls.localize(isSFDX ? 'no_lwc_jest_found_text' : 'no_lwc_testrunner_found_text');
   void vscode.window.showErrorMessage(errorMessage);
-  telemetryService.sendEventData('exception', { name: errorKey, message: errorMessage });
+  yield* Effect.void.pipe(Effect.withSpan('exception', { attributes: { name: errorKey, message: errorMessage } }));
   return Option.none<string>();
 });

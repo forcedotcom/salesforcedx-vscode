@@ -153,6 +153,7 @@ export type ExecuteCommandByIdOptions = {
   /** Observable assertion that proves the shortcut invoked the command. Retried with the shortcut when provided. */
   verifyExecution?: () => Promise<void>;
   timeout?: number;
+  commandArgs?: unknown;
 };
 
 /** Execute a registered command by ID without requiring a visible command-palette contribution. */
@@ -165,7 +166,7 @@ export const executeCommandById = async (
   const key = isDesktop() ? 'Control+Shift+Alt+F9' : 'Control+Shift+9';
   await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
   await executeCommandWithCommandPalette(page, 'Select All');
-  await page.keyboard.insertText(JSON.stringify([{ key: keybinding, command: commandId }]));
+  await page.keyboard.insertText(JSON.stringify([{ key: keybinding, command: commandId, args: options?.commandArgs }]));
   await executeCommandWithCommandPalette(page, 'File: Save');
   await executeCommandWithCommandPalette(page, 'View: Close Editor');
 

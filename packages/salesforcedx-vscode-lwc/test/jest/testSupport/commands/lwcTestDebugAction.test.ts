@@ -5,24 +5,32 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URI } from 'vscode-uri';
+import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
 
 const runByExecutionInfo = jest.fn();
 const runActiveEditorFile = jest.fn();
+const mockRecordedSpans: RecordedSpan[] = [];
+
+jest.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
 jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 
 import {
+  handleDidStartDebugSession,
+  handleDidTerminateDebugSession,
   lwcTestFileDebug,
   lwcTestCaseDebug,
   lwcTestDebugActiveTextEditorTest
 } from '../../../../src/testSupport/commands/lwcTestDebugAction';
+import { workspaceService } from '../../../../src/testSupport/workspace/workspaceService';
 
 describe('lwcTestDebugAction routes through the controller', () => {
   beforeEach(() => {
     runByExecutionInfo.mockClear();
     runActiveEditorFile.mockClear();
+    mockRecordedSpans.length = 0;
   });
 
   it('lwcTestFileDebug calls controller.runByExecutionInfo with isDebug=true', async () => {
@@ -40,5 +48,22 @@ describe('lwcTestDebugAction routes through the controller', () => {
   it('lwcTestDebugActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=true', async () => {
     await lwcTestDebugActiveTextEditorTest();
     expect(runActiveEditorFile).toHaveBeenCalledWith(true);
+  });
+
+  it('records the completed debug session span', () => {
+    const performanceNow = jest.spyOn(globalThis.performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(125);
+    workspaceService.setCurrentWorkspaceType('SFDX');
+    const session = {
+      configuration: { sfDebugSessionId: 'debug-session' }
+    } as unknown as import('vscode').DebugSession;
+
+    handleDidStartDebugSession(session);
+    handleDidTerminateDebugSession(session);
+
+    const debugSpan = mockRecordedSpans.find(span => span.name === 'lwc_test_debug_action');
+    expect(debugSpan?.attributes.get('workspaceType')).toBe('SFDX');
+    expect(debugSpan?.attributes.get('executionTime')).toBe(25);
+    expect(debugSpan?.ended).toBe(true);
+    performanceNow.mockRestore();
   });
 });

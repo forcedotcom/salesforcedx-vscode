@@ -31,7 +31,6 @@ import { nls } from './messages';
 import { activateMetaSupport } from './metasupport/metaSupport';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { telemetryService } from './telemetry';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 class LwcLanguageServerError extends Schema.TaggedError<LwcLanguageServerError>()('LwcLanguageServerError', {
@@ -257,7 +256,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
 
 export const deactivate = () => {
   log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendEventData('extensionDeactivated');
+  getRuntime().runFork(Effect.void.pipe(Effect.withSpan('extensionDeactivated')));
 };
 
 const getActivationMode = (): string => {

@@ -5,25 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { createRecordingTracerLayer, type RecordedSpan } from '../../testUtils/recordingTracer';
 
 // runtime.ts reads AllServicesLayer from ./extensionProvider; without a real layer getRuntime() dies with
 // `Cannot read properties of undefined (reading '_op_layer')`. Mock the provider module so getRuntime()
 // resolves and FsService.readFile returns the fixture json the results-reading path parses.
 const mockFsReadFile = jest.fn();
+const mockRecordedSpans: RecordedSpan[] = [];
 jest.mock('../../../../src/services/extensionProvider', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const Layer = jest.requireActual('effect/Layer');
-  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const EffectLib = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
+  const Layer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
+  const { ExtensionProviderService } =
+    jest.requireActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
   const mockServicesApi = {
     services: {
       FsService: { readFile: mockFsReadFile }
     }
   };
-  const MockAllServicesLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      ExtensionProviderService,
+      EffectLib.sync(
+        () =>
+          ({
+            getServicesApi: EffectLib.succeed(mockServicesApi)
+          }) as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService
+      )
+    ),
+    createRecordingTracerLayer(() => mockRecordedSpans)
   );
   return {
     AllServicesLayer: MockAllServicesLayer,
@@ -45,13 +57,6 @@ jest.mock('../../../../src/testSupport/testIndexer', () => ({
 // Mock isLwcJestTest so we can control its return value per test
 jest.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
   isLwcJestTest: jest.fn()
-}));
-
-// Mock telemetry and workspace services
-jest.mock('../../../../src/telemetry', () => ({
-  telemetryService: {
-    sendEventData: jest.fn()
-  }
 }));
 
 jest.mock('../../../../src/testSupport/workspace', () => ({
@@ -151,6 +156,11 @@ describe('LwcTestController public run API', () => {
     disposeLwcTestController();
     // Reset the isLwcJestTest mock between tests
     (isLwcJestTest as jest.Mock).mockReset();
+    const { workspaceService: mockWorkspaceService } = jest.requireMock<
+      typeof import('../../../../src/testSupport/workspace')
+    >('../../../../src/testSupport/workspace');
+    jest.mocked(mockWorkspaceService.getCurrentWorkspaceTypeForTelemetry).mockReturnValue('SFDX');
+    mockRecordedSpans.length = 0;
   });
 
   it('runByExecutionInfo resolves a file item and starts a test run', async () => {
@@ -219,8 +229,13 @@ describe('LwcTestController public run API', () => {
       .mockResolvedValue(undefined);
 
     await ctrl.runByExecutionInfo({ kind: 'testFile', testUri }, false);
+    await flushMicrotasks();
 
     expect(controller.createTestRun).toHaveBeenCalled();
+    const runSpan = mockRecordedSpans.find(span => span.name === 'lwc_test_run_action');
+    expect(runSpan?.attributes.get('workspaceType')).toBe('SFDX');
+    expect(runSpan?.attributes.get('executionTime')).toEqual(expect.any(Number));
+    expect(runSpan?.ended).toBe(true);
   });
 
   it('runActiveEditorFile no-ops when there is no active editor', async () => {
@@ -613,9 +628,11 @@ describe('LwcTestController public run API', () => {
 
     // Implicit run-all routes through runAllAsDirectory, which needs a workspace folder.
     const { workspace: lwcWorkspace } = require('../../../../src/testSupport/workspace');
-    (lwcWorkspace.getTestWorkspaceFolder as jest.Mock).mockReturnValue({
-      uri: URI.file('/c/Users/RUNNER~1/work/proj')
-    });
+    (lwcWorkspace.getTestWorkspaceFolder as jest.Mock).mockReturnValue(
+      Effect.succeed({
+        uri: URI.file('/c/Users/RUNNER~1/work/proj')
+      })
+    );
 
     // Stub the runner so executeOne proceeds to the task/results phase without spawning a real jest process.
     jest
