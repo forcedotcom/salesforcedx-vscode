@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import type * as Layer from 'effect/Layer';
+import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
@@ -43,10 +44,15 @@ type ApexLspScanConfig = {
 const DEFAULT_APEX_TYPE_NAMES = ['ApexClass', 'ApexTrigger'];
 
 const toNormalizedFolderName = (value: string): string => value.trim().toLowerCase();
+const localeAwareStringOrder = Order.make<string>((left, right) => {
+  const comparison = left.localeCompare(right);
+  return comparison < 0 ? -1 : comparison > 0 ? 1 : 0;
+});
+const folderNameOrder = Order.mapInput(localeAwareStringOrder, toNormalizedFolderName);
 const sortFolders = (values: string[]): string[] =>
   // We avoid mutating the source array and keep compatibility with test transpilation.
   // eslint-disable-next-line unicorn/no-array-sort
-  [...values].sort((a, b) => a.localeCompare(b));
+  [...values].sort(folderNameOrder);
 
 export const deriveExcludedMetadataFolders = (
   registry: MetadataRegistry,

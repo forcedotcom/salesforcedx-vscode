@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Order from 'effect/Order';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -36,6 +37,8 @@ const TEST_CONTROLLER_ID = 'sf.lwc.testController';
 const TEST_FILE_SUFFIX_RE = /\.test\.[jt]s$/;
 
 type ItemKind = 'file' | 'case';
+
+const byLabel = Order.mapInput(Order.string, (item: vscode.TestItem) => item.label);
 
 const getFileLabel = (testUri: URI): string => {
   const base = Utils.basename(testUri);
@@ -297,7 +300,7 @@ class LwcTestController {
         items.push(item);
         seen.add(item.id);
       }
-      items.sort((a, b) => (a.label > b.label ? 1 : -1));
+      items.sort(byLabel);
       this.controller.items.replace(items);
       for (const id of this.fileItems.keys()) {
         if (!seen.has(id)) {
