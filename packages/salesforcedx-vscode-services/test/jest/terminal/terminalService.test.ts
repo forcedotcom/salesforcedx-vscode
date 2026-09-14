@@ -18,7 +18,7 @@ import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import * as Tracer from 'effect/Tracer';
 import { ConfigService, FailedToCreateConfigAggregatorError } from '../../../src/core/configService';
-import { TerminalService, TerminalServiceError } from '../../../src/terminal/terminalService';
+import { TerminalService, TerminalServiceError, TerminalServiceWebLive } from '../../../src/terminal/terminalService';
 import { SettingsError, SettingsService } from '../../../src/vscode/settingsService';
 
 const settings: { values: Record<string, unknown>; fail: boolean } = { values: {}, fail: false };
@@ -618,20 +618,6 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('fails with TerminalServiceError on web', async () => {
-    process.env.ESBUILD_PLATFORM = 'web';
-    const start = jest.fn(() =>
-      Effect.acquireRelease(Effect.succeed(fakeProcess({})), proc => Effect.ignore(proc.kill()))
-    );
-    const layer = TerminalService.DefaultWithoutDependencies.pipe(
-      Layer.provide(
-        Layer.mergeAll(
-          Layer.succeed(CommandExecutor.CommandExecutor, CommandExecutor.makeExecutor(start)),
-          MockSettingsServiceLayer,
-          MockConfigServiceLayer
-        )
-      )
-    );
-
     const error = await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -643,13 +629,11 @@ describe('TerminalService.simpleExec', () => {
         ),
         Effect.flip
       ),
-      layer
+      TerminalServiceWebLive
     );
 
     expect(error).toBeInstanceOf(TerminalServiceError);
+    expect(error.errorType).toBe('unsupported_platform');
     expect('command' in error).toBe(false);
-    expect(start).not.toHaveBeenCalled();
-    expect(getValueMock).not.toHaveBeenCalled();
-    expect(isCliTelemetryDisabledMock).not.toHaveBeenCalled();
   });
 });

@@ -4,9 +4,9 @@
 
 Spawn: `@effect/platform` `Command.make` + `commandExecutor.start`. Tests stub `CommandExecutor.CommandExecutor`, not a ChildProcess service.
 
-- `TerminalService.Default` deps: Config+Settings. CommandExecutor from the platform layer
+- `TerminalService.Default` desktop-only. Deps: Config+Settings. CommandExecutor from the platform layer
 - desktop: `servicesLayers` `import()`s `CrossSpawnCommandExecutorLive` inside the `ESBUILD_PLATFORM` node branch (LWC testSupport / visualforce javascriptMode). Module static-imports `cross-spawn` for Windows `.cmd`; `shell` never enabled. stdout/stderr via `NodeStream.fromReadable`
-- web: `TerminalServiceWebLive` (noop CommandExecutor). `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`) before start
+- web: `TerminalServiceWebLive` (`Layer.succeed` stub; no CommandExecutor/Config/Settings). `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`)
 
 ## `simpleExec`
 

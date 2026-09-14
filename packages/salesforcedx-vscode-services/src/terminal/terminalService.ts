@@ -7,7 +7,7 @@
 
 import * as Command from '@effect/platform/Command';
 import * as CommandExecutor from '@effect/platform/CommandExecutor';
-import { BadArgument, type PlatformError } from '@effect/platform/Error';
+import { type PlatformError } from '@effect/platform/Error';
 import * as Arr from 'effect/Array';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
@@ -109,32 +109,15 @@ type SimpleExecInput<A> = {
   cwd?: string;
 };
 
-const WebCommandExecutorLive = Layer.succeed(
-  CommandExecutor.CommandExecutor,
-  CommandExecutor.makeExecutor(() =>
-    Effect.fail(
-      new BadArgument({
-        module: 'Command',
-        method: 'start',
-        description: 'Not available on web'
-      })
-    )
-  )
-);
+const unsupportedOnWeb = Effect.fn('TerminalService.simpleExec')(function* <A>(_: SimpleExecInput<A>) {
+  yield* Effect.annotateCurrentSpan({ 'error.type': 'unsupported_platform' });
+  return yield* execError({ errorType: 'unsupported_platform', message: 'Not available on web' });
+});
 
 export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
   accessors: false,
   dependencies: [ConfigService.Default, SettingsService.Default],
   effect: Effect.gen(function* () {
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      return {
-        simpleExec: Effect.fn('TerminalService.simpleExec')(function* <A>(_: SimpleExecInput<A>) {
-          yield* Effect.annotateCurrentSpan({ 'error.type': 'unsupported_platform' });
-          return yield* execError({ errorType: 'unsupported_platform', message: 'Not available on web' });
-        })
-      };
-    }
-
     const commandExecutor = yield* CommandExecutor.CommandExecutor;
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
@@ -262,4 +245,7 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
   })
 }) {}
 
-export const TerminalServiceWebLive = TerminalService.Default.pipe(Layer.provide(WebCommandExecutorLive));
+export const TerminalServiceWebLive = Layer.succeed(
+  TerminalService,
+  TerminalService.make({ simpleExec: unsupportedOnWeb })
+);
