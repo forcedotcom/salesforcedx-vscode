@@ -10,10 +10,10 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -21,6 +21,7 @@ import { URI, Utils } from 'vscode-uri';
 import { getActiveMetadataOperationRef } from '../core/activeMetadataOperationRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../core/metadataChangeNotificationService';
+import { OrgId } from '../core/schemas/salesforceId';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
 import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -134,10 +135,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
       Effect.gen(function* () {
         const activeOrgId = yield* SubscriptionRef.get(defaultOrgRef).pipe(
           Effect.map(({ orgId }) => orgId),
-          Effect.filterOrFail(
-            (orgId): orgId is string => isNotUndefined(orgId) && orgId.length > 0,
-            () => vscode.FileSystemError.FileNotFound(uri)
-          )
+          Effect.filterOrFail(Schema.is(OrgId), () => vscode.FileSystemError.FileNotFound(uri))
         );
         return yield* documents.readDocumentUri(activeOrgId, uri);
       })

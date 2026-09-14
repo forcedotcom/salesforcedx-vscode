@@ -9,12 +9,13 @@
 
 import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
+import { orgIdFromConnection } from '../core/schemas/authFields';
 import { OrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
@@ -100,15 +101,14 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       if (orgId) return orgId;
 
-      // Consumers can begin work as soon as TargetOrgRef announces an org. During extension-host
-      // startup, however, a refresh can invalidate the shared connection while another service is
-      // still observing that announcement. Re-acquiring the connection both restores defaultOrgRef
-      // and gives the catalog the authoritative org id without requiring a prior metadata operation.
-      const connection = yield* connectionService.getConnection();
-      return yield* Effect.succeed(connection.getAuthInfoFields().orgId).pipe(
-        Effect.filterOrFail(
-          (connectionOrgId): connectionOrgId is string => isNotUndefined(connectionOrgId) && connectionOrgId.length > 0,
-          () => vscode.FileSystemError.Unavailable('No default org is configured')
+      // Startup race: ref may lack orgId; re-acquire connection for AuthFields org id.
+      return yield* connectionService.getConnection().pipe(
+        Effect.map(orgIdFromConnection),
+        Effect.flatMap(
+          Option.match({
+            onNone: () => Effect.fail(vscode.FileSystemError.Unavailable('No default org is configured')),
+            onSome: Effect.succeed
+          })
         )
       );
     });

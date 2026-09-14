@@ -23,6 +23,7 @@ import { ConnectionService } from './connectionService';
 import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
 import { MetadataDescribeService } from './metadataDescribeService';
 import { ProjectService } from './projectService';
+import { orgIdFromConnection } from './schemas/authFields';
 import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 import { SourceTrackingService } from './sourceTrackingService';
@@ -186,7 +187,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
             trackingService
               .maybeUpdateTrackingFromDeploy(deployOutcome)
               .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
-            publishDeployNotifications(deployOutcome, connection.getAuthInfoFields().orgId)
+            publishDeployNotifications(deployOutcome, Option.getOrUndefined(orgIdFromConnection(connection)))
           ],
           { concurrency: 'unbounded' }
         );

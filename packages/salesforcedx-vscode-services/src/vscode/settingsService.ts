@@ -32,7 +32,7 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
   Effect.succeed(value).pipe(
     Effect.filterOrFail(
-      (candidateValue): candidateValue is string => isNotUndefined(candidateValue) && candidateValue.length > 0,
+      S.is(S.NonEmptyString),
       () =>
         new SettingsError({
           cause: new Error(`Value for ${key} is empty`),

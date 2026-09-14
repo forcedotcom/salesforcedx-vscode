@@ -297,7 +297,7 @@ Ref behavior (concise):
 
 - Default-org update: username from User SOQL when present; else AuthInfo login username on the connection.
 - `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org.
-- `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
+- `TargetOrgRef` (`DefaultOrgInfoSchema`) value is always an object (never `undefined`); `orgId`/`devHubOrgId` are optional branded `OrgId` (`Schema.optional(OrgId)`, like `cliId`).
 
 ### Clearing the Default Org
 

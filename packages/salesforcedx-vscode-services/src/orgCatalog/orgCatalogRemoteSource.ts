@@ -11,6 +11,7 @@ import type {
 } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
@@ -83,7 +84,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       const record = result.records[0];
       const body = yield* Effect.succeed(record?.Body).pipe(
         Effect.filterOrFail(
-          (candidateBody): candidateBody is string => isNotUndefined(candidateBody) && candidateBody.length > 0,
+          Schema.is(Schema.NonEmptyString),
           () =>
             new OrgMetadataCatalogError({
               cause: new Error('Apex class body was not returned'),
