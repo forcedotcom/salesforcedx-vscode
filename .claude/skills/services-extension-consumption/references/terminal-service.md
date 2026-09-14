@@ -5,8 +5,8 @@
 Spawn: `@effect/platform` `Command.make` + `commandExecutor.start`. Tests stub `CommandExecutor.CommandExecutor`, not a ChildProcess service.
 
 - `TerminalService.Default` deps: Config+Settings. CommandExecutor from the platform layer
-- desktop: `servicesLayers` dynamic-imports `CrossSpawnCommandExecutorLive` (module static-imports `cross-spawn` for Windows `.cmd`; `shell` never enabled). stdout/stderr via `NodeStream.fromReadable`
-- web: `TerminalServiceWebLive` (noop CommandExecutor). `ESBUILD_PLATFORM` define drops the executor module. `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`) before start
+- desktop: `servicesLayers` provides `CrossSpawnCommandExecutorLive` (static import). Module static-imports `cross-spawn` for Windows `.cmd`; `shell` never enabled. stdout/stderr via `NodeStream.fromReadable`
+- web: `TerminalServiceWebLive` (noop CommandExecutor). Web esbuild stubs the executor so `cross-spawn` is not in `dist/web`. `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`) before start
 
 ## `simpleExec`
 

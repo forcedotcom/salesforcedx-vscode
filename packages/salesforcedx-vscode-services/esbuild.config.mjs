@@ -29,6 +29,34 @@ const templatesLibPath = join(templatesPkgPath, 'lib/templates');
 // Use forward slashes in glob so copy works on Windows CI (globby is cross-platform when pattern uses /).
 const templatesBase = templatesLibPath.replace(/\\/g, '/');
 
+// tsc top-level CJS `require` of the executor is not dropped on web; stub so cross-spawn is not followed.
+const stubCrossSpawnExecutorOnWeb = {
+  name: 'stub-cross-spawn-executor-web',
+  setup(build) {
+    build.onLoad({ filter: /[/\\]terminal[/\\]crossSpawnCommandExecutor\.js$/ }, () => ({
+      contents: `
+        const CommandExecutor = require('@effect/platform/CommandExecutor');
+        const { BadArgument } = require('@effect/platform/Error');
+        const Effect = require('effect/Effect');
+        const Layer = require('effect/Layer');
+        exports.CrossSpawnCommandExecutorLive = Layer.succeed(
+          CommandExecutor.CommandExecutor,
+          CommandExecutor.makeExecutor(() =>
+            Effect.fail(
+              new BadArgument({
+                module: 'Command',
+                method: 'start',
+                description: 'Not available on web'
+              })
+            )
+          )
+        );
+      `,
+      loader: 'js'
+    }));
+  }
+};
+
 const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
@@ -168,9 +196,16 @@ const browserBuild = await build({
   define: browserDefine,
   entryPoints: ['./out/src/index.js'],
   outfile: './dist/web/index.js',
-  plugins: [...(commonConfigBrowser.plugins ?? []), copyTemplates],
+  plugins: [...(commonConfigBrowser.plugins ?? []), stubCrossSpawnExecutorOnWeb, copyTemplates],
   metafile: true
 });
+
+const crossSpawnInWeb = Object.keys(browserBuild.metafile.inputs).filter(p => /node_modules\/cross-spawn\//.test(p));
+if (crossSpawnInWeb.length > 0) {
+  throw new Error(
+    `web bundle includes cross-spawn (${crossSpawnInWeb.length} inputs). Stub CrossSpawnCommandExecutor on web.`
+  );
+}
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));

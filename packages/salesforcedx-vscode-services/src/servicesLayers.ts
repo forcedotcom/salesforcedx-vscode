@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
@@ -33,6 +32,7 @@ import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
 import { OrgMetadataReferenceService } from './orgCatalog/orgMetadataReference';
+import { CrossSpawnCommandExecutorLive } from './terminal/crossSpawnCommandExecutor';
 import { TerminalService, TerminalServiceWebLive } from './terminal/terminalService';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
@@ -48,13 +48,7 @@ import { WorkspaceService } from './vscode/workspaceService';
 const terminalServiceLayer =
   process.env.ESBUILD_PLATFORM === 'web'
     ? TerminalServiceWebLive
-    : Layer.unwrapEffect(
-        Effect.promise(() => import('./terminal/crossSpawnCommandExecutor.js')).pipe(
-          Effect.map(({ CrossSpawnCommandExecutorLive }) =>
-            TerminalService.Default.pipe(Layer.provide(CrossSpawnCommandExecutorLive))
-          )
-        )
-      );
+    : TerminalService.Default.pipe(Layer.provide(CrossSpawnCommandExecutorLive));
 
 /**
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
