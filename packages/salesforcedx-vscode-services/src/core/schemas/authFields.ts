@@ -18,7 +18,7 @@ const optional = <S extends Schema.Schema.Any>(schema: S) => Schema.optionalWith
 export const AuthFields = Schema.Struct({
   orgId: optional(OrgId),
   username: optional(Schema.String),
-  instanceName: optional(Schema.String),
+  instanceName: optional(Schema.Trim),
   devHubUsername: optional(Schema.String),
   tracksSource: optional(Schema.Boolean),
   isScratch: optional(Schema.Boolean),

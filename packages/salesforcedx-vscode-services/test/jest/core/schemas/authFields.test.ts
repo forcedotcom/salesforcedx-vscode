@@ -39,6 +39,14 @@ describe('AuthFields', () => {
   it('rejects a present but invalid orgId', () => {
     expect(authFieldsFrom({ orgId: 'org-one', username: 'user@example.com' })).toEqual(Option.none());
   });
+
+  it('trims instanceName', () => {
+    const fields = authFieldsFrom({ instanceName: '  USA9S  ' });
+    expect(Option.isSome(fields)).toBe(true);
+    if (Option.isSome(fields)) {
+      expect(fields.value.instanceName).toEqual(Option.some('USA9S'));
+    }
+  });
 });
 
 describe('authFieldsFromConnection', () => {

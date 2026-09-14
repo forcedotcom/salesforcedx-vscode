@@ -347,12 +347,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       if (isUndefined(username)) {
         const fields = authFieldsFromConnection(conn);
         const orgId = Option.getOrUndefined(Option.flatMap(fields, f => f.orgId));
-        const instanceName = Option.getOrUndefined(
-          Option.map(
-            Option.flatMap(fields, f => f.instanceName),
-            s => s.trim()
-          )
-        );
+        const instanceName = Option.getOrUndefined(Option.flatMap(fields, f => f.instanceName));
         const defaultOrgRef = yield* getDefaultOrgRef();
         const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
@@ -445,13 +440,12 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const configService = yield* ConfigService;
   const fields = authFieldsFromConnection(conn);
   const orgId = Option.getOrUndefined(Option.flatMap(fields, f => f.orgId));
-  const rawInstanceName = Option.getOrUndefined(Option.flatMap(fields, f => f.instanceName));
+  const instanceName = Option.getOrUndefined(Option.flatMap(fields, f => f.instanceName));
   const devHubUsername = Option.getOrUndefined(Option.flatMap(fields, f => f.devHubUsername));
   const isScratch = Option.getOrUndefined(Option.flatMap(fields, f => f.isScratch));
   const isSandbox = Option.getOrUndefined(Option.flatMap(fields, f => f.isSandbox));
   const tracksSource = Option.getOrUndefined(Option.flatMap(fields, f => f.tracksSource));
   const orgEdition = Option.getOrUndefined(Option.flatMap(fields, f => f.orgEdition));
-  const instanceName = rawInstanceName?.trim();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   const orgIdChanged = previousOrgId !== orgId;
