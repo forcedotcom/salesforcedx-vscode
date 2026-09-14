@@ -7,31 +7,41 @@
 
 type TableOptions = {
   data: unknown[];
-  pagination: string;
-  paginationSize: number;
-  layout: string;
-  height: string;
-  virtualDom: boolean;
+  pagination?: boolean;
+  paginationMode?: string;
+  paginationSize?: number;
+  layout?: string;
+  height?: string;
+  renderVertical?: string;
+  nestedFieldSeparator?: string | boolean;
   columns: Array<{
     title: string;
     field?: string;
     columns?: TableOptions['columns'];
-    formatter?: (cell: { getRow: () => { getData: () => Record<string, unknown> } }) => string;
   }>;
+  rowFormatter?: (row: { getData: () => Record<string, unknown>; getElement: () => HTMLElement }) => void;
 };
 
 class FakeTabulator {
   public static readonly instances: FakeTabulator[] = [];
 
   public readonly destroy = jest.fn();
+  public readonly on = jest.fn((eventName: string, handler: () => void) => {
+    this.eventHandlers.set(eventName, handler);
+  });
   public readonly redraw = jest.fn();
   public readonly setHeight = jest.fn();
+  private readonly eventHandlers = new Map<string, () => void>();
 
   constructor(
     public readonly target: string | HTMLElement,
     public readonly options: TableOptions
   ) {
     FakeTabulator.instances.push(this);
+  }
+
+  public trigger(eventName: string): void {
+    this.eventHandlers.get(eventName)?.();
   }
 }
 
@@ -96,12 +106,15 @@ describe('Query Data View controller baseline', () => {
 
     const restoredTable = FakeTabulator.instances[0];
     expect(restoredTable.target).toBe('#data-table');
+    expect(restoredTable.on).toHaveBeenCalledWith('tableBuilt', expect.any(Function));
     expect(restoredTable.options).toMatchObject({
-      pagination: 'local',
+      pagination: true,
+      paginationMode: 'local',
       paginationSize: 50,
       layout: 'fitColumns',
       height: '100%',
-      virtualDom: false
+      renderVertical: 'basic',
+      nestedFieldSeparator: false
     });
     expect(restoredTable.options.columns).toHaveLength(2);
     expect(restoredTable.options.columns[0]).toMatchObject({ title: 'Id', field: 'Id' });
@@ -112,22 +125,31 @@ describe('Query Data View controller baseline', () => {
         { title: 'Email', field: 'Owner.Email' }
       ]
     });
-    expect(
-      restoredTable.options.columns[1].columns?.[1].formatter?.({
-        getRow: () => ({ getData: () => ({ 'Owner.Email': null }) })
-      })
-    ).toBe('');
-
     const updatedData = {
       done: true,
       totalSize: 1,
-      records: [{ ID: '003', NAME: 'Katherine' }],
+      records: [
+        {
+          ID: '003',
+          NAME: 'Katherine',
+          CONTACTS: { records: [{ ID: '0031', EMAIL: 'katherine@example.com' }] }
+        }
+      ],
       columnData: {
         columns: [
           { title: 'Id', fieldHelper: ['id'] },
           { title: 'Name', fieldHelper: ['name'] }
         ],
-        subTables: []
+        subTables: [
+          {
+            objectName: 'contacts',
+            columns: [
+              { title: 'Id', fieldHelper: ['id'] },
+              { title: 'Email', fieldHelper: ['email'] }
+            ],
+            subTables: []
+          }
+        ]
       }
     };
     window.dispatchEvent(
@@ -145,6 +167,28 @@ describe('Query Data View controller baseline', () => {
       { title: 'Id', field: 'ID' },
       { title: 'Name', field: 'NAME' }
     ]);
+    expect(FakeTabulator.instances[1].options).toMatchObject({
+      pagination: true,
+      paginationMode: 'local',
+      renderVertical: 'basic'
+    });
+
+    const nestedTableHolder = document.createElement('div');
+    FakeTabulator.instances[1].options.rowFormatter?.({
+      getData: () => updatedData.records[0],
+      getElement: () => nestedTableHolder
+    });
+    expect(FakeTabulator.instances[2].target).toBeInstanceOf(HTMLElement);
+    expect(FakeTabulator.instances[2].options).toMatchObject({
+      data: [{ ID: '0031', EMAIL: 'katherine@example.com' }],
+      layout: 'fitColumns',
+      renderVertical: 'basic',
+      columns: [
+        { title: 'Id', field: 'ID' },
+        { title: 'Email', field: 'EMAIL' }
+      ]
+    });
+    expect(nestedTableHolder.querySelector('div > div')).not.toBeNull();
 
     const emptyData = {
       done: true,
@@ -158,15 +202,47 @@ describe('Query Data View controller baseline', () => {
       })
     );
     expect(FakeTabulator.instances[1].destroy).toHaveBeenCalledTimes(1);
-    expect(FakeTabulator.instances[2].options.columns).toEqual([]);
+    expect(FakeTabulator.instances[3].options.columns).toEqual([]);
 
     document.getElementById('save-csv-button')?.click();
     document.getElementById('save-json-button')?.click();
     expect(postMessage).toHaveBeenCalledWith({ type: 'save_records', format: 'csv' });
     expect(postMessage).toHaveBeenCalledWith({ type: 'save_records', format: 'json' });
 
+    const dataTable = document.getElementById('data-table') as HTMLElement;
+    dataTable.innerHTML = `
+      <div class="tabulator-header"></div>
+      <div class="tabulator-tableholder"><div class="tabulator-table"></div></div>
+      <div class="tabulator-footer"></div>`;
+    const pageHeader = document.querySelector('header') as HTMLElement;
+    const columnHeader = dataTable.querySelector('.tabulator-header') as HTMLElement;
+    const tableHolder = dataTable.querySelector('.tabulator-tableholder') as HTMLElement;
+    const table = dataTable.querySelector('.tabulator-table') as HTMLElement;
+    const footer = dataTable.querySelector('.tabulator-footer') as HTMLElement;
+    Object.defineProperties(pageHeader, { offsetHeight: { value: 10 } });
+    Object.defineProperties(columnHeader, {
+      offsetHeight: { value: 15 },
+      scrollHeight: { value: 16 }
+    });
+    Object.defineProperties(tableHolder, {
+      offsetHeight: { value: 60 },
+      clientHeight: { value: 55 }
+    });
+    Object.defineProperties(table, { offsetHeight: { value: 40 } });
+    Object.defineProperties(footer, { offsetHeight: { value: 5 } });
+
+    const emptyTable = FakeTabulator.instances[3];
     window.dispatchEvent(new Event('resize'));
-    expect(FakeTabulator.instances[2].setHeight).toHaveBeenCalled();
-    expect(FakeTabulator.instances[2].redraw).toHaveBeenCalledWith(true);
+    expect(emptyTable.setHeight).not.toHaveBeenCalled();
+
+    emptyTable.trigger('tableBuilt');
+    expect(emptyTable.setHeight).toHaveBeenCalledWith('68px');
+    expect(emptyTable.redraw).toHaveBeenCalledWith(true);
+
+    emptyTable.setHeight.mockClear();
+    emptyTable.redraw.mockClear();
+    window.dispatchEvent(new Event('resize'));
+    expect(emptyTable.setHeight).toHaveBeenCalledWith('68px');
+    expect(emptyTable.redraw).toHaveBeenCalledWith(true);
   });
 });
