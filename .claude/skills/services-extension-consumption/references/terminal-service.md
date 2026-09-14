@@ -1,8 +1,12 @@
 # TerminalService
 
-Runs `executable` + `args` as an argv vector (never a shell string). Desktop-only — `TerminalServiceError` on web.
+`executable` + `args` as argv (never a shell string). Desktop-only — `TerminalServiceError` on web.
 
-Spawn: `@effect/platform` `Command.make` / `Command.start` via `CrossSpawnCommandExecutorLive` (cross-spawn; `shell` never enabled). Tests stub `CommandExecutor.CommandExecutor`, not a ChildProcess service.
+Spawn: `@effect/platform` `Command.make` + `commandExecutor.start`. Tests stub `CommandExecutor.CommandExecutor`, not a ChildProcess service.
+
+- `TerminalService.Default` deps: Config+Settings. CommandExecutor from the platform layer
+- desktop: `servicesLayers` dynamic-imports `CrossSpawnCommandExecutorLive` (module static-imports `cross-spawn` for Windows `.cmd`; `shell` never enabled). stdout/stderr via `NodeStream.fromReadable`
+- web: `TerminalServiceWebLive` (noop CommandExecutor). `ESBUILD_PLATFORM` define drops the executor module. `simpleExec` → `TerminalServiceError` (`errorType: unsupported_platform`) before start
 
 ## `simpleExec`
 
@@ -19,7 +23,7 @@ simpleExec(args: {
 
 - `parse` required — `identity` for trimmed stdout
 - stdout trimmed before `parse`
-- `timeout` optional `Duration.DurationInput` (default 30s); pass a larger Duration for long-running commands (e.g. org delete)
+- `timeout` optional `Duration.DurationInput` (default `Duration.seconds(30)`); larger Duration for long-running commands (e.g. org delete)
 - `env` optional — overlays child env
 - `cwd` optional — child working directory (omitted → extension-host `process.cwd()`)
 - `executable === 'sf'` gets env assembled at exec time, lowest precedence first:
@@ -29,14 +33,17 @@ simpleExec(args: {
   - `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL='salesforce-vscode-extensions'`
   - caller `env` wins
 - settings read per exec — don't thread these yourself
-- span `TerminalService.simpleExec`: timeout / cwd-set / exit / bytes / `error.type` / `envKeys` (keys only). Never executable or args
-- web: immediate `TerminalServiceError` (no spawn)
+- stdout/stderr drain cap 100MB/stream. Overflow → `errorType: unknown`, `message` `Command failed (ERR_CHILD_PROCESS_STDIO_MAXBUFFER)`. Node `exec` maxBuffer is 1MB; retrieve-scale CLI stdout exceeds it. Spawn has none
+- span `TerminalService.simpleExec`: never executable or args. Desktop: timeout / cwd-set / exit / bytes / `error.type` / `envKeys` (keys only). Web: `error.type: unsupported_platform` only (no spawn → no timeout/cwd)
 
 ## `TerminalServiceError`
 
-`Schema.TaggedError`. Fields:
+`Schema.TaggedError`. Callers use `message`.
 
 - `message` — diagnostic from exit / stdout / stderr. No invocation.
+- `errorType` — required: `nonzero_exit` | `spawn_error` | `timeout` | `unknown` (100MB stdio cap) | `unsupported_platform` (web)
+- `exitCode` — optional (`nonzero_exit`)
+- `stdoutBytes` / `stderrBytes` — required; `0` when no output captured
 
 ## Usage
 

@@ -68,8 +68,16 @@ const fakeProcess = (opts: {
     isRunning: Effect.succeed(Boolean(opts.hang)),
     kill: () => Effect.sync(() => opts.onKill?.()),
     stdin: Sink.drain,
-    stdout: opts.hang ? Stream.never : Stream.succeed(encoder.encode(opts.stdout ?? '')),
-    stderr: opts.hang ? Stream.never : Stream.succeed(encoder.encode(opts.stderr ?? ''))
+    stdout: opts.hang
+      ? Stream.never
+      : opts.stdout === undefined
+        ? Stream.empty
+        : Stream.succeed(encoder.encode(opts.stdout)),
+    stderr: opts.hang
+      ? Stream.never
+      : opts.stderr === undefined
+        ? Stream.empty
+        : Stream.succeed(encoder.encode(opts.stderr))
   });
 };
 
@@ -183,7 +191,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('trims stdout and passes it to parse on the happy path', async () => {
-    const { layer } = withStart({ stdout: '  hello world  \n', stderr: '' });
+    const { layer } = withStart({ stdout: '  hello world  \n' });
     const parse = jest.fn((s: string) => s.toUpperCase());
 
     const result = await run(
@@ -198,14 +206,13 @@ describe('TerminalService.simpleExec', () => {
   it('executes with the executable + args separated without recording them in telemetry', async () => {
     const executable = 'sf';
     const args = ['org', 'display', '--target-org', 'user@example.com', '--json'];
-    const { capture, layer } = withStart({ stdout: '{}', stderr: '' });
+    const { capture, layer } = withStart({ stdout: '{}' });
     const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
 
     await TerminalService.pipe(
       Effect.flatMap(terminal => terminal.simpleExec({ executable, args, parse: s => s })),
       Effect.withSpan('terminal-test'),
-      Effect.provide(layer),
-      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.provide(Layer.mergeAll(layer, recordingTracer(recordedSpans))),
       Effect.runPromise
     );
 
@@ -228,13 +235,12 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('records the timeout on the span', async () => {
-    const { layer } = withStart({ stdout: '', stderr: '' });
+    const { layer } = withStart({});
     const recordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
 
     await TerminalService.pipe(
       Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse: s => s })),
-      Effect.provide(layer),
-      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.provide(Layer.mergeAll(layer, recordingTracer(recordedSpans))),
       Effect.runPromise
     );
 
@@ -257,8 +263,7 @@ describe('TerminalService.simpleExec', () => {
         })
       ),
       Effect.flip,
-      Effect.provide(layer),
-      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.provide(Layer.mergeAll(layer, recordingTracer(recordedSpans))),
       Effect.runPromise
     );
 
@@ -270,7 +275,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('forwards a caller env unchanged and injects no sf env for a non-sf command', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -284,7 +289,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR + SFDX_TOOL + the default SF_LOG_LEVEL for sf commands', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -301,7 +306,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('injects the sf env based on the executable being `sf`, not an args prefix', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -317,7 +322,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('passes the configured SF_LOG_LEVEL through', async () => {
     settings.values['salesforcedx-vscode-core.SF_LOG_LEVEL'] = 'debug';
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -330,7 +335,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('passes NODE_EXTRA_CA_CERTS from the setting', async () => {
     settings.values['salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS'] = '/certs/from-setting.pem';
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -343,7 +348,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('falls back to the ambient NODE_EXTRA_CA_CERTS when the setting is unset', async () => {
     process.env.NODE_EXTRA_CA_CERTS = '/certs/from-env.pem';
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -355,7 +360,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('omits NODE_EXTRA_CA_CERTS when neither the setting nor the env var is set', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -368,7 +373,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('injects SF_DISABLE_TELEMETRY when the VS Code telemetry level is off', async () => {
     settings.values['telemetry.telemetryLevel'] = 'off';
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -382,7 +387,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('injects SF_DISABLE_TELEMETRY when the core telemetry.enabled setting is false', async () => {
     settings.values['salesforcedx-vscode-core.telemetry.enabled'] = false;
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -395,7 +400,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('injects SF_DISABLE_TELEMETRY when the CLI disable-telemetry config is set', async () => {
     cliTelemetry.disabled = true;
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -407,7 +412,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('omits SF_DISABLE_TELEMETRY when every telemetry switch allows it', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -420,7 +425,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('still executes when the CLI telemetry lookup fails', async () => {
     cliTelemetry.fail = true;
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     const result = await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -428,13 +433,13 @@ describe('TerminalService.simpleExec', () => {
       layer
     );
 
-    expect(result).toBe('');
+    expect(result).toHaveLength(0);
     expect(envOf(capture.command)).not.toHaveProperty('SF_DISABLE_TELEMETRY');
   });
 
   it('still executes when a settings read fails', async () => {
     settings.fail = true;
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     const result = await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['org', 'open'], parse: s => s }))
@@ -442,7 +447,7 @@ describe('TerminalService.simpleExec', () => {
       layer
     );
 
-    expect(result).toBe('');
+    expect(result).toHaveLength(0);
     expect(envOf(capture.command)).toEqual({
       SF_JSON_TO_STDOUT: 'true',
       FORCE_COLOR: '0',
@@ -451,7 +456,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('lets a caller env override the auto-injected sf env', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -477,7 +482,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('lets a caller env override a gathered setting', async () => {
     settings.values['salesforcedx-vscode-core.SF_LOG_LEVEL'] = 'debug';
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -496,7 +501,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('does not inject sf env for non-sf commands without a caller env', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'java', args: ['--version'], parse: s => s }))
@@ -510,7 +515,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('forwards cwd to the child when set', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
@@ -520,11 +525,11 @@ describe('TerminalService.simpleExec', () => {
       layer
     );
 
-    expect(Option.getOrUndefined(capture.command?.cwd ?? Option.none())).toBe('/tmp/project');
+    expect((capture.command?.cwd ?? Option.none()).pipe(Option.getOrUndefined)).toBe('/tmp/project');
   });
 
   it('omits cwd when not set', async () => {
-    const { capture, layer } = withStart({ stdout: '', stderr: '' });
+    const { capture, layer } = withStart({});
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse: s => s }))
@@ -532,14 +537,13 @@ describe('TerminalService.simpleExec', () => {
       layer
     );
 
-    expect(Option.getOrUndefined(capture.command?.cwd ?? Option.none())).toBeUndefined();
+    expect((capture.command?.cwd ?? Option.none()).pipe(Option.getOrUndefined)).toBeUndefined();
   });
 
   it('preserves stdout in the error message (sf --json errors land on stdout)', async () => {
     const { layer } = withStart({
       code: 1,
-      stdout: '{"name":"PortInUseError","message":"local port 1717 is already in use"}',
-      stderr: ''
+      stdout: '{"name":"PortInUseError","message":"local port 1717 is already in use"}'
     });
 
     const error = await run(
@@ -557,7 +561,7 @@ describe('TerminalService.simpleExec', () => {
   });
 
   it('includes stdout once when reconstructing the failure message', async () => {
-    const { layer } = withStart({ code: 1, stdout: 'boom on stdout', stderr: '' });
+    const { layer } = withStart({ code: 1, stdout: 'boom on stdout' });
 
     const error = await run(
       TerminalService.pipe(
@@ -573,7 +577,7 @@ describe('TerminalService.simpleExec', () => {
   it('omits the invocation from the typed exec failure', async () => {
     const executable = 'sf';
     const args = ['org', 'display', '--target-org', 'user@example.com', '--json'];
-    const { capture, layer } = withStart({ code: 1, stdout: '', stderr: '' });
+    const { capture, layer } = withStart({ code: 1 });
 
     const error = await run(
       TerminalService.pipe(
@@ -599,8 +603,7 @@ describe('TerminalService.simpleExec', () => {
       Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args, parse: s => s })),
       Effect.flip,
       Effect.withSpan('terminal-test'),
-      Effect.provide(layer),
-      Effect.provide(recordingTracer(recordedSpans)),
+      Effect.provide(Layer.mergeAll(layer, recordingTracer(recordedSpans))),
       Effect.runPromise
     );
 

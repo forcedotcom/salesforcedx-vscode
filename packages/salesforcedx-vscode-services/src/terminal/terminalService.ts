@@ -7,92 +7,141 @@
 
 import * as Command from '@effect/platform/Command';
 import * as CommandExecutor from '@effect/platform/CommandExecutor';
-import { isPlatformError, type PlatformError } from '@effect/platform/Error';
+import { BadArgument, type PlatformError } from '@effect/platform/Error';
+import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
-import * as Chunk from 'effect/Chunk';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
+import * as Layer from 'effect/Layer';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { isNonEmpty, trim } from 'effect/String';
 import { SFDX_CORE_SECTION } from '../constants';
 import { ConfigService } from '../core/configService';
 import { SettingsService } from '../vscode/settingsService';
-import { CrossSpawnCommandExecutorLive } from './crossSpawnCommandExecutor';
 
 export class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String
-}) {}
-
-class SimpleExecFailure extends Schema.TaggedError<SimpleExecFailure>()('SimpleExecFailure', {
   message: Schema.String,
-  errorType: Schema.Literal('nonzero_exit', 'spawn_error', 'timeout', 'unknown'),
+  errorType: Schema.Literal('nonzero_exit', 'spawn_error', 'timeout', 'unknown', 'unsupported_platform'),
   exitCode: Schema.optional(Schema.Number),
-  signal: Schema.optional(Schema.String),
   stdoutBytes: Schema.Number,
   stderrBytes: Schema.Number
 }) {}
 
-/** 100MB — retrieve-scale CLI stdout exceeds node's 1MB exec default. */
+/** 100MB drain cap. Node exec maxBuffer is 1MB (`ERR_CHILD_PROCESS_STDIO_MAXBUFFER`); retrieve-scale stdout exceeds it. Spawn has none. */
 const MAX_BUFFER = 100 * 1024 * 1024;
 
 const byteLength = (value: string): number => new TextEncoder().encode(value).byteLength;
 
-const concatUtf8 = (chunks: readonly Uint8Array[]): string => {
-  const size = chunks.reduce((n, chunk) => n + chunk.byteLength, 0);
-  const out = new Uint8Array(size);
-  chunks.reduce((offset, chunk) => {
-    out.set(chunk, offset);
-    return offset + chunk.byteLength;
-  }, 0);
-  return new TextDecoder().decode(out);
-};
+const execError = ({
+  message,
+  errorType,
+  exitCode,
+  stdoutBytes = 0,
+  stderrBytes = 0
+}: {
+  message: string;
+  errorType: 'nonzero_exit' | 'spawn_error' | 'timeout' | 'unknown' | 'unsupported_platform';
+  exitCode?: number;
+  stdoutBytes?: number;
+  stderrBytes?: number;
+}) => new TerminalServiceError({ message, errorType, exitCode, stdoutBytes, stderrBytes });
 
-const commandFailed = (identifier: string | number | undefined, stdout: string, stderr: string): string =>
-  [`Command failed${identifier === undefined ? '' : ` (${identifier})`}`, stderr.trim(), stdout.trim()]
-    .filter(part => part.length > 0)
-    .join('\n');
+const nonEmptyTrimmed = (value: string | undefined) =>
+  Option.fromNullable(value).pipe(Option.map(trim), Option.filter(isNonEmpty));
 
-const platformToExecFailure = (err: PlatformError): SimpleExecFailure =>
-  new SimpleExecFailure({
-    errorType: 'spawn_error',
-    message: commandFailed(err._tag === 'SystemError' ? err.reason : 'BadArgument', '', ''),
-    stdoutBytes: 0,
-    stderrBytes: 0
-  });
-
-const collectUtf8 = (stream: Stream.Stream<Uint8Array, PlatformError>) =>
-  Stream.runFoldEffect(stream, { size: 0, chunks: Chunk.empty<Uint8Array>() }, (acc, chunk) => {
-    const size = acc.size + chunk.byteLength;
-    return size > MAX_BUFFER
-      ? new SimpleExecFailure({
-          errorType: 'unknown',
-          message: 'Command failed (ERR_CHILD_PROCESS_STDIO_MAXBUFFER)',
-          stdoutBytes: size,
-          stderrBytes: 0
-        })
-      : Effect.succeed({ size, chunks: Chunk.append(acc.chunks, chunk) });
-  }).pipe(
-    Effect.map(acc => concatUtf8(acc.chunks.pipe(Chunk.toReadonlyArray))),
-    Effect.mapError(err => (isPlatformError(err) ? platformToExecFailure(err) : err))
+const commandFailed = ({
+  identifier,
+  stdout,
+  stderr
+}: {
+  identifier?: string | number;
+  stdout?: string;
+  stderr?: string;
+}): string =>
+  pipe(
+    Arr.getSomes([
+      Option.some(isUndefined(identifier) ? 'Command failed' : `Command failed (${identifier})`),
+      nonEmptyTrimmed(stderr),
+      nonEmptyTrimmed(stdout)
+    ]),
+    Arr.join('\n')
   );
 
-const timeoutFailure = new SimpleExecFailure({
-  errorType: 'timeout',
-  message: 'Command failed',
-  stdoutBytes: 0,
-  stderrBytes: 0
-});
+const platformToExecFailure = Match.type<PlatformError>().pipe(
+  Match.tag('SystemError', err =>
+    execError({ errorType: 'spawn_error', message: commandFailed({ identifier: err.reason }) })
+  ),
+  Match.tag('BadArgument', () =>
+    execError({ errorType: 'spawn_error', message: commandFailed({ identifier: 'BadArgument' }) })
+  ),
+  Match.exhaustive
+);
+
+const collectUtf8 = (stream: Stream.Stream<Uint8Array, PlatformError>) =>
+  stream.pipe(
+    Stream.mapAccumEffect(0, (size, chunk) => {
+      const next = size + chunk.byteLength;
+      return next > MAX_BUFFER
+        ? execError({
+            errorType: 'unknown',
+            message: 'Command failed (ERR_CHILD_PROCESS_STDIO_MAXBUFFER)',
+            stdoutBytes: next
+          })
+        : Effect.succeed([next, chunk] as const);
+    }),
+    Stream.decodeText(),
+    Stream.mkString,
+    Effect.catchTags({
+      SystemError: platformToExecFailure,
+      BadArgument: platformToExecFailure
+    })
+  );
 
 /** Nothing about assembling the CLI env may fail a CLI command: log the cause at debug and fall back. */
 const safeDefault = <A>(fallback: A) =>
   Effect.catchAllCause((cause: Cause.Cause<unknown>) => Effect.logDebug(cause).pipe(Effect.as(fallback)));
 
+type SimpleExecInput<A> = {
+  executable: string;
+  args: readonly string[];
+  parse: (stdout: string) => A;
+  timeout?: Duration.DurationInput;
+  env?: Record<string, string>;
+  cwd?: string;
+};
+
+const WebCommandExecutorLive = Layer.succeed(
+  CommandExecutor.CommandExecutor,
+  CommandExecutor.makeExecutor(() =>
+    Effect.fail(
+      new BadArgument({
+        module: 'Command',
+        method: 'start',
+        description: 'Not available on web'
+      })
+    )
+  )
+);
+
 export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
   accessors: false,
-  dependencies: [CrossSpawnCommandExecutorLive, ConfigService.Default, SettingsService.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default],
   effect: Effect.gen(function* () {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      return {
+        simpleExec: Effect.fn('TerminalService.simpleExec')(function* <A>(_: SimpleExecInput<A>) {
+          yield* Effect.annotateCurrentSpan({ 'error.type': 'unsupported_platform' });
+          return yield* execError({ errorType: 'unsupported_platform', message: 'Not available on web' });
+        })
+      };
+    }
+
     const commandExecutor = yield* CommandExecutor.CommandExecutor;
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
@@ -130,26 +179,15 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       executable,
       args,
       parse,
-      timeout = Duration.millis(30_000),
+      timeout = Duration.seconds(30),
       env,
       cwd
-    }: {
-      executable: string;
-      args: readonly string[];
-      parse: (stdout: string) => A;
-      timeout?: Duration.DurationInput;
-      env?: Record<string, string>;
-      cwd?: string;
-    }) {
+    }: SimpleExecInput<A>) {
       const timeoutMs = Duration.toMillis(timeout);
       yield* Effect.annotateCurrentSpan({
         'terminal.timeout.ms': timeoutMs,
-        'terminal.cwd.set': cwd !== undefined
+        'terminal.cwd.set': isNotUndefined(cwd)
       });
-      if (process.env.ESBUILD_PLATFORM === 'web') {
-        yield* Effect.annotateCurrentSpan('error.type', 'unsupported_platform');
-        return yield* new TerminalServiceError({ message: 'Not available on web' });
-      }
       const sfEnv =
         executable === 'sf'
           ? {
@@ -161,30 +199,43 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
             }
           : undefined;
       const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
-      if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
-      const cmd = Command.make(executable, ...args);
-      const withEnv = mergedEnv === undefined ? cmd : Command.env(cmd, mergedEnv);
-      const prepared = cwd === undefined ? withEnv : Command.workingDirectory(withEnv, cwd);
-      const result = yield* Effect.scoped(
+      if (isNotUndefined(mergedEnv)) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
+      return yield* Effect.scoped(
         Effect.gen(function* () {
-          const proc = yield* Command.start(prepared).pipe(Effect.mapError(platformToExecFailure));
+          const proc = yield* pipe(
+            Command.make(executable, ...args),
+            cmd => (isUndefined(mergedEnv) ? cmd : Command.env(mergedEnv)(cmd)),
+            cmd => (isUndefined(cwd) ? cmd : Command.workingDirectory(cwd)(cmd)),
+            commandExecutor.start,
+            Effect.catchTags({
+              SystemError: platformToExecFailure,
+              BadArgument: platformToExecFailure
+            })
+          );
           const [stdout, stderr] = yield* Effect.all([collectUtf8(proc.stdout), collectUtf8(proc.stderr)], {
             concurrency: 2
           }).pipe(Effect.tapError(() => Effect.ignore(proc.kill())));
-          const code = yield* proc.exitCode.pipe(Effect.mapError(platformToExecFailure));
+          const code = yield* proc.exitCode.pipe(
+            Effect.catchTags({
+              SystemError: platformToExecFailure,
+              BadArgument: platformToExecFailure
+            })
+          );
           return code === 0
             ? { stdout, stderr }
-            : yield* new SimpleExecFailure({
+            : yield* execError({
                 errorType: 'nonzero_exit',
-                message: commandFailed(code, stdout, stderr),
+                message: commandFailed({ identifier: code, stdout, stderr }),
                 exitCode: code,
                 stdoutBytes: byteLength(stdout),
                 stderrBytes: byteLength(stderr)
               });
         })
       ).pipe(
-        Effect.provideService(CommandExecutor.CommandExecutor, commandExecutor),
-        Effect.timeoutFail({ duration: timeout, onTimeout: () => timeoutFailure }),
+        Effect.timeoutFail({
+          duration: timeout,
+          onTimeout: () => execError({ errorType: 'timeout', message: 'Command failed' })
+        }),
         Effect.tap(execution =>
           Effect.annotateCurrentSpan({
             'process.exit.code': 0,
@@ -192,19 +243,19 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
             'terminal.stderr.bytes': byteLength(execution.stderr)
           })
         ),
-        Effect.tapError(failure =>
+        Effect.tapErrorTag('TerminalServiceError', failure =>
           Effect.annotateCurrentSpan({
-            ...(failure.exitCode === undefined ? {} : { 'process.exit.code': failure.exitCode }),
+            ...(isUndefined(failure.exitCode) ? {} : { 'process.exit.code': failure.exitCode }),
             'error.type': failure.errorType,
-            ...(failure.signal === undefined ? {} : { 'terminal.signal': failure.signal }),
             'terminal.stdout.bytes': failure.stdoutBytes,
             'terminal.stderr.bytes': failure.stderrBytes
           })
         ),
-        Effect.mapError(failure => new TerminalServiceError({ message: failure.message }))
+        Effect.map(({ stdout }) => parse(stdout.trim()))
       );
-      return parse(result.stdout.trim());
     });
     return { simpleExec };
   })
 }) {}
+
+export const TerminalServiceWebLive = TerminalService.Default.pipe(Layer.provide(WebCommandExecutorLive));
