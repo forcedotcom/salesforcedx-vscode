@@ -50,7 +50,7 @@
 - Consumers own projections such as Test Explorer and Org Browser; they do not write catalog state.
 - Ephemeral source is exposed through the read-only `sf-org-metadata:` `TextDocumentContentProvider`.
 - The scheme is a document integration point, not a filesystem: there is no `FileSystemProvider`, public write API, or consumer registration.
-- Services owns cache invalidation on workspace/default-org changes and closes documents belonging to an inactive org.
+- Services owns cache invalidation on workspace changes and default-org **identity** (`orgId`) changes — enrichment-only `defaultOrgRef` publishes (username, webUserId, …) do not rebuild inventories — and closes documents belonging to an inactive org.
 - Rationale and rejected alternatives: [ADR 0001](./docs/adr/0001-org-catalog-over-shared-vfs.md).
 
 ### FileChangePubSub vs HostFileWatcher

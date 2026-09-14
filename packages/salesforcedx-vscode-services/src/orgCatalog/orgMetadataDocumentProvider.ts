@@ -32,6 +32,16 @@ import { ORG_METADATA_SCHEME, orgIdFromOrgMetadataUri } from './orgMetadataRefer
 export const isCatalogRelevantWorkspaceUri = (workspaceUri: URI, uri: URI): boolean =>
   !isUriEqualOrWithin(Utils.joinPath(workspaceUri, '.sf'), uri);
 
+/** Drop enrichment-only default-org publishes (username, webUserId, …). Those keep orgId and must not rebuild inventories. */
+export const orgIdentityCatalogChanges = <E, R>(
+  changes: Stream.Stream<{ readonly orgId?: string }, E, R>
+): Stream.Stream<Extract<OrgMetadataCatalogChange, { kind: 'org' }>, E, R> =>
+  changes.pipe(
+    Stream.map(org => org.orgId),
+    Stream.changes,
+    Stream.map(orgId => ({ kind: 'org' as const, orgId }))
+  );
+
 /** @internal Exported for focused provider lifecycle tests; not part of the extension API. */
 export class OrgMetadataDocumentProvider implements vscode.TextDocumentContentProvider {
   private readonly changeEmitter = new vscode.EventEmitter<URI>();
@@ -216,7 +226,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
   const changeStreams: readonly Stream.Stream<OrgMetadataCatalogChange>[] = [
     workspaceChanges,
     completedOperationWorkspaceChanges,
-    defaultOrgRef.changes.pipe(Stream.map(org => ({ kind: 'org', orgId: org.orgId })))
+    orgIdentityCatalogChanges(defaultOrgRef.changes)
   ];
 
   const handleCatalogChange = Effect.fn('OrgMetadataDocumentProvider.handleCatalogChange')(function* (
