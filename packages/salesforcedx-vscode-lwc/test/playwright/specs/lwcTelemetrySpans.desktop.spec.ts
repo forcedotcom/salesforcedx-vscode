@@ -6,9 +6,11 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import * as path from 'node:path';
 import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
+  executeCommandById,
   executeCommandWithCommandPalette,
   readAllSpanRows,
   reloadWindow,
@@ -28,6 +30,10 @@ const spansSince = (baselineNanos: bigint) => async (): Promise<SpanRow[]> =>
   (await readAllSpanRows()).filter(row => row.kind === 'span' && BigInt(row.startTimeUnixNano ?? '0') > baselineNanos);
 const hasTelemetryAttributes = (span: SpanRow): boolean =>
   span.attributes?.workspaceType === 'SFDX' && typeof span.attributes.executionTime === 'number';
+const isMissingWorkspaceSpan = (span: SpanRow): boolean =>
+  span.name === 'exception' &&
+  span.attributes?.name === 'lwc_test_no_workspace_folder_found_for_test' &&
+  typeof span.attributes.message === 'string';
 
 const continueDebuggingUntilDone = async (page: Page): Promise<void> => {
   const debugToolbar = page.locator('.debug-toolbar');
@@ -41,7 +47,7 @@ const continueDebuggingUntilDone = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 3 * 60 * 1000 });
 };
 
-test('LWC run, debug, and deactivation emit Effect spans', async ({ page }) => {
+test('LWC run, debug, missing workspace, and deactivation emit Effect spans', async ({ page, workspaceDir }) => {
   test.setTimeout(10 * 60 * 1000);
   const sessionStarted = nowNanos();
   const readSessionSpans = spansSince(sessionStarted);
@@ -79,6 +85,25 @@ test('LWC run, debug, and deactivation emit Effect spans', async ({ page }) => {
       'lwc_test_debug_action span with workspaceType and executionTime'
     );
     expect(rows.some(span => span.name === 'lwc_test_debug_action' && hasTelemetryAttributes(span))).toBe(true);
+  });
+
+  await test.step('test URI outside the workspace emits the missing-workspace exception span', async () => {
+    await executeCommandById(page, 'sf.lightning.lwc.test.file.run', {
+      commandArgs: {
+        testExecutionInfo: {
+          kind: 'testFile',
+          testUri: {
+            fsPath: path.resolve(workspaceDir, '..', 'outside', 'lwc', 'example', '__tests__', 'example.test.js')
+          }
+        }
+      }
+    });
+    const rows = await waitForSpanRows(
+      readSessionSpans,
+      spans => spans.some(isMissingWorkspaceSpan),
+      'missing-workspace exception span with name and message'
+    );
+    expect(rows.some(isMissingWorkspaceSpan)).toBe(true);
   });
 
   await test.step('reload emits extensionDeactivated', async () => {

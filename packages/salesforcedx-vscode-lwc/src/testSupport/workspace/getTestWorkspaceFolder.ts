@@ -19,7 +19,13 @@ const reportMissingWorkspaceFolder = (cause?: unknown) => {
         void vscode.window.showErrorMessage(errorMessage);
       })
     ),
-    Effect.as(undefined)
+    Effect.as(undefined),
+    Effect.withSpan('exception', {
+      attributes: {
+        name: 'lwc_test_no_workspace_folder_found_for_test',
+        message: errorMessage
+      }
+    })
   );
 };
 
@@ -33,9 +39,7 @@ export const getTestWorkspaceFolder = Effect.fn('getTestWorkspaceFolder')(
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri ?? workspaceInfo.uri);
-    return yield* isNotUndefined(workspaceFolder)
-      ? Effect.succeed(workspaceFolder)
-      : reportMissingWorkspaceFolder();
+    return yield* isNotUndefined(workspaceFolder) ? Effect.succeed(workspaceFolder) : reportMissingWorkspaceFolder();
   },
   Effect.catchTag('NoWorkspaceOpenError', reportMissingWorkspaceFolder)
 );

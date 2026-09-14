@@ -70,7 +70,10 @@ describe('workspace telemetry spans', () => {
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.any(String));
     expect(loggedMessages).toHaveLength(1);
     expect(mockRecordedSpans.find(span => span.name === 'getTestWorkspaceFolder')?.ended).toBe(true);
-    expect(mockRecordedSpans.some(span => span.name === 'exception')).toBe(false);
+    const exceptionSpan = mockRecordedSpans.find(span => span.name === 'exception');
+    expect(exceptionSpan?.attributes.get('name')).toBe('lwc_test_no_workspace_folder_found_for_test');
+    expect(exceptionSpan?.attributes.get('message')).toEqual(expect.any(String));
+    expect(exceptionSpan?.ended).toBe(true);
   });
 
   it('returns the workspace folder containing the test URI', async () => {
