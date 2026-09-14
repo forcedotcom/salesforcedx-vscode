@@ -13,6 +13,7 @@ import {
   componentFromDirectory
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Order from 'effect/Order';
+import * as String from 'effect/String';
 import * as LineColumnFinderModule from 'line-column';
 import { EventEmitter as EventsEmitter } from 'node:events';
 import { Node } from 'vscode-html-languageservice';
@@ -29,10 +30,7 @@ import * as transformedAuraSystemImport from '../resources/transformed-aura-syst
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const LineColumnFinder = LineColumnFinderModule.default ?? LineColumnFinderModule;
 
-const localeAwareStringOrder = Order.make<string>((left, right) => {
-  const comparison = left.localeCompare(right);
-  return comparison < 0 ? -1 : comparison > 0 ? 1 : 0;
-});
+const localeAwareStringOrder = Order.make<string>((left, right) => String.localeCompare(right)(left));
 const byAttributeName = Order.mapInput(localeAwareStringOrder, (attribute: { name: string }) => attribute.name);
 
 export default class AuraIndexer implements Indexer {
