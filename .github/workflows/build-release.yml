@@ -347,7 +347,17 @@ jobs:
           echo "✓ Relabeled changelog v$PRERELEASE_VERSION → v$RELEASE_VERSION"
 
       - name: Build VSIXs
-        run: npm run vscode:package
+        # vsce refuses to publish --pre-release against a VSIX that wasn't packaged
+        # with that flag baked in, so emergency pre-release mode needs the prerelease
+        # packaging script here, not the stable one.
+        env:
+          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+        run: |
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            npm run vscode:package:prerelease
+          else
+            npm run vscode:package
+          fi
 
       - name: Collect VSIXs
         uses: salesforcecli/github-workflows/.github/actions/collect-vsix@main
