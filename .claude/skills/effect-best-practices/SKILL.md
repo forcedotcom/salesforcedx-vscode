@@ -196,7 +196,7 @@ See `references/error-patterns.md` for the accumulation/interruption nuance, err
 
 **Brand all entity IDs** for type safety across service boundaries.
 
-This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId` and `authFieldsFromConnection`/`orgIdFromConnection` (`Option`; `references/schema-patterns.md`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not Option.
+This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId` and `orgIdFrom`/`orgIdFromConnection` (`getFields()` / Connection; `Option`; `references/schema-patterns.md`). Other AuthFields: `authFieldsFrom`/`authFieldsFromConnection`. `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not Option.
 
 ```typescript
 import { Schema } from 'effect';
@@ -438,7 +438,7 @@ Effect.filterOrFail(isNotUndefined, () => new NotFoundError({ message: '...' }))
 
 // non-id string that must be non-blank — not `isNotUndefined && length > 0`
 Effect.filterOrFail(Schema.is(Schema.NonEmptyString), () => new NotFoundError({ message: '...' }));
-// AuthFields org id: `orgIdFromConnection` → `Option<OrgId>`; fail-if-missing via `Option.match`
+// AuthFields org id: `orgIdFrom` / `orgIdFromConnection` → `Option<OrgId>`; fail-if-missing via `Option.match`
 // DefaultOrgInfo orgId: already `OrgId | undefined` (`Schema.optional(OrgId)` like cliId)
 
 // T | null — e.g. RegExp.exec, JSON payload fields
