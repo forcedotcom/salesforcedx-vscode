@@ -40,6 +40,8 @@ When you add a dependency, run the bundling process to make sure that your dep i
 
 **ESBUILD_PLATFORM:** Bundle-time define (web.mjs injects `'web'` or `'node'`). Not a runtime check — value baked in at bundle; dead branches tree-shaken. Examples: [connectionService](../packages/salesforcedx-vscode-services/src/core/connectionService.ts), [templateService](../packages/salesforcedx-vscode-services/src/core/templateService.ts), [soql LSP client](../packages/salesforcedx-vscode-soql/src/lspClient/client.ts).
 
+**Static node-only imports:** `ESBUILD_PLATFORM` does not drop tsc's top-level CJS `require`. Services web: stub `out/src/terminal/crossSpawnCommandExecutor.js`; throw if `node_modules/cross-spawn` in browser-metafile. Desktop unchanged.
+
 You can do this in libraries, too, to have their bundled version add or drop web-specific code. Example: [sfdx-core fs.ts](https://github.com/forcedotcom/sfdx-core/blob/main/src/fs/fs.ts) (web vs node branching), [scripts/build.mjs](https://github.com/forcedotcom/sfdx-core/blob/main/scripts/build.mjs) (bundle-time `define`).
 
 **Polyfills:** [web.mjs](../scripts/bundling/web.mjs) provides process, buffer, fs, path, crypto, etc. Prefer existing polyfills. If new deps need polyfills, add in your esbuild config.
