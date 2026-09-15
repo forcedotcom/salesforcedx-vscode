@@ -67,7 +67,10 @@ if (target.endsWith('.vsix')) {
   fs.copyFileSync(path.join(path.dirname(target), 'package.json'), path.join(extensionsDir, relativeLocation, 'package.json'));
   manifest.push({ identifier: { id }, version: extensionPackage.version, relativeLocation, metadata: { source: 'vsix' } });
 } else {
-  manifest.push({ identifier: { id: target }, version: '9.0.0', metadata: { source: 'gallery' } });
+  const versionSeparator = target.lastIndexOf('@');
+  const id = versionSeparator === -1 ? target : target.slice(0, versionSeparator);
+  const version = versionSeparator === -1 ? '9.0.0' : target.slice(versionSeparator + 1);
+  manifest.push({ identifier: { id }, version, metadata: { source: 'gallery' } });
 }
 fs.writeFileSync(manifestPath, JSON.stringify(manifest));
 `;
@@ -175,13 +178,32 @@ test.describe('prepareVsixExtensions', () => {
         vscodeExecutable: executable,
         marketplaceExtensions: ['MARKETPLACE.EXTRA']
       });
+      const versionedMarketplace = await prepareVsixExtensions({
+        repoRoot,
+        packageDirs: ['extension'],
+        vscodeExecutable: executable,
+        marketplaceExtensions: ['MARKETPLACE.PINNED@3.40.0']
+      });
 
-      expect(new Set([first.extensionsDir, changed.extensionsDir, marketplace.extensionsDir]).size).toBe(3);
+      expect(
+        new Set([
+          first.extensionsDir,
+          changed.extensionsDir,
+          marketplace.extensionsDir,
+          versionedMarketplace.extensionsDir
+        ]).size
+      ).toBe(4);
       expect(changed.extensions[0].sha256).not.toBe(first.extensions[0].sha256);
       const installed = JSON.parse(await readFile(path.join(marketplace.extensionsDir, 'extensions.json'), 'utf8')) as {
         identifier: { id: string };
       }[];
       expect(installed.map(extension => extension.identifier.id)).toContain('marketplace.extra');
+      const versionedInstalled = JSON.parse(
+        await readFile(path.join(versionedMarketplace.extensionsDir, 'extensions.json'), 'utf8')
+      ) as { identifier: { id: string }; version: string }[];
+      expect(versionedInstalled).toContainEqual(
+        expect.objectContaining({ identifier: { id: 'marketplace.pinned' }, version: '3.40.0' })
+      );
     } finally {
       await rm(repoRoot, { recursive: true, force: true });
     }

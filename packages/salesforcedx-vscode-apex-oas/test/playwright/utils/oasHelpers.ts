@@ -118,33 +118,11 @@ export const waitForEsrFile = async (workspaceDir: string, baseName: string, tim
   throw new Error(`ESR file not found after ${timeoutMs}ms: ${target}`);
 };
 
-/** The error notification createApexAction shows when the shared Core model is out of monthly quota.
- * Mirrors the `llm_monthly_rate_limit` message in the extension's i18n. */
+/** The error notification createApexAction shows when the shared Core model is out of monthly quota. */
 const RATE_LIMIT_NOTIFICATION = /monthly rate limit/i;
 
-/**
- * Run an A4V generation's success assertion, but skip the test instead of failing when the cause is
- * the shared Core model's exhausted monthly quota.
- *
- * The extension now surfaces a quota exhaustion as a real error notification ("...hit its monthly
- * rate limit...") rather than swallowing it into the generic "LLM did not return any content", so a
- * spec detects it straight from the UI — no OTEL span file scan needed. A quota outage resets monthly
- * and isn't a product bug, so it's a skip; any other generation failure still fails the test.
- *
- * `success` is the success assertion (e.g. `expect(tab).toBeVisible()` or `waitForEsrFile(...)`). It
- * races the rate-limit notification so a quota outage skips promptly rather than waiting out the
- * assertion's full timeout (the on-disk ESR signal can poll for minutes). If `success` settles first:
- * resolve → done, reject → rethrow. If the notification appears first: `test.skip`.
- *
- * @param test The Playwright `test` object (for `test.skip`).
- * @param page Playwright page.
- * @param success The success assertion; rejects when generation didn't produce its artifact.
- */
-export const assertGenerationOrSkipOnRateLimit = async (
-  test: { skip: (condition: boolean, description: string) => void },
-  page: Page,
-  success: Promise<unknown>
-): Promise<void> => {
+/** Fail A4V generation promptly when the shared Core model is out of monthly quota. */
+export const assertGenerationSucceeds = async (page: Page, success: Promise<unknown>): Promise<void> => {
   // The watcher only ever *wins* the race by becoming visible; its own timeout must not settle the
   // race (that's `success`'s job), so a not-found resolves to a promise that never settles. Its
   // timeout is long enough to outlast the slowest generation success window (ESR poll ~240s).
@@ -158,5 +136,5 @@ export const assertGenerationOrSkipOnRateLimit = async (
       () => new Promise<never>(() => {})
     );
   const outcome = await Promise.race([success.then(() => 'success' as const), rateLimit]);
-  test.skip(outcome === 'rate-limit', 'A4V Core model monthly rate limit hit; generation could not run');
+  if (outcome === 'rate-limit') throw new Error('A4V Core model monthly rate limit hit; generation could not run');
 };

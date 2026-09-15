@@ -15,7 +15,6 @@ import {
   executeCommandWithCommandPalette,
   hasContent,
   hasTitle,
-  isDesktop,
   QUICK_INPUT_WIDGET,
   saveFile,
   setupConsoleMonitoring,
@@ -37,8 +36,6 @@ const RECORD_COUNT = 55;
 test.describe.configure({ timeout: 240_000 });
 
 test('SOQL query results: relationship columns, pagination, resize, restoration, and exports', async ({ page }) => {
-  test.skip(!isDesktop(), 'Desktop-only coverage resizes the VS Code window and seeds records through Salesforce Core');
-
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
   const recordPrefix = `W23752055-${Date.now()}`;

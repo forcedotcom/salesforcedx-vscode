@@ -160,11 +160,7 @@ test('org create: cancel at def-file picker is silent', async ({ page }) => {
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 
-  // getTargetDevHub throws when no dev hub is configured. Without one, the command bails at the devhub
-  // gate before any picker, so the cancel path is unreachable — skip rather than pass vacuously.
-  const maybeDevHubAlias = await getTargetDevHub().catch(() => undefined);
-  test.skip(!maybeDevHubAlias, 'no dev hub configured; org-create cancel path is unreachable');
-  const devHubAlias = maybeDevHubAlias!;
+  const devHubAlias = await getTargetDevHub();
 
   await test.step('set dev hub as default org via picker', async () => {
     await clickOrgPickerStatusBar(page, NO_DEFAULT_ORG);

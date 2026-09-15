@@ -29,7 +29,7 @@ import {
   getSfdxProjectJson
 } from '../testData/oasDocs';
 import {
-  assertGenerationOrSkipOnRateLimit,
+  assertGenerationSucceeds,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,
@@ -70,8 +70,7 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
       .locator(NOTIFICATION_LIST_ITEM)
       .filter({ hasText: /OpenAPI Document created for class: SimpleAccountResource\./ })
       .first();
-    // A monthly A4V quota outage surfaces a rate-limit notification instead — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, expect(successNotification).toBeVisible({ timeout: 180_000 }));
+    await assertGenerationSucceeds(page, expect(successNotification).toBeVisible({ timeout: 180_000 }));
   });
 
   await test.step('verify YAML + XML tabs both open', async () => {

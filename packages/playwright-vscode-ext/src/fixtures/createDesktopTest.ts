@@ -128,7 +128,7 @@ type CreateDesktopTestOptions = {
   additionalExtensionDirs?: string[];
   /** Test-only extension paths, relative to the calling package, loaded as development extensions in all modes. */
   testExtensionPaths?: string[];
-  /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
+  /** Marketplace extensions (`publisher.name` or `publisher.name@version`) installed via `code --install-extension` once per worker. */
   marketplaceExtensions?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;

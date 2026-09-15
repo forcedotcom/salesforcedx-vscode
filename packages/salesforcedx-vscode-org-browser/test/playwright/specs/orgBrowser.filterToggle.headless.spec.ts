@@ -145,12 +145,7 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
   });
 });
 
-// Skipped: the e2e workspace's force-app is created empty by createTestWorkspace() (see
-// packages/playwright-vscode-ext/src/fixtures/desktopWorkspace.ts) — the org has Dreamhouse
-// metadata deployed to it, but nothing ever copies local source files into the opened
-// workspace, so localOnly mode has no non-empty case to verify here. Re-enable once the
-// workspace is seeded with local files that overlap the org's metadata.
-test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
+test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
   page
 }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
@@ -158,9 +153,6 @@ test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only
   await test.step('open Org Browser', async () => {
     await orgBrowserPage.openOrgBrowser();
   });
-
-  const beforeCount = await test.step('count tree items before filter', async () =>
-    orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showOrg OFF to enter localOnly mode', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
@@ -171,10 +163,8 @@ test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only
   });
 
   await test.step('verify only local types remain visible', async () => {
-    // localOnly mode (showLocal ON + showOrg OFF): root shows only types with local source files.
-    // The e2e workspace's force-app is created empty by the test fixture (no local metadata is
-    // ever written into it), so localOnly legitimately collapses to 0 root types here.
-    await expect.poll(() => orgBrowserPage.getRootTypeCount(), { timeout: 10_000 }).toBeLessThan(beforeCount);
+    // The fixture's empty force-app means localOnly collapses to zero root types.
+    await orgBrowserPage.waitForRootTypeCount(0);
   });
 });
 

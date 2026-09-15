@@ -226,9 +226,11 @@ const validateCache = async (
     .filter(Boolean);
   const missing = [
     ...expectedExtensions.map(extension => `${extension.id}@${extension.version}`.toLowerCase()),
-    ...marketplaceExtensions.map(id => `${id.toLowerCase()}@`)
+    ...marketplaceExtensions.map(extension => extension.toLowerCase())
   ].filter(expectedEntry =>
-    expectedEntry.endsWith('@') ? !listed.some(entry => entry.startsWith(expectedEntry)) : !listed.includes(expectedEntry)
+    expectedEntry.includes('@')
+      ? !listed.includes(expectedEntry)
+      : !listed.some(entry => entry.startsWith(`${expectedEntry}@`))
   );
   if (missing.length > 0) {
     throw new Error(`Invalid VS Code CLI extension inventory. Missing [${missing.join(', ')}], found [${listed.join(', ')}]`);

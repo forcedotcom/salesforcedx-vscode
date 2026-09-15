@@ -260,9 +260,7 @@ test('LWC Run Tests: run current test file from command palette', async ({ page,
   await validateNoCriticalErrors(test, consoleErrors);
 });
 
-// Code lens tests are desktop-only and flaky on Linux (see original automation test skip comment)
 test('LWC Run Tests: run all tests via Run All Tests code lens', async ({ page, workspaceDir }) => {
-  test.skip(process.platform === 'linux', 'code lens tests are flaky on Linux');
   test.setTimeout(10 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
 
@@ -295,7 +293,6 @@ test('LWC Run Tests: run all tests via Run All Tests code lens', async ({ page, 
 });
 
 test('LWC Run Tests: run single test via Run Test code lens', async ({ page, workspaceDir }) => {
-  test.skip(process.platform === 'linux', 'code lens tests are flaky on Linux');
   test.setTimeout(10 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
 

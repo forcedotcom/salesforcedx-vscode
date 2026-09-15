@@ -5,14 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/**
- * Web (`npm run test:web`): the spec below is skipped. VS Code for Web runs the TS/JS language service on a virtual
- * filesystem (e.g. memfs); project-wide analysis is often "partial" until fully loaded, and path resolution differs
- * from desktop `file://`. Navigating from LWC `.js` to extension typings (`engine.d.ts`) via Go to Type Definition is
- * unreliable in headless web E2E even though typings exist in both hosts. Desktop matches typical local DX; see
- * https://github.com/microsoft/vscode/pull/169311 (cross-file TS on web) and memfs handling in
- * `salesforcedx-lwc-language-server` `componentIndexer`.
- */
 import { expect } from '@playwright/test';
 import {
   EDITOR,
@@ -20,7 +12,6 @@ import {
   TAB,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  isDesktop,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
@@ -35,8 +26,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC module declaration', async ({ page }) => {
-  test.skip(!isDesktop(), 'Desktop only — see file comment: web TS/navigation to typings is not stable for this E2E');
-
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);

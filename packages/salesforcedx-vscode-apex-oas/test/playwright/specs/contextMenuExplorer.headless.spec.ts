@@ -18,7 +18,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import {
-  assertGenerationOrSkipOnRateLimit,
+  assertGenerationSucceeds,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,
@@ -54,8 +54,7 @@ test('OAS: explorer context menu generates OAS doc', async ({ page, workspaceDir
       await executeExplorerContextMenuCommand(page, 'CaseManager.cls', 'SFDX: Create OpenAPI Document from This Class');
     }
     await confirmEsrFolderPrompt(page);
-    // A monthly A4V quota outage surfaces a rate-limit notification instead of an ESR — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
+    await assertGenerationSucceeds(page, waitForEsrFile(workspaceDir, 'CaseManager'));
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

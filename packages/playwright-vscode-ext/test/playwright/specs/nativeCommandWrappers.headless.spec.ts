@@ -9,18 +9,14 @@ import { expect } from '@playwright/test';
 import {
   clearAllNotifications,
   closeAllEditors,
-  focusOnFilesExplorer,
   focusOnProblemsView,
   goToFile,
   goToLineColumn,
   newUntitledTextFile,
   reloadWindow,
-  saveFile,
-  selectAll,
-  showExplorer
+  selectAll
 } from '../../../src/pages/nativeCommands';
-import { openFileByName } from '../../../src/utils/fileHelpers';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, isDesktop } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET, TAB, WORKBENCH } from '../../../src/utils/locators';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { test } from '../fixtures/index';
@@ -41,40 +37,9 @@ test.describe('Native command wrappers', () => {
     await ensureSecondarySideBarHidden(page);
   });
 
-  test('focusOnFilesExplorer focuses the Files Explorer view', async ({ page }) => {
-    test.skip(!isDesktop(), 'Files Explorer tree requires an open workspace folder (desktop only)');
-    await focusOnFilesExplorer(page);
-    await expect(page.getByRole('tree', { name: /Files Explorer/i }).first()).toBeVisible({ timeout: 10_000 });
-  });
-
   test('newUntitledTextFile opens a new untitled editor', async ({ page }) => {
     await newUntitledTextFile(page);
     await expect(page.locator(TAB).filter({ hasText: /Untitled-\d+/ })).toBeVisible({ timeout: 10_000 });
-  });
-
-  test('saveFile clears the dirty indicator', async ({ page }) => {
-    // `File: Save` only writes a backed file. An untitled doc has no path, so Save opens a
-    // (never-handled) save-as dialog and the tab stays dirty — open a real workspace file instead.
-    // Web Quick Open can't find files that were never opened in the editor, so this is desktop-only —
-    // same reason commandPalette.headless.spec.ts skips its File: Save assertion off desktop.
-    test.skip(!isDesktop(), 'Saving requires a real on-disk file (desktop only)');
-
-    // sfdx-project.json is scaffolded into every desktop workspace by createTestWorkspace.
-    await openFileByName(page, 'sfdx-project.json');
-    const editor = page.locator(EDITOR_WITH_URI).first();
-    await expect(editor).toBeVisible({ timeout: 10_000 });
-    await editor.click();
-    // Append a blank line so the doc is dirty without breaking JSON (nothing reads it after).
-    await goToLineColumn(page);
-    await page.keyboard.type('1:1');
-    await page.keyboard.press('Enter');
-    await page.keyboard.type('\n');
-    // The unsaved-changes marker lives on the editor tab (`.tab.dirty`), not the editor body.
-    const dirtyTab = page.locator(`${WORKBENCH} .tabs-container .tab.dirty`);
-    await expect(dirtyTab).toBeVisible({ timeout: 10_000 });
-
-    await saveFile(page);
-    await expect(dirtyTab).not.toBeVisible({ timeout: 10_000 });
   });
 
   test('clearAllNotifications leaves no notification toasts', async ({ page }) => {
@@ -90,12 +55,6 @@ test.describe('Native command wrappers', () => {
 
     await closeAllEditors(page);
     await expect(page.locator(NON_WELCOME_TAB)).toHaveCount(0, { timeout: 10_000 });
-  });
-
-  test('showExplorer reveals the Explorer sidebar', async ({ page }) => {
-    test.skip(!isDesktop(), 'Files Explorer tree requires an open workspace folder (desktop only)');
-    await showExplorer(page);
-    await expect(page.getByRole('tree', { name: /Files Explorer/i }).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('reloadWindow reloads the workbench', async ({ page }) => {

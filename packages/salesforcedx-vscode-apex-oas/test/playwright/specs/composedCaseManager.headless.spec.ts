@@ -17,7 +17,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import {
-  assertGenerationOrSkipOnRateLimit,
+  assertGenerationSucceeds,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,
@@ -53,8 +53,7 @@ test('OAS: composed mode initial generation opens ESR XML and shows success noti
     await confirmEsrFolderPrompt(page);
 
     // Info toasts auto-dismiss in seconds; the ESR file is the durable success signal.
-    // A monthly A4V quota outage surfaces a rate-limit notification instead — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
+    await assertGenerationSucceeds(page, waitForEsrFile(workspaceDir, 'CaseManager'));
   });
 
   await test.step('verify generated ESR XML tab is open', async () => {
