@@ -160,7 +160,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   return {
     ...actual,
-    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn(() => EffectLib.succeed(undefined))
   };
 });
@@ -198,7 +197,6 @@ import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
-import * as testUtils from '../../../src/utils/testUtils';
 import * as Option from 'effect/Option';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
@@ -292,7 +290,6 @@ describe('ApexTestController', () => {
 
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
-    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -893,49 +890,6 @@ describe('ApexTestController', () => {
       expect(
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
       ).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('resolveHandler', () => {
-    it('should request document symbols for class methods with default range', async () => {
-      const methodItem = {
-        id: 'method:OrgOnlyClass.testMethod1',
-        label: 'testMethod1',
-        uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
-      } as unknown as vscode.TestItem;
-
-      const classItem = {
-        id: 'class:OrgOnlyClass',
-        label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-        children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
-          // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
-          [Symbol.iterator]: () => [[methodItem.id, methodItem] as const][Symbol.iterator]()
-        }
-      } as unknown as vscode.TestItem;
-
-      (testUtils.getMethodLocationsFromSymbols as jest.Mock).mockResolvedValue(
-        new Map([
-          [
-            'testMethod1',
-            new vscode.Location(
-              URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-              new vscode.Range(new vscode.Position(9, 2), new vscode.Position(9, 2))
-            )
-          ]
-        ])
-      );
-
-      await mockTestController.resolveHandler?.(classItem);
-
-      expect(testUtils.getMethodLocationsFromSymbols).toHaveBeenCalledWith(
-        classItem.uri,
-        expect.arrayContaining(['testMethod1'])
-      );
-      expect(methodItem.range?.start.line).toBe(9);
-      expect(methodItem.range?.start.character).toBe(2);
     });
   });
 

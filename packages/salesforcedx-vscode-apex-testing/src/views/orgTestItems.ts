@@ -207,7 +207,6 @@ export const createClassAndMethodsFactory = (
     const isOrgOnly = !resolution?.inWorkspace;
 
     const classItem = controller.createTestItem(createClassId(fullClassName), baseClassName, uri);
-    classItem.canResolveChildren = true;
     if (isOrgOnly && orgOnlyTag) {
       classItem.tags = [orgOnlyTag];
     } else if (inWorkspaceTag) {
