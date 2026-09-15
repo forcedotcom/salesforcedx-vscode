@@ -208,12 +208,13 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       const children = yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
         Effect.provideService(OrgMetadataReferenceService, references)
       );
-      if (children.length === 0 && reference.fullName && !inventory.folders.has(reference.fullName)) {
-        return yield* Effect.fail(
-          vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
-        );
-      }
-      return children;
+      return yield* Effect.succeed(children).pipe(
+        Effect.filterOrFail(
+          projectedChildren =>
+            projectedChildren.length > 0 || !reference.fullName || inventory.folders.has(reference.fullName),
+          () => vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
+        )
+      );
     });
 
     const getChildrenCached = Effect.fn('OrgCatalogTreeProjection.getChildrenCached')(function* (

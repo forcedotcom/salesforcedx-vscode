@@ -9,9 +9,11 @@ import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vsc
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { OrgId } from 'salesforcedx-vscode-services/src/core/schemas/salesforceId';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
@@ -21,6 +23,17 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   refreshAllExtensionReporters: jest.fn().mockResolvedValue(undefined)
 }));
 
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
+const ORG_DEFAULT = brandedOrgId('00D000000000001');
+const ORG_INITIAL = brandedOrgId('00D000000000002');
+const ORG_SWITCHED = brandedOrgId('00D000000000003');
+const ORG_FIRST = brandedOrgId('00D000000000004');
+const ORG_SECOND = brandedOrgId('00D000000000005');
+const ORG_CHANGED = brandedOrgId('00D000000000006');
+const ORG_BEFORE = brandedOrgId('00D000000000007');
+const ORG_USER = brandedOrgId('00D000000000008');
+const ORG_CLOSED = brandedOrgId('00D000000000009');
+
 const targetOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
 let getTargetOrgRef = () => Effect.succeed(targetOrgRef);
 const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
@@ -28,7 +41,7 @@ const connectDefaultOrg = () =>
   SubscriptionRef.update(targetOrgRef, current => ({
     ...current,
     username: current.username ?? 'default@example.com',
-    orgId: current.orgId ?? '00D'
+    orgId: current.orgId ?? ORG_DEFAULT
   })).pipe(Effect.as(connection));
 let getConnection: () => Effect.Effect<typeof connection> = connectDefaultOrg;
 const servicesApi = {
@@ -95,7 +108,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('seeds synchronous getters from the initial snapshot without firing an event', async () => {
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
@@ -106,7 +119,7 @@ describe('WorkspaceContext', () => {
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: 'initial@example.com',
       alias: 'initial',
-      orgId: '00Dinitial'
+      orgId: ORG_INITIAL
     });
     expect(listener).not.toHaveBeenCalled();
     expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
@@ -128,7 +141,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('initializes from orgId before username enrichment without emitting setup changes', async () => {
-    await setTargetOrg({ orgId: '00Dinitial' });
+    await setTargetOrg({ orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
@@ -140,7 +153,7 @@ describe('WorkspaceContext', () => {
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: undefined,
       alias: undefined,
-      orgId: '00Dinitial'
+      orgId: ORG_INITIAL
     });
   });
 
@@ -153,7 +166,7 @@ describe('WorkspaceContext', () => {
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    const switched = { username: 'switched@example.com', alias: 'configured', orgId: '00Dswitched' };
+    const switched = { username: 'switched@example.com', alias: 'configured', orgId: ORG_SWITCHED };
     await setTargetOrg(switched);
     await setTargetOrg({ ...switched });
     await flushEffects();
@@ -170,9 +183,9 @@ describe('WorkspaceContext', () => {
     jest.clearAllMocks();
     jest.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
 
-    await setTargetOrg({ username: 'first@example.com', orgId: '00Dfirst' });
+    await setTargetOrg({ username: 'first@example.com', orgId: ORG_FIRST });
     await flushEffects();
-    await setTargetOrg({ username: 'second@example.com', orgId: '00Dsecond' });
+    await setTargetOrg({ username: 'second@example.com', orgId: ORG_SECOND });
     await flushEffects();
 
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
@@ -183,31 +196,31 @@ describe('WorkspaceContext', () => {
   });
 
   it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dchanged' });
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dchanged' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
     await flushEffects();
 
-    expect(context.orgId).toBe('00Dchanged');
+    expect(context.orgId).toBe(ORG_CHANGED);
     expect(listener).toHaveBeenCalledTimes(1);
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('fires when only the configured alias changes', async () => {
-    await setTargetOrg({ username: 'initial@example.com', alias: 'first', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'first', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    await setTargetOrg({ username: 'initial@example.com', alias: 'second', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'second', orgId: ORG_INITIAL });
     await flushEffects();
 
     expect(context.alias).toBe('second');
@@ -216,7 +229,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('normalizes no-org values to undefined', async () => {
-    await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: '00Dbefore' });
+    await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: ORG_BEFORE });
     const context = WorkspaceContext.getInstance(true);
     await context.initialize(replayContext as never);
     jest.clearAllMocks();
@@ -234,7 +247,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('initializes once and keeps connection delegation unchanged', async () => {
-    await setTargetOrg({ username: 'user@example.com', orgId: '00Duser' });
+    await setTargetOrg({ username: 'user@example.com', orgId: ORG_USER });
     const context = WorkspaceContext.getInstance(true);
 
     await Promise.all([
@@ -260,7 +273,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('keeps retained facades live when the singleton reference is replaced', async () => {
-    await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: '00Dfirst' });
+    await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: ORG_FIRST });
     const first = WorkspaceContext.getInstance(true);
     const firstListener = jest.fn();
     first.onOrgChange(firstListener);
@@ -272,7 +285,7 @@ describe('WorkspaceContext', () => {
     await replacement.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    const switched = { username: 'second@example.com', alias: 'second', orgId: '00Dsecond' };
+    const switched = { username: 'second@example.com', alias: 'second', orgId: ORG_SECOND };
     await setTargetOrg(switched);
     await flushEffects();
 
@@ -310,7 +323,7 @@ describe('WorkspaceContext', () => {
     jest.clearAllMocks();
 
     await Effect.runPromise(closeExtensionScope());
-    await setTargetOrg({ username: 'after-close@example.com', orgId: '00Dclosed' });
+    await setTargetOrg({ username: 'after-close@example.com', orgId: ORG_CLOSED });
     await flushEffects();
 
     expect(listener).not.toHaveBeenCalled();

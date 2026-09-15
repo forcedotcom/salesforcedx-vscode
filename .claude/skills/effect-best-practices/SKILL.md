@@ -32,7 +32,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
 | Error Specificity | `UserNotFoundError`, `SessionExpiredError`               | Generic `NotFoundError`, `BadRequestError`                       |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
-| IDs               | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))`        | Plain `string` for entity IDs                                    |
+| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
@@ -194,7 +194,9 @@ See `references/error-patterns.md` for the accumulation/interruption nuance, err
 
 ## Schema & Branded Types Pattern
 
-**Brand all entity IDs** for type safety across service boundaries:
+**Brand all entity IDs** for type safety across service boundaries.
+
+This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId` and `orgIdFrom`/`orgIdFromConnection` (`getFields()` / Connection; `Option`; `references/schema-patterns.md`). Other AuthFields: `authFieldsFrom`/`authFieldsFromConnection`. `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not Option.
 
 ```typescript
 import { Schema } from 'effect';
@@ -203,15 +205,15 @@ import { Schema } from 'effect';
 export const UserId = Schema.UUID.pipe(Schema.brand('@App/UserId'));
 export type UserId = Schema.Schema.Type<typeof UserId>;
 
-export const OrganizationId = Schema.UUID.pipe(Schema.brand('@App/OrganizationId'));
-export type OrganizationId = Schema.Schema.Type<typeof OrganizationId>;
+export const TenantId = Schema.UUID.pipe(Schema.brand('@App/TenantId'));
+export type TenantId = Schema.Schema.Type<typeof TenantId>;
 
 // Domain types - use Schema.Struct
 export const User = Schema.Struct({
   id: UserId,
   email: Schema.String,
   name: Schema.String,
-  organizationId: OrganizationId,
+  tenantId: TenantId,
   createdAt: Schema.DateTimeUtc
 });
 export type User = Schema.Schema.Type<typeof User>;
@@ -220,7 +222,7 @@ export type User = Schema.Schema.Type<typeof User>;
 export const CreateUserInput = Schema.Struct({
   email: Schema.String.pipe(Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
   name: Schema.String.pipe(Schema.minLength(1)),
-  organizationId: OrganizationId
+  tenantId: TenantId
 });
 export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
 ```
@@ -427,11 +429,17 @@ union shape, no exceptions:
 | `T \| null \| undefined` | `isNullable` / `isNotNullable` |
 
 ```typescript
+import * as Schema from 'effect/Schema';
 import { isNotNull, isNotUndefined, isNullable, isUndefined } from 'effect/Predicate';
 
 // T | undefined — the common case (Optional<T>, optional props, ?? sources)
 if (isUndefined(maybeValue)) return;
 Effect.filterOrFail(isNotUndefined, () => new NotFoundError({ message: '...' }));
+
+// non-id string that must be non-blank — not `isNotUndefined && length > 0`
+Effect.filterOrFail(Schema.is(Schema.NonEmptyString), () => new NotFoundError({ message: '...' }));
+// AuthFields org id: `orgIdFrom` / `orgIdFromConnection` → `Option<OrgId>`; fail-if-missing via `Option.match`
+// DefaultOrgInfo orgId: already `OrgId | undefined` (`Schema.optional(OrgId)` like cliId)
 
 // T | null — e.g. RegExp.exec, JSON payload fields
 const match = scriptRegex.exec(html);
