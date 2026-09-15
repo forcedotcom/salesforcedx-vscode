@@ -27,7 +27,7 @@ import {
 import { FsService } from '../../../src/vscode/fsService';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
-const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never, never> =>
+const createMockComponentSetService = () =>
   Layer.succeed(
     ComponentSetService,
     new ComponentSetService({
@@ -44,7 +44,7 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
   );
 
 /** Create a mock MetadataRegistryService with real RegistryAccess (no workspace dependency) */
-const createMockMetadataRegistryService = (): Layer.Layer<MetadataRegistryService, never, never> => {
+const createMockMetadataRegistryService = () => {
   const registryAccess = new RegistryAccess();
   return Layer.succeed(
     MetadataRegistryService,

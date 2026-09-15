@@ -29,7 +29,7 @@ const mockExtensionUri = URI.file('/ext');
 
 const ORG_CUSTOM_METADATA_TEMPLATES_KEY: string = OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES;
 
-const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigService> =>
+const createMockConfigService = (templateDir?: string) =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -51,7 +51,7 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
     })
   );
 
-const createFailingConfigService = (): Layer.Layer<ConfigService> =>
+const createFailingConfigService = () =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -73,7 +73,7 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
     })
   );
 
-const createMockProjectService = (): Layer.Layer<ProjectService> => {
+const createMockProjectService = () => {
   const mockSfProject = {
     retrieveSfProjectJson: () => Promise.resolve({ get: () => '60.0' })
   } as unknown as import('@salesforce/core').SfProject;
@@ -101,7 +101,7 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
   );
 };
 
-const createMockConnectionService = (): Layer.Layer<ConnectionService> =>
+const createMockConnectionService = () =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
