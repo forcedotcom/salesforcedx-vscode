@@ -7,12 +7,12 @@
 
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import { nls } from '../messages';
 import { ConnectionService, InactiveOrgOperationError, NoTargetOrgConfiguredError } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { orgIdFromConnection } from './schemas/authFields';
 
 /** Prevent a command from continuing after its target org changes. */
 export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
@@ -21,8 +21,13 @@ export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
     // Subscribe before resolving the connection so no target-org update can occur between the snapshot and stream.
     const [, changes] = yield* targetOrgRef.changes.pipe(Stream.peel(Sink.head()));
     const expectedOrgId = yield* ConnectionService.getConnection().pipe(
-      Effect.map(connection => connection.getAuthInfoFields().orgId),
-      Effect.filterOrFail(isNotUndefined, () => new NoTargetOrgConfiguredError({ message: 'No target org configured' }))
+      Effect.map(orgIdFromConnection),
+      Effect.flatMap(
+        Option.match({
+          onNone: () => Effect.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' })),
+          onSome: Effect.succeed
+        })
+      )
     );
 
     const targetOrgChanged = changes.pipe(

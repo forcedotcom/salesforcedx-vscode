@@ -13,6 +13,7 @@ import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -26,6 +27,7 @@ import {
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
@@ -34,6 +36,8 @@ jest.mock('@salesforce/core', () => ({
   AuthInfo: { create: jest.fn() },
   Connection: { create: jest.fn() }
 }));
+
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
 
 const USERNAME = 'expired@test.com';
 const ALIAS = 'ExpiredOrg';
@@ -99,30 +103,30 @@ describe('ConnectionService.getConnectionForOrg', () => {
   });
 
   it('returns a connection whose org ID matches the captured operation org', async () => {
-    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-expected' });
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000001' });
     jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     jest.mocked(Connection.create).mockResolvedValue(connection);
 
     await expect(
-      Effect.runPromise(ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer())))
+      Effect.runPromise(ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer())))
     ).resolves.toBe(connection);
   });
 
   it('fails with the captured and observed org IDs when the target org changed', async () => {
-    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-observed' });
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000002' });
     jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     jest.mocked(Connection.create).mockResolvedValue(connection);
 
     const exit = await Effect.runPromiseExit(
-      ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer()))
+      ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer()))
     );
 
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-expected' was in progress.",
-          expectedOrgId: '00D-expected',
-          observedOrgId: '00D-observed'
+          message: "The active org changed while an operation for '00D000000000001' was in progress.",
+          expectedOrgId: '00D000000000001',
+          observedOrgId: '00D000000000002'
         })
       )
     );
@@ -138,7 +142,7 @@ describe('preventOrgChanges', () => {
   };
 
   it('runs the command when the target org does not change', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
     await expect(
       Effect.runPromise(preventOrgChanges(Effect.succeed('complete')).pipe(Effect.provide(buildLayer())))
@@ -146,39 +150,37 @@ describe('preventOrgChanges', () => {
   });
 
   it('keeps an observed target-org change cancelled after switching back', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
-    const exit = await Effect.runPromiseExit(
-      preventOrgChanges(
-        Effect.gen(function* () {
-          const ref = yield* getDefaultOrgRef();
-          yield* SubscriptionRef.set(ref, { orgId: '00D-replacement' });
-          yield* SubscriptionRef.set(ref, { orgId: '00D-original' });
-          yield* Effect.sleep(Duration.millis(1));
-        })
-      ).pipe(Effect.provide(buildLayer()))
-    );
+    const exit = await preventOrgChanges(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* SubscriptionRef.set(ref, { orgId: brandedOrgId('00D000000000004') });
+        yield* SubscriptionRef.set(ref, { orgId: brandedOrgId('00D000000000003') });
+        yield* Effect.sleep(Duration.millis(1));
+      })
+    ).pipe(Effect.provide(buildLayer()), Effect.runPromiseExit);
 
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-original' was in progress.",
-          expectedOrgId: '00D-original',
-          observedOrgId: '00D-replacement'
+          message: "The active org changed while an operation for '00D000000000003' was in progress.",
+          expectedOrgId: '00D000000000003',
+          observedOrgId: '00D000000000004'
         })
       )
     );
   });
 
   it('ignores target-org updates that retain the same org ID', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
     await expect(
       Effect.runPromise(
         preventOrgChanges(
           Effect.gen(function* () {
             yield* SubscriptionRef.set(yield* getDefaultOrgRef(), {
-              orgId: '00D-original',
+              orgId: brandedOrgId('00D000000000003'),
               username: 'replacement@example.com'
             });
             yield* Effect.sleep(Duration.millis(1));
@@ -192,8 +194,9 @@ describe('preventOrgChanges', () => {
   it('fails before the command when the connection has no org ID', async () => {
     await prepareConnection(undefined);
 
-    const exit = await Effect.runPromiseExit(
-      preventOrgChanges(Effect.succeed('not run')).pipe(Effect.provide(buildLayer()))
+    const exit = await preventOrgChanges(Effect.succeed('not run')).pipe(
+      Effect.provide(buildLayer()),
+      Effect.runPromiseExit
     );
 
     expect(exit).toEqual(Exit.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' })));
@@ -361,7 +364,7 @@ const makeDesktopConn = (username: string): Connection =>
     getUsername: () => username,
     getAuthInfoFields: () => ({
       username,
-      orgId: '00Dxx',
+      orgId: '00D000000000005',
       instanceName: 'USA9S',
       tracksSource: false,
       isScratch: false,
@@ -410,31 +413,35 @@ const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
 describe('updateDefaultOrgIdentity', () => {
   it('does not publish when the org identity is unchanged', async () => {
     const initial: typeof DefaultOrgInfoSchema.Type = {
-      orgId: '00Dxx',
+      orgId: brandedOrgId('00D000000000005'),
       instanceName: 'USA9S',
       username: 'user@example.com'
     };
     const ref = Effect.runSync(SubscriptionRef.make(initial));
 
-    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dxx', 'USA9S'));
+    const previousOrgId = await Effect.runPromise(
+      updateDefaultOrgIdentity(ref, brandedOrgId('00D000000000005'), 'USA9S')
+    );
 
-    expect(previousOrgId).toBe('00Dxx');
+    expect(previousOrgId).toBe('00D000000000005');
     expect(await Effect.runPromise(SubscriptionRef.get(ref))).toBe(initial);
   });
 
   it('publishes when the org identity changes', async () => {
     const initial: typeof DefaultOrgInfoSchema.Type = {
-      orgId: '00Dold',
+      orgId: brandedOrgId('00D000000000006'),
       instanceName: 'USA1',
       username: 'user@example.com'
     };
     const ref = Effect.runSync(SubscriptionRef.make(initial));
 
-    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dnew', 'USA9S'));
+    const previousOrgId = await Effect.runPromise(
+      updateDefaultOrgIdentity(ref, brandedOrgId('00D000000000007'), 'USA9S')
+    );
 
-    expect(previousOrgId).toBe('00Dold');
+    expect(previousOrgId).toBe('00D000000000006');
     expect(await Effect.runPromise(SubscriptionRef.get(ref))).toEqual({
-      orgId: '00Dnew',
+      orgId: '00D000000000007',
       instanceName: 'USA9S',
       username: 'user@example.com'
     });
@@ -484,7 +491,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     // spying on it lets us assert the fork body never ran, deterministically (no setTimeout race).
     const getAuthInfoFieldsSpy = jest.fn(() => ({
       username: 'given@example.com',
-      orgId: '00Dxx',
+      orgId: '00D000000000005',
       tracksSource: false,
       isScratch: false,
       isSandbox: false
@@ -527,19 +534,21 @@ describe('ConnectionService.getConnection (desktop)', () => {
         const ref = yield* getDefaultOrgRef();
         yield* ConnectionService.getConnection();
         return yield* ref.changes.pipe(
-          Stream.filter(info => info.orgId === '00Dxx' && info.alias === ALIAS),
+          Stream.filter(info => info.orgId === '00D000000000005' && info.alias === ALIAS),
           Stream.runHead,
           Effect.map(Option.getOrThrow)
         );
       })
     );
-    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
+    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00D000000000005' });
   });
 
   it('clears a cached alias when target-org is configured as the username', async () => {
     await Effect.runPromise(
       getDefaultOrgRef().pipe(
-        Effect.flatMap(ref => SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: '00Dxx' }))
+        Effect.flatMap(ref =>
+          SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: brandedOrgId('00D000000000005') })
+        )
       )
     );
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
@@ -551,7 +560,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
         const ref = yield* getDefaultOrgRef();
         yield* ConnectionService.getConnection();
         return yield* ref.changes.pipe(
-          Stream.filter(info => info.orgId === '00Dxx' && isUndefined(info.alias)),
+          Stream.filter(info => info.orgId === '00D000000000005' && isUndefined(info.alias)),
           Stream.runHead,
           Effect.map(Option.getOrThrow)
         );
@@ -566,7 +575,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     await run(ConnectionService.getConnection());
     expect(await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)))).toMatchObject({
-      orgId: '00Dxx',
+      orgId: '00D000000000005',
       instanceName: 'USA9S'
     });
   });

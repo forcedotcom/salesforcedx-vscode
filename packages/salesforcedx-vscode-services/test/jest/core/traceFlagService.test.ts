@@ -9,10 +9,12 @@ import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef, clearDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { TraceFlagService } from '../../../src/core/traceFlagService';
 
 type IdName = { Id: string; Name: string };
@@ -75,7 +77,11 @@ const buildMockConnectionLayer = (opts: {
   return { layer, toolingSpy, querySpy };
 };
 
-const setOrg = (info: { orgId?: string; username?: string; alias?: string }) =>
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
+const ORG_A = brandedOrgId('00D000000000001');
+const ORG_B = brandedOrgId('00D000000000002');
+
+const setOrg = (info: { orgId?: OrgId; username?: string; alias?: string }) =>
   Effect.gen(function* () {
     const ref = yield* getDefaultOrgRef();
     yield* SubscriptionRef.set(ref, info);
@@ -114,7 +120,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         const first = yield* svc.getTraceFlags();
         const second = yield* svc.getTraceFlags();
@@ -150,7 +156,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
         return yield* svc.getTraceFlags();
@@ -177,7 +183,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
         return yield* svc.getTraceFlags();
@@ -201,10 +207,10 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
-        yield* setOrg({ orgId: 'org-B', username: 'b@example.com' });
+        yield* setOrg({ orgId: ORG_B, username: 'b@example.com' });
         // Yield once to let the org-change subscription fiber process the invalidation.
         yield* Effect.sleep(0);
         return yield* svc.getTraceFlags();
@@ -226,10 +232,10 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com', alias: 'changed-alias' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com', alias: 'changed-alias' });
         yield* Effect.sleep(0);
         return yield* svc.getTraceFlags();
       }),
@@ -250,7 +256,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -278,7 +284,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -300,7 +306,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -323,7 +329,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -349,7 +355,7 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlagForUser('005000000000001');
       }),
@@ -369,7 +375,7 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlagForUser('005000000000001');
       }),

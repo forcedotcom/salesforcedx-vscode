@@ -31,6 +31,7 @@ import { getDefaultOrgRef } from './defaultOrgRef';
 import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { orgIdFromConnection } from './schemas/authFields';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 import { releaseSourceTrackingShadowRepo } from './sourceTrackingShadowRepoLifecycle';
 
@@ -324,7 +325,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       if (options.remote) {
         const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
         const orgId =
-          expectedOrgId ?? activeOrgId ?? (yield* connectionService.getConnection()).getAuthInfoFields().orgId;
+          expectedOrgId ??
+          activeOrgId ??
+          Option.getOrUndefined(orgIdFromConnection(yield* connectionService.getConnection()));
         if (orgId) {
           const changedReferences = yield* catalogRecorder.recordTrackingStatus(
             orgId,

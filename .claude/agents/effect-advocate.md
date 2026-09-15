@@ -25,7 +25,8 @@ Effect-TS advocate. Read plans/diffs, produce punch list of places where Effect 
 Per finding: file:line, smell, Effect replacement, citation. Severity: `must` (anti-pattern from SKILL.md), `should` (clear win), `consider` (judgment).
 
 - **Types crossing a boundary/serialized** (RPC, JSON, settings, message-passing, persisted) → `Schema.Struct` / `Schema.TaggedError`. In-memory-only `type` fine.
-- **Entity IDs as bare `string`** → branded `Schema.UUID.pipe(Schema.brand(...))`.
+- **Entity IDs as bare `string`** → branded. Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`) via `orgIdFrom`/`orgIdFromConnection` (raw fields / Connection) or `authFieldsFromConnection` (`core/schemas/authFields.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not `optionalWith` as Option. Else `Schema.UUID.pipe(Schema.brand(...))`.
+- **Non-empty string `filterOrFail`** (`isNotUndefined && length > 0`) → `Schema.is(Schema.NonEmptyString)`. AuthFields org ids: `orgIdFrom`/`orgIdFromConnection` (`Option<OrgId>`) then `Option.match`. DefaultOrgInfo orgId: already `OrgId | undefined`.
 - **`null`/`undefined` in domain types or "missing" sentinels** → `Option<T>`. Tell: `?:` field + downstream `if (x)`.
 - **`if/else` or `switch` on tagged union** → `Match.type<T>().pipe(Match.tag(...), Match.exhaustive)` or `Effect.match` / `Option.match`.
 - **Hand-rolled retry** (`for`/`while`/recursion + `setTimeout`) → `Effect.retry` + `Schedule.exponential` / `Schedule.recurs` / `Schedule.intersect`.

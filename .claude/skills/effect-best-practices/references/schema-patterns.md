@@ -2,7 +2,9 @@
 
 ## Branded Types for IDs
 
-**Always brand entity IDs** to prevent accidentally passing the wrong ID type:
+**Always brand entity IDs** to prevent accidentally passing the wrong ID type.
+
+This repo: Salesforce record/org → `SalesforceId`/`OrgId` (branding convention below). Other entities: UUID brand.
 
 ```typescript
 import { Schema } from "effect"
@@ -11,8 +13,8 @@ import { Schema } from "effect"
 export const UserId = Schema.UUID.pipe(Schema.brand("@App/UserId"))
 export type UserId = Schema.Schema.Type<typeof UserId>
 
-export const OrganizationId = Schema.UUID.pipe(Schema.brand("@App/OrganizationId"))
-export type OrganizationId = Schema.Schema.Type<typeof OrganizationId>
+export const TenantId = Schema.UUID.pipe(Schema.brand("@App/TenantId"))
+export type TenantId = Schema.Schema.Type<typeof TenantId>
 
 export const OrderId = Schema.UUID.pipe(Schema.brand("@App/OrderId"))
 export type OrderId = Schema.Schema.Type<typeof OrderId>
@@ -27,6 +29,11 @@ Use `@Namespace/EntityName` format:
 - `@App/UserId` - Main application entities
 - `@Billing/InvoiceId` - Billing domain entities
 - `@External/StripeCustomerId` - External system IDs
+- `@services/SalesforceId` / `@services/OrgId` - this repo's Salesforce record/org ids (`core/schemas/salesforceId.ts`). 15/18 char, not UUID. Org ids start `00D`
+
+`getAuthInfoFields()` / `getFields()` → `authFieldsFrom` / `authFieldsFromConnection` (`core/schemas/authFields.ts`). orgId: `orgIdFrom` / `orgIdFromConnection` (not `authFieldsFrom` then `.orgId`). All `Option`. Fields: `optionalWith(..., { as: 'Option' })`. `instanceName`: `Schema.Trim` (decode, not consumers). Invalid orgId → whole decode `None` (`decodeUnknownOption`). Fail-if-missing: `Option.match`.
+
+`DefaultOrgInfoSchema.orgId` / `devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not `optionalWith` as Option. `Option.getOrUndefined` only at that `OrgId | undefined` interop (`connectionService`).
 
 ### Creating Branded Values
 
@@ -66,7 +73,7 @@ export const User = Schema.Struct({
     id: UserId,
     email: Schema.String,
     name: Schema.String,
-    organizationId: OrganizationId,
+    tenantId: TenantId,
     role: Schema.Literal("admin", "member", "viewer"),
     createdAt: Schema.DateTimeUtc,
     updatedAt: Schema.DateTimeUtc,
@@ -89,7 +96,7 @@ export const CreateUserInput = Schema.Struct({
         Schema.minLength(1),
         Schema.maxLength(100),
     ),
-    organizationId: OrganizationId,
+    tenantId: TenantId,
     role: Schema.optionalWith(
         Schema.Literal("admin", "member", "viewer"),
         { default: () => "member" as const }
@@ -248,6 +255,12 @@ export const UserPreferences = Schema.Struct({
     // Optional, undefined if not provided
     theme: Schema.optional(Schema.Literal("light", "dark")),
 
+    // DefaultOrgInfo orgId/devHubOrgId — branded optional, undefined not Option (like cliId)
+    orgId: Schema.optional(OrgId),
+
+    // Optional as Option (AuthFields decode)
+    nickname: Schema.optionalWith(Schema.String, { as: "Option" }),
+
     // Optional with default value
     language: Schema.optionalWith(Schema.String, { default: () => "en" }),
 
@@ -341,12 +354,15 @@ export const Category: Schema.Schema<Category> = Schema.Struct({
 
 - `Schema.is(schema)` → `(u: unknown) => u is A` — match without decode/allocate
 - Prefer over `Set.has` etc — schema = single source of truth
+- Non-id strings that must be non-blank: `Effect.filterOrFail(Schema.is(Schema.NonEmptyString), …)` — not `isNotUndefined && length > 0`
 
 ```typescript
 const isUserRole = Schema.is(UserRole)
 if (isUserRole(input)) {
   // input: "admin" | "member" | "viewer"
 }
+
+Effect.filterOrFail(Schema.is(Schema.NonEmptyString), () => vscode.FileSystemError.FileNotFound(uri))
 ```
 
 ## Decoding and Encoding
@@ -355,6 +371,9 @@ if (isUserRole(input)) {
 // Decode (parse) - use in services
 const parseUser = Schema.decodeUnknown(User)
 const result = yield* parseUser(rawData) // Effect<User, ParseError>
+
+// Option (AuthFields helpers) — decode fail → None
+Schema.decodeUnknownOption(AuthFields)(fields)
 
 // Decode sync - only in controlled contexts
 const user = Schema.decodeUnknownSync(User)(rawData)

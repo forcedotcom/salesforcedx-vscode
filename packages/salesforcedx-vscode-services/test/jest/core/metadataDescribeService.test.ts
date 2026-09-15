@@ -9,11 +9,13 @@ import type { Connection } from '@salesforce/core';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ChannelService } from '../../../src/vscode/channelService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 
 type ListItem = {
@@ -52,9 +54,11 @@ const createMockConnectionService = (
   )
 });
 
+const ORG_ID = Schema.decodeSync(OrgId)('00D000000000001');
+
 const seedDefaultOrg = Effect.gen(function* () {
   const ref = yield* getDefaultOrgRef();
-  yield* SubscriptionRef.update(ref, () => ({ orgId: 'test-org' }));
+  yield* SubscriptionRef.update(ref, () => ({ orgId: ORG_ID }));
 });
 
 const mockOrgMetadataCatalogRecorder = Layer.succeed(OrgMetadataCatalogRecorder, {
@@ -141,7 +145,7 @@ describe('MetadataDescribeService.listMetadata', () => {
     await runListMetadata([{ fullName: 'Foo', type: 'ApexClass' }], 'ApexClass', 2);
 
     expect(recordMetadataListing).toHaveBeenCalledTimes(2);
-    expect(recordMetadataListing).toHaveBeenNthCalledWith(1, 'test-org', 'ApexClass', undefined, [
+    expect(recordMetadataListing).toHaveBeenNthCalledWith(1, ORG_ID, 'ApexClass', undefined, [
       expect.objectContaining({ fullName: 'Foo' })
     ]);
   });

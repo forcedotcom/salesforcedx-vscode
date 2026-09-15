@@ -7,14 +7,15 @@
 
 import * as Schema from 'effect/Schema';
 import { CliId } from '../../observability/cliTelemetry';
+import { OrgId } from './salesforceId';
 
 const StringArray = Schema.Array(Schema.String);
 
 export const DefaultOrgInfoSchema = Schema.Struct({
   aliases: Schema.optional(StringArray),
-  orgId: Schema.optional(Schema.String),
+  orgId: Schema.optional(OrgId),
   instanceName: Schema.optional(Schema.String),
-  devHubOrgId: Schema.optional(Schema.String),
+  devHubOrgId: Schema.optional(OrgId),
   username: Schema.optional(Schema.String),
   alias: Schema.optional(Schema.String),
   devHubUsername: Schema.optional(Schema.String),

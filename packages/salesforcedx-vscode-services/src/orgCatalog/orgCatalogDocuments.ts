@@ -6,11 +6,12 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
-import { OrgMetadataReferenceService } from './orgMetadataReference';
+import { OrgMetadataReferenceService, type OrgMetadataDocumentLocation } from './orgMetadataReference';
 
 export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('OrgCatalogDocuments', {
   accessors: true,
@@ -23,10 +24,13 @@ export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('
     ]);
 
     const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
-      const location = yield* references.parseDocumentUri(uri);
-      if (location?.orgId !== activeOrgId) {
-        return yield* Effect.fail(vscode.FileSystemError.FileNotFound(uri));
-      }
+      const location = yield* references.parseDocumentUri(uri).pipe(
+        Effect.filterOrFail(
+          (candidateLocation): candidateLocation is OrgMetadataDocumentLocation =>
+            isNotUndefined(candidateLocation) && candidateLocation.orgId === activeOrgId,
+          () => vscode.FileSystemError.FileNotFound(uri)
+        )
+      );
       const artifact = yield* remoteSource.materializePrimaryDocument(activeOrgId, location);
       return yield* fsService.readFile(artifact.primaryUri);
     });

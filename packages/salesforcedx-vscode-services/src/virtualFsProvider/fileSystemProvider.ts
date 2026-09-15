@@ -129,29 +129,16 @@ export class FsProvider implements vscode.FileSystemProvider {
   public async writeFile(
     uri: URI,
     content: Uint8Array,
-    options: { create: boolean; overwrite: boolean }
+    _options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
     if (isItReadOnly(this.readOnly, uri)) {
       throw vscode.FileSystemError.NoPermissions(uri);
     }
     const fileExisted = this.exists(uri);
-    const program = Effect.sync(() => {
-      if (!options.create && !fileExisted) {
-        return Effect.fail(vscode.FileSystemError.FileNotFound(uri));
-      }
-      if (!options.overwrite && fileExisted) {
-        return Effect.fail(vscode.FileSystemError.FileExists(uri));
-      }
-      return Effect.void;
-    }).pipe(
-      // Write file to filesystem
-      Effect.flatMap(() =>
-        Effect.tryPromise({
-          try: () => fs.promises.writeFile(uri.path, Buffer.from(content)),
-          catch: e => new VirtualFsProviderError({ ...unknownToErrorCause(e), message: 'writeFile', path: uri.path })
-        })
-      )
-    );
+    const program = Effect.tryPromise({
+      try: () => fs.promises.writeFile(uri.path, Buffer.from(content)),
+      catch: e => new VirtualFsProviderError({ ...unknownToErrorCause(e), message: 'writeFile', path: uri.path })
+    });
 
     await program.pipe(Effect.scoped, Effect.runPromise);
 
