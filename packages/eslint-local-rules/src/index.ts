@@ -31,6 +31,7 @@ import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonNoDefaultTrue } from './packageJsonNoDefaultTrue';
+import { packageJsonNoServicesDependency } from './packageJsonNoServicesDependency';
 import { packageJsonRequireRootInstall } from './packageJsonRequireRootInstall';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
@@ -72,6 +73,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
     'package-json-no-default-true': packageJsonNoDefaultTrue,
+    'package-json-no-services-dependency': packageJsonNoServicesDependency,
     'package-json-require-root-install': packageJsonRequireRootInstall,
     'package-json-salesforce-dep-versions': packageJsonSalesforceDepVersions,
     'package-json-view-refs': packageJsonViewRefs,
