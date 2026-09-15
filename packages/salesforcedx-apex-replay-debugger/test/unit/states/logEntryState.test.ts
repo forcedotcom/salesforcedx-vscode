@@ -16,16 +16,15 @@ jest.mock('@vscode/debugadapter', () => ({
 
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { LogContext, LogContextUtil } from '../../../src/core';
+import { LogContext } from '../../../src/core';
+import * as logContextUtil from '../../../src/core/logContextUtil';
 import { LogEntryState } from '../../../src/states';
 
 describe('LogEntry event', () => {
   let readLogFileStub: jest.SpyInstance;
 
   beforeEach(() => {
-    readLogFileStub = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
-      .mockReturnValue(['line1', 'line2']);
+    readLogFileStub = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
   });
 
   afterEach(() => {
