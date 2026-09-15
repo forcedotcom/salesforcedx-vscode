@@ -9,6 +9,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
   saveScreenshot,
+  showExplorer,
   typingSpeed,
   waitForWorkspaceReady,
   TAB
@@ -43,7 +44,13 @@ export class OrgBrowserPage {
 
   /** Wait for the project file system to be loaded in Explorer */
   public async waitForProject(): Promise<void> {
-    await waitForWorkspaceReady(this.page, 60_000);
+    // `waitForWorkspaceReady` looks for the `sfdx-project.json` tree item, which is only in the DOM
+    // while the Explorer is the active sidebar view. The container specs share one long-lived
+    // workbench and repeatedly switch the primary sidebar to the Org Browser view (or hide it), so
+    // reveal the Explorer first — otherwise the check burns its full timeout waiting for a node that
+    // cannot appear. Bounded well under the per-test cap so a genuine miss fails fast, not in minutes.
+    await showExplorer(this.page).catch(() => {});
+    await waitForWorkspaceReady(this.page, 30_000);
   }
 
   /** Open the Org Browser by clicking its activity bar item */
@@ -246,6 +253,21 @@ export class OrgBrowserPage {
     // it during a tree refresh, causing the menu command to be invoked without its tree-item argument.
     await retrieveButton.click();
     return true;
+  }
+
+  /**
+   * Force-refresh a metadata type by clicking its "Refresh Type" toolbar button. This re-queries the
+   * CURRENT default org for that type's component list (the underlying command invalidates the cache
+   * with `consistency: 'refresh'`). Used after switching the default org so the tree re-targets the
+   * new org instead of serving the previous org's cached listing.
+   */
+  public async refreshMetadataType(typeName: string): Promise<void> {
+    const typeItem = await this.findMetadataType(typeName);
+    await typeItem.hover();
+    const refreshButton = typeItem.locator('.action-label[aria-label="Refresh Type"]').first();
+    await expect(refreshButton, 'Refresh Type button should be visible').toBeVisible({ timeout: 5000 });
+    await refreshButton.click();
+    await saveScreenshot(this.page, `orgBrowserPage.refreshMetadataType.${typeName}.png`, true);
   }
 
   // TODO: pass in a file name you expect.  Or have a new method that just waits for that element to be visible
