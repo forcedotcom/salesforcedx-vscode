@@ -12,6 +12,8 @@ import {
   componentFromFile,
   componentFromDirectory
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as Order from 'effect/Order';
+import * as String from 'effect/String';
 import * as LineColumnFinderModule from 'line-column';
 import { EventEmitter as EventsEmitter } from 'node:events';
 import { Node } from 'vscode-html-languageservice';
@@ -27,6 +29,9 @@ import * as transformedAuraSystemImport from '../resources/transformed-aura-syst
 // and line-column may export differently depending on the module system.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const LineColumnFinder = LineColumnFinderModule.default ?? LineColumnFinderModule;
+
+const localeAwareStringOrder = Order.make<string>((left, right) => String.localeCompare(right)(left));
+const byAttributeName = Order.mapInput(localeAwareStringOrder, (attribute: { name: string }) => attribute.name);
 
 export default class AuraIndexer implements Indexer {
   public readonly eventEmitter = new EventsEmitter();
@@ -243,8 +248,8 @@ export default class AuraIndexer implements Indexer {
             documentation: ''
           };
           if (tagObj.attributes) {
-            // @ts-expect-error - tagObj.attributes is typed as any
-            tagObj.attributes.sort((a, b) => a.name.localeCompare(b.name));
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            tagObj.attributes.sort(byAttributeName);
             for (const a of tagObj.attributes) {
               // TODO - could we use more in depth doc from component library here?
               info.attributes.push({
