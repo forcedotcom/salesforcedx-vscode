@@ -10,10 +10,13 @@ import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@sal
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import * as Exit from 'effect/Exit';
+import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -202,36 +205,62 @@ const connectionCache = Effect.runSync(
   })
 );
 
+const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
+  const either = yield* connectionCache.getEither(key);
+  yield* Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' });
+  return Either.merge(either);
+});
+
 const resolveUsername = (conn: Connection): string | undefined =>
   conn.getUsername() ??
   Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), fields => fields.username));
 
 type IdentityResult = { username: string; userId: string };
 
-const identityCache = new Map<string, IdentityResult>();
+const identityConnByOrg = HashMap.empty<string, Connection>().pipe(Ref.make, Effect.runSync);
 
-const getUserFromUserSobject = (orgId: string, conn: Connection) => {
-  const cached = identityCache.get(orgId);
-  if (cached) return Effect.succeed(cached);
+const noneIdentity = Option.none<IdentityResult>();
 
-  const username = resolveUsername(conn);
-  if (!username) return Effect.void;
-
-  return Effect.tryPromise(() =>
-    conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
-  ).pipe(
-    Effect.map(r => {
-      const record = r.records[0];
-      if (!record) return undefined;
-      const result = { username: record.Username, userId: record.Id };
-      identityCache.set(orgId, result);
-      return result;
+const identityCache = Effect.runSync(
+  Cache.makeWith({
+    capacity: 8,
+    timeToLive: Exit.match({
+      onSuccess: (value: Option.Option<IdentityResult>) => (Option.isNone(value) ? Duration.zero : Duration.infinity),
+      onFailure: () => Duration.zero
     }),
-    Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
-    Effect.catchAll(() => Effect.void),
-    Effect.withSpan('getUserFromUserSobject', { attributes: { orgId } })
-  );
-};
+    lookup: (orgId: string) =>
+      Ref.get(identityConnByOrg).pipe(
+        Effect.flatMap(map =>
+          Option.match(HashMap.get(map, orgId), {
+            onNone: () => Effect.succeed(noneIdentity),
+            onSome: conn => {
+              const username = resolveUsername(conn);
+              if (!username) return Effect.succeed(noneIdentity);
+              return Effect.tryPromise(() =>
+                conn.query<{ Id: string; Username: string }>(
+                  `SELECT Id, Username FROM User WHERE Username = '${username}'`
+                )
+              ).pipe(
+                Effect.map(r => {
+                  const record = r.records[0];
+                  return record ? Option.some({ username: record.Username, userId: record.Id }) : noneIdentity;
+                })
+              );
+            }
+          })
+        ),
+        Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
+        Effect.catchAll(() => Effect.succeed(noneIdentity))
+      )
+  })
+);
+
+const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: string, conn: Connection) {
+  yield* Ref.update(identityConnByOrg, HashMap.set(orgId, conn));
+  const either = yield* identityCache.getEither(orgId);
+  yield* Effect.annotateCurrentSpan({ orgId, identityCache: Either.isLeft(either) ? 'hit' : 'miss' });
+  return either.pipe(Either.merge, Option.getOrUndefined);
+});
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
@@ -322,7 +351,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
-            return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
+            return yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
             const usernameOrAlias =
@@ -338,7 +367,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             // see reauth modal on expired token. No-op for refreshable flows.
             return yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
               Effect.map(Option.getOrElse(() => usernameOrAlias)),
-              Effect.flatMap(resolved => connectionCache.get(resolved)),
+              Effect.flatMap(resolved => getCachedConnection(resolved)),
               Effect.tap(validateAccessTokenOrPromptReauth)
             );
           });
@@ -379,6 +408,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* connectionCache.invalidateAll;
+      yield* identityCache.invalidateAll;
     });
 
     /**
