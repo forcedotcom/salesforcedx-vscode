@@ -38,6 +38,7 @@ import { dedupeMetadataChanges, MetadataChangeNotificationService } from './meta
 import { MetadataDescribeService } from './metadataDescribeService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { orgIdFromConnection } from './schemas/authFields';
 import { isSDRFailure, isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 import { SourceTrackingService, type SourceTrackingOptions } from './sourceTrackingService';
@@ -254,7 +255,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       });
 
       yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));
-      const orgId = input.expectedOrgId ?? input.connection.getAuthInfoFields().orgId;
+      const orgId = input.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(input.connection));
       // only do tracking in the case where we retrieve to project
       if (input.merge) {
         yield* Effect.all(
@@ -329,7 +330,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         progressLocation: options?.progressLocation,
         merge: true,
         project,
-        expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
+        expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
       });
     }, withActiveMetadataOperationPipeline);
 
@@ -369,7 +370,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         progressLocation: options?.progressLocation,
         merge: true,
         project,
-        expectedOrgId: options?.expectedOrgId ?? connection.getAuthInfoFields().orgId
+        expectedOrgId: options?.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
       });
     }, withActiveMetadataOperationPipeline);
 
@@ -409,7 +410,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           progressLocation: options?.progressLocation,
           merge: false,
           outputPath,
-          expectedOrgId: expectedOrgId ?? connection.getAuthInfoFields().orgId
+          expectedOrgId: expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection))
         });
       }
     );
