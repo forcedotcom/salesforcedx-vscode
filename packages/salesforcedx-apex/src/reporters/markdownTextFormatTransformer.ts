@@ -6,6 +6,7 @@
  */
 
 import { Logger } from '@salesforce/core';
+import * as Order from 'effect/Order';
 import { Readable, ReadableOptions } from 'node:stream';
 import { TestResult, ApexTestResultData } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
@@ -104,37 +105,37 @@ export class MarkdownTextFormatTransformer extends Readable {
     const { passed, failed, skipped, total, duration } = getSummaryInfo(this.testResult.summary);
     const timestampStr = formatTimestamp(this.timestamp);
 
+    const descendingNumber = Order.reverse(Order.number);
+    const runtimeOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) => test.runTime ?? 0);
+    const coverageOrder = Order.mapInput(Order.number, (test: ApexTestResultData) =>
+      this.codeCoverage ? (getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 100) : 100
+    );
+    const severityOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) =>
+      getSeverityScore(test, this.codeCoverage, this.performanceThresholdMs, this.coverageThresholdPercent)
+    );
+    const runtimeFirstOrder = Order.combine(runtimeOrder, coverageOrder);
+    const coverageFirstOrder = Order.combine(coverageOrder, runtimeOrder);
+    const testOrder =
+      this.sortOrder === 'runtime'
+        ? runtimeFirstOrder
+        : this.sortOrder === 'coverage'
+          ? coverageFirstOrder
+          : severityOrder;
+    const warningCoverageOrder = Order.mapInput(
+      Order.number,
+      (test: ApexTestResultData) => getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 0
+    );
+    const coverageTableOrder = Order.mapInput(
+      Order.number,
+      (coverage: NonNullable<TestResult['codecoverage']>[number]) => getCoveragePercentage(coverage.percentage) ?? 0
+    );
+
     // Helper function to sort tests based on sort order
     const sortTests = (tests: ApexTestResultData[]): ApexTestResultData[] => {
       if (!tests) {
         return tests;
       }
-      return [...tests].sort((a: ApexTestResultData, b: ApexTestResultData) => {
-        const runtimeA = a.runTime ?? 0;
-        const runtimeB = b.runTime ?? 0;
-        const coverageA = this.codeCoverage ? (getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 100) : 100;
-        const coverageB = this.codeCoverage ? (getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 100) : 100;
-
-        if (this.sortOrder === 'runtime') {
-          return runtimeB !== runtimeA ? runtimeB - runtimeA : coverageA - coverageB;
-        } else if (this.sortOrder === 'coverage') {
-          return coverageA !== coverageB ? coverageA - coverageB : runtimeB - runtimeA;
-        } else {
-          const scoreA = getSeverityScore(
-            a,
-            this.codeCoverage,
-            this.performanceThresholdMs,
-            this.coverageThresholdPercent
-          );
-          const scoreB = getSeverityScore(
-            b,
-            this.codeCoverage,
-            this.performanceThresholdMs,
-            this.coverageThresholdPercent
-          );
-          return scoreB - scoreA;
-        }
-      });
+      return [...tests].sort(testOrder);
     };
 
     // Build data structures using spread operators
@@ -165,32 +166,24 @@ export class MarkdownTextFormatTransformer extends Readable {
       : [];
 
     // Build warnings data
-    const poorlyPerformingWarnings: WarningTest[] = [...poorlyPerformingTests]
-      .sort((a, b) => (b.runTime ?? 0) - (a.runTime ?? 0))
-      .map(test => {
-        const { testName } = getTestNameInfo(test);
-        return {
-          testName: escapeMarkdown(testName),
-          value: test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A',
-          type: 'performance' as const
-        };
-      });
+    const poorlyPerformingWarnings: WarningTest[] = [...poorlyPerformingTests].sort(runtimeOrder).map(test => {
+      const { testName } = getTestNameInfo(test);
+      return {
+        testName: escapeMarkdown(testName),
+        value: test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A',
+        type: 'performance' as const
+      };
+    });
 
-    const poorlyCoveredWarnings: WarningTest[] = [...poorlyCoveredTests]
-      .sort((a, b) => {
-        const coverageA = getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 0;
-        const coverageB = getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 0;
-        return coverageA - coverageB;
-      })
-      .map(test => {
-        const { testName } = getTestNameInfo(test);
-        const coverage = test.perClassCoverage?.[0]?.percentage ?? 'N/A';
-        return {
-          testName: escapeMarkdown(testName),
-          value: typeof coverage === 'string' ? coverage : String(coverage),
-          type: 'coverage' as const
-        };
-      });
+    const poorlyCoveredWarnings: WarningTest[] = [...poorlyCoveredTests].sort(warningCoverageOrder).map(test => {
+      const { testName } = getTestNameInfo(test);
+      const coverage = test.perClassCoverage?.[0]?.percentage ?? 'N/A';
+      return {
+        testName: escapeMarkdown(testName),
+        value: typeof coverage === 'string' ? coverage : String(coverage),
+        type: 'coverage' as const
+      };
+    });
 
     // Build test table data
     const testTableRows: TestTableRow[] =
@@ -248,23 +241,17 @@ export class MarkdownTextFormatTransformer extends Readable {
     // Build coverage table data
     const coverageTableRows: CoverageTableRow[] =
       this.codeCoverage && this.testResult.codecoverage
-        ? [...this.testResult.codecoverage]
-            .sort((a, b) => {
-              const percentageA = getCoveragePercentage(a.percentage) ?? 0;
-              const percentageB = getCoveragePercentage(b.percentage) ?? 0;
-              return percentageA - percentageB;
-            })
-            .map(coverageItem => {
-              const className = coverageItem.name ?? 'Unknown';
-              const percentage = coverageItem.percentage ?? '0%';
-              const uncoveredLines = coverageItem.uncoveredLines ?? [];
-              return {
-                // Coverage table is rendered as HTML <code> so keep markdown escapes out.
-                className: escapeHtml(className),
-                percentage,
-                uncoveredLines: uncoveredLines.length > 0 ? uncoveredLines.join(', ') : 'None'
-              };
-            })
+        ? [...this.testResult.codecoverage].sort(coverageTableOrder).map(coverageItem => {
+            const className = coverageItem.name ?? 'Unknown';
+            const percentage = coverageItem.percentage ?? '0%';
+            const uncoveredLines = coverageItem.uncoveredLines ?? [];
+            return {
+              // Coverage table is rendered as HTML <code> so keep markdown escapes out.
+              className: escapeHtml(className),
+              percentage,
+              uncoveredLines: uncoveredLines.length > 0 ? uncoveredLines.join(', ') : 'None'
+            };
+          })
         : [];
 
     // Build report data object

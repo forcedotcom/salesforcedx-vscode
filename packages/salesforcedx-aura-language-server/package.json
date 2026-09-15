@@ -80,6 +80,7 @@
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
+    "effect": "^3.21.2",
     "line-column": "^1.0.2",
     "minimatch": "^10.2.6",
     "vscode-html-languageservice": "^5.0.0",
