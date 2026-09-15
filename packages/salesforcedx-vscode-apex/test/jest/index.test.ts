@@ -271,13 +271,13 @@ describe('index tests', () => {
 
       const unexpectedStart = new Error('unexpected Apex language server start');
 
-      const createLanguageClientSpy = jest
-        .spyOn(languageClientManager, 'createLanguageClient')
+      const activateLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'activateLanguageClient')
         .mockReturnValue(Effect.die(unexpectedStart));
 
       await runActivateEffect(false);
 
-      expect(createLanguageClientSpy).not.toHaveBeenCalled();
+      expect(activateLanguageClientSpy).not.toHaveBeenCalled();
     });
 
     it('should start the Apex language server in a Salesforce workspace', async () => {
@@ -294,13 +294,13 @@ describe('index tests', () => {
 
       const expectedStart = new Error('expected Apex language server start');
 
-      const createLanguageClientSpy = jest
-        .spyOn(languageClientManager, 'createLanguageClient')
+      const activateLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'activateLanguageClient')
         .mockReturnValue(Effect.die(expectedStart));
 
       await expect(runActivateEffect(true)).rejects.toThrow('expected Apex language server start');
 
-      expect(createLanguageClientSpy).toHaveBeenCalledTimes(1);
+      expect(activateLanguageClientSpy).toHaveBeenCalledTimes(1);
     });
   });
 
