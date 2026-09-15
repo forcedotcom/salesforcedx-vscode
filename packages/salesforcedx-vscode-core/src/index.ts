@@ -107,9 +107,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-    yield* Effect.promise(() =>
-      initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup)
-    );
+    yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
   console.log('SF CLI Extension Activated');
@@ -137,10 +135,16 @@ export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');
 
   WorkspaceContext.disposeInstance();
+  await getRuntime().runPromise(
+    Effect.void.pipe(
+      Effect.withSpan('deactivationEvent', {
+        attributes: { extensionName: 'salesforcedx-vscode-core' },
+        root: true
+      })
+    )
+  );
   await getRuntime().runPromise(closeExtensionScope());
 
-  // Send metric data.
-  telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 };
 
@@ -164,18 +168,30 @@ const handleTheUnhandled = (): void => {
     // Capture stack trace if available
     collectedData.stackTrace ??= reason ? reason.stack : 'No stack trace available';
 
-    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
-    if (exceptionCatcher) {
-      // make an attempt to isolate the first reference to one of our extensions from the stack
-      const dxExtension = collectedData.stackTrace
-        ?.split(os.EOL)
-        .filter(l => l.includes('at '))
-        .flatMap(l => l.split(path.sep))
-        .find(w => w.startsWith('salesforcedx-vscode'));
+    // make an attempt to isolate the first reference to one of our extensions from the stack
+    const dxExtension = collectedData.stackTrace
+      ?.split(os.EOL)
+      .filter(l => l.includes('at '))
+      .flatMap(l => l.split(path.sep))
+      .find(w => w.startsWith('salesforcedx-vscode'));
 
+    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
+    // Send detailed telemetry data for only dx extensions by default.
+    // If the exception catcher is enabled, send telemetry data for all extensions.
+    if (dxExtension || exceptionCatcher) {
       collectedData.fromExtension = dxExtension;
-      console.log('Debug mode is enabled');
-      console.log('error data: %s', JSON.stringify(collectedData));
+      getRuntime().runFork(
+        Effect.fail(reason).pipe(
+          Effect.withSpan('unhandledRejection', {
+            attributes: { message: JSON.stringify(collectedData) },
+            root: true
+          })
+        )
+      );
+      if (exceptionCatcher) {
+        console.log('Debug mode is enabled');
+        console.log('error data: %s', JSON.stringify(collectedData));
+      }
     }
   });
 };
