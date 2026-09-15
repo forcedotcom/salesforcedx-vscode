@@ -552,5 +552,3 @@ const stripEmptyValues = (obj: Record<string, string | undefined | null>): Recor
   Object.fromEntries(Object.entries(obj).filter(isStringEntry));
 
 const isStringEntry = (entry: [string, unknown]): entry is [string, string] => isString(entry[1]);
-
-export const telemetryService = TelemetryServiceProvider.getInstance();

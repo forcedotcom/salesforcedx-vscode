@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isError, isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
 import { nls } from '../messages/messages';
-import { telemetryService } from '../services/telemetry';
 
 /** Get the target Dev Hub or alias, optionally showing warnings */
 export const getTargetDevHubOrAlias = async (
@@ -36,10 +35,7 @@ export const getTargetDevHubOrAlias = async (
       return undefined;
     }
     return JSON.stringify(targetDevHub).replaceAll('"', '');
-  } catch (err) {
-    if (isError(err)) {
-      telemetryService.sendException('get_target_dev_hub_alias', err.message);
-    }
+  } catch {
     return undefined;
   }
 };

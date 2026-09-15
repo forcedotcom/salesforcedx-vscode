@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
-import { isError, isRecord, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
@@ -18,15 +17,6 @@ const getSObjectsDirectory = (projectPath: string) => path.join(projectPath, '.s
 const getStandardSObjectsDirectory = (projectPath: string) =>
   path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR, STANDARDOBJECTS_DIR);
 
-export const extractErrorMessage = (error: unknown): string => {
-  if (isError(error)) return error.message;
-  if (isRecord(error)) {
-    if ('error' in error && isError(error.error)) return error.error.message;
-    if ('message' in error && isString(error.message)) return error.message;
-  }
-  return String(error);
-};
-
 export const initSObjectDefinitions = async (projectPath: string, isSettingEnabled: boolean) => {
   if (projectPath) {
     const sobjectFolder = isSettingEnabled
@@ -36,15 +26,7 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
 
     if (!(await fileOrFolderExists(sobjectFolder))) {
       telemetryService.sendEventData('sObjectRefreshNotification', { type: refreshSource }, undefined);
-      try {
-        await vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource);
-      } catch (e) {
-        telemetryService.sendException(
-          'initSObjectDefinitionsError',
-          `Error: ${extractErrorMessage(e)} with sobjectRefreshStartup = ${isSettingEnabled}`
-        );
-        throw e;
-      }
+      await vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource);
     }
   }
 };
