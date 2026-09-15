@@ -148,10 +148,10 @@ const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   const [cliVersion, javaVersion] = yield* Effect.all(
     [
       terminalService
-        .simpleExec({ command: 'sf --version', parse: s => s })
+        .simpleExec({ executable: 'sf', args: ['--version'], parse: s => s })
         .pipe(Effect.orElseSucceed(() => 'unknown')),
       terminalService
-        .simpleExec({ command: 'java --version', parse: out => out.split('\n')[0]?.trim() ?? out })
+        .simpleExec({ executable: 'java', args: ['--version'], parse: out => out.split('\n')[0]?.trim() ?? out })
         .pipe(Effect.orElseSucceed(() => 'unknown'))
     ],
     { concurrency: 'unbounded' }
