@@ -36,6 +36,12 @@ Shared code (helpers, locators, configuration) for tests.
 - Requires `vscode:package` to have run first (produces `.vsix` in package dir). `test:desktop` depends on `vscode:package` for this reason.
 - Idempotent across parallel workers: atomic rename; second worker skips if cache exists.
 
+**Code Builder container mode** (`createContainerConfig`, `createContainerTest`):
+
+- `createContainerConfig({ testDir: '…' })` — config for driving tests against a running Code Builder container. Container lifecycle (run, extension swap, health checks) managed by orchestrator/CI, not Playwright. Tests drive a browser-client to the container URL (like web mode) while the workbench runs the desktop extension build. Use env `CODE_BUILDER_URL` (defaults to `http://localhost:8123`).
+- `createContainerTest()` — fixture that navigates a plain Chromium `page` to the container workbench and waits for readiness. Specs reuse existing page objects (commands, helpers, locators) unchanged.
+- Seeding: `seedWorkspace` (exported from the toolkit) handles post-boot writes (`coder.json` path + workspace-trust setting). Works with fixture projects mounted into the container (e.g. `test/playwright/fixtures/container-workspace/`). Call after workbench readiness, before extension swap/restart.
+
 ## Span files (when debugging traces)
 
 Available local + CI/GHA.
