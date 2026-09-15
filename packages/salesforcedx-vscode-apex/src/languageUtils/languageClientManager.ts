@@ -4,16 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isError, isNotUndefined, isString } from 'effect/Predicate';
+import { isError, isNotUndefined } from 'effect/Predicate';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
+import {
+  ApexLanguageClientInitializationError,
+  ApexLanguageClientOutputChannelError,
+  ApexLanguageClientStartError,
+  languageClientSetupErrorMessage
+} from '../languageClientSetupErrors';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
@@ -70,6 +77,9 @@ const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestart
 });
 
 export type ToolsEntry = { readonly uri: URI; readonly type: vscode.FileType };
+
+const setupErrorMessage = (cause: unknown): string =>
+  languageClientSetupErrorMessage(cause, nls.localize('unknown_error'));
 
 /** Given `.sfdx/tools` entries, the NNN-named subdirectory URIs to delete. Pure; unit-tested directly. */
 export const toolsDirsToDelete = (entries: readonly ToolsEntry[]): URI[] =>
@@ -342,52 +352,120 @@ export class LanguageClientManager {
     extensionContext: vscode.ExtensionContext,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    try {
+    await getRuntime().runPromise(this.activateLanguageClient(extensionContext, languageServerStatusBarItem));
+  }
+
+  public readonly activateLanguageClient = Effect.fn('LanguageClientManager.activateLanguageClient')(
+    function* (
+      this: LanguageClientManager,
+      extensionContext: vscode.ExtensionContext,
+      languageServerStatusBarItem: ApexLSPStatusBarItem
+    ) {
       const langClientStartTime = globalThis.performance.now();
 
-      // Create or reuse the output channel to avoid duplicates on restart
-      this.outputChannel ??= vscode.window.createOutputChannel(nls.localize('client_name'));
-
-      this.setClientInstance(await languageServer.createLanguageServer(extensionContext, this.outputChannel));
-
-      const languageClient = this.getClientInstance();
-
-      if (languageClient) {
-        languageClient.errorHandler?.addListener('error', (message: string) => {
-          languageServerStatusBarItem.error(message);
-        });
-        languageClient.errorHandler?.addListener('restarting', (count: number) => {
-          languageServerStatusBarItem.error(nls.localize('apex_language_server_quit_and_restarting', count));
-        });
-        languageClient.errorHandler?.addListener('startFailed', () => {
-          languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate'));
-        });
-
-        await languageClient.start();
-        const startTime = globalThis.performance.now() - langClientStartTime;
-        fireSpan('apex.lsp.startup', { activationTime: startTime });
-        await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
-        extensionContext.subscriptions.push(this.getClientInstance()!);
-      } else {
-        const errorMessage = nls.localize('unknown');
-        this.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
-        languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
+      // Keep one channel across restarts; the extension scope owns and disposes it on deactivation.
+      if (!this.outputChannel) {
+        const extensionScope = yield* getExtensionScope();
+        this.outputChannel = yield* Effect.acquireRelease(
+          Effect.try({
+            try: () => vscode.window.createOutputChannel(nls.localize('client_name')),
+            catch: cause =>
+              new ApexLanguageClientOutputChannelError({
+                message: setupErrorMessage(cause),
+                cause
+              })
+          }),
+          outputChannel =>
+            Effect.sync(() => {
+              outputChannel.dispose();
+              if (this.outputChannel === outputChannel) {
+                this.outputChannel = undefined;
+              }
+            })
+        ).pipe(Scope.extend(extensionScope));
       }
-    } catch (error) {
-      let errorMessage = '';
-      if (isString(error)) {
-        errorMessage = error;
-      } else if (isError(error)) {
-        errorMessage = error.message ?? nls.localize('unknown_error');
-      } else {
-        errorMessage = nls.localize('unknown_error');
-      }
+
+      const languageClient = yield* languageServer.createLanguageServer(extensionContext, this.outputChannel);
+      this.setClientInstance(languageClient);
+
+      yield* Effect.try({
+        try: () => {
+          languageClient.errorHandler?.addListener('error', (message: string) => {
+            languageServerStatusBarItem.error(message);
+          });
+          languageClient.errorHandler?.addListener('restarting', (count: number) => {
+            languageServerStatusBarItem.error(nls.localize('apex_language_server_quit_and_restarting', count));
+          });
+          languageClient.errorHandler?.addListener('startFailed', () => {
+            languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate'));
+          });
+        },
+        catch: cause =>
+          new ApexLanguageClientInitializationError({
+            message: setupErrorMessage(cause),
+            cause
+          })
+      });
+
+      yield* Effect.tryPromise({
+        try: () => languageClient.start(),
+        catch: cause =>
+          new ApexLanguageClientStartError({
+            message: setupErrorMessage(cause),
+            cause
+          })
+      });
+      fireSpan('apex.lsp.startup', { activationTime: globalThis.performance.now() - langClientStartTime });
+      yield* Effect.tryPromise({
+        try: () => this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem),
+        catch: cause =>
+          new ApexLanguageClientInitializationError({
+            message: setupErrorMessage(cause),
+            cause
+          })
+      });
+      yield* Effect.try({
+        try: () => extensionContext.subscriptions.push(languageClient),
+        catch: cause =>
+          new ApexLanguageClientInitializationError({
+            message: setupErrorMessage(cause),
+            cause
+          })
+      });
+    },
+    (effect, _extensionContext, languageServerStatusBarItem) =>
+      effect.pipe(
+        Effect.catchTags({
+          ApexLanguageClientCreationError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageClientInitializationError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageClientOptionsError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageClientOutputChannelError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageClientStartError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageServerConfigurationError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
+          ApexLanguageServerRequirementsError: error =>
+            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem)
+        })
+      )
+  );
+
+  private reportLanguageClientSetupError(
+    message: string,
+    languageServerStatusBarItem: ApexLSPStatusBarItem
+  ): Effect.Effect<void> {
+    return Effect.sync(() => {
+      let errorMessage = message;
       if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
         errorMessage = nls.localize('wrong_java_version_short');
       }
       this.setStatus(ClientStatus.Error, errorMessage);
       languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
-    }
+    });
   }
 
   public async indexerDoneHandler(
