@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'node:path';
+
 import { packageJsonNoServicesDependency } from '../src/packageJsonNoServicesDependency';
 import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
@@ -41,10 +43,10 @@ describe(RULE_NAME, () => {
     expect(errors[0].message).toContain('devDependencies');
   });
 
-  it('reports services under dependencies for Windows paths', () => {
+  it('reports services under dependencies for absolute paths', () => {
     const code = JSON.stringify({ dependencies: { 'salesforcedx-vscode-services': '*' } }, undefined, 2);
 
-    expect(filterByRule(lintJson(code, String.raw`C:\repo\packages\test\package.json`), RULE_NAME)).toHaveLength(1);
+    expect(filterByRule(lintJson(code, path.resolve('packages/test/package.json')), RULE_NAME)).toHaveLength(1);
   });
 
   it('ignores package.json files outside packages/*', () => {
