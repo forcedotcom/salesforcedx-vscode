@@ -6,10 +6,8 @@
  */
 
 import { Config, ConfigAggregator, OrgConfigProperties, StateAggregator } from '@salesforce/core';
-import { isError } from 'effect/Predicate';
 import { SF_CONFIG_DISABLE_TELEMETRY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
-import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -47,9 +45,6 @@ export class ConfigUtil {
       return JSON.stringify(targetOrgOrAlias).replaceAll('"', '');
     } catch (err) {
       console.error(err);
-      if (isError(err)) {
-        TelemetryService.getInstance().sendException('get_target_org_alias', err.message);
-      }
       throw err;
     }
   }

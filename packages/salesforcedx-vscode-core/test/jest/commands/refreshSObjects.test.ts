@@ -4,31 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractErrorMessage } from '../../../src/commands/refreshSObjects';
+import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
+import { initSObjectDefinitions } from '../../../src/commands/refreshSObjects';
 
-describe('extractErrorMessage', () => {
-  it('returns the message of an Error instance', () => {
-    expect(extractErrorMessage(new Error('boom'))).toBe('boom');
-  });
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual<typeof import('@salesforce/salesforcedx-utils-vscode')>(
+    '@salesforce/salesforcedx-utils-vscode'
+  ),
+  fileOrFolderExists: jest.fn()
+}));
 
-  it('returns the nested error message from { error: Error }', () => {
-    expect(extractErrorMessage({ error: new Error('nested') })).toBe('nested');
-  });
+jest.mock('../../../src/telemetry', () => ({
+  telemetryService: { sendEventData: jest.fn() }
+}));
 
-  it('returns the message from { message: string }', () => {
-    expect(extractErrorMessage({ message: 'plain' })).toBe('plain');
-  });
+describe('initSObjectDefinitions', () => {
+  it('propagates the refresh command rejection', async () => {
+    const rejection = new Error('refresh failed');
+    jest.mocked(fileOrFolderExists).mockResolvedValue(false);
+    jest.mocked(vscode.commands.executeCommand).mockRejectedValue(rejection);
 
-  it('does not treat an array as a record (array-exclusion) and falls through to String()', () => {
-    expect(extractErrorMessage([])).toBe('');
-  });
+    await expect(initSObjectDefinitions('/project', true)).rejects.toBe(rejection);
 
-  it.each([
-    ['a string primitive', 'oops', 'oops'],
-    ['a number primitive', 42, '42'],
-    ['undefined', undefined, 'undefined'],
-    ['null', null, 'null']
-  ])('stringifies %s', (_label, input, expected) => {
-    expect(extractErrorMessage(input)).toBe(expected);
+    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.internal.refreshsobjects', 'startup');
   });
 });
