@@ -7,12 +7,16 @@
 
 import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
+import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
+import * as Hash from 'effect/Hash';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -28,7 +32,7 @@ import { ConfigService, FailedToCreateConfigAggregatorError } from './configServ
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
-import { type OrgId } from './schemas/salesforceId';
+import { OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
@@ -202,36 +206,66 @@ const connectionCache = Effect.runSync(
   })
 );
 
+const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
+  const either = yield* connectionCache.getEither(key);
+  yield* Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' });
+  return Either.merge(either);
+});
+
 const resolveUsername = (conn: Connection): string | undefined =>
   conn.getUsername() ??
   Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), fields => fields.username));
 
 type IdentityResult = { username: string; userId: string };
 
-const identityCache = new Map<string, IdentityResult>();
-
-const getUserFromUserSobject = (orgId: string, conn: Connection) => {
-  const cached = identityCache.get(orgId);
-  if (cached) return Effect.succeed(cached);
-
-  const username = resolveUsername(conn);
-  if (!username) return Effect.void;
-
-  return Effect.tryPromise(() =>
-    conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
-  ).pipe(
-    Effect.map(r => {
-      const record = r.records[0];
-      if (!record) return undefined;
-      const result = { username: record.Username, userId: record.Id };
-      identityCache.set(orgId, result);
-      return result;
-    }),
-    Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
-    Effect.catchAll(() => Effect.void),
-    Effect.withSpan('getUserFromUserSobject', { attributes: { orgId } })
-  );
+/** Cache key carries `conn` for lookup; Equal/Hash are orgId-only so same-org callers share one SOQL. */
+type IdentityCacheKey = {
+  readonly orgId: OrgId;
+  readonly conn: Connection;
+  readonly [Hash.symbol]: () => number;
+  readonly [Equal.symbol]: (that: unknown) => boolean;
 };
+
+const isIdentityCacheKey = (u: unknown): u is IdentityCacheKey =>
+  isRecord(u) && Schema.is(OrgId)(u.orgId) && typeof u[Equal.symbol] === 'function';
+
+const identityCacheKey = (orgId: OrgId, conn: Connection): IdentityCacheKey => ({
+  orgId,
+  conn,
+  [Hash.symbol]: () => Hash.string(orgId),
+  [Equal.symbol]: (that: unknown) => isIdentityCacheKey(that) && that.orgId === orgId
+});
+
+const noneIdentity = Option.none<IdentityResult>();
+
+const identityCache = Effect.runSync(
+  Cache.makeWith({
+    capacity: 8,
+    timeToLive: Exit.match({
+      onSuccess: (value: Option.Option<IdentityResult>) => (Option.isNone(value) ? Duration.zero : Duration.infinity),
+      onFailure: () => Duration.zero
+    }),
+    lookup: ({ orgId, conn }: IdentityCacheKey) => {
+      const username = resolveUsername(conn);
+      if (isUndefined(username)) return Effect.succeed(noneIdentity);
+      return Effect.tryPromise(() =>
+        conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
+      ).pipe(
+        Effect.map(r => r.records),
+        Effect.map(Arr.head),
+        Effect.map(Option.map(record => ({ username: record.Username, userId: record.Id }))),
+        Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
+        Effect.orElseSucceed(() => noneIdentity)
+      );
+    }
+  })
+);
+
+const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: OrgId, conn: Connection) {
+  const either = yield* identityCache.getEither(identityCacheKey(orgId, conn));
+  yield* Effect.annotateCurrentSpan({ orgId, identityCache: Either.isLeft(either) ? 'hit' : 'miss' });
+  return either.pipe(Either.merge, Option.getOrUndefined);
+});
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
@@ -322,7 +356,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
-            return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
+            return yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
             const usernameOrAlias =
@@ -336,11 +370,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
               ));
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            return yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
-              Effect.map(Option.getOrElse(() => usernameOrAlias)),
-              Effect.flatMap(resolved => connectionCache.get(resolved)),
-              Effect.tap(validateAccessTokenOrPromptReauth)
-            );
+            return yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(
+                Effect.map(Option.getOrElse(() => usernameOrAlias)),
+                Effect.flatMap(getCachedConnection),
+                Effect.tap(validateAccessTokenOrPromptReauth)
+              );
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
@@ -379,6 +415,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* connectionCache.invalidateAll;
+      yield* identityCache.invalidateAll;
     });
 
     /**

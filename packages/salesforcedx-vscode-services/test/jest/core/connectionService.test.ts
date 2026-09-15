@@ -14,6 +14,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -585,6 +586,46 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
+  });
+
+  it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const query = jest.fn().mockReturnValue(gate.promise);
+    connectionCreateMock.mockResolvedValue({
+      getUsername: () => USERNAME,
+      getAuthInfoFields: () => ({
+        username: USERNAME,
+        orgId: '00D000000000005',
+        instanceName: 'USA9S',
+        tracksSource: false,
+        isScratch: false,
+        isSandbox: false
+      }),
+      getFields: () => ({ username: USERNAME }),
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      query
+    } as unknown as Connection);
+
+    const running = run(
+      Effect.all([ConnectionService.getConnection(), ConnectionService.getConnection()], {
+        concurrency: 'unbounded'
+      })
+    );
+
+    await Effect.runPromise(
+      Effect.void.pipe(
+        Effect.repeat({
+          while: () => query.mock.calls.length === 0,
+          schedule: Schedule.intersect(Schedule.spaced(Duration.millis(10)), Schedule.recurs(200))
+        })
+      )
+    );
+    await Effect.runPromise(Effect.sleep(Duration.millis(50)));
+    expect(query).toHaveBeenCalledTimes(1);
+
+    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1 });
+    await running;
   });
 });
 
