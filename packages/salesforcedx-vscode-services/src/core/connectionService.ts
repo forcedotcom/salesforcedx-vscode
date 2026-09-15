@@ -31,7 +31,7 @@ import { ConfigService, FailedToCreateConfigAggregatorError } from './configServ
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
-import { type OrgId } from './schemas/salesforceId';
+import { OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
@@ -219,16 +219,16 @@ type IdentityResult = { username: string; userId: string };
 
 /** Cache key carries `conn` for lookup; Equal/Hash are orgId-only so same-org callers share one SOQL. */
 type IdentityCacheKey = {
-  readonly orgId: string;
+  readonly orgId: OrgId;
   readonly conn: Connection;
   readonly [Hash.symbol]: () => number;
   readonly [Equal.symbol]: (that: unknown) => boolean;
 };
 
 const isIdentityCacheKey = (u: unknown): u is IdentityCacheKey =>
-  isRecord(u) && isString(u.orgId) && typeof u[Equal.symbol] === 'function';
+  isRecord(u) && Schema.is(OrgId)(u.orgId) && typeof u[Equal.symbol] === 'function';
 
-const identityCacheKey = (orgId: string, conn: Connection): IdentityCacheKey => ({
+const identityCacheKey = (orgId: OrgId, conn: Connection): IdentityCacheKey => ({
   orgId,
   conn,
   [Hash.symbol]: () => Hash.string(orgId),
@@ -246,7 +246,7 @@ const identityCache = Effect.runSync(
     }),
     lookup: ({ orgId, conn }: IdentityCacheKey) => {
       const username = resolveUsername(conn);
-      if (!username) return Effect.succeed(noneIdentity);
+      if (isUndefined(username)) return Effect.succeed(noneIdentity);
       return Effect.tryPromise(() =>
         conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
       ).pipe(
@@ -255,13 +255,13 @@ const identityCache = Effect.runSync(
           return record ? Option.some({ username: record.Username, userId: record.Id }) : noneIdentity;
         }),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
-        Effect.catchAll(() => Effect.succeed(noneIdentity))
+        Effect.orElseSucceed(() => noneIdentity)
       );
     }
   })
 );
 
-const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: string, conn: Connection) {
+const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: OrgId, conn: Connection) {
   const either = yield* identityCache.getEither(identityCacheKey(orgId, conn));
   yield* Effect.annotateCurrentSpan({ orgId, identityCache: Either.isLeft(either) ? 'hit' : 'miss' });
   return either.pipe(Either.merge, Option.getOrUndefined);
