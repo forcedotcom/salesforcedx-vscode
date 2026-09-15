@@ -164,23 +164,18 @@ const handleTheUnhandled = (): void => {
     // Capture stack trace if available
     collectedData.stackTrace ??= reason ? reason.stack : 'No stack trace available';
 
-    // make an attempt to isolate the first reference to one of our extensions from the stack
-    const dxExtension = collectedData.stackTrace
-      ?.split(os.EOL)
-      .filter(l => l.includes('at '))
-      .flatMap(l => l.split(path.sep))
-      .find(w => w.startsWith('salesforcedx-vscode'));
-
     const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
-    // Send detailed telemetry data for only dx extensions by default.
-    // If the exception catcher is enabled, send telemetry data for all extensions.
-    if (dxExtension || exceptionCatcher) {
+    if (exceptionCatcher) {
+      // make an attempt to isolate the first reference to one of our extensions from the stack
+      const dxExtension = collectedData.stackTrace
+        ?.split(os.EOL)
+        .filter(l => l.includes('at '))
+        .flatMap(l => l.split(path.sep))
+        .find(w => w.startsWith('salesforcedx-vscode'));
+
       collectedData.fromExtension = dxExtension;
-      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
-      if (exceptionCatcher) {
-        console.log('Debug mode is enabled');
-        console.log('error data: %s', JSON.stringify(collectedData));
-      }
+      console.log('Debug mode is enabled');
+      console.log('error data: %s', JSON.stringify(collectedData));
     }
   });
 };
