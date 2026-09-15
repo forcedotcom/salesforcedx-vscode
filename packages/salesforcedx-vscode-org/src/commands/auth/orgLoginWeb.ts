@@ -17,10 +17,8 @@ const COMMAND: ProgressOnlyCommandKey = messages.org_login_web_authorize_org_tex
 /**
  * Effect command for `sf.org.login.web`: gather alias + login URL, then run `sf org login web`.
  *
- * The command string is built from the
- * gathered alias + instance URL; the shared executeOrgLoginWeb runs it (simpleExec injects
- * SF_JSON_TO_STDOUT + FORCE_COLOR=0 for the `sf ` prefix), handling verification code, cancellable
- * progress, port-conflict, and config refresh.
+ * Shared executeOrgLoginWeb runs the CLI (simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for `sf`),
+ * handling verification code, cancellable progress, port-conflict, and config refresh.
  */
 export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
   instanceUrl?: string,
@@ -34,8 +32,6 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
 
   const { alias, loginUrl } = yield* gatherAuthParams({ instanceUrl, reauthAliasOrUsername });
 
-  // alias + url passed as discrete argv elements (no shell), so they reach sf verbatim — no quoting or
-  // escaping needed and no shell interpretation of $, backticks, or quotes is possible (W-24161260).
   yield* executeOrgLoginWeb({
     args: ['org', 'login', 'web', '--alias', alias, '--instance-url', loginUrl, '--set-default', '--json'],
     progressMessage: nls.localize('org_login_web_progress'),

@@ -201,6 +201,5 @@ export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(
   // picker selection; UserCancellationError propagates to ErrorHandlerService (no error toast on Esc).
   const { username } = yield* gatherOrgForDisplay();
 
-  // username passed as a discrete argv element (no shell), so it reaches sf verbatim.
   yield* displayOrg(['org', 'display', '--target-org', username, '--json'], COMMAND);
 });

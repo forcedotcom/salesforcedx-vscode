@@ -38,9 +38,6 @@ type ProcessDetail = typeof ProcessDetailSchema.Type;
 
 const isWindows = process.platform === 'win32';
 
-// { executable, args } passed to simpleExec as a discrete argv vector (no shell), so the powershell `-command`
-// script and the ppid are never re-parsed by a shell. The ppid is a number (not user-controlled) and the
-// powershell script is a constant; keeping them shell-free is uniform with the injection-safe boundary.
 const listProcessesCmd: { executable: string; args: readonly string[] } = isWindows
   ? {
       executable: 'powershell.exe',

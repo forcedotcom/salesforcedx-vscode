@@ -59,9 +59,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   const terminalService = yield* api.services.TerminalService;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, which aborts the
-  // runtime AbortSignal simpleExec threads into exec, killing the long-running sf child.
-  // args passed as a discrete vector (no shell), so the username reaches sf verbatim.
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the long-running sf child.
   const output = yield* terminalService
     .simpleExec({
       executable: 'sf',
@@ -113,7 +111,6 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
    * short-circuiting, so one failed org does not abort the rest. */
   const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(
     function* (org: OrgToDelete) {
-      // args passed as a discrete vector (no shell), so orgType/username reach sf verbatim.
       const output = yield* terminalService.simpleExec({
         executable: 'sf',
         args: ['org', 'delete', org.orgType, '--target-org', org.username, '--no-prompt'],
@@ -126,10 +123,9 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
     (effect, org) => effect.pipe(Effect.mapError(() => org))
   );
 
-  // One cancellable progress around the WHOLE loop: clicking Cancel interrupts this fiber, which aborts the
-  // runtime AbortSignal simpleExec threads into exec (killing the running sf child) and stops the loop. The
-  // interrupt is NOT a typed failure, so `Effect.partition`'s per-element `Effect.either` does not capture it;
-  // it propagates out as a `UserCancellationError` that the command boundary swallows (user cancelled).
+  // One cancellable progress around the WHOLE loop: Cancel interrupts this fiber, killing the running sf child
+  // and stopping the loop. The interrupt is NOT a typed failure, so `Effect.partition`'s per-element
+  // `Effect.either` does not capture it; it propagates as a `UserCancellationError` the command boundary swallows.
   const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
     promptService.withCancellableProgress(nls.localize('org_delete_username_text'), progressLocation)
   );

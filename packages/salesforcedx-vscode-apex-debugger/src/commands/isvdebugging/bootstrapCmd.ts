@@ -102,22 +102,17 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
   );
 };
 
-/** The forceide:// URL's `url`/`sessionId` values flow into `sf` invocations (config set / --target-org). Those
- * calls are shell-free (argv vector via cross-spawn, W-24161260), so shell metacharacters can NOT inject commands —
- * that guarantee lives at the exec boundary, not here. This regex is defense-in-depth input hygiene: a pasted URL is
- * attacker-shapeable, and rejecting these characters up front turns a malformed/hostile paste into an immediate
- * "invalid forceide URL" instead of a puzzling downstream CLI failure. Legitimate Salesforce session ids / login
- * URLs never contain them (`\s` is stricter than exec needs, but no real value has whitespace). Do NOT treat this as
- * the shell-safety guard — never reintroduce a single command string upstream on the assumption this covers it. */
-const SHELL_UNSAFE = /[`$\\"'|&;<>()\s]/;
+/** Defense-in-depth on attacker-shapeable forceide:// pastes. Rejects chars that never appear in real
+ * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
+const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
 const uriValidator = (value: string): string | undefined => {
   try {
     const parameter = new URL(value).searchParams;
     const url = parameter.get('url');
     const sessionId = parameter.get('sessionId');
-    // `''` passes SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
-    if (!url || !sessionId || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
+    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
   } catch {
@@ -139,8 +134,7 @@ const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(funct
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  // uriValidator (validateInput) already rejected undefined/empty url+sessionId and any shell metacharacter, so
-  // both are non-empty strings here.
+  // uriValidator already rejected empty url+sessionId, so both are non-empty here.
   const parameter = new URL(forceIdeUri).searchParams;
   const loginUrl = parameter.get('url')!;
   const sessionId = parameter.get('sessionId')!;
@@ -224,10 +218,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const salesforceProjectJsonUri = Utils.joinPath(projectUri, 'sfdx-project.json');
 
   // No env here: simpleExec gathers NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY (plus
-  // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf ` command at exec time, so corp-proxy CA certs
-  // and CLI env reach these bootstrap children without being threaded through.
-  // args passed as a discrete vector (no shell), so projectName/paths/sessionId/loginUrl/package names reach
-  // sf verbatim — no quoting needed and no shell interpretation of embedded metacharacters possible (W-24161260).
+  // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf` command at exec time.
   const runSf = (args: readonly string[], cwd: string) =>
     terminalService.simpleExec({ executable: 'sf', args, parse: identity, cwd, timeout: CLI_TIMEOUT });
 
@@ -251,7 +242,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       );
 
       // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath). `sf config set`
-      // takes each key=value as one token; passed as discrete argv elements so the values are never re-parsed.
+      // takes each key=value as one token.
       yield* report(nls.localize('isv_debug_bootstrap_configure_project'));
       yield* runSf(
         [

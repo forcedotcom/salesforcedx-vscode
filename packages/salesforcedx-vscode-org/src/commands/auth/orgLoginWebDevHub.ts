@@ -35,8 +35,6 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
 
   const alias = yield* promptForAlias();
 
-  // alias passed as a discrete argv element (no shell), so it reaches sf verbatim — no quoting needed and
-  // no shell interpretation possible. simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for `sf`.
   yield* executeOrgLoginWeb({
     args: ['org', 'login', 'web', '--alias', alias, '--set-default-dev-hub'],
     progressMessage: nls.localize('org_login_web_dev_hub_progress'),

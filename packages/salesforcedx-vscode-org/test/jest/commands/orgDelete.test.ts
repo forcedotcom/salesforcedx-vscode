@@ -242,8 +242,8 @@ describe('orgDeleteUsernameCommand', () => {
 
   it('continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
-    // org-1 fails the way the real service does: childProcess.exec rejects on non-zero exit, wrapped in
-    // Effect.tryPromise -> TerminalServiceError. A bare simpleExec loop would short-circuit here and never run org-2.
+    // org-1 fails the way the real service does: non-zero CLI exit → TerminalServiceError.
+    // A bare simpleExec loop would short-circuit here and never run org-2.
     const simpleExec = jest.fn((params: { args: readonly string[] }) =>
       params.args.includes('a@scratch.org')
         ? Effect.tryPromise({
