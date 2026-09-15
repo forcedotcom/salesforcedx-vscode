@@ -107,9 +107,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-    yield* Effect.promise(() =>
-      initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup)
-    );
+    yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
   console.log('SF CLI Extension Activated');
@@ -137,10 +135,16 @@ export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');
 
   WorkspaceContext.disposeInstance();
+  await getRuntime().runPromise(
+    Effect.void.pipe(
+      Effect.withSpan('deactivationEvent', {
+        attributes: { extensionName: 'salesforcedx-vscode-core' },
+        root: true
+      })
+    )
+  );
   await getRuntime().runPromise(closeExtensionScope());
 
-  // Send metric data.
-  telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 };
 
@@ -176,7 +180,14 @@ const handleTheUnhandled = (): void => {
     // If the exception catcher is enabled, send telemetry data for all extensions.
     if (dxExtension || exceptionCatcher) {
       collectedData.fromExtension = dxExtension;
-      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+      getRuntime().runFork(
+        Effect.fail(reason).pipe(
+          Effect.withSpan('unhandledRejection', {
+            attributes: { message: JSON.stringify(collectedData) },
+            root: true
+          })
+        )
+      );
       if (exceptionCatcher) {
         console.log('Debug mode is enabled');
         console.log('error data: %s', JSON.stringify(collectedData));
