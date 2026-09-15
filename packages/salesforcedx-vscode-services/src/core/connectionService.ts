@@ -11,12 +11,12 @@ import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
+import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
-import * as HashMap from 'effect/HashMap';
+import * as Hash from 'effect/Hash';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
-import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -217,7 +217,23 @@ const resolveUsername = (conn: Connection): string | undefined =>
 
 type IdentityResult = { username: string; userId: string };
 
-const identityConnByOrg = HashMap.empty<string, Connection>().pipe(Ref.make, Effect.runSync);
+/** Cache key carries `conn` for lookup; Equal/Hash are orgId-only so same-org callers share one SOQL. */
+type IdentityCacheKey = {
+  readonly orgId: string;
+  readonly conn: Connection;
+  readonly [Hash.symbol]: () => number;
+  readonly [Equal.symbol]: (that: unknown) => boolean;
+};
+
+const isIdentityCacheKey = (u: unknown): u is IdentityCacheKey =>
+  isRecord(u) && isString(u.orgId) && typeof u[Equal.symbol] === 'function';
+
+const identityCacheKey = (orgId: string, conn: Connection): IdentityCacheKey => ({
+  orgId,
+  conn,
+  [Hash.symbol]: () => Hash.string(orgId),
+  [Equal.symbol]: (that: unknown) => isIdentityCacheKey(that) && that.orgId === orgId
+});
 
 const noneIdentity = Option.none<IdentityResult>();
 
@@ -228,36 +244,25 @@ const identityCache = Effect.runSync(
       onSuccess: (value: Option.Option<IdentityResult>) => (Option.isNone(value) ? Duration.zero : Duration.infinity),
       onFailure: () => Duration.zero
     }),
-    lookup: (orgId: string) =>
-      Ref.get(identityConnByOrg).pipe(
-        Effect.flatMap(map =>
-          Option.match(HashMap.get(map, orgId), {
-            onNone: () => Effect.succeed(noneIdentity),
-            onSome: conn => {
-              const username = resolveUsername(conn);
-              if (!username) return Effect.succeed(noneIdentity);
-              return Effect.tryPromise(() =>
-                conn.query<{ Id: string; Username: string }>(
-                  `SELECT Id, Username FROM User WHERE Username = '${username}'`
-                )
-              ).pipe(
-                Effect.map(r => {
-                  const record = r.records[0];
-                  return record ? Option.some({ username: record.Username, userId: record.Id }) : noneIdentity;
-                })
-              );
-            }
-          })
-        ),
+    lookup: ({ orgId, conn }: IdentityCacheKey) => {
+      const username = resolveUsername(conn);
+      if (!username) return Effect.succeed(noneIdentity);
+      return Effect.tryPromise(() =>
+        conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
+      ).pipe(
+        Effect.map(r => {
+          const record = r.records[0];
+          return record ? Option.some({ username: record.Username, userId: record.Id }) : noneIdentity;
+        }),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
         Effect.catchAll(() => Effect.succeed(noneIdentity))
-      )
+      );
+    }
   })
 );
 
 const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: string, conn: Connection) {
-  yield* Ref.update(identityConnByOrg, HashMap.set(orgId, conn));
-  const either = yield* identityCache.getEither(orgId);
+  const either = yield* identityCache.getEither(identityCacheKey(orgId, conn));
   yield* Effect.annotateCurrentSpan({ orgId, identityCache: Either.isLeft(either) ? 'hit' : 'miss' });
   return either.pipe(Either.merge, Option.getOrUndefined);
 });
