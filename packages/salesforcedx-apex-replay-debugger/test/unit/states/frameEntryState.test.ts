@@ -74,6 +74,21 @@ describe('Frame entry event', () => {
     expect(context.getStaticVariablesClassMap().get('signature')!.size).toBe(0);
   });
 
+  it('Should preserve a Windows filesystem path', () => {
+    const windowsFilePath = String.raw`C:\work\Foo.cls`;
+    getUriFromSignatureStub.mockReturnValue(windowsFilePath);
+    const state = new FrameEntryState(['signature']);
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(state.handle(context)).toBe(false);
+
+    expect(context.getFrames()[0].source).toEqual({
+      name: 'Foo.cls',
+      path: URI.file('C:/work/Foo.cls').fsPath,
+      sourceReference: 0
+    });
+  });
+
   it('Should parse the class name from method signature and add it to static variable map', () => {
     const state = new FrameEntryState(['className.method']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());

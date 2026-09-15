@@ -6,8 +6,7 @@
  */
 
 import { Source, StackFrame } from '@vscode/debugadapter';
-import { basename } from 'node:path';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
@@ -15,7 +14,12 @@ import { FrameState } from './frameState';
 
 export class FrameEntryState extends FrameState implements DebugLogState {
   public handle(logContext: LogContext): boolean {
-    const sourceUri = logContext.getUriFromSignature(this._signature);
+    const sourceUriString = logContext.getUriFromSignature(this._signature);
+    const sourceUri = sourceUriString
+      ? /^[a-zA-Z]:[\\/]/u.test(sourceUriString)
+        ? URI.file(sourceUriString.replaceAll('\\', '/'))
+        : URI.parse(sourceUriString)
+      : undefined;
     const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length, this._signature);
     const id = logContext.getFrameHandler().create(frame);
     const className = this._signature.includes('.')
@@ -32,7 +36,7 @@ export class FrameEntryState extends FrameState implements DebugLogState {
         new StackFrame(
           id,
           this._frameName,
-          sourceUri ? new Source(basename(sourceUri), URI.parse(sourceUri).fsPath) : undefined,
+          sourceUri ? new Source(Utils.basename(sourceUri), sourceUri.fsPath) : undefined,
           undefined
         )
       );
