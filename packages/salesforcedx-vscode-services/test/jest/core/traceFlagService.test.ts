@@ -42,7 +42,7 @@ const makeTraceFlagRow = (id: string, tracedEntityId: string): TraceFlagRow => (
   TracedEntityId: tracedEntityId
 });
 
-const buildConnectionServiceLayer = (connection: unknown): Layer.Layer<ConnectionService> =>
+const buildConnectionServiceLayer = (connection: unknown) =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
