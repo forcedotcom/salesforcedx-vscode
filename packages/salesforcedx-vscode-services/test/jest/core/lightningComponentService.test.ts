@@ -48,7 +48,7 @@ const buildFakeFs = (initial: Map<string, URI[]>) => {
   return { readDirectory, rename, renames, entries };
 };
 
-const buildLayer = (fake: ReturnType<typeof buildFakeFs>): Layer.Layer<LightningComponentService, never, never> => {
+const buildLayer = (fake: ReturnType<typeof buildFakeFs>) => {
   const fsLayer = Layer.succeed(FsService, {
     readDirectory: fake.readDirectory,
     rename: fake.rename

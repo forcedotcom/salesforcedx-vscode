@@ -44,7 +44,7 @@ const ALIAS = 'ExpiredOrg';
 const INSTANCE_URL = 'https://expired.my.salesforce.com';
 const LOGIN_BUTTON = 'Login';
 
-const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<ConfigService> =>
+const mockConfigService = (targetOrg: string | undefined = ALIAS) =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -61,10 +61,9 @@ const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<C
     })
   );
 
-const mockSettingsService = (): Layer.Layer<SettingsService> =>
-  Layer.succeed(SettingsService, SettingsService.make({} as never));
+const mockSettingsService = () => Layer.succeed(SettingsService, SettingsService.make({} as never));
 
-const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
+const mockAliasService = (aliases: string[]) =>
   Layer.succeed(
     AliasService,
     AliasService.make({

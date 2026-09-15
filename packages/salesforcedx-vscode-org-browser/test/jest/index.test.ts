@@ -86,7 +86,7 @@ const mockOutputChannel = createMockOutputChannel();
 mockOutputChannel.appendLine = mockAppendLine;
 
 // 2. ChannelService mock
-const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
+const MockChannelServiceLayer = (_: string) =>
   Layer.succeed(
     ChannelService,
     new ChannelService({

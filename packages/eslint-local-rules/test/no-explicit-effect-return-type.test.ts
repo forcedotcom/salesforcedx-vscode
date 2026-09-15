@@ -125,6 +125,18 @@ const fn = () => Effect.succeed(['a']);`,
           messageId: 'noExplicitEffectReturnType'
         }
       ]
+    },
+    {
+      code: `import * as Layer from 'effect/Layer';
+const fn = (): Layer.Layer<never> => Layer.empty;`,
+      output: `import * as Layer from 'effect/Layer';
+const fn = () => Layer.empty;`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [
+        {
+          messageId: 'noExplicitEffectReturnType'
+        }
+      ]
     }
   ]
 });

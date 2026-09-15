@@ -8,7 +8,7 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-const isEffectEffectType = (typeAnnotation: TSESTree.TSTypeAnnotation | undefined): boolean => {
+const isEffectReturnType = (typeAnnotation: TSESTree.TSTypeAnnotation | undefined): boolean => {
   if (!typeAnnotation) return false;
 
   const type = typeAnnotation.typeAnnotation;
@@ -18,9 +18,9 @@ const isEffectEffectType = (typeAnnotation: TSESTree.TSTypeAnnotation | undefine
   if (typeName.type === AST_NODE_TYPES.TSQualifiedName) {
     return (
       typeName.left.type === AST_NODE_TYPES.Identifier &&
-      typeName.left.name === 'Effect' &&
       typeName.right.type === AST_NODE_TYPES.Identifier &&
-      typeName.right.name === 'Effect'
+      ((typeName.left.name === 'Effect' && typeName.right.name === 'Effect') ||
+        (typeName.left.name === 'Layer' && typeName.right.name === 'Layer'))
     );
   }
 
@@ -35,13 +35,13 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Prevent explicit return type annotations when the return type is Effect.Effect'
+      description: 'Prevent explicit Effect.Effect or Layer.Layer return annotations'
     },
     fixable: 'code',
     schema: [],
     messages: {
       noExplicitEffectReturnType:
-        'Do not declare explicit return types for Effect.Effect. Let TypeScript infer the return type.'
+        'Do not declare explicit return types for Effect.Effect or Layer.Layer. Let TypeScript infer the return type.'
     }
   },
   defaultOptions: [],
@@ -66,7 +66,7 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
 
     return {
       FunctionDeclaration: (node: TSESTree.FunctionDeclaration): void => {
-        if (isEffectEffectType(node.returnType)) {
+        if (isEffectReturnType(node.returnType)) {
           context.report({
             node: node.returnType!,
             messageId: 'noExplicitEffectReturnType',
@@ -75,7 +75,7 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
         }
       },
       ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
-        if (isEffectEffectType(node.returnType)) {
+        if (isEffectReturnType(node.returnType)) {
           context.report({
             node: node.returnType!,
             messageId: 'noExplicitEffectReturnType',
@@ -84,7 +84,7 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
         }
       },
       MethodDefinition: (node: TSESTree.MethodDefinition): void => {
-        if (isEffectEffectType(node.value.returnType)) {
+        if (isEffectReturnType(node.value.returnType)) {
           context.report({
             node: node.value.returnType!,
             messageId: 'noExplicitEffectReturnType',
@@ -97,7 +97,7 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
         if (parent?.type === AST_NODE_TYPES.MethodDefinition) {
           return;
         }
-        if (isEffectEffectType(node.returnType)) {
+        if (isEffectReturnType(node.returnType)) {
           context.report({
             node: node.returnType!,
             messageId: 'noExplicitEffectReturnType',

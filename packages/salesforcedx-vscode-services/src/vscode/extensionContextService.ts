@@ -35,7 +35,7 @@ export class ExtensionContextService extends Effect.Service<ExtensionContextServ
  * Usage:
  * Layer.provide(ExtensionContextServiceLayer(context))
  */
-export const ExtensionContextServiceLayer = (context: ExtensionContext): Layer.Layer<ExtensionContextService> =>
+export const ExtensionContextServiceLayer = (context: ExtensionContext) =>
   Layer.succeed(
     ExtensionContextService,
     new ExtensionContextService({
