@@ -38,7 +38,7 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
  * Usage:
  * Layer.provide(ChannelServiceLayer('My Channel'))
  */
-export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelService> =>
+export const ChannelServiceLayer = (channelName: string) =>
   Layer.succeed(
     ChannelService,
     new ChannelService({
