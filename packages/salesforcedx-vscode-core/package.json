@@ -38,11 +38,11 @@
     "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
+    "salesforcedx-vscode-services": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -82,7 +82,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-core test:desktop --debug",
     "test:compile": "wireit",
     "vscode:package:legacy:prerelease": "wireit"
   },

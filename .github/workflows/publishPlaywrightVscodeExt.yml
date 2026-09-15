@@ -71,7 +71,6 @@ jobs:
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
           pre-changelog-generation: packages/playwright-vscode-ext/scripts/playwright-vscode-ext-version-hook.js
-          pre-commit: packages/playwright-vscode-ext/scripts/playwright-vscode-ext-version-hook.js
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
@@ -101,10 +100,12 @@ jobs:
     name: Build and publish to npm
     needs: create-release
     if: needs.create-release.outputs.tag != ''
-    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@b1f70470a9da194c0feb1ca77c1a6951f1d49f74 # main
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@937c1b27a13a3e61096909a9417648ca9d197c95 # main
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
-      packageManager: npm
+      packageManager: pnpm
+      packageManagerVersion: 12.0.0
+      cacheDependencyPath: pnpm-lock.yaml
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/playwright-vscode-ext
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}

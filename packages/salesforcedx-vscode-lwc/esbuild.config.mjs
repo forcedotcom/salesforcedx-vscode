@@ -9,9 +9,6 @@ import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
 import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // Node.js build (desktop VS Code)
 const nodeBuild = await build({
@@ -58,14 +55,14 @@ await build({
         build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             return {
-              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+              path: resolve(args.resolveDir, `${args.path}.js`)
             };
           }
         });
         build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             return {
-              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+              path: resolve(args.resolveDir, `${args.path}.js`)
             };
           }
         });
@@ -108,19 +105,13 @@ await build({
         build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             // Resolve to ESM version to avoid dynamic requires
-            const htmlScannerPath = resolve(
-              __dirname,
-              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
-            );
+            const htmlScannerPath = resolve(args.resolveDir, `${args.path}.js`);
             return { path: htmlScannerPath };
           }
         });
         build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
-            const htmlScannerPath = resolve(
-              __dirname,
-              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
-            );
+            const htmlScannerPath = resolve(args.resolveDir, `${args.path}.js`);
             return { path: htmlScannerPath };
           }
         });

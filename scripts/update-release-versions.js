@@ -64,14 +64,14 @@ if (errorCount > 0) {
 
 console.log(`Updated ${updatedCount} packages`);
 
-// Always update package-lock.json to maintain dependency graph integrity
-// Note: This ensures package-lock.json versions match package.json after version bumps
-console.log('Updating package-lock.json to match new versions');
+// Always update pnpm-lock.yaml to maintain dependency graph integrity.
+// This ensures workspace package versions match package.json after version bumps.
+console.log('Updating pnpm-lock.yaml to match new versions');
 try {
-  execSync('npm install --ignore-scripts --package-lock-only --no-audit', { stdio: 'inherit' });
-  console.log('✓ package-lock.json updated successfully');
+  execSync('pnpm install --ignore-scripts --lockfile-only', { stdio: 'inherit' });
+  console.log('✓ pnpm-lock.yaml updated successfully');
 } catch (error) {
-  console.error('Error updating package-lock.json:', error.message);
+  console.error('Error updating pnpm-lock.yaml:', error.message);
   console.error('This may cause version mismatches during build. Please fix manually.');
   process.exit(1);
 }

@@ -49,9 +49,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Detect source ref
         id: detect-tag
@@ -280,7 +281,7 @@ jobs:
         run: |
           # Commit the version changes to the isolated branch
           # This is a release-only commit that will NOT be merged to develop
-          git add packages/*/package.json package-lock.json
+          git add packages/*/package.json pnpm-lock.yaml
 
           git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
 
@@ -324,8 +325,9 @@ jobs:
           echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
 
       - name: Install dependencies with updated versions
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Relabel this week's changelog for stable release
         # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content
@@ -351,14 +353,14 @@ jobs:
           echo "✓ Relabeled changelog v$PRERELEASE_VERSION → v$RELEASE_VERSION"
 
       - name: Build VSIXs
-        run: npm run vscode:package
+        run: pnpm vscode:package
 
       - name: Collect VSIXs
         uses: salesforcecli/github-workflows/.github/actions/collect-vsix@main
 
       - name: Generate SHA256 checksums
         run: |
-          npm run vscode:sha256
+          pnpm vscode:sha256
           scripts/concatenate-sha256.js
           rm ./SHA256
 

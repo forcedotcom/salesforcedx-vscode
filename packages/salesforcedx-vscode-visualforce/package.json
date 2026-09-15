@@ -31,6 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
+    "salesforcedx-vscode-services": "*",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -38,8 +39,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/salesforcedx-visualforce-language-server": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/salesforcedx-visualforce-language-server": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -54,9 +54,9 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:desktop --debug",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -210,7 +210,7 @@
       "output": []
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
       "service": true,
       "dependencies": [
         "vscode:bundle",

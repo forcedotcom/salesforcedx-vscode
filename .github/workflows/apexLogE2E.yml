@@ -62,7 +62,7 @@ jobs:
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -72,7 +72,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-log
+          pnpm --filter salesforcedx-vscode-apex-log test:web
 
       - name: Kill process on port 3001
         if: steps.try-run.outcome == 'failure'
@@ -112,7 +112,7 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
@@ -135,7 +135,7 @@ jobs:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-log
+          pnpm --filter salesforcedx-vscode-apex-log test:web
 
       - name: Copy span files to test-results
         if: always()
@@ -201,7 +201,7 @@ jobs:
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -212,7 +212,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-log
+          pnpm --filter salesforcedx-vscode-apex-log test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -248,7 +248,7 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
@@ -272,7 +272,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-log
+          pnpm --filter salesforcedx-vscode-apex-log test:desktop
 
       - name: Copy span files to test-results
         if: always()

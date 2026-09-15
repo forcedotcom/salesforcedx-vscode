@@ -64,11 +64,11 @@ jobs:
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
       - name: Compile shared Playwright utilities
-        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
+        run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -79,7 +79,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing
+          pnpm --filter salesforcedx-vscode-apex-testing test:web
 
       - name: Kill process on port 3001
         if: steps.try-run.outcome == 'failure'
@@ -119,7 +119,7 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
@@ -145,7 +145,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing
+          pnpm --filter salesforcedx-vscode-apex-testing test:web
 
       - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -176,7 +176,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed
+          pnpm --filter salesforcedx-vscode-apex-testing test:web -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -248,11 +248,11 @@ jobs:
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
       - name: Compile shared Playwright utilities
-        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
+        run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -263,7 +263,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -299,7 +299,7 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
@@ -325,7 +325,7 @@ jobs:
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing test:desktop
 
       - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -356,7 +356,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

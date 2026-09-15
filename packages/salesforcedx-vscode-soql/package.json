@@ -35,16 +35,17 @@
     "soql builder"
   ],
   "dependencies": {
+    "@jsforce/jsforce-node": "^3.10.24",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/soql-builder-ui": "*",
-    "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
+    "@salesforce/soql-model": "*",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
+    "effect": "^3.21.2",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -56,6 +57,7 @@
     "@lwc/jest-preset": "^19.6.1",
     "@lwc/rollup-plugin": "^9.3.4",
     "@lwc/synthetic-shadow": "^9.1.1",
+    "@lwc/wire-service": "2.50.0",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-babel": "^6.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",
@@ -93,10 +95,10 @@
     "test:lit-foundation": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-soql test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:bundle:migration": "wireit",
@@ -306,7 +308,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle:local",

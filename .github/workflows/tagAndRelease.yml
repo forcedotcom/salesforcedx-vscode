@@ -19,9 +19,10 @@ jobs:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
@@ -31,8 +32,10 @@ jobs:
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - run: npm run vscode:sha256
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
+      - run: pnpm vscode:sha256
       - run: scripts/concatenate-sha256.js
       - run: rm ./SHA256
       - run: |

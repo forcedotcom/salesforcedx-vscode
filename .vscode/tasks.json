@@ -4,7 +4,7 @@
   "tasks": [
     {
       "label": "Bootstrap",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -15,7 +15,7 @@
     },
     {
       "label": "Clean",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -26,7 +26,7 @@
     },
     {
       "label": "Commit",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": true,
@@ -41,7 +41,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -68,7 +68,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "options": {
         "env": {
@@ -96,7 +96,7 @@
     },
     {
       "label": "Lint",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -113,12 +113,12 @@
     },
     {
       "label": "Update Change Log",
-      "command": "npm run changelog ${input:releaseOverride}",
+      "command": "pnpm changelog ${input:releaseOverride}",
       "type": "shell"
     },
     {
       "label": "Watch",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,

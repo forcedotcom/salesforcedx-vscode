@@ -34,13 +34,13 @@
     "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
+    "salesforcedx-vscode-services": "*",
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
     "@effect/opentelemetry": "0.63.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "jest-junit": "17.0.0",
-    "salesforcedx-vscode-services": "*"
+    "jest-junit": "17.0.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
