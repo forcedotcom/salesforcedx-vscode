@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
+import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -250,10 +251,9 @@ const identityCache = Effect.runSync(
       return Effect.tryPromise(() =>
         conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
       ).pipe(
-        Effect.map(r => {
-          const record = r.records[0];
-          return record ? Option.some({ username: record.Username, userId: record.Id }) : noneIdentity;
-        }),
+        Effect.map(r => r.records),
+        Effect.map(Arr.head),
+        Effect.map(Option.map(record => ({ username: record.Username, userId: record.Id }))),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
         Effect.orElseSucceed(() => noneIdentity)
       );
@@ -370,11 +370,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
               ));
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            return yield* aliasService.getUsernameFromAlias(usernameOrAlias).pipe(
-              Effect.map(Option.getOrElse(() => usernameOrAlias)),
-              Effect.flatMap(resolved => getCachedConnection(resolved)),
-              Effect.tap(validateAccessTokenOrPromptReauth)
-            );
+            return yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(
+                Effect.map(Option.getOrElse(() => usernameOrAlias)),
+                Effect.flatMap(getCachedConnection),
+                Effect.tap(validateAccessTokenOrPromptReauth)
+              );
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
