@@ -31,7 +31,7 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
 import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
-import { basename } from 'node:path';
+import { URI, Utils } from 'vscode-uri';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
@@ -951,7 +951,8 @@ export class ApexDebug extends LoggingDebugSession {
       if (this.hasStackFrames(stateRespObj)) {
         const serverFrames = stateRespObj.stateResponse.state.stack.stackFrame;
         for (let i = 0; i < serverFrames.length; i++) {
-          const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(serverFrames[i].typeRef);
+          const sourceUriString = this.myBreakpointService.getSourcePathFromTyperef(serverFrames[i].typeRef);
+          const sourceUri = sourceUriString ? URI.parse(sourceUriString) : undefined;
           const frameInfo = new ApexDebugStackFrameInfo(requestId, serverFrames[i].frameNumber);
           const frameId = this.stackFrameInfos.create(frameInfo);
           if (i === 0 && stateRespObj.stateResponse.state) {
@@ -973,7 +974,7 @@ export class ApexDebug extends LoggingDebugSession {
             new StackFrame(
               frameId,
               serverFrames[i].fullName,
-              sourcePath ? new Source(basename(sourcePath), this.convertDebuggerPathToClient(sourcePath)) : undefined,
+              sourceUri ? new Source(Utils.basename(sourceUri), sourceUri.fsPath) : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
             )
@@ -1405,12 +1406,10 @@ export class ApexDebug extends LoggingDebugSession {
       if (matches?.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
-        const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
-        if (possibleSourcePath) {
-          eventDescriptionSourceFile = new Source(
-            basename(possibleSourcePath),
-            this.convertDebuggerPathToClient(possibleSourcePath)
-          );
+        const possibleSourceUriString = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
+        if (possibleSourceUriString) {
+          const possibleSourceUri = URI.parse(possibleSourceUriString);
+          eventDescriptionSourceFile = new Source(Utils.basename(possibleSourceUri), possibleSourceUri.fsPath);
           eventDescriptionSourceLine = this.convertDebuggerLineToClient(possibleClassLine);
         }
       }

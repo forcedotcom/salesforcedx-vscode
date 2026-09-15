@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
+import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
-import * as vscode from 'vscode';
+import * as String from 'effect/String';
 
 type MetadataRegistry = {
   strictDirectoryNames?: Record<string, string>;
@@ -23,17 +25,6 @@ type RegistryAccessLike = {
   getTypeByName(typeName: string): MetadataType;
 };
 
-type MetadataRegistryServiceLike = {
-  getRegistryAccess: () => Effect.Effect<RegistryAccessLike>;
-};
-
-type SalesforceVSCodeServicesApiLike = {
-  services: {
-    MetadataRegistryService: MetadataRegistryServiceLike;
-    prebuiltServicesLayer: Layer.Layer<unknown>;
-  };
-};
-
 type ApexLspScanConfig = {
   scan: {
     excludeFolders: string[];
@@ -43,20 +34,18 @@ type ApexLspScanConfig = {
 const DEFAULT_APEX_TYPE_NAMES = ['ApexClass', 'ApexTrigger'];
 
 const toNormalizedFolderName = (value: string): string => value.trim().toLowerCase();
-const sortFolders = (values: string[]): string[] =>
-  // We avoid mutating the source array and keep compatibility with test transpilation.
-  // eslint-disable-next-line unicorn/no-array-sort
-  [...values].sort((a, b) => a.localeCompare(b));
+const localeAwareStringOrder = Order.make<string>((left, right) => String.localeCompare(right)(left));
+const folderNameOrder = Order.mapInput(localeAwareStringOrder, toNormalizedFolderName);
 
 export const deriveExcludedMetadataFolders = (
   registry: MetadataRegistry,
   apexFolderNames: ReadonlySet<string>
 ): string[] => {
   const strictDirectoryNames = registry.strictDirectoryNames ?? {};
-  const folders = Object.keys(strictDirectoryNames)
+  return Object.keys(strictDirectoryNames)
     .map(toNormalizedFolderName)
-    .filter(folderName => folderName.length > 0 && !apexFolderNames.has(folderName));
-  return sortFolders(folders);
+    .filter(folderName => folderName.length > 0 && !apexFolderNames.has(folderName))
+    .toSorted(folderNameOrder);
 };
 
 const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => {
@@ -70,38 +59,34 @@ const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => 
   return folderNames;
 };
 
-const getServicesExtension = () =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApiLike>('salesforce.salesforcedx-vscode-services');
-
 export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
-  const servicesExtension = getServicesExtension();
-  if (!servicesExtension) {
-    return undefined;
-  }
-  const servicesApi = servicesExtension.isActive ? servicesExtension.exports : await servicesExtension.activate();
+  const excludes = await Effect.runPromise(
+    getServicesApi.pipe(
+      Effect.flatMap(servicesApi =>
+        Effect.suspend(() =>
+          servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
+            Effect.map(registryAccess => {
+              const apexFolderNames = getApexFolderNames(registryAccess);
+              return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
+            }),
+            Effect.provide(servicesApi.services.prebuiltServicesLayer)
+          )
+        ).pipe(
+          Effect.map(Option.some),
+          Effect.catchAllCause(() => Effect.succeed(Option.none<string[]>()))
+        )
+      ),
+      Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.succeed(Option.none<string[]>()))
+    )
+  );
 
-  let excludes: string[];
-  try {
-    excludes = await Effect.runPromise(
-      servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-        Effect.map(registryAccess => {
-          const apexFolderNames = getApexFolderNames(registryAccess);
-          return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
-        }),
-        Effect.provide(servicesApi.services.prebuiltServicesLayer)
-      )
-    );
-  } catch {
-    return undefined;
-  }
-
-  if (excludes.length === 0) {
+  if (Option.isNone(excludes) || excludes.value.length === 0) {
     return undefined;
   }
 
   return {
     scan: {
-      excludeFolders: excludes
+      excludeFolders: excludes.value
     }
   };
 };

@@ -7,10 +7,25 @@
 
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
-export const desktopTest = createDesktopTest({
+const desktopTestOptions = {
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   // some of the necessary configs are over there
   additionalExtensionDirs: ['salesforcedx-vscode-org', 'salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
+};
+
+export const desktopTest = createDesktopTest(desktopTestOptions);
+
+export const telemetryDesktopTest = createDesktopTest({
+  ...desktopTestOptions,
+  userSettings: {
+    ...desktopTestOptions.userSettings,
+    'salesforcedx-vscode-core.telemetry-tag': 'core-telemetry-e2e-test'
+  }
+});
+
+export const noOrgDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
   userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
 });

@@ -6,6 +6,7 @@
  */
 
 import { glob } from 'glob';
+import * as Order from 'effect/Order';
 import { execSync, spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,6 +24,11 @@ type WorkflowStatus = {
   status: 'queued' | 'in_progress' | 'completed';
   conclusion: 'success' | 'failure' | 'cancelled' | null;
 };
+
+const byCreatedAtDescending = Order.mapInput(
+  Order.reverse(Order.Date),
+  (workflow: WorkflowRun) => new Date(workflow.createdAt)
+);
 
 const checkPrerequisites = (): void => {
   try {
@@ -77,7 +83,7 @@ const prioritizeWorkflows = (workflows: WorkflowRun[]): WorkflowRun[] => {
   }
   return workflows
     .filter(w => w.status === 'completed')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(byCreatedAtDescending)
     .slice(0, 1);
 };
 

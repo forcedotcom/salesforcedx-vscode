@@ -4,11 +4,14 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as Order from 'effect/Order';
 
 interface ErrorInfo {
   lineNumber: number;
   typeName: string;
 }
+
+const byLineNumber = Order.mapInput(Order.number, (error: ErrorInfo) => error.lineNumber);
 
 function parseErrorFile(errorFilePath: string): ErrorInfo[] {
   const content = fs.readFileSync(errorFilePath, 'utf-8');
@@ -41,7 +44,7 @@ function fixXsdFile(xsdFilePath: string, errors: ErrorInfo[]): void {
   const fixedLines = new Set<number>();
 
   // Sort errors by line number to process them in order
-  const sortedErrors = errors.sort((a, b) => a.lineNumber - b.lineNumber);
+  const sortedErrors = errors.sort(byLineNumber);
 
   for (const error of sortedErrors) {
     const lineIndex = error.lineNumber - 1; // Convert to 0-based index

@@ -8,7 +8,7 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
-import * as Array from 'effect/Array';
+import * as Arr from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -467,7 +467,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
       const classIdToPackage = yield* PackageResolutionService.resolve(
-        Array.getSomes(apexClasses.map(cls => cls.id)),
+        Arr.getSomes(apexClasses.map(cls => cls.id)),
         buildClassIdToNamespace(apexClasses)
       ).pipe(Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) })));
 
@@ -573,7 +573,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           )
         )
       );
-      const recentResults = scanned.filter(Option.isSome).map(o => o.value);
+      const recentResults = Arr.getSomes(scanned);
 
       if (recentResults.length === 0) {
         return;

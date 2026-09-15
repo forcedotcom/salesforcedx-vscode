@@ -19,6 +19,7 @@ import {
   ClassMember as InternalClassMember,
   Location as InternalLocation
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as Order from 'effect/Order';
 import { isNotNull } from 'effect/Predicate';
 import {
   Metadata as InternalMetadata,
@@ -36,6 +37,10 @@ type InternalDecorator = InternalApiDecorator | InternalTrackDecorator | Interna
 // This can be removed once @lwc/metadata exposes `Export` and `DataProperty` types
 type LwcExport = ScriptFile['exports'][0];
 type DataProperty = ClassProperty['dataProperty'];
+
+const byMemberLocation = Order.mapInput(Order.number, (member: InternalClassMember) => member.loc?.start.line ?? 0);
+const byDecoratorLocation = <T extends { name: string }>(locations: ReadonlyMap<string, number>): Order.Order<T> =>
+  Order.mapInput(Order.number, (decorator: T) => locations.get(decorator.name) ?? 0);
 
 const decoratorTypeMap = {
   Api: 'api',
@@ -285,7 +290,7 @@ const getMembers = (classObj: Class): InternalClassMember[] => {
   // that they appeared in the component code. Since the new metadata exposes this information
   // separately, we need to combine & reorder to match the old behavior.
   const members = [...properties, ...methods];
-  members.sort((memberA, memberB) => (memberA.loc?.start.line ?? 0) - (memberB.loc?.start.line ?? 0));
+  members.sort(byMemberLocation);
   return members;
 };
 
@@ -481,7 +486,7 @@ const getDecoratedProperties = (
  * property/method names to their locations using this Map.
  */
 const sortDecorators = <T extends { name: string }>(decorators: T[], locations: Map<string, number>): T[] =>
-  decorators.concat().toSorted((a: T, b: T) => (locations.get(a.name) ?? 0) - (locations.get(b.name) ?? 0));
+  decorators.concat().toSorted(byDecoratorLocation(locations));
 
 const getDecorators = (classObj: Class): InternalDecorator[] => {
   const {

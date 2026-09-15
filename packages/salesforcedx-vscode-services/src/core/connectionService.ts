@@ -26,7 +26,9 @@ import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
 import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
+import { type OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
@@ -38,7 +40,7 @@ type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
 export const updateDefaultOrgIdentity = Effect.fn('updateDefaultOrgIdentity')(function* (
   defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>,
-  orgId: string | undefined,
+  orgId: OrgId | undefined,
   instanceName: string | undefined
 ) {
   const current = yield* SubscriptionRef.get(defaultOrgRef);
@@ -201,7 +203,8 @@ const connectionCache = Effect.runSync(
 );
 
 const resolveUsername = (conn: Connection): string | undefined =>
-  conn.getUsername() ?? conn.getAuthInfoFields().username;
+  conn.getUsername() ??
+  Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), fields => fields.username));
 
 type IdentityResult = { username: string; userId: string };
 
@@ -342,8 +345,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
       // Update the org ref in the background only for the default org (no explicit username).
       if (isUndefined(username)) {
-        const { orgId, instanceName: rawInstanceName } = conn.getAuthInfoFields();
-        const instanceName = rawInstanceName?.trim();
+        const orgId = Option.getOrUndefined(orgIdFromConnection(conn));
+        const instanceName = Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(conn), f => f.instanceName));
         const defaultOrgRef = yield* getDefaultOrgRef();
         const previousOrgId = yield* updateDefaultOrgIdentity(defaultOrgRef, orgId, instanceName);
         yield* maybeUpdateDefaultOrgRef(conn, previousOrgId).pipe(
@@ -359,13 +362,18 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     const getConnectionForOrg = Effect.fn('ConnectionService.getConnectionForOrg')(function* (expectedOrgId: string) {
       const connection = yield* getConnection();
-      const observedOrgId = connection.getAuthInfoFields().orgId;
-      if (observedOrgId === expectedOrgId) return connection;
-      return yield* new InactiveOrgOperationError({
-        message: nls.localize('org_operation_target_changed', expectedOrgId),
-        expectedOrgId,
-        ...(observedOrgId ? { observedOrgId } : {})
-      });
+      const observedOrgId = Option.getOrUndefined(orgIdFromConnection(connection));
+      return yield* Effect.succeed(connection).pipe(
+        Effect.filterOrFail(
+          () => observedOrgId === expectedOrgId,
+          () =>
+            new InactiveOrgOperationError({
+              message: nls.localize('org_operation_target_changed', expectedOrgId),
+              expectedOrgId,
+              ...(observedOrgId ? { observedOrgId } : {})
+            })
+        )
+      );
     });
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
@@ -425,20 +433,18 @@ const getTracksSourceFromOrg = (conn: Connection) =>
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
   conn: Connection,
-  previousOrgId?: string
+  previousOrgId?: OrgId
 ) {
   const aliasService = yield* AliasService;
   const configService = yield* ConfigService;
-  const {
-    orgId,
-    instanceName: rawInstanceName,
-    devHubUsername,
-    isScratch,
-    isSandbox,
-    tracksSource,
-    orgEdition
-  } = conn.getAuthInfoFields();
-  const instanceName = rawInstanceName?.trim();
+  const fields = authFieldsFromConnection(conn);
+  const orgId = Option.getOrUndefined(Option.flatMap(fields, f => f.orgId));
+  const instanceName = Option.getOrUndefined(Option.flatMap(fields, f => f.instanceName));
+  const devHubUsername = Option.getOrUndefined(Option.flatMap(fields, f => f.devHubUsername));
+  const isScratch = Option.getOrUndefined(Option.flatMap(fields, f => f.isScratch));
+  const isSandbox = Option.getOrUndefined(Option.flatMap(fields, f => f.isSandbox));
+  const tracksSource = Option.getOrUndefined(Option.flatMap(fields, f => f.tracksSource));
+  const orgEdition = Option.getOrUndefined(Option.flatMap(fields, f => f.orgEdition));
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   const orgIdChanged = previousOrgId !== orgId;
@@ -537,7 +543,7 @@ const buildDevHubId = Effect.fn('getDevHubId')(function* (devHubUsername?: strin
   }
   // a failed lookup (e.g. devhub not yet authenticated) is swallowed to undefined and memoized like any success — not retried this session
   const authInfo = yield* createAuthInfoFromUsername(devHubUsername).pipe(Effect.orElseSucceed(() => undefined));
-  return authInfo?.getFields().orgId;
+  return Option.getOrUndefined(orgIdFrom(authInfo?.getFields()));
 });
 
 // memoized per distinct devHubUsername at module scope so AuthInfo.create (and the getDevHubId span) runs once per devhub per session
