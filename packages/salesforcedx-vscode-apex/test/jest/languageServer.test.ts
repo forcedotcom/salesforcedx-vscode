@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import type { Executable } from 'vscode-languageclient/node';
 import type { RecordedSpan } from './testUtils/recordingTracer';
 
 // Record every span (name + attrs + ended flag) so the apex.lsp.client rotation can be asserted:
@@ -105,5 +106,44 @@ describe('languageServer client span', () => {
     expect(spans).toHaveLength(2);
     expect(first.ended).toBe(true);
     expect(spans[1].ended).toBe(false);
+  });
+
+  it('ignores YOURKIT_PROFILER_AGENT when suspended debug startup is enabled', async () => {
+    const originalExecArgv = process.execArgv;
+    const originalSuspend = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP;
+    const originalYourKitAgent = process.env.YOURKIT_PROFILER_AGENT;
+    process.execArgv = ['--inspect'];
+    process.env.SUSPEND_LANGUAGE_SERVER_STARTUP = 'true';
+    process.env.YOURKIT_PROFILER_AGENT = '/mock/yourkit/libyjpagent.dylib';
+    jest.resetModules();
+
+    try {
+      await jest.isolateModulesAsync(async () => {
+        const isolatedVscode = jest.requireMock<typeof import('vscode')>('vscode');
+        const { ApexLanguageClient: IsolatedApexLanguageClient } =
+          jest.requireMock<typeof import('../../src/apexLanguageClient')>('../../src/apexLanguageClient');
+        (isolatedVscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
+          get: (_key: string, def?: unknown) => def
+        });
+        (isolatedVscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+        (IsolatedApexLanguageClient as unknown as jest.Mock).mockImplementation(() => ({
+          onTelemetry: jest.fn()
+        }));
+        const { createLanguageServer: createIsolatedLanguageServer } =
+          jest.requireActual<typeof import('../../src/languageServer')>('../../src/languageServer');
+
+        await createIsolatedLanguageServer(mockContext);
+
+        const server = (IsolatedApexLanguageClient as unknown as jest.Mock).mock.calls[0][2] as Executable;
+        expect(server.args).toContain('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:0,quiet=y');
+        expect(server.args).not.toEqual(expect.arrayContaining([expect.stringMatching(/^-agentpath:/)]));
+      });
+    } finally {
+      process.execArgv = originalExecArgv;
+      if (originalSuspend === undefined) delete process.env.SUSPEND_LANGUAGE_SERVER_STARTUP;
+      else process.env.SUSPEND_LANGUAGE_SERVER_STARTUP = originalSuspend;
+      if (originalYourKitAgent === undefined) delete process.env.YOURKIT_PROFILER_AGENT;
+      else process.env.YOURKIT_PROFILER_AGENT = originalYourKitAgent;
+    }
   });
 });
