@@ -273,7 +273,7 @@ describe('index tests', () => {
 
       const createLanguageClientSpy = jest
         .spyOn(languageClientManager, 'createLanguageClient')
-        .mockRejectedValue(unexpectedStart);
+        .mockReturnValue(Effect.die(unexpectedStart));
 
       await runActivateEffect(false);
 
@@ -296,7 +296,7 @@ describe('index tests', () => {
 
       const createLanguageClientSpy = jest
         .spyOn(languageClientManager, 'createLanguageClient')
-        .mockRejectedValue(expectedStart);
+        .mockReturnValue(Effect.die(expectedStart));
 
       await expect(runActivateEffect(true)).rejects.toThrow('expected Apex language server start');
 
