@@ -19,13 +19,9 @@ jest.mock('../../../src/util/orgUtil', () => ({
 }));
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  // channels/index.ts calls these at module-load; the real Effect ChannelService is mocked in buildServices
   ChannelService: {
     getInstance: () => ({}),
     getChannel: () => ({})
-  },
-  notificationService: {
-    showSuccessfulExecution: () => Promise.resolve()
   }
 }));
 
