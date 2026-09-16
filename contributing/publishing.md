@@ -21,15 +21,17 @@ References:
 
 ## Build Release from Prerelease
 
-Manual workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) builds release VSIXs from promoted prerelease tags for internal testing. Auto-detects latest nightly tag and bumps minor version, or accepts manual overrides.
+Manual workflow [`build-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-release.yml) builds release VSIXs from promoted prerelease tags. Auto-detects latest nightly tag + bumps minor, or accepts manual overrides. Emergency pre-release mode auto-calculates patch from registries if empty.
 
 Inputs:
 - `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty
-- `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated if empty
+- `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
+- `publishAsPrerelease`: `true` → pre-release; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
 
 Uses scripts:
-- [`scripts/calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease version, bump minor, or use override
-- [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update all publishable packages' `package.json` + `package-lock.json`
+- [`scripts/calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease version, bump minor
+- [`scripts/calculate-prerelease-hotfix-version.js`](../scripts/calculate-prerelease-hotfix-version.js) — query Marketplace/Open VSX, bump patch on max version
+- [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `package-lock.json`
 
 Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally; trigger `publishVSCode.yml` for marketplace publish if tests pass.
 

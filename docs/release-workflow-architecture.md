@@ -117,9 +117,11 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │
-   │ │ • Uses version from source's package.json (must    │        │      │
-   │ │   be unique, not already published to marketplace) │        │      │
-   │ │ • No automated version bump or branch creation     │        │      │
+   │ │ • Auto-calculates patch from higher of             │        │      │
+   │ │   Marketplace/Open VSX published versions          │        │      │
+   │ │ • Or use -f releaseVersion=X.Y.Z for manual        │        │      │
+   │ │   version override (e.g., source's package.json)   │        │      │
+   │ │ • Registries can drift; takes max + bumps patch    │        │      │
    │ │ • Builds VSIXs from exact ref                      │        │      │
    │ │ • Creates GitHub pre-release with nightly tag      │        │      │
    │ └────────────────────────────────────────────────────┤        │      │

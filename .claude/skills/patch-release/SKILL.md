@@ -100,6 +100,8 @@ Reuse the same `release-base/v67.12.x` branch for multiple patches:
 
 For **immediate** marketplace hotfix as pre-release (bypasses stable testing):
 
+**The hotfix commit itself must bump `package.json` versions.** `build-release.yml` never bumps versions in pre-release mode — it packages and tags whatever's already on the source ref as-is. The calculated/provided `releaseVersion` only names the git tag and release title; it has no effect on the version actually baked into the VSIX. If the source ref's `package.json` still has an old version, that's what gets published — potentially a version *lower* than what's already live, which registries will silently ignore as "latest." Bump the version as part of the hotfix commit itself (`node scripts/update-release-versions.js <version>`), same as any other release-affecting change to `package.json`.
+
 ### Step 1: Build emergency pre-release VSIXs
 
 ```sh
@@ -116,7 +118,7 @@ gh workflow run build-release.yml \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
+Creates GitHub pre-release with VSIXs. Auto-calculates the git tag/release title as max(Marketplace, Open VSX) + 1 patch, or supply `-f releaseVersion=X.Y.Z` to override — this only names the tag, it does not change what's inside the VSIX (see version-bump note above).
 
 **Validation:** Unit tests (compile + test) run at the authoritative gate: promote-to-prerelease.yml tests exact hotfix commit being promoted when isHotfix=true. E2E & full PR review skipped; ensure ref carefully reviewed before use.
 
