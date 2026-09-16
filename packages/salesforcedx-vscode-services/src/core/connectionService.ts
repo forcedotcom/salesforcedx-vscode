@@ -218,22 +218,24 @@ const resolveUsername = (conn: Connection): string | undefined =>
 
 type IdentityResult = { username: string; userId: string };
 
-/** Cache key carries `conn` for lookup; Equal/Hash are orgId-only so same-org callers share one SOQL. */
+/** Cache key carries `conn` for lookup; Equal/Hash are orgId+username (User SOQL filter). */
 type IdentityCacheKey = {
   readonly orgId: OrgId;
+  readonly username: string;
   readonly conn: Connection;
   readonly [Hash.symbol]: () => number;
   readonly [Equal.symbol]: (that: unknown) => boolean;
 };
 
 const isIdentityCacheKey = (u: unknown): u is IdentityCacheKey =>
-  isRecord(u) && Schema.is(OrgId)(u.orgId) && typeof u[Equal.symbol] === 'function';
+  isRecord(u) && Schema.is(OrgId)(u.orgId) && isString(u.username) && typeof u[Equal.symbol] === 'function';
 
-const identityCacheKey = (orgId: OrgId, conn: Connection): IdentityCacheKey => ({
+const identityCacheKey = (orgId: OrgId, username: string, conn: Connection): IdentityCacheKey => ({
   orgId,
+  username,
   conn,
-  [Hash.symbol]: () => Hash.string(orgId),
-  [Equal.symbol]: (that: unknown) => isIdentityCacheKey(that) && that.orgId === orgId
+  [Hash.symbol]: () => Hash.combine(Hash.string(username))(Hash.string(orgId)),
+  [Equal.symbol]: (that: unknown) => isIdentityCacheKey(that) && that.orgId === orgId && that.username === username
 });
 
 const noneIdentity = Option.none<IdentityResult>();
@@ -245,10 +247,8 @@ const identityCache = Effect.runSync(
       onSuccess: (value: Option.Option<IdentityResult>) => (Option.isNone(value) ? Duration.zero : Duration.infinity),
       onFailure: () => Duration.zero
     }),
-    lookup: ({ orgId, conn }: IdentityCacheKey) => {
-      const username = resolveUsername(conn);
-      if (isUndefined(username)) return Effect.succeed(noneIdentity);
-      return Effect.tryPromise(() =>
+    lookup: ({ orgId, username, conn }: IdentityCacheKey) =>
+      Effect.tryPromise(() =>
         conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
       ).pipe(
         Effect.map(r => r.records),
@@ -256,13 +256,14 @@ const identityCache = Effect.runSync(
         Effect.map(Option.map(record => ({ username: record.Username, userId: record.Id }))),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
         Effect.orElseSucceed(() => noneIdentity)
-      );
-    }
+      )
   })
 );
 
 const getUserFromUserSobject = Effect.fn('getUserFromUserSobject')(function* (orgId: OrgId, conn: Connection) {
-  const either = yield* identityCache.getEither(identityCacheKey(orgId, conn));
+  const username = resolveUsername(conn);
+  if (isUndefined(username)) return undefined;
+  const either = yield* identityCache.getEither(identityCacheKey(orgId, username, conn));
   yield* Effect.annotateCurrentSpan({ orgId, identityCache: Either.isLeft(either) ? 'hit' : 'miss' });
   return either.pipe(Either.merge, Option.getOrUndefined);
 });
@@ -415,7 +416,6 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* connectionCache.invalidateAll;
-      yield* identityCache.invalidateAll;
     });
 
     /**
