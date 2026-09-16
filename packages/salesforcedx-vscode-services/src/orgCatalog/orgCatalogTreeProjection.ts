@@ -8,6 +8,8 @@
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { TransmogrifierService } from '../core/transmogrifierService';
@@ -82,19 +84,23 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
             )
           : cachedDescription;
       const parentNames = new Set([objectEntry.reference.fullName, objectApiName]);
-      const inventoryFields = [...fieldInventory.components.values()].filter(entry => {
+      const inventoryFields = HashMap.toValues(fieldInventory.components).filter(entry => {
         if (!isOrgMetadataComponentReference(entry.reference)) return false;
         const separator = entry.reference.fullName.lastIndexOf('.');
         return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
       });
       const describedFields = describedObject.fields.filter(field => field.custom);
-      const describedByName = new Map<string, (typeof describedFields)[number]>();
-      describedFields.forEach(field => {
-        describedByName.set(field.name, field);
-        if (objectEntry.namespacePrefix) {
-          describedByName.set(field.name.replace(`${objectEntry.namespacePrefix}__`, ''), field);
-        }
-      });
+      const describedByName = describedFields.reduce(
+        (byName, field) =>
+          objectEntry.namespacePrefix
+            ? HashMap.set(
+                HashMap.set(byName, field.name, field),
+                field.name.replace(`${objectEntry.namespacePrefix}__`, ''),
+                field
+              )
+            : HashMap.set(byName, field.name, field),
+        HashMap.empty<string, (typeof describedFields)[number]>()
+      );
       const toFieldDetails = (field: (typeof describedFields)[number], name: string) => ({
         name,
         type: field.type,
@@ -109,7 +115,9 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         const unqualifiedName = objectEntry.namespacePrefix
           ? fieldName.replace(`${objectEntry.namespacePrefix}__`, '')
           : fieldName;
-        const described = describedByName.get(fieldName) ?? describedByName.get(unqualifiedName);
+        const described = Option.getOrUndefined(
+          Option.orElse(HashMap.get(describedByName, fieldName), () => HashMap.get(describedByName, unqualifiedName))
+        );
         return {
           ...entry,
           name: unqualifiedName,
@@ -211,7 +219,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       return yield* Effect.succeed(children).pipe(
         Effect.filterOrFail(
           projectedChildren =>
-            projectedChildren.length > 0 || !reference.fullName || inventory.folders.has(reference.fullName),
+            projectedChildren.length > 0 || !reference.fullName || HashMap.has(inventory.folders, reference.fullName),
           () => vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
         )
       );

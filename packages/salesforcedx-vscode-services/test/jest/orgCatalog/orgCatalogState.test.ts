@@ -7,7 +7,9 @@
 
 import type { MetadataTypeObservation, TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { URI } from 'vscode-uri';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { componentIdentity } from '../../../src/orgCatalog/orgCatalogKeys';
@@ -48,8 +50,26 @@ describe('OrgCatalogState', () => {
     const inventory: TypeInventory = {
       observedAt: '2026-08-03T12:00:00.000Z',
       complete: true,
-      folders: new Map(),
-      components: new Map([
+      folders: HashMap.fromIterable([
+        ['Zulu', { fullName: 'Zulu' }],
+        ['Alpha', { fullName: 'Alpha' }]
+      ]),
+      folderFullNameOrder: ['Zulu', 'Alpha'],
+      components: HashMap.fromIterable([
+        [
+          componentIdentity({ xmlName: 'ApexClass', fullName: 'AnotherRemote' }),
+          {
+            orgId: 'org-one',
+            observedAt: '2026-08-03T12:00:00.000Z',
+            provenance: 'metadata-api',
+            reference: { xmlName: 'ApexClass', fullName: 'AnotherRemote' },
+            documentUri: URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/AnotherRemote.cls'),
+            name: 'AnotherRemote',
+            kind: 'component',
+            inOrg: true,
+            inWorkspace: false
+          }
+        ],
         [
           componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteAndLocal' }),
           {
@@ -80,7 +100,12 @@ describe('OrgCatalogState', () => {
             inWorkspace: true
           }
         ]
-      ])
+      ]),
+      componentIdentityOrder: [
+        componentIdentity({ xmlName: 'ApexClass', fullName: 'AnotherRemote' }),
+        componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteAndLocal' }),
+        componentIdentity({ xmlName: 'ApexClass', fullName: 'LocalOnly' })
+      ]
     };
 
     await Effect.runPromise(
@@ -93,7 +118,14 @@ describe('OrgCatalogState', () => {
     );
 
     expect(saved).toHaveLength(1);
-    expect(saved[0]?.inventory[0]?.components).toEqual([expect.objectContaining({ fullName: 'RemoteAndLocal' })]);
+    expect(saved[0]?.inventory[0]?.components).toEqual([
+      expect.objectContaining({ fullName: 'AnotherRemote' }),
+      expect.objectContaining({ fullName: 'RemoteAndLocal' })
+    ]);
+    expect(saved[0]?.inventory[0]?.folders).toEqual([
+      expect.objectContaining({ fullName: 'Zulu' }),
+      expect.objectContaining({ fullName: 'Alpha' })
+    ]);
   });
 
   it('hydrates once and advances the persisted generation', async () => {
@@ -131,9 +163,11 @@ describe('OrgCatalogState', () => {
 
     expect(load).toHaveBeenCalledTimes(1);
     expect(result.inventory?.components).toEqual([expect.objectContaining({ fullName: 'RemoteTest' })]);
-    expect(result.tracking.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteTest' }))?.signature).toBe(
-      'Changed|7'
-    );
+    expect(
+      Option.getOrUndefined(
+        HashMap.get(result.tracking.byIdentity, componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteTest' }))
+      )?.signature
+    ).toBe('Changed|7');
     expect(saved[0]?.generation).toBe(8);
   });
 

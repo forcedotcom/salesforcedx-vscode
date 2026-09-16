@@ -9,7 +9,11 @@ import type {
   OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
   OrgMetadataConsistency
 } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Equivalence from 'effect/Equivalence';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -26,6 +30,10 @@ import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from 
 import { OrgMetadataShadowStore, type OrgMetadataShadowArtifact } from './orgMetadataShadowStore';
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+const componentReferenceIdentityEquivalence = Equivalence.mapInput(
+  Equivalence.string,
+  (reference: OrgMetadataComponentReference) => componentIdentity(reference)
+);
 
 export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSource>()('OrgCatalogRemoteSource', {
   accessors: true,
@@ -156,20 +164,19 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
         Effect.gen(function* () {
           yield* Effect.annotateCurrentSpan('consistency', options.consistency ?? 'cache-first');
           const forceRefresh = options.consistency === 'refresh';
-          const uniqueReferences = [
-            ...componentReferences
-              .reduce(
-                (map, reference) => map.set(componentIdentity(reference), reference),
-                new Map<string, OrgMetadataComponentReference>()
-              )
-              .values()
-          ];
+          const referenceByIdentity = HashMap.fromIterable(
+            componentReferences.map(reference => [componentIdentity(reference), reference] as const)
+          );
+          const uniqueReferences = Arr.dedupeWith(componentReferences, componentReferenceIdentityEquivalence).map(
+            reference =>
+              Option.getOrElse(HashMap.get(referenceByIdentity, componentIdentity(reference)), () => reference)
+          );
           const resolved = yield* Effect.forEach(
             uniqueReferences,
             reference =>
               Effect.gen(function* () {
                 const loadedEntry = findInventoryComponent(
-                  (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
+                  (yield* state.getInventory(orgId, reference.xmlName))?.components ?? HashMap.empty(),
                   reference
                 );
                 const entry = forceRefresh ? loadedEntry : yield* getEntryInOrg(orgId, reference);
@@ -186,7 +193,7 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
               : [{ reference, expectedRemoteLastModifiedDate: forceRefresh ? undefined : entry?.lastModifiedDate }]
           );
           const retrieved = yield* remoteRetrieve.materializeRetrievedComponents(orgId, retrievalRequests);
-          const artifactByIdentity = new Map<string, OrgMetadataShadowArtifact>([
+          const artifactByIdentity = HashMap.fromIterable<string, OrgMetadataShadowArtifact>([
             ...resolved.flatMap(({ reference, artifact }) =>
               artifact ? [[componentIdentity(reference), artifact] as const] : []
             ),
@@ -208,13 +215,12 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                   .documentUri({ orgId, ...reference })
                   .pipe(Effect.map(uri => [componentIdentity(reference), uri] as const)),
               { concurrency: 'unbounded' }
-            ).pipe(Effect.map(entries => new Map(entries)));
-            yield* state.updateInventories(current => {
-              const next = new Map(current);
-              retrieved.forEach(({ reference, artifact }) => {
+            ).pipe(Effect.map(HashMap.fromIterable));
+            yield* state.updateInventories(current =>
+              retrieved.reduce((inventoryCache, { reference, artifact }) => {
                 const key = typeCacheKey(orgId, reference.xmlName);
-                const inventory = next.get(key);
-                if (!inventory) return;
+                const inventory = Option.getOrUndefined(HashMap.get(inventoryCache, key));
+                if (!inventory) return inventoryCache;
                 const currentEntry = findInventoryComponent(inventory.components, reference);
                 const remoteLastModifiedDate = artifact.remoteLastModifiedDate;
                 const updatedEntry: OrgMetadataCatalogEntry = {
@@ -223,7 +229,9 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                   observedAt,
                   provenance: currentEntry?.inWorkspace ? 'metadata-api+workspace' : 'metadata-api',
                   reference,
-                  documentUri: documentUris.get(componentIdentity(reference)) ?? currentEntry!.documentUri,
+                  documentUri:
+                    Option.getOrUndefined(HashMap.get(documentUris, componentIdentity(reference))) ??
+                    currentEntry!.documentUri,
                   name: currentEntry?.name ?? reference.fullName.split('/').at(-1) ?? reference.fullName,
                   kind: 'component',
                   inOrg: true,
@@ -231,21 +239,29 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
                   lastModifiedDate: remoteLastModifiedDate ?? currentEntry?.lastModifiedDate,
                   remoteLastModifiedDate: remoteLastModifiedDate ?? currentEntry?.remoteLastModifiedDate
                 };
-                next.set(key, {
+                return HashMap.set(inventoryCache, key, {
                   ...inventory,
                   observedAt,
-                  components: new Map(inventory.components).set(
+                  components: HashMap.set(
+                    inventory.components,
                     componentIdentity(reference, currentEntry?.namespacePrefix ?? null),
                     updatedEntry
+                  ),
+                  componentIdentityOrder: inventory.componentIdentityOrder.includes(
+                    componentIdentity(reference, currentEntry?.namespacePrefix ?? null)
                   )
+                    ? inventory.componentIdentityOrder
+                    : [
+                        ...inventory.componentIdentityOrder,
+                        componentIdentity(reference, currentEntry?.namespacePrefix ?? null)
+                      ]
                 });
-              });
-              return next;
-            });
+              }, current)
+            );
             yield* state.queuePersist(orgId);
           }
           return yield* Effect.forEach(uniqueReferences, reference => {
-            const artifact = artifactByIdentity.get(componentIdentity(reference));
+            const artifact = Option.getOrUndefined(HashMap.get(artifactByIdentity, componentIdentity(reference)));
             return artifact
               ? Effect.succeed({ reference, artifact })
               : Effect.die(

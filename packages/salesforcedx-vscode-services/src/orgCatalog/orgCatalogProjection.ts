@@ -9,6 +9,8 @@ import type { ListedMetadataComponent, TypeInventory } from './orgCatalogInterna
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import type { ArtifactNamespace } from '../core/artifactIdentity';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import { URI } from 'vscode-uri';
 import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
 import { isOrgMetadataComponentReference, OrgMetadataReferenceService } from './orgMetadataReference';
@@ -24,7 +26,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   readonly orgId: string;
   readonly xmlName: string;
   readonly orgComponents: readonly ListedMetadataComponent[];
-  readonly workspaceUris: ReadonlyMap<string, URI>;
+  readonly workspaceUris: HashMap.HashMap<string, URI>;
   readonly workspaceNamespace?: ArtifactNamespace;
   readonly observedAt: string;
 }) {
@@ -58,11 +60,11 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
       )
     )
   );
-  const orgInventory = new Map<string, OrgMetadataCatalogEntry>(orgEntries);
-  const workspaceEntries = yield* Effect.forEach([...workspaceUris], ([fullName, workspaceUri]) => {
+  const orgInventory = HashMap.fromIterable(orgEntries);
+  const workspaceEntries = yield* Effect.forEach(HashMap.toEntries(workspaceUris), ([fullName, workspaceUri]) => {
     const reference = { xmlName, fullName };
     const key = componentIdentity(reference, workspaceNamespace);
-    const existing = orgInventory.get(key);
+    const existing = Option.getOrUndefined(HashMap.get(orgInventory, key));
     const canonicalReference =
       existing && isOrgMetadataComponentReference(existing.reference) ? existing.reference : reference;
     return (existing ? Effect.succeed(existing.documentUri) : documentUri(fullName)).pipe(
@@ -92,7 +94,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
       )
     );
   });
-  return new Map<string, OrgMetadataCatalogEntry>([...orgInventory, ...workspaceEntries]);
+  return HashMap.union(orgInventory, HashMap.fromIterable(workspaceEntries));
 });
 
 export const projectChildren = Effect.fn('projectChildren')(function* (
@@ -104,10 +106,10 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
   const references = yield* OrgMetadataReferenceService;
   const prefix = parentFullName ? `${parentFullName}/` : '';
   const childNames = new Set<string>();
-  const componentFullNames = [...inventory.components.values()].flatMap(component =>
+  const componentFullNames = HashMap.toValues(inventory.components).flatMap(component =>
     isOrgMetadataComponentReference(component.reference) ? [component.reference.fullName] : []
   );
-  [...componentFullNames, ...inventory.folders.keys()].forEach(fullName => {
+  [...componentFullNames, ...HashMap.keys(inventory.folders)].forEach(fullName => {
     if (!fullName.startsWith(prefix)) return;
     const name = fullName.slice(prefix.length).split('/')[0];
     if (name) childNames.add(name);
@@ -118,12 +120,12 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
       Effect.gen(function* () {
         const fullName = `${prefix}${name}`;
         const component = findInventoryComponent(inventory.components, { xmlName, fullName });
-        const folder = inventory.folders.get(fullName);
-        const hasDescendants = [...componentFullNames, ...inventory.folders.keys()].some(candidate =>
+        const folder = Option.getOrUndefined(HashMap.get(inventory.folders, fullName));
+        const hasDescendants = [...componentFullNames, ...HashMap.keys(inventory.folders)].some(candidate =>
           candidate.startsWith(`${fullName}/`)
         );
         if (!folder && !hasDescendants && component) return { ...component, name };
-        const descendants = [...inventory.components.values()].filter(
+        const descendants = HashMap.toValues(inventory.components).filter(
           entry =>
             isOrgMetadataComponentReference(entry.reference) && entry.reference.fullName.startsWith(`${fullName}/`)
         );

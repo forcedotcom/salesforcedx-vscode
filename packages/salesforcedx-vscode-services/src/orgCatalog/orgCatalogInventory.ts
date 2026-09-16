@@ -7,10 +7,12 @@
 
 import type { TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import { URI } from 'vscode-uri';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
-import { emptyPresence, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
+import { componentIdentity, emptyPresence, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -66,7 +68,9 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
             workspace
               .scanWorkspaceInventory(xmlName)
               .pipe(
-                Effect.catchAll(() => Effect.succeed({ namespace: null, components: new Map<string, URI>() } as const))
+                Effect.catchAll(() =>
+                  Effect.succeed({ namespace: null, components: HashMap.empty<string, URI>() } as const)
+                )
               )
           ],
           { concurrency: 'unbounded' }
@@ -83,7 +87,16 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
             workspaceNamespace: workspaceInventory.namespace,
             observedAt
           }).pipe(Effect.provideService(OrgMetadataReferenceService, references)),
-          folders: new Map(orgListing.folders.map(folder => [folder.fullName, folder]))
+          componentIdentityOrder: Arr.dedupe(
+            orgListing.components.map(component =>
+              componentIdentity(
+                { xmlName, fullName: component.fullName },
+                'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+              )
+            )
+          ),
+          folders: HashMap.fromIterable(orgListing.folders.map(folder => [folder.fullName, folder] as const)),
+          folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
         } satisfies TypeInventory;
         yield* state.setInventory(orgId, xmlName, inventory);
         if (!restored) yield* state.queuePersist(orgId);
@@ -96,7 +109,7 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       reference: OrgMetadataComponentReference
     ) {
       const cachedEntry = findInventoryComponent(
-        (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
+        (yield* state.getInventory(orgId, reference.xmlName))?.components ?? HashMap.empty(),
         reference
       );
       const entry =

@@ -7,6 +7,9 @@
 
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Equivalence from 'effect/Equivalence';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ComponentSetService } from '../core/componentSetService';
@@ -20,6 +23,8 @@ type RetrieveRequest = {
   readonly reference: OrgMetadataComponentReference;
   readonly expectedRemoteLastModifiedDate?: string;
 };
+
+const uriStringEquivalence = Equivalence.mapInput(Equivalence.string, (uri: URI) => uri.toString());
 
 const sourceComponentFilePaths = (sourceComponent?: {
   readonly content?: string;
@@ -117,9 +122,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
               const sourceContentUri = sourceComponent?.content
                 ? yield* fsService.toUri(sourceComponent.content)
                 : undefined;
-              const fileUris = [
-                ...new Map([...reportedUris, ...stagedFiles].map(uri => [uri.toString(), uri])).values()
-              ];
+              const fileUris = Arr.dedupeWith([...reportedUris, ...stagedFiles], uriStringEquivalence);
               const primaryUri =
                 fileUris.find(uri => basenames.has(Utils.basename(uri))) ??
                 fileUris.find(uri => !uri.path.endsWith('-meta.xml')) ??
@@ -142,9 +145,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 path => fsService.toUri(path),
                 { concurrency: 'unbounded' }
               );
-              const artifactFileUris = [
-                ...new Map([...fileUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])).values()
-              ];
+              const artifactFileUris = Arr.dedupeWith([...fileUris, ...sourceComponentUris], uriStringEquivalence);
               const fileProperties = Array.isArray(result.response.fileProperties)
                 ? result.response.fileProperties
                 : [result.response.fileProperties];
@@ -219,11 +220,10 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                       path => fsService.toUri(path),
                       { concurrency: 'unbounded' }
                     );
-                    const fileUris = [
-                      ...new Map(
-                        [...reportedUris, ...discoveredUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])
-                      ).values()
-                    ];
+                    const fileUris = Arr.dedupeWith(
+                      [...reportedUris, ...discoveredUris, ...sourceComponentUris],
+                      uriStringEquivalence
+                    );
                     const primaryUri =
                       fileUris.find(uri => basenames.has(Utils.basename(uri))) ??
                       fileUris.find(uri => !uri.path.endsWith('-meta.xml')) ??
@@ -260,8 +260,8 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                       },
                       { concurrency: 10 }
                     );
-                    const copiedBySource = new Map(copiedUris);
-                    const copiedPrimaryUri = copiedBySource.get(primaryUri.toString());
+                    const copiedBySource = HashMap.fromIterable(copiedUris);
+                    const copiedPrimaryUri = Option.getOrUndefined(HashMap.get(copiedBySource, primaryUri.toString()));
                     if (!copiedPrimaryUri) {
                       return yield* Effect.die(
                         new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`)
@@ -272,7 +272,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                       reference,
                       stagingUri: componentStagingUri,
                       primaryUri: copiedPrimaryUri,
-                      fileUris: [...copiedBySource.values()],
+                      fileUris: copiedUris.map(([, targetUri]) => targetUri),
                       remoteLastModifiedDate
                     });
                     return artifact

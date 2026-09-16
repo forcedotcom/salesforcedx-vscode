@@ -696,6 +696,23 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
   });
 
+  it('persists metadata components in listing order', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const { layer } = makeHarness({
+      catalogSnapshots,
+      metadataByType: {
+        ApexClass: [{ fullName: 'ZuluTest' }, { fullName: 'AlphaTest' }]
+      }
+    });
+
+    await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
+
+    expect(catalogSnapshots.get('00D000000000001')?.inventory[0]?.components).toEqual([
+      expect.objectContaining({ fullName: 'ZuluTest' }),
+      expect.objectContaining({ fullName: 'AlphaTest' })
+    ]);
+  });
+
   it('persists refreshed inventory for a catalog restart', async () => {
     const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
     const apexClasses: ListedComponent[] = [{ fullName: 'OldTest' }];
@@ -1290,9 +1307,14 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.listMetadata).not.toHaveBeenCalled();
   });
 
-  it('materializes multiple fresh components with one retrieve operation', async () => {
+  it('deduplicates fresh components by first position and last reference value', async () => {
     const references = [
       { xmlName: 'Prompt', fullName: 'Property' },
+      { xmlName: 'Prompt', fullName: 'Broker' },
+      { xmlName: 'prompt', fullName: 'property' }
+    ];
+    const uniqueReferences = [
+      { xmlName: 'prompt', fullName: 'property' },
       { xmlName: 'Prompt', fullName: 'Broker' }
     ];
     const { layer, mocks, remoteSourceLayer } = makeHarness();
@@ -1305,14 +1327,14 @@ describe('OrgMetadataCatalog contract', () => {
           getComponentFilenamesByNameAndType: ({ fullName }: { fullName: string }) => [filePath(fullName)]
         },
         getFileResponses: () =>
-          references.map(reference => ({
+          uniqueReferences.map(reference => ({
             filePath: filePath(reference.fullName),
             fullName: reference.fullName,
             state: 'Changed',
             type: reference.xmlName
           })),
         response: {
-          fileProperties: references.map(reference => ({
+          fileProperties: uniqueReferences.map(reference => ({
             fullName: reference.fullName,
             lastModifiedDate: `revision-${reference.fullName}`,
             type: reference.xmlName
@@ -1325,9 +1347,9 @@ describe('OrgMetadataCatalog contract', () => {
       remoteSource.materializeRemoteSources('00D000000000001', references, { consistency: 'refresh' })
     );
 
-    expect(materialized.map(({ reference }) => reference)).toEqual(references);
+    expect(materialized.map(({ reference }) => reference)).toEqual(uniqueReferences);
     expect(mocks.buildComponentSet).toHaveBeenCalledWith(
-      references.map(reference => ({ type: reference.xmlName, fullName: reference.fullName }))
+      uniqueReferences.map(reference => ({ type: reference.xmlName, fullName: reference.fullName }))
     );
     expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
     expect(mocks.shadowPrepareBatch).toHaveBeenCalledTimes(1);

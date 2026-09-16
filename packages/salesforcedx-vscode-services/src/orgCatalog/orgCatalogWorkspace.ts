@@ -10,6 +10,8 @@ import type { WorkspaceSObjectMetadata, WorkspaceSObjectMetadataDocument } from 
 import * as Arr from 'effect/Array';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import { URI } from 'vscode-uri';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
@@ -54,12 +56,12 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
         const sourcePath = component.content ?? component.xml;
         if (!sourcePath) return workspaceUris;
         const candidate = toUri(sourcePath);
-        const existing = workspaceUris.get(component.fullName);
+        const existing = Option.getOrUndefined(HashMap.get(workspaceUris, component.fullName));
         if (!existing || candidate.path.length < existing.path.length) {
-          workspaceUris.set(component.fullName, candidate);
+          return HashMap.set(workspaceUris, component.fullName, candidate);
         }
         return workspaceUris;
-      }, new Map<string, URI>());
+      }, HashMap.empty<string, URI>());
       return { namespace, components } as const;
     });
 
@@ -150,14 +152,14 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       options: { readonly prefer: 'workspace' | 'org' }
     ) {
       const xmlNames = Arr.dedupe(componentReferences.map(reference => reference.xmlName));
-      const workspaceByType = new Map(
+      const workspaceByType = HashMap.fromIterable(
         yield* Effect.forEach(
           xmlNames,
           xmlName =>
             scanWorkspace(xmlName).pipe(
               Effect.catchAll(error =>
                 Effect.logWarning('Failed to resolve workspace metadata presence', { error, xmlName }).pipe(
-                  Effect.as(new Map<string, URI>())
+                  Effect.as(HashMap.empty<string, URI>())
                 )
               ),
               Effect.map(workspaceUris => [xmlName, workspaceUris] as const)
@@ -167,7 +169,10 @@ export class OrgCatalogWorkspace extends Effect.Service<OrgCatalogWorkspace>()('
       );
       const resolutions = yield* Effect.forEach(componentReferences, reference =>
         Effect.gen(function* () {
-          const workspaceUri = workspaceByType.get(reference.xmlName)?.get(reference.fullName);
+          const workspaceUri = Option.flatMap(
+            HashMap.get(workspaceByType, reference.xmlName),
+            HashMap.get(reference.fullName)
+          ).pipe(Option.getOrUndefined);
           const orgUri = yield* referenceService.documentUri({ orgId, ...reference });
           return {
             reference,
