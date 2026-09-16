@@ -28,9 +28,9 @@ const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
 ## Prebuilt vs Per-Extension Services
 
-`api.services.prebuiltServicesLayer` — shared service instances plus runtime configuration, including the redacting logger. Provide or merge this layer directly.
+`api.services.prebuiltServicesLayer` — shared service instances plus redacting-logger FiberRef. Not the OTEL tracer. Provide or merge this layer directly.
 
-`api.services.prebuiltServicesDependencies` — deprecated context-only compatibility field. It omits FiberRef runtime configuration; new consumers must use `prebuiltServicesLayer`.
+`api.services.prebuiltServicesDependencies` — deprecated context-only field. Omits FiberRefs; use `prebuiltServicesLayer`.
 
 Shares singleton instances (caches, watchers) across extensions; avoids re-building stateful services.
 
