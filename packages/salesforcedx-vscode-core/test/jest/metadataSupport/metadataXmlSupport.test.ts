@@ -5,16 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { MetadataXmlSupport, ensureMinXmlHeap } from '../../../src/metadataSupport/metadataXmlSupport';
-
-jest.mock('../../../src/channels', () => ({
-  getCoreChannelService: () => ({ appendLine: jest.fn() })
-}));
+import { URI, Utils } from 'vscode-uri';
+import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { nls } from '../../../src/messages';
+import {
+  ensureMinXmlHeap,
+  initializeMetadataSupport,
+  shouldSetSchemaDocumentationTypeToNone
+} from '../../../src/metadataSupport/metadataXmlSupport';
 
 type InspectResult = ReturnType<vscode.WorkspaceConfiguration['inspect']>;
 
-// Minimal RedHat XML extension API stub
+type XMLExtensionApi = {
+  addXMLCatalogs: jest.Mock;
+  addXMLFileAssociations: jest.Mock;
+};
+
+const extensionUri = URI.file('/ext');
+
 const makeRedhatExtension = () =>
   ({
     isActive: true,
@@ -24,59 +38,63 @@ const makeRedhatExtension = () =>
       addXMLFileAssociations: jest.fn()
     },
     activate: jest.fn()
-  }) as unknown as vscode.Extension<any>;
+  }) as unknown as vscode.Extension<XMLExtensionApi>;
 
-// Build a WorkspaceConfiguration stub for the xml namespace
-const makeXmlConfig = (inspectResult: Partial<InspectResult>): vscode.WorkspaceConfiguration =>
+const makeXmlConfig = (
+  documentationInspectResult: Partial<InspectResult>,
+  vmArgsGlobalValue: string | undefined
+): vscode.WorkspaceConfiguration =>
   ({
-    get: jest.fn().mockReturnValue(undefined),
-    update: jest.fn().mockResolvedValue(undefined),
-    inspect: jest.fn().mockReturnValue(inspectResult)
-  }) as unknown as vscode.WorkspaceConfiguration;
-
-// Build a WorkspaceConfiguration stub for the salesforcedx-vscode-core namespace
-const makeCoreConfig = (doNotSuppress: boolean): vscode.WorkspaceConfiguration =>
-  ({
-    get: jest
+    inspect: jest
       .fn()
-      .mockImplementation((key: string, defaultValue?: unknown) =>
-        key === 'metadata.doNotSuppressRedhatSchemaDocumentation' ? doNotSuppress : defaultValue
-      ),
-    update: jest.fn(),
-    inspect: jest.fn().mockReturnValue({})
+      .mockImplementation((key: string) =>
+        key === 'server.vmargs' ? { globalValue: vmArgsGlobalValue } : documentationInspectResult
+      )
   }) as unknown as vscode.WorkspaceConfiguration;
 
-describe('MetadataXmlSupport — showSchemaDocumentationType suppression', () => {
-  let mockExtensionContext: vscode.ExtensionContext;
-  let xmlConfigUpdateMock: jest.Mock;
-
-  beforeEach(() => {
-    mockExtensionContext = {
-      asAbsolutePath: (p: string) => `/ext/${p}`
-    } as unknown as vscode.ExtensionContext;
-  });
-
-  const runInitialize = async (doNotSuppress: boolean, inspectResult: Partial<InspectResult>) => {
+describe('metadata XML support — showSchemaDocumentationType suppression', () => {
+  const runInitialize = async (
+    doNotSuppress: boolean,
+    documentationInspectResult: Partial<InspectResult>,
+    vmArgsGlobalValue = '-Xmx1024M'
+  ) => {
     const redhat = makeRedhatExtension();
-    const xmlConfig = makeXmlConfig(inspectResult);
-    xmlConfigUpdateMock = jest.mocked(xmlConfig.update);
-    const coreConfig = makeCoreConfig(doNotSuppress);
+    const xmlConfig = makeXmlConfig(documentationInspectResult, vmArgsGlobalValue);
+    const appendToChannel = jest.fn(() => Effect.void);
+    const getValue = jest.fn(() => Effect.succeed(doNotSuppress));
+    const setValue = jest.fn(() => Effect.void);
+    const extensionContext = {
+      extensionUri
+    } as unknown as vscode.ExtensionContext;
 
     jest.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
       if (section === 'xml') return xmlConfig;
-      if (section === 'salesforcedx-vscode-core') return coreConfig;
-      return { get: jest.fn(), update: jest.fn(), inspect: jest.fn() } as unknown as vscode.WorkspaceConfiguration;
+      return {} as vscode.WorkspaceConfiguration;
     });
     jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue(redhat);
 
-    // Reset singleton so each test gets a fresh instance
-    (MetadataXmlSupport as any).instance = undefined;
-    await MetadataXmlSupport.getInstance().initializeMetadataSupport(mockExtensionContext);
+    const services = { ChannelService, ExtensionContextService, SettingsService };
+    const layer = Layer.mergeAll(
+      Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({ services })
+      } as never),
+      Layer.succeed(ChannelService, new ChannelService({ appendToChannel } as never)),
+      Layer.succeed(
+        ExtensionContextService,
+        new ExtensionContextService({ getContext: Effect.succeed(extensionContext) } as never)
+      ),
+      Layer.succeed(SettingsService, new SettingsService({ getValue, setValue } as never))
+    );
+
+    await Effect.runPromise(initializeMetadataSupport().pipe(Effect.provide(layer)));
+
+    return { appendToChannel, getValue, redhat, setValue };
   };
 
   it('skips the write when doNotSuppressRedhatSchemaDocumentation is true', async () => {
-    await runInitialize(true, {});
-    expect(xmlConfigUpdateMock).not.toHaveBeenCalledWith(
+    const { setValue } = await runInitialize(true, {});
+    expect(setValue).not.toHaveBeenCalledWith(
+      'xml',
       'preferences.showSchemaDocumentationType',
       expect.anything(),
       expect.anything()
@@ -84,48 +102,65 @@ describe('MetadataXmlSupport — showSchemaDocumentationType suppression', () =>
   });
 
   it('writes none when doNotSuppress is false and no value is set at any scope', async () => {
-    await runInitialize(false, {});
-    expect(xmlConfigUpdateMock).toHaveBeenCalledWith(
+    const { appendToChannel, getValue, redhat, setValue } = await runInitialize(false, {});
+    expect(getValue).toHaveBeenCalledWith(
+      'salesforcedx-vscode-core',
+      'metadata.doNotSuppressRedhatSchemaDocumentation',
+      false
+    );
+    expect(setValue).toHaveBeenCalledWith(
+      'xml',
       'preferences.showSchemaDocumentationType',
       'none',
       vscode.ConfigurationTarget.Workspace
     );
+    expect(redhat.exports.addXMLCatalogs).toHaveBeenCalledWith([
+      Utils.joinPath(extensionUri, 'resources', 'metadata-catalog.xml').fsPath
+    ]);
+    expect(redhat.exports.addXMLFileAssociations).toHaveBeenCalledWith([
+      {
+        systemId: Utils.joinPath(extensionUri, 'resources', 'salesforce_metadata_api_namespace1.xsd').fsPath,
+        pattern: '**/*-meta.xml'
+      }
+    ]);
+    expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_redhat_extension_setup_success'));
   });
 
-  it('skips the write when user has set a globalValue', async () => {
-    await runInitialize(false, { globalValue: 'all' });
-    expect(xmlConfigUpdateMock).not.toHaveBeenCalledWith(
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
+  it('raises a low user-level XML heap setting and reports the change', async () => {
+    const { appendToChannel, setValue } = await runInitialize(false, { globalValue: 'all' }, '-Xmx512M');
 
-  it('skips the write when user has set a workspaceValue', async () => {
-    await runInitialize(false, { workspaceValue: 'none' });
-    expect(xmlConfigUpdateMock).not.toHaveBeenCalledWith(
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
+    expect(setValue).toHaveBeenCalledWith('xml', 'server.vmargs', '-Xmx1024M', vscode.ConfigurationTarget.Global);
+    expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_vmargs_configured'));
   });
+});
 
-  it('skips the write when user has set a globalLanguageValue via [xml] block', async () => {
-    await runInitialize(false, { globalLanguageValue: 'documentation' });
-    expect(xmlConfigUpdateMock).not.toHaveBeenCalledWith(
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('skips the write when user has set a workspaceLanguageValue via [xml] block', async () => {
-    await runInitialize(false, { workspaceLanguageValue: 'hover' });
-    expect(xmlConfigUpdateMock).not.toHaveBeenCalledWith(
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
+describe('shouldSetSchemaDocumentationTypeToNone', () => {
+  it.each([
+    { description: 'inspection returns undefined', inspection: undefined, expected: true },
+    { description: 'no explicit value exists', inspection: {}, expected: true },
+    { description: 'a global value exists', inspection: { globalValue: 'all' }, expected: false },
+    { description: 'a workspace value exists', inspection: { workspaceValue: 'none' }, expected: false },
+    {
+      description: 'a workspace folder value exists',
+      inspection: { workspaceFolderValue: 'none' },
+      expected: false
+    },
+    {
+      description: 'a global language value exists',
+      inspection: { globalLanguageValue: 'documentation' },
+      expected: false
+    },
+    {
+      description: 'a workspace language value exists',
+      inspection: { workspaceLanguageValue: 'hover' },
+      expected: false
+    }
+  ] satisfies ReadonlyArray<{
+    description: string;
+    inspection: Parameters<typeof shouldSetSchemaDocumentationTypeToNone>[0];
+    expected: boolean;
+  }>)('returns $expected when $description', ({ inspection, expected }) => {
+    expect(shouldSetSchemaDocumentationTypeToNone(inspection)).toBe(expected);
   });
 });
 

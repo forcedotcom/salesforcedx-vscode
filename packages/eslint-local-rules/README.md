@@ -32,7 +32,7 @@ The rule allows template literals that contain `nls.localize()` calls.
 
 ### no-inline-esbuild-platform
 
-Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the strip and leaks node-only code into the web bundle.
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and the dead *call* folds ([ADR 0013](../../docs/adr/0013-dual-target-bundle-time-split.md)); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the fold and leaves the node call live in the web bundle.
 
 **Bad:**
 

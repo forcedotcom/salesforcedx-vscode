@@ -43,6 +43,8 @@ Per finding: file:line, smell, Effect replacement, citation. Severity: `must` (a
 - **Mutable shared state via closure/class field** → `Ref` / `SubscriptionRef`. Change notifications → `SubscriptionRef.changes` already emits current snapshot — `Stream.concat(get, ref.changes)` is `must`.
 - **EventEmitter / callback fan-out** → `PubSub` (`sliding`/`unbounded`). Examples: `fileChangePubSub.ts`, `settingsChangePubSub.ts`.
 - **`throw` / generic `Error` / untyped `Promise.reject`** → `Schema.TaggedError` + `Effect.fail`. `catchAll` + "swallow" → `must`.
+- **N TaggedErrors, same fields (`message` and/or `cause`), same catch (print)** → one tag; nls in `message`. Split when catch, telemetry, or extra fields (`setting`) differ. `should`.
+- **`fail`+`catchTag` whose only arm prints nls for an expected skip** (missing optional plugin, incompatible version) → success-path write. `E` for unexpected recovery. `should`.
 - **`console.*` or log-line arrays** → `Effect.log` (structured) or `Effect.annotateCurrentSpan` for hot-path trace attrs.
 - **Service yields a dep that already exists** (channel/fs/settings/workspace/connection/project re-implemented) → reuse from `salesforcedx-vscode-services`. Cite file. **Highest leverage.**
 - **`Effect.gen` for cross-codebase function** → `Effect.fn('Module.name')` (span+tracing). Service body can stay `Effect.gen`.
