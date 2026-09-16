@@ -44,6 +44,7 @@ import {
   getNamespaceDisplayLabel,
   getPackageKeysOrdered,
   getPackageLabelAndId,
+  getToolingTestMethodPosition,
   isNonEmptyClassEntriesList,
   sortNamespaceKeys
 } from './orgTestItems';
@@ -879,13 +880,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const isOrgOnly = !resolution?.inWorkspace;
 
       const methodPositions = new Map(
-        (discoveredClass.testMethods ?? []).map(
-          method =>
-            [
-              method.name,
-              new vscode.Position(Math.max(0, (method.line ?? 1) - 1), Math.max(0, (method.column ?? 1) - 1))
-            ] as const
-        )
+        (discoveredClass.testMethods ?? []).map(method => [method.name, getToolingTestMethodPosition(method)] as const)
       );
       const currentMethodItems = yield* Ref.get(methodItems);
       yield* Effect.sync(() => {

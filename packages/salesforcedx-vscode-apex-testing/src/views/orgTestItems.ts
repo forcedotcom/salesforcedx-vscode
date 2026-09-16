@@ -190,6 +190,10 @@ export type ApexClassResolution = {
   readonly inWorkspace: boolean;
 };
 
+export const getToolingTestMethodPosition = (
+  method: ToolingTestClass['testMethods'][number] | undefined
+): vscode.Position => new vscode.Position(Math.max(0, (method?.line ?? 1) - 1), Math.max(0, (method?.column ?? 1) - 1));
+
 /**
  * Returns a function that creates a class TestItem and its method TestItems, and registers them in the given maps.
  * Used when building the Test Explorer tree so run/debug can resolve class/method items by id.
@@ -216,9 +220,7 @@ export const createClassAndMethodsFactory = (
 
     Array.dedupe(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name))).forEach(methodName => {
       const methodId = `${fullClassName}.${methodName}`;
-      const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
-      const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
-      const position = new vscode.Position(Math.max(0, line - 1), Math.max(0, column - 1));
+      const position = getToolingTestMethodPosition(classEntries[0].testMethods?.find(m => m.name === methodName));
       const range = new vscode.Range(position, position);
       const methodItem = controller.createTestItem(createMethodId(fullClassName, methodName), methodName, uri);
       methodItem.range = range;
