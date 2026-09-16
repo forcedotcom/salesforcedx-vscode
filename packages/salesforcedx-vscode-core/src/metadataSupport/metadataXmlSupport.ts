@@ -17,6 +17,17 @@ type XMLExtensionApi = {
   addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
 };
 
+type SchemaDocumentationInspection =
+  | Pick<
+      NonNullable<ReturnType<vscode.WorkspaceConfiguration['inspect']>>,
+      | 'globalValue'
+      | 'workspaceValue'
+      | 'workspaceFolderValue'
+      | 'globalLanguageValue'
+      | 'workspaceLanguageValue'
+    >
+  | undefined;
+
 class RedHatXmlExtensionSetupError extends Schema.TaggedError<RedHatXmlExtensionSetupError>()(
   'RedHatXmlExtensionSetupError',
   {
@@ -67,6 +78,15 @@ export const ensureMinXmlHeap = (vmArgs: string | undefined): string | undefined
   }
   return current.replace(XMX_REGEX, `-Xmx${MIN_XML_SERVER_HEAP_MB}M`);
 };
+
+export const shouldSetSchemaDocumentationTypeToNone = (inspection: SchemaDocumentationInspection): boolean =>
+  [
+    inspection?.globalValue,
+    inspection?.workspaceValue,
+    inspection?.workspaceFolderValue,
+    inspection?.globalLanguageValue,
+    inspection?.workspaceLanguageValue
+  ].every(isUndefined);
 
 const getLocalFilePaths = (extensionUri: URI, targetFileNames: string[]): string[] =>
   targetFileNames.map(targetFileName => Utils.joinPath(extensionUri, 'resources', targetFileName).fsPath);
@@ -123,13 +143,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(function* 
     );
     if (!doNotSuppress) {
       const docTypeInspect = yield* inspectXmlConfiguration<string>('preferences.showSchemaDocumentationType');
-      const userHasSetValue =
-        isNotUndefined(docTypeInspect?.globalValue) ||
-        isNotUndefined(docTypeInspect?.workspaceValue) ||
-        isNotUndefined(docTypeInspect?.workspaceFolderValue) ||
-        isNotUndefined(docTypeInspect?.globalLanguageValue) ||
-        isNotUndefined(docTypeInspect?.workspaceLanguageValue);
-      if (!userHasSetValue) {
+      if (shouldSetSchemaDocumentationTypeToNone(docTypeInspect)) {
         yield* settingsService.setValue(
           'xml',
           'preferences.showSchemaDocumentationType',

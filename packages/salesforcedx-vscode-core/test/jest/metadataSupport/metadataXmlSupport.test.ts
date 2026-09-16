@@ -14,7 +14,11 @@ import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelS
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { nls } from '../../../src/messages';
-import { ensureMinXmlHeap, initializeMetadataSupport } from '../../../src/metadataSupport/metadataXmlSupport';
+import {
+  ensureMinXmlHeap,
+  initializeMetadataSupport,
+  shouldSetSchemaDocumentationTypeToNone
+} from '../../../src/metadataSupport/metadataXmlSupport';
 
 type InspectResult = ReturnType<vscode.WorkspaceConfiguration['inspect']>;
 
@@ -115,51 +119,41 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_redhat_extension_setup_success'));
   });
 
-  it('skips the write when user has set a globalValue', async () => {
-    const { setValue } = await runInitialize(false, { globalValue: 'all' });
-    expect(setValue).not.toHaveBeenCalledWith(
-      'xml',
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('skips the write when user has set a workspaceValue', async () => {
-    const { setValue } = await runInitialize(false, { workspaceValue: 'none' });
-    expect(setValue).not.toHaveBeenCalledWith(
-      'xml',
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('skips the write when user has set a globalLanguageValue via [xml] block', async () => {
-    const { setValue } = await runInitialize(false, { globalLanguageValue: 'documentation' });
-    expect(setValue).not.toHaveBeenCalledWith(
-      'xml',
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('skips the write when user has set a workspaceLanguageValue via [xml] block', async () => {
-    const { setValue } = await runInitialize(false, { workspaceLanguageValue: 'hover' });
-    expect(setValue).not.toHaveBeenCalledWith(
-      'xml',
-      'preferences.showSchemaDocumentationType',
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
   it('raises a low user-level XML heap setting and reports the change', async () => {
     const { appendToChannel, setValue } = await runInitialize(false, { globalValue: 'all' }, '-Xmx512M');
 
     expect(setValue).toHaveBeenCalledWith('xml', 'server.vmargs', '-Xmx1024M', vscode.ConfigurationTarget.Global);
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_vmargs_configured'));
+  });
+});
+
+describe('shouldSetSchemaDocumentationTypeToNone', () => {
+  it.each([
+    { description: 'inspection returns undefined', inspection: undefined, expected: true },
+    { description: 'no explicit value exists', inspection: {}, expected: true },
+    { description: 'a global value exists', inspection: { globalValue: 'all' }, expected: false },
+    { description: 'a workspace value exists', inspection: { workspaceValue: 'none' }, expected: false },
+    {
+      description: 'a workspace folder value exists',
+      inspection: { workspaceFolderValue: 'none' },
+      expected: false
+    },
+    {
+      description: 'a global language value exists',
+      inspection: { globalLanguageValue: 'documentation' },
+      expected: false
+    },
+    {
+      description: 'a workspace language value exists',
+      inspection: { workspaceLanguageValue: 'hover' },
+      expected: false
+    }
+  ] satisfies ReadonlyArray<{
+    description: string;
+    inspection: Parameters<typeof shouldSetSchemaDocumentationTypeToNone>[0];
+    expected: boolean;
+  }>)('returns $expected when $description', ({ inspection, expected }) => {
+    expect(shouldSetSchemaDocumentationTypeToNone(inspection)).toBe(expected);
   });
 });
 
