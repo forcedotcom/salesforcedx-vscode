@@ -7,80 +7,8 @@
 
 import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
-import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
-
-/**
- * Extract the method name from a symbol name that may include return type and parentheses.
- * Examples:
- * - "methodName() : void" -> "methodName"
- * - "methodName(Integer) : void" -> "methodName"
- * - "methodName" -> "methodName"
- */
-const extractMethodName = (symbolName: string): string => {
-  // Remove return type (everything after " : ")
-  const withoutReturnType = symbolName.split(' : ')[0];
-  // Remove parentheses and parameters (everything after "(")
-  const methodName = withoutReturnType.split('(')[0];
-  return methodName.trim();
-};
-
-export const findMethodInSymbols = (
-  symbols: vscode.DocumentSymbol[],
-  methodName: string,
-  uri: URI
-): vscode.Location | undefined => {
-  // Extract the base method name from the symbol (remove return type and parameters)
-  const methodSymbol = symbols.find(
-    symbol => symbol.kind === vscode.SymbolKind.Method && extractMethodName(symbol.name) === methodName
-  );
-  if (methodSymbol) {
-    return new vscode.Location(uri, methodSymbol.range);
-  }
-  // Recursively search in children (nested classes)
-  return symbols
-    .map(symbol => (symbol.children?.length > 0 ? findMethodInSymbols(symbol.children, methodName, uri) : undefined))
-    .find(isNotUndefined);
-};
-
-/**
- * Get method locations from document symbols for a given URI and method names.
- * Returns a map of method names to their locations; empty when symbols are unavailable
- * or no method matched (callers fall back to Tooling API positions).
- */
-export const getMethodLocationsFromSymbols = async (
-  uri: URI,
-  methodNames: string[]
-): Promise<Map<string, vscode.Location>> => {
-  // Ensure the document is accessible - try to open it if needed
-  const isDocumentOpen = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === uri.toString());
-  if (!isDocumentOpen) {
-    // Document might not be open, try to open it. If we can't, document symbols won't be available.
-    const opened = await vscode.workspace.openTextDocument(uri).then(
-      () => true,
-      () => false
-    );
-    if (!opened) {
-      return new Map<string, vscode.Location>();
-    }
-  }
-
-  const documentSymbols = await vscode.commands
-    .executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', uri)
-    // If document symbols are not available, treat as no locations found
-    .then(undefined, () => undefined);
-
-  // Returns method names mapped to their locations; unfound methods and missing symbols
-  // yield an empty map (callers fall back to Tooling API positions)
-  return new Map<string, vscode.Location>(
-    Array.dedupe(methodNames)
-      .map(methodName => [methodName, findMethodInSymbols(documentSymbols ?? [], methodName, uri)] as const)
-      .filter((entry): entry is [string, vscode.Location] => isNotUndefined(entry[1]))
-  );
-};
 
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
 const writeTestResultJson = Effect.fn('testUtils.writeTestResultJson')(function* (result: TestResult, outputDir: URI) {
