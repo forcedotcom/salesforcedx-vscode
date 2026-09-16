@@ -123,7 +123,7 @@ export type SalesforceVSCodeServicesApi = {
   services: {
     /** @deprecated Use prebuiltServicesLayer so Effect runtime configuration is preserved. */
     prebuiltServicesDependencies: Context.Context<PrebuiltServicesDependencies>;
-    /** Shared service instances and Effect runtime configuration. */
+    /** Shared service instances plus redacting-logger FiberRef. Not the OTEL tracer. */
     prebuiltServicesLayer: Layer.Layer<PrebuiltServicesDependencies>;
     ApexLogService: typeof ApexLogService;
     AliasService: typeof AliasService;
@@ -543,14 +543,17 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    // Layer.buildWithScope returns only Context, so restore the logger FiberRef on the managed runtime.
+    // Layer.buildWithScope returns only Context. Logger FiberRef on exported prebuiltServicesLayer;
+    // tracer FiberRef (ServicesSdkLayer) only on the internal ManagedRuntime. Consumers use SdkLayerFor.
     const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
-    prebuiltServicesLayer.pipe(ManagedRuntime.make, setServicesRuntime);
+    const servicesRuntimeLayer = Layer.merge(prebuiltServicesLayer, ServicesSdkLayer());
+    const runtime = ManagedRuntime.make(servicesRuntimeLayer);
+    setServicesRuntime(runtime);
 
-    await activationEffect(context).pipe(
-      Effect.provide(prebuiltServicesLayer),
-      Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
-      Effect.runPromise
+    await runtime.runPromise(
+      activationEffect(context).pipe(
+        Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
+      )
     );
 
     console.log('Salesforce Services extension is now active!');
