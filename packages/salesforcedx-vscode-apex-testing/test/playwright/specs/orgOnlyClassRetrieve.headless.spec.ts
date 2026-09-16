@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { execFile } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { promisify } from 'node:util';
 
 import { expect } from '@playwright/test';
 import {
@@ -16,11 +18,13 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   isDesktop,
+  NON_TRACKING_ORG_ALIAS,
   ORG_METADATA_EDITOR,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
+  WORKBENCH,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
@@ -30,6 +34,7 @@ import {
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { messages } from '../../../src/messages/i18n';
+import type { ToolingTestsPage } from '../../../src/testDiscovery/schemas';
 import {
   TEST_EXPLORER_TREE_ITEM,
   findTestExplorerItem,
@@ -42,6 +47,37 @@ import {
 // Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
 // also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.
 const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
+const execFileAsync = promisify(execFile);
+const sfExecOptions = { env: { ...process.env, FORCE_COLOR: '0' } };
+
+const getDiscoveredMethodPosition = async (className: string, methodName: string) => {
+  const { stdout: orgDisplayJson } = await execFileAsync(
+    'sf',
+    ['org', 'display', '--target-org', NON_TRACKING_ORG_ALIAS, '--json'],
+    sfExecOptions
+  );
+  const apiVersion = Number((JSON.parse(orgDisplayJson) as { result: { apiVersion: string } }).result.apiVersion);
+  const query = apiVersion >= 68 ? 'testLevel=RunAllTestsInOrg' : 'showAllMethods=true';
+  const { stdout: discoveryJson } = await execFileAsync(
+    'sf',
+    [
+      'api',
+      'request',
+      'rest',
+      `/services/data/v${apiVersion.toFixed(1)}/tooling/tests?${query}`,
+      '--target-org',
+      NON_TRACKING_ORG_ALIAS,
+      '--json'
+    ],
+    sfExecOptions
+  );
+  const page = (JSON.parse(discoveryJson) as { result: { body: ToolingTestsPage } }).result.body;
+  const method = page.apexTestClasses
+    .find(testClass => testClass.name === className)
+    ?.testMethods.find(testMethod => testMethod.name === methodName);
+  expect(method, `Test Discovery should return ${className}.${methodName}`).toBeDefined();
+  return { line: method?.line ?? 1, column: method?.column ?? 1 };
+};
 
 (isDesktop() ? test : test.skip.bind(test))(
   'Org-only Apex class: retrieve via code lens opens the on-disk .cls',
@@ -51,22 +87,25 @@ const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_te
     const networkErrors = setupNetworkMonitoring(page);
 
     const className = `OrgOnlyRetrieve${Date.now()}`;
+    const methodName = 'retrievedFromOrg';
     const classContent = `@isTest
 public class ${className} {
     @isTest
-    static void retrievedFromOrg() {
+    static void ${methodName}() {
         System.assertEquals(1, 1, 'org-only retrieve should pass');
     }
 }`;
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     const localClsPath = path.join(classesDir, `${className}.cls`);
 
-    await test.step('setup non-tracking org and deploy an Apex test class', async () => {
-      await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
-      await createAndDeployApexTestClass(page, className, classContent);
-      await saveScreenshot(page, 'setup.class-deployed.png');
-    });
+    const discoveredMethodPosition =
+      await test.step('setup non-tracking org and deploy an Apex test class', async () => {
+        await setupNonTrackingOrgAndAuth(page);
+        await ensureSecondarySideBarHidden(page);
+        await createAndDeployApexTestClass(page, className, classContent);
+        await saveScreenshot(page, 'setup.class-deployed.png');
+        return getDiscoveredMethodPosition(className, methodName);
+      });
 
     await test.step('delete local source so the class is org-only', async () => {
       // Remove both the `.cls` and its `-meta.xml` from disk (not from the org). After this the
@@ -92,7 +131,7 @@ public class ${className} {
       // "go to test" navigation, which opens the method's catalog document (the one place
       // the retrieve code lens renders).
       await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
-      const methodItem = findTestExplorerItem(page, 'retrievedFromOrg');
+      const methodItem = findTestExplorerItem(page, methodName);
       await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
       await methodItem.dblclick();
       // Assert the virtual doc actually opened before clicking the code lens, so a broken
@@ -100,6 +139,10 @@ public class ${className} {
       await expect(page.locator(ORG_METADATA_EDITOR).first()).toBeVisible({
         timeout: 60_000
       });
+      await expect(page.locator(WORKBENCH).getByRole('button', { name: /Ln \d+, Col \d+/ })).toContainText(
+        new RegExp(`Ln ${discoveredMethodPosition.line}, Col ${discoveredMethodPosition.column}`),
+        { timeout: 10_000 }
+      );
       await saveScreenshot(page, 'step.virtual-doc-opened.png');
     });
 
