@@ -57,6 +57,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
@@ -159,6 +161,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
