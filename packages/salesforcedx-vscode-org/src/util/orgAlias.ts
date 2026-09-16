@@ -12,8 +12,7 @@ const OrgAlias = Schema.String.pipe(Schema.pattern(/^[\w-]+( *[\w-]*)*$/));
 
 /**
  * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org
- * aliases (issues/7794) and carry no shell-injection risk since the alias is always double-quoted before
- * interpolation into the CLI command; all other metachars stay rejected.
+ * aliases (issues/7794); other metacharacters stay rejected.
  */
 export const isValidOrgAlias = Schema.is(OrgAlias);
 

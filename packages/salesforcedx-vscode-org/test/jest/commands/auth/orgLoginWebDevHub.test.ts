@@ -98,8 +98,11 @@ describe('orgLoginWebDevHubCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledTimes(1);
-    const arg = (simpleExec.mock.calls as unknown as [{ command: string; parse: unknown }][])[0][0];
-    expect(arg.command).toBe('sf org login web --alias "myHub" --set-default-dev-hub');
+    const arg = (
+      simpleExec.mock.calls as unknown as [{ executable: string; args: readonly string[]; parse: unknown }][]
+    )[0][0];
+    expect(arg.executable).toBe('sf');
+    expect(arg.args).toEqual(['org', 'login', 'web', '--alias', 'myHub', '--set-default-dev-hub']);
     expect(arg.parse).toBe(identity);
   });
 
@@ -111,7 +114,7 @@ describe('orgLoginWebDevHubCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: `sf org login web --alias "${DEFAULT_ALIAS}" --set-default-dev-hub` })
+      expect.objectContaining({ args: ['org', 'login', 'web', '--alias', DEFAULT_ALIAS, '--set-default-dev-hub'] })
     );
   });
 

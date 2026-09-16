@@ -38,14 +38,23 @@ type ProcessDetail = typeof ProcessDetailSchema.Type;
 
 const isWindows = process.platform === 'win32';
 
-const listProcessesCmd = isWindows
-  ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
-  : 'ps -e -o pid,ppid,command';
+const listProcessesCmd: { executable: string; args: readonly string[] } = isWindows
+  ? {
+      executable: 'powershell.exe',
+      args: [
+        '-command',
+        'Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders'
+      ]
+    }
+  : { executable: 'ps', args: ['-e', '-o', 'pid,ppid,command'] };
 
-const parentCheckCmd = (ppid: number): string =>
+const parentCheckCmd = (ppid: number): { executable: string; args: readonly string[] } =>
   isWindows
-    ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'"`
-    : `ps -p ${ppid}`;
+    ? {
+        executable: 'powershell.exe',
+        args: ['-command', `Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'`]
+      }
+    : { executable: 'ps', args: ['-p', String(ppid)] };
 
 const decodeProcessList = Schema.decodeSync(Schema.mutable(Schema.Array(ProcessDetailSchema)));
 
@@ -80,7 +89,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
   // Windows-only guard: powershell must be present to list processes.
   if (isWindows) {
     const hasPowershell = yield* terminal
-      .simpleExec({ command: 'where powershell', parse: stdout => stdout.length > 0 })
+      .simpleExec({ executable: 'where', args: ['powershell'], parse: stdout => stdout.length > 0 })
       .pipe(
         Effect.catchTag('TerminalServiceError', e =>
           annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as(false))
@@ -93,13 +102,13 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec({ command: listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
   const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
-      : terminal.simpleExec({ command: parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
+      : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
           Effect.as(processInfo),
           Effect.catchTag('TerminalServiceError', e =>
             annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as({ ...processInfo, orphaned: true }))

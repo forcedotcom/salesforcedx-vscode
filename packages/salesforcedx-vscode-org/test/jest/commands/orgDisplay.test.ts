@@ -121,12 +121,13 @@ describe('orgDisplayDefaultCommand', () => {
     show = jest.fn();
   });
 
-  it('runs `sf org display --target-org "<default>" --json` and writes the table to the channel', async () => {
+  it('runs `sf org display --target-org <default> --json` and writes the table to the channel', async () => {
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org display --target-org "me@scratch.org" --json',
+      executable: 'sf',
+      args: ['org', 'display', '--target-org', 'me@scratch.org', '--json'],
       parse: expect.any(Function)
     });
     // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; the scratch-org values
@@ -150,7 +151,9 @@ describe('orgDisplayDefaultCommand', () => {
     const exit = await run(orgDisplayDefaultCommand, { orgInfo: {}, simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org display --json' }));
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({ executable: 'sf', args: ['org', 'display', '--json'] })
+    );
   });
 
   it('renders the non-scratch table (connectedStatus, no scratch block)', async () => {
@@ -255,26 +258,30 @@ describe('orgDisplayUsernameCommand', () => {
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
   });
 
-  it('runs `sf org display --target-org "<picked>" --json` for the picked org and writes the table', async () => {
+  it('runs `sf org display --target-org <picked> --json` for the picked org and writes the table', async () => {
     const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org display --target-org "me@scratch.org" --json',
+      executable: 'sf',
+      args: ['org', 'display', '--target-org', 'me@scratch.org', '--json'],
       parse: expect.any(Function)
     });
     expect(appendToChannel.mock.calls[0][0]).toContain('Username');
     expect(show).toHaveBeenCalledTimes(1);
   });
 
-  it('quotes the picked username so a value with spaces survives /bin/sh -c word splitting', async () => {
+  it('passes a username with spaces as a single argv element (no shell word splitting)', async () => {
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'my org@example.com' }));
 
     const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: 'sf org display --target-org "my org@example.com" --json' })
+      expect.objectContaining({
+        executable: 'sf',
+        args: ['org', 'display', '--target-org', 'my org@example.com', '--json']
+      })
     );
   });
 

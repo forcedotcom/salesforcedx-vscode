@@ -143,8 +143,20 @@ describe('orgCreateCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
-        command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myAlias" --duration-days 14 --set-default --json'
+        executable: 'sf',
+        args: [
+          'org',
+          'create',
+          'scratch',
+          '--definition-file',
+          '/repo/config/project-scratch-def.json',
+          '--alias',
+          'myAlias',
+          '--duration-days',
+          '14',
+          '--set-default',
+          '--json'
+        ]
       })
     );
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
@@ -187,8 +199,20 @@ describe('orgCreateCommand', () => {
     expect(showInputBox).toHaveBeenNthCalledWith(2, expect.objectContaining({ value: '7' }));
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
-        command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myproject" --duration-days 7 --set-default --json'
+        executable: 'sf',
+        args: [
+          'org',
+          'create',
+          'scratch',
+          '--definition-file',
+          '/repo/config/project-scratch-def.json',
+          '--alias',
+          'myproject',
+          '--duration-days',
+          '7',
+          '--set-default',
+          '--json'
+        ]
       })
     );
   });

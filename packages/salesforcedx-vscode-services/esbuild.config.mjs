@@ -149,6 +149,9 @@ const buildWebConfig = async () => {
 // Desktop build (Node.js environment)
 const nodeBuild = await build({
   ...nodeConfig,
+  // node-branch `import()`; `node.mjs` defaults `dynamic-import` false/error (lwcServer.js).
+  supported: { ...nodeConfig.supported, 'dynamic-import': true },
+  logOverride: { ...nodeConfig.logOverride, 'unsupported-dynamic-import': 'silent' },
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? []), copyTemplates],
