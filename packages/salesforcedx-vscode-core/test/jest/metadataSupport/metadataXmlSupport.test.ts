@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
@@ -26,6 +26,8 @@ type XMLExtensionApi = {
   addXMLCatalogs: jest.Mock;
   addXMLFileAssociations: jest.Mock;
 };
+
+const extensionUri = URI.file('/ext');
 
 const makeRedhatExtension = () =>
   ({
@@ -62,7 +64,7 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
     const getValue = jest.fn(() => Effect.succeed(doNotSuppress));
     const setValue = jest.fn(() => Effect.void);
     const extensionContext = {
-      extensionUri: URI.file('/ext')
+      extensionUri
     } as unknown as vscode.ExtensionContext;
 
     jest.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
@@ -112,9 +114,14 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
       'none',
       vscode.ConfigurationTarget.Workspace
     );
-    expect(redhat.exports.addXMLCatalogs).toHaveBeenCalledWith(['/ext/resources/metadata-catalog.xml']);
+    expect(redhat.exports.addXMLCatalogs).toHaveBeenCalledWith([
+      Utils.joinPath(extensionUri, 'resources', 'metadata-catalog.xml').fsPath
+    ]);
     expect(redhat.exports.addXMLFileAssociations).toHaveBeenCalledWith([
-      { systemId: '/ext/resources/salesforce_metadata_api_namespace1.xsd', pattern: '**/*-meta.xml' }
+      {
+        systemId: Utils.joinPath(extensionUri, 'resources', 'salesforce_metadata_api_namespace1.xsd').fsPath,
+        pattern: '**/*-meta.xml'
+      }
     ]);
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_redhat_extension_setup_success'));
   });
