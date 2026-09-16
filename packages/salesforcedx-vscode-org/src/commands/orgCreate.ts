@@ -6,16 +6,16 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getTargetDevHubOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { ORG_LOGIN_WEB_DEV_HUB } from '../constants';
 import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
 import { isValidOrgAlias } from '../util/orgAlias';
@@ -42,6 +42,12 @@ const CREATE_TIMEOUT = Duration.minutes(15);
 export class OrgCreateParseError extends Schema.TaggedError<OrgCreateParseError>()('OrgCreateParseError', {
   message: Schema.String
 }) {}
+
+/** @ExportTaggedError */
+export class AuthorizeDevHubCommandError extends Schema.TaggedError<AuthorizeDevHubCommandError>()(
+  'AuthorizeDevHubCommandError',
+  { message: Schema.String }
+) {}
 
 const OrgCreateSuccess = Schema.TaggedStruct('OrgCreateSuccess', {
   status: Schema.Literal(0),
@@ -145,9 +151,32 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     [api.services.ProjectService.getSfProject(), api.services.ConfigService.getTargetDevHub()],
     { concurrency: 'unbounded' }
   );
-  // no devhub → show the same "no dev hub" warning and cancel.
+  // no devhub → offer authorization, then cancel this create attempt.
   if (isUndefined(devHub)) {
-    yield* Effect.promise(() => getTargetDevHubOrAlias(true)).pipe(Effect.ignore);
+    const authorizeDevHub = nls.localize('notification_make_default_dev');
+    const selection = yield* Effect.promise(() =>
+      vscode.window.showInformationMessage(nls.localize('error_no_target_dev_hub'), authorizeDevHub)
+    );
+    if (selection === authorizeDevHub) {
+      yield* Effect.forkDaemon(
+        Effect.tryPromise({
+          try: () => vscode.commands.executeCommand(ORG_LOGIN_WEB_DEV_HUB),
+          catch: cause =>
+            new AuthorizeDevHubCommandError({
+              message: nls.localize(
+                'org_create_authorize_dev_hub_failed',
+                isError(cause) ? cause.message : String(cause)
+              )
+            })
+        }).pipe(
+          Effect.catchTag('AuthorizeDevHubCommandError', error =>
+            Effect.sync(() => {
+              void vscode.window.showErrorMessage(error.message);
+            })
+          )
+        )
+      );
+    }
     return yield* new api.services.UserCancellationError({});
   }
 
