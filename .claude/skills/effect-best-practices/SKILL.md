@@ -2,7 +2,7 @@
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
 review: always
-version: 1.5.0
+version: 1.6.0
 ---
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
@@ -30,7 +30,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
 | Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
-| Error Specificity | `UserNotFoundError`, `SessionExpiredError`               | Generic `NotFoundError`, `BadRequestError`                       |
+| Error Specificity | Split tags when catch, telemetry, or fields differ (`cause`+`setting` vs `message`) | Extra tags that all print `message` |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
@@ -180,11 +180,13 @@ yield *
 - **Genuinely ignore** – accept failure and continue (e.g. optional pre-create)
 - **Better message** – default vague; map to clearer domain error
 
+Expected skip (missing optional plugin, incompatible version): write nls on the success path (guard / Match branch). `fail`+`catchTag` is for unexpected recovery — a handler that isn't "print this string."
+
 Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTags`; log or fail with improved error.
 
 ### Prefer Explicit Over Generic Errors
 
-**Every distinct failure reason deserves its own error type** with rich context (`userId`, `channelId`, `expiredAt`), not one generic `NotFoundError` everything maps to. A generic `{ _tag: 'NotFoundError', message: 'Not found' }` can't tell the frontend which resource failed or how to recover; explicit tags drive specific UI. See `references/error-patterns.md` for the WRONG/CORRECT contrast and naming conventions.
+Split tags when **catch arms, telemetry, or payload fields** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. One tag when every arm prints `message` (or `cause`); put nls variance in `message`. Frontend/RPC still splits when the UI actually branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
 
 ### Accumulating Errors Across a Collection
 
