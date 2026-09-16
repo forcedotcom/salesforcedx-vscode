@@ -543,8 +543,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    // buildWithScope returns Context only. Logger FiberRef on exported prebuiltServicesLayer.
-    // Tracer FiberRef via layerWithoutOtelTracer — same OtelTracer, no second NodeTracerProvider.
+    // buildWithScope returns Context only. Logger FiberRef on exported prebuiltServicesLayer; tracer FiberRef on this runtime from builtContext OtelTracer (no second NodeTracerProvider).
     const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
     const tracerFiberRefLayer = Option.match(Context.getOption(builtContext, OtelTracer.OtelTracer), {
       onNone: () => Layer.empty,
