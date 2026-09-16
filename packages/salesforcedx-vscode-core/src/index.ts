@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { buildAllServicesLayer, closeExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -12,7 +17,6 @@ import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { setCoreChannel } from './channels';
 import { configListCommand, initSObjectDefinitions, openDocumentationCommand } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -20,7 +24,7 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
-import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
+import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport';
 import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
@@ -62,11 +66,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 ) {
   yield* ensureCurrentWorkingDirIsProjectPath();
 
-  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce CLI' channel exists.
-  // ensureCurrentWorkingDirIsProjectPath already resolved getServicesApi, so this reuses that dependency.
+  // Dispose the services-owned output channel with the extension context.
   const servicesApi = yield* getServicesApi;
   const coreChannel = yield* (yield* servicesApi.services.ChannelService).getChannel;
-  setCoreChannel(coreChannel);
   extensionContext.subscriptions.push(coreChannel);
 
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
@@ -88,13 +90,13 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
 
-  if (salesforceProjectOpened) {
-    yield* Effect.promise(() => initializeProject(extensionContext));
-  }
-
   yield* registerCommand('sf.config.list', () => configListCommand());
 
   extensionContext.subscriptions.push(registerCommands(extensionContext), CommandEventDispatcher.getInstance());
+
+  if (salesforceProjectOpened) {
+    yield* initializeProject();
+  }
 
   if (
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-metadata') &&
@@ -114,22 +116,21 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   handleTheUnhandled();
 });
 
-const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
-  // Initialize metadata hover provider
+const initializeProject = Effect.fn('initializeProject')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const extensionContext = yield* (yield* api.services.ExtensionContextService).getContext;
   const metadataHoverProvider = new MetadataHoverProvider();
 
-  await Promise.all([
-    // Initialize metadata XML support
-    MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
-    // Initialize metadata hover provider
-    metadataHoverProvider.initialize()
-  ]);
+  yield* Effect.all([initializeMetadataSupport(), Effect.promise(() => metadataHoverProvider.initialize())], {
+    concurrency: 'unbounded'
+  });
 
-  // Register hover provider for XML files
-  extensionContext.subscriptions.push(
-    vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
-  );
-};
+  yield* Effect.sync(() => {
+    extensionContext.subscriptions.push(
+      vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
+    );
+  });
+});
 
 export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');

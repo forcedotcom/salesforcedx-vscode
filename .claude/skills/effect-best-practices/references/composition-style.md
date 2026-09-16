@@ -161,7 +161,8 @@ Bail conditions (`if (isDebug || !single) return;`) aren't dispatch dimensions.
    two.
 
 Pattern: short-circuit prerequisites up top, matcher handles real variance on
-proven-good input.
+proven-good input. Expected skip (missing optional plugin, incompatible version):
+nls write on that guard — not `fail`+`catchTag` whose only arm prints `message`.
 
 ## Linear body → point-free pipe, not a generator
 

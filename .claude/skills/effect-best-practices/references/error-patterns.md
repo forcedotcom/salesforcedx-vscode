@@ -175,9 +175,18 @@ export class ForbiddenError extends Schema.TaggedError<ForbiddenError>()(
 ### Required Fields
 
 Every error should have:
-- `message: Schema.String` - Human-readable description
-- Relevant context fields (IDs, etc.)
-- Optional `cause: Schema.optional(Schema.String)` for error chains
+- `message: Schema.String` — copy a consumer displays (nls, toast, channel). If the catch arm writes nls, that nls is `message`.
+- Context fields a handler, log, or span actually reads
+- Optional `cause` for error chains
+
+Split tags when catch arms, telemetry, or **fields** differ (`message`+`cause` vs `message`+`cause`+`setting`). One tag when every arm prints `message` (or `cause`) — different nls still one tag; copy lives in `message`.
+
+Expected skip: success-path nls write. `fail`+`catchTag` when recovery isn't "print this string."
+
+```typescript
+// one tag; nls in `message`; catch reports it
+Effect.catchTag('FooError', error => show(error.message))
+```
 
 ## Error Handling with catchTag/catchTags
 
