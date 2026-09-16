@@ -21,8 +21,6 @@ export const messages = {
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
-  notification_make_default_dev: 'Authorize a Dev Hub',
-  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
 
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',

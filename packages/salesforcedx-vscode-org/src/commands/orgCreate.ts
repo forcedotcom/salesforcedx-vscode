@@ -43,8 +43,7 @@ export class OrgCreateParseError extends Schema.TaggedError<OrgCreateParseError>
   message: Schema.String
 }) {}
 
-/** @ExportTaggedError */
-export class AuthorizeDevHubCommandError extends Schema.TaggedError<AuthorizeDevHubCommandError>()(
+class AuthorizeDevHubCommandError extends Schema.TaggedError<AuthorizeDevHubCommandError>()(
   'AuthorizeDevHubCommandError',
   { message: Schema.String }
 ) {}

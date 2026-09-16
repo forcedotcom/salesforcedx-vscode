@@ -17,7 +17,6 @@ export { isInternalHost } from './telemetry/utils/isInternal';
 export { createDirectory, fileOrFolderExists, readFile, safeDelete, writeFile } from './helpers/fs';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
-export { getTargetDevHubOrAlias } from './util/authInfo';
 export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';

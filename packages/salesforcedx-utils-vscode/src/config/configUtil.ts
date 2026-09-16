@@ -9,7 +9,7 @@ import { Config, ConfigAggregator, OrgConfigProperties, StateAggregator } from '
 import { SF_CONFIG_DISABLE_TELEMETRY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
-export enum ConfigSource {
+enum ConfigSource {
   Local,
   Global,
   None
