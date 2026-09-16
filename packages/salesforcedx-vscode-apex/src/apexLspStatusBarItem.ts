@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from './messages';
+import { getRuntime } from './services/runtime';
 import { getApexLanguageServerRestartBehavior } from './settings';
 
 export default class ApexLSPStatusBarItem implements vscode.Disposable {
@@ -15,6 +17,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   private restartStatusItem: vscode.LanguageStatusItem;
   private diagnostics: vscode.DiagnosticCollection;
   private disposables: vscode.Disposable[] = [];
+  private languageServerReady = false;
+  private restartCommandUpdate = 0;
 
   constructor() {
     this.languageStatusItem = vscode.languages.createLanguageStatusItem('ApexLSPLanguageStatusItem', {
@@ -40,24 +44,35 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   }
 
   private updateRestartCommandText() {
-    const restartBehavior = getApexLanguageServerRestartBehavior();
-    let commandTitle = nls.localize('apex_language_server_restart');
+    if (!this.languageServerReady) return;
+    const restartCommandUpdate = ++this.restartCommandUpdate;
+    getRuntime().runFork(
+      getApexLanguageServerRestartBehavior().pipe(
+        Effect.tap(restartBehavior =>
+          Effect.sync(() => {
+            if (!this.languageServerReady || restartCommandUpdate !== this.restartCommandUpdate) return;
+            const commandTitle =
+              restartBehavior === 'restart'
+                ? nls.localize('apex_language_server_restart_dialog_restart_only')
+                : restartBehavior === 'reset'
+                  ? nls.localize('apex_language_server_restart_dialog_clean_and_restart')
+                  : nls.localize('apex_language_server_restart');
 
-    if (restartBehavior === 'restart') {
-      commandTitle = nls.localize('apex_language_server_restart_dialog_restart_only');
-    } else if (restartBehavior === 'reset') {
-      commandTitle = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
-    }
-
-    this.restartStatusItem.text = commandTitle;
-    this.restartStatusItem.command = {
-      title: commandTitle,
-      command: 'sf.apex.languageServer.restart',
-      arguments: ['statusBar']
-    };
+            this.restartStatusItem.text = commandTitle;
+            this.restartStatusItem.command = {
+              title: commandTitle,
+              command: 'sf.apex.languageServer.restart',
+              arguments: ['statusBar']
+            };
+          })
+        )
+      )
+    );
   }
 
   public indexing() {
+    this.languageServerReady = false;
+    this.restartCommandUpdate++;
     this.languageStatusItem.text = nls.localize('apex_language_server_loading');
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Information;
     this.restartStatusItem.text = '';
@@ -65,6 +80,7 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   }
 
   public ready() {
+    this.languageServerReady = true;
     this.languageStatusItem.text = nls.localize('apex_language_server_loaded');
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Information;
     this.languageStatusItem.command = undefined;
@@ -74,6 +90,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   }
 
   public restarting() {
+    this.languageServerReady = false;
+    this.restartCommandUpdate++;
     this.languageStatusItem.text = nls.localize('apex_language_server_restarting');
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Information;
     this.restartStatusItem.text = '';
@@ -81,6 +99,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   }
 
   public error(msg: string) {
+    this.languageServerReady = false;
+    this.restartCommandUpdate++;
     this.languageStatusItem.text = msg;
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Error;
     this.restartStatusItem.text = '';
@@ -93,6 +113,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   }
 
   public dispose() {
+    this.languageServerReady = false;
+    this.restartCommandUpdate++;
     this.languageStatusItem.dispose();
     this.restartStatusItem.dispose();
     this.disposables.forEach(d => d.dispose());

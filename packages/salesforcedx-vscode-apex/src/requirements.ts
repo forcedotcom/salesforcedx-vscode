@@ -10,11 +10,10 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as cp from 'node:child_process';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
-import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 import { getRuntime } from './services/runtime';
@@ -24,8 +23,6 @@ import { getRuntime } from './services/runtime';
 const findJavaHome = require('find-java-home');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
-const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
 type RequirementsData = {
   java_home: string;
   java_memory: number | null;
@@ -39,8 +36,7 @@ const checkFileOrFolderExists = Effect.fn('requirements.fileOrFolderExists')(fun
 // Thin Promise wrapper so the 3 call sites stay `await fileOrFolderExists(x)`. Swallows the two
 // getServicesApi tags → false (services is a hard extension dep, so unreachable in practice) but logs
 // a warning so a genuine outage is distinguishable from a legitimately-missing path; error channel
-// resolves to never, keeping the old no-throw contract (a throw in checkJavaRuntime's Promise executor
-// would hang instead of reject).
+// resolves to never, keeping the old no-throw contract.
 const fileOrFolderExists = (p: string): Promise<boolean> =>
   getRuntime().runPromise(
     checkFileOrFolderExists(p).pipe(
@@ -59,7 +55,18 @@ const fileOrFolderExists = (p: string): Promise<boolean> =>
  */
 export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
-  const javaMemory: number | null = workspace.getConfiguration().get<number | null>(JAVA_MEMORY_KEY, null);
+  const javaMemory = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return (
+        (yield* api.services.SettingsService.getValue<number | null>(
+          'salesforcedx-vscode-apex',
+          'java.memory',
+          null
+        )) ?? null
+      );
+    })
+  );
   await checkJavaVersion(javaHome);
   return {
     java_home: javaHome,
@@ -98,50 +105,8 @@ const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
   return true;
 };
 
-const checkJavaRuntime = async (): Promise<string> =>
-  new Promise(async (resolve, reject) => {
-    let source: string;
-    let javaHome: string | undefined = readJavaConfig();
-
-    if (javaHome) {
-      source = nls.localize('source_java_home_setting_text');
-    } else {
-      javaHome = process.env['JDK_HOME'];
-
-      if (javaHome) {
-        source = nls.localize('source_jdk_home_env_var_text');
-      } else {
-        javaHome = process.env['JAVA_HOME'];
-        source = nls.localize('source_java_home_env_var_text');
-      }
-    }
-
-    if (javaHome) {
-      const expandedHome = expandHomeDir(javaHome);
-      if (!expandedHome) {
-        reject(nls.localize('java_home_expansion_failed_text'));
-        return;
-      }
-
-      // On Windows, we don't need to check for local paths
-      if (process.platform !== 'win32' && isLocal(expandedHome)) {
-        reject(nls.localize('java_runtime_local_text', expandedHome, SET_JAVA_DOC_LINK));
-        return;
-      }
-
-      if (!(await fileOrFolderExists(expandedHome))) {
-        reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
-        return;
-      }
-
-      // Validate the Java installation
-      validateJavaInstallation(expandedHome)
-        .then(() => resolve(expandedHome))
-        .catch(error => reject(error.message));
-      return;
-    }
-
-    // Last resort, try to automatically detect
+const detectJavaHome = (): Promise<string> =>
+  new Promise((resolve, reject) => {
     findJavaHome((err: Error, home: string | undefined) => {
       if (err) {
         reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
@@ -152,17 +117,60 @@ const checkJavaRuntime = async (): Promise<string> =>
         reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
         return;
       }
-
-      validateJavaInstallation(home)
-        .then(() => resolve(home))
-        .catch(error => reject(error.message));
+      resolve(home);
     });
   });
 
-const readJavaConfig = (): string | undefined => {
-  const config = workspace.getConfiguration();
-  return config.get<string>('salesforcedx-vscode-apex.java.home');
+const validateJavaHome = async (javaHome: string): Promise<string> => {
+  try {
+    await validateJavaInstallation(javaHome);
+    return javaHome;
+  } catch (error) {
+    throw isError(error) ? error.message : error;
+  }
 };
+
+const checkJavaRuntime = async (): Promise<string> => {
+  let source: string;
+  let javaHome: string | undefined = await readJavaConfig();
+
+  if (javaHome) {
+    source = nls.localize('source_java_home_setting_text');
+  } else {
+    javaHome = process.env['JDK_HOME'];
+
+    if (javaHome) {
+      source = nls.localize('source_jdk_home_env_var_text');
+    } else {
+      javaHome = process.env['JAVA_HOME'];
+      source = nls.localize('source_java_home_env_var_text');
+    }
+  }
+
+  if (!javaHome) return validateJavaHome(await detectJavaHome());
+
+  const expandedHome = expandHomeDir(javaHome);
+  if (!expandedHome) throw nls.localize('java_home_expansion_failed_text');
+
+  // On Windows, we don't need to check for local paths
+  if (process.platform !== 'win32' && isLocal(expandedHome)) {
+    throw nls.localize('java_runtime_local_text', expandedHome, SET_JAVA_DOC_LINK);
+  }
+
+  if (!(await fileOrFolderExists(expandedHome))) {
+    throw nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK);
+  }
+
+  return validateJavaHome(expandedHome);
+};
+
+const readJavaConfig = (): Promise<string | undefined> =>
+  getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return yield* api.services.SettingsService.getValue<string>('salesforcedx-vscode-apex', 'java.home');
+    })
+  );
 
 const expandHomeDir = (p: string): string | undefined => {
   if (!p || !isString(p)) {

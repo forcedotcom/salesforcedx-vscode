@@ -10,7 +10,6 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
 
@@ -79,7 +78,10 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
   const servicesApi = yield* getServicesApi;
   const channelService = yield* servicesApi.services.ChannelService;
 
-  if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+  if (
+    (yield* servicesApi.services.SettingsService.getValue('salesforcedx-vscode-core', 'clearOutputTab', false)) ??
+    false
+  ) {
     yield* channelService.clearChannel;
   }
 

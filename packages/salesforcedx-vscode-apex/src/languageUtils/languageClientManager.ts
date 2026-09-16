@@ -18,7 +18,7 @@ import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
-import { retrieveEnableSyncInitJobs } from '../settings';
+import { getApexLanguageServerRestartBehavior, retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
   Unavailable,
@@ -194,8 +194,9 @@ export class LanguageClientManager {
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+    const restartBehavior = await getRuntime().runPromise(
+      getApexLanguageServerRestartBehavior().pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+    );
 
     // If launched from command palette, always show prompt with default option first
     if (source === 'commandPalette') {
@@ -366,7 +367,13 @@ export class LanguageClientManager {
         await languageClient.start();
         const startTime = globalThis.performance.now() - langClientStartTime;
         fireSpan('apex.lsp.startup', { activationTime: startTime });
-        await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
+        await this.indexerDoneHandler(
+          await getRuntime().runPromise(
+            retrieveEnableSyncInitJobs().pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+          ),
+          languageClient,
+          languageServerStatusBarItem
+        );
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
         const errorMessage = nls.localize('unknown');

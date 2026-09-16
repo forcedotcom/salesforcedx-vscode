@@ -88,12 +88,23 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     );
     const javaExecutable = path.resolve(`${requirementsData.java_home}/bin/java`);
     const jvmMaxHeap = requirementsData.java_memory;
-    const enableSemanticErrors: boolean = vscode.workspace
-      .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
-    const enableCompletionStatistics: boolean = vscode.workspace
-      .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
+    const { enableSemanticErrors, enableCompletionStatistics } = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* Effect.all({
+          enableSemanticErrors: api.services.SettingsService.getValue(
+            'salesforcedx-vscode-apex',
+            'enable-semantic-errors',
+            false
+          ),
+          enableCompletionStatistics: api.services.SettingsService.getValue(
+            'salesforcedx-vscode-apex',
+            'advanced.enable-completion-statistics',
+            false
+          )
+        });
+      })
+    );
 
     const args: string[] = [
       '-cp',
@@ -190,30 +201,54 @@ export const createLanguageServer = async (
 
 const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise<ApexLanguageClientOptions> => {
   const soqlExtensionInstalled = isNotUndefined(vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql'));
-  const lspParityCapabilities = vscode.workspace
-    .getConfiguration()
-    .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+  const settings = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return yield* Effect.all(
+        {
+          lspParityCapabilities: api.services.SettingsService.getValue(
+            'salesforcedx-vscode-apex',
+            'advanced.lspParityCapabilities',
+            true
+          ),
+          enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
+          enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+          apexActionClassDefModifiers: retrieveAAClassDefModifiers(),
+          apexActionClassAccessModifiers: retrieveAAClassAccessModifiers(),
+          apexActionMethodDefModifiers: retrieveAAMethodDefModifiers(),
+          apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers(),
+          apexActionPropDefModifiers: retrieveAAPropDefModifiers(),
+          apexActionPropAccessModifiers: retrieveAAPropAccessModifiers(),
+          apexActionMethodAnnotations: retrieveAAMethodAnnotations(),
+          apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers(),
+          apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers(),
+          apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers()
+        },
+        { concurrency: 'unbounded' }
+      );
+    })
+  );
   const scanConfig = await buildMetadataRegistryScanConfig();
   const initializationOptions = {
     enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-    enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
-    enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-    apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
-    apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
-    apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
-    apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
-    apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
-    apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+    enableErrorToTelemetry: settings.enableErrorToTelemetry,
+    enableSynchronizedInitJobs: settings.enableSynchronizedInitJobs,
+    apexActionClassDefModifiers: settings.apexActionClassDefModifiers.join(','),
+    apexActionClassAccessModifiers: settings.apexActionClassAccessModifiers.join(','),
+    apexActionMethodDefModifiers: settings.apexActionMethodDefModifiers.join(','),
+    apexActionMethodAccessModifiers: settings.apexActionMethodAccessModifiers.join(','),
+    apexActionPropDefModifiers: settings.apexActionPropDefModifiers.join(','),
+    apexActionPropAccessModifiers: settings.apexActionPropAccessModifiers.join(','),
     apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
     apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
-    apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
-    apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
-    apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
-    apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
+    apexActionMethodAnnotations: settings.apexActionMethodAnnotations.join(','),
+    apexOASClassAccessModifiers: settings.apexOASClassAccessModifiers.join(','),
+    apexOASMethodAccessModifiers: settings.apexOASMethodAccessModifiers.join(','),
+    apexOASPropAccessModifiers: settings.apexOASPropAccessModifiers.join(',')
   };
 
   // Create middleware that disables parity providers when setting is true
-  const parityMiddleware: Record<string, () => null> = lspParityCapabilities
+  const parityMiddleware: Record<string, () => null> = settings.lspParityCapabilities
     ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
     : {};
 

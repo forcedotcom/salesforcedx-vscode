@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { QueryValidationFeature } from '@salesforce/soql-language-server';
-import { workspace } from 'vscode';
+import * as Effect from 'effect/Effect';
 import type { BaseLanguageClient as LanguageClient } from 'vscode-languageclient';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { runQuery } from '../editor/queryRunner';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection } from '../services/org';
 
 export const init = (client: LanguageClient): LanguageClient => {
@@ -21,7 +23,12 @@ export const init = (client: LanguageClient): LanguageClient => {
 
 export const afterStart = (client: LanguageClient): LanguageClient => {
   client.onRequest('runQuery', async (queryText: string) => {
-    const enabled = workspace.getConfiguration(SOQL_CONFIGURATION_NAME).get<boolean>(SOQL_VALIDATION_CONFIG);
+    const enabled = await getSoqlRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.SettingsService.getValue<boolean>(SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG);
+      })
+    );
 
     try {
       return enabled

@@ -40,10 +40,13 @@ import { renameAuraCommand } from './commands/renameAura';
 import { nls } from './messages';
 import { getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
-const getActivationMode = (): string => {
-  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
-};
+const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return (
+    (yield* api.services.SettingsService.getValue('salesforcedx-vscode-lightning', 'activationMode', 'autodetect')) ??
+    'autodetect'
+  );
+});
 
 const activateCommands = Effect.fn('aura:activateCommands')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -82,7 +85,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
 ) {
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
-  if (getActivationMode() === 'off') {
+  if ((yield* getActivationMode()) === 'off') {
     log('Aura Language Server activationMode set to off, exiting...');
     return;
   }
@@ -101,7 +104,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   const workspaceType = yield* detectWorkspaceType(workspace.workspaceFolders.map(folder => folder.uri.fsPath));
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
+  if ((yield* getActivationMode()) === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     log(
       `Aura LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`

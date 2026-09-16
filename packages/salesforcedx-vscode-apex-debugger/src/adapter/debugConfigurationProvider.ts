@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
+import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { getActiveApexExtension } from '../context/apexExtension';
 import { nls } from '../messages';
+import { getRuntime } from '../services/runtime';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   public static getConfig(folder: vscode.WorkspaceFolder | undefined): vscode.DebugConfiguration {
@@ -60,12 +63,26 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.salesforceProject = config.salesforceProject ?? (folder ? folder.uri.fsPath : '${workspaceRoot}');
 
     if (vscode.workspace) {
-      const workspaceConfig = vscode.workspace.getConfiguration();
+      const workspaceSettings = await getRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return yield* Effect.all({
+            proxyUrl: api.services.SettingsService.getValue('http', 'proxy', ''),
+            proxyStrictSSL: api.services.SettingsService.getValue('http', 'proxyStrictSSL', false),
+            proxyAuth: api.services.SettingsService.getValue('http', 'proxyAuthorization', ''),
+            connectionTimeoutMs: api.services.SettingsService.getValue(
+              'salesforcedx-vscode-apex-debugger',
+              'connectionTimeoutMs',
+              20_000
+            )
+          });
+        })
+      );
       config.workspaceSettings = {
-        proxyUrl: workspaceConfig.get('http.proxy', ''),
-        proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false),
-        proxyAuth: workspaceConfig.get('http.proxyAuthorization', ''),
-        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs', 20_000) // should match pjson default
+        proxyUrl: workspaceSettings.proxyUrl ?? '',
+        proxyStrictSSL: workspaceSettings.proxyStrictSSL ?? false,
+        proxyAuth: workspaceSettings.proxyAuth ?? '',
+        connectionTimeoutMs: workspaceSettings.connectionTimeoutMs ?? 20_000 // should match pjson default
       } satisfies WorkspaceSettings;
     }
 

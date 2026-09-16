@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import * as vscode from 'vscode';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
 const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing', 'withoutsharing', 'inheritedsharing'];
@@ -27,84 +28,82 @@ const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 const unionValues = (defaults: readonly string[], configuredValues: readonly string[]): string[] =>
   HashSet.toValues(HashSet.union(HashSet.fromIterable(defaults), HashSet.fromIterable(configuredValues)));
 
-export const retrieveEnableSyncInitJobs = (): boolean =>
-  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
+const SECTION = 'salesforcedx-vscode-apex';
 
-export const retrieveEnableApexLSErrorToTelemetry = (): boolean =>
-  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
+const getSetting = Effect.fn('apex.getSetting')(function* <T>(key: string, defaultValue: T) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return (yield* api.services.SettingsService.getValue(SECTION, key, defaultValue)) ?? defaultValue;
+});
+
+export const retrieveEnableSyncInitJobs = Effect.fn('apex.retrieveEnableSyncInitJobs')(function* () {
+  return yield* getSetting('wait-init-jobs', true);
+});
+
+export const retrieveEnableApexLSErrorToTelemetry = Effect.fn('apex.retrieveEnableApexLSErrorToTelemetry')(
+  function* () {
+    return yield* getSetting('enable-apex-ls-error-to-telemetry', false);
+  }
+);
 
 // Configurations of the definitions of eligible apex classes/methods/properties
 // We want to lock the eligibility criteria for apexoas, so we do not expose the settings to customer
 // But we can still modify the config through settings.json
-export const retrieveAAClassDefModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.definition-modifiers', []);
-
+export const retrieveAAClassDefModifiers = Effect.fn('apex.retrieveAAClassDefModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.class.definition-modifiers', []);
   return unionValues(APEX_ACTION_CLASS_DEF_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAClassAccessModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.access-modifiers', []);
+export const retrieveAAClassAccessModifiers = Effect.fn('apex.retrieveAAClassAccessModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.class.access-modifiers', []);
   return unionValues(APEX_ACTION_CLASS_ACCESS_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAMethodDefModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.definition-modifiers', []);
+export const retrieveAAMethodDefModifiers = Effect.fn('apex.retrieveAAMethodDefModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.method.definition-modifiers', []);
   return unionValues(APEX_ACTION_METHOD_DEF_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAMethodAccessModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.access-modifiers', []);
+export const retrieveAAMethodAccessModifiers = Effect.fn('apex.retrieveAAMethodAccessModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.method.access-modifiers', []);
   return unionValues(APEX_ACTION_METHOD_ACCESS_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAPropDefModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
+export const retrieveAAPropDefModifiers = Effect.fn('apex.retrieveAAPropDefModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.prop.definition-modifiers', []);
   return unionValues(APEX_ACTION_PROP_DEF_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAPropAccessModifiers = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
+export const retrieveAAPropAccessModifiers = Effect.fn('apex.retrieveAAPropAccessModifiers')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.prop.definition-modifiers', []);
   return unionValues(APEX_ACTION_PROP_ACCESS_MODIFIERS, userDefinedModifiers);
-};
+});
 
-export const retrieveAAMethodAnnotations = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
+export const retrieveAAMethodAnnotations = Effect.fn('apex.retrieveAAMethodAnnotations')(function* () {
+  const userDefinedModifiers = yield* getSetting<string[]>('apexoas.aa.method.annotations', []);
   return unionValues(APEX_ACTION_METHOD_ANNOTATION, userDefinedModifiers);
-};
+});
 
 // The REST-related annotations should not be edited by users
 export const retrieveAAClassRestAnnotations = (): string[] => APEX_ACTION_CLASS_REST_ANNOTATION;
 
 export const retrieveAAMethodRestAnnotations = (): string[] => APEX_ACTION_METHOD_REST_ANNOTATION;
 
-export const retrieveGeneralClassAccessModifiers = (): string[] =>
-  vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.general.class.access-modifiers', DEFAULT_CLASS_ACCESS_MODIFIERS);
+export const retrieveGeneralClassAccessModifiers = Effect.fn('apex.retrieveGeneralClassAccessModifiers')(function* () {
+  return yield* getSetting('apexoas.general.class.access-modifiers', DEFAULT_CLASS_ACCESS_MODIFIERS);
+});
 
-export const retrieveGeneralMethodAccessModifiers = (): string[] =>
-  vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.general.method.access-modifiers', DEFAULT_METHOD_ACCESS_MODIFIERS);
+export const retrieveGeneralMethodAccessModifiers = Effect.fn('apex.retrieveGeneralMethodAccessModifiers')(
+  function* () {
+    return yield* getSetting('apexoas.general.method.access-modifiers', DEFAULT_METHOD_ACCESS_MODIFIERS);
+  }
+);
 
-export const retrieveGeneralPropAccessModifiers = (): string[] =>
-  vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
+export const retrieveGeneralPropAccessModifiers = Effect.fn('apex.retrieveGeneralPropAccessModifiers')(function* () {
+  return yield* getSetting('apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
+});
 
-export const getApexLanguageServerRestartBehavior = (): string =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex').get<string>('languageServer.restartBehavior', 'prompt');
+export const getApexLanguageServerRestartBehavior = Effect.fn('apex.getApexLanguageServerRestartBehavior')(
+  function* () {
+    return yield* getSetting('languageServer.restartBehavior', 'prompt');
+  }
+);

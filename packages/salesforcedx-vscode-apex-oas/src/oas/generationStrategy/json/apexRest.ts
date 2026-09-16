@@ -18,9 +18,7 @@ import type {
   ApexClassOASGatherContextResponse,
   ApexOASMethodDetail
 } from 'salesforcedx-vscode-apex';
-import * as vscode from 'vscode';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
-import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../../constants';
 import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
 import { nls } from '../../../messages/nls';
 import {
@@ -216,7 +214,12 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const urlMapping =
     context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
     `/${context.classDetail.name}/`;
-  const outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
+  const outputTokenLimit =
+    (yield* api.services.SettingsService.getValue(
+      'salesforcedx-vscode-apex-oas',
+      'generation_output_token_limit',
+      750
+    )) ?? 750;
 
   const genState = yield* buildGenState(metadata, context, classPrompt, sourceText);
   // eslint-disable-next-line functional/no-let

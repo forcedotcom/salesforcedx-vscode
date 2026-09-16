@@ -7,13 +7,13 @@
 
 import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
+import { checkJavaVersion, resolveRequirements } from '../../../src/requirements';
 
 // Mock vscode workspace
 jest.mock('vscode', () => ({
@@ -39,9 +39,13 @@ jest.mock('vscode', () => ({
 
 // jest.fns so individual tests can reconfigure the false / error branches via mockReturnValue.
 const mockFileOrFolderExists = jest.fn((_p: string) => Effect.succeed(true));
+const mockGetValue = jest.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
 const succeedApi = (): ExtensionProviderService['getServicesApi'] =>
   Effect.succeed({
-    services: { FsService: { fileOrFolderExists: mockFileOrFolderExists } }
+    services: {
+      FsService: { fileOrFolderExists: mockFileOrFolderExists },
+      SettingsService
+    }
   }) as unknown as ExtensionProviderService['getServicesApi'];
 const mockGetServicesApi = jest.fn(succeedApi);
 
@@ -56,7 +60,8 @@ jest.mock('../../../src/services/runtime', () => ({
             get getServicesApi() {
               return mockGetServicesApi();
             }
-          } as unknown as ExtensionProviderService)
+          } as unknown as ExtensionProviderService),
+          Effect.provideService(SettingsService, SettingsService.make({ getValue: mockGetValue } as never))
         )
       )
   })
@@ -74,6 +79,7 @@ jest.mock('find-java-home', () =>
 
 // Mock os module
 jest.mock('node:os', () => ({
+  ...jest.requireActual('node:os'),
   homedir: jest.fn().mockReturnValue('/mock/home/directory')
 }));
 
@@ -81,17 +87,12 @@ const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = path.join('/mock/home/directory', 'java_home', 'real', 'jdk', jdk);
 
 describe('Java Requirements Test', () => {
-  let getConfigMock: jest.Mock;
   let execFileSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mockFileOrFolderExists.mockReturnValue(Effect.succeed(true));
+    mockGetValue.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
     mockGetServicesApi.mockImplementation(succeedApi);
-    getConfigMock = jest.fn();
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
-      get: getConfigMock,
-      update: jest.fn()
-    } as any);
     execFileSpy = jest.spyOn(cp, 'execFile');
   });
 
@@ -107,7 +108,9 @@ describe('Java Requirements Test', () => {
   // Cross-platform tests
   describe('Cross-platform tests', () => {
     it('Should allow valid java runtime path outside the project', async () => {
-      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      mockGetValue.mockImplementation((_section, key, defaultValue) =>
+        Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
+      );
       execFileSpy.mockImplementation((...args) => {
         const cb = args.at(-1);
         cb('', '', 'java.version = 11.0.0');
@@ -117,7 +120,9 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should reject when the configured java home path does not exist', async () => {
-      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      mockGetValue.mockImplementation((_section, key, defaultValue) =>
+        Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
+      );
       mockFileOrFolderExists.mockReturnValue(Effect.succeed(false));
       try {
         await resolveRequirements();
@@ -129,11 +134,23 @@ describe('Java Requirements Test', () => {
       }
     });
 
-    it('Should treat a services-extension failure as a missing path (catchTags → false)', async () => {
-      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
-      mockGetServicesApi.mockReturnValue(
-        Effect.fail(new ServicesExtensionNotFoundError()) as unknown as ExtensionProviderService['getServicesApi']
+    it('Should reject when reading the Java setting fails', async () => {
+      mockGetValue.mockReturnValue(
+        Effect.fail(new Error('setting read failed')) as unknown as ReturnType<typeof mockGetValue>
       );
+
+      await expect(resolveRequirements()).rejects.toThrow('setting read failed');
+    });
+
+    it('Should treat a services-extension failure as a missing path (catchTags → false)', async () => {
+      mockGetValue.mockImplementation((_section, key, defaultValue) =>
+        Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
+      );
+      mockGetServicesApi
+        .mockReturnValueOnce(succeedApi())
+        .mockReturnValue(
+          Effect.fail(new ServicesExtensionNotFoundError()) as unknown as ExtensionProviderService['getServicesApi']
+        );
       try {
         await resolveRequirements();
         fail('Should have rejected when the services extension is unavailable');
