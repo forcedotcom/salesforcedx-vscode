@@ -66,16 +66,17 @@ import packageNls from '../../../package.nls.json';
 import { telemetryDesktopTest as test } from '../fixtures/telemetryFixtures';
 
 const SPANS_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
+const APPINSIGHTS_DIR = path.join(os.homedir(), '.sf', 'vscode-appinsights');
 const CORE_TELEMETRY_FILE = 'salesforcedx-vscode-core-telemetry.json';
 
 type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unknown>; durationMs?: number };
+type Envelope = { data?: { baseData?: { properties?: Record<string, unknown> } } };
 
 // The core ext and lightning ext each bundle their own services SDK, so each writes to its OWN
-// timestamped {SPANS_DIR}/*.jsonl. And BatchSpanProcessor buffers — a root command span isn't on
-// disk until an interval flush or (reliably) window reload/deactivate. So: reload first, then read
-// the UNION of all span files rather than guessing a single newest one.
-const readAllSpanRows = async (): Promise<SpanRow[]> =>
-  parseJsonlLines<SpanRow>(await readJsonlFiles(SPANS_DIR)).filter(row => row.kind === 'span');
+// timestamped {SPANS_DIR}/*.jsonl. Read their union rather than guessing which file belongs to this
+// extension, and filter by creation time so prior test runs cannot satisfy the assertions.
+const readAllSpanRows = async (since?: number): Promise<SpanRow[]> =>
+  parseJsonlLines<SpanRow>(await readJsonlFiles(SPANS_DIR, since)).filter(row => row.kind === 'span');
 
 class NotReadyError extends Data.TaggedError('NotReadyError')<{ readonly message: string }> {}
 
@@ -109,6 +110,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
   workspaceDir
 }) => {
   test.setTimeout(360_000);
+  const since = Date.now();
 
   await test.step('workbench ready', async () => {
     await waitForVSCodeWorkbench(page);
@@ -132,12 +134,32 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
   });
 
-  await test.step('settle: let the AppInsights batch flush the command span while extension is live', async () => {
-    // The AppInsights network exporter batches on BatchSpanProcessor's default scheduledDelay (5s) and
-    // an immediate reload tears the extension host down before that fires, dropping the async POST to
-    // localhost:3003 (the SYNCHRONOUS file exporter still captures). Wait out ~2x the batch delay so
-    // the command span is exported to a live capture server. (Diagnostic only; CI runs with no listener.)
-    await page.waitForTimeout(10_000);
+  await test.step('wait for the command span to reach the synchronous file exporter', async () => {
+    await waitFor(
+      () => readAllSpanRows(since),
+      rows =>
+        rows.some(
+          row => row.name === 'sf.lightning.generate.aura.component' && row.attributes?.telemetryTag === 'e2e-test'
+        ),
+      'command span has not reached the file exporter'
+    );
+  });
+
+  await test.step('wait for the command span to reach AppInsights while the extension host is alive', async () => {
+    await expect
+      .poll(
+        async () => {
+          const files = await readJsonlFiles(APPINSIGHTS_DIR, since);
+          return parseJsonlLines<Envelope>(files).some(
+            envelope => envelope.data?.baseData?.properties?.telemetryTag === 'e2e-test'
+          );
+        },
+        {
+          timeout: 90_000,
+          message: `no envelope with telemetryTag e2e-test reached ${APPINSIGHTS_DIR} while the extension host was alive`
+        }
+      )
+      .toBe(true);
   });
 
   await test.step('reload to flush buffered spans + class-telemetry (deactivationEvent)', async () => {
@@ -158,7 +180,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     const isThisSpec = (s: SpanRow): boolean =>
       s.attributes?.orgId !== undefined && s.attributes?.telemetryTag === 'e2e-test';
     const rows = await waitFor(
-      () => readAllSpanRows(),
+      () => readAllSpanRows(since),
       r => r.some(isThisSpec),
       'no orgId-enriched o11y span flushed yet'
     );

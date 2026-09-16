@@ -82,7 +82,7 @@ const waitForWorkbenchWindow = async (
 
   const { WORKBENCH } = await import('../utils/locators.js');
   await wrapWindowClose('Electron window closed before workbench was ready', () =>
-    page.waitForSelector(WORKBENCH, { timeout: workbenchTimeout })
+    page.locator(WORKBENCH).waitFor({ timeout: workbenchTimeout })
   );
 
   return page;

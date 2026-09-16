@@ -5,10 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  clearOutputChannel,
   closeWelcomeTabs,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
+  selectOutputChannel,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
+  waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs/promises';
@@ -51,6 +55,10 @@ test('LWC LSP restarts when sfdx-project.json packageDirectories change', async 
   });
 
   await test.step('modify sfdx-project.json to add a new package directory', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Lightning Web Components');
+    await clearOutputChannel(page);
+
     // Read current sfdx-project.json
     const sfdxProjectContent = await fs.readFile(sfdxProjectPath, 'utf-8');
     const sfdxProject = JSON.parse(sfdxProjectContent) as {
@@ -73,8 +81,14 @@ test('LWC LSP restarts when sfdx-project.json packageDirectories change', async 
   });
 
   await test.step('wait for language server to detect change and restart', async () => {
-    // The watcher has a 500ms debounce, plus time to stop/start the client
-    await page.waitForTimeout(3000);
+    await waitForOutputChannelText(page, {
+      expectedText: 'Restarting LWC Language Server due to sfdx-project.json changes...',
+      timeout: 30_000
+    });
+    await waitForOutputChannelText(page, {
+      expectedText: 'LWC Language Server restarted successfully',
+      timeout: 90_000
+    });
   });
 
   await test.step('create LWC in the new package directory and verify it is indexed', async () => {
@@ -107,11 +121,13 @@ export default class UtilsComp extends LightningElement {}`,
       'utf-8'
     );
 
-    // Give the LSP time to detect and index the new files (they should be watched after restart)
-    await page.waitForTimeout(2000);
-
-    // The test passes if no critical errors occur during this process.
-    // The new package directory should now be watched by the restarted language client.
+    const customComponentsIndex = path.join(workspaceDir, '.sfdx', 'indexes', 'lwc', 'custom-components.json');
+    await expect
+      .poll(() => fs.readFile(customComponentsIndex, 'utf-8').catch(() => ''), {
+        timeout: 90_000,
+        message: 'LWC language server should index utilsComp from the new package directory'
+      })
+      .toContain('utilsComp');
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

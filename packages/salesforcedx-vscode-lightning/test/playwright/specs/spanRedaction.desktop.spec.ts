@@ -75,10 +75,21 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
   });
 
-  await test.step('settle: let the AppInsights batch POST while the extension host is alive', async () => {
-    // BatchSpanProcessor's default scheduledDelay is 5s and an immediate reload tears the host down
-    // before it fires, dropping the async POST to localhost:3003. The file exporter is synchronous.
-    await page.waitForTimeout(10_000);
+  await test.step('wait for the AppInsights batch POST while the extension host is alive', async () => {
+    await expect
+      .poll(
+        async () => {
+          const files = await readJsonlFiles(APPINSIGHTS_DIR, since);
+          return parseJsonlLines<Envelope>(files).some(
+            envelope => envelope.data?.baseData?.properties?.telemetryTag === REDACTED
+          );
+        },
+        {
+          timeout: 90_000,
+          message: `no envelope with a redacted telemetryTag reached ${APPINSIGHTS_DIR} while the extension host was alive`
+        }
+      )
+      .toBe(true);
   });
 
   await test.step('reload to flush the remaining buffered spans', async () => {

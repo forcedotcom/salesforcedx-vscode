@@ -1065,12 +1065,14 @@ export default [
     }
   },
   {
-    // Register eslint-plugin-playwright for the e2e specs but enable NO rules yet.
-    // Individual playwright/* rules are turned on (and their violations fixed) in
-    // separate follow-up WIs, one rule at a time.
+    // Register eslint-plugin-playwright for the e2e specs.
+    // Individual playwright/* rules are enabled as their violations are fixed.
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
-    rules: {}
+    rules: {
+      'playwright/no-wait-for-selector': 'error',
+      'playwright/no-wait-for-timeout': 'error'
+    }
   },
   eslintConfigPrettier
 ];

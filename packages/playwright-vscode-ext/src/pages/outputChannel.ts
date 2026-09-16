@@ -62,8 +62,7 @@ const maximizeOutputPanel = async (page: Page): Promise<void> => {
     const isAttached = await maximizeButton.isVisible().catch(() => false);
     if (isAttached) {
       await maximizeButton.click({ timeout: 5000 });
-      // Allow layout to settle after resize
-      await page.waitForTimeout(200);
+      await expect(page.getByRole('button', { name: 'Restore Panel' })).toBeVisible({ timeout: 5000 });
     }
   } catch {
     // Ignore errors - panel may already be maximized or button detached during transition
@@ -83,7 +82,7 @@ const restoreOutputPanel = async (page: Page): Promise<void> => {
     const isAttached = await restoreButton.isVisible().catch(() => false);
     if (isAttached) {
       await restoreButton.click({ timeout: 5000 });
-      await page.waitForTimeout(200);
+      await expect(page.getByRole('button', { name: 'Maximize Panel' })).toBeVisible({ timeout: 5000 });
     }
   } catch {
     // Ignore errors - panel may already be restored or button detached during transition

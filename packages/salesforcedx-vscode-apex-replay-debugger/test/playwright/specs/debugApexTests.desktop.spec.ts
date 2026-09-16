@@ -50,7 +50,7 @@ const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> =>
 const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
 const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
 
-/** Expand a Test Explorer tree row via its twistie if collapsed; 400ms settle matches apex-testing helper. */
+/** Expand a Test Explorer tree row via its twistie if collapsed. */
 const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const row = page.locator('[role="treeitem"]').filter({ hasText: rowLabel }).first();
   await row.waitFor({ state: 'visible', timeout: 15_000 });
@@ -58,7 +58,7 @@ const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
   if (!collapsed) return;
   await twistie.click({ force: true });
-  await page.waitForTimeout(400);
+  await expect(row).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
 };
 
 /** Expand the (Local Namespace) → (Unpackaged Metadata) parents so class/method rows render. */

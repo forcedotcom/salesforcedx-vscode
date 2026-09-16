@@ -46,10 +46,7 @@ export const openCommandPalette = async (page: Page, options?: OpenCommandPalett
   await expect(async () => {
     // Bring page to front to ensure VS Code window is active (critical on Windows)
     await page.bringToFront();
-
-    // Small delay to allow Windows to process focus change before F1 keypress
-    // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
-    await page.waitForTimeout(100);
+    await expect.poll(() => page.evaluate(() => document.hasFocus())).toBe(true);
 
     await dismissWelcomeOnboardingOverlayIfPresent(page);
     // Click the workbench to ensure VS Code has keyboard focus before F1 — unless the caller is

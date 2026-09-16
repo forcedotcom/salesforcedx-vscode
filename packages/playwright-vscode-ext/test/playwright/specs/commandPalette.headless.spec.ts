@@ -80,10 +80,7 @@ test.describe('Command Palette', () => {
 
     await test.step('Save file using command palette', async () => {
       await saveFile(page);
-      // Command palette should execute File: Save
-      // Note: In test environment, this may trigger save dialog or auto-save depending on settings
-      // We're testing that the command executes without error
-      await page.waitForTimeout(1000);
+      await expect(page.getByRole('textbox', { name: 'Folder path - Save As' })).toBeVisible({ timeout: 5000 });
     });
   });
 });

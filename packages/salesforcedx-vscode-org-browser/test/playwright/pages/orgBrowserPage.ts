@@ -173,15 +173,14 @@ export class OrgBrowserPage {
       return metadataTypeLocator.first();
     }
 
-    await this.sidebar
+    const typeAheadStart = this.sidebar
       .getByRole('treeitem', {
         level: 1,
         includeHidden: true
       })
-      .nth(1)
-      .click();
-
-    await this.page.waitForTimeout(700);
+      .nth(1);
+    await typeAheadStart.click();
+    await expect(typeAheadStart).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
     // Check if the target element is now visible
@@ -216,7 +215,7 @@ export class OrgBrowserPage {
         .getByRole('treeitem', { level: level - 1, name: exactTreeItemName(metadataType) })
         .first();
       await parent.focus();
-      await this.page.waitForTimeout(1000);
+      await expect(parent).toBeFocused({ timeout: 3000 });
       await this.page.keyboard.type(itemName, { delay: typingSpeed });
       await expect(
         metadataItem.first(),

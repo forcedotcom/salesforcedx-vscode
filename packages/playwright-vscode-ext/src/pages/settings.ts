@@ -18,7 +18,18 @@ import {
 } from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 
-const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
+const settingsLocator = (page: Page): Locator =>
+  page.locator(SETTINGS_SEARCH_INPUT.map(selector => `${selector}:visible`).join(','));
+
+const updateSettingAndWaitForPersistence = async (row: Locator, update: () => Promise<void>): Promise<void> => {
+  // VS Code restores this class when it rerenders the row after configurationService.updateValue resolves.
+  // Remove the previous configured state so this wait cannot pass before the new value is persisted.
+  await row.evaluate(element => element.classList.remove('is-configured'));
+  await update();
+  await expect(row, 'Workspace setting should be persisted').toHaveClass(/(^|\s)is-configured(\s|$)/, {
+    timeout: 10_000
+  });
+};
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await closeWelcomeTabs(page);
@@ -71,21 +82,18 @@ const performSearch =
     const searchMonaco = settingsLocator(page).first();
     await searchMonaco.waitFor({ timeout: 3000 });
     await searchMonaco.click();
-    // seems to be necessary to avoid clearing the setting instead of the search box.
-    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
-    await page.waitForTimeout(200);
+    const searchInput = searchMonaco.getByRole('textbox').first();
+    await expect(searchInput, 'Settings search input should have focus').toBeFocused({ timeout: 2000 });
     // Triple-click on Monaco editor to select all text (more reliable than Control+A)
     await searchMonaco.click({ clickCount: 3 });
-    await page.waitForTimeout(100);
     // Clear using Backspace after selecting all
     await page.keyboard.press('Backspace');
-    // Wait to ensure the backspace completes and search box is cleared
-    await page.waitForTimeout(200);
-    // Verify the search box is empty by checking the textarea value
-    const textarea = searchMonaco.locator('textarea').first();
-    await expect(textarea).toHaveValue('', { timeout: 2000 });
+    // Verify Monaco's rendered content is empty
+    const searchText = searchMonaco.locator('.view-lines');
+    await expect(searchText).toHaveText('', { timeout: 2000 });
     // Type the new query
     await page.keyboard.type(query);
+    await expect(searchText).toHaveText(query, { timeout: 2000 });
   };
 
 /** Upsert settings using Settings (UI) search and fill of each id.
@@ -169,8 +177,13 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       const isChecked = await checkbox.isChecked();
       const desiredChecked = value === 'true';
       if (isChecked !== desiredChecked) {
-        await checkbox.click();
-        await expect(checkbox).toHaveAttribute('aria-checked', desiredChecked ? 'true' : 'false', { timeout: 10_000 });
+        await updateSettingAndWaitForPersistence(row, async () => {
+          await checkbox.click();
+          await expect(checkbox).toHaveAttribute('aria-checked', desiredChecked ? 'true' : 'false', {
+            timeout: 10_000
+          });
+          await checkbox.blur();
+        });
       }
     } else {
       // Check if this is a dropdown/select setting (combobox)
@@ -183,25 +196,28 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
         // Check if this is a native HTML select or custom VS Code dropdown
         const isNativeSelect = (await combobox.evaluate(el => el.tagName)) === 'SELECT';
+        if ((await combobox.inputValue()) !== value) {
+          await updateSettingAndWaitForPersistence(row, async () => {
+            if (isNativeSelect) {
+              // Desktop: Use native select API
+              await combobox.selectOption(value);
+            } else {
+              // Web: Use custom dropdown interaction
+              await combobox.click({ timeout: 5000 });
 
-        if (isNativeSelect) {
-          // Desktop: Use native select API
-          await combobox.selectOption(value);
-        } else {
-          // Web: Use custom dropdown interaction
-          await combobox.click({ timeout: 5000 });
+              // Wait for dropdown options to appear and select the desired value
+              // VS Code dropdowns show options in monaco-list-row elements
+              const option = page
+                .locator('.monaco-list-row[role="option"]')
+                .filter({ hasText: new RegExp(`^${value}$`, 'i') });
+              await option.waitFor({ state: 'visible', timeout: 10_000 });
+              await option.click();
+            }
 
-          // Wait for dropdown options to appear and select the desired value
-          // VS Code dropdowns show options in monaco-list-row elements
-          const option = page
-            .locator('.monaco-list-row[role="option"]')
-            .filter({ hasText: new RegExp(`^${value}$`, 'i') });
-          await option.waitFor({ state: 'visible', timeout: 10_000 });
-          await option.click();
+            await expect(combobox).toHaveValue(value, { timeout: 10_000 });
+            await combobox.blur();
+          });
         }
-
-        // Verify the value was set
-        await expect(combobox).toHaveValue(value, { timeout: 10_000 });
       } else {
         // Handle textbox or spinbutton setting.
         const roleTextbox = row.getByRole('textbox').first();
@@ -211,11 +227,15 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
         const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
         await inputElement.waitFor({ timeout: 30_000 });
-        await inputElement.click({ timeout: 5000 });
-        // fill() clears and types (reliable for both textbox and spinbutton; select-all + type can miss on desktop)
-        await inputElement.fill(value);
-        await inputElement.blur();
-        await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+        if ((await inputElement.inputValue()) !== value) {
+          await updateSettingAndWaitForPersistence(row, async () => {
+            await inputElement.click({ timeout: 5000 });
+            // fill() clears and types (reliable for both textbox and spinbutton; select-all + type can miss on desktop)
+            await inputElement.fill(value);
+            await inputElement.blur();
+            await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+          });
+        }
       }
     }
 
@@ -228,10 +248,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
   }
-
-  // Wait for VS Code to persist settings to disk before closing the tab
-  // VS Code writes settings asynchronously, and closing too quickly cancels the write
-  await page.waitForTimeout(2000);
 
   // Close the settings overlay/tab so callers can open command palette etc.
   await closeSettingsTab(page);

@@ -35,8 +35,6 @@ test.describe('Disabled Conflict Detection', () => {
       await saveScreenshot(page, 'disabled-cd-1-created.png');
 
       await deployCurrentSourceToOrg(page);
-      // Give it time to complete
-      await page.waitForTimeout(5000);
       await saveScreenshot(page, 'disabled-cd-2-deployed.png');
     });
 
@@ -52,9 +50,6 @@ test.describe('Disabled Conflict Detection', () => {
     });
 
     await test.step('4. Verify status bar shows disabled state', async () => {
-      // Wait a reasonable time for setting to take effect
-      await page.waitForTimeout(2000);
-
       // Status bar should show disabled state - use a direct locator since the page object
       // expects the arrow-down/arrow-up pattern which won't match disabled state
       const disabledStatusBar = page.getByRole('button', { name: /Conflict Detection Disabled/ });
@@ -118,7 +113,6 @@ test.describe('Disabled Conflict Detection', () => {
     await test.step('Create baseline and create conflict', async () => {
       await createApexClass(page, className, `public class ${className} { /* v1 */ }`);
       await deployCurrentSourceToOrg(page);
-      await page.waitForTimeout(5000);
 
       // Create remote conflict
       await helperProject(className, `public class ${className} { /* remote */ }`);

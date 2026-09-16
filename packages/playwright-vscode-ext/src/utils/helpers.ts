@@ -68,13 +68,13 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
 export const waitForVSCodeWorkbench = async (page: Page): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
   if (isDesktop()) {
-    await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
+    await page.locator(WORKBENCH).waitFor({ timeout: 60_000 });
     return;
   }
 
   // Web: navigate, then wait
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
+  await page.locator(WORKBENCH).waitFor({ timeout: 60_000 });
 };
 
 /** VS Code 1.116+ Welcome onboarding can cover the workbench and block non-forced clicks. */
@@ -100,8 +100,9 @@ export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => 
   for (let i = 0; i < 4; i++) {
     const openInputs = await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count();
     if (openInputs === 0) break;
+    const activeInput = await page.locator(`${QUICK_INPUT_WIDGET} input.input`).last().elementHandle();
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(100);
+    await activeInput?.waitForElementState('hidden', { timeout: 3000 }).catch(() => {});
   }
 };
 
@@ -176,22 +177,16 @@ export const selectFirstQuickInputOption = async (
 
   if (options?.confirmCommitted) {
     const commitTimeout = options.commitTimeout ?? 3000;
-    const committed = await options.confirmCommitted().catch(() => false);
+    const committed = await expect
+      .poll(() => options.confirmCommitted?.().catch(() => false) ?? false, {
+        timeout: commitTimeout,
+        intervals: [100]
+      })
+      .toBe(true)
+      .then(() => true)
+      .catch(() => false);
     if (!committed) {
-      // Poll until timeout before falling back to Enter — the predicate may take a moment
-      // to become true (e.g. next prompt animating in).
-      const deadline = Date.now() + commitTimeout;
-      let done = false;
-      while (Date.now() < deadline) {
-        if (await options.confirmCommitted().catch(() => false)) {
-          done = true;
-          break;
-        }
-        await page.waitForTimeout(100);
-      }
-      if (!done) {
-        await page.keyboard.press('Enter');
-      }
+      await page.keyboard.press('Enter');
     }
   }
 };

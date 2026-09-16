@@ -88,9 +88,8 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   let linkAppeared = false;
   for (let attempt = 0; attempt < 5; attempt++) {
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await expect(restartLink).toBeHidden({ timeout: 300 });
     await statusButton.first().click();
-    await page.waitForTimeout(300);
     // Also hover to trigger the tooltip on platforms where click alone doesn't surface it
     await statusButton.first().hover();
     const visible = await restartLink
