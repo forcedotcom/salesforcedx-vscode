@@ -60,6 +60,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
@@ -244,6 +246,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
