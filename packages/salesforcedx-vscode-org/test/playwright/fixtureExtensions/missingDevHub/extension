@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+const Context = require('effect/Context');
+const Effect = require('effect/Effect');
+const vscode = require('vscode');
+
+const SERVICES_EXTENSION_ID = 'salesforce.salesforcedx-vscode-services';
+const ISOLATE_SF_HOME_COMMAND = 'sf.internal.orgCreate.isolateSfHome';
+const RESTORE_SF_HOME_COMMAND = 'sf.internal.orgCreate.restoreSfHome';
+const ENVIRONMENT_VARIABLES = ['HOME', 'USERPROFILE', 'SF_TARGET_DEV_HUB', 'SFDX_DEFAULTDEVHUBUSERNAME'];
+const STATE_FILE = '.missing-dev-hub-state.json';
+
+const getExtensionApi = async id => {
+  const extension = vscode.extensions.getExtension(id);
+  if (!extension) throw new Error(`Required extension ${id} is not installed`);
+  return extension.isActive ? extension.exports : extension.activate();
+};
+
+const restoreEnvironmentVariable = (name, value) => {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+};
+
+const activate = async extensionContext => {
+  const servicesApi = await getExtensionApi(SERVICES_EXTENSION_ID);
+  const dependencies = servicesApi.services.prebuiltServicesDependencies;
+  const configService = Context.get(dependencies, servicesApi.services.ConfigService);
+  const workspace = vscode.workspace.workspaceFolders?.[0];
+  if (!workspace) throw new Error('Missing Dev Hub Playwright requires an open workspace');
+  const stateUri = vscode.Uri.joinPath(workspace.uri, STATE_FILE);
+  let previousEnvironment;
+
+  const clearConfigCaches = async () => {
+    const aggregator = await Effect.runPromise(configService.getConfigAggregator());
+    await aggregator.constructor.clearInstance();
+    await Effect.runPromise(configService.invalidateConfigAggregator());
+  };
+
+  const restoreSfHome = async () => {
+    if (!previousEnvironment) return;
+    ENVIRONMENT_VARIABLES.forEach(name => restoreEnvironmentVariable(name, previousEnvironment[name]));
+    previousEnvironment = undefined;
+    await clearConfigCaches();
+  };
+
+  extensionContext.subscriptions.push(
+    vscode.commands.registerCommand(ISOLATE_SF_HOME_COMMAND, async () => {
+      if (!previousEnvironment) {
+        previousEnvironment = Object.fromEntries(ENVIRONMENT_VARIABLES.map(name => [name, process.env[name]]));
+      }
+      await vscode.workspace.fs.createDirectory(extensionContext.globalStorageUri);
+      process.env.HOME = extensionContext.globalStorageUri.fsPath;
+      process.env.USERPROFILE = extensionContext.globalStorageUri.fsPath;
+      delete process.env.SF_TARGET_DEV_HUB;
+      delete process.env.SFDX_DEFAULTDEVHUBUSERNAME;
+      await clearConfigCaches();
+      const targetDevHub = await Effect.runPromise(configService.getTargetDevHub());
+      await vscode.workspace.fs.writeFile(stateUri, Buffer.from(JSON.stringify({ targetDevHub: targetDevHub ?? null })));
+    }),
+    vscode.commands.registerCommand(RESTORE_SF_HOME_COMMAND, restoreSfHome)
+  );
+};
+
+module.exports = { activate };

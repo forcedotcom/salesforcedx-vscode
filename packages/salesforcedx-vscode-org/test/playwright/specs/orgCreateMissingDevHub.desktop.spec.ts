@@ -31,15 +31,16 @@ test('org create: missing Dev Hub prompt dismisses or starts authorization', asy
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
-  await executeCommandWithCommandPalette(page, fixturePackageNls.missing_dev_hub_isolate_sf_home_test_text);
-  await expect
-    .poll(() => readFile(join(workspaceDir, STATE_FILE), 'utf8').catch(() => undefined), {
-      message: 'isolated extension-host config should have no target Dev Hub',
-      timeout: 30_000
-    })
-    .toBe('{"targetDevHub":null}');
 
   try {
+    await executeCommandWithCommandPalette(page, fixturePackageNls.missing_dev_hub_isolate_sf_home_test_text);
+    await expect
+      .poll(() => readFile(join(workspaceDir, STATE_FILE), 'utf8').catch(() => undefined), {
+        message: 'isolated extension-host config should have no target Dev Hub',
+        timeout: 30_000
+      })
+      .toBe('{"targetDevHub":null}');
+
     await test.step('dismiss the missing Dev Hub notification', async () => {
       await executeCommandWithCommandPalette(page, packageNls.org_create_default_scratch_org_text);
       const notification = await waitForNotification(page, MISSING_DEV_HUB);
