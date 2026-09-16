@@ -121,7 +121,7 @@ type PrebuiltServicesDependencies =
 
 export type SalesforceVSCodeServicesApi = {
   services: {
-    /** @deprecated Use prebuiltServicesLayer so Effect runtime configuration is preserved. */
+    /** @deprecated Context only — no FiberRefs. Use prebuiltServicesLayer. */
     prebuiltServicesDependencies: Context.Context<PrebuiltServicesDependencies>;
     /** Shared service instances plus redacting-logger FiberRef. Not the OTEL tracer. */
     prebuiltServicesLayer: Layer.Layer<PrebuiltServicesDependencies>;
@@ -538,13 +538,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
     const publicSdkLayerFor: PublicSdkLayerFor = SdkLayerFor;
 
-    // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
+    // Publish a runtime for imperative VS Code boundaries (e.g. the O11y span
     // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    // Layer.buildWithScope returns only Context. Logger FiberRef on exported prebuiltServicesLayer;
-    // tracer FiberRef (ServicesSdkLayer) only on the internal ManagedRuntime. Consumers use SdkLayerFor.
+    // buildWithScope returns Context only. Logger FiberRef on exported prebuiltServicesLayer; tracer FiberRef on this runtime only.
     const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
     const servicesRuntimeLayer = Layer.merge(prebuiltServicesLayer, ServicesSdkLayer());
     const runtime = ManagedRuntime.make(servicesRuntimeLayer);
