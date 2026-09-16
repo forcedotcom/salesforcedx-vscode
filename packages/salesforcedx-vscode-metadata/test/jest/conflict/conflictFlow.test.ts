@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { detectConflicts } from '../../../src/conflict/conflictFlow';
 import * as conflictDetection from '../../../src/conflict/conflictDetection';
 import * as conflictDetectionTimestamp from '../../../src/conflict/conflictDetectionTimestamp';
@@ -39,6 +40,7 @@ jest.mock('../../../src/settings/deployOnSaveSettings', () => ({
 // Minimal branded NonEmptyComponentSet for testing
 const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
 const mockGetValue = jest.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
+const settingsService = SettingsService.make({ getValue: mockGetValue } as never);
 
 const createMockTargetOrgRef = (tracksSource: boolean) =>
   SubscriptionRef.make({ orgId: 'test-org', tracksSource }) as Effect.Effect<
@@ -50,7 +52,7 @@ const createMockTargetOrgRef = (tracksSource: boolean) =>
 const createMockServicesApi = (tracksSource: boolean) => ({
   services: {
     TargetOrgRef: () => createMockTargetOrgRef(tracksSource),
-    SettingsService: Effect.succeed({ getValue: mockGetValue })
+    SettingsService
   }
 });
 
@@ -60,7 +62,10 @@ const createMockExtensionProvider = (tracksSource: boolean) =>
   }) as unknown as ExtensionProviderService;
 
 const provideServices = (tracksSource: boolean) => (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)));
+  e.pipe(
+    Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)),
+    Effect.provideService(SettingsService, settingsService)
+  );
 
 const runWithServices = (effect: Effect.Effect<any, any, any>, tracksSource = true) =>
   Effect.runPromise(effect.pipe(provideServices(tracksSource)) as Effect.Effect<any, any, never>);
