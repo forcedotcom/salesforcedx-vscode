@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Resource } from '@effect/opentelemetry';
+import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -543,10 +543,15 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
     // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
     // fails fast until this is set, so it never blocks activation waiting on it.
-    // buildWithScope returns Context only. Logger FiberRef on exported prebuiltServicesLayer; tracer FiberRef on this runtime only.
+    // buildWithScope returns Context only. Logger FiberRef on exported prebuiltServicesLayer.
+    // Tracer FiberRef via layerWithoutOtelTracer — same OtelTracer, no second NodeTracerProvider.
     const prebuiltServicesLayer = Layer.merge(Layer.succeedContext(builtContext), redactingConsoleLoggerLayer);
-    const servicesRuntimeLayer = Layer.merge(prebuiltServicesLayer, ServicesSdkLayer());
-    const runtime = ManagedRuntime.make(servicesRuntimeLayer);
+    const tracerFiberRefLayer = Option.match(Context.getOption(builtContext, OtelTracer.OtelTracer), {
+      onNone: () => Layer.empty,
+      onSome: otelTracer =>
+        OtelTracer.layerWithoutOtelTracer.pipe(Layer.provide(Layer.succeed(OtelTracer.OtelTracer, otelTracer)))
+    });
+    const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
     setServicesRuntime(runtime);
 
     await runtime.runPromise(
