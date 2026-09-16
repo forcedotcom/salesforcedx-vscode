@@ -46,6 +46,7 @@ const REVIEW_SKILL_DENYLIST = [
   'shipped-issues',
   'query-app-insights',
   'span-file-export',
+  'web-console-local-traces',
   'thermonuclear-code-quality-review',
   'work-item-sequencing',
 ]

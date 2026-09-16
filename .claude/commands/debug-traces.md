@@ -7,3 +7,5 @@ Analyze recent traces and logs captured from the running extensions.
 Use the agent `@.claude/agents/trace-debugger.md`
 
 Read skill `span-file-export` for data format and location reference.
+
+Hosted Web Console OTLP (`localhost:4318`, CORS / loopback) → skill `web-console-local-traces`.

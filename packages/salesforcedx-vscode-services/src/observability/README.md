@@ -346,6 +346,49 @@ This starts Grafana's OpenTelemetry LGTM stack on:
 - Port 4317: OTLP gRPC endpoint
 - Port 4318: OTLP HTTP endpoint
 
+##### Web Console
+
+Hosted Web Console (`https://cdn.web-ide.platform.salesforce.com`) posts OTLP to `http://localhost:4318/v1/traces` when this setting is on. That is a public HTTPS origin talking to loopback, so two extra steps are required. A CORS browser extension will not fix them; Web Console often has no toolbar, and Chrome blocks the request before CORS headers are evaluated.
+
+1. **Chrome Local Network Access.** Chrome 142+ [gates public-to-loopback fetches](https://developer.chrome.com/blog/local-network-access) behind a permission. The console error is `Permission was denied for this request to access the loopback address space`. Open a normal Chrome tab in the same profile, set `chrome://flags/#local-network-access-check` to **Disabled**, relaunch Chrome, and reload Web Console. Site-settings Allow often fails because Web Console iframes the CDN origin without `allow="loopback-network"`.
+
+2. **Collector CORS for HTTPS.** `grafana/otel-lgtm` allowlists `http://*` only ([default collector config](https://raw.githubusercontent.com/grafana/docker-otel-lgtm/v0.33.0/docker/otelcol-config.yaml)), so the Salesforce HTTPS origin is rejected. Mount an overlay and pass it as a second collector config ([image config paths](https://github.com/grafana/docker-otel-lgtm/blob/v0.33.0/README.md)):
+
+   ```yaml
+   # ~/.otel-lgtm/otelcol-cors.yaml
+   receivers:
+     otlp:
+       protocols:
+         http:
+           cors:
+             allowed_origins:
+               - http://*
+               - https://cdn.web-ide.platform.salesforce.com
+             allowed_headers:
+               - "*"
+   ```
+
+   ```bash
+   docker run -d --rm --name otel-lgtm \
+     -p 3000:3000 -p 4317:4317 -p 4318:4318 \
+     -v "$HOME/.otel-lgtm/otelcol-cors.yaml:/otel-lgtm/otelcol-cors.yaml:ro" \
+     -e OTELCOL_EXTRA_ARGS='--config=file:/otel-lgtm/otelcol-cors.yaml' \
+     docker.io/grafana/otel-lgtm
+   ```
+
+   Confirm with:
+
+   ```bash
+   curl -si -X OPTIONS http://localhost:4318/v1/traces \
+     -H 'Origin: https://cdn.web-ide.platform.salesforce.com' \
+     -H 'Access-Control-Request-Method: POST' \
+     -H 'Access-Control-Request-Headers: content-type'
+   ```
+
+   The response must include `access-control-allow-origin: https://cdn.web-ide.platform.salesforce.com`. Then enable `enableLocalTraces` in Web Console Settings and reload.
+
+Agent procedure: `.claude/skills/web-console-local-traces/SKILL.md`.
+
 #### `salesforcedx-vscode-salesforcedx.enableConsoleTraces`
 
 Console logging (all spans).
