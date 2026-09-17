@@ -100,19 +100,19 @@ Reuse the same `release-base/v67.12.x` branch for multiple patches:
 
 For **immediate** marketplace hotfix as pre-release (bypasses stable testing):
 
-**The hotfix commit itself must bump `package.json` versions.** `build-release.yml` never bumps versions in pre-release mode — it packages and tags whatever's already on the source ref as-is. The calculated/provided `releaseVersion` only names the git tag and release title; it has no effect on the version actually baked into the VSIX. If the source ref's `package.json` still has an old version, that's what gets published — potentially a version *lower* than what's already live, which registries will silently ignore as "latest." Bump the version as part of the hotfix commit itself (`node scripts/update-release-versions.js <version>`), same as any other release-affecting change to `package.json`.
+**The hotfix commit itself must bump `package.json` versions.** `build-github-release.yml` never bumps versions in pre-release mode — it packages and tags whatever's already on the source ref as-is. The calculated/provided `releaseVersion` only names the git tag and release title; it has no effect on the version actually baked into the VSIX. If the source ref's `package.json` still has an old version, that's what gets published — potentially a version *lower* than what's already live, which registries will silently ignore as "latest." Bump the version as part of the hotfix commit itself (`node scripts/update-release-versions.js <version>`), same as any other release-affecting change to `package.json`.
 
 ### Step 1: Build emergency pre-release VSIXs
 
 ```sh
 # From hotfix branch
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f publishAsPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
 
 # From specific commit
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f publishAsPrerelease=true \
   -f startFromRef="abc123def456" \
   --repo forcedotcom/salesforcedx-vscode
@@ -141,13 +141,13 @@ For time-critical fixes requiring proper version tracking (not nightly format):
 
 ```sh
 # Build from hotfix branch with version bump
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f startFromRef="hotfix/security-fix" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
 
 # Build from specific commit with version bump
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f startFromRef="abc123def456" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
