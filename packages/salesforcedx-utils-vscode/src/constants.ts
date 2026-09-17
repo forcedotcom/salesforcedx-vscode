@@ -7,12 +7,9 @@
 
 export const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
 export const LOCAL_TELEMETRY_FILE = 'telemetry.json';
-export const SETTING_CLEAR_OUTPUT_TAB = 'clearOutputTab';
 export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_CORE_EXTENSION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
-export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
-export const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
 export const INTERNAL_FILTER = 'internal.salesforce.com';
 export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';
