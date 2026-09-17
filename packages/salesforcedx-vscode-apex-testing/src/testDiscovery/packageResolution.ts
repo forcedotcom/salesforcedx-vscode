@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
@@ -16,6 +16,7 @@ import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
   ApexClassManageableStateRow,
@@ -105,9 +106,8 @@ const trimmedNamespace = (ns: Option.Option<string>): Option.Option<string> =>
     Option.filter(s => s !== '')
   );
 
-/** Shared accessors: reach ConnectionService / TargetOrgRef ambiently through the Services extension. */
+/** Shared accessors: reach QueryService / TargetOrgRef ambiently through the Services extension. */
 const getServicesApi = Effect.flatMap(ExtensionProviderService, ext => ext.getServicesApi);
-const getConnection = Effect.flatMap(getServicesApi, api => api.services.ConnectionService.getConnection());
 const getOrgKey = getServicesApi.pipe(
   Effect.flatMap(api => api.services.TargetOrgRef()),
   Effect.flatMap(SubscriptionRef.get),
@@ -119,42 +119,39 @@ const getOrgKey = getServicesApi.pipe(
  * (filterMap) rather than failing the whole query. Query rejections classify into the unavailable
  * heuristic vs a generic query error so the caller can mark the org and/or fall back.
  */
-const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, connection: Connection, soql: string) =>
-  Effect.tryPromise({
-    try: () => connection.tooling.query(soql),
-    catch: error =>
+const queryDecoded = <A, I>(schema: Schema.Schema<A, I, never>, soql: string) =>
+  Effect.gen(function* () {
+    const api = yield* getServicesApi;
+    const queryService = yield* api.services.QueryService;
+    const { records } = yield* queryService.query({ soql, tooling: true }, Schema.Unknown);
+    const rows = Chunk.toReadonlyArray(yield* Stream.runCollect(records));
+    return Array.filterMap(rows, row => Schema.decodeUnknownOption(schema)(row));
+  }).pipe(
+    Effect.mapError(error =>
       isPackage2UnavailableError(error)
         ? new Package2UnavailableError({ message: getMessageFromError(error) })
         : new Package2QueryError({ message: getMessageFromError(error) })
-  }).pipe(
-    Effect.map(result => result.records ?? []),
-    Effect.map(rows => Array.filterMap(rows, row => Schema.decodeUnknownOption(schema)(row)))
+    )
   );
 
 /** Query `ids` in IN-clause chunks (bounded concurrency), decode, and flatten to one row list. */
 const batchedQuery = <A, I>(
-  schema: Schema.Schema<A, I>,
-  connection: Connection,
+  schema: Schema.Schema<A, I, never>,
   ids: readonly string[],
   toSoql: (chunk: readonly string[]) => string
 ) =>
-  Effect.forEach(
-    Array.chunksOf(ids, PACKAGE2_MEMBER_BATCH_SIZE),
-    chunk => queryDecoded(schema, connection, toSoql(chunk)),
-    {
-      concurrency: BATCH_CONCURRENCY
-    }
-  ).pipe(Effect.map(Array.flatten));
+  Effect.forEach(Array.chunksOf(ids, PACKAGE2_MEMBER_BATCH_SIZE), chunk => queryDecoded(schema, toSoql(chunk)), {
+    concurrency: BATCH_CONCURRENCY
+  }).pipe(Effect.map(Array.flatten));
 
 /**
  * Returns ApexClass Ids (15-char) whose ManageableState indicates unpackaged. On any query failure the
  * result is empty (keep all in package). Used to prune the single no-namespace subscriber package.
  */
 const getUnpackagedApexClassIds = Effect.fn('PackageResolutionService.getUnpackagedApexClassIds')(
-  (connection: Connection, classIds: readonly string[]) =>
+  (classIds: readonly string[]) =>
     batchedQuery(
       ApexClassManageableStateRow,
-      connection,
       classIds,
       chunk => `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause(chunk)})`
     ).pipe(
@@ -174,13 +171,12 @@ const getUnpackagedApexClassIds = Effect.fn('PackageResolutionService.getUnpacka
  */
 const resolveFromInstalledSubscriberPackages = Effect.fn(
   'PackageResolutionService.resolveFromInstalledSubscriberPackages'
-)(function* (connection: Connection, classIdToNamespace: ReadonlyMap<string, Option.Option<string>>) {
+)(function* (classIdToNamespace: ReadonlyMap<string, Option.Option<string>>) {
   if (classIdToNamespace.size === 0) {
     return HashMap.empty<string, ResolvedPackageInfo>();
   }
   const rows = yield* queryDecoded(
     InstalledSubscriberPackageRow,
-    connection,
     'SELECT Id, SubscriberPackageId, SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.NamespacePrefix'
   ).pipe(Effect.catchAll(() => Effect.succeed(Array.empty<InstalledSubscriberPackageRow>())));
 
@@ -217,8 +213,7 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
   const noNsClassIds = Option.isSome(singleNoNsPackage)
     ? Array.filterMap(entries, ([classId, ns]) => (Option.isNone(ns) ? Option.some(classId) : Option.none()))
     : [];
-  const unpackaged =
-    noNsClassIds.length > 0 ? yield* getUnpackagedApexClassIds(connection, noNsClassIds) : HashSet.empty<string>();
+  const unpackaged = noNsClassIds.length > 0 ? yield* getUnpackagedApexClassIds(noNsClassIds) : HashSet.empty<string>();
   const noNsResolved = Option.match(singleNoNsPackage, {
     onNone: () => Array.empty<readonly [string, ResolvedPackageInfo]>(),
     onSome: pkg =>
@@ -245,12 +240,10 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
  * Fails with Package2UnavailableError / Package2QueryError so the caller can mark the org and fall back.
  */
 const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(function* (
-  connection: Connection,
   validIds: readonly string[]
 ) {
   const members = yield* batchedQuery(
     Package2MemberRow,
-    connection,
     validIds,
     chunk => `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubjectId IN (${inClause(chunk)})`
   );
@@ -260,7 +253,6 @@ const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(
   const subscriberPackageIds = Array.dedupe(members.map(m => m.SubscriberPackageId));
   const packages = yield* batchedQuery(
     Package2Row,
-    connection,
     subscriberPackageIds,
     // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
     chunk =>
@@ -284,12 +276,10 @@ const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(
  * member failure just skips that package.
  */
 const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveByPackageEnumeration')(function* (
-  connection: Connection,
   requestedIds: readonly string[]
 ) {
   const packages = yield* queryDecoded(
     Package2Row,
-    connection,
     'SELECT Id, Name, ContainerOptions, SubscriberPackageId FROM Package2'
   );
   if (packages.length === 0) {
@@ -301,7 +291,6 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
     pkg =>
       queryDecoded(
         Package2MemberRow,
-        connection,
         `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubscriberPackageId = '${escapeId(pkg.SubscriberPackageId)}'`
       ).pipe(
         Effect.map(members =>
@@ -356,7 +345,6 @@ export class PackageResolutionService extends Effect.Service<PackageResolutionSe
 
     // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
     const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
-      connection: Connection,
       orgKey: string,
       validIds: readonly string[],
       resolved: HashMap.HashMap<string, ResolvedPackageInfo>
@@ -365,7 +353,7 @@ export class PackageResolutionService extends Effect.Service<PackageResolutionSe
       if (unresolved.length === 0) {
         return resolved;
       }
-      const extra = yield* resolveByPackageEnumeration(connection, unresolved).pipe(
+      const extra = yield* resolveByPackageEnumeration(unresolved).pipe(
         Effect.tapError(markIfUnavailable(orgKey)),
         Effect.catchAll(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
       );
@@ -394,14 +382,12 @@ export class PackageResolutionService extends Effect.Service<PackageResolutionSe
         return projectCache(orgCache, validIds);
       }
 
-      const connection = yield* getConnection;
-
-      const resolved = yield* resolveByMembers(connection, validIds).pipe(
-        Effect.flatMap(members => augmentUnresolved(connection, orgKey, validIds, members)),
+      const resolved = yield* resolveByMembers(validIds).pipe(
+        Effect.flatMap(members => augmentUnresolved(orgKey, validIds, members)),
         Effect.tapError(markIfUnavailable(orgKey)),
         Effect.catchTags({
-          Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(connection, classIdToNamespace),
-          Package2QueryError: () => resolveFromInstalledSubscriberPackages(connection, classIdToNamespace)
+          Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace),
+          Package2QueryError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace)
         })
       );
 

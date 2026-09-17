@@ -35,6 +35,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { QueryService } from './core/queryService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
@@ -109,6 +110,7 @@ type PrebuiltServicesDependencies =
   | MetadataRegistryService
   | MetadataRetrieveService
   | ProjectService
+  | QueryService
   | Resource.Resource
   | SettingsChangePubSub
   | SettingsService
@@ -159,6 +161,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveService: typeof MetadataRetrieveService;
     NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
+    QueryService: typeof QueryService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: PublicSdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
@@ -593,6 +596,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataRetrieveService,
         NotificationModeService,
         ProjectService,
+        QueryService,
         getSdkLayerConfigFromContext,
         SdkLayerFor: publicSdkLayerFor,
         SettingsChangePubSub,
@@ -666,6 +670,7 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
+export { QueryDecodeError, QueryService, type QueryOptions } from './core/queryService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';

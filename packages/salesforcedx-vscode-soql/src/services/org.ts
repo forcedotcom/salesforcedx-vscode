@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
@@ -41,12 +40,3 @@ export const onDefaultOrgChange = (listener: () => void): vscode.Disposable => {
   );
   return new vscode.Disposable(() => abortController.abort());
 };
-
-export const getConnection = (): Promise<Connection> =>
-  getSoqlRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* getServicesApi;
-      const connectionService = yield* api.services.ConnectionService;
-      return yield* connectionService.getConnection();
-    })
-  );

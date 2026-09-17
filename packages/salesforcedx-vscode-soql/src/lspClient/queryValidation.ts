@@ -9,7 +9,7 @@ import { workspace } from 'vscode';
 import type { BaseLanguageClient as LanguageClient } from 'vscode-languageclient';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { runQuery } from '../editor/queryRunner';
-import { getConnection } from '../services/org';
+import { getSoqlRuntime } from '../services/extensionProvider';
 
 export const init = (client: LanguageClient): LanguageClient => {
   const validationFeature = new QueryValidationFeature();
@@ -26,9 +26,11 @@ export const afterStart = (client: LanguageClient): LanguageClient => {
     try {
       return enabled
         ? {
-            result: await runQuery(await getConnection())(queryText, {
-              showErrors: false
-            })
+            result: await getSoqlRuntime().runPromise(
+              runQuery(queryText, {
+                showErrors: false
+              })
+            )
           }
         : { done: true, totalSize: 0, records: [] as const };
     } catch (e) {

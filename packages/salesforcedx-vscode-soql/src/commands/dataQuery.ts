@@ -10,6 +10,8 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -20,6 +22,7 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text;
+const JsonMapSchema = Schema.declare((input): input is JsonMap => isRecord(input));
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
@@ -32,22 +35,33 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text
  */
 export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
   const channelService = yield* api.services.ChannelService;
 
   yield* channelService.appendToChannel(
     nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
   );
 
-  const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  const configuredMaxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
+  const maxFetch =
+    typeof configuredMaxFetch === 'number' && Number.isSafeInteger(configuredMaxFetch) && configuredMaxFetch > 0
+      ? configuredMaxFetch
+      : 50_000;
   const { soql, scanAll } = stripAllRows(query);
   const promptService = yield* api.services.PromptService;
   const notificationMode = yield* api.services.NotificationModeService;
-  return yield* Effect.promise(() =>
-    useTooling
-      ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
-      : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
-  ).pipe(
+  const queryService = yield* api.services.QueryService;
+  return yield* queryService.query({ soql, tooling: useTooling, scanAll }, JsonMapSchema).pipe(
+    Effect.flatMap(({ totalSize, records }) =>
+      records.pipe(
+        Stream.take(maxFetch),
+        Stream.runCollect,
+        Effect.map(collectedRecords => ({
+          totalSize,
+          done: collectedRecords.length >= totalSize,
+          records: Array.from(collectedRecords)
+        }))
+      )
+    ),
     promptService.withProgress(
       nls.localize('progress_running_query'),
       yield* notificationMode.getProgressLocation(COMMAND)

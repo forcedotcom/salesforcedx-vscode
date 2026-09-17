@@ -6,35 +6,43 @@
  */
 
 import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as Stream from 'effect/Stream';
 import { PackageResolutionService } from '../../../src/testDiscovery/packageResolution';
 
-// PackageResolutionService.resolve resolves the connection via ConnectionService.getConnection() and the
-// org key via TargetOrgRef, both reached ambiently through ExtensionProviderService. The tests drive the
-// service through a stub ExtensionProviderService layer; connection.tooling.query is the controllable seam.
+// PackageResolutionService.resolve reaches QueryService and TargetOrgRef through ExtensionProviderService.
+// The tests drive the service through a stub ExtensionProviderService layer; QueryService.query is the seam.
 // buildLayer() constructs a fresh service instance (fresh Ref state) per run, so cache/unavailable state
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
 describe('PackageResolutionService', () => {
   let mockToolingQuery: jest.Mock;
-  let mockConnection: Partial<Connection>;
   let orgInfo: { orgId?: string; username?: string };
 
   beforeEach(() => {
     mockToolingQuery = jest.fn();
-    mockConnection = { tooling: { query: mockToolingQuery } as unknown as Connection['tooling'] };
     orgInfo = { orgId: 'org123', username: 'user@example.com' };
   });
 
   const buildLayer = () => {
     const mockApi = {
       services: {
-        ConnectionService: { getConnection: () => Effect.succeed(mockConnection as Connection) },
+        QueryService: Effect.succeed({
+          query: ({ soql }: { soql: string }) =>
+            Effect.tryPromise({
+              try: async (): Promise<{ records?: unknown[]; totalSize?: number }> => mockToolingQuery(soql),
+              catch: error => error
+            }).pipe(
+              Effect.map(result => ({
+                totalSize: result?.totalSize ?? result?.records?.length ?? 0,
+                records: Stream.fromIterable(result?.records ?? [])
+              }))
+            )
+        }),
         TargetOrgRef: () => SubscriptionRef.make(orgInfo)
       }
     };

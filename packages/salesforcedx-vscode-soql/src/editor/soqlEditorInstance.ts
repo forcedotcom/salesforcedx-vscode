@@ -21,7 +21,7 @@ import { executeQueryPlan } from '../commands/queryPlan';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { getConnection, isDefaultOrgSet } from '../services/org';
+import { isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
@@ -104,19 +104,12 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
     return;
   }
   const queryText = document.getText();
-  const conn = yield* Effect.promise(() => getConnection());
   const api = yield* getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  const queryData = yield* Effect.promise(() =>
-    vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: progressLocation,
-        title: nls.localize('progress_running_query')
-      },
-      () => runQuery(conn)(queryText, { maxRows })
-    )
+  const promptService = yield* api.services.PromptService;
+  const queryData = yield* runQuery(queryText, { maxRows }).pipe(
+    promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
   );
   yield* Effect.promise(() => openQueryDataView(queryData));
   yield* runQueryDone();

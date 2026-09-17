@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { QueryResult } from '../types';
-import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Effect from 'effect/Effect';
 import { isError, isRecord } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { stripAllRows } from './allRows';
@@ -19,30 +21,42 @@ const hasMessage = (obj: unknown): obj is { message: unknown } => isRecord(obj) 
 const getErrorMessage = (error: unknown): string =>
   isError(error) ? error.message : hasMessage(error) ? String(error.message) : String(error);
 
-export const runQuery =
-  (conn: Connection) =>
-  async (
-    queryText: string,
-    options: { showErrors?: boolean; maxRows?: number } = { showErrors: true }
-  ): Promise<QueryResult<JsonMap>> => {
-    const { maxRows } = options;
-    const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
-    const { soql, scanAll } = stripAllRows(pureSOQLText);
+const JsonMapSchema = Schema.declare((input): input is JsonMap => isRecord(input));
 
-    try {
-      const rawQueryData = await conn.query(soql, { autoFetch: true, maxFetch: maxRows ?? 50_000, scanAll });
-      return {
-        ...rawQueryData,
-        records: flattenQueryRecords(rawQueryData.records)
-      };
-    } catch (error) {
-      if (options.showErrors) {
-        const errorMsg = getErrorMessage(error);
-        vscode.window.showErrorMessage(nls.localize('error_run_soql_query', errorMsg));
-      }
-      throw error;
-    }
-  };
+export const runQuery = Effect.fn('runQuery')(function* (
+  queryText: string,
+  options: { showErrors?: boolean; maxRows?: number } = { showErrors: true }
+) {
+  const { maxRows } = options;
+  const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
+  const { soql, scanAll } = stripAllRows(pureSOQLText);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const queryService = yield* api.services.QueryService;
+
+  return yield* queryService.query({ soql, scanAll }, JsonMapSchema).pipe(
+    Effect.flatMap(({ totalSize, records }) =>
+      records.pipe(
+        Stream.take(maxRows ?? 50_000),
+        Stream.runCollect,
+        Effect.map(collectedRecords => {
+          const flattenedRecords = flattenQueryRecords(Array.from(collectedRecords));
+          return {
+            totalSize,
+            done: flattenedRecords.length >= totalSize,
+            records: flattenedRecords
+          };
+        })
+      )
+    ),
+    Effect.tapError(error =>
+      options.showErrors
+        ? Effect.sync(() => {
+            void vscode.window.showErrorMessage(nls.localize('error_run_soql_query', getErrorMessage(error)));
+          })
+        : Effect.void
+    )
+  );
+});
 /**
   As query complexity grows
   we will need to flatten the results of nested values

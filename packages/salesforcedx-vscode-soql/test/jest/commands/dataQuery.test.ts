@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 
 const mockChannel = {
   appendToChannel: (msg: string) => Effect.void,
@@ -23,7 +24,7 @@ jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
+import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
 import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
@@ -728,7 +729,13 @@ describe('DataQuery Pure Functions', () => {
     const makeApiMock = () => {
       const restQuery = jest.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
       const toolingQuery = jest.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
-      const connection = { query: restQuery, tooling: { query: toolingQuery } };
+      const queryService = new QueryService({
+        query: ({ soql, tooling, scanAll }: { soql: string; tooling?: boolean; scanAll?: boolean }) =>
+          Effect.promise(
+            async (): Promise<{ records: unknown[]; totalSize: number }> =>
+              (tooling ? toolingQuery : restQuery)(soql, { scanAll })
+          ).pipe(Effect.map(result => ({ totalSize: result.totalSize, records: Stream.fromIterable(result.records) })))
+      } as unknown as QueryService);
       const mockPromptService = {
         withProgress:
           () =>
@@ -738,27 +745,22 @@ describe('DataQuery Pure Functions', () => {
       const provider = {
         getServicesApi: Effect.succeed({
           services: {
-            ConnectionService: { getConnection: () => Effect.succeed(connection) },
+            QueryService,
             ChannelService: Effect.succeed(mockChannel),
             PromptService: Effect.succeed(mockPromptService),
             NotificationModeService
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
-      const mockConnectionService = {
-        getConnection: () => Effect.succeed(connection),
-        invalidateCachedConnections: () => Effect.void,
-        listAllAuthorizations: () => Effect.succeed([])
-      } as unknown as ConnectionService;
-      return { provider, restQuery, toolingQuery, mockConnectionService, mockPromptService };
+      return { provider, restQuery, toolingQuery, queryService, mockPromptService };
     };
 
     it('strips trailing ALL ROWS and passes scanAll true on the REST branch', async () => {
-      const { provider, restQuery, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, restQuery, queryService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery('SELECT Id FROM Account ALL ROWS', false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
-          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(QueryService, queryService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode)
@@ -768,11 +770,11 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('strips trailing ALL ROWS and passes scanAll true on the Tooling branch', async () => {
-      const { provider, toolingQuery, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, toolingQuery, queryService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery('SELECT Id FROM ApexClass ALL ROWS', true).pipe(
           Effect.provideService(ExtensionProviderService, provider),
-          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(QueryService, queryService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode)
@@ -782,11 +784,11 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('passes scanAll false and unchanged text when ALL ROWS is absent', async () => {
-      const { provider, restQuery, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, restQuery, queryService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery('SELECT Id FROM Account', false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
-          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(QueryService, queryService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode)
@@ -1005,10 +1007,22 @@ describe('DataQuery Pure Functions', () => {
         getChannel: Effect.succeed({ show }),
         showChannel: Effect.sync(() => show())
       };
+      const queryService = new QueryService({
+        query: ({ soql }: { soql: string }) =>
+          Effect.tryPromise({
+            try: async (): Promise<{ records?: unknown[]; totalSize?: number }> => query(soql),
+            catch: error => error
+          }).pipe(
+            Effect.map(result => ({
+              totalSize: result.totalSize ?? result.records?.length ?? 0,
+              records: Stream.fromIterable(result.records ?? [])
+            }))
+          )
+      } as unknown as QueryService);
       const provider = {
         getServicesApi: Effect.succeed({
           services: {
-            ConnectionService: { getConnection: () => Effect.succeed({ query, tooling: { query } }) },
+            QueryService,
             ChannelService: Effect.succeed(channel),
             WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
             FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
@@ -1017,16 +1031,16 @@ describe('DataQuery Pure Functions', () => {
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
-      return { provider, show, appendToChannel };
+      return { provider, show, appendToChannel, queryService };
     };
 
     const run = (query: jest.Mock) => {
-      const { provider, show, appendToChannel } = makeProvider(query);
+      const { provider, show, appendToChannel, queryService } = makeProvider(query);
       return Effect.runPromise(
         executeDataQuery('SELECT Id FROM Account', 'REST').pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ChannelService, {} as unknown as ChannelService),
-          Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+          Effect.provideService(QueryService, queryService),
           Effect.provideService(FsService, {} as unknown as FsService),
           Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
           Effect.provideService(PromptService, noopPromptService),

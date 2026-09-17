@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
@@ -90,18 +91,22 @@ const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
   };
 });
 
-const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
+export const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const ref = yield* api.services.TargetOrgRef();
     const orgInfo = yield* SubscriptionRef.get(ref);
     const orgType = orgInfo.isScratch ? 'scratch' : orgInfo.isSandbox ? 'sandbox' : 'production';
 
-    const conn = yield* api.services.ConnectionService.getConnection();
     const sourceMemberCount = orgInfo.tracksSource
-      ? yield* Effect.tryPromise(
-          async () => (await conn.tooling.query('SELECT COUNT() FROM SourceMember')).totalSize
-        ).pipe(Effect.orElseSucceed(() => 'query failed'))
+      ? yield* Effect.gen(function* () {
+          const queryService = yield* api.services.QueryService;
+          const { totalSize } = yield* queryService.query(
+            { soql: 'SELECT COUNT() FROM SourceMember', tooling: true },
+            Schema.Unknown
+          );
+          return totalSize;
+        }).pipe(Effect.orElseSucceed(() => 'query failed'))
       : 'N/A';
 
     return {

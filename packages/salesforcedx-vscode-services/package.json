@@ -44,6 +44,7 @@
     "@salesforce/core": "^9.1.9",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/sf-effect-sdk": "*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
     "@salesforce/templates": "^66.16.0",
@@ -101,6 +102,7 @@
         "build:icons",
         "generate-types",
         "../salesforcedx-utils:compile",
+        "../sf-effect-sdk:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [

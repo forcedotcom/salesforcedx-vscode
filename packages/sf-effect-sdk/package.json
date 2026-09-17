@@ -1,0 +1,28 @@
+{
+  "name": "@salesforce/sf-effect-sdk",
+  "version": "0.0.0-182db44",
+  "private": true,
+  "description": "Bundled sf-effect Promise query adapter",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "build": "node scripts/build-query-adapter.mjs",
+    "compile": "wireit",
+    "test": "node --test test/*.test.mjs"
+  },
+  "wireit": {
+    "compile": {
+      "command": "node --check dist/promise.cjs",
+      "files": [
+        "dist/**",
+        "package.json"
+      ],
+      "output": []
+    }
+  },
+  "exports": {
+    "./promise": {
+      "types": "./dist/promise.d.ts",
+      "default": "./dist/promise.cjs"
+    }
+  }
+}
