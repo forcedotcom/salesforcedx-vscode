@@ -95,9 +95,9 @@ return yield* runApexTests({ /* ... */ }).pipe(
   Effect.tap(() => channelService.showChannel),
   Effect.tap(result =>
     Effect.sync(() => {
-      (result === undefined
-        ? notificationService.showFailedExecution
-        : notificationService.showSuccessfulExecution)(executionName);
+      void (result === undefined
+        ? vscode.window.showErrorMessage
+        : vscode.window.showInformationMessage)(executionName);
     })
   )
 );

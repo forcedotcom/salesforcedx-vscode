@@ -6,7 +6,7 @@
  */
 
 export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
-export type OrgShapeInfo = { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string };
+type OrgShapeInfo = { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string };
 
 /**
  * Maps DefaultOrgInfo fields from `defaultOrgRef` to an OrgShape literal.

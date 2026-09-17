@@ -7,16 +7,10 @@
 
 import { workspace, WorkspaceFolder } from 'vscode';
 
-export const hasRootWorkspace = (ws: typeof workspace = workspace) => Boolean(ws?.workspaceFolders?.length);
+const hasRootWorkspace = (ws: typeof workspace = workspace) => Boolean(ws?.workspaceFolders?.length);
 
 const getRootWorkspace = (): WorkspaceFolder =>
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
 
 export const getRootWorkspacePath = (): string => (getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '');
-
-export const workspaceUtils = {
-  hasRootWorkspace,
-  getRootWorkspace,
-  getRootWorkspacePath
-};

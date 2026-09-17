@@ -54,15 +54,6 @@ jest.mock('@salesforce/effect-ext-utils', () => {
     ExtensionProviderService: actual.ExtensionProviderService
   };
 });
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  notificationService: {
-    showSuccessfulExecution: jest.fn()
-  },
-  ConfigUtil: {
-    getConfigValue: jest.fn(),
-    getUsernameFor: jest.fn()
-  }
-}));
 
 // Seed ExtensionProviderService with the mocked ConnectionService.listAllAuthorizations (an Effect),
 // a ConfigService whose default-org lookups resolve to undefined, and a ChannelService whose
