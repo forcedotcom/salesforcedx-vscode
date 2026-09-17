@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import type { Executable } from 'vscode-languageclient/node';
 import type { RecordedSpan } from './testUtils/recordingTracer';
@@ -44,6 +45,10 @@ import { createLanguageServer } from '../../src/languageServer';
 import { resolveRequirements } from '../../src/requirements';
 import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { getRuntime } from '../../src/services/runtime';
+
+const runCreateLanguageServer = (context: vscode.ExtensionContext) =>
+  getRuntime().runPromise(createLanguageServer(context));
 
 describe('languageServer client span', () => {
   beforeEach(() => {
@@ -82,13 +87,13 @@ describe('languageServer client span', () => {
   } as unknown as vscode.ExtensionContext;
 
   it('opens exactly one apex.lsp.client root span per lifetime', async () => {
-    await createLanguageServer(mockContext);
+    await runCreateLanguageServer(mockContext);
     expect(clientSpans()).toHaveLength(1);
     expect(clientSpans()[0].ended).toBe(false);
   });
 
   it('onTelemetry writes allowlisted attrs onto the live client span', async () => {
-    await createLanguageServer(mockContext);
+    await runCreateLanguageServer(mockContext);
     capturedOnTelemetry?.({ properties: { Feature: 'ApexLanguageServer', extra: 'v' }, measures: { count: 3 } });
     await new Promise(r => setImmediate(r));
     const span = clientSpans()[0];
@@ -98,26 +103,25 @@ describe('languageServer client span', () => {
   });
 
   it('a blocked telemetry feature is not written onto the client span', async () => {
-    await createLanguageServer(mockContext);
+    await runCreateLanguageServer(mockContext);
     capturedOnTelemetry?.({ properties: { Feature: 'Hover' }, measures: {} });
     await new Promise(r => setImmediate(r));
     expect(clientSpans()[0].attributes.has('Feature')).toBe(false);
   });
 
-  it('records an errored apexLSPError span when createServer fails', async () => {
+  it('fails createServer with a requirements-phase setup error', async () => {
     (resolveRequirements as jest.Mock).mockRejectedValue({ error: 'no java found' });
-    await expect(createLanguageServer(mockContext)).rejects.toBeDefined();
-    await new Promise(r => setImmediate(r));
-    const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
-    expect(errSpan?.attributes.get('error')).toBe('no java found');
-    // fireErrorSpan fails inside the span so it ends with ERROR status (severity 17 in AppInsights).
-    expect(errSpan?.ended).toBe(true);
+    const error = await getRuntime().runPromise(createLanguageServer(mockContext).pipe(Effect.flip));
+    expect(error).toMatchObject({
+      _tag: 'ApexLanguageClientSetupError',
+      phase: 'requirements'
+    });
   });
 
   it('restart ends the prior client span and opens exactly one new live span', async () => {
-    await createLanguageServer(mockContext);
+    await runCreateLanguageServer(mockContext);
     const first = clientSpans()[0];
-    await createLanguageServer(mockContext);
+    await runCreateLanguageServer(mockContext);
     const spans = clientSpans();
     expect(spans).toHaveLength(2);
     expect(first.ended).toBe(true);
@@ -158,8 +162,10 @@ describe('languageServer client span', () => {
         }));
         const { createLanguageServer: createIsolatedLanguageServer } =
           jest.requireActual<typeof import('../../src/languageServer')>('../../src/languageServer');
+        const { getRuntime: getIsolatedRuntime } =
+          jest.requireMock<typeof import('../../src/services/runtime')>('../../src/services/runtime');
 
-        await createIsolatedLanguageServer(mockContext);
+        await getIsolatedRuntime().runPromise(createIsolatedLanguageServer(mockContext));
 
         const server = (IsolatedApexLanguageClient as unknown as jest.Mock).mock.calls[0][2] as Executable;
         expect(server.args).toContain('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:0,quiet=y');
