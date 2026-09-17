@@ -182,3 +182,26 @@ npm run test:desktop:conflicts -w packages/salesforcedx-vscode-metadata
 ```
 
 Each command must complete and be analyzed before proceeding to the next.
+
+## Container Specs (Code Builder)
+
+After all web/desktop tests pass, optionally run **container** Playwright specs. Container tests validate extensions against the Code Builder container (desktop extension build in a Node host with language servers + CLI access).
+
+**15 packages ship container specs** (apex, apex-debugger, apex-log, apex-oas, apex-replay-debugger, apex-testing, core, lightning, lwc, metadata, org, org-browser, services, soql, visualforce) — 75 specs. See `docs/codeBuilderContainerParity.md` for the per-package list + what's intentionally not ported.
+
+**Run all at once (recommended):**
+```bash
+npm run test:container:local
+```
+(from repo root; pulls the image, builds + swaps your extensions in, discovers all `test:container` scripts, runs suites sequentially against 1 shared workbench)
+
+**Run 1 package manually** (if container already running):
+```bash
+npm run test:container -w <package>
+```
+
+**Coverage ledger:** See `docs/codeBuilderContainerParity.md` for which packages have container specs + why others don't (not container-viable or covered elsewhere).
+
+**Sequential only:** Container hosts 1 browser session, so all package suites must run sequentially (not parallel).
+
+**Failure handling:** If a container spec fails, the orchestrator continues through all packages (doesn't stop at first failure) to surface all issues at once. Check `packages/<package>/test-results/playwright-report/index.html` for each failure.
