@@ -48,14 +48,21 @@ find . -name "*.vsix" -exec code --install-extension {} \;
 
 ### Stable Release
 
+Dispatch **both** registries — dispatching one does not trigger the other:
+
 ```bash
 # Trigger marketplace publish workflow
 gh workflow run publishVSCode.yml \
   -f version="v67.12.0" \
   --repo forcedotcom/salesforcedx-vscode
+
+# Trigger Open VSX publish workflow
+gh workflow run publishOpenVSX.yml \
+  -f release-tag="v67.12.0" \
+  --repo forcedotcom/salesforcedx-vscode
 ```
 
-Monitor the workflow at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml
+Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml
 
 ### Pre-release (Emergency Hotfix)
 
@@ -108,9 +115,17 @@ Follow the testing checklist above.
 
 ### 3. Publish to Marketplace
 
+Dispatch **both** registries with `isHotfix=true` (dispatching one does not trigger the other; the hotfix commit never went through develop's branch protection or a nightly pipeline, so each workflow's own gate-check must test it directly):
+
 ```bash
 gh workflow run publishVSCode.yml \
   -f version="v67.12.1" \
+  -f isHotfix=true \
+  --repo forcedotcom/salesforcedx-vscode
+
+gh workflow run publishOpenVSX.yml \
+  -f release-tag="v67.12.1" \
+  -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 

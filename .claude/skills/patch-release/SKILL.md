@@ -59,7 +59,7 @@ Run manual QA tests. See [docs/release-testing-guide.md](../../../docs/release-t
 
 ### 6. Publish to marketplace
 
-If tests pass, dispatch both workflows for full coverage (VS Code Marketplace + Open VSX):
+If tests pass, dispatch **both** workflows for full coverage (VS Code Marketplace + Open VSX) — dispatching one does **not** trigger the other, there is no cascade between them. Set `isHotfix=true` on **each** so its own gate-check tests the exact patch commit directly (this build never went through develop's branch protection or any nightly pipeline):
 
 ```sh
 gh workflow run publishVSCode.yml -f version="v67.12.1" -f isHotfix=true --repo forcedotcom/salesforcedx-vscode

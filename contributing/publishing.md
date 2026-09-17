@@ -101,8 +101,7 @@ Published releases extract extension names from VSIX filenames in release assets
 1. Promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion))
 2. Trigger [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) to build release VSIXs
 3. Download + test VSIX files from GitHub pre-release
-4. Trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`)
-   - For stable hotfixes only (with `-f isHotfix=true`): also dispatch [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) with `-f release-tag="v67.12.0" -f isHotfix=true` for full registry coverage
+4. Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) with the version (e.g., `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`) — a manual `workflow_dispatch` of one does **not** trigger the other; only flipping the GitHub release from pre-release to "released" fires both automatically. For stable hotfixes, also pass `-f isHotfix=true` to each so its gate-check tests the exact commit directly.
 5. Approve marketplace publish gates
 6. Marketplace updates (usually within minutes)
 
@@ -111,7 +110,7 @@ Published releases extract extension names from VSIX filenames in release assets
 Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
 - Run tests, build VSIXs, create git tag + GitHub release, send Slack notification
 
-Then triggers `publishVSCode.yml` (auto-triggered when release marked "released" not pre-release).
+Then triggers both `publishVSCode.yml` and `publishOpenVSX.yml` (each auto-triggered when the release is marked "released", not pre-release).
 
 Before approving marketplace publish, download VSIX files, install locally, verify functionality.
 
@@ -122,7 +121,7 @@ gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo 
 find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
 ```
 
-After testing (per internal template), approve "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" jobs.
+After testing (per internal template), approve the "Publish Release to Marketplace" and "Publish in Open VSX Registry" runs.
 
 ### Web Console Release
 
