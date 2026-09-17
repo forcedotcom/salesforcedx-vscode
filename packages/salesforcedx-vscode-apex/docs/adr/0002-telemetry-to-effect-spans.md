@@ -6,7 +6,11 @@ The Apex extension will retire the legacy core `TelemetryService` event API — 
 
 The one non-obvious choice this ADR settles: `apexLSPLog` fires once per Jorje feature event, and its allowlist (`apexLspTelemetryAllowlist.ts`) exists to bound App Insights volume. Do **not** make each event its own top-level span — that auto-exports and reinstates exactly the volume the allowlist suppresses. Instead annotate the existing long-lived language-client span via `annotateRootSpan`, keeping the allowlist gate at the `client.onTelemetry` boundary: one span, not N.
 
+## The `apexLSPError` decision
+
+Setup failures emit one top-level `apexLSPError` span from `activateLanguageClient` recovery, with `phase` as the discriminator. Do not also fire from `createServer` `tapError` — that path already fails into the same catch.
+
 ## Consequences
 
 - Downstream dashboards keyed on the old event names (`apexLSPSettings`, `apexLSPLog`, `apexLSPError`, deactivation) break. Accepted per team.
-- This ADR unblocks the per-call-site migration WIs; those settle their own event→span mapping and attribute-key details.
+- Call-site mappings live with the emitters. `apexLSPError`: one `fireErrorSpan` from `activateLanguageClient` recovery, attr `phase`.

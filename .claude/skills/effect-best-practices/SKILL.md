@@ -30,10 +30,10 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
 | Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
-| Error Specificity | Split tags when catch, telemetry, or fields differ (`cause`+`setting` vs `message`) | Extra tags that all print `message` |
+| Error Specificity | Split tags when catch arms or field shapes differ; telemetry dimensions are fields on one tag | Extra tags that all print `message` / fire the same span |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
-| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
+| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
@@ -186,7 +186,7 @@ Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTag
 
 ### Prefer Explicit Over Generic Errors
 
-Split tags when **catch arms, telemetry, or payload fields** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. One tag when every arm prints `message` (or `cause`); put nls variance in `message`. Frontend/RPC still splits when the UI actually branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
+Split tags when **catch arms or field shapes** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. Same catch work (print `message`, one span) → one tag; telemetry dimensions are fields, not tags. nls variance lives in `message`. Frontend/RPC still splits when the UI branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
 
 ### Accumulating Errors Across a Collection
 
@@ -280,7 +280,7 @@ const openedOk = Effect.gen(function* () {
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
-See `references/composition-style.md` for how to compose these: flat build-then-run pipes, terminal runner, point-free safety, Match dispatch, guard clauses.
+See `references/composition-style.md` for how to compose these: flat build-then-run pipes, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
 
 ## Layer Composition
 
@@ -522,7 +522,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
-- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses, linear body as point-free pipe vs generator
+- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses, linear body as point-free pipe vs generator, recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
