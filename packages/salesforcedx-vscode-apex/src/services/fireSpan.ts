@@ -17,14 +17,18 @@ export const fireSpan = (name: string, attributes: Record<string, string | numbe
 };
 
 /**
- * Emit a top-level error span (fire-and-forget). Fails inside the span so it ends with ERROR status:
- * both AppInsights exporters classify by span.status.code === ERROR (severity 17/exception), else INFO.
+ * Top-level error span (fire-and-forget). Optional extra `attributes`. Fails inside so status=ERROR:
+ * AppInsights exporters classify span.status.code === ERROR as severity 17/exception, else INFO.
  */
-export const fireErrorSpan = (name: string, error: { error?: unknown }): void => {
+export const fireErrorSpan = (
+  name: string,
+  error: { error?: unknown },
+  attributes: Record<string, string | number> = {}
+): void => {
   getRuntime().runFork(
     Effect.annotateCurrentSpan('error', String(error?.error ?? error)).pipe(
       Effect.zipRight(Effect.fail(error)),
-      Effect.withSpan(name, { root: true })
+      Effect.withSpan(name, { attributes, root: true })
     )
   );
 };

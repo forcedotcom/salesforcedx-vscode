@@ -30,7 +30,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
 | Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
-| Error Specificity | Split tags when catch, telemetry, or fields differ (`cause`+`setting` vs `message`) | Extra tags that all print `message` |
+| Error Specificity | Split tags when catch arms or field shapes differ; telemetry dimensions are fields on one tag | Extra tags that all print `message` / fire the same span |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
@@ -186,7 +186,7 @@ Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTag
 
 ### Prefer Explicit Over Generic Errors
 
-Split tags when **catch arms, telemetry, or payload fields** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. One tag when every arm prints `message` (or `cause`); put nls variance in `message`. Frontend/RPC still splits when the UI actually branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
+Split tags when **catch arms or field shapes** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. Same catch work (print `message`, one span) → one tag; telemetry dimensions are fields, not tags. nls variance lives in `message`. Frontend/RPC still splits when the UI branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
 
 ### Accumulating Errors Across a Collection
 

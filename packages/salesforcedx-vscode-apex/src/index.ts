@@ -53,7 +53,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
-  yield* Effect.promise(() => createLanguageClient(context, languageServerStatusBarItem));
+  yield* createLanguageClient(context, languageServerStatusBarItem);
 
   yield* Effect.sync(() => {
     // Register settings change handler for LSP parity capabilities
@@ -84,13 +84,11 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
 
 // root: true → exports as a top-level span (not an orphaned child of any ambient span)
 const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
-  // `ensuring` runs teardown (disposeOutputChannel + closeExtensionScope) even if stop() rejects, so
-  // the client child scope closes and the apex.lsp.client span flushes. `tryPromise`+`ignore`: surface
-  // the rejection then swallow it so deactivate() still resolves.
+  // `ensuring` closes the extension scope even if stop() rejects. This disposes the output channel,
+  // closes the client child scope, and flushes the apex.lsp.client span. `tryPromise`+`ignore` surfaces
+  // the rejection then swallows it so deactivate() still resolves.
   yield* Effect.tryPromise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve()).pipe(
-    Effect.ensuring(
-      Effect.sync(() => languageClientManager.disposeOutputChannel()).pipe(Effect.zipRight(closeExtensionScope()))
-    ),
+    Effect.ensuring(closeExtensionScope()),
     Effect.ignore
   );
 });

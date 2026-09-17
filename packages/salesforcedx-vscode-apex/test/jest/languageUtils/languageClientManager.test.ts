@@ -11,9 +11,11 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
+import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
+import { retrieveEnableSyncInitJobs } from '../../../src/settings';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
 
 // Typed view of the private isRestarting flag, avoiding `as any` widening in each assertion.
@@ -47,6 +49,14 @@ jest.mock('../../../src/apexLspStatusBarItem', () => ({
     error: jest.fn(),
     restarting: jest.fn()
   }))
+}));
+
+jest.mock('../../../src/languageServer', () => ({
+  createLanguageServer: jest.fn()
+}));
+
+jest.mock('../../../src/settings', () => ({
+  retrieveEnableSyncInitJobs: jest.fn()
 }));
 
 // Mock setTimeout and clearTimeout
@@ -142,6 +152,63 @@ describe('Language Client Manager', () => {
 
       instance1.setStatus(ClientStatus.Ready, 'test');
       expect(instance2.getStatus().isReady()).toBe(true);
+    });
+  });
+
+  describe('Client Setup', () => {
+    let mockClient: ApexLanguageClient;
+    let mockContext: vscode.ExtensionContext;
+    let mockStatusBar: ApexLSPStatusBarItem;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRecordedSpans.length = 0;
+      const errorHandler = {
+        addListener: jest.fn(),
+        serviceHasStartedSuccessfully: jest.fn()
+      };
+      mockClient = {
+        errorHandler,
+        start: jest.fn().mockResolvedValue(undefined),
+        onNotification: jest.fn()
+      } as unknown as ApexLanguageClient;
+      mockContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
+      mockStatusBar = {
+        ready: jest.fn(),
+        error: jest.fn()
+      } as unknown as ApexLSPStatusBarItem;
+      (createLanguageServer as unknown as jest.Mock).mockReturnValue(Effect.succeed(mockClient));
+      (retrieveEnableSyncInitJobs as jest.Mock).mockReturnValue(true);
+      languageClientManager.setClientInstance(undefined);
+      languageClientManager.setStatus(ClientStatus.Unavailable, '');
+    });
+
+    it('keeps createLanguageClient as a Promise adapter', async () => {
+      const creation = languageClientManager.createLanguageClient(mockContext, mockStatusBar);
+
+      expect(creation).toBeInstanceOf(Promise);
+      await creation;
+
+      expect(mockClient.start).toHaveBeenCalledTimes(1);
+      expect(mockStatusBar.ready).toHaveBeenCalledTimes(1);
+      expect(languageClientManager.getStatus().isReady()).toBe(true);
+      expect(mockContext.subscriptions.push).toHaveBeenCalledWith(mockClient);
+    });
+
+    it('reports a typed client start failure through existing status UI', async () => {
+      (mockClient.start as jest.Mock).mockRejectedValue(new Error('start failed'));
+
+      await Effect.runPromise(languageClientManager.activateLanguageClient(mockContext, mockStatusBar));
+
+      expect(languageClientManager.getStatus().failedToInitialize()).toBe(true);
+      expect(languageClientManager.getStatus().getStatusMessage()).toBe('start failed');
+      expect(mockStatusBar.error).toHaveBeenCalledWith(
+        `${nls.localize('apex_language_server_failed_activate')} - start failed`
+      );
+      const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
+      expect(errSpan?.attributes.get('error')).toBe('Error: start failed');
+      expect(errSpan?.attributes.get('phase')).toBe('start');
+      expect(errSpan?.ended).toBe(true);
     });
   });
 

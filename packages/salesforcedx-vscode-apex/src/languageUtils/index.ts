@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { languageClientManager } from './languageClientManager';
@@ -19,10 +20,12 @@ export const restartLanguageServerAndClient = async (
   await languageClientManager.restartLanguageServerAndClient(extensionContext, source);
 };
 
-export const createLanguageClient = async (
+export const createLanguageClient = Effect.fn('languageUtils.createLanguageClient')(function* (
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
-): Promise<void> => languageClientManager.createLanguageClient(extensionContext, languageServerStatusBarItem);
+) {
+  yield* languageClientManager.activateLanguageClient(extensionContext, languageServerStatusBarItem);
+});
 
 export { configureApexLanguage } from './apexLanguageConfiguration';
 export { languageClientManager } from './languageClientManager';
