@@ -164,7 +164,15 @@ export class QueryService extends Effect.Service<QueryService>()('QueryService',
       const client = yield* sdkPromise(() =>
         createSalesforceClient({
           instanceUrl: new URL(connection.instanceUrl),
-          accessToken
+          accessToken,
+          apiVersion: connection.getApiVersion(),
+          refreshAccessToken: async () => {
+            await connection.refreshAuth();
+            const refreshedAccessToken = connection.accessToken;
+            return isString(refreshedAccessToken)
+              ? refreshedAccessToken
+              : Promise.reject(new Error('The refreshed Salesforce connection has no access token'));
+          }
         })
       );
       const result = yield* sdkPromise(() =>

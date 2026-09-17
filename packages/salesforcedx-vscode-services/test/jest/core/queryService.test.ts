@@ -36,11 +36,14 @@ const asyncRecords = (...values: unknown[]) =>
 const RecordSchema = Schema.Struct({ Id: Schema.String, Name: Schema.String });
 
 describe('QueryService', () => {
-  const makeHarness = () => {
+  const makeHarness = (connectionOverrides: Partial<Connection> = {}) => {
     const connection = {
       instanceUrl: 'https://example.my.salesforce.com',
-      accessToken: 'token'
-    } as Connection;
+      accessToken: 'token',
+      getApiVersion: jest.fn(() => '67.0'),
+      refreshAuth: jest.fn(async () => {}),
+      ...connectionOverrides
+    } as unknown as Connection;
     const getConnection = jest.fn(() => Effect.succeed(connection));
     const getConnectionForOrg = jest.fn(() => Effect.succeed(connection));
     const connectionLayer = Layer.succeed(ConnectionService, {
@@ -50,7 +53,7 @@ describe('QueryService', () => {
     const layer = QueryService.DefaultWithoutDependencies.pipe(Layer.provide(connectionLayer));
     const run = <A, E>(effect: Effect.Effect<A, E, QueryService>) =>
       Effect.runPromise(effect.pipe(Effect.provide(layer)));
-    return { getConnection, getConnectionForOrg, run };
+    return { connection, getConnection, getConnectionForOrg, run };
   };
 
   beforeEach(() => {
@@ -114,6 +117,35 @@ describe('QueryService', () => {
       },
       ['Id', 'Name']
     );
+  });
+
+  it('configures sf-effect with the connection API version and refreshed access token', async () => {
+    const connection = {
+      accessToken: 'stale-token',
+      getApiVersion: jest.fn(() => '66.0'),
+      refreshAuth: jest.fn(async function (this: Connection) {
+        this.accessToken = 'fresh-token';
+      })
+    } as unknown as Connection;
+    const harness = makeHarness(connection);
+    mockSdkQuery.mockResolvedValue({ totalSize: 0, records: asyncRecords() });
+
+    await harness.run(
+      Effect.gen(function* () {
+        const queryService = yield* QueryService;
+        yield* queryService.query({ soql: 'SELECT Id FROM Account' }, RecordSchema);
+      })
+    );
+
+    expect(mockCreateSalesforceClient).toHaveBeenCalledWith({
+      instanceUrl: new URL('https://example.my.salesforce.com'),
+      accessToken: 'stale-token',
+      apiVersion: '66.0',
+      refreshAccessToken: expect.any(Function)
+    });
+    const config = mockCreateSalesforceClient.mock.calls[0]?.[0];
+    await expect(config?.refreshAccessToken?.()).resolves.toBe('fresh-token');
+    expect(connection.refreshAuth).toHaveBeenCalledTimes(1);
   });
 
   it('passes structured queries and nested record field paths to sf-effect', async () => {

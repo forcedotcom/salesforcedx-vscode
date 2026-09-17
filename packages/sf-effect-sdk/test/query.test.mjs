@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterEach, test } from 'node:test';
+import { afterEach, mock, test } from 'node:test';
 import promiseAdapter from '../dist/promise.cjs';
 
 const { createSalesforceClient, query } = promiseAdapter;
@@ -19,10 +19,12 @@ const jsonResponse = value =>
     headers: { 'content-type': 'application/json' }
   });
 
-const client = () =>
+const client = (config = {}) =>
   createSalesforceClient({
     instanceUrl: new URL('https://example.my.salesforce.com'),
-    accessToken: 'token'
+    accessToken: 'token',
+    apiVersion: '62.0',
+    ...config
   });
 
 test('query delegates pagination to sf-effect', async () => {
@@ -81,4 +83,52 @@ test('query preserves sf-effect typed query failures', async () => {
     query({ client: await client(), soql: 'SELECT Id FROM' }, ['Id']),
     error => error?._tag === 'SoqlError' && error.errorCode === 'MALFORMED_QUERY' && error.soql === 'SELECT Id FROM'
   );
+});
+
+test('query uses the configured API version and refreshes an expired token on a later page', async () => {
+  const requests = [];
+  const refreshAccessToken = mock.fn(async () => 'fresh-token');
+  globalThis.fetch = async (input, init) => {
+    requests.push({ url: String(input), authorization: new Headers(init?.headers).get('authorization') });
+    if (requests.length === 1) {
+      return jsonResponse({
+        totalSize: 2,
+        done: false,
+        nextRecordsUrl: '/services/data/v67.0/query/next',
+        records: [{ Id: '001' }]
+      });
+    }
+    if (requests.length === 2) {
+      return new Response(JSON.stringify([{ message: 'Session expired', errorCode: 'INVALID_SESSION_ID' }]), {
+        status: 401,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    return jsonResponse({ totalSize: 2, done: true, records: [{ Id: '002' }] });
+  };
+
+  const result = await query(
+    {
+      client: await client({ apiVersion: '67.0', accessToken: 'stale-token', refreshAccessToken }),
+      soql: 'SELECT Id FROM Account'
+    },
+    ['Id']
+  );
+
+  assert.deepEqual(await Array.fromAsync(result.records), [{ Id: '001' }, { Id: '002' }]);
+  assert.equal(refreshAccessToken.mock.callCount(), 1);
+  assert.deepEqual(requests, [
+    {
+      url: 'https://example.my.salesforce.com/services/data/v67.0/query?q=SELECT%20Id%20FROM%20Account',
+      authorization: 'Bearer stale-token'
+    },
+    {
+      url: 'https://example.my.salesforce.com/services/data/v67.0/query/next',
+      authorization: 'Bearer stale-token'
+    },
+    {
+      url: 'https://example.my.salesforce.com/services/data/v67.0/query/next',
+      authorization: 'Bearer fresh-token'
+    }
+  ]);
 });

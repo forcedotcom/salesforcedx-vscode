@@ -3,6 +3,8 @@ export type SalesforceClient = object;
 export type SalesforceClientConfig = {
   readonly instanceUrl: URL;
   readonly accessToken: string;
+  readonly apiVersion: string;
+  readonly refreshAccessToken?: () => Promise<string>;
 };
 
 export type WhereClause =

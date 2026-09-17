@@ -1,4 +1,4 @@
-import { createSalesforceClient, restRequest as sdkRestRequest } from '@sf-effect-source/promise';
+import { createSalesforceClient as createSdkClient, restRequest as sdkRestRequest } from '@sf-effect-source/promise';
 import { runClientEffect } from '@sf-effect-source/promise-runtime';
 import { query as sdkQuery } from '@sf-effect-source/query';
 import * as Effect from '@sf-effect-source/effect';
@@ -23,7 +23,8 @@ const schemaForFieldPaths = fieldPaths => {
   return toSchema(root);
 };
 
-export { createSalesforceClient };
+export const createSalesforceClient = async ({ apiVersion, refreshAccessToken, ...config }) =>
+  Object.assign(await createSdkClient(config), { apiVersion, refreshAccessToken });
 export const query = ({ client, ...options }, recordFieldPaths) =>
   runClientEffect(client, session =>
     sdkQuery({ ...options, session }, schemaForFieldPaths(recordFieldPaths)).pipe(

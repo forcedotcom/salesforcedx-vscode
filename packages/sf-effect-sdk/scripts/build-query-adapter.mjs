@@ -18,6 +18,8 @@ if (actualCommit !== sourceCommit) {
 const packagePath = dirname(dirname(fileURLToPath(import.meta.url)));
 const requireFromSfEffect = createRequire(join(sfEffectPath, 'package.json'));
 const effectUrlPath = requireFromSfEffect.resolve('effect/unstable/http/Url');
+const promiseRuntimePath = join(sfEffectPath, 'packages/sdk/out/promise.web.runtime.js');
+const sessionPath = join(sfEffectPath, 'packages/sdk/out/session.js');
 const sourceImports = {
   '@sf-effect-source/promise': join(sfEffectPath, 'packages/sdk/out/promise.web.js'),
   '@sf-effect-source/promise-runtime': join(sfEffectPath, 'packages/sdk/out/promise.web.runtime.js'),
@@ -55,6 +57,47 @@ await build({
             ),
             loader: 'js'
           };
+        });
+      }
+    },
+    // The pinned SDK token client does not yet accept an API version or an external refresh function.
+    {
+      name: 'connection-auth',
+      setup: builder => {
+        builder.onLoad({ filter: /packages\/sdk\/out\/(promise\.web\.runtime|session)\.js$/ }, async args => {
+          const source = await readFile(args.path, 'utf8');
+          if (args.path === promiseRuntimePath) {
+            const tokenSession = 'makeAccessTokenSession(token)';
+            if (!source.includes(tokenSession)) throw new Error(`Could not patch token session config in ${args.path}`);
+            return {
+              contents: source.replace(
+                tokenSession,
+                'makeAccessTokenSession({ ...token, apiVersion: client.apiVersion, refreshAccessToken: client.refreshAccessToken })'
+              ),
+              loader: 'js'
+            };
+          }
+          if (args.path === sessionPath) {
+            const refresh = 'refreshAccessToken(auth, transport).pipe(';
+            const accessTokenSession =
+              'makeAuthenticatedSession({ instanceUrl: options.instanceUrl }, Redacted.make(options.accessToken), DEFAULT_API_VERSION, undefined)';
+            if (!source.includes(refresh) || !source.includes(accessTokenSession)) {
+              throw new Error(`Could not patch access-token session in ${args.path}`);
+            }
+            return {
+              contents: source
+                .replace(
+                  refresh,
+                  "('refreshAccessToken' in auth ? Effect.tryPromise(() => auth.refreshAccessToken()).pipe(Effect.map(Redacted.make)) : refreshAccessToken(auth, transport)).pipe("
+                )
+                .replace(
+                  accessTokenSession,
+                  "makeAuthenticatedSession({ instanceUrl: options.instanceUrl, ...('refreshAccessToken' in options ? { refreshAccessToken: options.refreshAccessToken } : {}) }, Redacted.make(options.accessToken), options.apiVersion ?? DEFAULT_API_VERSION, undefined)"
+                ),
+              loader: 'js'
+            };
+          }
+          throw new Error(`Unexpected connection auth module ${args.path}`);
         });
       }
     },
