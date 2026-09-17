@@ -13,6 +13,13 @@ export const orgDesktopTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-core']
 });
 
+/** Isolates extension-host Salesforce config so no user or CI target Dev Hub is visible. */
+export const orgDesktopMissingDevHubTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  testExtensionPaths: ['test/playwright/fixtureExtensions/missingDevHub']
+});
+
 /** Same workspace with the minimal scratch org set as default (`.sfdx/config.json` target-org),
  * so default-org context keys (e.g. `sf:default_org_deletable`) are populated.
  * `window.dialogStyle: custom` routes the logout confirm modal through VS Code's DOM renderer so
