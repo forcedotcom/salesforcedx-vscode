@@ -4,6 +4,7 @@
 
 # TypeScript generated files
 dist/
+!packages/sf-effect-sdk/dist/
 dist-lit/
 dist-migration/
 .test-dist/
