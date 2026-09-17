@@ -50,16 +50,11 @@ simpleExec(args: {
 Parse stdout into a string:
 
 ```typescript
-const version = yield* Effect.gen(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminal = yield* api.services.TerminalService;
-
-  // stdout is pre-trimmed; split "7.200.6 @salesforce/cli/..." → just the version token
-  return yield* terminal.simpleExec({
-    executable: 'sf',
-    args: ['--version'],
-    parse: stdout => stdout.split(' ')[0]
-  });
+// stdout is pre-trimmed; split "7.200.6 @salesforce/cli/..." → just the version token
+const version = yield* api.services.TerminalService.simpleExec({
+  executable: 'sf',
+  args: ['--version'],
+  parse: stdout => stdout.split(' ')[0]
 });
 // version: string
 ```
@@ -70,16 +65,11 @@ Pass a longer `timeout` for slow commands:
 import * as Duration from 'effect/Duration';
 import { identity } from 'effect/Function';
 
-const result = yield* Effect.gen(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminal = yield* api.services.TerminalService;
-
-  return yield* terminal.simpleExec({
-    executable: 'sf',
-    args: ['org', 'delete', 'scratch'],
-    parse: identity,
-    timeout: Duration.minutes(2)
-  });
+const result = yield* api.services.TerminalService.simpleExec({
+  executable: 'sf',
+  args: ['org', 'delete', 'scratch'],
+  parse: identity,
+  timeout: Duration.minutes(2)
 });
 // result: string
 ```
