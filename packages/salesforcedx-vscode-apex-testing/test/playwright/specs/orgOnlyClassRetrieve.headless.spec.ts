@@ -5,10 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { execFile } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { promisify } from 'node:util';
 
 import { expect } from '@playwright/test';
 import {
@@ -17,6 +15,8 @@ import {
   createAndDeployApexTestClass,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
+  env,
+  execAsync,
   isDesktop,
   NON_TRACKING_ORG_ALIAS,
   ORG_METADATA_EDITOR,
@@ -47,29 +47,18 @@ import {
 // Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
 // also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.
 const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
-const execFileAsync = promisify(execFile);
-const sfExecOptions = { env: { ...process.env, FORCE_COLOR: '0' } };
 
 const getDiscoveredMethodPosition = async (className: string, methodName: string) => {
-  const { stdout: orgDisplayJson } = await execFileAsync(
-    'sf',
-    ['org', 'display', '--target-org', NON_TRACKING_ORG_ALIAS, '--json'],
-    sfExecOptions
+  const { stdout: orgDisplayJson } = await execAsync(
+    `sf org display --target-org ${NON_TRACKING_ORG_ALIAS} --json`,
+    { env }
   );
   const apiVersion = Number((JSON.parse(orgDisplayJson) as { result: { apiVersion: string } }).result.apiVersion);
   const query = apiVersion >= 68 ? 'testLevel=RunAllTestsInOrg' : 'showAllMethods=true';
-  const { stdout: discoveryJson } = await execFileAsync(
-    'sf',
-    [
-      'api',
-      'request',
-      'rest',
-      `/services/data/v${apiVersion.toFixed(1)}/tooling/tests?${query}`,
-      '--target-org',
-      NON_TRACKING_ORG_ALIAS,
-      '--json'
-    ],
-    sfExecOptions
+  const restPath = `/services/data/v${apiVersion.toFixed(1)}/tooling/tests?${query}`;
+  const { stdout: discoveryJson } = await execAsync(
+    `sf api request rest ${JSON.stringify(restPath)} --target-org ${NON_TRACKING_ORG_ALIAS} --json`,
+    { env }
   );
   const page = (JSON.parse(discoveryJson) as { result: { body: ToolingTestsPage } }).result.body;
   const method = page.apexTestClasses
