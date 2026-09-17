@@ -10,7 +10,7 @@ name: Doc-Only Auto-Merge
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, ready_for_review, reopened, synchronize]
     branches: [develop]
     # Don't start a runner on code-only PRs. paths is OR ("any changed file
     # matches"), so a docs+code PR still triggers — the file-set gate below is
@@ -39,6 +39,7 @@ concurrency:
 
 jobs:
   auto-merge:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     # Bound the scan-wait job well under the 6h default so a hung poll can't hold a runner.
     timeout-minutes: 40
