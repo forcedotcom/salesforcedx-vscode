@@ -59,5 +59,9 @@ test('Config List (Code Builder): lists config variables in output channel', asy
     await saveScreenshot(page, 'configList.container.02-output-verified.png');
   });
 
+  // TODO: validateNoCriticalErrors is currently a disabled no-op (see its DISABLED comment in
+  // playwright-vscode-ext/src/utils/helpers.ts) - VS Code's own console/network noise produced false
+  // positives and ~100 other specs already call it, so re-enabling needs the stacktrace-based
+  // "ours vs theirs" filtering the TODO there describes, not a local fix here.
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

@@ -61,7 +61,9 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
       {
         name: 'chromium',
         use: { ...devices['Desktop Chrome'] },
-        retries: process.env.E2E_NO_RETRIES ? 0 : 2,
+        // Unlike web mode, retries are CI-only: a local flake against the shared container is more
+        // likely a real timing bug worth seeing immediately than a transient network hiccup.
+        retries: process.env.E2E_NO_RETRIES ? 0 : process.env.CI ? 2 : 0,
         snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
       }
     ]
