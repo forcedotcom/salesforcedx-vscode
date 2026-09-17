@@ -26,22 +26,15 @@ import {
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { LSP_ERR, UBER_JAR_NAME } from './constants';
+import { UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
-import {
-  ApexLanguageClientCreationError,
-  ApexLanguageClientInitializationError,
-  ApexLanguageClientOptionsError,
-  ApexLanguageServerConfigurationError,
-  ApexLanguageServerRequirementsError,
-  languageClientSetupErrorMessage
-} from './languageClientSetupErrors';
+import { languageClientSetupError } from './languageClientSetupErrors';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
-import * as requirements from './requirements';
-import { fireErrorSpan, fireSpan } from './services/fireSpan';
+import { resolveRequirements } from './requirements';
+import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -74,12 +67,6 @@ declare var v8debug: any;
 
 type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
 
-const setupErrorMessage = (cause: unknown): string =>
-  languageClientSetupErrorMessage(cause, nls.localize('unknown_error'));
-
-const telemetryError = (cause: unknown): { error?: unknown } =>
-  typeof cause === 'object' && cause !== null && 'error' in cause ? { error: cause.error } : { error: cause };
-
 const startedInDebugMode = (): boolean => {
   const args = process.execArgv;
   if (args) {
@@ -96,12 +83,8 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 const createServer = Effect.fn('apex.lsp.createServer')(
   function* (extensionContext: vscode.ExtensionContext) {
     const requirementsData = yield* Effect.tryPromise({
-      try: requirements.resolveRequirements,
-      catch: cause =>
-        new ApexLanguageServerRequirementsError({
-          message: setupErrorMessage(cause),
-          cause
-        })
+      try: resolveRequirements,
+      catch: cause => languageClientSetupError('requirements', cause)
     });
 
     return yield* Effect.try({
@@ -111,7 +94,6 @@ const createServer = Effect.fn('apex.lsp.createServer')(
           extensionContext.extension.packageJSON.languageServerDir,
           UBER_JAR_NAME
         );
-        const javaExecutable = path.resolve(`${requirementsData.java_home}/bin/java`);
         const jvmMaxHeap = requirementsData.java_memory;
         const enableSemanticErrors = vscode.workspace
           .getConfiguration()
@@ -146,23 +128,14 @@ const createServer = Effect.fn('apex.lsp.createServer')(
 
         return {
           options: { env: process.env },
-          command: javaExecutable,
+          command: path.resolve(`${requirementsData.java_home}/bin/java`),
           args
         };
       },
-      catch: cause =>
-        new ApexLanguageServerConfigurationError({
-          message: setupErrorMessage(cause),
-          cause
-        })
+      catch: cause => languageClientSetupError('configuration', cause)
     });
   },
-  Effect.tapError(error =>
-    Effect.sync(() => {
-      void vscode.window.showErrorMessage(error.message);
-      fireErrorSpan(LSP_ERR, telemetryError(error.cause));
-    })
-  )
+  Effect.tapError(error => Effect.sync(() => void vscode.window.showErrorMessage(error.message)))
 );
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
@@ -205,11 +178,7 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
   const clientOptions = yield* buildClientOptions(outputChannel);
   const client = yield* Effect.try({
     try: () => new ApexLanguageClient('apex', nls.localize('client_name'), server, clientOptions),
-    catch: cause =>
-      new ApexLanguageClientCreationError({
-        message: setupErrorMessage(cause),
-        cause
-      })
+    catch: cause => languageClientSetupError('creation', cause)
   });
 
   yield* rotateClientSpan();
@@ -222,11 +191,7 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
         }
       });
     },
-    catch: cause =>
-      new ApexLanguageClientInitializationError({
-        message: setupErrorMessage(cause),
-        cause
-      })
+    catch: cause => languageClientSetupError('initialization', cause)
   });
 
   return client;
@@ -235,11 +200,7 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
 const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (outputChannel?: vscode.OutputChannel) {
   const scanConfig = yield* Effect.tryPromise({
     try: buildMetadataRegistryScanConfig,
-    catch: cause =>
-      new ApexLanguageClientOptionsError({
-        message: setupErrorMessage(cause),
-        cause
-      })
+    catch: cause => languageClientSetupError('options', cause)
   });
 
   return yield* Effect.try({
@@ -302,11 +263,7 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         ...(isNotUndefined(outputChannel) ? { outputChannel } : {})
       };
     },
-    catch: cause =>
-      new ApexLanguageClientOptionsError({
-        message: setupErrorMessage(cause),
-        cause
-      })
+    catch: cause => languageClientSetupError('options', cause)
   });
 });
 

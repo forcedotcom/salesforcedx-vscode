@@ -7,46 +7,37 @@
 
 import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { nls } from './messages';
 
-const languageClientSetupErrorFields = {
-  message: Schema.String,
-  cause: Schema.Unknown
-};
+const ApexLanguageClientSetupPhase = Schema.Literal(
+  'requirements',
+  'configuration',
+  'options',
+  'creation',
+  'outputChannel',
+  'start',
+  'initialization'
+);
+export type ApexLanguageClientSetupPhase = Schema.Schema.Type<typeof ApexLanguageClientSetupPhase>;
 
-export class ApexLanguageServerRequirementsError extends Schema.TaggedError<ApexLanguageServerRequirementsError>()(
-  'ApexLanguageServerRequirementsError',
-  languageClientSetupErrorFields
+export class ApexLanguageClientSetupError extends Schema.TaggedError<ApexLanguageClientSetupError>()(
+  'ApexLanguageClientSetupError',
+  {
+    phase: ApexLanguageClientSetupPhase,
+    message: Schema.String,
+    cause: Schema.Unknown
+  }
 ) {}
 
-export class ApexLanguageServerConfigurationError extends Schema.TaggedError<ApexLanguageServerConfigurationError>()(
-  'ApexLanguageServerConfigurationError',
-  languageClientSetupErrorFields
-) {}
-
-export class ApexLanguageClientOptionsError extends Schema.TaggedError<ApexLanguageClientOptionsError>()(
-  'ApexLanguageClientOptionsError',
-  languageClientSetupErrorFields
-) {}
-
-export class ApexLanguageClientCreationError extends Schema.TaggedError<ApexLanguageClientCreationError>()(
-  'ApexLanguageClientCreationError',
-  languageClientSetupErrorFields
-) {}
-
-export class ApexLanguageClientOutputChannelError extends Schema.TaggedError<ApexLanguageClientOutputChannelError>()(
-  'ApexLanguageClientOutputChannelError',
-  languageClientSetupErrorFields
-) {}
-
-export class ApexLanguageClientStartError extends Schema.TaggedError<ApexLanguageClientStartError>()(
-  'ApexLanguageClientStartError',
-  languageClientSetupErrorFields
-) {}
-
-export class ApexLanguageClientInitializationError extends Schema.TaggedError<ApexLanguageClientInitializationError>()(
-  'ApexLanguageClientInitializationError',
-  languageClientSetupErrorFields
-) {}
-
-export const languageClientSetupErrorMessage = (cause: unknown, unknownErrorMessage: string): string =>
+const languageClientSetupErrorMessage = (cause: unknown, unknownErrorMessage: string): string =>
   isString(cause) ? cause : isError(cause) ? cause.message : unknownErrorMessage;
+
+export const languageClientSetupError = (
+  phase: ApexLanguageClientSetupPhase,
+  cause: unknown
+): ApexLanguageClientSetupError =>
+  new ApexLanguageClientSetupError({
+    phase,
+    message: languageClientSetupErrorMessage(cause, nls.localize('unknown_error')),
+    cause
+  });

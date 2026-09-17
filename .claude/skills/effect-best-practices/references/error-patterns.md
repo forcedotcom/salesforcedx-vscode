@@ -179,7 +179,7 @@ Every error should have:
 - Context fields a handler, log, or span actually reads
 - Optional `cause` for error chains
 
-Split tags when catch arms, telemetry, or **fields** differ (`message`+`cause` vs `message`+`cause`+`setting`). One tag when every arm prints `message` (or `cause`) — different nls still one tag; copy lives in `message`.
+Split tags when catch arms or field **shapes** differ (`message`+`cause` vs `message`+`cause`+`setting`). Same catch work (print `message`, one span) → one tag; telemetry dimensions are fields, not tags. Different nls still one tag; copy lives in `message`.
 
 Expected skip: success-path nls write. `fail`+`catchTag` when recovery isn't "print this string."
 

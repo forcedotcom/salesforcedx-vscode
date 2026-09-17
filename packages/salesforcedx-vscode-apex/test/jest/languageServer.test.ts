@@ -93,17 +93,13 @@ describe('languageServer client span', () => {
     expect(clientSpans()[0].attributes.has('Feature')).toBe(false);
   });
 
-  it('records an errored apexLSPError span when createServer fails', async () => {
+  it('fails createServer with a requirements-phase setup error', async () => {
     (resolveRequirements as jest.Mock).mockRejectedValue({ error: 'no java found' });
     const error = await getRuntime().runPromise(createLanguageServer(mockContext).pipe(Effect.flip));
     expect(error).toMatchObject({
-      _tag: 'ApexLanguageServerRequirementsError'
+      _tag: 'ApexLanguageClientSetupError',
+      phase: 'requirements'
     });
-    await new Promise(r => setImmediate(r));
-    const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
-    expect(errSpan?.attributes.get('error')).toBe('no java found');
-    // fireErrorSpan fails inside the span so it ends with ERROR status (severity 17 in AppInsights).
-    expect(errSpan?.ended).toBe(true);
   });
 
   it('restart ends the prior client span and opens exactly one new live span', async () => {

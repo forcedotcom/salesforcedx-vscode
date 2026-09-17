@@ -14,16 +14,17 @@ import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import {
-  ApexLanguageClientInitializationError,
-  ApexLanguageClientOutputChannelError,
-  ApexLanguageClientStartError,
-  languageClientSetupErrorMessage
-} from '../languageClientSetupErrors';
-import * as languageServer from '../languageServer';
+  API,
+  DEBUGGER_EXCEPTION_BREAKPOINTS,
+  DEBUGGER_LINE_BREAKPOINTS,
+  LSP_ERR,
+  SET_JAVA_DOC_LINK
+} from '../constants';
+import { languageClientSetupError } from '../languageClientSetupErrors';
+import { createLanguageServer } from '../languageServer';
 import { nls } from '../messages';
-import { fireSpan } from '../services/fireSpan';
+import { fireErrorSpan, fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
 import { retrieveEnableSyncInitJobs } from '../settings';
 
@@ -78,14 +79,14 @@ const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestart
 
 export type ToolsEntry = { readonly uri: URI; readonly type: vscode.FileType };
 
-const setupErrorMessage = (cause: unknown): string =>
-  languageClientSetupErrorMessage(cause, nls.localize('unknown_error'));
-
 /** Given `.sfdx/tools` entries, the NNN-named subdirectory URIs to delete. Pure; unit-tested directly. */
 export const toolsDirsToDelete = (entries: readonly ToolsEntry[]): URI[] =>
   entries
     .filter(({ uri, type }) => type === vscode.FileType.Directory && /^\d{3}$/.test(Utils.basename(uri)))
     .map(({ uri }) => uri);
+
+const telemetryError = (cause: unknown): { error?: unknown } =>
+  typeof cause === 'object' && cause !== null && 'error' in cause ? { error: cause.error } : { error: cause };
 
 const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -369,11 +370,7 @@ export class LanguageClientManager {
         this.outputChannel = yield* Effect.acquireRelease(
           Effect.try({
             try: () => vscode.window.createOutputChannel(nls.localize('client_name')),
-            catch: cause =>
-              new ApexLanguageClientOutputChannelError({
-                message: setupErrorMessage(cause),
-                cause
-              })
+            catch: cause => languageClientSetupError('outputChannel', cause)
           }),
           outputChannel =>
             Effect.sync(() => {
@@ -385,7 +382,7 @@ export class LanguageClientManager {
         ).pipe(Scope.extend(extensionScope));
       }
 
-      const languageClient = yield* languageServer.createLanguageServer(extensionContext, this.outputChannel);
+      const languageClient = yield* createLanguageServer(extensionContext, this.outputChannel);
       this.setClientInstance(languageClient);
 
       yield* Effect.try({
@@ -400,57 +397,30 @@ export class LanguageClientManager {
             languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate'));
           });
         },
-        catch: cause =>
-          new ApexLanguageClientInitializationError({
-            message: setupErrorMessage(cause),
-            cause
-          })
+        catch: cause => languageClientSetupError('initialization', cause)
       });
 
       yield* Effect.tryPromise({
         try: () => languageClient.start(),
-        catch: cause =>
-          new ApexLanguageClientStartError({
-            message: setupErrorMessage(cause),
-            cause
-          })
+        catch: cause => languageClientSetupError('start', cause)
       });
       fireSpan('apex.lsp.startup', { activationTime: globalThis.performance.now() - langClientStartTime });
       yield* Effect.tryPromise({
         try: () => this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem),
-        catch: cause =>
-          new ApexLanguageClientInitializationError({
-            message: setupErrorMessage(cause),
-            cause
-          })
+        catch: cause => languageClientSetupError('initialization', cause)
       });
       yield* Effect.try({
         try: () => extensionContext.subscriptions.push(languageClient),
-        catch: cause =>
-          new ApexLanguageClientInitializationError({
-            message: setupErrorMessage(cause),
-            cause
-          })
+        catch: cause => languageClientSetupError('initialization', cause)
       });
     },
     (effect, _extensionContext, languageServerStatusBarItem) =>
       effect.pipe(
-        Effect.catchTags({
-          ApexLanguageClientCreationError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageClientInitializationError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageClientOptionsError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageClientOutputChannelError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageClientStartError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageServerConfigurationError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem),
-          ApexLanguageServerRequirementsError: error =>
-            this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem)
-        })
+        Effect.catchTag('ApexLanguageClientSetupError', error =>
+          Effect.sync(() => fireErrorSpan(LSP_ERR, telemetryError(error.cause), { phase: error.phase })).pipe(
+            Effect.zipRight(this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem))
+          )
+        )
       )
   );
 

@@ -11,9 +11,9 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
+import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
-import * as languageServer from '../../../src/languageServer';
 import { nls } from '../../../src/messages';
 import { retrieveEnableSyncInitJobs } from '../../../src/settings';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
@@ -162,6 +162,7 @@ describe('Language Client Manager', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockRecordedSpans.length = 0;
       const errorHandler = {
         addListener: jest.fn(),
         serviceHasStartedSuccessfully: jest.fn()
@@ -176,7 +177,7 @@ describe('Language Client Manager', () => {
         ready: jest.fn(),
         error: jest.fn()
       } as unknown as ApexLSPStatusBarItem;
-      (languageServer.createLanguageServer as unknown as jest.Mock).mockReturnValue(Effect.succeed(mockClient));
+      (createLanguageServer as unknown as jest.Mock).mockReturnValue(Effect.succeed(mockClient));
       (retrieveEnableSyncInitJobs as jest.Mock).mockReturnValue(true);
       languageClientManager.setClientInstance(undefined);
       languageClientManager.setStatus(ClientStatus.Unavailable, '');
@@ -204,6 +205,10 @@ describe('Language Client Manager', () => {
       expect(mockStatusBar.error).toHaveBeenCalledWith(
         `${nls.localize('apex_language_server_failed_activate')} - start failed`
       );
+      const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
+      expect(errSpan?.attributes.get('error')).toBe('Error: start failed');
+      expect(errSpan?.attributes.get('phase')).toBe('start');
+      expect(errSpan?.ended).toBe(true);
     });
   });
 
