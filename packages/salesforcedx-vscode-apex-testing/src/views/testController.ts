@@ -18,7 +18,6 @@ import { getApexTestingRuntime } from '../services/extensionProvider';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { isClass, isMethod, isSuite } from '../utils/testItemUtils';
-import { getMethodLocationsFromSymbols } from '../utils/testUtils';
 import { ApexTestExecutionService, type ApexTestRunScope, type ExecutionContext } from './apexTestExecutionService';
 import { ApexTestTreeService, type DiscoveryContext, type TreeMutationContext } from './apexTestTreeService';
 
@@ -233,9 +232,6 @@ export class ApexTestController {
       if (isSuite(test.id)) {
         await this.resolveSuiteChildren(test);
       }
-      if (isClass(test.id)) {
-        await augmentMethodPositionsFromSymbols(test);
-      }
     };
   }
 
@@ -334,34 +330,6 @@ const notifyRetrieveFailure = (error: unknown, executionName: string) =>
   Effect.logWarning('Failed to retrieve org-only Apex class', { error }).pipe(
     Effect.andThen(Effect.sync(() => notificationService.showFailedExecution(executionName)))
   );
-
-const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
-  if (!classItem.uri) {
-    return;
-  }
-  const unresolved = new Map<string, vscode.TestItem>(
-    [...classItem.children].flatMap(([, child]) => {
-      if (!isMethod(child.id)) {
-        return [];
-      }
-      const start = child.range?.start;
-      const unresolvedRange = !start || (start.line === 0 && start.character === 0);
-      return unresolvedRange ? [[child.label, child] as const] : [];
-    })
-  );
-  if (unresolved.size === 0) {
-    return;
-  }
-  const locations = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
-  [...unresolved]
-    .flatMap(([methodName, item]) => {
-      const location = locations.get(methodName);
-      return location ? [[item, location.range] as const] : [];
-    })
-    .forEach(([item, range]) => {
-      item.range = range;
-    });
-};
 
 // Retrieve an org-only Apex class into the workspace and open it. MetadataRetrieveService publishes the
 // successful operation; apexMetadataChangeWatcher applies the targeted tree update without collapsing

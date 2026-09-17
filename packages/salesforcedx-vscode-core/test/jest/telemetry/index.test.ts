@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  TELEMETRY_GLOBAL_USER_ID,
-  TELEMETRY_GLOBAL_WEB_USER_ID,
-  TelemetryService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import { window, workspace } from 'vscode';
@@ -64,12 +60,6 @@ describe('Telemetry', () => {
     const internalMessage = nls.localize('telemetry_internal_user_message');
 
     const handleTelemetryMsgShown = (key: string, globalMsgShown: boolean, internalMsgShown: boolean) => {
-      if (key === TELEMETRY_GLOBAL_USER_ID) {
-        return key;
-      }
-      if (key === TELEMETRY_GLOBAL_WEB_USER_ID) {
-        return undefined;
-      }
       if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
       }

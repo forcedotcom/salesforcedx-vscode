@@ -14,6 +14,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -358,12 +359,21 @@ const getUsernameFromAliasMock = jest.fn();
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
 // tracksSource is present so the ref-update path skips the Org.create-backed getTracksSourceFromOrg fallback.
-const makeDesktopConn = (username: string): Connection =>
+const makeDesktopConn = (
+  username: string,
+  {
+    orgId = '00D000000000005',
+    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0 })
+  }: {
+    orgId?: string;
+    query?: (soql: string) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number }>;
+  } = {}
+): Connection =>
   ({
     getUsername: () => username,
     getAuthInfoFields: () => ({
       username,
-      orgId: '00D000000000005',
+      orgId,
       instanceName: 'USA9S',
       tracksSource: false,
       isScratch: false,
@@ -371,7 +381,7 @@ const makeDesktopConn = (username: string): Connection =>
     }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-    query: async () => ({ records: [], totalSize: 0 })
+    query
   }) as unknown as Connection;
 
 const MockConfigServiceLayer = Layer.succeed(
@@ -408,6 +418,24 @@ const serviceLayer = ConnectionService.DefaultWithoutDependencies.pipe(
 
 const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
   Effect.runPromise(prog.pipe(Effect.provide(serviceLayer)));
+
+const waitUntil = (pred: () => boolean) =>
+  Effect.runPromise(
+    Effect.void.pipe(
+      Effect.repeat({
+        while: () => !pred(),
+        schedule: Schedule.intersect(Schedule.spaced(Duration.millis(10)), Schedule.recurs(200))
+      })
+    )
+  );
+
+const defaultOrgWhen = (pred: (info: typeof DefaultOrgInfoSchema.Type) => boolean) =>
+  getDefaultOrgRef().pipe(
+    Effect.flatMap(ref => ref.changes.pipe(Stream.filter(pred), Stream.runHead, Effect.map(Option.getOrThrow))),
+    Effect.timeout(Duration.seconds(2))
+  );
+
+const userRecord = (id: string, username: string) => ({ records: [{ Id: id, Username: username }], totalSize: 1 });
 
 describe('updateDefaultOrgIdentity', () => {
   it('does not publish when the org identity is unchanged', async () => {
@@ -585,6 +613,143 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
+  });
+
+  it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const query = jest.fn().mockReturnValue(gate.promise);
+    connectionCreateMock.mockResolvedValue({
+      getUsername: () => USERNAME,
+      getAuthInfoFields: () => ({
+        username: USERNAME,
+        orgId: '00D000000000005',
+        instanceName: 'USA9S',
+        tracksSource: false,
+        isScratch: false,
+        isSandbox: false
+      }),
+      getFields: () => ({ username: USERNAME }),
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      query
+    } as unknown as Connection);
+
+    const running = run(
+      Effect.all([ConnectionService.getConnection(), ConnectionService.getConnection()], {
+        concurrency: 'unbounded'
+      })
+    );
+
+    await Effect.runPromise(
+      Effect.void.pipe(
+        Effect.repeat({
+          while: () => query.mock.calls.length === 0,
+          schedule: Schedule.intersect(Schedule.spaced(Duration.millis(10)), Schedule.recurs(200))
+        })
+      )
+    );
+    await Duration.millis(50).pipe(Effect.sleep, Effect.runPromise);
+    expect(query).toHaveBeenCalledTimes(1);
+
+    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1 });
+    await running;
+  });
+
+  it('loads the new User id when default-org username changes on the same orgId', async () => {
+    const orgId = '00D0000000000AA';
+    const userA = 'a@identity.test';
+    const userB = 'b@identity.test';
+    const userIdA = '00500000000000AAA';
+    const userIdB = '00500000000000BAA';
+    const queryA = jest.fn().mockResolvedValue(userRecord(userIdA, userA));
+    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
+
+    const first = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdA);
+      })
+    );
+    expect(first).toMatchObject({ username: userA, userId: userIdA });
+
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userB : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userB, { orgId, query: queryB }));
+
+    const second = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdB);
+      })
+    );
+    expect(second).toMatchObject({ username: userB, userId: userIdB });
+  });
+
+  it('reuses cached User id after connection invalidate for the same username and orgId', async () => {
+    const orgId = '00D0000000000CC';
+    const username = 'c@identity.test';
+    const cachedUserId = '00500000000000CAA';
+    const queryFromDisk = jest.fn().mockResolvedValue(userRecord('00500000000000CZZ', username));
+    const queryCached = jest.fn().mockResolvedValue(userRecord(cachedUserId, username));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? username : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(username, { orgId, query: queryCached }));
+
+    const first = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === cachedUserId);
+      })
+    );
+    expect(first.userId).toBe(cachedUserId);
+
+    await run(ConnectionService.invalidateCachedConnections());
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(username, { orgId, query: queryFromDisk }));
+
+    const second = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId !== undefined);
+      })
+    );
+    expect(second).toMatchObject({ username, userId: cachedUserId });
+    expect(queryFromDisk).not.toHaveBeenCalled();
+  });
+
+  it('does not apply an in-flight User lookup to a different username on the same orgId', async () => {
+    const orgId = '00D0000000000EE';
+    const userA = 'd@identity.test';
+    const userB = 'e@identity.test';
+    const userIdA = '00500000000000DAA';
+    const userIdB = '00500000000000EAA';
+    const gateA = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const queryA = jest.fn().mockReturnValue(gateA.promise);
+    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
+
+    const runningA = run(ConnectionService.getConnection());
+    await waitUntil(() => queryA.mock.calls.length > 0);
+
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userB : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userB, { orgId, query: queryB }));
+
+    const orgB = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdB);
+      })
+    );
+    expect(orgB).toMatchObject({ username: userB, userId: userIdB });
+
+    gateA.resolve(userRecord(userIdA, userA));
+    await runningA;
   });
 });
 

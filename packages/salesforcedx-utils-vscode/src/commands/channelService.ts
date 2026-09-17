@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { stripAnsi } from '@salesforce/effect-ext-utils';
-import type { CommandExecution } from '@salesforce/salesforcedx-utils';
-import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 import { OutputChannel, window } from 'vscode';
-import { nls } from '../messages/messages';
-import { SettingsService } from '../settings/settingsService';
 
 export class ChannelService {
   private readonly channel: OutputChannel;
@@ -28,83 +23,11 @@ export class ChannelService {
     return ChannelService.instances[channelName];
   }
 
-  /** Underlying channel; safe to pass to `ExtensionContext.subscriptions` (same instance as `getInstance`). */
-  public static getChannel(channelName: string): OutputChannel {
-    return ChannelService.getInstance(channelName).channel;
-  }
-
-  public streamCommandOutput(execution: CommandExecution) {
-    this.streamCommandStartStop(execution);
-    execution.stderrSubject.subscribe(data => this.channel.append(stripAnsi(data.toString())));
-    execution.stdoutSubject.subscribe(data => this.channel.append(stripAnsi(data.toString())));
-  }
-
-  public streamCommandStartStop(execution: CommandExecution) {
-    if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
-      this.clear();
-    }
-    this.channel.append(nls.localize('channel_starting_message'));
-    this.channel.appendLine(execution.command.toString());
-    this.channel.appendLine('');
-
-    this.showCommandWithTimestamp(execution.command.toCommand());
-
-    execution.processExitSubject.subscribe(data => {
-      this.showCommandWithTimestamp(execution.command.toCommand());
-      this.channel.append(' ');
-      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      if (isNotNullable(exitCode)) {
-        this.channel.appendLine(nls.localize('channel_end_with_exit_code', String(exitCode)));
-      } else {
-        this.channel.appendLine(nls.localize('channel_end'));
-      }
-      this.channel.appendLine('');
-    });
-
-    execution.processErrorSubject.subscribe(data => {
-      this.showCommandWithTimestamp(execution.command.toCommand());
-
-      this.channel.append(' ');
-      if (isNotUndefined(data)) {
-        if (/sfdx.*ENOENT/.test(data.message)) {
-          this.channel.appendLine(nls.localize('channel_end_with_sfdx_not_found'));
-        } else {
-          this.channel.appendLine(nls.localize('channel_end_with_error', data.message));
-        }
-      } else {
-        this.channel.appendLine(nls.localize('channel_end'));
-      }
-      this.channel.appendLine('');
-    });
-  }
-
-  public showCommandWithTimestamp(commandName: string) {
-    this.channel.appendLine(`${this.getExecutionTime()} ${commandName}`);
-  }
-
-  private getExecutionTime() {
-    const d = new Date();
-    const hr = this.ensureDoubleDigits(d.getHours());
-    const mins = this.ensureDoubleDigits(d.getMinutes());
-    const sec = this.ensureDoubleDigits(d.getSeconds());
-    const milli = d.getMilliseconds();
-    return `${hr}:${mins}:${sec}.${milli}`;
-  }
-
-  private ensureDoubleDigits(num: number) {
-    return num < 10 ? `0${num.toString()}` : num.toString();
-  }
-
   public showChannelOutput() {
     this.channel.show(true);
   }
 
   public appendLine(text: string) {
     this.channel.appendLine(text);
-  }
-
-  public clear() {
-    this.channel.clear();
   }
 }
