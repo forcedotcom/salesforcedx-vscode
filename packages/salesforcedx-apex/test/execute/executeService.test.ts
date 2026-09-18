@@ -9,7 +9,7 @@ import type { SinonStub } from 'sinon';
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { existsSync, readFileSync } from 'node:fs';
-import readline from 'node:readline';
+import * as readline from 'node:readline';
 import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
 import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';

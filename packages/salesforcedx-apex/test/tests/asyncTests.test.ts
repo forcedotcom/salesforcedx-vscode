@@ -6,7 +6,7 @@
  */
 import { Connection, Logger } from '@salesforce/core';
 import { elapsedTime } from '../../src/utils';
-import * as dateUtil from '../../src/utils/dateUtil';
+import * as apexUtils from '../../src/utils';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, OutputDirConfig, ApexTestProgressValue, Progress, CancellationTokenSource } from '../../src';
@@ -36,7 +36,7 @@ import {
   flowTestResultData
 } from '../testData';
 import { join } from 'node:path';
-import fs from 'node:fs/promises';
+import * as fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
@@ -48,6 +48,10 @@ vi.mock('../../src/tests/diagnosticUtil', async importOriginal => {
   const actual = await importOriginal<typeof import('../../src/tests/diagnosticUtil')>();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
+vi.mock('../../src/utils', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../src/utils')>()),
+  getCurrentTime: vi.fn()
+}));
 vi.mock('../../src/tests/utils', async importOriginal => ({
   ...(await importOriginal<typeof import('../../src/tests/utils')>()),
   queryNamespaces: vi.fn()
@@ -68,10 +72,10 @@ let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
-let timeStub: sinon.SinonStub;
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
 const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
 const writeFileMock = vi.mocked(fs.writeFile);
+const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
   done: true,
   totalSize: 1,
@@ -95,9 +99,8 @@ describe('Run Apex tests asynchronously', () => {
     $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     $$.SANDBOX.stub(mockConnection, 'getApiVersion').resolves('50.0');
     // Stub getCurrentTime (not Date.prototype.getTime) so incidental Date usage in
-    // jest/TestContext setup does not consume the sequenced return values.
-    timeStub = $$.SANDBOX.stub(dateUtil, 'getCurrentTime').onFirstCall().returns(6000);
-    timeStub.onSecondCall().returns(8000);
+    // Vitest/TestContext setup does not consume the sequenced return values.
+    getCurrentTimeMock.mockReset().mockReturnValueOnce(6000).mockReturnValue(8000);
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     testResultData.summary.username = mockConnection.getUsername() ?? '';
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
@@ -252,7 +255,7 @@ describe('Run Apex tests asynchronously', () => {
     };
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponseForFlowTest, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -306,7 +309,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const testResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -350,7 +353,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -459,7 +462,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -517,7 +520,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -538,7 +541,7 @@ describe('Run Apex tests asynchronously', () => {
       const runResult = await asyncTestSrv.checkRunStatus(testRunId);
       await asyncTestSrv.formatAsyncResults(
         { queueItem: pollResponse, runId: testRunId },
-        dateUtil.getCurrentTime(),
+        apexUtils.getCurrentTime(),
         false,
         runResult.testRunSummary
       );
@@ -659,7 +662,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       true,
       runResult.testRunSummary
     );
@@ -728,7 +731,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId, progressReporter);
     await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       true,
       runResult.testRunSummary,
       progressReporter
@@ -1623,12 +1626,11 @@ describe('Run Apex tests asynchronously', () => {
       };
 
       // Setup mock to return different results based on query type
-      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQuery
-        .withArgs(sinon.match(/ApexTestResult/))
-        .resolves(mockApexResults)
-        .withArgs(sinon.match(/FlowTestResult/))
-        .resolves(mockFlowResults);
+      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query').callsFake(async query => {
+        if (/FROM ApexTestResult\b/.test(query)) return mockApexResults;
+        if (/FROM FlowTestResult\b/.test(query)) return mockFlowResults;
+        throw new Error(`Unexpected tooling query: ${query}`);
+      });
 
       // Execute the test
       const results = await asyncTests.getAsyncTestResults(testQueueResult);
