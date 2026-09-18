@@ -44,6 +44,20 @@ import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
 
+vi.mock('../../src/tests/diagnosticUtil', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../src/tests/diagnosticUtil')>();
+  return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
+});
+vi.mock('../../src/tests/utils', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../src/tests/utils')>()),
+  queryNamespaces: vi.fn()
+}));
+vi.mock('node:fs/promises', async importOriginal => ({
+  ...(await importOriginal<typeof import('node:fs/promises')>()),
+  mkdir: vi.fn(),
+  writeFile: vi.fn()
+}));
+
 type TestServiceInternals = {
   createStream: (filePath: string) => Writable;
 };
@@ -53,9 +67,11 @@ const testServicePrototype = TestService.prototype as unknown as TestServiceInte
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
-let formatSpy: sinon.SinonSpy;
 const testData = new MockTestOrgData();
 let timeStub: sinon.SinonStub;
+const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
+const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
+const writeFileMock = vi.mocked(fs.writeFile);
 const pollResponse: ApexTestQueueItem = {
   done: true,
   totalSize: 1,
@@ -85,7 +101,8 @@ describe('Run Apex tests asynchronously', () => {
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     testResultData.summary.username = mockConnection.getUsername() ?? '';
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
-    formatSpy = $$.SANDBOX.spy(diagnosticUtil, 'formatTestErrors');
+    formatTestErrorsMock.mockClear();
+    queryNamespacesMock.mockReset();
   });
 
   it('should run a successful test', async () => {
@@ -1126,20 +1143,20 @@ describe('Run Apex tests asynchronously', () => {
         );
         fail('Should have failed');
       } catch (e) {
-        expect(formatSpy.calledOnce).toBe(true);
+        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
       }
     });
 
     it('should format test error when building asynchronous payload', async () => {
       const errMsg = "sObject type 'PackageLicense' is not supported.";
-      $$.SANDBOX.stub(utils, 'queryNamespaces').throws(new Error(errMsg));
+      queryNamespacesMock.mockRejectedValue(new Error(errMsg));
       const testSrv = new TestService(mockConnection);
       try {
         await testSrv.buildAsyncPayload('RunSpecifiedTests', 'MyApexClass.MyTest');
         fail('Should have failed');
       } catch (e) {
-        expect(formatSpy.calledOnce).toBe(true);
+        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['PackageLicense', errMsg]));
       }
     });
@@ -1707,16 +1724,12 @@ describe('Create Result Files', () => {
   let testServiceSpy: sinon.SinonSpy;
   let junitSpy: sinon.SinonSpy;
   let tapSpy: sinon.SinonSpy;
-  let writeFileSpy: sinon.SinonSpy;
   let sandboxStub1: sinon.SinonSandbox;
 
   beforeEach(async () => {
     sandboxStub1 = sinon.createSandbox();
-    sandboxStub1.stub(fs, 'stat');
-    sandboxStub1.stub(fs, 'mkdir');
-    writeFileSpy = sandboxStub1.stub(fs, 'writeFile');
-    // sandboxStub1.stub(fs, 'close');
-    sandboxStub1.stub(fs, 'open');
+    vi.mocked(fs.mkdir).mockClear();
+    writeFileMock.mockClear();
     testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
       new Writable({
         write(chunk: unknown, encoding, callback) {
@@ -1739,7 +1752,7 @@ describe('Create Result Files', () => {
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 
@@ -1752,7 +1765,7 @@ describe('Create Result Files', () => {
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, false);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 
@@ -1765,7 +1778,7 @@ describe('Create Result Files', () => {
 
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, true);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 

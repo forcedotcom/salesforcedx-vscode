@@ -31,6 +31,11 @@ import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
 import { Writable } from 'node:stream';
 
+vi.mock('../../src/tests/diagnosticUtil', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../src/tests/diagnosticUtil')>();
+  return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
+});
+
 type TestServiceInternals = {
   createStream: (filePath: string) => Writable;
 };
@@ -40,6 +45,7 @@ const testServicePrototype = TestService.prototype as unknown as TestServiceInte
 let mockConnection: Connection;
 let toolingRequestStub: SinonStub;
 const testData = new MockTestOrgData();
+const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
 
 describe('Run Apex tests synchronously', () => {
   const $$ = new TestContext();
@@ -52,7 +58,6 @@ describe('Run Apex tests synchronously', () => {
 
   let testServiceSpy: SinonSpy;
   let junitSpy: SinonSpy;
-  let formatSpy: SinonSpy;
   beforeEach(async () => {
     await $$.stubAuths(testData);
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -79,7 +84,7 @@ describe('Run Apex tests synchronously', () => {
     );
 
     junitSpy = $$.SANDBOX.spy(JUnitFormatTransformer.prototype, 'format');
-    formatSpy = $$.SANDBOX.spy(diagnosticUtil, 'formatTestErrors');
+    formatTestErrorsMock.mockClear();
   });
 
   it('should run a successful test', async () => {
@@ -234,7 +239,7 @@ describe('Run Apex tests synchronously', () => {
         });
         fail('Should have failed');
       } catch (e) {
-        expect(formatSpy.calledOnce).toBe(true);
+        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
       }
     });

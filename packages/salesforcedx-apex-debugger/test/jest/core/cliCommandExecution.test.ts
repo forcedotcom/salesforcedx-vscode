@@ -91,7 +91,12 @@ describe('CliCommandExecution Unit Tests.', () => {
     });
 
     it('Should call timer unsubscribe on error.', () => {
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[1][0];
       exitSubscribeHandler();
@@ -128,7 +133,12 @@ describe('CliCommandExecution Unit Tests.', () => {
     });
     it('Should be able to successfully kill child process.', async () => {
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
