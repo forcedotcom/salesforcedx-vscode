@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalogInternalEntry, OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogInternalEntry } from './orgMetadataCatalogTypes';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import {
@@ -15,8 +15,6 @@ import {
   type MetadataComponentArtifactIdentity
 } from '../core/artifactIdentity';
 import { isOrgMetadataComponentReference, type OrgMetadataComponentReference } from './orgMetadataReference';
-
-export const emptyPresence = (): OrgMetadataPresence => ({ inOrg: false, inWorkspace: false });
 
 const metadataComponentArtifactIdentity = (
   reference: OrgMetadataComponentReference,

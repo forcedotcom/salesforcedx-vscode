@@ -419,11 +419,10 @@ const getEntry = (
     .getEntries([{ type: reference.xmlName, fullName: reference.fullName }])
     .pipe(Effect.map(entries => entries[0]));
 
-const materializeRemoteSource = (
+const materializePrimaryDocument = (
   remoteSource: InstanceType<typeof OrgCatalogRemoteSource>,
-  reference: { readonly xmlName: string; readonly fullName: string },
-  options: { readonly consistency?: 'cache-first' | 'refresh' } = {}
-) => remoteSource.materializeRemoteSource('00D000000000001', reference, options);
+  reference: { readonly xmlName: string; readonly fullName: string }
+) => remoteSource.materializePrimaryDocument('00D000000000001', reference);
 
 const runWithCatalogAndRemoteSource = <A, E, LayerError>(
   layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource | OrgMetadataReferenceService, LayerError>,
@@ -1177,7 +1176,7 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
+      materializePrimaryDocument(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/objects/Broker__c/listViews/All.listView-meta.xml')).toBe(true);
@@ -1211,148 +1210,10 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
+      materializePrimaryDocument(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
     expect(artifact.fileUris).toEqual([artifact.primaryUri]);
-  });
-
-  it('refreshes remote source independently of cached inventory and records the observed revision', async () => {
-    const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks, remoteSourceLayer } = makeHarness({
-      metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
-    });
-    mocks.shadowGet.mockImplementation(() =>
-      Effect.succeed({
-        rootUri: URI.file('/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1'),
-        primaryUri: URI.file(
-          '/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1/Property.prompt-meta.xml'
-        ),
-        fileUris: [
-          URI.file(
-            '/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1/Property.prompt-meta.xml'
-          )
-        ],
-        remoteLastModifiedDate: 'revision-1',
-        materializedAt: '2026-07-30T00:00:00.000Z'
-      })
-    );
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = Utils.joinPath(
-        stagingUri,
-        'package',
-        'main',
-        'default',
-        'prompts',
-        'Property.prompt-meta.xml'
-      ).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [{ filePath, fullName: 'Property', state: 'Changed', type: 'Prompt' }],
-        response: {
-          fileProperties: [{ fullName: 'Property', lastModifiedDate: 'revision-2', type: 'Prompt' }]
-        }
-      });
-    });
-
-    const { artifact, entry } = await runWithCatalogAndRemoteSource(
-      Layer.merge(layer, remoteSourceLayer),
-      (catalog, remoteSource) =>
-        Effect.gen(function* () {
-          yield* getEntry(catalog, reference);
-          const materialized = yield* materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' });
-          return { artifact: materialized, entry: yield* getEntry(catalog, reference) };
-        })
-    );
-
-    expect(mocks.shadowGet).not.toHaveBeenCalled();
-    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
-    expect(mocks.retrieveComponentSetToDirectory.mock.calls[0]?.[2]).toEqual({ expectedOrgId: '00D000000000001' });
-    expect(mocks.shadowPrepare).toHaveBeenCalledWith('00D000000000001', reference, undefined);
-    expect(artifact.remoteLastModifiedDate).toBe('revision-2');
-    expect(entry?.lastModifiedDate).toBe('revision-2');
-  });
-
-  it('does not gate fresh materialization on cached inventory presence', async () => {
-    const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks, remoteSourceLayer } = makeHarness();
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = Utils.joinPath(
-        stagingUri,
-        'package',
-        'main',
-        'default',
-        'prompts',
-        'Property.prompt-meta.xml'
-      ).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [{ filePath, fullName: 'Property', state: 'Changed', type: 'Prompt' }],
-        response: { fileProperties: [] }
-      });
-    });
-
-    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' })
-    );
-
-    expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
-    expect(mocks.listMetadata).not.toHaveBeenCalled();
-  });
-
-  it('deduplicates fresh components by first position and last reference value', async () => {
-    const references = [
-      { xmlName: 'Prompt', fullName: 'Property' },
-      { xmlName: 'Prompt', fullName: 'Broker' },
-      { xmlName: 'prompt', fullName: 'property' }
-    ];
-    const uniqueReferences = [
-      { xmlName: 'prompt', fullName: 'property' },
-      { xmlName: 'Prompt', fullName: 'Broker' }
-    ];
-    const { layer, mocks, remoteSourceLayer } = makeHarness();
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = (fullName: string) =>
-        Utils.joinPath(stagingUri, 'package', 'main', 'default', 'prompts', `${fullName}.prompt-meta.xml`).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: ({ fullName }: { fullName: string }) => [filePath(fullName)]
-        },
-        getFileResponses: () =>
-          uniqueReferences.map(reference => ({
-            filePath: filePath(reference.fullName),
-            fullName: reference.fullName,
-            state: 'Changed',
-            type: reference.xmlName
-          })),
-        response: {
-          fileProperties: uniqueReferences.map(reference => ({
-            fullName: reference.fullName,
-            lastModifiedDate: `revision-${reference.fullName}`,
-            type: reference.xmlName
-          }))
-        }
-      });
-    });
-
-    const materialized = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      remoteSource.materializeRemoteSources('00D000000000001', references, { consistency: 'refresh' })
-    );
-
-    expect(materialized.map(({ reference }) => reference)).toEqual(uniqueReferences);
-    expect(mocks.buildComponentSet).toHaveBeenCalledWith(
-      uniqueReferences.map(reference => ({ type: reference.xmlName, fullName: reference.fullName }))
-    );
-    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
-    expect(mocks.shadowPrepareBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.shadowPublish).toHaveBeenCalledTimes(2);
   });
 });

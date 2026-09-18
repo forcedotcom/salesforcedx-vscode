@@ -5,15 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type {
-  OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
-  OrgMetadataConsistency
-} from './orgMetadataCatalogTypes';
-import * as Arr from 'effect/Array';
+import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
-import * as Equivalence from 'effect/Equivalence';
-import * as HashMap from 'effect/HashMap';
-import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -22,18 +15,12 @@ import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogInventory } from './orgCatalogInventory';
-import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
-import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
-import { OrgMetadataShadowStore, type OrgMetadataShadowArtifact } from './orgMetadataShadowStore';
+import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-const componentReferenceIdentityEquivalence = Equivalence.mapInput(
-  Equivalence.string,
-  (reference: OrgMetadataComponentReference) => componentIdentity(reference)
-);
 
 export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSource>()('OrgCatalogRemoteSource', {
   accessors: true,
@@ -42,22 +29,18 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
     FsService.Default,
     OrgCatalogInventory.Default,
     OrgCatalogRemoteRetrieve.Default,
-    OrgCatalogState.Default,
     OrgMetadataReferenceService.Default,
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [connectionService, fsService, inventories, remoteRetrieve, state, references, shadowStore] =
-      yield* Effect.all([
-        ConnectionService,
-        FsService,
-        OrgCatalogInventory,
-        OrgCatalogRemoteRetrieve,
-        OrgCatalogState,
-        OrgMetadataReferenceService,
-        OrgMetadataShadowStore
-      ]);
-    const materializeSemaphore = yield* Effect.makeSemaphore(1);
+    const [connectionService, fsService, inventories, remoteRetrieve, references, shadowStore] = yield* Effect.all([
+      ConnectionService,
+      FsService,
+      OrgCatalogInventory,
+      OrgCatalogRemoteRetrieve,
+      OrgMetadataReferenceService,
+      OrgMetadataShadowStore
+    ]);
 
     const getEntryInOrg = (orgId: string, reference: OrgMetadataComponentReference) =>
       inventories.getEntry(orgId, reference).pipe(
@@ -155,136 +138,6 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       );
     });
 
-    const materializeRemoteSources = Effect.fn('OrgCatalogRemoteSource.materializeRemoteSources')(function* (
-      orgId: string,
-      componentReferences: readonly OrgMetadataComponentReference[],
-      options: { readonly consistency?: OrgMetadataConsistency } = {}
-    ) {
-      return yield* materializeSemaphore.withPermits(1)(
-        Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan('consistency', options.consistency ?? 'cache-first');
-          const forceRefresh = options.consistency === 'refresh';
-          const referenceByIdentity = HashMap.fromIterable(
-            componentReferences.map(reference => [componentIdentity(reference), reference] as const)
-          );
-          const uniqueReferences = Arr.dedupeWith(componentReferences, componentReferenceIdentityEquivalence).map(
-            reference =>
-              Option.getOrElse(HashMap.get(referenceByIdentity, componentIdentity(reference)), () => reference)
-          );
-          const resolved = yield* Effect.forEach(
-            uniqueReferences,
-            reference =>
-              Effect.gen(function* () {
-                const loadedEntry = findInventoryComponent(
-                  (yield* state.getInventory(orgId, reference.xmlName))?.components ?? HashMap.empty(),
-                  reference
-                );
-                const entry = forceRefresh ? loadedEntry : yield* getEntryInOrg(orgId, reference);
-                const artifact = forceRefresh
-                  ? undefined
-                  : yield* shadowStore.get(orgId, reference, entry?.lastModifiedDate);
-                return { reference, entry, artifact };
-              }),
-            { concurrency: 10 }
-          );
-          const retrievalRequests = resolved.flatMap(({ reference, entry, artifact }) =>
-            artifact
-              ? []
-              : [{ reference, expectedRemoteLastModifiedDate: forceRefresh ? undefined : entry?.lastModifiedDate }]
-          );
-          const retrieved = yield* remoteRetrieve.materializeRetrievedComponents(orgId, retrievalRequests);
-          const artifactByIdentity = HashMap.fromIterable<string, OrgMetadataShadowArtifact>([
-            ...resolved.flatMap(({ reference, artifact }) =>
-              artifact ? [[componentIdentity(reference), artifact] as const] : []
-            ),
-            ...retrieved.map(({ reference, artifact }) => [componentIdentity(reference), artifact] as const)
-          ]);
-          yield* Effect.annotateCurrentSpan({
-            requestedComponentCount: componentReferences.length,
-            uniqueComponentCount: uniqueReferences.length,
-            cacheHitCount: resolved.length - retrievalRequests.length,
-            retrievedComponentCount: retrievalRequests.length
-          });
-
-          if (forceRefresh && retrieved.length > 0) {
-            const observedAt = new Date().toISOString();
-            const documentUris = yield* Effect.forEach(
-              retrieved,
-              ({ reference }) =>
-                references
-                  .documentUri({ orgId, ...reference })
-                  .pipe(Effect.map(uri => [componentIdentity(reference), uri] as const)),
-              { concurrency: 'unbounded' }
-            ).pipe(Effect.map(HashMap.fromIterable));
-            yield* state.updateInventories(current =>
-              retrieved.reduce((inventoryCache, { reference, artifact }) => {
-                const key = typeCacheKey(orgId, reference.xmlName);
-                const inventory = Option.getOrUndefined(HashMap.get(inventoryCache, key));
-                if (!inventory) return inventoryCache;
-                const currentEntry = findInventoryComponent(inventory.components, reference);
-                const remoteLastModifiedDate = artifact.remoteLastModifiedDate;
-                const updatedEntry: OrgMetadataCatalogEntry = {
-                  ...currentEntry,
-                  orgId,
-                  observedAt,
-                  provenance: currentEntry?.inWorkspace ? 'metadata-api+workspace' : 'metadata-api',
-                  reference,
-                  documentUri:
-                    Option.getOrUndefined(HashMap.get(documentUris, componentIdentity(reference))) ??
-                    currentEntry!.documentUri,
-                  name: currentEntry?.name ?? reference.fullName.split('/').at(-1) ?? reference.fullName,
-                  kind: 'component',
-                  inOrg: true,
-                  inWorkspace: currentEntry?.inWorkspace ?? false,
-                  lastModifiedDate: remoteLastModifiedDate ?? currentEntry?.lastModifiedDate,
-                  remoteLastModifiedDate: remoteLastModifiedDate ?? currentEntry?.remoteLastModifiedDate
-                };
-                return HashMap.set(inventoryCache, key, {
-                  ...inventory,
-                  observedAt,
-                  components: HashMap.set(
-                    inventory.components,
-                    componentIdentity(reference, currentEntry?.namespacePrefix ?? null),
-                    updatedEntry
-                  ),
-                  componentIdentityOrder: inventory.componentIdentityOrder.includes(
-                    componentIdentity(reference, currentEntry?.namespacePrefix ?? null)
-                  )
-                    ? inventory.componentIdentityOrder
-                    : [
-                        ...inventory.componentIdentityOrder,
-                        componentIdentity(reference, currentEntry?.namespacePrefix ?? null)
-                      ]
-                });
-              }, current)
-            );
-            yield* state.queuePersist(orgId);
-          }
-          return yield* Effect.forEach(uniqueReferences, reference => {
-            const artifact = Option.getOrUndefined(HashMap.get(artifactByIdentity, componentIdentity(reference)));
-            return artifact
-              ? Effect.succeed({ reference, artifact })
-              : Effect.die(
-                  new Error(`No shadow artifact was produced for ${reference.xmlName} '${reference.fullName}'`)
-                );
-          });
-        })
-      );
-    });
-
-    const materializeRemoteSource = Effect.fn('OrgCatalogRemoteSource.materializeRemoteSource')(function* (
-      orgId: string,
-      reference: OrgMetadataComponentReference,
-      options: { readonly consistency?: OrgMetadataConsistency } = {}
-    ) {
-      const [materialized] = yield* materializeRemoteSources(orgId, [reference], options);
-      return materialized
-        ? materialized.artifact
-        : yield* Effect.die(
-            new Error(`No shadow artifact was produced for ${reference.xmlName} '${reference.fullName}'`)
-          );
-    });
-
-    return { materializePrimaryDocument, materializeRemoteSource, materializeRemoteSources } as const;
+    return { materializePrimaryDocument } as const;
   })
 }) {}

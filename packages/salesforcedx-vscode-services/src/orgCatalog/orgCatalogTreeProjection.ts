@@ -8,6 +8,7 @@
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
@@ -93,10 +94,10 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       const describedByName = describedFields.reduce(
         (byName, field) =>
           objectEntry.namespacePrefix
-            ? HashMap.set(
-                HashMap.set(byName, field.name, field),
-                field.name.replace(`${objectEntry.namespacePrefix}__`, ''),
-                field
+            ? pipe(
+                byName,
+                HashMap.set(field.name, field),
+                HashMap.set(field.name.replace(`${objectEntry.namespacePrefix}__`, ''), field)
               )
             : HashMap.set(byName, field.name, field),
         HashMap.empty<string, (typeof describedFields)[number]>()
@@ -115,8 +116,9 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         const unqualifiedName = objectEntry.namespacePrefix
           ? fieldName.replace(`${objectEntry.namespacePrefix}__`, '')
           : fieldName;
-        const described = Option.getOrUndefined(
-          Option.orElse(HashMap.get(describedByName, fieldName), () => HashMap.get(describedByName, unqualifiedName))
+        const described = HashMap.get(describedByName, fieldName).pipe(
+          Option.orElse(() => HashMap.get(describedByName, unqualifiedName)),
+          Option.getOrUndefined
         );
         return {
           ...entry,
@@ -238,6 +240,6 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         : undefined;
     });
 
-    return { getChildren, getChildrenCached, getCustomFieldChildren } as const;
+    return { getChildren, getChildrenCached } as const;
   })
 }) {}
