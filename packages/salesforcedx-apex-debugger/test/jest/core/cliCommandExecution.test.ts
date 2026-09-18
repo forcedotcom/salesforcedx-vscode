@@ -7,7 +7,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
-import * as kill from 'tree-kill';
+import { treeKill } from '../../../src/core/crossSpawnAndTreeKill';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
@@ -17,9 +17,9 @@ import {
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
 
-vi.mock('tree-kill');
+vi.mock('../../../src/core/crossSpawnAndTreeKill');
 
-const treeKillMocked = vi.mocked(kill);
+const treeKillMocked = vi.mocked(treeKill);
 
 describe('CliCommandExecution Unit Tests.', () => {
   const testCommand: Command = {
@@ -121,7 +121,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     let logSpy: VitestMockInstance;
 
     beforeEach(() => {
-      logSpy = vi.spyOn(console, 'log');
+      logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     });
     it('Should be able to successfully kill child process.', async () => {
       testCancelationToken.isCancellationRequested = true;
@@ -135,17 +135,13 @@ describe('CliCommandExecution Unit Tests.', () => {
       expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
       const killCallback = treeKillMocked.mock.calls[0][2];
-      if (killCallback) {
-        killCallback();
-      } else {
-        fail('Should have had a kill callback function.');
-      }
-      timeoutPromise.then(() => {
-        expect(logSpy).not.toHaveBeenCalled();
-      });
+      expect(killCallback).toBeDefined();
+      killCallback?.();
+      await timeoutPromise;
+      expect(logSpy).not.toHaveBeenCalled();
     });
 
-    it('Should log if fails to kill child process.', () => {
+    it('Should log if fails to kill child process.', async () => {
       const killError = new Error('Failed to kill');
       testCancelationToken.isCancellationRequested = true;
       const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
@@ -158,14 +154,10 @@ describe('CliCommandExecution Unit Tests.', () => {
       expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
       const killCallback = treeKillMocked.mock.calls[0][2];
-      if (killCallback) {
-        killCallback(killError);
-      } else {
-        fail('Should have had a kill callback function.');
-      }
-      timeoutPromise.then(() => {
-        expect(logSpy).toHaveBeenCalledWith(killError);
-      });
+      expect(killCallback).toBeDefined();
+      killCallback?.(killError);
+      await timeoutPromise;
+      expect(logSpy).toHaveBeenCalledWith(killError);
     });
   });
 });

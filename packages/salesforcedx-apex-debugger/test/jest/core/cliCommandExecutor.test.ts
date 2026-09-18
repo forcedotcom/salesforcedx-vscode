@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Command, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
-import * as cross_spawn from 'cross-spawn';
 import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
+import { crossSpawn } from '../../../src/core/crossSpawnAndTreeKill';
 
-vi.mock('cross-spawn');
+vi.mock('../../../src/core/crossSpawnAndTreeKill');
 vi.mock('../../../src/core/cliCommandExecution');
-const crossSpawnMocked = vi.mocked(cross_spawn);
+const crossSpawnMocked = vi.mocked(crossSpawn);
 const CliCommandExecutorMock = vi.mocked(CliCommandExecution);
 
 describe('CliCommandExecutor Unit Tests.', () => {

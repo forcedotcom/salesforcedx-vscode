@@ -11,6 +11,11 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
+    server: {
+      deps: {
+        external: [/\/soql-common\/src\/soql-parser\.lib\//, /\/node_modules\/antlr4ts\//]
+      }
+    },
     passWithNoTests: true
   }
 });

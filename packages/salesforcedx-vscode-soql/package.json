@@ -214,6 +214,7 @@
         "test/jest/queryDataView/queryDataViewController.test.ts",
         "vitest.queryResults.config.mts",
         "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
@@ -330,11 +331,13 @@
         "test/**/*.ts",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage"
+        "coverage",
+        "junit-custom-unitTests.xml"
       ]
     },
     "lint": {

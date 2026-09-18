@@ -222,30 +222,28 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)).rejects.toEqual(
-        expectedResults
-      );
+      await expect(
+        breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)
+      ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)).rejects.toEqual(
-        expectedResults
-      );
+      await expect(
+        breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)
+      ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
@@ -264,26 +262,24 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
+      await expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
+      await expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
@@ -340,28 +336,26 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(
+      await expect(
         breakpointService.createExceptionBreakpoint('fake/project/path', 'fakeSessionId', 'fakeTypeRef')
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(
+      await expect(
         breakpointService.createExceptionBreakpoint('fake/project/path', 'fakeSessionId', 'fakeTypeRef')
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();

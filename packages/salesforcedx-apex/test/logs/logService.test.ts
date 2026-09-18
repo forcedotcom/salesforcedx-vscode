@@ -8,7 +8,7 @@
 import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'node:path';
 import * as stream from 'node:stream';

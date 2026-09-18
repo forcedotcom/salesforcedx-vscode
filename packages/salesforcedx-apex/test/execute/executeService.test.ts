@@ -8,8 +8,8 @@
 import type { SinonStub } from 'sinon';
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import * as fs from 'node:fs';
-import * as readline from 'node:readline';
+import fs from 'node:fs';
+import readline from 'node:readline';
 import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
 import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';

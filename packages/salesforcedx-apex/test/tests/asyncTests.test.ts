@@ -36,7 +36,7 @@ import {
   flowTestResultData
 } from '../testData';
 import { join } from 'node:path';
-import * as fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
@@ -1433,7 +1433,7 @@ describe('Run Apex tests asynchronously', () => {
       expect((result as TestRunIdResult).testRunId).toBe(testRunId);
 
       // Verify that the debug message was logged
-      sinon.assert.calledWith(debugStub, sinon.match.string.and(sinon.match(testRunId)));
+      expect(debugStub.args.some(([message]) => String(message).includes(testRunId))).toBe(true);
 
       // Verify that the info message with the command was logged
       const username = mockConnection.getUsername();
@@ -1504,7 +1504,7 @@ describe('Run Apex tests asynchronously', () => {
       expect((result as TestRunIdResult).testRunId).toBe(testRunId);
 
       // Verify that the appropriate messages were logged
-      sinon.assert.calledWith(debugStub, sinon.match.string.and(sinon.match(testRunId)));
+      expect(debugStub.args.some(([message]) => String(message).includes(testRunId))).toBe(true);
 
       const username = mockConnection.getUsername();
       sinon.assert.calledWith(loggerStub, nls.localize('runTestReportCommand', [testRunId, username ?? '']));
@@ -1607,11 +1607,8 @@ describe('Run Apex tests asynchronously', () => {
 
       // Setup mock to return different results based on query type
       const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQuery
-        .withArgs(sinon.match(/ApexTestResult/))
-        .resolves(mockApexResults)
-        .withArgs(sinon.match(/FlowTestResult/))
-        .resolves(mockFlowResults);
+      mockToolingQuery.onFirstCall().resolves(mockApexResults);
+      mockToolingQuery.onSecondCall().resolves(mockFlowResults);
 
       // Execute the test
       const results = await asyncTests.getAsyncTestResults(testQueueResult);

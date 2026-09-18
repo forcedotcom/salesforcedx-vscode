@@ -88,11 +88,13 @@
         "vitest.config.mts",
         "vitest.setup.js",
         "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage"
+        "coverage",
+        "junit-custom-unitTests.xml"
       ]
     },
     "lint": {

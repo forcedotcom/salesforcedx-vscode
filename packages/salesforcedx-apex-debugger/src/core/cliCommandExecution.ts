@@ -7,9 +7,7 @@
 import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
 import { ChildProcess } from 'node:child_process';
 import { fromEvent, interval, Observable, Subscription } from 'rxjs';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const treeKill = require('tree-kill');
+import { treeKill } from './crossSpawnAndTreeKill';
 
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';

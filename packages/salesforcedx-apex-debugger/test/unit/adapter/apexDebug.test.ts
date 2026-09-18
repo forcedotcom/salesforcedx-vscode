@@ -54,7 +54,7 @@ import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
 import { DummyContainer, newStringValue } from './apexDebugVariablesHandling.test';
 
-vi.setTimeout(30_000);
+vi.setConfig({ testTimeout: 30_000 });
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
