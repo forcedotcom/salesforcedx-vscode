@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { ExportResultCode } from '@opentelemetry/core';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
@@ -32,8 +33,8 @@ const makeSpan = (): ReadableSpan =>
     instrumentationScope: { name: 'test-scope' }
   }) as unknown as ReadableSpan;
 
-const makeFakeSender = (): LocalEnvelopeSender & { exportEnvelopes: jest.Mock } => ({
-  exportEnvelopes: jest.fn().mockResolvedValue({ code: ExportResultCode.SUCCESS }),
+const makeFakeSender = (): LocalEnvelopeSender & { exportEnvelopes: VitestMock } => ({
+  exportEnvelopes: vi.fn().mockResolvedValue({ code: ExportResultCode.SUCCESS }),
   shutdown: () => Promise.resolve()
 });
 
@@ -52,7 +53,7 @@ describe('FilteredAzureMonitorTraceExporter', () => {
     const sender = makeFakeSender();
     injectSender(exporter, sender);
 
-    const callback = jest.fn();
+    const callback = vi.fn();
     await exporter.export([makeSpan()], callback);
 
     expect(sender.exportEnvelopes).toHaveBeenCalledTimes(1);
@@ -69,7 +70,7 @@ describe('FilteredAzureMonitorTraceExporter', () => {
     const sender = makeFakeSender();
     injectSender(exporter, sender);
 
-    const callback = jest.fn();
+    const callback = vi.fn();
     await exporter.export([makeSpan()], callback);
 
     expect(sender.exportEnvelopes).toHaveBeenCalledTimes(1);

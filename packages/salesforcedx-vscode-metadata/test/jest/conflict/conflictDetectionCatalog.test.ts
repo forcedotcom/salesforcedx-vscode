@@ -20,8 +20,8 @@ import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { URI } from 'vscode-uri';
 
-const mockBuildTimestampIndex = jest.fn();
-jest.mock('../../../src/conflict/resultStorage', () => ({
+const mockBuildTimestampIndex = vi.fn();
+vi.mock('../../../src/conflict/resultStorage', () => ({
   buildTimestampIndex: () => mockBuildTimestampIndex()
 }));
 
@@ -48,7 +48,7 @@ const componentSet = {
 } as unknown as ComponentSet;
 
 const makeHarness = () => {
-  const getStatus = jest.fn(() =>
+  const getStatus = vi.fn(() =>
     Effect.succeed([
       {
         orgId: 'org-one',
@@ -63,7 +63,7 @@ const makeHarness = () => {
       }
     ])
   );
-  const getEntries = jest.fn((references: readonly (typeof catalogReference)[]) =>
+  const getEntries = vi.fn((references: readonly (typeof catalogReference)[]) =>
     Effect.succeed(
       references.map(componentReference => ({
         reference: componentReference,
@@ -73,14 +73,14 @@ const makeHarness = () => {
   );
   const catalog = { getEntries } as unknown as InstanceType<typeof OrgMetadataCatalog>;
   const sourceTracking = { getStatus } as unknown as InstanceType<typeof SourceTrackingService>;
-  const toUri = jest.fn((path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.file(path) : path));
-  const readFile = jest.fn((uri: string | URI) =>
+  const toUri = vi.fn((path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.file(path) : path));
+  const readFile = vi.fn((uri: string | URI) =>
     Effect.succeed(uri.toString().includes('metadata-shadow') ? 'remote source' : 'local source')
   );
-  const safeDelete = jest.fn(() => Effect.void);
+  const safeDelete = vi.fn(() => Effect.void);
   const fsService = { HashableUri, readFile, safeDelete, toUri } as unknown as InstanceType<typeof FsService>;
-  const getComponentSetFromUris = jest.fn(() => Effect.succeed(componentSet));
-  const ensureNonEmptyComponentSet = jest.fn((value: ComponentSet) => Effect.succeed(value));
+  const getComponentSetFromUris = vi.fn(() => Effect.succeed(componentSet));
+  const ensureNonEmptyComponentSet = vi.fn((value: ComponentSet) => Effect.succeed(value));
   const componentSetService = {
     ensureNonEmptyComponentSet,
     getComponentSetFromUris
@@ -88,8 +88,8 @@ const makeHarness = () => {
   const remoteComponentSet = {
     getComponentFilenamesByNameAndType: () => [remoteUri.fsPath]
   } as unknown as ComponentSet;
-  const buildComponentSet = jest.fn(() => Effect.succeed(remoteComponentSet));
-  const retrieveComponentSetToDirectory = jest.fn(() => Effect.succeed({ components: remoteComponentSet }));
+  const buildComponentSet = vi.fn(() => Effect.succeed(remoteComponentSet));
+  const retrieveComponentSetToDirectory = vi.fn(() => Effect.succeed({ components: remoteComponentSet }));
   const workspaceService = {
     getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/workspace') })
   } as unknown as InstanceType<typeof WorkspaceService>;
@@ -142,7 +142,7 @@ const runWithHarness = <A, E, R>(effect: Effect.Effect<A, E, R>, harness: Return
 
 describe('conflict detection catalog integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('uses catalog change status and materialized source for tracking conflicts', async () => {

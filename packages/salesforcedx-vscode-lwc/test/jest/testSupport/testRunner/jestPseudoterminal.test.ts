@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { JestPseudoterminal } from '../../../../src/testSupport/testRunner/jestPseudoterminal';
 import * as child_process from 'node:child_process';
 import { EventEmitter } from 'node:events';
 
-jest.mock('node:child_process');
+vi.mock('node:child_process');
 
 describe('JestPseudoterminal', () => {
   let mockProcess: any;
@@ -23,13 +24,13 @@ describe('JestPseudoterminal', () => {
     mockProcess.stdout = mockStdout;
     mockProcess.stderr = mockStderr;
     mockProcess.killed = false;
-    mockProcess.kill = jest.fn();
+    mockProcess.kill = vi.fn();
 
-    (child_process.spawn as jest.Mock).mockReturnValue(mockProcess);
+    (child_process.spawn as VitestMock).mockReturnValue(mockProcess);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('open', () => {
@@ -78,90 +79,102 @@ describe('JestPseudoterminal', () => {
       });
       pty.open();
 
-      const spawnCall = (child_process.spawn as jest.Mock).mock.calls[0];
+      const spawnCall = (child_process.spawn as VitestMock).mock.calls[0];
       expect(spawnCall[2].shell).toBe(false);
 
       Object.defineProperty(process, 'platform', { value: originalPlatform });
     });
 
-    it('captures stdout output', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
-      const outputs: string[] = [];
-      pty.onDidWrite(data => outputs.push(data));
+    it('captures stdout output', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+        const outputs: string[] = [];
+        pty.onDidWrite(data => outputs.push(data));
 
-      pty.open();
-      mockStdout.emit('data', Buffer.from('Test output\n'));
+        pty.open();
+        mockStdout.emit('data', Buffer.from('Test output\n'));
 
-      setImmediate(() => {
-        expect(outputs).toEqual(['Test output\n']);
-        expect(pty.getCapturedOutput()).toBe('Test output\n');
-        done();
+        setImmediate(() => {
+          expect(outputs).toEqual(['Test output\n']);
+          expect(pty.getCapturedOutput()).toBe('Test output\n');
+          resolve();
+        });
       });
     });
 
-    it('captures stderr output', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
-      const outputs: string[] = [];
-      pty.onDidWrite(data => outputs.push(data));
+    it('captures stderr output', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+        const outputs: string[] = [];
+        pty.onDidWrite(data => outputs.push(data));
 
-      pty.open();
-      mockStderr.emit('data', Buffer.from('Error output\n'));
+        pty.open();
+        mockStderr.emit('data', Buffer.from('Error output\n'));
 
-      setImmediate(() => {
-        expect(outputs).toEqual(['Error output\n']);
-        expect(pty.getCapturedOutput()).toBe('Error output\n');
-        done();
+        setImmediate(() => {
+          expect(outputs).toEqual(['Error output\n']);
+          expect(pty.getCapturedOutput()).toBe('Error output\n');
+          resolve();
+        });
       });
     });
 
-    it('captures combined stdout and stderr in order', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+    it('captures combined stdout and stderr in order', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
 
-      pty.open();
-      mockStdout.emit('data', Buffer.from('stdout line 1\n'));
-      mockStderr.emit('data', Buffer.from('stderr line 1\n'));
-      mockStdout.emit('data', Buffer.from('stdout line 2\n'));
+        pty.open();
+        mockStdout.emit('data', Buffer.from('stdout line 1\n'));
+        mockStderr.emit('data', Buffer.from('stderr line 1\n'));
+        mockStdout.emit('data', Buffer.from('stdout line 2\n'));
 
-      setImmediate(() => {
-        expect(pty.getCapturedOutput()).toBe('stdout line 1\nstderr line 1\nstdout line 2\n');
-        done();
+        setImmediate(() => {
+          expect(pty.getCapturedOutput()).toBe('stdout line 1\nstderr line 1\nstdout line 2\n');
+          resolve();
+        });
       });
     });
 
-    it('fires onDidClose with exit code when process exits', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
-      pty.onDidClose(code => {
-        expect(code).toBe(0);
-        done();
-      });
+    it('fires onDidClose with exit code when process exits', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+        pty.onDidClose(code => {
+          expect(code).toBe(0);
+          resolve();
+        });
 
-      pty.open();
-      mockProcess.emit('close', 0);
+        pty.open();
+        mockProcess.emit('close', 0);
+      });
     });
 
-    it('fires onDidClose with error exit code', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
-      pty.onDidClose(code => {
-        expect(code).toBe(1);
-        done();
-      });
+    it('fires onDidClose with error exit code', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+        pty.onDidClose(code => {
+          expect(code).toBe(1);
+          resolve();
+        });
 
-      pty.open();
-      mockProcess.emit('close', 1);
+        pty.open();
+        mockProcess.emit('close', 1);
+      });
     });
 
-    it('fires onDidClose with exit code 1 on spawn error', done => {
-      const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
-      const outputs: string[] = [];
-      pty.onDidWrite(data => outputs.push(data));
-      pty.onDidClose(code => {
-        expect(code).toBe(1);
-        expect(outputs.some(o => o.includes('Error spawning process'))).toBe(true);
-        done();
-      });
+    it('fires onDidClose with exit code 1 on spawn error', async () => {
+      await new Promise<void>(resolve => {
+        const pty = new JestPseudoterminal('npm', ['test'], { cwd: '/test' });
+        const outputs: string[] = [];
+        pty.onDidWrite(data => outputs.push(data));
+        pty.onDidClose(code => {
+          expect(code).toBe(1);
+          expect(outputs.some(o => o.includes('Error spawning process'))).toBe(true);
+          resolve();
+        });
 
-      pty.open();
-      mockProcess.emit('error', new Error('ENOENT: command not found'));
+        pty.open();
+        mockProcess.emit('error', new Error('ENOENT: command not found'));
+      });
     });
   });
 

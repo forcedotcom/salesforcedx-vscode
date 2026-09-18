@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { fail } from 'node:assert';
@@ -16,9 +17,9 @@ import { nls } from '../../../src/messages';
 import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
 
 // Mock vscode workspace
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   workspace: {
-    getConfiguration: jest.fn()
+    getConfiguration: vi.fn()
   },
   env: {
     language: 'en'
@@ -37,17 +38,17 @@ jest.mock('vscode', () => ({
   }
 }));
 
-// jest.fns so individual tests can reconfigure the false / error branches via mockReturnValue.
-const mockFileOrFolderExists = jest.fn((_p: string) => Effect.succeed(true));
+// vi.fn mocks so individual tests can reconfigure the false / error branches via mockReturnValue.
+const mockFileOrFolderExists = vi.fn((_p: string) => Effect.succeed(true));
 const succeedApi = (): ExtensionProviderService['getServicesApi'] =>
   Effect.succeed({
     services: { FsService: { fileOrFolderExists: mockFileOrFolderExists } }
   }) as unknown as ExtensionProviderService['getServicesApi'];
-const mockGetServicesApi = jest.fn(succeedApi);
+const mockGetServicesApi = vi.fn(succeedApi);
 
 // Mock the services runtime: real getRuntime builds AllServicesLayer (unset in unit tests), so run
-// effects against a stub ExtensionProviderService whose getServicesApi / FsService are jest.fns.
-jest.mock('../../../src/services/runtime', () => ({
+// effects against a stub ExtensionProviderService whose getServicesApi / FsService are vi.fn mocks.
+vi.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({
     runPromise: (eff: Effect.Effect<boolean, never, ExtensionProviderService>): Promise<boolean> =>
       Effect.runPromise(
@@ -63,8 +64,8 @@ jest.mock('../../../src/services/runtime', () => ({
 }));
 
 // Mock find-java-home module
-jest.mock('find-java-home', () =>
-  jest.fn(callback => {
+vi.mock('find-java-home', () =>
+  vi.fn(callback => {
     // Simulate async behavior
     setTimeout(() => {
       callback(null, '/path/to/java/home');
@@ -73,30 +74,35 @@ jest.mock('find-java-home', () =>
 );
 
 // Mock os module
-jest.mock('node:os', () => ({
-  homedir: jest.fn().mockReturnValue('/mock/home/directory')
+vi.mock('node:os', () => ({
+  homedir: vi.fn().mockReturnValue('/mock/home/directory')
+}));
+
+vi.mock('node:child_process', async importOriginal => ({
+  ...(await importOriginal<typeof import('node:child_process')>()),
+  execFile: vi.fn()
 }));
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = path.join('/mock/home/directory', 'java_home', 'real', 'jdk', jdk);
 
 describe('Java Requirements Test', () => {
-  let getConfigMock: jest.Mock;
-  let execFileSpy: jest.SpyInstance;
+  let getConfigMock: VitestMock;
+  let execFileSpy: VitestMockInstance;
 
   beforeEach(() => {
     mockFileOrFolderExists.mockReturnValue(Effect.succeed(true));
     mockGetServicesApi.mockImplementation(succeedApi);
-    getConfigMock = jest.fn();
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+    getConfigMock = vi.fn();
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
       get: getConfigMock,
-      update: jest.fn()
+      update: vi.fn()
     } as any);
-    execFileSpy = jest.spyOn(cp, 'execFile');
+    execFileSpy = cp.execFile as unknown as VitestMockInstance;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   // Unix-specific tests - these tests are skipped as they require complex mocking setup

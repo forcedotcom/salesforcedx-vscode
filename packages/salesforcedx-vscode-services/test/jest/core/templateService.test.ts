@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as SfTemplates from '@salesforce/templates';
@@ -12,18 +13,17 @@ import { isNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
+import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { ProjectService } from '../../../src/core/projectService';
 import { TemplateService } from '../../../src/core/templateService';
 
-jest.mock('@salesforce/templates');
-jest.mock('node:fs');
+vi.mock('@salesforce/templates');
+vi.mock('node:fs');
 
-const vscode = require('vscode');
-
-const mockCreate = jest.fn();
+const mockCreate = vi.fn();
 
 const mockExtensionUri = URI.file('/ext');
 
@@ -129,10 +129,10 @@ describe('TemplateService', () => {
   beforeEach(() => {
     mockCreate.mockReset();
     mockCreate.mockResolvedValue({ created: ['MyClass.cls'] });
-    (SfTemplates.TemplateService.getInstance as jest.Mock).mockReturnValue({ create: mockCreate });
-    vscode.extensions = {
-      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri })
-    };
+    (SfTemplates.TemplateService.getInstance as VitestMock).mockReturnValue({ create: mockCreate });
+    vi.mocked(vscode.extensions.getExtension).mockReturnValue({
+      extensionUri: mockExtensionUri
+    } as vscode.Extension<unknown>);
   });
 
   it('passes custom templates path when ORG_CUSTOM_METADATA_TEMPLATES is set', async () => {

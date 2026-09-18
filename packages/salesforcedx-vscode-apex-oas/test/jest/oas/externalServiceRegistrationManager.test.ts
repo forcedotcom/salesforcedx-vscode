@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -121,7 +122,7 @@ const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
 
 describe('externalServiceRegistrationManager', () => {
   it('handleExistingESR returns the warning message selection', async () => {
-    (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('merge');
+    (vscode.window.showWarningMessage as VitestMock).mockResolvedValue('merge');
     const result = await handleExistingESR();
     expect(result).toBe('merge');
   });
@@ -132,7 +133,7 @@ describe('externalServiceRegistrationManager', () => {
       const mockFolderPath = '/path/to/folder';
       const mockDefaultESRFolder = path.join(fakeWorkspace, 'force-app', 'main', 'default', mockDirectoryName);
 
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
+      (vscode.window.showInputBox as VitestMock).mockResolvedValue(mockFolderPath);
 
       const result = await runEffect(getFolderForArtifact(), {
         getTypeByName: () => ({ directoryName: mockDirectoryName })
@@ -146,7 +147,7 @@ describe('externalServiceRegistrationManager', () => {
     });
 
     it('fails with UserCancellationError if no folder is selected', async () => {
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
+      (vscode.window.showInputBox as VitestMock).mockResolvedValue(undefined);
       const exit = await Effect.runPromiseExit(
         getFolderForArtifact().pipe(
           Effect.provide(
@@ -292,7 +293,7 @@ describe('externalServiceRegistrationManager', () => {
 
   describe('buildESRYaml', () => {
     it('writes YAML alongside the ESR XML via the FsService', async () => {
-      const writeFile = jest.fn(() => Effect.void);
+      const writeFile = vi.fn(() => Effect.void);
       const layer = Layer.succeed(ExtensionProviderService, {
         getServicesApi: Effect.succeed({ services: { FsService: { writeFile } } })
       } as any);

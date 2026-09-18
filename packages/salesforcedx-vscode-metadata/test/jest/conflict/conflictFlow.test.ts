@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -15,25 +16,25 @@ import * as conflictDetection from '../../../src/conflict/conflictDetection';
 import * as conflictDetectionTimestamp from '../../../src/conflict/conflictDetectionTimestamp';
 
 // Mock vscode
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   workspace: {
-    getConfiguration: jest.fn()
+    getConfiguration: vi.fn()
   },
   env: { language: 'en' },
   TreeItem: class TreeItem {}
 }));
 
 // Mock conflict detection modules
-jest.mock('../../../src/conflict/conflictDetection', () => ({
-  detectConflictsFromTracking: jest.fn()
+vi.mock('../../../src/conflict/conflictDetection', () => ({
+  detectConflictsFromTracking: vi.fn()
 }));
 
-jest.mock('../../../src/conflict/conflictDetectionTimestamp', () => ({
-  detectConflictsFromTimestamps: jest.fn()
+vi.mock('../../../src/conflict/conflictDetectionTimestamp', () => ({
+  detectConflictsFromTimestamps: vi.fn()
 }));
 
-jest.mock('../../../src/settings/deployOnSaveSettings', () => ({
-  getDetectConflictsForDeployAndRetrieve: jest.fn(() => true)
+vi.mock('../../../src/settings/deployOnSaveSettings', () => ({
+  getDetectConflictsForDeployAndRetrieve: vi.fn(() => true)
 }));
 
 // Minimal branded NonEmptyComponentSet for testing
@@ -64,13 +65,13 @@ const runWithServices = (effect: Effect.Effect<any, any, any>, tracksSource = tr
   Effect.runPromise(effect.pipe(provideServices(tracksSource)) as Effect.Effect<any, any, never>);
 
 describe('detectConflicts', () => {
-  let mockGetConfiguration: jest.Mock;
-  let mockGet: jest.Mock;
+  let mockGetConfiguration: VitestMock;
+  let mockGet: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockGet = jest.fn();
-    mockGetConfiguration = vscode.workspace.getConfiguration as jest.Mock;
+    vi.clearAllMocks();
+    mockGet = vi.fn();
+    mockGetConfiguration = vscode.workspace.getConfiguration as VitestMock;
     mockGetConfiguration.mockReturnValue({
       get: mockGet
     });
@@ -79,8 +80,8 @@ describe('detectConflicts', () => {
     mockGet.mockReturnValue(false);
 
     // Setup default mocks for conflict detection functions
-    (conflictDetection.detectConflictsFromTracking as jest.Mock).mockReturnValue(Effect.succeed([]));
-    (conflictDetectionTimestamp.detectConflictsFromTimestamps as jest.Mock).mockReturnValue(Effect.succeed([]));
+    (conflictDetection.detectConflictsFromTracking as VitestMock).mockReturnValue(Effect.succeed([]));
+    (conflictDetectionTimestamp.detectConflictsFromTimestamps as VitestMock).mockReturnValue(Effect.succeed([]));
   });
 
   describe('when conflict detection is disabled via setting', () => {
@@ -134,7 +135,7 @@ describe('detectConflicts', () => {
 
     it('should run conflict detection for tracking orgs', async () => {
       const cs = makeCS();
-      (conflictDetection.detectConflictsFromTracking as jest.Mock).mockReturnValue(Effect.succeed([]));
+      (conflictDetection.detectConflictsFromTracking as VitestMock).mockReturnValue(Effect.succeed([]));
 
       await runWithServices(detectConflicts(cs, 'deploy'), true);
 

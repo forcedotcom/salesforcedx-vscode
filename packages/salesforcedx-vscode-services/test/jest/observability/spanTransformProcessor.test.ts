@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as os from 'node:os';
 import { isInternalUser } from '../../../src/observability/spanTransformProcessor';
 
 describe('isInternalUser', () => {
-  let hostnameSpy: jest.SpyInstance;
+  let hostnameSpy: VitestMockInstance;
 
   beforeEach(() => {
-    hostnameSpy = jest.spyOn(os, 'hostname').mockReturnValue('laptop.example.com');
+    hostnameSpy = vi.spyOn(os, 'hostname').mockReturnValue('laptop.example.com');
   });
 
   it('should return true on Desktop when hostname ends with internal.salesforce.com', () => {

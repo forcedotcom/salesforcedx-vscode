@@ -13,6 +13,7 @@
  *
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { api, createElement } from 'lwc';
 import { Layer } from 'effect';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -34,15 +35,15 @@ import {
 
 const makeTestMessageLayer = () => {
   const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
-  const sendMessage = jest.fn();
+  const sendMessage = vi.fn();
   const service: IMessageService = {
     onMessage: cb => {
       listeners.push(cb);
       return () => undefined;
     },
     sendMessage,
-    setState: jest.fn(),
-    getState: jest.fn()
+    setState: vi.fn(),
+    getState: vi.fn()
   };
   const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);
@@ -65,7 +66,7 @@ class TestApp extends App {
 describe('App should', () => {
   let app: TestApp;
   let emitMessage: (e: HostToUiSoqlEditorEvent) => void;
-  let sendMessage: jest.Mock;
+  let sendMessage: VitestMock;
   const accountQuery = 'SELECT Id FROM Account';
   const soqlEditorEvent: HostToUiSoqlEditorEvent = {
     type: MessageType.TEXT_SOQL_CHANGED,
@@ -94,7 +95,7 @@ describe('App should', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }

@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
@@ -29,7 +30,7 @@ type TraceFlagRow = {
   DebugLevel?: { ApexCode?: string; Visualforce?: string; DeveloperName?: string };
 };
 
-type QuerySpy = jest.Mock<Promise<{ records: unknown[]; totalSize: number }>, [string]>;
+type QuerySpy = VitestMock<(query: string) => Promise<{ records: unknown[]; totalSize: number }>>;
 
 const farFuture = () => new Date(Date.now() + 1000 * 60 * 60).toISOString();
 
@@ -60,7 +61,7 @@ const buildMockConnectionLayer = (opts: {
   userNameRowsBySoql: Map<string, IdName[]>;
 }): { layer: Layer.Layer<ConnectionService>; toolingSpy: QuerySpy; querySpy: QuerySpy } => {
   let traceFlagCallIndex = 0;
-  const toolingSpy: QuerySpy = jest.fn(async (soql: string) => {
+  const toolingSpy: QuerySpy = vi.fn(async (soql: string) => {
     if (soql.includes('FROM TraceFlag')) {
       const tfRows = opts.traceFlagRowsBySequence[traceFlagCallIndex] ?? [];
       traceFlagCallIndex += 1;
@@ -69,7 +70,7 @@ const buildMockConnectionLayer = (opts: {
     const nameRows = opts.toolingNameRowsBySoql.get(soql) ?? [];
     return { records: nameRows, totalSize: nameRows.length };
   });
-  const querySpy: QuerySpy = jest.fn(async (soql: string) => {
+  const querySpy: QuerySpy = vi.fn(async (soql: string) => {
     const nameRows = opts.userNameRowsBySoql.get(soql) ?? [];
     return { records: nameRows, totalSize: nameRows.length };
   });
@@ -388,16 +389,16 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
   });
 });
 
-type DebugLevelQuerySpy = jest.Mock<Promise<{ records: { Id?: string }[]; totalSize: number }>, [string]>;
+type DebugLevelQuerySpy = VitestMock<(query: string) => Promise<{ records: { Id?: string }[]; totalSize: number }>>;
 
 const buildGetOrCreateLayer = (opts: {
   debugLevelRows: { Id?: string }[];
 }): { layer: Layer.Layer<ConnectionService>; querySpy: DebugLevelQuerySpy; createSpy: CreateSpy } => {
-  const querySpy: DebugLevelQuerySpy = jest.fn(async (_soql: string) => ({
+  const querySpy: DebugLevelQuerySpy = vi.fn(async (_soql: string) => ({
     records: opts.debugLevelRows,
     totalSize: opts.debugLevelRows.length
   }));
-  const createSpy: CreateSpy = jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
+  const createSpy: CreateSpy = vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
   const layer = buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } });
   return { layer, querySpy, createSpy };
 };
@@ -441,15 +442,15 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
   });
 });
 
-type CreateSpy = jest.Mock<Promise<{ success: boolean; id?: string }>, [string, unknown]>;
-type DeleteSpy = jest.Mock<Promise<{ success: boolean }>, [string, string]>;
+type CreateSpy = VitestMock<(type: string, record: unknown) => Promise<{ success: boolean; id?: string }>>;
+type DeleteSpy = VitestMock<(type: string, id: string) => Promise<{ success: boolean }>>;
 
 const buildToolingMutationLayer = (opts: {
   create?: CreateSpy;
   delete?: DeleteSpy;
 }): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
-  const createSpy: CreateSpy = opts.create ?? jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
-  const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async (_type, _id) => ({ success: true }));
+  const createSpy: CreateSpy = opts.create ?? vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
+  const deleteSpy: DeleteSpy = opts.delete ?? vi.fn(async (_type, _id) => ({ success: true }));
   const layer = buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } });
   return { layer, createSpy, deleteSpy };
 };
@@ -461,7 +462,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('returns the created id and forwards the payload to tooling.create', async () => {
     const { layer, createSpy } = buildToolingMutationLayer({
-      create: jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-123' }))
+      create: vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-123' }))
     });
     const payload = {
       DeveloperName: 'Custom',
@@ -492,7 +493,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('fails with DebugLevelCreateError when create returns no id', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: jest.fn(async (_type, _payload) => ({ success: true }))
+      create: vi.fn(async (_type, _payload) => ({ success: true }))
     });
 
     const exit = await Effect.gen(function* () {
@@ -522,7 +523,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('fails with DebugLevelCreateError when tooling.create rejects', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: jest.fn(async (_type, _payload) => {
+      create: vi.fn(async (_type, _payload) => {
         throw new Error('boom');
       })
     });
@@ -574,7 +575,7 @@ describe('TraceFlagService.deleteDebugLevel', () => {
 
   it('fails with DebugLevelDeleteError when tooling.delete rejects', async () => {
     const { layer } = buildToolingMutationLayer({
-      delete: jest.fn(async (_type, _id) => {
+      delete: vi.fn(async (_type, _id) => {
         throw new Error('nope');
       })
     });

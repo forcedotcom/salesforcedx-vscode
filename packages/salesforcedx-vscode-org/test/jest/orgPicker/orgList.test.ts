@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { OrgAuthorization } from '@salesforce/core';
 import {
   ExtensionProviderService,
@@ -39,22 +40,22 @@ describe('OrgList tests', () => {
 
   describe('mocks', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     describe('isOrgExpired tests', () => {
-      let getAuthFieldsForMock: jest.SpyInstance;
+      let getAuthFieldsForMock: VitestMockInstance;
 
       beforeEach(() => {
-        getAuthFieldsForMock = jest.spyOn(orgUtil, 'getAuthFieldsFor');
+        getAuthFieldsForMock = vi.spyOn(orgUtil, 'getAuthFieldsFor');
       });
 
       afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
       });
 
       it('should return true when org expiration date is in the past', async () => {
@@ -90,12 +91,12 @@ describe('OrgList tests', () => {
     });
 
     describe('setDefaultOrg tests', () => {
-      let showQuickPickMock: jest.SpyInstance;
-      let executeCommandMock: jest.SpyInstance;
-      let listAllAuthorizationsMock: jest.Mock;
-      let setTargetOrgMock: jest.Mock;
-      let invalidateCachedConnectionsMock: jest.Mock;
-      let getConnectionMock: jest.Mock;
+      let showQuickPickMock: VitestMockInstance;
+      let executeCommandMock: VitestMockInstance;
+      let listAllAuthorizationsMock: VitestMock;
+      let setTargetOrgMock: VitestMock;
+      let invalidateCachedConnectionsMock: VitestMock;
+      let getConnectionMock: VitestMock;
 
       // Run setDefaultOrg (now an Effect.fn, registered via registerCommandWithRuntime in production) against
       // stub services and return the Exit. UserCancellationError surfaces as a failure Exit — production's
@@ -136,18 +137,18 @@ describe('OrgList tests', () => {
       };
 
       beforeEach(() => {
-        showQuickPickMock = jest.spyOn(vscode.window, 'showQuickPick');
-        executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
+        showQuickPickMock = vi.spyOn(vscode.window, 'showQuickPick');
+        executeCommandMock = vi.spyOn(vscode.commands, 'executeCommand');
         // ConnectionService.listAllAuthorizations returns an Effect; default to the seeded (empty) list
-        listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+        listAllAuthorizationsMock = vi.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
         // post-migration setDefaultOrg writes config then refreshes the org ref; all return Effects
-        setTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
-        invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
-        getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
+        setTargetOrgMock = vi.fn().mockReturnValue(Effect.void);
+        invalidateCachedConnectionsMock = vi.fn().mockReturnValue(Effect.void);
+        getConnectionMock = vi.fn().mockReturnValue(Effect.succeed({}));
       });
 
       afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
       });
 
       describe('Org picker SFDX commands', () => {

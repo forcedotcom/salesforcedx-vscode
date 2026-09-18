@@ -9,33 +9,39 @@
 // ConnectionService.getConnection). Mock the constructor to return a controllable instance (default: no
 // suites). retrieveAllSuites failures are recovered inside populateSuiteItems.
 let activeTestService: unknown = { retrieveAllSuites: () => Promise.resolve([]) };
-jest.mock('@salesforce/apex-node', () => ({
-  ...jest.requireActual('@salesforce/apex-node'),
-  TestService: jest.fn().mockImplementation(() => activeTestService)
+vi.mock('@salesforce/apex-node', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')),
+  TestService: vi.fn().mockImplementation(
+    // Vitest constructor mocks must use a constructable function.
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    function () {
+      return activeTestService;
+    }
+  )
 }));
 
 // discoverTests is a module-level Effect; the dedup tests count body runs via clearTree, so a
 // trivially-succeeding discovery keeps the body cheap. The mock returns an Effect (consumed via yield*).
-const mockDiscoverTests = jest.fn();
-jest.mock('../../../src/testDiscovery/testDiscovery', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
+const mockDiscoverTests = vi.fn();
+vi.mock('../../../src/testDiscovery/testDiscovery', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   return { discoverTests: () => mockDiscoverTests() ?? EffectLib.succeed({ classes: [] }) };
 });
 
 // getTestResultsFolder normally needs TargetOrgRef/WorkspaceService/FsService.createDirectory; the
 // restore-apply test only cares about the dir-listing + apply loop, so return a fixed folder URI.
-const mockGetTestResultsFolder = jest.fn();
-jest.mock('../../../src/utils/pathHelpers', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
+const mockGetTestResultsFolder = vi.fn();
+vi.mock('../../../src/utils/pathHelpers', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   return { getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed({ toString: () => 'dir' }) };
 });
 
 // Break the import cycle apexTestTreeService -> extensionProvider (whose layer references
 // ApexTestTreeService.Default at module-eval). The tests provide layers directly via Effect.provide, so
 // the runtime accessor here is never used.
-jest.mock('../../../src/services/extensionProvider', () => ({
-  getApexTestingRuntime: jest.fn(),
-  setAllServicesLayer: jest.fn()
+vi.mock('../../../src/services/extensionProvider', () => ({
+  getApexTestingRuntime: vi.fn(),
+  setAllServicesLayer: vi.fn()
 }));
 
 // Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) read the org key inline via the Services
@@ -43,12 +49,13 @@ jest.mock('../../../src/services/extensionProvider', () => ({
 // catalog resolver for document URIs. Controllable per test; defaults give a valid org + empty package/URI
 // maps so addClassToTree exercises the namespace/package build path.
 let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
-jest.mock('../../../src/testDiscovery/packageResolution', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
+vi.mock('../../../src/testDiscovery/packageResolution', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 let mockClassNameToUri = new Map<string, URI>();
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
@@ -67,14 +74,14 @@ import {
 } from '../../../src/views/apexTestTreeService';
 
 // Controllable restore-previous-results value surfaced through the mock SettingsService (replaces the old
-// jest.mock('../../../src/settings') target).
+// vi.mock('../../../src/settings') target).
 let restorePreviousResultsValue = false;
-const mockGetValue = jest.fn((_section: string, key: string, defaultValue: unknown) =>
+const mockGetValue = vi.fn((_section: string, key: string, defaultValue: unknown) =>
   Effect.succeed(key === 'restore-previous-results' ? restorePreviousResultsValue : defaultValue)
 );
 const mockSettingsService = {
   getValue: mockGetValue,
-  setValue: jest.fn(() => Effect.void)
+  setValue: vi.fn(() => Effect.void)
 };
 
 // Connection is acquired via ConnectionService.getConnection() (static accessor). Controllable per test:
@@ -99,9 +106,7 @@ const mockServicesApi = {
           references.map(reference => {
             const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
             const workspaceUri = mockClassNameToUri.get(baseName);
-            const orgUri = jest
-              .requireActual('vscode-uri')
-              .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`);
+            const orgUri = URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`);
             return {
               reference,
               presence: workspaceUri ? 'both' : 'org',
@@ -157,7 +162,7 @@ const richTestItem = (id: string, label = id, uri?: URI): vscode.TestItem => {
 // richTestItems. invalidateTestResults is a spy so callers can assert it fired.
 const makeMutationContext = (overrides: Partial<TreeMutationContext> = {}) => {
   const topItems = new Map<string, vscode.TestItem>();
-  const invalidateTestResults = jest.fn();
+  const invalidateTestResults = vi.fn();
   const controller = {
     items: {
       add: (item: vscode.TestItem) => topItems.set(item.id, item),
@@ -193,9 +198,9 @@ const toolingClass = (name: string, methods: string[], id = `01p_${name}`): unkn
 // times the discovery body actually ran.
 const makeContext = (overrides: Partial<DiscoveryContext> = {}): DiscoveryContext => {
   const controller = {
-    items: { add: jest.fn(), replace: jest.fn() },
-    createTestItem: jest.fn((id: string) => fakeTestItem(id)),
-    invalidateTestResults: jest.fn()
+    items: { add: vi.fn(), replace: vi.fn() },
+    createTestItem: vi.fn((id: string) => fakeTestItem(id)),
+    invalidateTestResults: vi.fn()
   } as unknown as vscode.TestController;
   return {
     controller,
@@ -203,7 +208,7 @@ const makeContext = (overrides: Partial<DiscoveryContext> = {}): DiscoveryContex
     orgOnlyTag: undefined,
     inWorkspaceTag: undefined,
     sessionStartTime: Date.now(),
-    clearTree: jest.fn(),
+    clearTree: vi.fn(),
     updateTestResults: () => Promise.resolve(),
     staleTag: undefined,
     ...overrides
@@ -212,7 +217,7 @@ const makeContext = (overrides: Partial<DiscoveryContext> = {}): DiscoveryContex
 
 describe('ApexTestTreeService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockDiscoverTests.mockReturnValue(undefined);
     restorePreviousResultsValue = false;
     getConnectionImpl = () => Effect.succeed({});
@@ -242,7 +247,7 @@ describe('ApexTestTreeService', () => {
   describe('discover dedup', () => {
     it('runs the body once when two callers overlap; the second awaits the same in-flight run', async () => {
       // clearTree runs exactly once per discovery body, so it is the precise body-run counter.
-      const clearTree = jest.fn();
+      const clearTree = vi.fn();
       const gate = await Effect.runPromise(Deferred.make<void>());
       // Hold the first body open (at the up-front getConnection) until released, so the second discover
       // arrives mid-flight and awaits the same in-flight Deferred.
@@ -266,7 +271,7 @@ describe('ApexTestTreeService', () => {
     });
 
     it('re-runs on a subsequent discover (single-shot, not memoized)', async () => {
-      const clearTree = jest.fn();
+      const clearTree = vi.fn();
       const ctx = makeContext({ clearTree });
       await run(
         Effect.gen(function* () {
@@ -282,7 +287,7 @@ describe('ApexTestTreeService', () => {
     it('shows an error message when discovery fails with a generic message', async () => {
       // The up-front getConnection failure is mapped to DiscoveryError and surfaced.
       getConnectionImpl = () => Effect.fail(new Error('boom: connection failed'));
-      const ctx = makeContext({ clearTree: jest.fn() });
+      const ctx = makeContext({ clearTree: vi.fn() });
       await run(ApexTestTreeService.discover(ctx));
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('boom: connection failed');
       expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
@@ -718,7 +723,7 @@ describe('ApexTestTreeService', () => {
       const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
 
       // Full restore reaches the "results restored" notification; give it a resolvable stub.
-      (vscode.window.showInformationMessage as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+      (vscode.window.showInformationMessage as VitestMock) = vi.fn().mockResolvedValue(undefined);
 
       // sessionStartTime after the file mtime => the parsed method is treated as pre-session (stale).
       const applied: string[] = [];
@@ -758,7 +763,7 @@ describe('ApexTestTreeService', () => {
       } as unknown as ExtensionProviderService);
       const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
 
-      (vscode.window.showInformationMessage as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+      (vscode.window.showInformationMessage as VitestMock) = vi.fn().mockResolvedValue(undefined);
 
       const applied: string[] = [];
       const ctx = makeContext({
@@ -797,7 +802,7 @@ describe('ApexTestTreeService', () => {
       const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
 
       // User clicks the "disable" action on the restored-results notification.
-      (vscode.window.showInformationMessage as jest.Mock) = jest
+      (vscode.window.showInformationMessage as VitestMock) = vi
         .fn()
         .mockResolvedValue(nls.localize('apex_test_results_restored_disable_action'));
 

@@ -8,7 +8,7 @@
 import * as Layer from 'effect/Layer';
 
 // Provide a trivial layer so getRuntime() builds a real ManagedRuntime we can dispose.
-jest.mock('../../../src/services/extensionProvider', () => ({ AllServicesLayer: Layer.empty }));
+vi.mock('../../../src/services/extensionProvider', () => ({ AllServicesLayer: Layer.empty }));
 
 import { disposeRuntime, getRuntime } from '../../../src/services/runtime';
 
@@ -25,7 +25,7 @@ describe('services/runtime disposeRuntime', () => {
     const first = getRuntime();
     expect(getRuntime()).toBe(first); // memoized
 
-    const disposeSpy = jest.spyOn(first, 'dispose');
+    const disposeSpy = vi.spyOn(first, 'dispose');
     await disposeRuntime();
     expect(disposeSpy).toHaveBeenCalledTimes(1);
 

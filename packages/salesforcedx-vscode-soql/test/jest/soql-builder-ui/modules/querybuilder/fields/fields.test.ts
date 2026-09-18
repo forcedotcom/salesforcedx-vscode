@@ -25,7 +25,7 @@ describe('Fields', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -57,7 +57,7 @@ describe('Fields', () => {
   it('emits event when field is selected', () => {
     document.body.appendChild(fields);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     fields.addEventListener('fields__selected', handler);
 
     const customSelect = fields.shadowRoot.querySelector('querybuilder-custom-select');
@@ -70,7 +70,7 @@ describe('Fields', () => {
     fields.selectedFields = ['foo', 'bar'];
     document.body.appendChild(fields);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     fields.addEventListener('fields__selected', handler);
     const selectedFieldCloseEl = fields.shadowRoot.querySelector("[data-field='foo']");
     selectedFieldCloseEl.click();
@@ -81,9 +81,9 @@ describe('Fields', () => {
   it('emits clear-all event when selected', () => {
     document.body.appendChild(fields);
 
-    const clearAllHandler = jest.fn();
-    const selectHandler = jest.fn();
-    const selectAllHandler = jest.fn();
+    const clearAllHandler = vi.fn();
+    const selectHandler = vi.fn();
+    const selectAllHandler = vi.fn();
     fields.addEventListener('fields__clearall', clearAllHandler);
     fields.addEventListener('fields__selected', selectHandler);
     fields.addEventListener('fields__selectall', selectAllHandler);
@@ -103,9 +103,9 @@ describe('Fields', () => {
   it('emits select-all event when selected', () => {
     document.body.appendChild(fields);
 
-    const clearAllHandler = jest.fn();
-    const selectHandler = jest.fn();
-    const selectAllHandler = jest.fn();
+    const clearAllHandler = vi.fn();
+    const selectHandler = vi.fn();
+    const selectAllHandler = vi.fn();
     fields.addEventListener('fields__clearall', clearAllHandler);
     fields.addEventListener('fields__selected', selectHandler);
     fields.addEventListener('fields__selectall', selectAllHandler);
@@ -159,7 +159,7 @@ describe('Fields', () => {
     document.body.appendChild(fields);
 
     let selectionFromEvent;
-    const selectHandler = jest.fn().mockImplementation(e => {
+    const selectHandler = vi.fn().mockImplementation(e => {
       selectionFromEvent = e.detail.fields;
     });
     fields.addEventListener('fields__selected', selectHandler);
@@ -176,7 +176,7 @@ describe('Fields', () => {
     document.body.appendChild(fields);
 
     let selectionFromEvent;
-    const selectHandler = jest.fn().mockImplementation(e => {
+    const selectHandler = vi.fn().mockImplementation(e => {
       selectionFromEvent = e.detail.fields;
     });
     fields.addEventListener('fields__selected', selectHandler);

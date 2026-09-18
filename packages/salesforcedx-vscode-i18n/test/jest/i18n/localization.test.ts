@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Localization } from '../../../src/i18n/localization';
 import { Message } from '../../../src/i18n/message';
 import { MessageBundle } from '../../../src/types/localization/messageBundle';
@@ -11,10 +12,10 @@ import { MessageBundle } from '../../../src/types/localization/messageBundle';
 describe('Localization Unit Tests.', () => {
   const fakeMessages: MessageBundle = { a: 'a', b: 'b', c: 'c' };
   const localizaedValue = 'hooray';
-  let delegateLocalizeSpy: jest.SpyInstance<string, [label: string, ...args: any[]]>;
+  let delegateLocalizeSpy: VitestMockInstance<(label: string, ...args: any[]) => string>;
 
   beforeEach(() => {
-    delegateLocalizeSpy = jest.spyOn(Message.prototype, 'localize').mockReturnValue(localizaedValue);
+    delegateLocalizeSpy = vi.spyOn(Message.prototype, 'localize').mockReturnValue(localizaedValue);
   });
   it('Should be able to create an instance.', () => {
     const fakeMessage = new Message(fakeMessages, undefined);

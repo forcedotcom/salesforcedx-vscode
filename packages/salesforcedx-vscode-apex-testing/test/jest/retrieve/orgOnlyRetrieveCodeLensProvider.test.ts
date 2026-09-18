@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -14,8 +15,8 @@ import {
 
 describe('orgOnlyRetrieveCodeLensProvider', () => {
   beforeEach(() => {
-    (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: jest.Mock }).registerCodeLensProvider =
-      jest.fn(() => ({ dispose: jest.fn() }));
+    (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: VitestMock }).registerCodeLensProvider =
+      vi.fn(() => ({ dispose: vi.fn() }));
   });
 
   it('provides a retrieve codelens for org metadata documents', () => {
@@ -37,7 +38,7 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
     registerOrgOnlyRetrieveCodeLensProvider(context);
 
     expect(
-      (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: jest.Mock }).registerCodeLensProvider
+      (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: VitestMock }).registerCodeLensProvider
     ).toHaveBeenCalledWith(
       { language: 'apex', scheme: 'sf-org-metadata' },
       expect.objectContaining({ provideCodeLenses: expect.any(Function) })

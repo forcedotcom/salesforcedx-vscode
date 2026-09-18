@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -17,8 +18,8 @@ import { buildAllServicesLayer, setAllServicesLayer } from '../../../src/service
 import { disposeRuntime } from '../../../src/services/runtime';
 
 describe('DebugConfigurationProvider log-file prompt', () => {
-  const readFile = jest.fn();
-  const workspaceStateUpdate = jest.fn();
+  const readFile = vi.fn();
+  const workspaceStateUpdate = vi.fn();
   const extensionContext = {
     workspaceState: { update: workspaceStateUpdate }
   } as unknown as vscode.ExtensionContext;
@@ -26,9 +27,9 @@ describe('DebugConfigurationProvider log-file prompt', () => {
   beforeEach(() => {
     readFile.mockReturnValue(Effect.succeed('64.0 APEX_CODE,FINEST\n12:00:00.0|USER_INFO|[EXTERNAL]|005'));
     workspaceStateUpdate.mockResolvedValue(undefined);
-    (vscode.window as unknown as { showOpenDialog: jest.Mock }).showOpenDialog = jest.fn();
-    (vscode.window.showErrorMessage as jest.Mock).mockResolvedValue(undefined);
-    (vscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+    (vscode.window as unknown as { showOpenDialog: VitestMock }).showOpenDialog = vi.fn();
+    (vscode.window.showErrorMessage as VitestMock).mockResolvedValue(undefined);
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue(undefined);
     setAllServicesLayer(
       Layer.succeed(ExtensionProviderService, {
         getServicesApi: Effect.succeed({
@@ -46,7 +47,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
 
   it('reads and remembers the selected log file', async () => {
     const selectedLog = URI.file('/logs/selected.log');
-    (vscode.window.showOpenDialog as jest.Mock).mockResolvedValue([selectedLog]);
+    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue([selectedLog]);
 
     const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
       name: 'Prompt for log',
@@ -66,7 +67,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
   });
 
   it('silently cancels when no log file is selected', async () => {
-    (vscode.window.showOpenDialog as jest.Mock).mockResolvedValue(undefined);
+    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue(undefined);
 
     const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
       name: 'Prompt for log',

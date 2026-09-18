@@ -15,7 +15,7 @@ import { URI } from 'vscode-uri';
 import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
 
 const mockRecordedSpans: RecordedSpan[] = [];
-const mockGetWorkspaceInfoOrThrow = jest.fn();
+const mockGetWorkspaceInfoOrThrow = vi.fn();
 const loggedMessages: unknown[] = [];
 type ServicesApi = Effect.Effect.Success<ExtensionProviderService['getServicesApi']>;
 const servicesApiLayer = Layer.succeed(ExtensionProviderService, {
@@ -33,7 +33,7 @@ const loggerLayer = Logger.replace(
 );
 const testLayer = Layer.merge(servicesApiLayer, loggerLayer);
 
-jest.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
+vi.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
 import { getRuntime } from '../../../../src/services/runtime';
 import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/workspace/getLwcTestRunnerExecutable';
@@ -42,7 +42,7 @@ import { workspaceService } from '../../../../src/testSupport/workspace/workspac
 
 describe('workspace telemetry spans', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRecordedSpans.length = 0;
     loggedMessages.length = 0;
   });
@@ -83,7 +83,7 @@ describe('workspace telemetry spans', () => {
     mockGetWorkspaceInfoOrThrow.mockReturnValue(
       Effect.succeed({ uri: workspaceUri, path: workspaceUri.toString(), fsPath: workspaceUri.fsPath, isEmpty: false })
     );
-    const getWorkspaceFolder = jest.fn().mockReturnValue(workspaceFolder);
+    const getWorkspaceFolder = vi.fn().mockReturnValue(workspaceFolder);
     Object.defineProperty(vscode.workspace, 'getWorkspaceFolder', { value: getWorkspaceFolder, configurable: true });
 
     const result = await getRuntime().runPromise(getTestWorkspaceFolder(testUri).pipe(Effect.provide(testLayer)));

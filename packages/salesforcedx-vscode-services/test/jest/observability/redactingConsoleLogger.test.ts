@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance as SpiedFunction } from 'vitest';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import type { SpiedFunction } from 'jest-mock';
 import { redactingConsoleLoggerLayer } from '../../../src/observability/redactingConsoleLogger';
 
 describe('redactingConsoleLogger', () => {
@@ -18,7 +17,7 @@ describe('redactingConsoleLogger', () => {
   let consoleLog: SpiedFunction<typeof console.log>;
 
   beforeEach(() => {
-    consoleLog = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
   });
 
   afterEach(() => {

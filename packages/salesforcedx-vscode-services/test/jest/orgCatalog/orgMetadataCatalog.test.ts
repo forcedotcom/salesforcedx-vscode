@@ -118,28 +118,28 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const workspaceComponents = options.workspaceComponents ?? [];
   const descriptions = options.descriptions ?? {};
 
-  const describe = jest.fn(() => Effect.succeed([]));
-  const listMetadata = jest.fn((xmlName: string, _folder?: string, _expectedOrgId?: string) =>
+  const describe = vi.fn(() => Effect.succeed([]));
+  const listMetadata = vi.fn((xmlName: string, _folder?: string, _expectedOrgId?: string) =>
     options.listMetadataError
       ? setOrg(options.listMetadataError.observedOrgId ?? '00D000000000002').pipe(
           Effect.andThen(options.listMetadataError)
         )
       : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
   );
-  const listSObjects = jest.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
-  const describeCustomObject = jest.fn((apiName: string) =>
+  const listSObjects = vi.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
+  const describeCustomObject = vi.fn((apiName: string) =>
     Effect.succeed(descriptions[apiName] ?? emptySObject(apiName))
   );
-  const describeCustomObjects = jest.fn((apiNames: readonly string[]) =>
+  const describeCustomObjects = vi.fn((apiNames: readonly string[]) =>
     Effect.succeed(Stream.fromIterable(apiNames.map(apiName => descriptions[apiName] ?? emptySObject(apiName))))
   );
-  const invalidateDescribe = jest.fn((_orgId?: string) => Effect.void);
-  const invalidateListMetadata = jest.fn((_xmlName: string, _folder?: string, _orgId?: string) => Effect.void);
-  const invalidateAllListMetadata = jest.fn((_orgId?: string) => Effect.void);
-  const invalidateSObjectDescribe = jest.fn((_apiName: string, _orgId?: string) => Effect.void);
-  const invalidateSObjectDescribes = jest.fn((_apiNames?: readonly string[], _orgId?: string) => Effect.void);
-  const invalidateListSObjects = jest.fn((_orgId?: string) => Effect.void);
-  const invalidateForMetadataChanges = jest.fn(
+  const invalidateDescribe = vi.fn((_orgId?: string) => Effect.void);
+  const invalidateListMetadata = vi.fn((_xmlName: string, _folder?: string, _orgId?: string) => Effect.void);
+  const invalidateAllListMetadata = vi.fn((_orgId?: string) => Effect.void);
+  const invalidateSObjectDescribe = vi.fn((_apiName: string, _orgId?: string) => Effect.void);
+  const invalidateSObjectDescribes = vi.fn((_apiNames?: readonly string[], _orgId?: string) => Effect.void);
+  const invalidateListSObjects = vi.fn((_orgId?: string) => Effect.void);
+  const invalidateForMetadataChanges = vi.fn(
     (orgId: string, references: readonly { readonly xmlName: string; readonly fullName: string }[]) =>
       Effect.gen(function* () {
         const affectedTypes = new Set(references.map(reference => reference.xmlName));
@@ -178,11 +178,11 @@ const makeHarness = (options: HarnessOptions = {}) => {
     reference: { readonly xmlName: string; readonly fullName: string },
     revision?: string
   ) => `${orgId}\0${reference.xmlName}\0${reference.fullName}\0${revision ?? 'unversioned'}`;
-  const shadowGet = jest.fn(
+  const shadowGet = vi.fn(
     (orgId: string, reference: { readonly xmlName: string; readonly fullName: string }, revision?: string) =>
       Effect.succeed(shadowArtifacts.get(shadowKey(orgId, reference, revision)))
   );
-  const shadowPrepare = jest.fn(
+  const shadowPrepare = vi.fn(
     (orgId: string, reference: { readonly xmlName: string; readonly fullName: string }, revision?: string) => {
       const rootUri = URI.file(
         `/workspace/.sf/orgs/${orgId}/metadata-shadow/${reference.xmlName}/${reference.fullName}/${revision ?? 'unversioned'}`
@@ -190,10 +190,10 @@ const makeHarness = (options: HarnessOptions = {}) => {
       return Effect.succeed({ rootUri, stagingUri: rootUri.with({ path: `${rootUri.path}.__staging__` }) });
     }
   );
-  const shadowPrepareBatch = jest.fn((orgId: string) =>
+  const shadowPrepareBatch = vi.fn((orgId: string) =>
     Effect.succeed(URI.file(`/workspace/.sf/orgs/${orgId}/remoteMetadata/catalog-staging/batch.__staging__`))
   );
-  const shadowPublish = jest.fn(
+  const shadowPublish = vi.fn(
     ({
       orgId,
       reference,
@@ -227,28 +227,28 @@ const makeHarness = (options: HarnessOptions = {}) => {
         return artifact;
       })
   );
-  const toolingQuery = jest.fn(async () => ({
+  const toolingQuery = vi.fn(async () => ({
     records: [{ Body: 'public class RemoteTest {}', LastModifiedDate: 'tooling-revision' }]
   }));
-  const buildComponentSetFromSource = jest.fn(() =>
+  const buildComponentSetFromSource = vi.fn(() =>
     Effect.succeed({
       getSourceComponents: () => workspaceComponents
     })
   );
-  const buildComponentSet = jest.fn(() => Effect.succeed({ size: 1 }));
-  const ensureNonEmptyComponentSet = jest.fn((componentSet: unknown) => Effect.succeed(componentSet));
-  const retrieveComponentSetToDirectory = jest.fn((_componentSet: unknown, _stagingUri: URI, _expectedOrgId?: string) =>
+  const buildComponentSet = vi.fn(() => Effect.succeed({ size: 1 }));
+  const ensureNonEmptyComponentSet = vi.fn((componentSet: unknown) => Effect.succeed(componentSet));
+  const retrieveComponentSetToDirectory = vi.fn((_componentSet: unknown, _stagingUri: URI, _expectedOrgId?: string) =>
     Effect.die('unexpected remote materialization').pipe(Effect.as(undefined as unknown))
   );
-  const readDirectoryWithTypes = jest.fn((_uri: URI) =>
+  const readDirectoryWithTypes = vi.fn((_uri: URI) =>
     Effect.succeed([] as { readonly uri: URI; readonly type: vscode.FileType }[])
   );
   const catalogChanges = Effect.runSync(PubSub.unbounded<OrgMetadataCatalogChange>({ replay: 16 }));
   const catalogSnapshots = options.catalogSnapshots ?? new Map<string, OrgMetadataCatalogSnapshot>();
-  const storeLoad = jest.fn((orgId: string) =>
+  const storeLoad = vi.fn((orgId: string) =>
     options.storeLoadError ? Effect.fail(options.storeLoadError) : Effect.succeed(catalogSnapshots.get(orgId))
   );
-  const storeSave = jest.fn((snapshot: OrgMetadataCatalogSnapshot) =>
+  const storeSave = vi.fn((snapshot: OrgMetadataCatalogSnapshot) =>
     options.storeSaveError
       ? Effect.fail(options.storeSaveError)
       : Effect.sync(() => {
@@ -257,13 +257,13 @@ const makeHarness = (options: HarnessOptions = {}) => {
         })
   );
 
-  const getConnection = jest.fn(() =>
+  const getConnection = vi.fn(() =>
     Effect.succeed({
       getAuthInfoFields: () => ({ orgId: options.connectionOrgId ?? '00D000000000001' }),
       tooling: { query: toolingQuery }
     })
   );
-  const getConnectionForOrg = jest.fn((_expectedOrgId: string) => getConnection());
+  const getConnectionForOrg = vi.fn((_expectedOrgId: string) => getConnection());
   const dependencies = Layer.mergeAll(
     Layer.succeed(ComponentSetService, {
       ensureNonEmptyComponentSet
@@ -451,9 +451,9 @@ describe('OrgMetadataCatalog contract', () => {
   it('keeps the metadata document provider alive across org changes when no workspace is open', async () => {
     const { catalogChanges, internalLayer } = makeHarness();
     let provider: OrgMetadataDocumentProvider | undefined;
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockImplementation((_scheme, value) => {
+    vi.mocked(vscode.workspace.registerTextDocumentContentProvider).mockImplementation((_scheme, value) => {
       provider = value as OrgMetadataDocumentProvider;
-      return { dispose: jest.fn() };
+      return { dispose: vi.fn() };
     });
     const noWorkspace = new NoWorkspaceOpenError({ message: 'No workspace is currently open' });
     const workspaceLayer = Layer.succeed(WorkspaceService, {
@@ -822,8 +822,8 @@ describe('OrgMetadataCatalog contract', () => {
       metadataByType: { ApexClass: [{ fullName: 'FileUtilitiesTest' }] },
       workspaceComponents
     });
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
-      dispose: jest.fn()
+    vi.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
+      dispose: vi.fn()
     });
     const providerLayer = Layer.mergeAll(
       layer,

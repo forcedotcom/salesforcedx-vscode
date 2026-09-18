@@ -6,20 +6,20 @@
  */
 
 // Mock vscode module (must be first)
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   window: {
-    registerTreeDataProvider: jest.fn()
+    registerTreeDataProvider: vi.fn()
   },
   commands: {
-    registerCommand: jest.fn(),
-    executeCommand: jest.fn()
+    registerCommand: vi.fn(),
+    executeCommand: vi.fn()
   },
   workspace: {
-    getConfiguration: jest.fn(() => ({
-      get: jest.fn()
+    getConfiguration: vi.fn(() => ({
+      get: vi.fn()
     }))
   },
-  ExtensionContext: jest.fn(),
+  ExtensionContext: vi.fn(),
   TreeItemCollapsibleState: {
     None: 0,
     Collapsed: 1,
@@ -27,16 +27,16 @@ jest.mock('vscode', () => ({
   },
   TreeItem: class {},
   EventEmitter: class {
-    public event = jest.fn();
-    public fire = jest.fn();
-    public dispose = jest.fn();
+    public event = vi.fn();
+    public fire = vi.fn();
+    public dispose = vi.fn();
   },
   env: {
-    createTelemetryLogger: jest.fn(() => ({
-      logUsage: jest.fn(),
-      logError: jest.fn(),
-      dispose: jest.fn(),
-      onDidChangeEnableStates: jest.fn()
+    createTelemetryLogger: vi.fn(() => ({
+      logUsage: vi.fn(),
+      logError: vi.fn(),
+      dispose: vi.fn(),
+      onDidChangeEnableStates: vi.fn()
     }))
   }
 }));
@@ -80,7 +80,7 @@ import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { URI } from 'vscode-uri';
 
 // 1. Full OutputChannel mock
-const mockAppendLine = jest.fn();
+const mockAppendLine = vi.fn();
 const mockOutputChannel = createMockOutputChannel();
 // Override appendLine to use our tracked mock function
 mockOutputChannel.appendLine = mockAppendLine;
@@ -258,18 +258,18 @@ const MockExtensionProviderServiceLive = Layer.succeed(ExtensionProviderService,
 const mockContext = {
   subscriptions: [],
   workspaceState: {
-    get: jest.fn(),
-    update: jest.fn()
+    get: vi.fn(),
+    update: vi.fn()
   },
   globalState: {
-    get: jest.fn(),
-    update: jest.fn()
+    get: vi.fn(),
+    update: vi.fn()
   }
 } as unknown as vscode.ExtensionContext;
 
 describe('Extension activation ordering', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockContext.subscriptions.length = 0;
   });
 
@@ -290,9 +290,9 @@ describe('Extension activation ordering', () => {
     const allCommandsRegistered = Promise.withResolvers<void>();
     const initialized = Promise.withResolvers<void>();
     const targetOrgRef = Effect.runSync(SubscriptionRef.make({}));
-    const treeProviderDisposable = { dispose: jest.fn() };
-    jest.mocked(vscode.window.registerTreeDataProvider).mockReturnValue(treeProviderDisposable);
-    jest.mocked(vscode.commands.executeCommand).mockImplementation(async (command, key, value) => {
+    const treeProviderDisposable = { dispose: vi.fn() };
+    vi.mocked(vscode.window.registerTreeDataProvider).mockReturnValue(treeProviderDisposable);
+    vi.mocked(vscode.commands.executeCommand).mockImplementation(async (command, key, value) => {
       if (command === 'setContext' && key === 'sf:orgBrowser.initialized' && value === true) {
         initialized.resolve();
       }
@@ -363,7 +363,7 @@ describe('Extension activation ordering', () => {
 
 describe.skip('Extension', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should activate successfully', async () => {

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -17,7 +18,7 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 
 describe('packageInstallCommand package ID validation', () => {
   it('accepts valid package IDs and empty input and rejects malformed IDs', async () => {
-    const showInputBox = vscode.window.showInputBox as jest.Mock;
+    const showInputBox = vscode.window.showInputBox as VitestMock;
     showInputBox.mockResolvedValueOnce(undefined);
     const notificationMode = {
       getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),

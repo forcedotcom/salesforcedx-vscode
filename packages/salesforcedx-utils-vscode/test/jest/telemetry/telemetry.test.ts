@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, extensions, workspace } from 'vscode';
@@ -71,20 +72,20 @@ describe('Telemetry', () => {
     });
   });
   describe('Telemetry Service - isTelemetryExtensionConfigurationEnabled', () => {
-    const mockedWorkspace = jest.mocked(workspace);
+    const mockedWorkspace = vi.mocked(workspace);
     let instance: TelemetryServiceInterface;
 
     const mockConfiguration = {
-      get: jest.fn().mockReturnValue('true')
+      get: vi.fn().mockReturnValue('true')
     };
 
     beforeEach(() => {
-      jest.spyOn(mockedWorkspace, 'getConfiguration').mockReturnValue(mockConfiguration as any);
+      vi.spyOn(mockedWorkspace, 'getConfiguration').mockReturnValue(mockConfiguration as any);
       instance = TelemetryService.getInstance();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it.each([
@@ -105,11 +106,11 @@ describe('Telemetry', () => {
     );
   });
   describe('Telemetry Service - isTelemetryEnabled', () => {
-    let spyIsTelemetryExtensionConfigurationEnabled: jest.SpyInstance;
+    let spyIsTelemetryExtensionConfigurationEnabled: VitestMockInstance;
     let instance: TelemetryServiceInterface;
 
     beforeEach(() => {
-      spyIsTelemetryExtensionConfigurationEnabled = jest.spyOn(
+      spyIsTelemetryExtensionConfigurationEnabled = vi.spyOn(
         TelemetryService.prototype,
         'isTelemetryExtensionConfigurationEnabled'
       );
@@ -117,7 +118,7 @@ describe('Telemetry', () => {
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     const changeTelemetryServiceProperty = (ts: TelemetryServiceInterface, propertyName: string, value: any) => {
@@ -199,10 +200,10 @@ describe('Telemetry', () => {
 
       // Mock reporters to avoid actual telemetry sends
       mockReporter = {
-        sendTelemetryEvent: jest.fn(),
-        sendExceptionEvent: jest.fn(),
-        sendEventData: jest.fn(),
-        dispose: jest.fn()
+        sendTelemetryEvent: vi.fn(),
+        sendExceptionEvent: vi.fn(),
+        sendEventData: vi.fn(),
+        dispose: vi.fn()
       };
 
       // Replace the local reporters array with our mock
@@ -211,7 +212,7 @@ describe('Telemetry', () => {
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
 
-      jest.spyOn(extensions, 'getExtension').mockReturnValue({
+      vi.spyOn(extensions, 'getExtension').mockReturnValue({
         isActive: true,
         exports: {
           services: {
@@ -221,13 +222,13 @@ describe('Telemetry', () => {
       } as any);
 
       // Enable telemetry for testing by mocking the validation method to call the callback directly
-      (instance as any).validateTelemetry = jest.fn((callback: () => void) => {
+      (instance as any).validateTelemetry = vi.fn((callback: () => void) => {
         callback(); // Call immediately for testing
       });
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       TelemetryServiceProvider.instances.clear();
     });
 
@@ -387,8 +388,8 @@ describe('Telemetry', () => {
       beforeEach(() => {
         (instance as any).localReporters = [appInsights, o11y, telemetryFile, logStream];
         (instance as any).extensionContext = extensionContext;
-        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
-        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
+        vi.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
+        vi.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
           cliId: 'cli',
           webUserId: 'sha',
           ...orgIdentity,
@@ -407,10 +408,10 @@ describe('Telemetry', () => {
     });
 
     describe('governed production telemetry boundary', () => {
-      const snapshot = jest.fn();
+      const snapshot = vi.fn();
 
       beforeEach(() => {
-        jest.spyOn(extensions, 'getExtension').mockReturnValue({
+        vi.spyOn(extensions, 'getExtension').mockReturnValue({
           isActive: true,
           exports: { services: { TargetOrgRef: () => SubscriptionRef.make(snapshot()) } }
         } as any);
@@ -423,7 +424,7 @@ describe('Telemetry', () => {
           orgEdition: 'Developer Edition',
           instanceName: 'usa9102'
         });
-        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
+        vi.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
           cliId: 'cli',
           webUserId: 'web',
           orgId: '00D',
@@ -438,7 +439,7 @@ describe('Telemetry', () => {
         mockReporter.sendTelemetryEvent.mockImplementation(() => {
           throw new Error('local failure');
         });
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
         (instance as any).sendProductionTelemetry = sendProductionTelemetry;
 
         instance.sendEventData('event');
@@ -448,7 +449,7 @@ describe('Telemetry', () => {
       });
 
       it('captures a complete immutable envelope identity at send time', async () => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
         (instance as any).sendProductionTelemetry = sendProductionTelemetry;
         const properties = { key: 'before' };
 
@@ -477,7 +478,7 @@ describe('Telemetry', () => {
         ['Gov to nonGov delayed enablement', 'gov', 'nonGov'],
         ['nonGov to Gov delayed enablement', 'nonGov', 'gov']
       ])('retains invocation identity during %s', async (_case, invocationOrgId, laterOrgId) => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
         (instance as any).sendProductionTelemetry = sendProductionTelemetry;
         snapshot.mockReturnValue({
           cliId: `${invocationOrgId}-cli`,
@@ -517,8 +518,8 @@ describe('Telemetry', () => {
           extensionMode: 1,
           subscriptions: []
         } as unknown as ExtensionContext;
-        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(false);
-        jest.spyOn(instance, 'checkCliTelemetry').mockResolvedValue(false);
+        vi.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(false);
+        vi.spyOn(instance, 'checkCliTelemetry').mockResolvedValue(false);
 
         await instance.initializeService(context);
         await instance.initializeService(context);

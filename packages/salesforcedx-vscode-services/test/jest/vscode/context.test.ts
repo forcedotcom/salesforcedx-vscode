@@ -5,19 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { updateContext } from '../../../src/vscode/context';
 
 describe('updateContext', () => {
-  let executeCommandSpy: jest.SpyInstance;
+  let executeCommandSpy: VitestMockInstance;
 
   beforeEach(() => {
-    executeCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
+    executeCommandSpy = vi.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const deletableValueFor = (): boolean =>

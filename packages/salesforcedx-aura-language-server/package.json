@@ -60,15 +60,17 @@
       "output": []
     },
     "test": {
-      "command": "jest",
+      "command": "vitest run",
       "dependencies": [
         "compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": []
     }
@@ -89,7 +91,5 @@
     "vscode-languageserver-types": "3.17.5",
     "vscode-uri": "^3.1.0"
   },
-  "devDependencies": {
-    "jest-extended": "^0.11.5"
-  }
+  "devDependencies": {}
 }

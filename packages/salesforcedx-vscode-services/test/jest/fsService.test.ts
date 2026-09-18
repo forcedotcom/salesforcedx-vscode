@@ -25,13 +25,13 @@ const writeAndGetError = async (): Promise<FsServiceError | undefined> => {
 
 describe('FsServiceError.message', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('carries the underlying cause message so pretty errors show real text', async () => {
-    jest
-      .spyOn(vscode.workspace.fs, 'writeFile')
-      .mockRejectedValue(new Error('EACCES: permission denied, open /out/foo.json'));
+    vi.spyOn(vscode.workspace.fs, 'writeFile').mockRejectedValue(
+      new Error('EACCES: permission denied, open /out/foo.json')
+    );
 
     const err = await writeAndGetError();
 
@@ -41,7 +41,7 @@ describe('FsServiceError.message', () => {
   });
 
   it('sets message from the cause for a non-Error thrown value', async () => {
-    jest.spyOn(vscode.workspace.fs, 'writeFile').mockRejectedValue('bare string failure');
+    vi.spyOn(vscode.workspace.fs, 'writeFile').mockRejectedValue('bare string failure');
 
     const err = await writeAndGetError();
 

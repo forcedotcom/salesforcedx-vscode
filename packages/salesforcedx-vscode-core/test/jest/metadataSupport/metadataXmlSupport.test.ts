@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -23,8 +24,8 @@ import {
 type InspectResult = ReturnType<vscode.WorkspaceConfiguration['inspect']>;
 
 type XMLExtensionApi = {
-  addXMLCatalogs: jest.Mock;
-  addXMLFileAssociations: jest.Mock;
+  addXMLCatalogs: VitestMock;
+  addXMLFileAssociations: VitestMock;
 };
 
 const extensionUri = URI.file('/ext');
@@ -34,10 +35,10 @@ const makeRedhatExtension = () =>
     isActive: true,
     packageJSON: { version: '0.26.0' },
     exports: {
-      addXMLCatalogs: jest.fn(),
-      addXMLFileAssociations: jest.fn()
+      addXMLCatalogs: vi.fn(),
+      addXMLFileAssociations: vi.fn()
     },
-    activate: jest.fn()
+    activate: vi.fn()
   }) as unknown as vscode.Extension<XMLExtensionApi>;
 
 const makeXmlConfig = (
@@ -45,7 +46,7 @@ const makeXmlConfig = (
   vmArgsGlobalValue: string | undefined
 ): vscode.WorkspaceConfiguration =>
   ({
-    inspect: jest
+    inspect: vi
       .fn()
       .mockImplementation((key: string) =>
         key === 'server.vmargs' ? { globalValue: vmArgsGlobalValue } : documentationInspectResult
@@ -60,18 +61,18 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
   ) => {
     const redhat = makeRedhatExtension();
     const xmlConfig = makeXmlConfig(documentationInspectResult, vmArgsGlobalValue);
-    const appendToChannel = jest.fn(() => Effect.void);
-    const getValue = jest.fn(() => Effect.succeed(doNotSuppress));
-    const setValue = jest.fn(() => Effect.void);
+    const appendToChannel = vi.fn(() => Effect.void);
+    const getValue = vi.fn(() => Effect.succeed(doNotSuppress));
+    const setValue = vi.fn(() => Effect.void);
     const extensionContext = {
       extensionUri
     } as unknown as vscode.ExtensionContext;
 
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
       if (section === 'xml') return xmlConfig;
       return {} as vscode.WorkspaceConfiguration;
     });
-    jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue(redhat);
+    vi.spyOn(vscode.extensions, 'getExtension').mockReturnValue(redhat);
 
     const services = { ChannelService, ExtensionContextService, SettingsService };
     const layer = Layer.mergeAll(

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, Mocked as VitestMocked } from 'vitest';
 import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -19,7 +20,7 @@ const buildTestPayload = (
 ) => Effect.runPromise(buildTestPayloadEffect(testService, testsToRun, testNames, codeCoverage));
 
 describe('payloadBuilder', () => {
-  let mockTestService: jest.Mocked<TestService>;
+  let mockTestService: VitestMocked<TestService>;
 
   const createMockTestItem = (id: string, label: string): vscode.TestItem =>
     ({
@@ -27,19 +28,19 @@ describe('payloadBuilder', () => {
       label,
       children: {
         size: 0,
-        forEach: jest.fn(),
-        get: jest.fn(),
-        has: jest.fn(),
-        values: jest.fn().mockReturnValue([]),
-        keys: jest.fn(),
-        entries: jest.fn(),
-        [Symbol.iterator]: jest.fn()
+        forEach: vi.fn(),
+        get: vi.fn(),
+        has: vi.fn(),
+        values: vi.fn().mockReturnValue([]),
+        keys: vi.fn(),
+        entries: vi.fn(),
+        [Symbol.iterator]: vi.fn()
       }
     }) as unknown as vscode.TestItem;
 
   beforeEach(() => {
     mockTestService = {
-      buildAsyncPayload: jest.fn()
+      buildAsyncPayload: vi.fn()
     } as any;
   });
 
@@ -50,7 +51,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(mockTestService, [suiteItem], ['MyTestSuite'], false);
 
@@ -73,7 +74,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(mockTestService, [classItem], ['MyTestClass'], false);
 
@@ -97,7 +98,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -126,7 +127,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -154,7 +155,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       await buildTestPayload(mockTestService, [classItem], ['MyTestClass'], true);
 
@@ -175,7 +176,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(mockTestService, [suite1, suite2], ['MySuite1', 'MySuite2'], false);
 
@@ -200,7 +201,7 @@ describe('payloadBuilder', () => {
     });
 
     it('should throw error if payload is not built', async () => {
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(undefined);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(undefined);
 
       await expect(buildTestPayload(mockTestService, [], [], false)).rejects.toThrow();
     });
@@ -221,7 +222,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(mockTestService, [suiteItem], [], false);
 
@@ -236,7 +237,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -265,7 +266,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -295,7 +296,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(
         mockTestService,
@@ -325,7 +326,7 @@ describe('payloadBuilder', () => {
         testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
 
       const result = await buildTestPayload(mockTestService, [class1, class2], ['Class1', 'Class2'], false);
 

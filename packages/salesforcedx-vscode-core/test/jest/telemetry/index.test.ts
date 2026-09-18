@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import * as os from 'node:os';
 import { window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
@@ -14,46 +14,52 @@ import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSett
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
+const { mockIsInternalHost } = vi.hoisted(() => ({ mockIsInternalHost: vi.fn() }));
+vi.mock('@salesforce/salesforcedx-utils-vscode', async importOriginal => ({
+  ...(await importOriginal<typeof import('@salesforce/salesforcedx-utils-vscode')>()),
+  isInternalHost: mockIsInternalHost
+}));
+
 describe('Telemetry', () => {
-  let mShowInformation: jest.SpyInstance;
+  let mShowInformation: VitestMockInstance;
   let mockExtensionContext: MockExtensionContext;
 
   beforeEach(() => {
-    mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
-    jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
-    jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
-    jest.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
+    mShowInformation = vi.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
+    vi.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
+    vi.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
+    vi.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
       cliId: 'cli',
       webUserId: 'web',
       telemetryClassification: 'nonGov'
     });
 
     // Mock createFileSystemWatcher to return a proper mock object
-    jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
-      onDidChange: jest.fn(),
-      onDidCreate: jest.fn(),
-      onDidDelete: jest.fn(),
-      dispose: jest.fn()
+    vi.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
+      onDidChange: vi.fn(),
+      onDidCreate: vi.fn(),
+      onDidDelete: vi.fn(),
+      dispose: vi.fn()
     } as any);
     // Telemetry now sources identity from services API; mock the degraded-session channel write.
-    jest.spyOn(window, 'createOutputChannel').mockReturnValue({
-      appendLine: jest.fn(),
-      append: jest.fn(),
-      show: jest.fn(),
-      hide: jest.fn(),
-      clear: jest.fn(),
-      dispose: jest.fn(),
-      replace: jest.fn(),
+    vi.spyOn(window, 'createOutputChannel').mockReturnValue({
+      appendLine: vi.fn(),
+      append: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      clear: vi.fn(),
+      dispose: vi.fn(),
+      replace: vi.fn(),
       name: 'mock'
     } as any);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('showTelemetryMessage', () => {
-    let globalStateTelemetrySpy: jest.SpyInstance;
+    let globalStateTelemetrySpy: VitestMockInstance;
     const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
     const showMessage = nls.localize('telemetry_legal_dialog_message', TELEMETRY_OPT_OUT_LINK);
     const internalMessage = nls.localize('telemetry_internal_user_message');
@@ -71,14 +77,14 @@ describe('Telemetry', () => {
     beforeEach(() => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext();
-      globalStateTelemetrySpy = jest.spyOn(mockExtensionContext.globalState, 'get');
+      globalStateTelemetrySpy = vi.spyOn(mockExtensionContext.globalState, 'get');
     });
 
     it('should show telemetry opt-out info message only when user is external', async () => {
       // create telemetry shown states
       globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, false, false));
       // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test-host');
+      mockIsInternalHost.mockReturnValue(false);
 
       await telemetryService.initializeService(mockExtensionContext);
 
@@ -94,7 +100,7 @@ describe('Telemetry', () => {
       // create telemetry shown states
       globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, true));
       // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      mockIsInternalHost.mockReturnValue(true);
 
       await telemetryService.initializeService(mockExtensionContext);
 
@@ -112,7 +118,7 @@ describe('Telemetry', () => {
       // create telemetry shown states
       globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, false, false));
       // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      mockIsInternalHost.mockReturnValue(true);
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
@@ -129,7 +135,7 @@ describe('Telemetry', () => {
       // create telemetry shown states
       globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, false));
       // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      mockIsInternalHost.mockReturnValue(true);
 
       await telemetryService.initializeService(mockExtensionContext);
 

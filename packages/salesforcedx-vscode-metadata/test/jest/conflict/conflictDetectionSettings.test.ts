@@ -5,30 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { isConflictDetectionEnabled } from '../../../src/conflict/conflictDetectionSettings';
 
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   workspace: {
-    getConfiguration: jest.fn()
+    getConfiguration: vi.fn()
   }
 }));
 
 describe('conflictDetectionSettings', () => {
-  let mockGetConfiguration: jest.Mock;
-  let mockGet: jest.Mock;
+  let mockGetConfiguration: VitestMock;
+  let mockGet: VitestMock;
 
   beforeEach(() => {
-    mockGet = jest.fn();
-    mockGetConfiguration = vscode.workspace.getConfiguration as jest.Mock;
+    mockGet = vi.fn();
+    mockGetConfiguration = vscode.workspace.getConfiguration as VitestMock;
     mockGetConfiguration.mockReturnValue({
       get: mockGet
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isConflictDetectionEnabled (Effect version)', () => {

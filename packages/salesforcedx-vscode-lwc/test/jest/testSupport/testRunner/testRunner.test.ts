@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { URI } from 'vscode-uri';
 import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
 
 const mockRecordedSpans: RecordedSpan[] = [];
 
-jest.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
+vi.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
 import { getTestNamePatternArgs, TestRunner } from '../../../../src/testSupport/testRunner/testRunner';
 import { taskService, type SfTask } from '../../../../src/testSupport/testRunner/taskService';
@@ -47,24 +48,24 @@ describe('testRunner Unit Tests.', () => {
       'lwc_test_watch_action'
     );
     const workspaceFolder = { uri: URI.file('/project'), name: 'project', index: 0 };
-    jest.spyOn(runner, 'getShellExecutionInfo').mockResolvedValue({
+    vi.spyOn(runner, 'getShellExecutionInfo').mockResolvedValue({
       command: 'lwc-jest',
       args: [],
       workspaceFolder,
       testResultFsPath: '/project/results.json'
     });
-    jest.spyOn(runner, 'startWatchingTestResults').mockImplementation(() => {});
+    vi.spyOn(runner, 'startWatchingTestResults').mockImplementation(() => {});
     let endTask: (() => void) | undefined;
     const sfTask = {
       onDidEnd: (callback: () => void) => {
         endTask = callback;
-        return { dispose: jest.fn() };
+        return { dispose: vi.fn() };
       },
-      execute: jest.fn()
+      execute: vi.fn()
     } as unknown as SfTask;
-    (sfTask.execute as jest.Mock).mockResolvedValue(sfTask);
-    const createTask = jest.spyOn(taskService, 'createTask').mockReturnValue(sfTask);
-    const performanceNow = jest.spyOn(globalThis.performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(140);
+    (sfTask.execute as VitestMock).mockResolvedValue(sfTask);
+    const createTask = vi.spyOn(taskService, 'createTask').mockReturnValue(sfTask);
+    const performanceNow = vi.spyOn(globalThis.performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(140);
 
     await runner.executeAsSfTask();
     endTask?.();

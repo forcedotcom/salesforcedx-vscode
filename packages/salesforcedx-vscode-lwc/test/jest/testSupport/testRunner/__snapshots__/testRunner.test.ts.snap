@@ -1,20 +1,20 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`testRunner Unit Tests. test getTestNamePatternArgs Should escape certain symbols if testNamePattern is included 1`] = `
+exports[`testRunner Unit Tests. > test getTestNamePatternArgs > Should escape certain symbols if testNamePattern is included 1`] = `
 [
   "--testNamePattern",
   "Test \\?\\$\\^\\*\\(\\)\\.\\[\\]\\{\\}\\|\\+ Symbols",
 ]
 `;
 
-exports[`testRunner Unit Tests. test getTestNamePatternArgs Should not escape certain symbols if testNamePattern is included 1`] = `
+exports[`testRunner Unit Tests. > test getTestNamePatternArgs > Should not escape certain symbols if testNamePattern is included 1`] = `
 [
   "--testNamePattern",
   "Test !@#"%&;:,<>=~\` Symbols",
 ]
 `;
 
-exports[`testRunner Unit Tests. test getTestNamePatternArgs Should return testNamePattern if flag is included 1`] = `
+exports[`testRunner Unit Tests. > test getTestNamePatternArgs > Should return testNamePattern if flag is included 1`] = `
 [
   "--testNamePattern",
   "Testing is Fun!",

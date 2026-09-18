@@ -21,8 +21,8 @@ import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { HostFileNotFoundError, HostFileWatchError, HostFileWatcher } from '../../../src/core/hostFileWatcher';
 import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
-jest.mock('@salesforce/core/global', () => ({
-  ...jest.requireActual('@salesforce/core/global'),
+vi.mock('@salesforce/core/global', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/core/global')>('@salesforce/core/global')),
   Global: {
     SF_DIR: '/Users/test/.sf',
     SFDX_DIR: '/Users/test/.sfdx',
@@ -36,9 +36,9 @@ const ALIAS_FILE = '/Users/test/.sfdx/alias.json';
 
 describe('watchConfigFiles', () => {
   const makeLayer = (workspacePubsub: PubSub.PubSub<FileChangeEvent>, hostWatch: HostFileWatcher['watch']) => {
-    const invalidateConfigAggregator = jest.fn(() => Effect.void);
-    const invalidateCachedConnections = jest.fn(() => Effect.void);
-    const getConnection = jest.fn(() => Effect.succeed({} as never));
+    const invalidateConfigAggregator = vi.fn(() => Effect.void);
+    const invalidateCachedConnections = vi.fn(() => Effect.void);
+    const getConnection = vi.fn(() => Effect.succeed({} as never));
     const layer = Layer.mergeAll(
       Layer.succeed(FileChangePubSub, workspacePubsub as unknown as FileChangePubSub),
       Layer.succeed(HostFileWatcher, { watch: hostWatch } as unknown as HostFileWatcher),

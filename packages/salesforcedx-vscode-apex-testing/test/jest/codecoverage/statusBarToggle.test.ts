@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 
@@ -14,8 +15,8 @@ describe('StatusBarToggle', () => {
     command: string;
     text: string;
     tooltip: string | undefined;
-    show: jest.Mock;
-    dispose: jest.Mock;
+    show: VitestMock;
+    dispose: VitestMock;
   };
 
   beforeEach(() => {
@@ -23,12 +24,12 @@ describe('StatusBarToggle', () => {
       command: '',
       text: '',
       tooltip: undefined,
-      show: jest.fn(),
-      dispose: jest.fn()
+      show: vi.fn(),
+      dispose: vi.fn()
     };
-    jest
-      .spyOn(vscode.window, 'createStatusBarItem')
-      .mockReturnValue(mockStatusBarItem as unknown as vscode.StatusBarItem);
+    vi.spyOn(vscode.window, 'createStatusBarItem').mockReturnValue(
+      mockStatusBarItem as unknown as vscode.StatusBarItem
+    );
     statusBarToggle = new StatusBarToggle();
   });
 

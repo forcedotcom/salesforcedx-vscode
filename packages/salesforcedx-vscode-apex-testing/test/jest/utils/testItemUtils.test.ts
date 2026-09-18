@@ -512,8 +512,8 @@ describe('testItemUtils', () => {
               children.forEach(callback);
             },
             get: (childId: string) => childrenMap.get(childId),
-            add: jest.fn(),
-            replace: jest.fn(),
+            add: vi.fn(),
+            replace: vi.fn(),
             values: () => childrenMap.values(),
             keys: () => childrenMap.keys(),
             entries: () => childrenMap.entries(),

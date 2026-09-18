@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as requestLight from 'request-light';
 import { XHROptions, XHRResponse } from 'request-light';
 import {
@@ -16,10 +17,10 @@ import {
 import { BaseCommand } from '../../../src/requestService/baseCommand';
 import { RequestService, RestHttpMethodEnum } from '../../../src/requestService/requestService';
 
-jest.mock('request-light');
+vi.mock('request-light');
 
 // This ensures that typscript understands the mocked module
-const mockedRequestLight = jest.mocked(requestLight);
+const mockedRequestLight = vi.mocked(requestLight);
 
 const testCommandUrl = 'this.is.a.test/location';
 const testRequestBody = 'this-is-a-test-request-body';
@@ -38,7 +39,7 @@ describe('RequestService unit tests.', () => {
   const testAccessToken = 'totallyfake-access-token-not-real-1234';
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be able to create an instance.', () => {
@@ -88,10 +89,10 @@ describe('RequestService unit tests.', () => {
     };
 
     let requestServiceInst: RequestService;
-    let sendRequestMock: jest.SpyInstance;
+    let sendRequestMock: VitestMockInstance;
 
     beforeEach(() => {
-      sendRequestMock = jest.spyOn(RequestService.prototype, 'sendRequest').mockName('sendRequestMock');
+      sendRequestMock = vi.spyOn(RequestService.prototype, 'sendRequest').mockName('sendRequestMock');
       requestServiceInst = new RequestService();
       requestServiceInst.proxyUrl = testProxyUrl;
       requestServiceInst.instanceUrl = testInstanceUrl;
@@ -127,7 +128,7 @@ describe('RequestService unit tests.', () => {
       sendRequestMock.mockResolvedValue(fakeResponse);
       const queryCommand = new TestCommand('hereIsAQuery');
       // have getRequest return nothing to exercise that path.
-      jest.spyOn(queryCommand, 'getRequest').mockReturnValue(undefined);
+      vi.spyOn(queryCommand, 'getRequest').mockReturnValue(undefined);
 
       const result = await requestServiceInst.execute(queryCommand, RestHttpMethodEnum.Get);
       expect(result).toEqual(fakeResponse.responseText);

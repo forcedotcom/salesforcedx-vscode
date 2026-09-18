@@ -19,15 +19,15 @@ import {
 
 const makeTestMessageLayer = () => {
   const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
-  const sendMessage = jest.fn();
+  const sendMessage = vi.fn();
   const service: IMessageService = {
     onMessage: cb => {
       listeners.push(cb);
       return () => undefined;
     },
     sendMessage,
-    setState: jest.fn(),
-    getState: jest.fn()
+    setState: vi.fn(),
+    getState: vi.fn()
   };
   const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);

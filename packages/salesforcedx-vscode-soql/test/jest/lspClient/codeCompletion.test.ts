@@ -10,13 +10,13 @@ import * as Effect from 'effect/Effect';
 import type { SObject } from 'salesforcedx-vscode-services';
 import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
 import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
-import * as vscode from 'vscode';
 import type { CancellationToken, CompletionContext, Position, TextDocument } from 'vscode';
+import { middleware } from '../../../src/lspClient/codeCompletion';
 
 type SObjectSummary = { readonly name: string; readonly custom: boolean; readonly queryable: boolean };
 
-const mockListSObjects = jest.fn<Effect.Effect<readonly SObjectSummary[]>, []>();
-const mockDescribeSObject = jest.fn<Effect.Effect<SObject>, [string]>();
+const mockListSObjects = vi.fn<() => Effect.Effect<readonly SObjectSummary[]>>();
+const mockDescribeSObject = vi.fn<(_name: string) => Effect.Effect<SObject>>();
 const mockMetadataDescribe = {
   listSObjects: () => mockListSObjects(),
   describeCustomObject: (apiName: string) => mockDescribeSObject(apiName)
@@ -41,35 +41,9 @@ const mockRunPromise = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
     ) as Effect.Effect<A, E, never>
   );
 
-jest.mock('../../../src/services/extensionProvider', () => ({
+vi.mock('../../../src/services/extensionProvider', () => ({
   getSoqlRuntime: () => ({ runPromise: mockRunPromise })
 }));
-
-Object.assign(vscode, {
-  CompletionItem: class {
-    public insertText?: unknown;
-    public detail?: string;
-    public label: string;
-    public kind?: number;
-
-    constructor(label: string, kind?: number) {
-      this.label = label;
-      this.kind = kind;
-    }
-  },
-  CompletionItemKind: { Class: 7, Field: 5, Snippet: 14, Value: 12 },
-  SnippetString: class {
-    public value: string;
-
-    constructor(value: string) {
-      this.value = value;
-    }
-  }
-});
-
-const { middleware } = jest.requireActual<typeof import('../../../src/lspClient/codeCompletion')>(
-  '../../../src/lspClient/codeCompletion'
-);
 
 const invokeCompletion = (label: string, soqlContext: Record<string, unknown> = {}) =>
   middleware.provideCompletionItem!(
@@ -77,7 +51,7 @@ const invokeCompletion = (label: string, soqlContext: Record<string, unknown> = 
     {} as Position,
     {} as CompletionContext,
     {} as CancellationToken,
-    jest.fn().mockResolvedValue([{ label, data: { soqlContext } }])
+    vi.fn().mockResolvedValue([{ label, data: { soqlContext } }])
   );
 
 const accountDescription: SObject = {
@@ -109,7 +83,7 @@ const accountDescription: SObject = {
 
 describe('SOQL completion metadata describe integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('expands the SObject placeholder from queryable catalog summaries', async () => {

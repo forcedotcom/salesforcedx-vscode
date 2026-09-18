@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
@@ -16,7 +17,7 @@ import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
 import { LAST_OPENED_LOG_FOLDER_KEY } from '../../../src/debuggerConstants';
 
-jest.mock('vscode');
+vi.mock('vscode');
 
 const debugLogsFolder = URI.file('/mock/.sfdx/tools/debug/logs');
 const stateFolder = URI.file('/mock/.sfdx');
@@ -65,23 +66,23 @@ const run = (extContext: vscode.ExtensionContext, isEmpty: boolean, workspaceClo
 
 describe('getDialogStartingPath', () => {
   const testPath = '/here/is/a/fake/path/to/';
-  let mockGet: jest.Mock;
+  let mockGet: VitestMock;
   let mockExtensionContext: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockGet = jest.fn();
+    vi.clearAllMocks();
+    mockGet = vi.fn();
     mockExtensionContext = {
       workspaceState: { get: mockGet }
     };
 
     // Mock VSCode workspace.fs.stat to return directory type (exists)
-    (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.Directory });
+    (vscode.workspace.fs.stat as VitestMock).mockResolvedValue({ type: vscode.FileType.Directory });
   });
 
   it('Should return last opened log folder if present', async () => {
     mockGet.mockReturnValue(testPath);
-    const vsCodeUriMock = jest.spyOn(URI, 'file').mockReturnValue({ path: testPath } as URI);
+    const vsCodeUriMock = vi.spyOn(URI, 'file').mockReturnValue({ path: testPath } as URI);
 
     const dialogStartingPathUri = await run(mockExtensionContext, false);
 
@@ -104,7 +105,7 @@ describe('getDialogStartingPath', () => {
   it('Should return state folder as fallback when project log folder not present', async () => {
     mockGet.mockReturnValue(undefined);
     // Mock that the debug logs folder doesn't exist
-    (vscode.workspace.fs.stat as jest.Mock).mockRejectedValueOnce(new Error('Not found'));
+    (vscode.workspace.fs.stat as VitestMock).mockRejectedValueOnce(new Error('Not found'));
 
     const dialogStartingPathUri = await run(mockExtensionContext, false);
 

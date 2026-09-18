@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TelemetryFile writeToFile should append data to the telemetry file 1`] = `
+exports[`TelemetryFile > writeToFile > should append data to the telemetry file 1`] = `
 [
   "extensionId-telemetry.json",
   "{

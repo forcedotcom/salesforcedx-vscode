@@ -5,17 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { fs, resetFs, setFs } from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { createFsFromVolume, Volume } from 'memfs';
+import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import * as servicesRuntime from '../../../src/servicesRuntime';
 import { FsProvider, isItReadOnlyLayer } from '../../../src/virtualFsProvider/fileSystemProvider';
-
-const vscode = require('vscode');
 
 const registryAccess = new RegistryAccess();
 
@@ -35,13 +35,16 @@ describe('FsProvider read-only checks', () => {
         })
       ) as unknown as typeof fs
     );
-    vscode.workspace.workspaceFolders = [
-      {
-        uri: { scheme: 'file', fsPath: workspaceDir, toString: (): string => `file://${workspaceDir}` },
-        name: 'ws',
-        index: 0
-      }
-    ] as unknown as typeof vscode.workspace.workspaceFolders;
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      value: [
+        {
+          uri: { scheme: 'file', fsPath: workspaceDir, toString: (): string => `file://${workspaceDir}` },
+          name: 'ws',
+          index: 0
+        }
+      ]
+    });
   });
 
   afterAll(() => {
@@ -53,7 +56,7 @@ describe('FsProvider read-only checks', () => {
 
   describe('runtime-ready (routed through shared runtime)', () => {
     let runtime: ManagedRuntime.ManagedRuntime<Layer.Layer.Success<typeof isItReadOnlyLayer>, never>;
-    let getRuntimeSpy: jest.SpyInstance;
+    let getRuntimeSpy: VitestMockInstance;
 
     beforeAll(() => {
       runtime = ManagedRuntime.make(isItReadOnlyLayer);
@@ -66,8 +69,8 @@ describe('FsProvider read-only checks', () => {
     // resetMocks wipes spies between tests, so re-arm each test. getRuntimeSpy proves the
     // runtime-ready branch actually consumed the shared runtime (mutating it away fails these).
     beforeEach(() => {
-      jest.spyOn(servicesRuntime, 'isServicesRuntimeReady').mockReturnValue(true);
-      getRuntimeSpy = jest
+      vi.spyOn(servicesRuntime, 'isServicesRuntimeReady').mockReturnValue(true);
+      getRuntimeSpy = vi
         .spyOn(servicesRuntime, 'getServicesRuntime')
         .mockReturnValue(Effect.succeed(runtime) as ReturnType<typeof servicesRuntime.getServicesRuntime>);
     });
@@ -147,7 +150,7 @@ describe('FsProvider read-only checks', () => {
   describe('file change events', () => {
     it('emits Created when writeFile creates a file', async () => {
       const provider = new FsProvider();
-      const listener = jest.fn();
+      const listener = vi.fn();
       provider.onDidChangeFile(listener);
       const uri = URI.file(`${workspaceDir}/created.txt`);
 
@@ -158,7 +161,7 @@ describe('FsProvider read-only checks', () => {
 
     it('emits Changed when writeFile overwrites a file', async () => {
       const provider = new FsProvider();
-      const listener = jest.fn();
+      const listener = vi.fn();
       provider.onDidChangeFile(listener);
       const uri = txtUri();
 

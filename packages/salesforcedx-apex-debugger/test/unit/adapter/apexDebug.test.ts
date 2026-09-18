@@ -6,6 +6,7 @@
  */
 // This is only done in tests because we are mocking things
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
@@ -53,7 +54,7 @@ import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
 import { DummyContainer, newStringValue } from './apexDebugVariablesHandling.test';
 
-jest.setTimeout(30_000);
+vi.setTimeout(30_000);
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
@@ -108,13 +109,13 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Launch', () => {
-    let sessionStartSpy: jest.SpyInstance;
-    let sessionPrintToDebugSpy: jest.SpyInstance;
-    let sessionUserFilterSpy: jest.SpyInstance;
-    let sessionEntryFilterSpy: jest.SpyInstance;
-    let sessionRequestFilterSpy: jest.SpyInstance;
-    let resetIdleTimersSpy: jest.SpyInstance;
-    let configGetSpy: jest.SpyInstance;
+    let sessionStartSpy: VitestMockInstance;
+    let sessionPrintToDebugSpy: VitestMockInstance;
+    let sessionUserFilterSpy: VitestMockInstance;
+    let sessionEntryFilterSpy: VitestMockInstance;
+    let sessionRequestFilterSpy: VitestMockInstance;
+    let resetIdleTimersSpy: VitestMockInstance;
+    let configGetSpy: VitestMockInstance;
     let args: LaunchRequestArguments;
     const lineBpInfo: LineBreakpointInfo[] = [
       {
@@ -125,15 +126,15 @@ describe('Interactive debugger adapter - unit', () => {
     ];
 
     beforeEach(() => {
-      jest.spyOn(SessionService.prototype, 'forProject');
-      sessionUserFilterSpy = jest.spyOn(SessionService.prototype, 'withUserFilter');
-      sessionEntryFilterSpy = jest.spyOn(SessionService.prototype, 'withEntryFilter');
-      sessionRequestFilterSpy = jest.spyOn(SessionService.prototype, 'withRequestFilter');
-      resetIdleTimersSpy = jest.spyOn(ApexDebugForTest.prototype, 'resetIdleTimer');
-      configGetSpy = jest.spyOn(ConfigAggregator, 'create').mockResolvedValue({
+      vi.spyOn(SessionService.prototype, 'forProject');
+      sessionUserFilterSpy = vi.spyOn(SessionService.prototype, 'withUserFilter');
+      sessionEntryFilterSpy = vi.spyOn(SessionService.prototype, 'withEntryFilter');
+      sessionRequestFilterSpy = vi.spyOn(SessionService.prototype, 'withRequestFilter');
+      resetIdleTimersSpy = vi.spyOn(ApexDebugForTest.prototype, 'resetIdleTimer');
+      configGetSpy = vi.spyOn(ConfigAggregator, 'create').mockResolvedValue({
         getPropertyValue: () => undefined
       } as any);
-      jest.spyOn(Org, 'create').mockResolvedValue({
+      vi.spyOn(Org, 'create').mockResolvedValue({
         getConnection: () => ({
           instanceUrl: 'https://test.salesforce.com',
           accessToken: 'test-token'
@@ -159,10 +160,10 @@ describe('Interactive debugger adapter - unit', () => {
       configGetSpy.mockResolvedValue({
         getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
       } as any);
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       await adapter.launchRequest(initializedResponse, args);
 
@@ -190,10 +191,10 @@ describe('Interactive debugger adapter - unit', () => {
       configGetSpy.mockResolvedValue({
         getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
       } as any);
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockRejectedValue(rejectionReason);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockRejectedValue(rejectionReason);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       await adapter.launchRequest(initializedResponse, args);
 
@@ -208,10 +209,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not launch if streaming service errors out', async () => {
       const sessionId = '07aFAKE';
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(false);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(false);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       await adapter.launchRequest(initializedResponse, args);
 
@@ -222,10 +223,10 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not launch without line number mapping', async () => {
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue('' as any);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(false);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(false);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue('' as any);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(false);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(false);
 
       await adapter.launchRequest(initializedResponse, args);
       expect(sessionStartSpy).not.toHaveBeenCalled();
@@ -237,10 +238,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should launch successfully for ISV project (ISV debugger)', async () => {
       const sessionId = '07aFAKE';
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       args.connectType = 'ISV_DEBUGGER';
       const config = new Map<string, string>([
@@ -276,10 +277,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)', async () => {
       const sessionId = '07aFAKE';
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       args.connectType = 'ISV_DEBUGGER';
       const config = new Map<string, string>([
@@ -310,13 +311,11 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing with boolean', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest
-        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionPrintToDebugSpy = vi.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       // given
       args.trace = true;
@@ -332,13 +331,11 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not do any tracing by default', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest
-        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionPrintToDebugSpy = vi.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       // given
       await adapter.launchRequest(initializedResponse, args);
@@ -353,13 +350,11 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing for specific category only', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest
-        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionPrintToDebugSpy = vi.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       // given
       args.trace = 'variables, launch, protocol';
@@ -377,13 +372,11 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should configure tracing for all categories', async () => {
       const sessionId = '07aFAKE';
-      sessionPrintToDebugSpy = jest
-        .spyOn(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
-      sessionStartSpy = jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      sessionPrintToDebugSpy = vi.spyOn(ApexDebugForTest.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      sessionStartSpy = vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       // given
       args.trace = 'all';
@@ -409,8 +402,8 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Workspace settings', () => {
-    let configGetSpy: jest.SpyInstance;
-    let orgCreateSpy: jest.SpyInstance;
+    let configGetSpy: VitestMockInstance;
+    let orgCreateSpy: VitestMockInstance;
 
     let requestService: RequestService;
     let args: LaunchRequestArguments;
@@ -425,10 +418,10 @@ describe('Interactive debugger adapter - unit', () => {
     beforeEach(() => {
       requestService = new RequestService();
       adapter = new ApexDebugForTest(requestService);
-      configGetSpy = jest.spyOn(ConfigAggregator, 'create').mockResolvedValue({
+      configGetSpy = vi.spyOn(ConfigAggregator, 'create').mockResolvedValue({
         getPropertyValue: () => undefined
       } as any);
-      orgCreateSpy = jest.spyOn(Org, 'create').mockResolvedValue({
+      orgCreateSpy = vi.spyOn(Org, 'create').mockResolvedValue({
         getConnection: () => ({
           instanceUrl: 'https://test.salesforce.com',
           accessToken: 'test-token'
@@ -447,10 +440,10 @@ describe('Interactive debugger adapter - unit', () => {
           accessToken: '00DxxFaK3T0ken'
         })
       } as any);
-      jest.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
-      jest.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
+      vi.spyOn(SessionService.prototype, 'start').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      vi.spyOn(BreakpointService.prototype, 'hasLineNumberMapping').mockReturnValue(true);
 
       args = {
         salesforceProject: 'some/project/path',
@@ -495,24 +488,24 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Line breakpoint info', () => {
     let args: LaunchRequestArguments;
-    let setValidLinesSpy: jest.SpyInstance;
-    let configGetSpy: jest.SpyInstance;
+    let setValidLinesSpy: VitestMockInstance;
+    let configGetSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter.initializeReq(initializedResponse, {} as DebugProtocol.InitializeRequestArguments);
-      configGetSpy = jest.spyOn(ConfigAggregator, 'create').mockResolvedValue({
+      configGetSpy = vi.spyOn(ConfigAggregator, 'create').mockResolvedValue({
         getPropertyValue: () => undefined
       } as any);
-      jest.spyOn(Org, 'create').mockResolvedValue({
+      vi.spyOn(Org, 'create').mockResolvedValue({
         getConnection: () => ({
           instanceUrl: 'https://test.salesforce.com',
           accessToken: 'test-token'
         })
       } as any);
-      setValidLinesSpy = jest.spyOn(BreakpointService.prototype, 'setValidLines');
-      jest.spyOn(SessionService.prototype, 'start').mockResolvedValue('07aFAKE');
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
+      setValidLinesSpy = vi.spyOn(BreakpointService.prototype, 'setValidLines');
+      vi.spyOn(SessionService.prototype, 'start').mockResolvedValue('07aFAKE');
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(true);
     });
 
     it('Should not save line number mapping', async () => {
@@ -569,11 +562,11 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Idle session', () => {
     beforeEach(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('Should clear idle timers', () => {
@@ -601,7 +594,7 @@ describe('Interactive debugger adapter - unit', () => {
           )
         );
       }, DEFAULT_IDLE_WARN1_MS);
-      jest.advanceTimersByTime(DEFAULT_IDLE_WARN1_MS + 1);
+      vi.advanceTimersByTime(DEFAULT_IDLE_WARN1_MS + 1);
 
       setTimeout(() => {
         expect(adapter.getEvents()[1].event).toBe('output');
@@ -613,7 +606,7 @@ describe('Interactive debugger adapter - unit', () => {
           )
         );
       }, DEFAULT_IDLE_WARN2_MS);
-      jest.advanceTimersByTime(DEFAULT_IDLE_WARN2_MS + 1);
+      vi.advanceTimersByTime(DEFAULT_IDLE_WARN2_MS + 1);
 
       setTimeout(() => {
         expect(adapter.getEvents()[2].event).toBe('output');
@@ -625,7 +618,7 @@ describe('Interactive debugger adapter - unit', () => {
           )
         );
       }, DEFAULT_IDLE_WARN3_MS);
-      jest.advanceTimersByTime(DEFAULT_IDLE_WARN3_MS + 1);
+      vi.advanceTimersByTime(DEFAULT_IDLE_WARN3_MS + 1);
 
       setTimeout(() => {
         expect(adapter.getEvents()[3].event).toBe('output');
@@ -634,20 +627,20 @@ describe('Interactive debugger adapter - unit', () => {
         );
         expect(adapter.getEvents()[4].event).toBe('terminated');
       }, DEFAULT_IDLE_TIMEOUT_MS);
-      jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      vi.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT_MS + 1);
     });
   });
 
   describe('Disconnect', () => {
-    let sessionStopSpy: jest.SpyInstance;
-    let streamingDisconnectSpy: jest.SpyInstance;
-    let clearIdleTimersSpy: jest.SpyInstance;
+    let sessionStopSpy: VitestMockInstance;
+    let streamingDisconnectSpy: VitestMockInstance;
+    let clearIdleTimersSpy: VitestMockInstance;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
-      streamingDisconnectSpy = jest.spyOn(StreamingService.prototype, 'disconnect').mockImplementation(() => {});
-      clearIdleTimersSpy = jest.spyOn(ApexDebugForTest.prototype, 'clearIdleTimers');
+      streamingDisconnectSpy = vi.spyOn(StreamingService.prototype, 'disconnect').mockImplementation(() => {});
+      clearIdleTimersSpy = vi.spyOn(ApexDebugForTest.prototype, 'clearIdleTimers');
       response = {
         command: '',
         success: true,
@@ -659,7 +652,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not use session service if not connected', async () => {
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(false);
 
       await adapter.disconnectReq(response, args);
 
@@ -670,8 +663,8 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should try to disconnect and stop', async () => {
       const sessionId = '07aFAKE';
-      sessionStopSpy = jest.spyOn(SessionService.prototype, 'stop').mockResolvedValue(sessionId);
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(false);
+      sessionStopSpy = vi.spyOn(SessionService.prototype, 'stop').mockResolvedValue(sessionId);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(false);
 
       await adapter.disconnectReq(response, args);
 
@@ -685,10 +678,10 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should try to disconnect and not stop', async () => {
-      sessionStopSpy = jest
+      sessionStopSpy = vi
         .spyOn(SessionService.prototype, 'stop')
         .mockRejectedValue('{"message":"There was an error", "action":"Try again"}');
-      jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(true);
+      vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValueOnce(true).mockReturnValueOnce(true);
 
       await adapter.disconnectReq(response, args);
 
@@ -703,25 +696,25 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Line breakpoint request', () => {
-    let breakpointReconcileSpy: jest.SpyInstance;
-    let breakpointGetSpy: jest.SpyInstance;
-    let breakpointGetTyperefSpy: jest.SpyInstance;
-    let breakpointCreateSpy: jest.SpyInstance;
-    let breakpointCacheSpy: jest.SpyInstance;
-    let lockSpy: jest.SpyInstance;
+    let breakpointReconcileSpy: VitestMockInstance;
+    let breakpointGetSpy: VitestMockInstance;
+    let breakpointGetTyperefSpy: VitestMockInstance;
+    let breakpointCreateSpy: VitestMockInstance;
+    let breakpointCacheSpy: VitestMockInstance;
+    let lockSpy: VitestMockInstance;
 
     beforeEach(() => {
-      breakpointGetSpy = jest.spyOn(BreakpointService.prototype, 'getBreakpointsFor');
-      breakpointGetTyperefSpy = jest.spyOn(BreakpointService.prototype, 'getTyperefFor');
-      breakpointCreateSpy = jest.spyOn(BreakpointService.prototype, 'createLineBreakpoint');
-      breakpointCacheSpy = jest.spyOn(BreakpointService.prototype, 'cacheLineBreakpoint');
-      jest.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
-      lockSpy = jest.spyOn(AsyncLock.prototype, 'acquire');
+      breakpointGetSpy = vi.spyOn(BreakpointService.prototype, 'getBreakpointsFor');
+      breakpointGetTyperefSpy = vi.spyOn(BreakpointService.prototype, 'getTyperefFor');
+      breakpointCreateSpy = vi.spyOn(BreakpointService.prototype, 'createLineBreakpoint');
+      breakpointCacheSpy = vi.spyOn(BreakpointService.prototype, 'cacheLineBreakpoint');
+      vi.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
+      lockSpy = vi.spyOn(AsyncLock.prototype, 'acquire');
     });
 
     it('Should create breakpoint', async () => {
       const bpLines = [1, 2];
-      breakpointReconcileSpy = jest
+      breakpointReconcileSpy = vi
         .spyOn(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .mockResolvedValue(new Set<number>([1]));
       adapter.setSalesforceProject('someProjectPath');
@@ -768,7 +761,7 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not create breakpoint without source argument', async () => {
       const bpLines = [1, 2];
-      breakpointReconcileSpy = jest
+      breakpointReconcileSpy = vi
         .spyOn(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .mockResolvedValue(bpLines as any);
       adapter.setSalesforceProject('someProjectPath');
@@ -793,7 +786,7 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not create breakpoint without lines argument', async () => {
       const bpLines = [1, 2];
-      breakpointReconcileSpy = jest
+      breakpointReconcileSpy = vi
         .spyOn(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .mockResolvedValue(bpLines as any);
       adapter.setSalesforceProject('someProjectPath');
@@ -818,7 +811,7 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Continue request', () => {
-    let runSpy: jest.SpyInstance;
+    let runSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter.setSalesforceProject('someProjectPath');
@@ -826,7 +819,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should continue successfully', async () => {
-      runSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
+      runSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
 
       await adapter.continueReq(
         {} as DebugProtocol.ContinueResponse,
@@ -840,7 +833,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not continue unknown thread', async () => {
-      runSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
+      runSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
 
       await adapter.continueReq(
         {} as DebugProtocol.ContinueResponse,
@@ -853,7 +846,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should handle run command error response', async () => {
-      runSpy = jest
+      runSpy = vi
         .spyOn(RequestService.prototype, 'execute')
         .mockRejectedValue({ message: 'There was an error', action: 'Try again' });
 
@@ -869,7 +862,7 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Stepping', () => {
-    let stepSpy: jest.SpyInstance;
+    let stepSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter.setSalesforceProject('someProjectPath');
@@ -877,7 +870,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Step into should call proper command', async () => {
-      stepSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
+      stepSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
 
       await adapter.stepInRequest({} as DebugProtocol.StepInResponse, { threadId: 1 } as DebugProtocol.StepInArguments);
 
@@ -887,7 +880,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Step out should send proper command', async () => {
-      stepSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
+      stepSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
 
       await adapter.stepOutRequest(
         {} as DebugProtocol.StepOutResponse,
@@ -900,7 +893,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Step over should send proper command', async () => {
-      stepSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
+      stepSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('');
 
       await adapter.nextRequest({} as DebugProtocol.NextResponse, { threadId: 1 } as DebugProtocol.NextArguments);
 
@@ -937,17 +930,17 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Stacktrace request', () => {
-    let stateSpy: jest.SpyInstance;
-    let lockSpy: jest.SpyInstance;
+    let stateSpy: VitestMockInstance;
+    let lockSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-      lockSpy = jest.spyOn(AsyncLock.prototype, 'acquire');
+      lockSpy = vi.spyOn(AsyncLock.prototype, 'acquire');
     });
 
     it('Should not get state of unknown thread', async () => {
-      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue('{}');
+      stateSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue('{}');
 
       await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
@@ -959,7 +952,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should return response with empty stackframes', async () => {
-      stateSpy = jest
+      stateSpy = vi
         .spyOn(RequestService.prototype, 'execute')
         .mockResolvedValue('{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}');
 
@@ -975,13 +968,13 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should process stack frame with local source', async () => {
-      stateSpy = jest
+      stateSpy = vi
         .spyOn(RequestService.prototype, 'execute')
         .mockResolvedValue(
           '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
         );
       const fileUri = 'file:///foo.cls';
-      jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue(fileUri);
+      vi.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue(fileUri);
 
       await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
@@ -1005,7 +998,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should process stack frame with unknown source', async () => {
-      stateSpy = jest
+      stateSpy = vi
         .spyOn(RequestService.prototype, 'execute')
         .mockResolvedValue(
           '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
@@ -1025,7 +1018,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should handle state command error response', async () => {
-      stateSpy = jest
+      stateSpy = vi
         .spyOn(RequestService.prototype, 'execute')
         .mockRejectedValue({ message: 'There was an error', action: 'Try again' });
 
@@ -1054,16 +1047,16 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     describe('Exception breakpoint request', () => {
-      let lockSpy: jest.SpyInstance;
-      let reconcileExceptionBreakpointSpy: jest.SpyInstance;
+      let lockSpy: VitestMockInstance;
+      let reconcileExceptionBreakpointSpy: VitestMockInstance;
 
       beforeEach(() => {
         adapter.setSalesforceProject('someProjectPath');
-        lockSpy = jest.spyOn(AsyncLock.prototype, 'acquire');
-        reconcileExceptionBreakpointSpy = jest
+        lockSpy = vi.spyOn(AsyncLock.prototype, 'acquire');
+        reconcileExceptionBreakpointSpy = vi
           .spyOn(BreakpointService.prototype, 'reconcileExceptionBreakpoints')
           .mockResolvedValue(undefined as any);
-        jest.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
+        vi.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
       });
 
       it('Should create exception breakpoint', async () => {
@@ -1157,14 +1150,14 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     describe('List exception breakpoints', () => {
-      let getExceptionBreakpointCacheSpy: jest.SpyInstance;
+      let getExceptionBreakpointCacheSpy: VitestMockInstance;
       const knownExceptionBreakpoints: Map<string, string> = new Map([
         ['fooexception', '07bFAKE1'],
         ['barexception', '07bFAKE2']
       ]);
 
       beforeEach(() => {
-        getExceptionBreakpointCacheSpy = jest
+        getExceptionBreakpointCacheSpy = vi
           .spyOn(BreakpointService.prototype, 'getExceptionBreakpointCache')
           .mockReturnValue(knownExceptionBreakpoints);
       });
@@ -1263,10 +1256,10 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Streaming', () => {
-    let streamingSubscribeSpy: jest.SpyInstance;
+    let streamingSubscribeSpy: VitestMockInstance;
 
     beforeEach(() => {
-      streamingSubscribeSpy = jest.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(undefined as any);
+      streamingSubscribeSpy = vi.spyOn(StreamingService.prototype, 'subscribe').mockResolvedValue(undefined as any);
     });
 
     it('Should call streaming service subscribe', async () => {
@@ -1292,9 +1285,9 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Debugger events', () => {
-    let sessionConnectedSpy: jest.SpyInstance;
-    let sessionStopSpy: jest.SpyInstance;
-    let markEventProcessedSpy: jest.SpyInstance;
+    let sessionConnectedSpy: VitestMockInstance;
+    let sessionStopSpy: VitestMockInstance;
+    let markEventProcessedSpy: VitestMockInstance;
     const knownExceptionBreakpoints: Map<string, string> = new Map([
       [`${SALESFORCE_EXCEPTION_PREFIX}AssertException`, '07bFAKE1'],
       ['namespace/fooexception', '07bFAKE2'],
@@ -1303,12 +1296,12 @@ describe('Interactive debugger adapter - unit', () => {
     ]);
 
     beforeEach(() => {
-      jest.spyOn(BreakpointService.prototype, 'getExceptionBreakpointCache').mockReturnValue(knownExceptionBreakpoints);
-      sessionStopSpy = jest.spyOn(SessionService.prototype, 'forceStop');
-      sessionConnectedSpy = jest.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
-      jest.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
-      jest.spyOn(StreamingService.prototype, 'hasProcessedEvent').mockReturnValue(false);
-      markEventProcessedSpy = jest.spyOn(StreamingService.prototype, 'markEventProcessed');
+      vi.spyOn(BreakpointService.prototype, 'getExceptionBreakpointCache').mockReturnValue(knownExceptionBreakpoints);
+      sessionStopSpy = vi.spyOn(SessionService.prototype, 'forceStop');
+      sessionConnectedSpy = vi.spyOn(SessionService.prototype, 'isConnected').mockReturnValue(true);
+      vi.spyOn(SessionService.prototype, 'getSessionId').mockReturnValue('07aFAKE');
+      vi.spyOn(StreamingService.prototype, 'hasProcessedEvent').mockReturnValue(false);
+      markEventProcessedSpy = vi.spyOn(StreamingService.prototype, 'markEventProcessed');
     });
 
     it('[SessionTerminated] - Should stop session service', () => {

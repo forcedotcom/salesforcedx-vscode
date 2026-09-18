@@ -24,8 +24,8 @@ const span = {
 
 describe('ApplicationInsightsWebExporter', () => {
   it('does not construct or dispose a reporter before a valid send', async () => {
-    const reporter = { dispose: jest.fn().mockResolvedValue(undefined) };
-    const makeReporter = jest.fn(() => reporter);
+    const reporter = { dispose: vi.fn().mockResolvedValue(undefined) };
+    const makeReporter = vi.fn(() => reporter);
     const exporter = new ApplicationInsightsWebExporter(makeReporter as never);
 
     expect(makeReporter).not.toHaveBeenCalled();
@@ -36,11 +36,11 @@ describe('ApplicationInsightsWebExporter', () => {
 
   it('constructs on the first valid send and disposes the initialized reporter', async () => {
     const reporter = {
-      sendDangerousTelemetryEvent: jest.fn(),
-      sendDangerousTelemetryErrorEvent: jest.fn(),
-      dispose: jest.fn().mockResolvedValue(undefined)
+      sendDangerousTelemetryEvent: vi.fn(),
+      sendDangerousTelemetryErrorEvent: vi.fn(),
+      dispose: vi.fn().mockResolvedValue(undefined)
     };
-    const exporter = new ApplicationInsightsWebExporter(jest.fn(() => reporter) as never);
+    const exporter = new ApplicationInsightsWebExporter(vi.fn(() => reporter) as never);
     await new Promise<void>(resolve =>
       exporter.export([span], result => {
         expect(result.code).toBe(ExportResultCode.SUCCESS);

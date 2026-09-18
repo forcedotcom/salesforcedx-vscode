@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import { CancellationToken, TextDocument, extensions } from 'vscode';
 import { LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED } from '../../../../src/testSupport/types/constants';
 
 // Mock the provideLwcTestCodeLens module
-jest.mock('../../../../src/testSupport/codeLens/provideLwcTestCodeLens', () => ({
-  provideLwcTestCodeLens: jest.fn()
+vi.mock('../../../../src/testSupport/codeLens/provideLwcTestCodeLens', () => ({
+  provideLwcTestCodeLens: vi.fn()
 }));
 
 import { provideLwcTestCodeLens } from '../../../../src/testSupport/codeLens/provideLwcTestCodeLens';
@@ -23,23 +24,23 @@ describe('LwcTestCodeLensProvider notification logic', () => {
   let mockDocument: TextDocument;
   let mockToken: CancellationToken;
   let mockContext: vscode.ExtensionContext;
-  let getExtensionSpy: jest.SpyInstance;
-  let showInformationMessageSpy: jest.SpyInstance;
-  let globalStateGet: jest.Mock;
-  let globalStateUpdate: jest.Mock;
+  let getExtensionSpy: VitestMockInstance;
+  let showInformationMessageSpy: VitestMockInstance;
+  let globalStateGet: VitestMock;
+  let globalStateUpdate: VitestMock;
 
   beforeEach(() => {
     mockDocument = {
       uri: {
         fsPath: '/test/path/testFile.test.js'
       },
-      getText: jest.fn()
+      getText: vi.fn()
     } as unknown as TextDocument;
     mockToken = {} as CancellationToken;
 
     // Mock globalState
-    globalStateGet = jest.fn();
-    globalStateUpdate = jest.fn();
+    globalStateGet = vi.fn();
+    globalStateUpdate = vi.fn();
     mockContext = {
       globalState: {
         get: globalStateGet,
@@ -49,13 +50,13 @@ describe('LwcTestCodeLensProvider notification logic', () => {
     } as unknown as vscode.ExtensionContext;
 
     // Reset mocks
-    (provideLwcTestCodeLens as jest.Mock).mockReset();
-    getExtensionSpy = jest.spyOn(extensions, 'getExtension');
-    showInformationMessageSpy = jest.spyOn(vscode.window, 'showInformationMessage');
+    (provideLwcTestCodeLens as VitestMock).mockReset();
+    getExtensionSpy = vi.spyOn(extensions, 'getExtension');
+    showInformationMessageSpy = vi.spyOn(vscode.window, 'showInformationMessage');
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should show notification when Jest Runner is active, lenses returned, and flag is unset', () => {
@@ -72,7 +73,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
 
     // Mock provideLwcTestCodeLens to return lenses
     const mockCodeLens = { command: { title: 'Run Test (LWC)' }, range: {} };
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([mockCodeLens]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([mockCodeLens]);
 
     // Mock showInformationMessage to return a promise
     showInformationMessageSpy.mockResolvedValue(undefined);
@@ -100,7 +101,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
 
     globalStateGet.mockReturnValue(undefined);
     const mockCodeLens = { command: { title: 'Run Test (LWC)' }, range: {} };
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([mockCodeLens]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([mockCodeLens]);
 
     registerLwcTestCodeLensProvider(mockContext);
     const provider = getLwcTestCodeLensProvider();
@@ -123,7 +124,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
     globalStateGet.mockReturnValue(true);
 
     const mockCodeLens = { command: { title: 'Run Test (LWC)' }, range: {} };
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([mockCodeLens]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([mockCodeLens]);
 
     registerLwcTestCodeLensProvider(mockContext);
     const provider = getLwcTestCodeLensProvider();
@@ -144,7 +145,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
 
     globalStateGet.mockReturnValue(undefined);
     // Return empty array - no lenses
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([]);
 
     registerLwcTestCodeLensProvider(mockContext);
     const provider = getLwcTestCodeLensProvider();
@@ -166,7 +167,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
     globalStateGet.mockReturnValue(undefined);
 
     const mockCodeLens = { command: { title: 'Run Test (LWC)' }, range: {} };
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([mockCodeLens]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([mockCodeLens]);
 
     // Mock showInformationMessage to return the button choice
     const buttonText = "Don't show again";
@@ -194,7 +195,7 @@ describe('LwcTestCodeLensProvider notification logic', () => {
 
     globalStateGet.mockReturnValue(undefined);
     const mockCodeLens = { command: { title: 'Run Test (LWC)' }, range: {} };
-    (provideLwcTestCodeLens as jest.Mock).mockReturnValue([mockCodeLens]);
+    (provideLwcTestCodeLens as VitestMock).mockReturnValue([mockCodeLens]);
     showInformationMessageSpy.mockResolvedValue(undefined);
 
     registerLwcTestCodeLensProvider(mockContext);

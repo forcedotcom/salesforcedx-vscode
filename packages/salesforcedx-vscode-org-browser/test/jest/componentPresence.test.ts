@@ -11,8 +11,8 @@ const member: MetadataMember = { type: 'CustomObject', fullName: 'Broker__c' };
 
 const componentSet = (has: boolean, filenames: string[]): ComponentSet =>
   ({
-    has: jest.fn(() => has),
-    getComponentFilenamesByNameAndType: jest.fn(() => filenames)
+    has: vi.fn(() => has),
+    getComponentFilenamesByNameAndType: vi.fn(() => filenames)
   }) as unknown as ComponentSet;
 
 describe('isMemberPresentInProject', () => {

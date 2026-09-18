@@ -62,15 +62,17 @@
       "output": []
     },
     "test": {
-      "command": "jest",
+      "command": "vitest run",
       "dependencies": [
         "compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*",
-        "jest.config.js",
-        "../../config/jest.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": [
         "coverage"
@@ -103,7 +105,6 @@
     "@types/babel-types": "^7.0.8",
     "@types/ejs": "^3.1.5",
     "colormin": "1.1.2",
-    "jest-extended": "^0.11.5",
     "js-base64": "3.7.8",
     "num2fraction": "1.2.2"
   }

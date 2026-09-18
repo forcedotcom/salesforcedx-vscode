@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { AuthInfo, Connection, OrgConfigProperties, type ConfigAggregator } from '@salesforce/core';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
@@ -32,10 +33,10 @@ import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
-jest.mock('@salesforce/core', () => ({
-  ...jest.requireActual('@salesforce/core'),
-  AuthInfo: { create: jest.fn() },
-  Connection: { create: jest.fn() }
+vi.mock('@salesforce/core', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
+  AuthInfo: { create: vi.fn() },
+  Connection: { create: vi.fn() }
 }));
 
 const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
@@ -83,7 +84,7 @@ const buildLayer = (targetOrg: string | undefined = ALIAS) =>
 
 type ConnOverrides = {
   isAccessTokenFlow?: boolean;
-  identity?: jest.Mock;
+  identity?: VitestMock;
   username?: string;
   orgId?: string;
 };
@@ -94,7 +95,7 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME, org
     getUsername: () => username,
     getAuthInfoFields: () => ({ username, orgId }),
     instanceUrl: INSTANCE_URL,
-    identity: identity ?? jest.fn().mockResolvedValue({ user_id: '005' })
+    identity: identity ?? vi.fn().mockResolvedValue({ user_id: '005' })
   }) as unknown as Connection;
 
 describe('ConnectionService.getConnectionForOrg', () => {
@@ -104,8 +105,8 @@ describe('ConnectionService.getConnectionForOrg', () => {
 
   it('returns a connection whose org ID matches the captured operation org', async () => {
     const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000001' });
-    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
-    jest.mocked(Connection.create).mockResolvedValue(connection);
+    vi.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    vi.mocked(Connection.create).mockResolvedValue(connection);
 
     await expect(
       Effect.runPromise(ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer())))
@@ -114,8 +115,8 @@ describe('ConnectionService.getConnectionForOrg', () => {
 
   it('fails with the captured and observed org IDs when the target org changed', async () => {
     const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000002' });
-    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
-    jest.mocked(Connection.create).mockResolvedValue(connection);
+    vi.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    vi.mocked(Connection.create).mockResolvedValue(connection);
 
     const exit = await Effect.runPromiseExit(
       ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer()))
@@ -137,8 +138,8 @@ describe('preventOrgChanges', () => {
   const prepareConnection = async (orgId: string | undefined) => {
     await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
     await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
-    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
-    jest.mocked(Connection.create).mockResolvedValue(makeConn({ isAccessTokenFlow: false, orgId }));
+    vi.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    vi.mocked(Connection.create).mockResolvedValue(makeConn({ isAccessTokenFlow: false, orgId }));
   };
 
   it('runs the command when the target org does not change', async () => {
@@ -204,29 +205,29 @@ describe('preventOrgChanges', () => {
 });
 
 describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
-  let showErrorMessageSpy: jest.SpyInstance;
-  let executeCommandSpy: jest.SpyInstance;
+  let showErrorMessageSpy: VitestMockInstance;
+  let executeCommandSpy: VitestMockInstance;
 
   // runReauthLookup re-fetches the Connection via the module-scoped connectionCache (keyed by username),
   // so identity() is probed on whatever Connection.create yields — seed it with the mock conn under test.
   const seedConnectionCache = (conn: Connection) => {
-    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
-    jest.mocked(Connection.create).mockResolvedValue(conn);
+    vi.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    vi.mocked(Connection.create).mockResolvedValue(conn);
   };
 
   beforeEach(async () => {
-    showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
-    executeCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
+    showErrorMessageSpy = vi.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
+    executeCommandSpy = vi.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
     // connectionCache is module-scoped (30min TTL, keyed by username) → drop it so each test seeds fresh.
     await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('skips (no identity call) when not access-token flow', async () => {
-    const identity = jest.fn();
+    const identity = vi.fn();
     const conn = makeConn({ isAccessTokenFlow: false, identity });
 
     await Effect.runPromise(
@@ -238,7 +239,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 
   it('validates via identity() and does not prompt on success; caches (skips identity on second call)', async () => {
-    const identity = jest.fn().mockResolvedValue({ user_id: '005' });
+    const identity = vi.fn().mockResolvedValue({ user_id: '005' });
     const conn = makeConn({ identity });
     seedConnectionCache(conn);
 
@@ -254,7 +255,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 
   it('on identity failure shows modal ONCE across N concurrent callers (Cache dedup) and dispatches sf.org.login.web', async () => {
-    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    const identity = vi.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
     seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(LOGIN_BUTTON);
@@ -279,7 +280,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 
   it('falls back to username when no alias exists', async () => {
-    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    const identity = vi.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
     seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(LOGIN_BUTTON);
@@ -293,7 +294,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 
   it('does not dispatch login when modal dismissed, and fails with AccessTokenExpiredError', async () => {
-    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    const identity = vi.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
     seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(undefined);
@@ -308,7 +309,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 
   it('does not re-nag: a still-cached failed username is not re-validated on the next call (one modal per session)', async () => {
-    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    const identity = vi.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
     seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(undefined);
@@ -330,7 +331,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
     // Regression for the two-stacked-modals bug: connectionCache is invalidated on every config-file change,
     // so getConnection yields a NEW Connection object each time. A Connection-object-keyed reauth cache would
     // re-prompt per rebuild; username-keying dedupes to one modal.
-    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    const identity = vi.fn().mockRejectedValue(new Error('token expired'));
     showErrorMessageSpy.mockResolvedValue(undefined);
 
     // three distinct Connection objects for the same username, each seeded fresh (mimics rebuild-per-invalidation)
@@ -347,15 +348,15 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   });
 });
 
-const authInfoCreateMock = jest.mocked(AuthInfo.create);
-const connectionCreateMock = jest.mocked(Connection.create);
+const authInfoCreateMock = vi.mocked(AuthInfo.create);
+const connectionCreateMock = vi.mocked(Connection.create);
 // widen to string so getPropertyValue's `prop: string` compares without an unsafe-enum-comparison
 const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
 
 // The desktop getConnection path reads target-org off the config aggregator; spy on it.
-const getPropertyValueMock = jest.fn();
-const getTargetOrgMock = jest.fn();
-const getUsernameFromAliasMock = jest.fn();
+const getPropertyValueMock = vi.fn();
+const getTargetOrgMock = vi.fn();
+const getUsernameFromAliasMock = vi.fn();
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
 // tracksSource is present so the ref-update path skips the Org.create-backed getTracksSourceFromOrg fallback.
@@ -516,7 +517,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
   it('given a username, does NOT fork the default-org ref update', async () => {
     // maybeUpdateDefaultOrgRef (the only forked ref-update path) reads conn.getAuthInfoFields();
     // spying on it lets us assert the fork body never ran, deterministically (no setTimeout race).
-    const getAuthInfoFieldsSpy = jest.fn(() => ({
+    const getAuthInfoFieldsSpy = vi.fn(() => ({
       username: 'given@example.com',
       orgId: '00D000000000005',
       tracksSource: false,
@@ -561,7 +562,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
         const ref = yield* getDefaultOrgRef();
         yield* ConnectionService.getConnection();
         return yield* ref.changes.pipe(
-          Stream.filter(info => info.orgId === '00D000000000005' && info.alias === ALIAS),
+          Stream.filter(info => info.username === USERNAME && info.orgId === '00D000000000005' && info.alias === ALIAS),
           Stream.runHead,
           Effect.map(Option.getOrThrow)
         );
@@ -618,7 +619,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
   it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
     const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
-    const query = jest.fn().mockReturnValue(gate.promise);
+    const query = vi.fn().mockReturnValue(gate.promise);
     connectionCreateMock.mockResolvedValue({
       getUsername: () => USERNAME,
       getAuthInfoFields: () => ({
@@ -661,8 +662,8 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const userB = 'b@identity.test';
     const userIdA = '00500000000000AAA';
     const userIdB = '00500000000000BAA';
-    const queryA = jest.fn().mockResolvedValue(userRecord(userIdA, userA));
-    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+    const queryA = vi.fn().mockResolvedValue(userRecord(userIdA, userA));
+    const queryB = vi.fn().mockResolvedValue(userRecord(userIdB, userB));
 
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
     connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
@@ -692,8 +693,8 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const orgId = '00D0000000000CC';
     const username = 'c@identity.test';
     const cachedUserId = '00500000000000CAA';
-    const queryFromDisk = jest.fn().mockResolvedValue(userRecord('00500000000000CZZ', username));
-    const queryCached = jest.fn().mockResolvedValue(userRecord(cachedUserId, username));
+    const queryFromDisk = vi.fn().mockResolvedValue(userRecord('00500000000000CZZ', username));
+    const queryCached = vi.fn().mockResolvedValue(userRecord(cachedUserId, username));
 
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? username : undefined));
     connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(username, { orgId, query: queryCached }));
@@ -727,8 +728,8 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const userIdA = '00500000000000DAA';
     const userIdB = '00500000000000EAA';
     const gateA = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
-    const queryA = jest.fn().mockReturnValue(gateA.promise);
-    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+    const queryA = vi.fn().mockReturnValue(gateA.promise);
+    const queryB = vi.fn().mockResolvedValue(userRecord(userIdB, userB));
 
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
     connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
@@ -763,51 +764,41 @@ describe('ConnectionService.getConnection (Web Console)', () => {
 
   it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
-    jest.resetModules();
+    vi.resetModules();
 
-    await jest.isolateModulesAsync(async () => {
-      const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
-        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
-      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
-      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
-      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
-      const { AliasService: WebAliasService } =
-        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
-      const { ConfigService: WebConfigService } = jest.requireActual<
-        typeof import('../../../src/core/configService.js')
-      >('../../../src/core/configService');
-      const { ConnectionService: WebConnectionService } = jest.requireActual<
-        typeof import('../../../src/core/connectionService.js')
-      >('../../../src/core/connectionService');
-      const { SettingsService: WebSettingsService } = jest.requireActual<
-        typeof import('../../../src/vscode/settingsService.js')
-      >('../../../src/vscode/settingsService');
-      const accessToken = 'web-console-token';
-      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
-      const connection = makeConn({ isAccessTokenFlow: false });
-      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
-      jest.mocked(WebConnection.create).mockResolvedValue(connection);
-      const dependencies = WebLayer.mergeAll(
-        WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
-        WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
-        WebLayer.succeed(
-          WebSettingsService,
-          WebSettingsService.make({
-            getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
-            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
-            getApiVersion: () => WebEffect.succeed('67.0')
-          } as never)
-        )
-      );
-      const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
+    const { AuthInfo: WebAuthInfo, Connection: WebConnection } = await import('@salesforce/core');
+    const WebEffect = await import('effect/Effect');
+    const WebLayer = await import('effect/Layer');
+    const Redacted = await import('effect/Redacted');
+    const { AliasService: WebAliasService } = await import('../../../src/core/alias.js');
+    const { ConfigService: WebConfigService } = await import('../../../src/core/configService.js');
+    const { ConnectionService: WebConnectionService } = await import('../../../src/core/connectionService.js');
+    const { SettingsService: WebSettingsService } = await import('../../../src/vscode/settingsService.js');
+    const accessToken = 'web-console-token';
+    const authInfo = { getFields: () => ({}), save: vi.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
+    const connection = makeConn({ isAccessTokenFlow: false });
+    vi.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
+    vi.mocked(WebConnection.create).mockResolvedValue(connection);
+    const dependencies = WebLayer.mergeAll(
+      WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
+      WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
+      WebLayer.succeed(
+        WebSettingsService,
+        WebSettingsService.make({
+          getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
+          getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+          getApiVersion: () => WebEffect.succeed('67.0')
+        } as never)
+      )
+    );
+    const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
-      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
 
-      expect(WebAuthInfo.create).toHaveBeenCalledWith({
-        accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
-      });
-      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+    expect(WebAuthInfo.create).toHaveBeenCalledWith({
+      accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
     });
+    expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
   });
 });

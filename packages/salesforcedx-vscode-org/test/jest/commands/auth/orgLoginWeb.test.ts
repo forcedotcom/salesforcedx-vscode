@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -14,8 +15,8 @@ import { orgLoginWebCommand } from '../../../../src/commands/auth/orgLoginWeb';
 import { nls } from '../../../../src/messages';
 import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
 
-jest.mock('../../../../src/util/orgUtil', () => ({
-  updateConfigAndStateAggregators: jest.fn()
+vi.mock('../../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregators: vi.fn()
 }));
 
 const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { username: 'me@org.com', orgId: '00Dxx' } });
@@ -23,17 +24,17 @@ const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { username: 'me@org.c
 // withCancellableProgress forks the effect and reports via vscode.window.withProgress; the jest
 // vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
 const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: jest.Mock }).withProgress = jest.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: jest.Mock }) => unknown) =>
-      task({ report: jest.fn() }, { onCancellationRequested: jest.fn() })
+  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
+    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
+      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
   );
 };
 
 const buildServices = (opts: {
   isProject: boolean;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  showChannel: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  showChannel: VitestMock;
   captureProgressTitle: (title: string) => void;
 }) => ({
   ProjectService: {
@@ -76,9 +77,9 @@ const buildServices = (opts: {
 
 const run = (opts: {
   isProject: boolean;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  showChannel: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  showChannel: VitestMock;
   captureProgressTitle: (title: string) => void;
 }) =>
   Effect.runPromiseExit(
@@ -90,30 +91,30 @@ const run = (opts: {
   );
 
 describe('orgLoginWebCommand', () => {
-  let appendToChannel: jest.Mock;
-  let showChannel: jest.Mock;
-  let showErrorMessage: jest.Mock;
-  let captureProgressTitle: jest.Mock;
+  let appendToChannel: VitestMock;
+  let showChannel: VitestMock;
+  let showErrorMessage: VitestMock;
+  let captureProgressTitle: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (updateConfigAndStateAggregators as jest.Mock).mockResolvedValue(undefined);
-    appendToChannel = jest.fn();
-    showChannel = jest.fn();
-    showErrorMessage = jest.fn();
-    captureProgressTitle = jest.fn();
+    vi.clearAllMocks();
+    (updateConfigAndStateAggregators as VitestMock).mockResolvedValue(undefined);
+    appendToChannel = vi.fn();
+    showChannel = vi.fn();
+    showErrorMessage = vi.fn();
+    captureProgressTitle = vi.fn();
     stubWithProgress();
-    (vscode.window as unknown as { showErrorMessage: jest.Mock }).showErrorMessage = showErrorMessage;
+    (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
     // gatherAuthParams: select the production org-type QuickPick option, then commit an empty alias
     // (empty string → DEFAULT_ALIAS). The prod option resolves to PRODUCTION_URL with no URL prompt.
-    (vscode.window as unknown as { showQuickPick: jest.Mock }).showQuickPick = jest.fn(
-      (items: vscode.QuickPickItem[]) => Promise.resolve(items[0])
+    (vscode.window as unknown as { showQuickPick: VitestMock }).showQuickPick = vi.fn((items: vscode.QuickPickItem[]) =>
+      Promise.resolve(items[0])
     );
-    (vscode.window as unknown as { showInputBox: jest.Mock }).showInputBox = jest.fn(() => Promise.resolve(''));
+    (vscode.window as unknown as { showInputBox: VitestMock }).showInputBox = vi.fn(() => Promise.resolve(''));
   });
 
   it('runs `sf org login web` with alias + --instance-url + --set-default flags', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -136,7 +137,7 @@ describe('orgLoginWebCommand', () => {
   });
 
   it('appends the output + success message, shows the channel, and refreshes aggregators on success', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -150,7 +151,7 @@ describe('orgLoginWebCommand', () => {
   });
 
   it('does not exec when not in a project (getSfProject precondition fails)', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const exit = await run({ isProject: false, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -161,7 +162,7 @@ describe('orgLoginWebCommand', () => {
   it('maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (not the generic handler)', async () => {
     const showOutputText = 'Show Output';
     showErrorMessage.mockResolvedValue(showOutputText);
-    const simpleExec = jest.fn(() =>
+    const simpleExec = vi.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
         message: 'EADDRINUSE: port 1717 already in use'
@@ -183,7 +184,7 @@ describe('orgLoginWebCommand', () => {
 
   it('does not reveal the channel when the port-conflict notification is dismissed', async () => {
     showErrorMessage.mockResolvedValue(undefined);
-    const simpleExec = jest.fn(() =>
+    const simpleExec = vi.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
         message: 'Cannot start the OAuth redirect server on port 1717'
@@ -197,7 +198,7 @@ describe('orgLoginWebCommand', () => {
   });
 
   it('rethrows a non-conflict TerminalServiceError to the generic handler', async () => {
-    const simpleExec = jest.fn(() =>
+    const simpleExec = vi.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
         message: 'some other CLI failure'

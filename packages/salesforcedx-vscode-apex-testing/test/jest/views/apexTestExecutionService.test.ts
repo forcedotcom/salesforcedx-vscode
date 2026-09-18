@@ -7,45 +7,51 @@
 
 // Break the import cycle apexTestExecutionService -> ... -> extensionProvider (whose layer references the
 // service Defaults at module-eval). Tests provide layers directly via Effect.provide.
-jest.mock('../../../src/services/extensionProvider', () => ({
-  getApexTestingRuntime: jest.fn(),
-  setAllServicesLayer: jest.fn()
+vi.mock('../../../src/services/extensionProvider', () => ({
+  getApexTestingRuntime: vi.fn(),
+  setAllServicesLayer: vi.fn()
 }));
 
 // The execution service now builds `new TestService(connection)` in-body (connection from
 // ConnectionService.getConnection). Mock the constructor to return a controllable instance per test.
 let activeTestService: unknown;
-jest.mock('@salesforce/apex-node', () => ({
-  ...jest.requireActual('@salesforce/apex-node'),
-  TestService: jest.fn().mockImplementation(() => activeTestService)
+vi.mock('@salesforce/apex-node', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')),
+  TestService: vi.fn().mockImplementation(
+    // Vitest constructor mocks must use a constructable function.
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    function () {
+      return activeTestService;
+    }
+  )
 }));
 
 // Keep result processing + report generation out of scope; assert orchestration only.
-const mockUpdateTestRunResults = jest.fn();
-jest.mock('../../../src/utils/testResultProcessor', () => ({
+const mockUpdateTestRunResults = vi.fn();
+vi.mock('../../../src/utils/testResultProcessor', () => ({
   updateTestRunResults: (...a: unknown[]) => mockUpdateTestRunResults(...a)
 }));
-jest.mock('../../../src/utils/testReportGenerator', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
+vi.mock('../../../src/utils/testReportGenerator', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   return { writeAndOpenTestReport: () => EffectLib.void };
 });
 
-const mockGetTestResultsFolder = jest.fn();
-jest.mock('../../../src/utils/pathHelpers', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const { URI: UriClass } = jest.requireActual('vscode-uri');
+const mockGetTestResultsFolder = vi.fn();
+vi.mock('../../../src/utils/pathHelpers', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const { URI: UriClass } = await vi.importActual<typeof import('vscode-uri')>('vscode-uri');
   return {
     getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed(UriClass.file('/tmp/apex-test-results'))
   };
 });
 
 // writeTestResultJsonFile and readTestRunIdFile now both return an Effect (default Effect.void / Effect.succeed(undefined)).
-const mockWriteTestResultJsonFile = jest.fn((..._a: unknown[]) => Effect.void);
-const mockReadTestRunIdFile = jest.fn(
+const mockWriteTestResultJsonFile = vi.fn((..._a: unknown[]) => Effect.void);
+const mockReadTestRunIdFile = vi.fn(
   (..._a: unknown[]) => Effect.succeed(undefined) as Effect.Effect<string | undefined>
 );
-jest.mock('../../../src/utils/testUtils', () => {
-  const actual = jest.requireActual('../../../src/utils/testUtils');
+vi.mock('../../../src/utils/testUtils', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/utils/testUtils')>('../../../src/utils/testUtils');
   return {
     ...actual,
     writeTestResultJsonFile: (...a: unknown[]) => mockWriteTestResultJsonFile(...a),
@@ -53,6 +59,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
+import type { Mock as VitestMock } from 'vitest';
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -64,9 +71,9 @@ import { ApexTestRunCacheService } from '../../../src/testRunCache/apexTestRunCa
 import { ApexTestExecutionService, type ExecutionContext } from '../../../src/views/apexTestExecutionService';
 import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
-const appendToChannel = jest.fn(() => Effect.void);
-const showSuccessNotification = jest.fn(() => Effect.void);
-const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
+const appendToChannel = vi.fn(() => Effect.void);
+const showSuccessNotification = vi.fn(() => Effect.void);
+const readFile = vi.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
   'retrieve-test-code-coverage': false,
@@ -134,12 +141,12 @@ const fakeItem = (id: string, label: string, opts: FakeItemOpts = {}): vscode.Te
 const fakeRun = () => {
   const started: vscode.TestItem[] = [];
   const errored: { test: vscode.TestItem; message: vscode.TestMessage }[] = [];
-  const end = jest.fn();
+  const end = vi.fn();
   return {
     run: {
       started: (t: vscode.TestItem) => started.push(t),
       errored: (t: vscode.TestItem, m: vscode.TestMessage) => errored.push({ test: t, message: m }),
-      appendOutput: jest.fn(),
+      appendOutput: vi.fn(),
       end
     } as unknown as vscode.TestRun,
     started,
@@ -152,22 +159,22 @@ const cancellationToken = { isCancellationRequested: false } as vscode.Cancellat
 
 const makeTestService = (
   overrides: Partial<{
-    buildAsyncPayload: jest.Mock;
-    runTestAsynchronous: jest.Mock;
+    buildAsyncPayload: VitestMock;
+    runTestAsynchronous: VitestMock;
   }> = {}
 ): TestService =>
   ({
     buildAsyncPayload:
       overrides.buildAsyncPayload ??
-      jest.fn().mockResolvedValue({ testLevel: 'RunSpecifiedTests', skipCodeCoverage: true }),
+      vi.fn().mockResolvedValue({ testLevel: 'RunSpecifiedTests', skipCodeCoverage: true }),
     runTestAsynchronous:
-      overrides.runTestAsynchronous ?? jest.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } })
+      overrides.runTestAsynchronous ?? vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } })
   }) as unknown as TestService;
 
 const makeCtx = (overrides: Partial<ExecutionContext> = {}): ExecutionContext => ({
   controller: {
-    items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
-    createTestRun: jest.fn(() => fakeRun().run)
+    items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+    createTestRun: vi.fn(() => fakeRun().run)
   } as unknown as vscode.TestController,
   orgOnlyTag,
   inWorkspaceTag,
@@ -181,18 +188,11 @@ const setTestService = (svc: TestService) => {
 
 describe('ApexTestExecutionService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Default TestService for the in-body `new TestService(conn)`; individual tests override via setTestService.
     activeTestService = makeTestService();
     appendToChannel.mockImplementation(() => Effect.void);
     readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
-    // updateTestResults uses `new vscode.TestRunRequest()` / `new vscode.TestMessage()` — make them
-    // constructable under the jest vscode mock.
-    const vscodeMutable = vscode as unknown as { TestRunRequest: unknown; TestMessage: unknown };
-    vscodeMutable.TestRunRequest = class {};
-    vscodeMutable.TestMessage = class {
-      constructor(public message: string) {}
-    };
   });
 
   describe('executeTests', () => {
@@ -216,8 +216,8 @@ describe('ApexTestExecutionService', () => {
     });
 
     it('uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg', async () => {
-      const buildAsyncPayload = jest.fn();
-      const runTestAsynchronous = jest.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
+      const buildAsyncPayload = vi.fn();
+      const runTestAsynchronous = vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
       setTestService(makeTestService({ buildAsyncPayload, runTestAsynchronous }));
       const { run } = fakeRun();
       await runEff(
@@ -239,9 +239,7 @@ describe('ApexTestExecutionService', () => {
     it('records lastProcessedResultFile so the watcher dedupes the same URI', async () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run } = fakeRun();
-      const runTestAsynchronous = jest
-        .fn()
-        .mockResolvedValue({ tests: [], summary: { testsRan: 1, testRunId: 'RID' } });
+      const runTestAsynchronous = vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1, testRunId: 'RID' } });
       setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx();
       // executeTests writes the Ref; a subsequent onResultFileCreate for the same file must skip re-apply.
@@ -294,7 +292,7 @@ describe('ApexTestExecutionService', () => {
       const class1 = fakeItem('class:A', 'A');
       const suite1 = fakeItem('suite:S', 'S');
       const { run } = fakeRun();
-      setTestService(makeTestService({ buildAsyncPayload: jest.fn().mockResolvedValue(undefined) }));
+      setTestService(makeTestService({ buildAsyncPayload: vi.fn().mockResolvedValue(undefined) }));
       // Mixed suite+class with no methods -> buildTestPayload reaches the no-payload branch.
       const exit = await runExit(
         ApexTestExecutionService.executeTests({
@@ -319,7 +317,7 @@ describe('ApexTestExecutionService', () => {
     it('errors org-only tests and does not delegate them to the debug command', async () => {
       const orgOnly = fakeItem('method:OrgOnly.testA', 'testA', { tags: [orgOnlyTag] });
       const { run, errored } = fakeRun();
-      (vscode.commands.executeCommand as jest.Mock).mockClear();
+      (vscode.commands.executeCommand as VitestMock).mockClear();
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [orgOnly], run));
       expect(errored.map(e => e.test)).toContain(orgOnly);
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', expect.anything());
@@ -335,8 +333,8 @@ describe('ApexTestExecutionService', () => {
     it('errors the item with the failed-debug message when the debug command rejects', async () => {
       const cls = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
       const { run, errored } = fakeRun();
-      (vscode.commands.executeCommand as jest.Mock).mockReset();
-      (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
+      (vscode.commands.executeCommand as VitestMock).mockReset();
+      (vscode.commands.executeCommand as VitestMock).mockRejectedValue(new Error('dispatch boom'));
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
       expect(errored.map(e => e.test)).toContain(cls);
@@ -347,8 +345,8 @@ describe('ApexTestExecutionService', () => {
       const cls = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
       const method = fakeItem('method:A.testA', 'testA', { tags: [inWorkspaceTag] });
       const { run } = fakeRun();
-      (vscode.commands.executeCommand as jest.Mock).mockReset();
-      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      (vscode.commands.executeCommand as VitestMock).mockReset();
+      (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls, method], run));
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
@@ -360,8 +358,8 @@ describe('ApexTestExecutionService', () => {
     it('errors a suite item with the not-supported message and does not dispatch it', async () => {
       const suite = fakeItem('suite:S', 'S', { tags: [inWorkspaceTag] });
       const { run, errored } = fakeRun();
-      (vscode.commands.executeCommand as jest.Mock).mockReset();
-      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      (vscode.commands.executeCommand as VitestMock).mockReset();
+      (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [suite], run));
       expect(errored.map(e => e.test)).toContain(suite);
       expect((errored[0].message as unknown as { message: string }).message).toContain(
@@ -375,12 +373,12 @@ describe('ApexTestExecutionService', () => {
     it('surfaces a run failure on every test via run.errored (run still ends)', async () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run, errored, end } = fakeRun();
-      const runTestAsynchronous = jest.fn().mockRejectedValue(new Error('async run boom'));
+      const runTestAsynchronous = vi.fn().mockRejectedValue(new Error('async run boom'));
       setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx({
         controller: {
-          items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: jest.fn(() => run)
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
         } as unknown as vscode.TestController
       });
       await runEff(
@@ -400,12 +398,12 @@ describe('ApexTestExecutionService', () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run, errored } = fakeRun();
       mockGetTestResultsFolder.mockReturnValue(Effect.fail({ _tag: 'NoDefaultOrgError', message: 'no org' }));
-      const runTestAsynchronous = jest.fn();
+      const runTestAsynchronous = vi.fn();
       setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx({
         controller: {
-          items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: jest.fn(() => run)
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
         } as unknown as vscode.TestController
       });
       await runEff(
@@ -425,13 +423,13 @@ describe('ApexTestExecutionService', () => {
     it('errors empty suites and ends without running when nothing remains', async () => {
       const suite = fakeItem('suite:Empty', 'Empty');
       const { run, errored, end } = fakeRun();
-      const runTestAsynchronous = jest.fn();
+      const runTestAsynchronous = vi.fn();
       setTestService(makeTestService({ runTestAsynchronous }));
       // suite:Empty has no entry in the tree-service suiteToClasses Ref, so runTests treats it as empty.
       const ctx = makeCtx({
         controller: {
-          items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: jest.fn(() => run)
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
         } as unknown as vscode.TestController
       });
       await runEff(
@@ -452,13 +450,13 @@ describe('ApexTestExecutionService', () => {
       const suite = fakeItem('suite:S', 'S');
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run, errored, end } = fakeRun();
-      const runTestAsynchronous = jest.fn();
+      const runTestAsynchronous = vi.fn();
       setTestService(makeTestService({ runTestAsynchronous }));
-      (vscode.window.showErrorMessage as jest.Mock).mockClear();
+      (vscode.window.showErrorMessage as VitestMock).mockClear();
       const ctx = makeCtx({
         controller: {
-          items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: jest.fn(() => run)
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
         } as unknown as vscode.TestController
       });
       await runEff(

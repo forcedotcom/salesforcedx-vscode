@@ -18,11 +18,11 @@ import {
 } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { buildMetadataRegistryScanConfig, deriveExcludedMetadataFolders } from '../../src/languageServerScanConfig';
 
-const mockGetServicesApi = jest.fn<Effect.Effect<SalesforceVSCodeServicesApi, unknown>, []>();
+const mockGetServicesApi = vi.fn<() => Effect.Effect<SalesforceVSCodeServicesApi, unknown>>();
 
-jest.mock('@salesforce/effect-ext-utils', () => {
-  const actual = jest.requireActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
-  const EffectLib = jest.requireActual<typeof Effect>('effect/Effect');
+vi.mock('@salesforce/effect-ext-utils', async () => {
+  const actual = await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   return {
     ...actual,
     getServicesApi: EffectLib.suspend(() => mockGetServicesApi())

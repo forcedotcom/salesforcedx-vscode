@@ -66,7 +66,7 @@ describe('AuthParamsGatherer', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('programmatic instance URL (access-token re-auth flow)', () => {
@@ -104,8 +104,8 @@ describe('AuthParamsGatherer', () => {
   describe('project default instance URL', () => {
     const gatherFromPicker = async (projectLoginUrl?: string) => {
       useLayer(true, projectLoginUrl);
-      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValue('myAlias');
-      const quickPick = jest.spyOn(vscode.window, 'showQuickPick').mockImplementation(async items => {
+      vi.spyOn(vscode.window, 'showInputBox').mockResolvedValue('myAlias');
+      const quickPick = vi.spyOn(vscode.window, 'showQuickPick').mockImplementation(async items => {
         const choices = await items;
         return choices.find(choice => choice.label === nls.localize('auth_project_label')) ?? choices[0];
       });
@@ -120,7 +120,7 @@ describe('AuthParamsGatherer', () => {
       ['https://example.com', 'https://example.com/'],
       ['http://example.com:8080/login', 'http://example.com:8080/login']
     ])('normalizes a valid %s project URL', async (projectLoginUrl, expected) => {
-      const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+      const warning = vi.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
 
       const { exit, choices } = await gatherFromPicker(projectLoginUrl);
 
@@ -137,7 +137,7 @@ describe('AuthParamsGatherer', () => {
     it.each(['not a URL', 'ftp://example.com', 'https://example.com; touch /tmp/pwned'])(
       'warns and omits an invalid project URL: %s',
       async projectLoginUrl => {
-        const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+        const warning = vi.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
 
         const { exit, choices } = await gatherFromPicker(projectLoginUrl);
 
@@ -148,7 +148,7 @@ describe('AuthParamsGatherer', () => {
     );
 
     it('offers safe choices without warning when sfdcLoginUrl is absent', async () => {
-      const warning = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+      const warning = vi.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
 
       const { exit, choices } = await gatherFromPicker();
 
@@ -164,8 +164,7 @@ describe('AuthParamsGatherer', () => {
     const accessToken = 'token123';
 
     it('CONTINUE happy path with explicit alias', async () => {
-      jest
-        .spyOn(vscode.window, 'showInputBox')
+      vi.spyOn(vscode.window, 'showInputBox')
         .mockResolvedValueOnce(instanceUrl)
         .mockResolvedValueOnce('myAlias')
         .mockResolvedValueOnce(accessToken);
@@ -176,8 +175,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('empty-string alias defaults to DEFAULT_ALIAS', async () => {
-      jest
-        .spyOn(vscode.window, 'showInputBox')
+      vi.spyOn(vscode.window, 'showInputBox')
         .mockResolvedValueOnce(instanceUrl)
         .mockResolvedValueOnce('')
         .mockResolvedValueOnce(accessToken);
@@ -188,7 +186,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('cancels with UserCancellationError when instance URL prompt is dismissed (undefined)', async () => {
-      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
+      vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
 
       const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
@@ -197,7 +195,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('cancels with UserCancellationError when alias prompt is dismissed (undefined)', async () => {
-      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
+      vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
 
       const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
@@ -206,7 +204,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('wires validateInput on the instance-url and alias prompts', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(vscode.window, 'showInputBox')
         .mockResolvedValueOnce(instanceUrl)
         .mockResolvedValueOnce('myAlias')

@@ -6,20 +6,22 @@
  */
 
 // Mock vscode.workspace.fs.writeFile - this is used by FsService internally
-const mockWriteFile = jest.fn().mockResolvedValue(undefined);
-const mockAppendToChannel = jest.fn();
+const mockWriteFile = vi.fn().mockResolvedValue(undefined);
+const mockAppendToChannel = vi.fn();
 
 // Make mockWriteFile available globally for the extensionProvider mock to use
 
 (global as any).__mockWriteFile = mockWriteFile;
 
 // Mock the extensionProvider module before importing anything that uses it
-jest.mock('../../../src/services/extensionProvider', () => {
-  const Effect = jest.requireActual('effect/Effect');
-  const Context = jest.requireActual('effect/Context');
-  const Layer = jest.requireActual('effect/Layer');
-  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
-  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+vi.mock('../../../src/services/extensionProvider', async () => {
+  const Effect = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
+  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
+  const { ExtensionProviderService } =
+    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const vscodeApi = await import('vscode');
 
   const mockFsWrite = (pathOrUri: unknown, _content: string) =>
     Effect.promise(async () => {
@@ -40,10 +42,12 @@ jest.mock('../../../src/services/extensionProvider', () => {
     writeFile: mockFsWrite,
     safeWriteFile: mockFsWrite,
     showTextDocument: (uri: unknown, options?: unknown) =>
-      Effect.promise(() => {
-        const vscodeApi = require('vscode');
-        return vscodeApi.window.showTextDocument(uri, options);
-      }),
+      Effect.promise(() =>
+        vscodeApi.window.showTextDocument(
+          uri as import('vscode').Uri,
+          options as import('vscode').TextDocumentShowOptions | undefined
+        )
+      ),
     Default: Layer.succeed(Context.GenericTag('FsService'), {
       writeFile: mockFsWrite,
       safeWriteFile: mockFsWrite
@@ -51,7 +55,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
   const MockChannelServiceInstance = {
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message)),
-    getChannel: Effect.succeed({ appendLine: jest.fn(), show: jest.fn() })
+    getChannel: Effect.succeed({ appendLine: vi.fn(), show: vi.fn() })
   };
 
   const mockSettingsService = {
@@ -72,9 +76,12 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
   const MockAllServicesLayer = Layer.effect(
     ExtensionProviderService,
-    Effect.sync(() => ({
-      getServicesApi: Effect.succeed(mockServicesApi)
-    }))
+    Effect.sync(
+      () =>
+        ({
+          getServicesApi: Effect.succeed(mockServicesApi)
+        }) as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService
+    )
   );
 
   return {
@@ -84,6 +91,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
+import type { Mock as VitestMock } from 'vitest';
 import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
@@ -93,15 +101,15 @@ import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import { openTestReport, writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
 // Additional mock functions for vscode APIs
-const mockOpenTextDocument = jest.fn().mockResolvedValue({});
-const mockShowTextDocument = jest.fn().mockResolvedValue(undefined);
-const mockShowInformationMessage = jest.fn().mockResolvedValue(undefined);
-const mockExecuteCommand = jest.fn().mockResolvedValue(undefined);
-const mockStat = jest.fn();
+const mockOpenTextDocument = vi.fn().mockResolvedValue({});
+const mockShowTextDocument = vi.fn().mockResolvedValue(undefined);
+const mockShowInformationMessage = vi.fn().mockResolvedValue(undefined);
+const mockExecuteCommand = vi.fn().mockResolvedValue(undefined);
+const mockStat = vi.fn();
 
 describe('testReportGenerator', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockWriteFile.mockClear();
     mockAppendToChannel.mockClear();
     mockOpenTextDocument.mockClear();
@@ -112,18 +120,18 @@ describe('testReportGenerator', () => {
     mockStat.mockRejectedValue(new Error('File not found'));
 
     // Mock Global.SF_DIR to avoid path issues in tests
-    jest.spyOn(Global, 'SF_DIR', 'get').mockReturnValue('/tmp/.sf');
+    vi.spyOn(Global, 'SF_DIR', 'get').mockReturnValue('/tmp/.sf');
 
     // Set up mocks
-    jest.spyOn(vscode.workspace.fs, 'writeFile').mockImplementation(mockWriteFile);
-    jest.spyOn(vscode.workspace.fs, 'stat').mockImplementation(mockStat);
-    jest.spyOn(vscode.workspace, 'openTextDocument').mockImplementation(mockOpenTextDocument);
-    jest.spyOn(vscode.window, 'showTextDocument').mockImplementation(mockShowTextDocument);
-    jest.spyOn(vscode.window, 'showInformationMessage').mockImplementation(mockShowInformationMessage);
-    jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(mockExecuteCommand);
+    vi.spyOn(vscode.workspace.fs, 'writeFile').mockImplementation(mockWriteFile);
+    vi.spyOn(vscode.workspace.fs, 'stat').mockImplementation(mockStat);
+    vi.spyOn(vscode.workspace, 'openTextDocument').mockImplementation(mockOpenTextDocument);
+    vi.spyOn(vscode.window, 'showTextDocument').mockImplementation(mockShowTextDocument);
+    vi.spyOn(vscode.window, 'showInformationMessage').mockImplementation(mockShowInformationMessage);
+    vi.spyOn(vscode.commands, 'executeCommand').mockImplementation(mockExecuteCommand);
 
     // Mock vscode.Uri.file
-    (vscode.Uri.file as jest.Mock) = jest.fn((p: string) => ({
+    (vscode.Uri.file as VitestMock) = vi.fn((p: string) => ({
       fsPath: p,
       path: p,
       scheme: 'file',
@@ -135,7 +143,7 @@ describe('testReportGenerator', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   // Helper function to collect stream output into a string

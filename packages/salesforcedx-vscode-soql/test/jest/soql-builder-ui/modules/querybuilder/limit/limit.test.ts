@@ -23,7 +23,7 @@ describe('Limit', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -48,7 +48,7 @@ describe('Limit', () => {
   it('emits an event when limit is changed', () => {
     document.body.appendChild(limitCmp);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     limitCmp.addEventListener('limit__changed', handler);
     const limitInput = limitCmp.shadowRoot.querySelector('[data-el-limit]');
     limitInput.value = 11;
@@ -71,7 +71,7 @@ describe('Limit', () => {
   it('emits an event when keyup is detected', () => {
     document.body.appendChild(limitCmp);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     limitCmp.addEventListener('limit__changed', handler);
     const limitInput = limitCmp.shadowRoot.querySelector('[data-el-limit]');
     limitInput.value = 11;

@@ -30,8 +30,8 @@ const fieldMetadata = {
 };
 
 const createFixture = (eligible = true) => {
-  const parseObject = jest.fn(async () => objectMetadata);
-  const parseField = jest.fn(async () => fieldMetadata);
+  const parseObject = vi.fn(async () => objectMetadata);
+  const parseField = vi.fn(async () => fieldMetadata);
   const fieldComponent = {
     type: { name: 'CustomField' },
     fullName: 'Broker__c.Account__c',
@@ -43,9 +43,9 @@ const createFixture = (eligible = true) => {
     fullName: 'Broker__c',
     xml: '/workspace/force-app/main/default/objects/Broker__c/Broker__c.object-meta.xml',
     parseXml: parseObject,
-    getChildren: jest.fn(() => [fieldComponent])
+    getChildren: vi.fn(() => [fieldComponent])
   };
-  const buildComponentSetFromSource = jest.fn(() =>
+  const buildComponentSetFromSource = vi.fn(() =>
     Effect.succeed({ getSourceComponents: () => [objectComponent, fieldComponent] })
   );
   const dependencies = Layer.mergeAll(

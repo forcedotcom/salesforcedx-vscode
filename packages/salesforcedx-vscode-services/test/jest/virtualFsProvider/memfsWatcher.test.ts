@@ -49,7 +49,7 @@ describe('updateIDB', () => {
 
   it('continues after a persist error so the next event is saved', async () => {
     const persistLines: string[] = [];
-    const saveFile = jest
+    const saveFile = vi
       .fn()
       .mockReturnValueOnce(Effect.fail(new VirtualFsProviderError({ message: 'idb down' })))
       .mockReturnValueOnce(Effect.succeed('ok'));

@@ -5,22 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { isLocalLogging } from '../../../../src/telemetry/utils/devModeUtils';
 
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+vi.mock('vscode');
+const vscodeMocked = vi.mocked(vscode);
 
 describe('isLocalLogging', () => {
-  let mockGet: jest.Mock;
+  let mockGet: VitestMock;
 
   beforeEach(() => {
-    mockGet = jest.fn().mockReturnValue('false');
-    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: mockGet });
+    mockGet = vi.fn().mockReturnValue('false');
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: mockGet });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('returns true when local logging is enabled', () => {

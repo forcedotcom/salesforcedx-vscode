@@ -1680,7 +1680,7 @@ describe('elapsedTime', () => {
     dummyInstance.dummyMethod();
 
     // loggerStub is a SinonStubbedInstance; .debug is a stub, not an unbound method
-    // eslint-disable-next-line jest/unbound-method
+    // eslint-disable-next-line vitest/unbound-method
     const debugStub = loggerStub.debug as sinon.SinonStub;
     sinon.assert.calledOnce(loggerChildStub);
     sinon.assert.calledWith(loggerChildStub, 'elapsedTime');

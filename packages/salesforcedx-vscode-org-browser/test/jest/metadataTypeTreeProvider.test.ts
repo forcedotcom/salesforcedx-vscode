@@ -75,7 +75,7 @@ describe('MetadataTypeTreeProvider text filter state', () => {
 
   it('setTextFilter stores both values and fires a change event', () => {
     const provider = new MetadataTypeTreeProvider();
-    const listener = jest.fn();
+    const listener = vi.fn();
     provider.onDidChangeTreeData(listener);
 
     provider.setTextFilter('ApexClass', 'Foo');
@@ -88,7 +88,7 @@ describe('MetadataTypeTreeProvider text filter state', () => {
   it('clearTextFilter resets both values and fires a change event', () => {
     const provider = new MetadataTypeTreeProvider();
     provider.setTextFilter('ApexClass', 'Foo');
-    const listener = jest.fn();
+    const listener = vi.fn();
     provider.onDidChangeTreeData(listener);
 
     provider.clearTextFilter();
@@ -116,7 +116,7 @@ describe('MetadataTypeTreeProvider root node identity', () => {
 
 describe('MetadataTypeTreeProvider empty-tree context', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('updates the context only when the empty state changes', async () => {

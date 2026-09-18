@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
@@ -64,9 +65,9 @@ describe('formatQueryPlanResults', () => {
 });
 
 describe('executeQueryPlan', () => {
-  const setup = (request: jest.Mock) => {
-    const show = jest.fn();
-    const appendToChannel = jest.fn((_msg: string) => Effect.void);
+  const setup = (request: VitestMock) => {
+    const show = vi.fn();
+    const appendToChannel = vi.fn((_msg: string) => Effect.void);
     const servicesApi = {
       services: {
         ConnectionService: { getConnection: () => Effect.succeed({ request }) },
@@ -78,16 +79,16 @@ describe('executeQueryPlan', () => {
         })
       }
     };
-    (vscode.extensions.getExtension as jest.Mock).mockReturnValue({ isActive: true, exports: servicesApi });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({ isActive: true, exports: servicesApi });
     return { show, appendToChannel };
   };
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('routes a request rejection through catchAllCause and shows channel once via ensuring', async () => {
-    const { show, appendToChannel } = setup(jest.fn().mockRejectedValue(new Error('boom')));
+    const { show, appendToChannel } = setup(vi.fn().mockRejectedValue(new Error('boom')));
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
         Effect.provideService(ChannelService, {} as unknown as ChannelService),
@@ -99,7 +100,7 @@ describe('executeQueryPlan', () => {
   });
 
   it('shows channel exactly once on success (ensuring runs like finally)', async () => {
-    const { show, appendToChannel } = setup(jest.fn().mockResolvedValue({ plans: [] }));
+    const { show, appendToChannel } = setup(vi.fn().mockResolvedValue({ plans: [] }));
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
         Effect.provideService(ChannelService, {} as unknown as ChannelService),

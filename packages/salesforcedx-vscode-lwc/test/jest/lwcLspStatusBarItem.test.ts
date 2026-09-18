@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import LwcLspStatusBarItem from '../../src/lwcLspStatusBarItem';
 import { nls } from '../../src/messages';
 
-jest.mock('vscode');
+vi.mock('vscode');
 
 describe('LwcLspStatusBarItem', () => {
   let statusBarItem: LwcLspStatusBarItem;
@@ -19,16 +19,16 @@ describe('LwcLspStatusBarItem', () => {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
       command: undefined,
-      dispose: jest.fn()
+      dispose: vi.fn()
     } as unknown as vscode.LanguageStatusItem;
 
-    jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockReturnValue(mockLanguageStatusItem);
+    vi.spyOn(vscode.languages, 'createLanguageStatusItem').mockReturnValue(mockLanguageStatusItem);
 
     statusBarItem = new LwcLspStatusBarItem();
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('initialization', () => {

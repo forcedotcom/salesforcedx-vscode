@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { commands, window } from 'vscode';
 import { URI } from 'vscode-uri';
 import { TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -12,10 +13,10 @@ import { nls } from '../../../src/messages';
 import { internalTelemetryMessage, telemetryWithOptOutMessage } from '../../../src/telemetry/telemetryMessages';
 
 describe('Telemetry Messages', () => {
-  let spyShowInfoMessage: jest.SpyInstance;
+  let spyShowInfoMessage: VitestMockInstance;
 
   beforeEach(() => {
-    spyShowInfoMessage = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
+    spyShowInfoMessage = vi.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -33,11 +34,11 @@ describe('Telemetry Messages', () => {
   });
 
   describe('telemetryWithOptOutMessage', () => {
-    let spyCommand: jest.SpyInstance;
+    let spyCommand: VitestMockInstance;
     const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
 
     beforeEach(() => {
-      spyCommand = jest.spyOn(commands, 'executeCommand');
+      spyCommand = vi.spyOn(commands, 'executeCommand');
     });
 
     afterEach(() => {

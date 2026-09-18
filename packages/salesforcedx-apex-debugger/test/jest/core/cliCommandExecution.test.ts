@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
 import * as kill from 'tree-kill';
@@ -16,46 +17,46 @@ import {
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
 
-jest.mock('tree-kill');
+vi.mock('tree-kill');
 
-const treeKillMocked = jest.mocked(kill);
+const treeKillMocked = vi.mocked(kill);
 
 describe('CliCommandExecution Unit Tests.', () => {
   const testCommand: Command = {
     command: 'do a thing',
     args: ['arg1', 'arg2'],
-    toCommand: jest.fn()
+    toCommand: vi.fn()
   };
   let testChildProcess: any;
   let testCancelationToken: CancellationToken;
-  let fromEventSpy: jest.SpyInstance;
-  let intervalSpy: jest.SpyInstance;
-  let subscribeSpy: jest.SpyInstance;
-  let unsubscribeSpy: jest.SpyInstance;
+  let fromEventSpy: VitestMockInstance;
+  let intervalSpy: VitestMockInstance;
+  let subscribeSpy: VitestMockInstance;
+  let unsubscribeSpy: VitestMockInstance;
 
   beforeEach(() => {
     testChildProcess = {
       pid: 1234,
-      stdout: jest.fn(),
-      stderr: jest.fn()
+      stdout: vi.fn(),
+      stderr: vi.fn()
     };
     testCancelationToken = {
       isCancellationRequested: false
     };
-    unsubscribeSpy = jest.fn();
-    subscribeSpy = jest.fn().mockReturnValue({
+    unsubscribeSpy = vi.fn();
+    subscribeSpy = vi.fn().mockReturnValue({
       unsubscribe: unsubscribeSpy
     });
-    fromEventSpy = jest.spyOn(rxjs, 'fromEvent').mockReturnValue({
+    fromEventSpy = vi.spyOn(rxjs, 'fromEvent').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
-    intervalSpy = jest.spyOn(rxjs, 'interval').mockReturnValue({
+    intervalSpy = vi.spyOn(rxjs, 'interval').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('Should be able to create an instance.', () => {
@@ -117,10 +118,10 @@ describe('CliCommandExecution Unit Tests.', () => {
   });
 
   describe('kill on timeout.', () => {
-    let logSpy: jest.SpyInstance;
+    let logSpy: VitestMockInstance;
 
     beforeEach(() => {
-      logSpy = jest.spyOn(console, 'log');
+      logSpy = vi.spyOn(console, 'log');
     });
     it('Should be able to successfully kill child process.', async () => {
       testCancelationToken.isCancellationRequested = true;

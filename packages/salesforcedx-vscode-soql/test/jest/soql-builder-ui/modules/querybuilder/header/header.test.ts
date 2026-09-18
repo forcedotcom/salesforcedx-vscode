@@ -27,7 +27,7 @@ describe('Header', () => {
     header.isQueryValid = true;
     document.body.appendChild(header);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     header.addEventListener('header__run_query', handler);
 
     const runQueryBtn = header.shadowRoot.querySelector('.run-button');

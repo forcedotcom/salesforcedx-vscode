@@ -5,24 +5,36 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-jest.mock('../../../src/services/extensionProvider', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const SubscriptionRef = jest.requireActual('effect/SubscriptionRef');
-  const Layer = jest.requireActual('effect/Layer');
-  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
-  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
-  const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
-  const { URI: UriClass } = jest.requireActual('vscode-uri');
-  const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
+vi.mock('../../../src/services/extensionProvider', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const SubscriptionRef = await vi.importActual<typeof import('effect/SubscriptionRef')>('effect/SubscriptionRef');
+  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
+  const { ExtensionProviderService } =
+    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = await vi.importActual<
+    typeof import('../../../src/testRunCache/apexTestRunCacheService')
+  >('../../../src/testRunCache/apexTestRunCacheService');
+  const { ApexTestTreeService: ApexTestTreeServiceActual } = await vi.importActual<
+    typeof import('../../../src/views/apexTestTreeService')
+  >('../../../src/views/apexTestTreeService');
+  const { ApexTestExecutionService: ApexTestExecutionServiceActual } = await vi.importActual<
+    typeof import('../../../src/views/apexTestExecutionService')
+  >('../../../src/views/apexTestExecutionService');
+  const { URI: UriClass } = await vi.importActual<typeof import('vscode-uri')>('vscode-uri');
+  const { HashableUri } = await vi.importActual<typeof import('salesforcedx-vscode-services/src/vscode/hashableUri')>(
+    'salesforcedx-vscode-services/src/vscode/hashableUri'
+  );
+  const vscodeMock = await import('vscode');
 
   let mockConnectionRef: any;
   let mockReadFileResult = '';
-  let mockWorkspaceUris = new Map<string, InstanceType<typeof UriClass>>();
-  const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
-  const mockMetadataRetrieve = jest.fn((_members: unknown, _options: unknown) =>
+  let mockWorkspaceUris = new Map<string, ReturnType<typeof UriClass.parse>>();
+  const mockReadFile = vi.fn(() => EffectLib.succeed(mockReadFileResult));
+  const mockMetadataRetrieve = vi.fn((_members: unknown, _options: unknown) =>
     EffectLib.succeed({ getFileResponses: () => [] })
   );
-  const mockCatalogInvalidate = jest.fn(() => EffectLib.void);
+  const mockCatalogInvalidate = vi.fn(() => EffectLib.void);
   const mockOrgMetadataCatalog = {
     resolveComponents: (references: readonly { type: string; fullName: string }[]) =>
       EffectLib.succeed(
@@ -55,19 +67,23 @@ jest.mock('../../../src/services/extensionProvider', () => {
     HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
-        try: () => require('vscode').window.showTextDocument(uri, options),
+        try: () =>
+          vscodeMock.window.showTextDocument(
+            uri as import('vscode').Uri,
+            options as import('vscode').TextDocumentShowOptions | undefined
+          ),
         catch: (e: unknown) => (e instanceof Error ? e : new Error(String(e)))
       })
   };
   const MockWorkspaceService = {
     getWorkspaceInfoOrThrow: EffectLib.succeed({ uri: UriClass.file('/tmp/workspace'), fsPath: '/tmp/workspace' })
   };
-  const mockAppendToChannel = jest.fn(() => EffectLib.void);
+  const mockAppendToChannel = vi.fn(() => EffectLib.void);
   const mockChannelService = { appendToChannel: mockAppendToChannel };
-  const mockShowSuccessNotification = jest.fn(() => EffectLib.void);
+  const mockShowSuccessNotification = vi.fn(() => EffectLib.void);
   const mockNotificationModeService = {
     showSuccessNotification: mockShowSuccessNotification,
-    getProgressLocation: jest.fn(() => EffectLib.succeed(require('vscode').ProgressLocation.Window))
+    getProgressLocation: vi.fn(() => EffectLib.succeed(vscodeMock.ProgressLocation.Window))
   };
   const mockServicesApi = {
     services: {
@@ -90,7 +106,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
         getValue: (_section: string, key: string, defaultValue: unknown) =>
           EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
       }),
-      // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):
+      // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService:
       // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
       // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
       TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org123', username: 'user@example.com' })
@@ -98,7 +114,12 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
   const ExtensionProviderLayer = Layer.effect(
     ExtensionProviderService,
-    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+    EffectLib.sync(
+      () =>
+        ({
+          getServicesApi: EffectLib.succeed(mockServicesApi)
+        }) as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService
+    )
   );
   // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
   // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
@@ -108,14 +129,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
   let treeService: any;
   const ensureRuntime = () => {
     if (!mockRuntime) {
-      treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
-      const executionService = jest.requireActual(
-        '../../../src/views/apexTestExecutionService'
-      ).ApexTestExecutionService;
+      treeService = ApexTestTreeServiceActual;
       MockAllServicesLayer = Layer.mergeAll(
         ExtensionProviderLayer,
         treeService.Default,
-        executionService.Default,
+        ApexTestExecutionServiceActual.Default,
         ApexTestRunCacheService.Default
       );
       // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
@@ -131,14 +149,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
       ensureRuntime();
       return MockAllServicesLayer;
     },
-    setAllServicesLayer: jest.fn(),
+    setAllServicesLayer: vi.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     },
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
     },
-    __setMockWorkspaceUris: (uris: Map<string, InstanceType<typeof UriClass>>) => {
+    __setMockWorkspaceUris: (uris: Map<string, ReturnType<typeof UriClass.parse>>) => {
       mockWorkspaceUris = uris;
     },
     __mockFsServiceReadFile: mockReadFile,
@@ -155,40 +173,51 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
-jest.mock('../../../src/utils/testUtils', () => {
-  const actual = jest.requireActual('../../../src/utils/testUtils');
-  const EffectLib = jest.requireActual('effect/Effect');
+vi.mock('../../../src/utils/testUtils', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/utils/testUtils')>('../../../src/utils/testUtils');
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   return {
     ...actual,
-    readTestRunIdFile: jest.fn(() => EffectLib.succeed(undefined))
+    readTestRunIdFile: vi.fn(() => EffectLib.succeed(undefined))
   };
 });
 
-jest.mock('../../../src/testDiscovery/packageResolution', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
+vi.mock('../../../src/testDiscovery/packageResolution', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
   // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 
 // Mock TestService before imports
 const mockTestServiceMethods = {
-  retrieveAllSuites: jest.fn().mockResolvedValue([]),
-  buildAsyncPayload: jest.fn().mockResolvedValue({}),
-  runTestAsynchronous: jest.fn().mockResolvedValue({
+  retrieveAllSuites: vi.fn().mockResolvedValue([]),
+  buildAsyncPayload: vi.fn().mockResolvedValue({}),
+  runTestAsynchronous: vi.fn().mockResolvedValue({
     tests: [],
     summary: { outcome: 'Passed', testsRan: 0 }
   }),
-  writeResultFiles: jest.fn().mockResolvedValue(undefined),
-  getTestsInSuite: jest.fn().mockResolvedValue([])
+  writeResultFiles: vi.fn().mockResolvedValue(undefined),
+  getTestsInSuite: vi.fn().mockResolvedValue([])
 };
 
-jest.mock('@salesforce/apex-node', () => ({
-  TestService: jest.fn().mockImplementation(() => mockTestServiceMethods),
-  HumanReporter: jest.fn().mockImplementation(() => ({
-    format: jest.fn().mockReturnValue('')
-  }))
+vi.mock('@salesforce/apex-node', () => ({
+  TestService: vi.fn().mockImplementation(
+    // Vitest constructor mocks must use a constructable function.
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    function () {
+      return mockTestServiceMethods;
+    }
+  ),
+  HumanReporter: vi.fn().mockImplementation(
+    // Vitest constructor mocks must use a constructable function.
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    function () {
+      return { format: vi.fn().mockReturnValue('') };
+    }
+  )
 }));
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as path from 'node:path';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
@@ -197,30 +226,33 @@ import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
+import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
+
+class MockFailure extends Schema.TaggedError<MockFailure>()('MockFailure', { message: Schema.String }) {}
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
-const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
-  const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
-  return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
-};
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> =>
+  extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
 
 // Mock vscode.tests API
 const mockTestController = {
   items: {
-    add: jest.fn(),
-    delete: jest.fn(),
-    replace: jest.fn(),
-    values: jest.fn().mockReturnValue([])
+    add: vi.fn(),
+    delete: vi.fn(),
+    replace: vi.fn(),
+    values: vi.fn().mockReturnValue([])
   } as unknown as vscode.TestItemCollection,
-  createTestItem: jest.fn(),
-  createTestRun: jest.fn(),
-  createRunProfile: jest.fn(),
+  createTestItem: vi.fn(),
+  createTestRun: vi.fn(),
+  createRunProfile: vi.fn(),
   refreshHandler: undefined as (() => Promise<void>) | undefined,
   resolveHandler: undefined as ((test: vscode.TestItem | undefined) => Promise<void>) | undefined,
-  dispose: jest.fn()
+  dispose: vi.fn()
 } as unknown as vscode.TestController;
 
 const mockTestItem = {
@@ -230,83 +262,85 @@ const mockTestItem = {
   range: undefined,
   canResolveChildren: false,
   children: {
-    add: jest.fn(),
-    values: jest.fn().mockReturnValue([]),
+    add: vi.fn(),
+    values: vi.fn().mockReturnValue([]),
     size: 0
   } as unknown as vscode.TestItemCollection
 } as unknown as vscode.TestItem;
 
 const mockTestRun = {
-  started: jest.fn(),
-  passed: jest.fn(),
-  failed: jest.fn(),
-  skipped: jest.fn(),
-  errored: jest.fn(),
-  end: jest.fn(),
-  appendOutput: jest.fn()
+  started: vi.fn(),
+  passed: vi.fn(),
+  failed: vi.fn(),
+  skipped: vi.fn(),
+  errored: vi.fn(),
+  end: vi.fn(),
+  appendOutput: vi.fn()
 } as unknown as vscode.TestRun;
 
 describe('ApexTestController', () => {
   let controller: ApexTestController;
   let mockConnection: any;
-  let discoverTestsSpy: jest.SpyInstance;
+  let discoverTestsSpy: VitestMockInstance;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Clear the singleton runtime's tree Refs so per-test map state does not leak.
     (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
     // Mock vscode.tests.createTestController
-    (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
+    (vscode.tests.createTestController as VitestMock) = vi.fn().mockReturnValue(mockTestController);
 
     // Mock workspace
-    (vscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
-      get: jest.fn().mockReturnValue('ls')
+    (vscode.workspace.getConfiguration as VitestMock) = vi.fn().mockReturnValue({
+      get: vi.fn().mockReturnValue('ls')
     });
     (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) = [
       { uri: URI.file('/workspace'), name: 'workspace', index: 0 }
     ];
-    (vscode.workspace.fs.readFile as jest.Mock) = jest.fn();
-    // updateTestResults uses new vscode.TestRunRequest() - must be a constructor in Jest
-    (vscode as typeof vscode & { TestRunRequest: new () => vscode.TestRunRequest }).TestRunRequest =
-      class {} as new () => vscode.TestRunRequest;
-    (vscode.workspace.createFileSystemWatcher as jest.Mock) = jest.fn().mockReturnValue({
-      onDidCreate: jest.fn(),
-      onDidChange: jest.fn(),
-      dispose: jest.fn()
+    (vscode.workspace.fs.readFile as VitestMock) = vi.fn();
+    (vscode.workspace.createFileSystemWatcher as VitestMock) = vi.fn().mockReturnValue({
+      onDidCreate: vi.fn(),
+      onDidChange: vi.fn(),
+      dispose: vi.fn()
     });
 
     // Mock commands
-    (vscode.commands.executeCommand as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+    (vscode.commands.executeCommand as VitestMock) = vi.fn().mockResolvedValue(undefined);
 
     // Mock connection
     mockConnection = {
-      getApiVersion: jest.fn().mockReturnValue('65.0'),
-      request: jest.fn(),
+      getApiVersion: vi.fn().mockReturnValue('65.0'),
+      request: vi.fn(),
       tooling: {
-        query: jest.fn().mockResolvedValue({ records: [] })
+        query: vi.fn().mockResolvedValue({ records: [] })
       }
     };
 
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
-    const Effect = jest.requireActual('effect/Effect');
-    discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
+    discoverTestsSpy = vi.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
     // Reset TestService mock
-    (TestService as jest.Mock).mockImplementation(() => mockTestServiceMethods);
+    (TestService as VitestMock).mockImplementation(
+      // Vitest constructor mocks must use a constructable function.
+      // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+      function () {
+        return mockTestServiceMethods;
+      }
+    );
     // Reset all mock methods
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
     mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
     (
       extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
     ).__setMockWorkspaceUris(new Map());
 
-    // Ensure vscode.Uri.parse has its default implementation (from setup-jest.ts)
+    // Ensure vscode.Uri.parse has its default implementation (from setupVitest.ts)
     // It should already have it, but let's make sure it's working
-    if (!(vscode.Uri.parse as jest.Mock).getMockImplementation()) {
-      (vscode.Uri.parse as jest.Mock).mockImplementation((value: string) => {
+    if (!(vscode.Uri.parse as VitestMock).getMockImplementation()) {
+      (vscode.Uri.parse as VitestMock).mockImplementation((value: string) => {
         const parts = value.match(/^([^:]+):(\/\/)?([^/]*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/);
         if (parts) {
           return {
@@ -341,7 +375,7 @@ describe('ApexTestController', () => {
     });
 
     it('should register workspace-first run as default and org-wide run as secondary (no profile tags)', () => {
-      const calls = (mockTestController.createRunProfile as jest.Mock).mock.calls;
+      const calls = (mockTestController.createRunProfile as VitestMock).mock.calls;
       expect(calls[0][1]).toBe(vscode.TestRunProfileKind.Run);
       expect(calls[0][3]).toBe(true);
       expect(calls[0][4]).toBeUndefined();
@@ -359,14 +393,13 @@ describe('ApexTestController', () => {
   describe('run profile handlers (workspace-first vs all-org)', () => {
     const cancellationToken = {
       isCancellationRequested: false,
-      onCancellationRequested: { dispose: jest.fn() }
+      onCancellationRequested: { dispose: vi.fn() }
     } as unknown as vscode.CancellationToken;
 
-    let getTestResultsFolderSpy: jest.SpiedFunction<typeof pathHelpers.getTestResultsFolder>;
+    let getTestResultsFolderSpy: VitestMockInstance<typeof pathHelpers.getTestResultsFolder>;
 
     beforeEach(() => {
-      const Effect = jest.requireActual('effect/Effect');
-      getTestResultsFolderSpy = jest
+      getTestResultsFolderSpy = vi
         .spyOn(pathHelpers, 'getTestResultsFolder')
         .mockReturnValue(Effect.succeed(URI.file(path.join('/tmp', 'apex-test-results'))));
       mockTestServiceMethods.buildAsyncPayload.mockResolvedValue({
@@ -377,7 +410,7 @@ describe('ApexTestController', () => {
         tests: [],
         summary: { outcome: 'Passed', testsRan: 1 }
       });
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
+      (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
     });
 
     afterEach(() => {
@@ -394,8 +427,8 @@ describe('ApexTestController', () => {
         range: undefined,
         canResolveChildren: false,
         children: {
-          add: jest.fn(),
-          forEach: jest.fn(),
+          add: vi.fn(),
+          forEach: vi.fn(),
           size: 0
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
@@ -439,8 +472,8 @@ describe('ApexTestController', () => {
         range: undefined,
         canResolveChildren: false,
         children: {
-          add: jest.fn(),
-          forEach: jest.fn(),
+          add: vi.fn(),
+          forEach: vi.fn(),
           size: 0
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
@@ -485,8 +518,8 @@ describe('ApexTestController', () => {
         range: undefined,
         canResolveChildren: false,
         children: {
-          add: jest.fn(),
-          forEach: jest.fn(),
+          add: vi.fn(),
+          forEach: vi.fn(),
           size: 0
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
@@ -541,7 +574,6 @@ describe('ApexTestController', () => {
         }
       ];
 
-      const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
       (
         extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
@@ -551,15 +583,15 @@ describe('ApexTestController', () => {
           ['TestClass2', URI.file('/workspace/TestClass2.cls')]
         ])
       );
-      (mockTestController.createTestItem as jest.Mock).mockImplementation(
+      (mockTestController.createTestItem as VitestMock).mockImplementation(
         (id: string, label: string, uri?: URI): Partial<vscode.TestItem> => ({
           id,
           label,
           uri,
           canResolveChildren: false,
           children: {
-            add: jest.fn(),
-            values: jest.fn().mockReturnValue([]),
+            add: vi.fn(),
+            values: vi.fn().mockReturnValue([]),
             size: 0
           } as unknown as vscode.TestItemCollection
         })
@@ -574,8 +606,7 @@ describe('ApexTestController', () => {
 
     it('should handle errors during discovery', async () => {
       // Mock discoverTests to return a failing Effect
-      const Effect = jest.requireActual('effect/Effect');
-      discoverTestsSpy.mockReturnValue(Effect.fail(new Error('Discovery failed')));
+      discoverTestsSpy.mockReturnValue(Effect.fail(new MockFailure({ message: 'Discovery failed' })));
 
       // discoverTests catches errors and logs them, so it should resolve (not reject)
       await expect(controller.discoverTests()).resolves.toBeUndefined();
@@ -591,11 +622,10 @@ describe('ApexTestController', () => {
         }
       ];
 
-      const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
       // OrgOnlyClass does not exist locally, so the catalog resolver returns the remote document URI.
       const createdItemsMap = new Map<string, any>();
-      (mockTestController.createTestItem as jest.Mock).mockImplementation(
+      (mockTestController.createTestItem as VitestMock).mockImplementation(
         (id: string, label: string, uri?: URI): vscode.TestItem => {
           const item: any = {
             id,
@@ -604,8 +634,8 @@ describe('ApexTestController', () => {
             tags: undefined,
             canResolveChildren: false,
             children: {
-              add: jest.fn(),
-              values: jest.fn().mockReturnValue([]),
+              add: vi.fn(),
+              values: vi.fn().mockReturnValue([]),
               size: 0
             } as unknown as vscode.TestItemCollection
           };
@@ -658,8 +688,8 @@ describe('ApexTestController', () => {
   describe('openOrgOnlyTest', () => {
     it('should open org-only class test', async () => {
       // Clear call history for VS Code APIs and spies
-      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
-      (vscode.window.showTextDocument as jest.Mock).mockClear();
+      (vscode.workspace.openTextDocument as VitestMock).mockClear();
+      (vscode.window.showTextDocument as VitestMock).mockClear();
 
       const classTestItem = {
         id: 'class:OrgOnlyClass',
@@ -668,30 +698,30 @@ describe('ApexTestController', () => {
         tags: [{ id: 'org-only' } as vscode.TestTag],
         canResolveChildren: false,
         children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
+          add: vi.fn(),
+          values: vi.fn().mockReturnValue([]),
           size: 0
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       const mockDocument = {
-        getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
+        getText: vi.fn().mockReturnValue('public class OrgOnlyClass {}'),
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       };
 
       const mockEditor = {
         selection: {} as vscode.Selection,
-        revealRange: jest.fn()
+        revealRange: vi.fn()
       };
 
-      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
-      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue(mockEditor);
+      (vscode.workspace.openTextDocument as VitestMock).mockResolvedValue(mockDocument);
+      (vscode.window.showTextDocument as VitestMock).mockResolvedValue(mockEditor);
 
       await controller.openOrgOnlyTest(classTestItem);
 
       // fsService.showTextDocument opens the URI directly (no separate openTextDocument)
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
-      const showDocCall = (vscode.window.showTextDocument as jest.Mock).mock.calls[0][0];
+      const showDocCall = (vscode.window.showTextDocument as VitestMock).mock.calls[0][0];
       expect(showDocCall).toBeDefined();
       expect(showDocCall.toString()).toContain('sf-org-metadata');
       expect(showDocCall.toString()).toContain('OrgOnlyClass');
@@ -699,8 +729,8 @@ describe('ApexTestController', () => {
 
     it('should open org-only method test and navigate to position', async () => {
       // Clear call history
-      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
-      (vscode.window.showTextDocument as jest.Mock).mockClear();
+      (vscode.workspace.openTextDocument as VitestMock).mockClear();
+      (vscode.window.showTextDocument as VitestMock).mockClear();
 
       const methodTestItem = {
         id: 'method:OrgOnlyClass.testMethod',
@@ -710,24 +740,24 @@ describe('ApexTestController', () => {
         range: new vscode.Range(new vscode.Position(5, 10), new vscode.Position(5, 10)),
         canResolveChildren: false,
         children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
+          add: vi.fn(),
+          values: vi.fn().mockReturnValue([]),
           size: 0
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       const mockDocument = {
-        getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
+        getText: vi.fn().mockReturnValue('public class OrgOnlyClass {}'),
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       };
 
       const mockEditor = {
         selection: {} as vscode.Selection,
-        revealRange: jest.fn()
+        revealRange: vi.fn()
       };
 
-      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
-      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue(mockEditor);
+      (vscode.workspace.openTextDocument as VitestMock).mockResolvedValue(mockDocument);
+      (vscode.window.showTextDocument as VitestMock).mockResolvedValue(mockEditor);
 
       await controller.openOrgOnlyTest(methodTestItem);
 
@@ -745,7 +775,6 @@ describe('ApexTestController', () => {
 
   describe('refresh', () => {
     it('should clear and rediscover tests', async () => {
-      const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: [] }));
 
       await controller.refresh();
@@ -753,7 +782,7 @@ describe('ApexTestController', () => {
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
       expect(discoverTestsSpy).toHaveBeenCalled();
       expect(
-        (extensionProvider as unknown as { __mockCatalogInvalidate: jest.Mock }).__mockCatalogInvalidate
+        (extensionProvider as unknown as { __mockCatalogInvalidate: VitestMock }).__mockCatalogInvalidate
       ).not.toHaveBeenCalled();
     });
   });
@@ -767,31 +796,31 @@ describe('ApexTestController', () => {
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
-      notificationService.showInformationMessage = jest.fn();
+      notificationService.showInformationMessage = vi.fn();
       (
-        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+        extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }
       ).__mockShowSuccessNotification.mockClear();
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
-      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue({
+      (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve.mockClear();
+      (vscode.workspace.openTextDocument as VitestMock).mockResolvedValue({
         uri: orgOnlyClassFileUri
       });
-      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (vscode.window.showTextDocument as VitestMock).mockResolvedValue({});
       (
-        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+        extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }
       ).__mockMetadataRetrieve.mockReturnValueOnce(
-        jest.requireActual('effect/Effect').succeed({
+        Effect.succeed({
           getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
         })
       );
       (
         extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
       ).__setMockWorkspaceUris(new Map([['OrgOnlyClass', orgOnlyClassFileUri]]));
-      const refreshSpy = jest.spyOn(controller, 'refresh').mockResolvedValue(undefined);
+      const refreshSpy = vi.spyOn(controller, 'refresh').mockResolvedValue(undefined);
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(
-        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+        (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve
       ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], {
         ignoreConflicts: true,
         progressLocation: vscode.ProgressLocation.Window
@@ -802,7 +831,7 @@ describe('ApexTestController', () => {
       );
       expect(refreshSpy).not.toHaveBeenCalled();
       expect(
-        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+        (extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }).__mockShowSuccessNotification
       ).toHaveBeenCalled();
     });
 
@@ -813,24 +842,22 @@ describe('ApexTestController', () => {
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
-      notificationService.showInformationMessage = jest.fn();
-      notificationService.showFailedExecution = jest.fn();
+      notificationService.showInformationMessage = vi.fn();
+      notificationService.showFailedExecution = vi.fn();
       (
-        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+        extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }
       ).__mockShowSuccessNotification.mockClear();
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve.mockClear();
       (
-        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
-      ).__mockMetadataRetrieve.mockReturnValueOnce(
-        jest.requireActual('effect/Effect').fail({ _tag: 'UserCancellationError' })
-      );
+        extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(Effect.fail({ _tag: 'UserCancellationError' }));
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(notificationService.showInformationMessage).toHaveBeenCalled();
       expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
       expect(
-        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+        (extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }).__mockShowSuccessNotification
       ).not.toHaveBeenCalled();
     });
 
@@ -841,22 +868,20 @@ describe('ApexTestController', () => {
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
-      notificationService.showFailedExecution = jest.fn();
+      notificationService.showFailedExecution = vi.fn();
       (
-        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+        extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }
       ).__mockShowSuccessNotification.mockClear();
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve.mockClear();
       (
-        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
-      ).__mockMetadataRetrieve.mockReturnValueOnce(
-        jest.requireActual('effect/Effect').fail({ _tag: 'MetadataRetrieveError', message: 'boom' })
-      );
+        extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(Effect.fail({ _tag: 'MetadataRetrieveError', message: 'boom' }));
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(notificationService.showFailedExecution).toHaveBeenCalled();
       expect(
-        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+        (extensionProvider as unknown as { __mockShowSuccessNotification: VitestMock }).__mockShowSuccessNotification
       ).not.toHaveBeenCalled();
     });
 
@@ -867,12 +892,12 @@ describe('ApexTestController', () => {
         uri: URI.file('/workspace/force-app/main/default/classes/LocalClass.cls')
       } as unknown as vscode.TestItem;
 
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve.mockClear();
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(
-        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+        (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve
       ).not.toHaveBeenCalled();
     });
 
@@ -883,12 +908,12 @@ describe('ApexTestController', () => {
         uri: URI.parse('sf-org-metadata:/orgs/another-org/ApexClass/StaleClass.cls')
       } as unknown as vscode.TestItem;
 
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve.mockClear();
 
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(
-        (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
+        (extensionProvider as unknown as { __mockMetadataRetrieve: VitestMock }).__mockMetadataRetrieve
       ).not.toHaveBeenCalled();
     });
   });
@@ -911,15 +936,15 @@ describe('ApexTestController', () => {
         JSON.stringify(testResult)
       );
 
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
-      (mockTestController.createTestItem as jest.Mock).mockReturnValue(mockTestItem);
+      (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
+      (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem);
 
       const apexTestDir = URI.file('/tmp');
       const testResultUri = URI.file(path.join(apexTestDir.fsPath, 'test-result.json'));
       await controller.onResultFileCreate(apexTestDir, testResultUri);
 
       expect(
-        (extensionProvider as unknown as { __mockFsServiceReadFile: jest.Mock }).__mockFsServiceReadFile
+        (extensionProvider as unknown as { __mockFsServiceReadFile: VitestMock }).__mockFsServiceReadFile
       ).toHaveBeenCalled();
     });
   });
@@ -932,8 +957,8 @@ describe('ApexTestController', () => {
         label: 'testMethod1'
       };
 
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
-      (mockTestController.createTestItem as jest.Mock).mockReturnValue(mockTestItem1);
+      (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
+      (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem1);
 
       const testResult = {
         tests: [
@@ -971,11 +996,10 @@ describe('ApexTestController', () => {
   });
 
   describe('incrementalUpdate', () => {
-    let discoverTestsSpyLocal: jest.SpyInstance;
+    let discoverTestsSpyLocal: VitestMockInstance;
 
     beforeEach(() => {
-      const Effect = jest.requireActual('effect/Effect');
-      discoverTestsSpyLocal = jest.spyOn(testDiscovery, 'discoverTests');
+      discoverTestsSpyLocal = vi.spyOn(testDiscovery, 'discoverTests');
       discoverTestsSpyLocal.mockReturnValue(Effect.succeed({ classes: [] }));
     });
 
@@ -983,8 +1007,8 @@ describe('ApexTestController', () => {
       const changes = new Map([['MyTestClass', 'changed']]);
       await controller.incrementalUpdate(changes, false);
 
-      const clearResultsCalls = (vscode.commands.executeCommand as jest.Mock).mock.calls.filter(
-        ([cmd]: [string]) => cmd === 'testing.clearTestResults'
+      const clearResultsCalls = (vscode.commands.executeCommand as VitestMock).mock.calls.filter(
+        ([cmd]) => cmd === 'testing.clearTestResults'
       );
       expect(clearResultsCalls).toHaveLength(0);
     });
@@ -1018,8 +1042,7 @@ describe('ApexTestController', () => {
     });
 
     it('should fall back to full discoverTests on error', async () => {
-      const Effect = jest.requireActual('effect/Effect');
-      discoverTestsSpyLocal.mockReturnValue(Effect.fail(new Error('API error')));
+      discoverTestsSpyLocal.mockReturnValue(Effect.fail(new MockFailure({ message: 'API error' })));
 
       // discoverTests is also called by the fallback path (full refresh)
       // After the incremental attempt fails, it retries with full discoverTests
@@ -1036,7 +1059,7 @@ describe('ApexTestController', () => {
       const suiteItem = {
         id: 'suite:MySuite',
         label: 'MySuite',
-        children: { replace: jest.fn(), size: 1 } as unknown as vscode.TestItemCollection
+        children: { replace: vi.fn(), size: 1 } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       treeMap('getSuiteItems').set('MySuite', suiteItem);
@@ -1056,7 +1079,7 @@ describe('ApexTestController', () => {
 describe('getTestController', () => {
   it('should return singleton instance', () => {
     // Mock vscode.tests.createTestController for this test
-    (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
+    (vscode.tests.createTestController as VitestMock) = vi.fn().mockReturnValue(mockTestController);
 
     const instance1 = getTestController();
     const instance2 = getTestController();

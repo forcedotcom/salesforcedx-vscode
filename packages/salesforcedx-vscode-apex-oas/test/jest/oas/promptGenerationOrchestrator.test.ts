@@ -144,23 +144,23 @@ describe('selectStrategyByBidRule', () => {
   const buildMockStrategy = (strategyName: string): GenerationStrategy =>
     ({
       strategyName,
-      bid: jest.fn(),
-      generateOAS: jest.fn(),
-      getTelemetry: jest.fn()
+      bid: vi.fn(),
+      generateOAS: vi.fn(),
+      getTelemetry: vi.fn()
     }) as unknown as GenerationStrategy;
 
   const stubInitializeAndBid = (
     strategies: Map<GenerationStrategyType, GenerationStrategy>,
     bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
   ) => {
-    jest.spyOn(factory, 'initializeAndBid').mockReturnValue(Effect.succeed({ strategies, bids }) as never);
+    vi.spyOn(factory, 'initializeAndBid').mockReturnValue(Effect.succeed({ strategies, bids }) as never);
   };
 
   // initializeAndBid is mocked, so the `R` channel is empty at runtime; cast away the static service requirements.
   const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') => {
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
       get: () => rule,
-      update: jest.fn()
+      update: vi.fn()
     } as unknown as vscode.WorkspaceConfiguration);
     return Effect.runPromise(
       selectStrategyByBidRule(mockMetadata, mockContext) as Effect.Effect<GenerationStrategy, unknown, never>
@@ -168,7 +168,7 @@ describe('selectStrategyByBidRule', () => {
   };
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('returns the strategy chosen by LEAST_CALLS', async () => {

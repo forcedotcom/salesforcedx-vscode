@@ -13,16 +13,14 @@ import { nls } from '../../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
 Object.assign(vscode, { DiagnosticSeverity: { Error: 0 } });
-jest.mocked(vscode.languages.createDiagnosticCollection).mockReturnValue({
-  clear: jest.fn()
-} as unknown as vscode.DiagnosticCollection);
-
-const { methodValidationStep } = jest.requireActual<
-  typeof import('../../../../src/oas/documentProcessorPipeline/methodValidationStep')
->('../../../../src/oas/documentProcessorPipeline/methodValidationStep');
 
 describe('methodValidationStep', () => {
   it('preserves source order for multiple method mismatches', async () => {
+    vi.mocked(vscode.languages.createDiagnosticCollection).mockReturnValue({
+      clear: vi.fn()
+    } as unknown as vscode.DiagnosticCollection);
+    const { methodValidationStep } =
+      await import('../../../../src/oas/documentProcessorPipeline/methodValidationStep.js');
     const methodNames = ['firstMethod', 'secondMethod', 'thirdMethod', 'fourthMethod'];
     const operationIds = ['firstOperation', 'secondOperation', 'thirdOperation', 'fourthOperation'];
     const position = { line: 0, character: 0 };
@@ -52,7 +50,7 @@ describe('methodValidationStep', () => {
         )
       }
     };
-    const localize = jest.spyOn(nls, 'localize');
+    const localize = vi.spyOn(nls, 'localize');
 
     await Effect.runPromise(methodValidationStep(input));
 

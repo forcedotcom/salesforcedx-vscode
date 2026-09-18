@@ -12,7 +12,7 @@ import * as Tracer from 'effect/Tracer';
 export type RecordedSpan = { name: string; attributes: Map<string, unknown>; ended: boolean };
 
 /**
- * Shared recording-tracer mock for `jest.mock('.../services/runtime')`. Pushes every started span
+ * Shared recording-tracer mock for `vi.mock('.../services/runtime')`. Pushes every started span
  * (name + attrs + ended flag) into the array returned by `getRecordedSpans` so span emission/rotation
  * can be asserted. `getRecordedSpans` is a thunk (not the array itself) because jest hoists imports
  * above the test's `const mockRecordedSpans`, so the array must be dereferenced lazily. Pass

@@ -18,9 +18,11 @@ import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
 
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-  refreshAllExtensionReporters: jest.fn().mockResolvedValue(undefined)
+vi.mock('@salesforce/salesforcedx-utils-vscode', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/salesforcedx-utils-vscode')>(
+    '@salesforce/salesforcedx-utils-vscode'
+  )),
+  refreshAllExtensionReporters: vi.fn().mockResolvedValue(undefined)
 }));
 
 const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
@@ -75,7 +77,7 @@ const createRuntime = () =>
   ManagedRuntime.make(Layer.merge(dependencies, Layer.provide(WorkspaceContextService.Default, dependencies)));
 let runtime = createRuntime();
 
-jest.mock('../../../src/services/runtime', () => ({ getRuntime: () => runtime }));
+vi.mock('../../../src/services/runtime', () => ({ getRuntime: () => runtime }));
 
 const flushEffects = () => new Promise(resolve => setImmediate(resolve));
 
@@ -87,7 +89,7 @@ describe('WorkspaceContext', () => {
     await runtime.dispose();
     await Effect.runPromise(closeExtensionScope());
     runtime = createRuntime();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     coreContext.subscriptions.length = 0;
     replayContext.subscriptions.length = 0;
     getTargetOrgRef = () => Effect.succeed(targetOrgRef);
@@ -95,9 +97,9 @@ describe('WorkspaceContext', () => {
     WorkspaceContext.disposeInstance();
     WorkspaceContext.getInstance(true);
     await flushEffects();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     await setTargetOrg({});
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(async () => {
@@ -110,11 +112,11 @@ describe('WorkspaceContext', () => {
   it('seeds synchronous getters from the initial snapshot without firing an event', async () => {
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
 
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: 'initial@example.com',
@@ -126,7 +128,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('does not require a connection to initialize from an empty target-org snapshot', async () => {
-    const getConnectionMock = jest.fn(() => Effect.succeed(connection));
+    const getConnectionMock = vi.fn(() => Effect.succeed(connection));
     getConnection = getConnectionMock;
     const context = WorkspaceContext.getInstance(true);
 
@@ -143,7 +145,7 @@ describe('WorkspaceContext', () => {
   it('initializes from orgId before username enrichment without emitting setup changes', async () => {
     await setTargetOrg({ orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
 
     await context.initialize(coreContext as never);
@@ -164,7 +166,7 @@ describe('WorkspaceContext', () => {
       observedGetters.push({ username: context.username, alias: context.alias, orgId: context.orgId })
     );
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const switched = { username: 'switched@example.com', alias: 'configured', orgId: ORG_SWITCHED };
     await setTargetOrg(switched);
@@ -177,11 +179,11 @@ describe('WorkspaceContext', () => {
 
   it('serializes telemetry refreshes across target-org changes', async () => {
     const firstRefresh = Promise.withResolvers<void>();
-    jest.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
+    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
     const context = WorkspaceContext.getInstance(true);
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
-    jest.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
+    vi.clearAllMocks();
+    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
 
     await setTargetOrg({ username: 'first@example.com', orgId: ORG_FIRST });
     await flushEffects();
@@ -198,10 +200,10 @@ describe('WorkspaceContext', () => {
   it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
@@ -215,10 +217,10 @@ describe('WorkspaceContext', () => {
   it('fires when only the configured alias changes', async () => {
     await setTargetOrg({ username: 'initial@example.com', alias: 'first', orgId: ORG_INITIAL });
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     await setTargetOrg({ username: 'initial@example.com', alias: 'second', orgId: ORG_INITIAL });
     await flushEffects();
@@ -232,7 +234,7 @@ describe('WorkspaceContext', () => {
     await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: ORG_BEFORE });
     const context = WorkspaceContext.getInstance(true);
     await context.initialize(replayContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const changed = new Promise<void>(resolve => context.onOrgChange(() => resolve()));
     await setTargetOrg({});
@@ -275,15 +277,15 @@ describe('WorkspaceContext', () => {
   it('keeps retained facades live when the singleton reference is replaced', async () => {
     await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: ORG_FIRST });
     const first = WorkspaceContext.getInstance(true);
-    const firstListener = jest.fn();
+    const firstListener = vi.fn();
     first.onOrgChange(firstListener);
     await first.initialize(coreContext as never);
 
     const replacement = WorkspaceContext.getInstance(true);
-    const replacementListener = jest.fn();
+    const replacementListener = vi.fn();
     replacement.onOrgChange(replacementListener);
     await replacement.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const switched = { username: 'second@example.com', alias: 'second', orgId: ORG_SECOND };
     await setTargetOrg(switched);
@@ -306,7 +308,7 @@ describe('WorkspaceContext', () => {
 
   it('disposes shared facade state with the singleton', async () => {
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
 
@@ -317,10 +319,10 @@ describe('WorkspaceContext', () => {
 
   it('stops org-change processing when the extension scope closes', async () => {
     const context = WorkspaceContext.getInstance(true);
-    const listener = jest.fn();
+    const listener = vi.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     await Effect.runPromise(closeExtensionScope());
     await setTargetOrg({ username: 'after-close@example.com', orgId: ORG_CLOSED });

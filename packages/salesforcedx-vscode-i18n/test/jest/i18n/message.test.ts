@@ -28,8 +28,8 @@ describe('Message Unit Tests.', () => {
   beforeEach(() => {
     delegate = new Message(backupMessageBundle);
     // Avoid printing warnings in tests.
-    jest.spyOn(console, 'warn');
-    jest.spyOn(console, 'log');
+    vi.spyOn(console, 'warn');
+    vi.spyOn(console, 'log');
   });
 
   it('Should be able to create an instance.', () => {

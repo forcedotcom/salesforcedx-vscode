@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx-apex-debugger';
 import * as Effect from 'effect/Effect';
@@ -15,7 +16,7 @@ import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/p
 import * as vscode from 'vscode';
 import { activateEffect, getExceptionBreakpointCache, type ExceptionBreakpointItem } from '../../src/index';
 
-const registerCommandWithRuntime = jest.fn();
+const registerCommandWithRuntime = vi.fn();
 const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
     value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
@@ -39,7 +40,7 @@ const extensionProviderLayer = () =>
     Layer.succeed(NotificationModeService, notificationMode)
   );
 
-const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
+const extensionContext = { subscriptions: { push: vi.fn() } } as unknown as vscode.ExtensionContext;
 const runActivate = () =>
   Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
@@ -61,21 +62,21 @@ const runExceptionBreakpointCommand = async () => {
 
 describe('activateEffect', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     getExceptionBreakpointCache().clear();
     registerCommandWithRuntime.mockReturnValue(Effect.void);
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
-    (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
-      onDidReceiveDebugSessionCustomEvent: jest.fn(),
-      onDidStartDebugSession: jest.fn(),
-      registerDebugConfigurationProvider: jest.fn()
+    (vscode as unknown as { debug: Record<string, VitestMock> }).debug = {
+      onDidReceiveDebugSessionCustomEvent: vi.fn(),
+      onDidStartDebugSession: vi.fn(),
+      registerDebugConfigurationProvider: vi.fn()
     };
-    (vscode.Disposable as unknown as { from: jest.Mock }).from = jest.fn();
-    (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+    (vscode.Disposable as unknown as { from: VitestMock }).from = vi.fn();
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
       isActive: true,
       exports: {
-        getExceptionBreakpointInfo: jest.fn().mockResolvedValue([
+        getExceptionBreakpointInfo: vi.fn().mockResolvedValue([
           {
             label: 'System.Exception',
             typeref: 'System.Exception',
@@ -84,10 +85,10 @@ describe('activateEffect', () => {
         ])
       }
     });
-    (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue({
-      onDidChange: jest.fn(),
-      onDidCreate: jest.fn(),
-      onDidDelete: jest.fn()
+    (vscode.workspace.createFileSystemWatcher as VitestMock).mockReturnValue({
+      onDidChange: vi.fn(),
+      onDidCreate: vi.fn(),
+      onDidDelete: vi.fn()
     });
   });
 
@@ -100,7 +101,7 @@ describe('activateEffect', () => {
   });
 
   it('fails with UserCancellationError when exception selection is dismissed', async () => {
-    (vscode.window.showQuickPick as jest.Mock).mockResolvedValue(undefined);
+    (vscode.window.showQuickPick as VitestMock).mockResolvedValue(undefined);
 
     const exit = await runExceptionBreakpointCommand();
 
@@ -108,7 +109,7 @@ describe('activateEffect', () => {
   });
 
   it('fails with UserCancellationError when break mode selection is dismissed', async () => {
-    (vscode.window.showQuickPick as jest.Mock)
+    (vscode.window.showQuickPick as VitestMock)
       .mockResolvedValueOnce({ label: 'System.Exception', typeref: 'System.Exception', breakMode: 'never' })
       .mockResolvedValueOnce(undefined);
 
@@ -123,7 +124,7 @@ describe('activateEffect', () => {
       typeref: 'System.Exception',
       breakMode: 'never'
     };
-    (vscode.window.showQuickPick as jest.Mock)
+    (vscode.window.showQuickPick as VitestMock)
       .mockResolvedValueOnce(selectedException)
       .mockResolvedValueOnce({ label: 'Always', breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS });
 

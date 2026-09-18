@@ -9,16 +9,16 @@ import * as cross_spawn from 'cross-spawn';
 import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
-jest.mock('cross-spawn');
-jest.mock('../../../src/core/cliCommandExecution');
-const crossSpawnMocked = jest.mocked(cross_spawn);
-const CliCommandExecutorMock = jest.mocked(CliCommandExecution);
+vi.mock('cross-spawn');
+vi.mock('../../../src/core/cliCommandExecution');
+const crossSpawnMocked = vi.mocked(cross_spawn);
+const CliCommandExecutorMock = vi.mocked(CliCommandExecution);
 
 describe('CliCommandExecutor Unit Tests.', () => {
   const fakeCommand: Command = {
     command: 'do a thing',
     args: ['arg1', 'arg2'],
-    toCommand: jest.fn()
+    toCommand: vi.fn()
   };
   const options = {
     env: {

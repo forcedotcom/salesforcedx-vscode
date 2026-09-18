@@ -7,11 +7,11 @@
 
 // Mocks are hoisted; static import is fine
 
-jest.mock('../../../src/services/extensionProvider', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const Context = jest.requireActual('effect/Context');
-  const Layer = jest.requireActual('effect/Layer');
-  const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
+vi.mock('../../../src/services/extensionProvider', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
+  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
@@ -47,6 +47,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Option from 'effect/Option';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
@@ -54,12 +55,12 @@ import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 const mockConnection = {
   instanceUrl: 'https://example.com',
   getApiVersion: () => '61.0',
-  request: jest.fn()
+  request: vi.fn()
 } as any;
 
 describe('TestDiscovery', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Set the mock connection for the extensionProvider mock
     (extensionProvider as any).__setMockConnection(mockConnection);
   });
@@ -87,7 +88,7 @@ describe('TestDiscovery', () => {
       ],
       nextRecordsUrl: null
     };
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
+    (mockConnection.request as VitestMock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
     const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
 
@@ -99,7 +100,7 @@ describe('TestDiscovery', () => {
   });
 
   it('decodes wire "" sentinels to Option.none() and non-empty prefixes to Option.some()', async () => {
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({
       apexTestClasses: [
         { id: '', name: 'DefaultNsClass', namespacePrefix: '', testMethods: [{ name: 'testOne' }] },
         { id: '01pFLOW', name: 'FlowClass', namespacePrefix: 'FlowTesting', testMethods: [{ name: 'testTwo' }] }
@@ -116,23 +117,23 @@ describe('TestDiscovery', () => {
   });
 
   it('gracefully returns empty when API returns no classes', async () => {
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(result.classes).toHaveLength(0);
   });
 
   it('handles API errors', async () => {
-    (mockConnection.request as jest.Mock).mockRejectedValueOnce(new Error('Boom'));
+    (mockConnection.request as VitestMock).mockRejectedValueOnce(new Error('Boom'));
     await expect(extensionProvider.getApexTestingRuntime().runPromise(discoverTests())).rejects.toThrow(
       'Failed to fetch test discovery page: Boom'
     );
   });
 
   it('uses minimum API version 65.0 and sets showAllMethods=true below v68', async () => {
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(mockConnection.request).toHaveBeenCalledTimes(1);
-    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    const firstCallArg = (mockConnection.request as VitestMock).mock.calls[0][0];
     expect(firstCallArg.method).toBe('GET');
     expect(firstCallArg.url).toMatch(/^\/services\/data\/v65\.0\/tooling\/tests\?/);
     expect(firstCallArg.url).toContain('showAllMethods=true');
@@ -141,9 +142,9 @@ describe('TestDiscovery', () => {
 
   it('omits showAllMethods and sets testLevel=RunAllTestsInOrg on v68.0', async () => {
     (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '68.0' });
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
-    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    const firstCallArg = (mockConnection.request as VitestMock).mock.calls[0][0];
     expect(firstCallArg.url).toMatch(/^\/services\/data\/v68\.0\/tooling\/tests\?/);
     expect(firstCallArg.url).toContain('testLevel=RunAllTestsInOrg');
     expect(firstCallArg.url).not.toContain('showAllMethods');
@@ -151,33 +152,33 @@ describe('TestDiscovery', () => {
 
   it('keeps showAllMethods=true just under the gate on v67.9', async () => {
     (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '67.9' });
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
-    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    const firstCallArg = (mockConnection.request as VitestMock).mock.calls[0][0];
     expect(firstCallArg.url).toContain('showAllMethods=true');
     expect(firstCallArg.url).not.toContain('testLevel');
   });
 
   it('sets testLevel=RunAllTestsInOrg above the gate on v69.0 (>=, not ==68)', async () => {
     (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '69.0' });
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
-    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    const firstCallArg = (mockConnection.request as VitestMock).mock.calls[0][0];
     expect(firstCallArg.url).toContain('testLevel=RunAllTestsInOrg');
     expect(firstCallArg.url).not.toContain('showAllMethods');
   });
 
   it('passes namespacePrefix when provided', async () => {
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests({ namespacePrefix: 'MyNS' }));
-    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    const firstCallArg = (mockConnection.request as VitestMock).mock.calls[0][0];
     expect(firstCallArg.url).toContain('namespacePrefix=MyNS');
     expect(firstCallArg.url).toContain('showAllMethods=true');
   });
 
   it('handles unexpected response shape without throwing', async () => {
     // Missing apexTestClasses entirely
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ nextRecordsUrl: null });
+    (mockConnection.request as VitestMock).mockResolvedValueOnce({ nextRecordsUrl: null });
     const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(result.classes).toEqual([]);
   });

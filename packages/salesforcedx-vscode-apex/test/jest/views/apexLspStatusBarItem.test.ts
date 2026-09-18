@@ -4,16 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
-jest.mock('vscode');
+vi.mock('vscode');
 
 describe('ApexLSPStatusBarItem', () => {
   let statusBarItem: ApexLSPStatusBarItem;
-  let setMock: jest.SpyInstance;
+  let setMock: VitestMockInstance;
   let mockLanguageStatusItem: vscode.LanguageStatusItem;
   let mockRestartStatusItem: vscode.LanguageStatusItem;
 
@@ -22,41 +23,45 @@ describe('ApexLSPStatusBarItem', () => {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
       command: undefined,
-      dispose: jest.fn()
+      dispose: vi.fn()
     } as unknown as vscode.LanguageStatusItem;
 
     mockRestartStatusItem = {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
       command: undefined,
-      dispose: jest.fn()
+      dispose: vi.fn()
     } as unknown as vscode.LanguageStatusItem;
 
-    jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockImplementation(id => {
+    vi.spyOn(vscode.languages, 'createLanguageStatusItem').mockImplementation(id => {
       if (id === 'ApexLSPLanguageStatusItem') {
         return mockLanguageStatusItem;
       }
       return mockRestartStatusItem;
     });
 
-    jest.spyOn(vscode.languages, 'createDiagnosticCollection').mockReturnValue({
-      set: jest.fn(() => Promise.resolve()),
-      dispose: jest.fn()
+    vi.spyOn(vscode.languages, 'createDiagnosticCollection').mockReturnValue({
+      set: vi.fn(() => Promise.resolve()),
+      dispose: vi.fn()
     } as unknown as vscode.DiagnosticCollection);
 
-    jest.spyOn(URI, 'file').mockReturnValue({
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn().mockReturnValue('off')
+    } as unknown as vscode.WorkspaceConfiguration);
+
+    vi.spyOn(URI, 'file').mockReturnValue({
       fsPath: '/ApexLSP'
     } as unknown as URI);
 
     statusBarItem = new ApexLSPStatusBarItem();
-    setMock = jest.spyOn(statusBarItem['diagnostics'], 'set');
+    setMock = vi.spyOn(statusBarItem['diagnostics'], 'set');
 
     // Initialize disposables array with the diagnostic collection
     statusBarItem['disposables'] = [statusBarItem['diagnostics']];
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('initialization', () => {

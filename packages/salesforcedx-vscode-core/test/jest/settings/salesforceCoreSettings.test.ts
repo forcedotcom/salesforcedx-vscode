@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { ALL_EXCEPTION_CATCHER_ENABLED } from '../../../src/constants';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 
 describe('salesforceCoreSettings', () => {
-  let getConfigValueSpy: jest.SpyInstance;
+  let getConfigValueSpy: VitestMockInstance;
   beforeEach(() => {
-    getConfigValueSpy = jest.spyOn((SalesforceCoreSettings as any).prototype, 'getConfigValue');
+    getConfigValueSpy = vi.spyOn((SalesforceCoreSettings as any).prototype, 'getConfigValue');
   });
   describe('getEnableAllExceptionCatcher', () => {
     it('should set the default value for enable all exception catching to be false.', () => {

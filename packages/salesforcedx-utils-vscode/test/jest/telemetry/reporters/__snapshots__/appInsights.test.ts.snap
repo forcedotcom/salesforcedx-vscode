@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId to appInsightsClient.trackException 1`] = `
+exports[`AppInsights > sendTelemetryEvent and sendExceptionEvent > should send orgId to appInsightsClient.trackException 1`] = `
 {
   "exception": [anExtensionId/Dummy Exception: a dummy exception occurred],
   "measurements": undefined,
@@ -11,7 +11,7 @@ exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId
 }
 `;
 
-exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send telemetry data to appInsightsClient.trackEvent 1`] = `
+exports[`AppInsights > sendTelemetryEvent and sendExceptionEvent > should send telemetry data to appInsightsClient.trackEvent 1`] = `
 {
   "measurements": {},
   "name": "anExtensionId/Dummy Telemetry Event",

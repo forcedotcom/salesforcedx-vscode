@@ -13,9 +13,9 @@ import { SettingsService } from '../../../src/vscode/settingsService';
 const FALLBACK_API_VERSION = '67.0';
 
 const mockGetConfiguration = (value: string | undefined): void => {
-  jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+  vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
     get: () => value,
-    update: jest.fn()
+    update: vi.fn()
   } as unknown as vscode.WorkspaceConfiguration);
 };
 

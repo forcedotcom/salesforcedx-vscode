@@ -4,17 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import { retrieveAAMethodAnnotations, retrieveEnableSyncInitJobs } from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
-  const vscodeMocked = jest.mocked(vscode);
-  let getConfigurationMock: jest.SpyInstance;
-  let getFn: jest.Mock;
+  const vscodeMocked = vi.mocked(vscode);
+  let getConfigurationMock: VitestMockInstance;
+  let getFn: VitestMock;
 
   beforeEach(() => {
-    getConfigurationMock = jest.spyOn(vscodeMocked.workspace, 'getConfiguration');
-    getFn = jest.fn();
+    getConfigurationMock = vi.spyOn(vscodeMocked.workspace, 'getConfiguration');
+    getFn = vi.fn();
   });
 
   it('Should be able to get retrieveEnableSyncInitJobs setting.', () => {

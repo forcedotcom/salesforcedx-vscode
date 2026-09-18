@@ -30,7 +30,7 @@ describe('From', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -45,7 +45,7 @@ describe('From', () => {
   it('emits an event when object is selected', () => {
     document.body.appendChild(from);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     from.addEventListener('from__object_selected', handler);
     const customSelect = from.shadowRoot.querySelector('querybuilder-custom-select');
     customSelect.dispatchEvent(new CustomEvent('option__selection', { detail: { value: 'foo' } }));

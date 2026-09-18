@@ -16,11 +16,11 @@ import { logGetCommand } from '../../../src/commands/logGet';
 
 describe('logGetCommand', () => {
   it('fails early when no logs exist', async () => {
-    const listLogs = jest.fn(() => Effect.succeed([]));
-    const getLogBody = jest.fn();
-    const writeFile = jest.fn();
-    const showTextDocument = jest.fn();
-    const getPromptService = jest.fn();
+    const listLogs = vi.fn(() => Effect.succeed([]));
+    const getLogBody = vi.fn();
+    const writeFile = vi.fn();
+    const showTextDocument = vi.fn();
+    const getPromptService = vi.fn();
     const services = {
       ApexLogService: Effect.succeed({ listLogs, getLogBody }),
       FsService: { writeFile, showTextDocument },

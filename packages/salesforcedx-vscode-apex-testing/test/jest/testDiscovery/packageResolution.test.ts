@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
@@ -21,12 +22,12 @@ import { PackageResolutionService } from '../../../src/testDiscovery/packageReso
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
 describe('PackageResolutionService', () => {
-  let mockToolingQuery: jest.Mock;
+  let mockToolingQuery: VitestMock;
   let mockConnection: Partial<Connection>;
   let orgInfo: { orgId?: string; username?: string };
 
   beforeEach(() => {
-    mockToolingQuery = jest.fn();
+    mockToolingQuery = vi.fn();
     mockConnection = { tooling: { query: mockToolingQuery } as unknown as Connection['tooling'] };
     orgInfo = { orgId: 'org123', username: 'user@example.com' };
   });

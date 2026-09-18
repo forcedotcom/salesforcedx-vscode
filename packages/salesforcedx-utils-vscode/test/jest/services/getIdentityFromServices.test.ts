@@ -31,7 +31,7 @@ const mockApiState = {
   identity: {} as OrgInfoShape
 };
 
-jest.mock('@salesforce/effect-ext-utils', () => {
+vi.mock('@salesforce/effect-ext-utils', () => {
   const ServicesExtensionNotFoundErrorClass = class extends Error {
     public readonly _tag = 'ServicesExtensionNotFoundError';
   };
@@ -61,7 +61,7 @@ jest.mock('@salesforce/effect-ext-utils', () => {
   };
 });
 
-jest.mock('vscode');
+vi.mock('vscode');
 
 import { TelemetryService } from '../../../src/services/telemetry';
 

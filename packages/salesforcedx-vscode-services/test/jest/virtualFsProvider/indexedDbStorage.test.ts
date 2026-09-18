@@ -30,11 +30,11 @@ const makeRequest = <T>(result: () => T, complete: () => void): IDBRequest<T> =>
 const installIndexedDb = (): void => {
   const entries = new Map<IDBValidKey, unknown>();
   const db = {
-    close: jest.fn(),
+    close: vi.fn(),
     objectStoreNames: { contains: () => true },
     transaction: () => {
       const transaction = {
-        abort: jest.fn(),
+        abort: vi.fn(),
         error: null,
         onabort: null as ((event: Event) => void) | null,
         oncomplete: null as ((event: Event) => void) | null,
@@ -84,7 +84,7 @@ describe('IndexedDBStorageService', () => {
   beforeEach(() => {
     setFs(createFsFromVolume(new Volume()) as unknown as typeof fs);
     installIndexedDb();
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
       get: () => undefined
     } as unknown as vscode.WorkspaceConfiguration);
   });

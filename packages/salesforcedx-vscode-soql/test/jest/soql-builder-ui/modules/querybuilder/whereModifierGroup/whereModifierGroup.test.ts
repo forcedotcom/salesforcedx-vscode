@@ -19,7 +19,7 @@ import { createElement } from 'lwc';
 import WhereModifierGroup from 'querybuilder/whereModifierGroup';
 import debounce from 'debounce';
 
-jest.mock('debounce');
+vi.mock('debounce');
 // @ts-ignore
 debounce.mockImplementation(callback => {
   // @ts-ignore
@@ -85,7 +85,7 @@ describe('WhereModifierGroup should', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -107,7 +107,7 @@ describe('WhereModifierGroup should', () => {
 
   it('emit event when all modfiers have value', () => {
     document.body.appendChild(modifierGroup);
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
 
     setModifiersToHaveAValue('all');
@@ -126,7 +126,7 @@ describe('WhereModifierGroup should', () => {
     modifierGroup.sobjectMetadata = {
       fields: [{ name: 'foo', type: 'string' }]
     };
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
     document.body.appendChild(modifierGroup);
 
@@ -143,7 +143,7 @@ describe('WhereModifierGroup should', () => {
 
   it('not emit event when SOME modfiers have no value', () => {
     document.body.appendChild(modifierGroup);
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
 
     setModifiersToHaveAValue('some');
@@ -155,7 +155,7 @@ describe('WhereModifierGroup should', () => {
 
   it('not emit event when ALL modfiers have no value', () => {
     document.body.appendChild(modifierGroup);
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
 
     setModifiersToHaveAValue('none');
@@ -167,7 +167,7 @@ describe('WhereModifierGroup should', () => {
 
   it('emit event when modifier group is removed', () => {
     document.body.appendChild(modifierGroup);
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('where__condition_removed', handler);
 
     const closeButton = modifierGroup.shadowRoot.querySelector('[data-el-where-delete]');
@@ -473,7 +473,7 @@ describe('WhereModifierGroup should', () => {
       ]
     };
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
     document.body.appendChild(modifierGroup);
 
@@ -498,7 +498,7 @@ describe('WhereModifierGroup should', () => {
     modifierGroup.sobjectMetadata = {
       fields: [{ name: 'foo', type: 'boolean' }]
     };
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
     document.body.appendChild(modifierGroup);
     const { criteriaInputEl } = getModifierElements();
@@ -520,7 +520,7 @@ describe('WhereModifierGroup should', () => {
     modifierGroup.sobjectMetadata = {
       fields: [{ name: 'foo', type: 'boolean' }]
     };
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
     document.body.appendChild(modifierGroup);
     const { criteriaInputEl } = getModifierElements();
@@ -550,7 +550,7 @@ describe('WhereModifierGroup should', () => {
     modifierGroup.sobjectMetadata = {
       fields: [{ name: 'NamespacePrefix', type: 'string' }]
     };
-    const handler = jest.fn();
+    const handler = vi.fn();
     modifierGroup.addEventListener('modifiergroupselection', handler);
     document.body.appendChild(modifierGroup);
     const { criteriaInputEl } = getModifierElements();

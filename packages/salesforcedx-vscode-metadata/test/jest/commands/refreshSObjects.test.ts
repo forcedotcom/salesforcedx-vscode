@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -13,9 +14,9 @@ import * as vscode from 'vscode';
 import { getErrorMessage } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 
 // Control the artifact writers so we can drive success / failure exit paths.
-const streamAndWriteSobjectArtifacts = jest.fn();
-const writeSobjectArtifacts = jest.fn();
-jest.mock('../../../src/commands/sobjectArtifactWriter', () => ({
+const streamAndWriteSobjectArtifacts = vi.fn();
+const writeSobjectArtifacts = vi.fn();
+vi.mock('../../../src/commands/sobjectArtifactWriter', () => ({
   streamAndWriteSobjectArtifacts: (...args: unknown[]) => streamAndWriteSobjectArtifacts(...args),
   writeSobjectArtifacts: (...args: unknown[]) => writeSobjectArtifacts(...args)
 }));
@@ -26,7 +27,7 @@ import { nls } from '../../../src/messages';
 const SUCCESS_CODE = 0;
 const FAILURE_CODE = 1;
 
-const appendToChannel = jest.fn(() => Effect.void);
+const appendToChannel = vi.fn(() => Effect.void);
 
 // Stand-in PromptService.withCancellableProgressReporting: runs the build effect with a mock
 // progress + uncancelled token in the same fiber, so a typed failure propagates unchanged.
@@ -36,7 +37,7 @@ const mockPromptService = {
   withCancellableProgressReporting:
     (_title: string, _location?: vscode.ProgressLocation) =>
     <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-      build({ report: jest.fn() }, { isCancellationRequested: false, onCancellationRequested: jest.fn() })
+      build({ report: vi.fn() }, { isCancellationRequested: false, onCancellationRequested: vi.fn() })
 };
 
 const createMockServicesApi = () => ({
@@ -52,7 +53,7 @@ const createMockExtensionProvider = () =>
 
 // Mirror registerCommand's outer handling: swallow UserCancellationError, route other causes through the
 // real getErrorMessage (walks the cause chain to the real message) then showErrorMessage — the shared toast path.
-const showErrorMessage = vscode.window.showErrorMessage as jest.Mock;
+const showErrorMessage = vscode.window.showErrorMessage as VitestMock;
 
 const runCommand = (source?: Parameters<typeof refreshSObjectsCommand>[0]) =>
   Effect.runPromiseExit(
@@ -65,8 +66,8 @@ const runCommand = (source?: Parameters<typeof refreshSObjectsCommand>[0]) =>
     ) as Effect.Effect<unknown, never, never>
   );
 
-const executeCommand = vscode.commands.executeCommand as jest.Mock;
-const getExtension = vscode.extensions.getExtension as jest.Mock;
+const executeCommand = vscode.commands.executeCommand as VitestMock;
+const getExtension = vscode.extensions.getExtension as VitestMock;
 
 describe('refreshSObjects module', () => {
   it('exports refreshSObjectsCommand', () => {
@@ -80,7 +81,7 @@ describe('refreshSObjects module', () => {
 
 describe('refreshSObjectsCommand completion + error surfacing', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     getExtension.mockReturnValue({}); // core extension present
     appendToChannel.mockReturnValue(Effect.void);
   });
@@ -97,7 +98,7 @@ describe('refreshSObjectsCommand completion + error surfacing', () => {
   });
 
   it('refreshes the selected category', async () => {
-    (vscode.window.showQuickPick as jest.Mock).mockResolvedValue(nls.localize('sobject_refresh_custom'));
+    (vscode.window.showQuickPick as VitestMock).mockResolvedValue(nls.localize('sobject_refresh_custom'));
     streamAndWriteSobjectArtifacts.mockReturnValue(
       Effect.succeed({ data: { cancelled: false, standardObjects: 0, customObjects: 2 } })
     );
@@ -111,7 +112,7 @@ describe('refreshSObjectsCommand completion + error surfacing', () => {
   });
 
   it('cancels when no category is selected', async () => {
-    (vscode.window.showQuickPick as jest.Mock).mockResolvedValue(undefined);
+    (vscode.window.showQuickPick as VitestMock).mockResolvedValue(undefined);
 
     const exit = await runCommand('manual');
 

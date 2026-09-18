@@ -10,8 +10,8 @@ Run tests for a single workspace: `npm run test -w <npm package name here>`
 
 You always have permission to run unit tests without asking.
 
-Run a single test by invoking jest like this -- you're passing the file to run and the related config file from its package:
+Run 1 Vitest file in its workspace:
 
 ```bash
-node 'node_modules/.bin/jest' '/path/to/test/file.test.ts' -c '/path/to/package/jest.config.js'
+npm exec -w <npm-package-name> -- vitest run path/to/file.test.ts
 ```

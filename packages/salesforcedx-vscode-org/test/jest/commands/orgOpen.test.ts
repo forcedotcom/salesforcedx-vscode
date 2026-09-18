@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -22,9 +23,9 @@ type OrgSnapshot = { orgId?: string; username?: string };
 const buildServices = (opts: {
   isProject: boolean;
   orgInfo: OrgSnapshot;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  show: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  show: VitestMock;
 }) => ({
   // getSfProject sets the project context and fails when there's no project; orgOpen ignores the
   // returned SfProject, so the success path just yields a sentinel.
@@ -49,9 +50,9 @@ const buildServices = (opts: {
 const run = (opts: {
   isProject: boolean;
   orgInfo: OrgSnapshot;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  show: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  show: VitestMock;
 }) =>
   Effect.runPromiseExit(
     orgOpenCommand().pipe(
@@ -62,20 +63,20 @@ const run = (opts: {
   );
 
 describe('orgOpenCommand', () => {
-  let openExternal: jest.Mock;
-  let show: jest.Mock;
+  let openExternal: VitestMock;
+  let show: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    openExternal = jest.fn().mockResolvedValue(true);
-    show = jest.fn();
+    vi.clearAllMocks();
+    openExternal = vi.fn().mockResolvedValue(true);
+    show = vi.fn();
     // the global vscode mock has no env.openExternal; stub it per-test
-    (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
+    (vscode.env as unknown as { openExternal: VitestMock }).openExternal = openExternal;
   });
 
   it('runs `sf org open --url-only --json` with --target-org (env injected by simpleExec)', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
@@ -94,8 +95,8 @@ describe('orgOpenCommand', () => {
   });
 
   it('opens the url, appends the access message, and shows the channel on success', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
@@ -115,8 +116,8 @@ describe('orgOpenCommand', () => {
   });
 
   it('omits --target-org when there is no default-org username', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const appendToChannel = vi.fn();
     const exit = await run({ isProject: true, orgInfo: {}, simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -126,8 +127,8 @@ describe('orgOpenCommand', () => {
   });
 
   it('fails (getSfProject) and does not exec or open when not in a project', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: false,
       orgInfo: { username: 'me@scratch.org' },
@@ -144,8 +145,8 @@ describe('orgOpenCommand', () => {
 
   it('appends the failure message and does not open when sf returns a failure result', async () => {
     const failureStdout = JSON.stringify({ status: 1, message: 'No default org set' });
-    const simpleExec = jest.fn(() => Effect.succeed(failureStdout));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(failureStdout));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { username: 'me@scratch.org' },
@@ -165,8 +166,8 @@ describe('orgOpenCommand', () => {
     // discrimination is on `status === 0`, not `status === 1`; any non-zero status takes the failure branch
     // and surfaces the CLI message (parity with the old parser, which returned `.message` for any non-zero status).
     const failureStdout = JSON.stringify({ status: 68, message: 'No default environment found' });
-    const simpleExec = jest.fn(() => Effect.succeed(failureStdout));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(failureStdout));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { username: 'me@scratch.org' },
@@ -185,8 +186,8 @@ describe('orgOpenCommand', () => {
     // sf can prepend non-JSON warning lines to stdout even with --json + SF_JSON_TO_STDOUT (seen on macOS CI);
     // decodeTaggedCliResponse slices out the JSON object rather than choking on the prefix.
     const noisyStdout = `Warning: The following orgs expire in the next 5 days:\nminimalTestOrg - me@scratch.org (expires on 2026-06-26)\n${SUCCESS_STDOUT}`;
-    const simpleExec = jest.fn(() => Effect.succeed(noisyStdout));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed(noisyStdout));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
@@ -203,8 +204,8 @@ describe('orgOpenCommand', () => {
   });
 
   it('fails with OrgOpenParseError on malformed stdout and does not open', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('not json at all'));
-    const appendToChannel = jest.fn();
+    const simpleExec = vi.fn(() => Effect.succeed('not json at all'));
+    const appendToChannel = vi.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { username: 'me@scratch.org' },
