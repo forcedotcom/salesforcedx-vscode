@@ -1,8 +1,8 @@
 ---
 name: effect-best-practices
-description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
+description: Enforces Effect-TS patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Effect.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
 review: always
-version: 1.6.0
+version: 1.6.1
 ---
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
@@ -34,6 +34,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
+| Composition       | `.pipe`; `const` only if read ≥2×. Details: `references/composition-style.md` | single-use `const x = yield*` then `f(x)` |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
