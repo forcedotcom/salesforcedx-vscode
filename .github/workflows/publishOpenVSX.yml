@@ -1,4 +1,5 @@
 name: Publish in Open VSX Registry
+run-name: "Release ${{ inputs['release-tag'] || github.event.release.tag_name }}"
 on:
   release:
     # This limits the workflow to releases that are not pre-releases

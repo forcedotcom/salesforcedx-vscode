@@ -1,4 +1,5 @@
 name: Publish Release to Marketplace
+run-name: "Release ${{ inputs.version || github.event.release.tag_name }}"
 
 # Publishes releases to VS Code Marketplace and Open VSX Registry.
 # Auto-triggers for stable releases. Manual dispatch supports both stable and prerelease tags.
