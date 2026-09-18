@@ -64,9 +64,9 @@ describe('Build async payload', () => {
   });
 
   it('should build async payload for tests with namespace', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass');
 
     expect(payload).toEqual({
@@ -83,9 +83,9 @@ describe('Build async payload', () => {
   });
 
   it('should build async payload for tests with namespace from installed package', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: true, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: true, namespace: 'myNamespace' }]);
     const payload = await testService.buildAsyncPayload('RunSpecifiedTests', 'myNamespace.myClass');
 
     expect(payload).toEqual({
@@ -102,9 +102,9 @@ describe('Build async payload', () => {
   });
 
   it('should only query for namespaces once when multiple tests are specified', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testService.buildAsyncPayload(
       'RunSpecifiedTests',
       'myNamespace.myClass,myNamespace.mySecondClass'
@@ -198,9 +198,9 @@ describe('Build async payload', () => {
   });
 
   it('should build async payload for class with namespace', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testService.buildAsyncPayload('RunSpecifiedTests', undefined, 'myNamespace.myClass');
     expect(payload).toEqual({
       tests: [{ className: 'myNamespace.myClass' }],
@@ -342,9 +342,9 @@ describe('Build sync payload', () => {
   afterEach(async () => {});
 
   it('should build synchronous payload for tests without namespace', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest');
 
     expect(payload).toEqual({
@@ -356,9 +356,9 @@ describe('Build sync payload', () => {
   });
 
   it('should build synchronous payload for tests with namespace', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myNamespace.myClass.myTest');
 
     expect(payload).toEqual({
@@ -387,9 +387,9 @@ describe('Build sync payload', () => {
   });
 
   it('should build synchronous payload for class with namespace', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', undefined, 'myNamespace.myClass');
 
     expect(payload).toEqual({
@@ -412,9 +412,9 @@ describe('Build sync payload', () => {
   });
 
   it('should include skipCodeCoverage in sync payload when tests are provided', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest', undefined, undefined, true);
 
     expect(payload).toEqual({
@@ -426,9 +426,9 @@ describe('Build sync payload', () => {
   });
 
   it('should include skipCodeCoverage as false in sync payload when skipCodeCoverage is false', async () => {
-    const namespaceStub = queryNamespacesMock.mockClear().mockResolvedValue([
-      { installedNs: false, namespace: 'myNamespace' }
-    ]);
+    const namespaceStub = queryNamespacesMock
+      .mockClear()
+      .mockResolvedValue([{ installedNs: false, namespace: 'myNamespace' }]);
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', 'myClass.myTest', undefined, undefined, false);
 
     expect(payload).toEqual({

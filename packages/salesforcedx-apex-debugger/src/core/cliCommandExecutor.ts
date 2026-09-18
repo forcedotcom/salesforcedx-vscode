@@ -15,7 +15,11 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  constructor(command: Command, options: SpawnOptions, private readonly crossSpawnFunction: CrossSpawnFunction = crossSpawn) {
+  constructor(
+    command: Command,
+    options: SpawnOptions,
+    private readonly crossSpawnFunction: CrossSpawnFunction = crossSpawn
+  ) {
     this.command = command;
     // children inherit the extension host env; SFDX_TOOL attributes the invocation to these extensions
     // (@salesforce/plugin-telemetry reads it), and the caller's env wins over both.
