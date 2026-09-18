@@ -24,6 +24,10 @@ type WebConfigOptions = {
 export const createWebConfig = (options: WebConfigOptions) =>
   defineConfig({
     testDir: options.testDir,
+    // Container specs (`*.container.spec.ts`) drive a browser against a running Code Builder container
+    // and only run under createContainerConfig; exclude them so a broad `testDir: './specs'` never runs
+    // them in the web (chromium) project against the headless server.
+    testIgnore: ['**/*.container.spec.ts'],
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     workers:

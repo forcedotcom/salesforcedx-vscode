@@ -176,6 +176,7 @@ export { saveScreenshot } from './shared/screenshotUtils';
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
 export { createDesktopTest } from './fixtures/createDesktopTest';
+export { createContainerTest } from './fixtures/createContainerTest';
 export { prepareVsixExtensions } from './fixtures/vsixExtensions';
 export type {
   PreparedVsixExtension,
@@ -193,6 +194,7 @@ export { createAndOpenApexScript } from './utils/apexScript';
 // Config factories
 export { createWebConfig } from './config/createWebConfig';
 export { createDesktopConfig } from './config/createDesktopConfig';
+export { createContainerConfig } from './config/createContainerConfig';
 
 // Code Builder e2e — content/version gate + Manifest (see docs/plans/code-builder-e2e-toolkit.md)
 export {
