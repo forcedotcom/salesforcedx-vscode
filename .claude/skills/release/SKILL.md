@@ -99,9 +99,17 @@ Suggested smoke checks the user may run before confirming:
 
 Do not proceed until the user explicitly confirms testing is complete.
 
-## Step 4 — Trigger marketplace publish
+## Step 4 — Promote the release, then trigger marketplace publish
 
-Once user confirms testing is complete, dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
+Once user confirms testing is complete, first promote the GitHub release from pre-release to a full release — this is the actual "make it stable" signal, and it's required before `vsce publish` will accept the VSIX. The publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce` whenever it's still `true`; that fails outright since these VSIXs were packaged as stable (`Cannot use '--pre-release' flag with a package that was not packaged as pre-release`):
+
+```sh
+gh release edit v<version> --prerelease=false --repo forcedotcom/salesforcedx-vscode
+```
+
+This flip also auto-fires both workflows below via the `release: types: [released]` event, using whatever's on the default branch (`develop`) at that moment. Manual dispatch is only needed if a run needs retrying.
+
+Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
 
 ```sh
 gh workflow run publishVSCode.yml  -f version="v<version>"      --repo forcedotcom/salesforcedx-vscode

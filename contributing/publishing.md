@@ -101,9 +101,10 @@ Published releases extract extension names from VSIX filenames in release assets
 1. Promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion))
 2. Trigger [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) to build release VSIXs
 3. Download + test VSIX files from GitHub pre-release
-4. Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) with the version (e.g., `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`) — a manual `workflow_dispatch` of one does **not** trigger the other; only flipping the GitHub release from pre-release to "released" fires both automatically. For stable hotfixes, also pass `-f isHotfix=true` to each so its gate-check tests the exact commit directly.
-5. Approve marketplace publish gates
-6. Marketplace updates (usually within minutes)
+4. Promote the release from pre-release to a full release: `gh release edit v67.12.0 --prerelease=false`. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable. This flip is what actually marks the release stable, and also auto-fires both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) via the `release: types: [released]` event.
+5. If a run needs retrying, dispatch manually with the version (e.g., `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`) — dispatching one does **not** trigger the other. For stable hotfixes, also pass `-f isHotfix=true` to each so its gate-check tests the exact commit directly.
+6. Approve marketplace publish gates
+7. Marketplace updates (usually within minutes)
 
 ### Merge to main (Automated)
 
