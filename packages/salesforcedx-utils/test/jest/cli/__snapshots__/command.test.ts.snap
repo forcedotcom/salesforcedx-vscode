@@ -3,7 +3,3 @@
 exports[`Command unit tests. > Should build a command. 1`] = `"iAmACommand immaArg --silent quiet --json"`;
 
 exports[`Command unit tests. > Should construct string if no description provided. 1`] = `"iAmACommand immaArg --silent quiet --json"`;
-
-exports[`Command unit tests. Should build a command. 1`] = `"iAmACommand immaArg --silent quiet --json"`;
-
-exports[`Command unit tests. Should construct string if no description provided. 1`] = `"iAmACommand immaArg --silent quiet --json"`;
