@@ -5,13 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Command, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
-import * as crossSpawn from 'cross-spawn';
+import type crossSpawn from 'cross-spawn';
 import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
-vi.mock('cross-spawn');
 vi.mock('../../../src/core/cliCommandExecution');
-const crossSpawnMocked = vi.mocked(crossSpawn);
 const CliCommandExecutorMock = vi.mocked(CliCommandExecution);
 
 describe('CliCommandExecutor Unit Tests.', () => {
@@ -40,10 +38,10 @@ describe('CliCommandExecutor Unit Tests.', () => {
 
   it('Should be able to execute the command.', () => {
     const fakeChildProcess = {};
-    crossSpawnMocked.mockReturnValue(fakeChildProcess as any);
-    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options);
+    const crossSpawnMock = vi.fn<typeof crossSpawn>().mockReturnValue(fakeChildProcess as any);
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, crossSpawnMock);
     cliCommandExecutor.execute();
-    expect(crossSpawnMocked).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, patchedOptions);
+    expect(crossSpawnMock).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, patchedOptions);
     expect(CliCommandExecutorMock).toHaveBeenCalledWith(fakeCommand, fakeChildProcess, undefined);
   });
 });

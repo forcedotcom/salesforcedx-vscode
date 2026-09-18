@@ -25,7 +25,12 @@ export class CliCommandExecution implements CommandExecution {
 
   private readonly childProcessPid: number;
 
-  constructor(command: Command, childProcess: ChildProcess, cancellationToken?: CancellationToken) {
+  constructor(
+    command: Command,
+    childProcess: ChildProcess,
+    cancellationToken?: CancellationToken,
+    private readonly treeKillFunction: typeof treeKill = treeKill
+  ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
 
@@ -76,7 +81,7 @@ export class CliCommandExecution implements CommandExecution {
   }
 
   public async killExecution(signal = KILL_CODE) {
-    return killPromise(this.childProcessPid, signal);
+    return killPromise(this.childProcessPid, signal, this.treeKillFunction);
   }
 }
 
@@ -85,9 +90,9 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> =>
+const killPromise = (processId: number, signal: string, treeKillFunction: typeof treeKill): Promise<void> =>
   new Promise<void>((resolve, reject) => {
-    treeKill(processId, signal, (err: Error | undefined) => {
+    treeKillFunction(processId, signal, (err: Error | undefined) => {
       if (err) {
         reject(err);
       }

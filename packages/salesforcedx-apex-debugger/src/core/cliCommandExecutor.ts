@@ -13,7 +13,7 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  constructor(command: Command, options: SpawnOptions) {
+  constructor(command: Command, options: SpawnOptions, private readonly crossSpawnFunction: typeof crossSpawn = crossSpawn) {
     this.command = command;
     // children inherit the extension host env; SFDX_TOOL attributes the invocation to these extensions
     // (@salesforce/plugin-telemetry reads it), and the caller's env wins over both.
@@ -21,7 +21,7 @@ export class CliCommandExecutor {
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
-    const childProcess = crossSpawn(this.command.command, this.command.args, this.options);
+    const childProcess = this.crossSpawnFunction(this.command.command, this.command.args, this.options);
     return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }

@@ -7,7 +7,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
-import * as treeKill from 'tree-kill';
+import type treeKill from 'tree-kill';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
@@ -16,10 +16,6 @@ import {
   NO_STDOUT_ERROR,
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
-
-vi.mock('tree-kill');
-
-const treeKillMocked = vi.mocked(treeKill);
 
 describe('CliCommandExecution Unit Tests.', () => {
   const testCommand: Command = {
@@ -33,6 +29,7 @@ describe('CliCommandExecution Unit Tests.', () => {
   let intervalSpy: VitestMockInstance;
   let subscribeSpy: VitestMockInstance;
   let unsubscribeSpy: VitestMockInstance;
+  let treeKillMock: ReturnType<typeof vi.fn<typeof treeKill>>;
 
   beforeEach(() => {
     testChildProcess = {
@@ -53,6 +50,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     intervalSpy = vi.spyOn(rxjs, 'interval').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
+    treeKillMock = vi.fn<typeof treeKill>();
   });
 
   afterEach(() => {
@@ -80,7 +78,12 @@ describe('CliCommandExecution Unit Tests.', () => {
 
   describe('Subscribe handlers.', () => {
     it('Should call timer unsubscribe on exit.', () => {
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[0][0];
       exitSubscribeHandler();
@@ -130,11 +133,11 @@ describe('CliCommandExecution Unit Tests.', () => {
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
       const timeoutPromise = timoutHandler();
-      expect(treeKillMocked).toHaveBeenCalledTimes(1);
-      expect(treeKillMocked.mock.calls[0][0]).toEqual(testChildProcess.pid);
-      expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
+      expect(treeKillMock).toHaveBeenCalledTimes(1);
+      expect(treeKillMock.mock.calls[0][0]).toEqual(testChildProcess.pid);
+      expect(treeKillMock.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
-      const killCallback = treeKillMocked.mock.calls[0][2];
+      const killCallback = treeKillMock.mock.calls[0][2];
       expect(killCallback).toBeDefined();
       killCallback?.();
       await timeoutPromise;
@@ -144,16 +147,21 @@ describe('CliCommandExecution Unit Tests.', () => {
     it('Should log if fails to kill child process.', async () => {
       const killError = new Error('Failed to kill');
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
       const timeoutPromise = timoutHandler();
-      expect(treeKillMocked).toHaveBeenCalledTimes(1);
-      expect(treeKillMocked.mock.calls[0][0]).toEqual(testChildProcess.pid);
-      expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
+      expect(treeKillMock).toHaveBeenCalledTimes(1);
+      expect(treeKillMock.mock.calls[0][0]).toEqual(testChildProcess.pid);
+      expect(treeKillMock.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
-      const killCallback = treeKillMocked.mock.calls[0][2];
+      const killCallback = treeKillMock.mock.calls[0][2];
       expect(killCallback).toBeDefined();
       killCallback?.(killError);
       await timeoutPromise;
