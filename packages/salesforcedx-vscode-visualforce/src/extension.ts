@@ -14,7 +14,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import { type ExtensionContext } from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { createVisualforceComponentCommand } from './commands/createVisualforceComponent';
 import { createVisualforcePageCommand } from './commands/createVisualforcePage';
 import { configureLanguages } from './languageConfiguration';
