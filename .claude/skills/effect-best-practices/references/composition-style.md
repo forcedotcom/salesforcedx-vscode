@@ -1,8 +1,8 @@
 # Effect Composition Style
 
-How effects read, compose, and execute. Style preferences, not safety rules —
-but they keep call sites flat and intent obvious. From real review decisions in
-this repo.
+How effects read, compose, and execute. SKILL.md Composition row is `must`
+(`const` only if read ≥2×); LS-enforced shapes annotated below. Rest is style.
+From real review decisions in this repo.
 
 ## Core principle: an effect is a value you build flat, then run
 

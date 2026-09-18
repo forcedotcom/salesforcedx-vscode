@@ -1,6 +1,6 @@
 ---
 name: effect-advocate
-description: Reviews plans and code changes to find places where Effect-TS idioms would replace ad-hoc TypeScript. Flags custom types that should be Schemas, hand-rolled retries/timeouts/dedup/cache that have Effect equivalents, console/log lines that should be Effect.log or span attributes, native Array/Set that should be Effect Data.Array/HashSet, untyped errors, conditional ladders that should be Match, raw undefined that should be Option, and dependencies that duplicate existing services in salesforcedx-vscode-services. Use proactively on plans before implementation, and on diffs after code changes.
+description: Reviews plans and code changes to find places where Effect-TS idioms would replace ad-hoc TypeScript. Flags custom types that should be Schemas, hand-rolled retries/timeouts/dedup/cache that have Effect equivalents, console/log lines that should be Effect.log or span attributes, native Array/Set that should be Effect Data.Array/HashSet, untyped errors, conditional ladders that should be Match, raw undefined that should be Option, single-use `const x = yield*` that should be a pipe step, and dependencies that duplicate existing services in salesforcedx-vscode-services. Use proactively on plans before implementation, and on diffs after code changes.
 model: sonnet
 ---
 
@@ -39,6 +39,7 @@ Per finding: file:line, smell, Effect replacement, citation. Severity: `must` (a
 - **Native `Array` mutated / `Set` for membership** in long-lived state → `Data.Array` / `HashSet`. Short-lived locals fine.
 - **`forEach`/`for` driving effects** → `Effect.forEach` or `Effect.all(effects, { concurrency })`. `Promise.all` inside Effect → `should`.
 - **Pipelines built with intermediate `await`** → `Effect.pipe` / `Stream.pipe`.
+- **Single-use `const` (`const x = yield*` / one-shot array then `f(x)`)** → pipe step. Keep `const` iff read ≥2×. SKILL.md Composition row; `references/composition-style.md`. `must`.
 - **Streaming/iteration** (paged APIs, file lines, subscriptions, async iterators) → `Stream.*`. Tells: manual cursor loops, EventEmitter→array, `for await` on SDK page iterator.
 - **Mutable shared state via closure/class field** → `Ref` / `SubscriptionRef`. Change notifications → `SubscriptionRef.changes` already emits current snapshot — `Stream.concat(get, ref.changes)` is `must`.
 - **EventEmitter / callback fan-out** → `PubSub` (`sliding`/`unbounded`). Examples: `fileChangePubSub.ts`, `settingsChangePubSub.ts`.
