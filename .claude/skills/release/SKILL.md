@@ -18,12 +18,12 @@ From repo root (no global `ts-node`):
 
 Run `detect-state.ts` first.
 
-> **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
+> **Note:** `createReleaseBranch.yml` deprecated — use `build-github-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
 
-Check scheduled `build-release.yml` ran Wednesday:
+Check scheduled `build-github-release.yml` ran Wednesday:
 
 ```sh
-gh run list --workflow=build-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-github-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
 ```
 
 Report status + timestamp. On **failure**, inspect logs:
@@ -37,25 +37,25 @@ Decision matrix:
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
 - **Build failed** → check logs. Issues: no marketplace prerelease (wait Wed 7 AM UTC) or build script error. Re-run:
   ```sh
-  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 - **No run this week** → Either:
   - Wait (Wed 8 AM UTC)
   - Trigger manually:
   ```sh
-  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 
 After re-dispatch, watch until complete:
 
 ```sh
-gh run list --workflow=build-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-github-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
 ## Step 1 — Download stable release build
 
-Get VSIX + SHA256 from GitHub pre-release created by `build-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
+Get VSIX + SHA256 from GitHub pre-release created by `build-github-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
 
 ```sh
 gh release list --repo forcedotcom/salesforcedx-vscode | head -5
@@ -101,20 +101,22 @@ Do not proceed until the user explicitly confirms testing is complete.
 
 ## Step 4 — Trigger marketplace publish
 
-Once user confirms testing is complete, automatically trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`):
+Once user confirms testing is complete, dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
 
 ```sh
-gh workflow run publishVSCode.yml -f releaseVersion=<version> --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishVSCode.yml  -f version="v<version>"      --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishOpenVSX.yml -f release-tag="v<version>" --repo forcedotcom/salesforcedx-vscode
 ```
 
-Triggers `publishOpenVSX.yml`. Both gated by `publish` environment — user will approve in GitHub UI (Actions → run → Review pending → Approve + deploy).
+Both gated by the `publish` environment — user will approve **each** run in GitHub UI (Actions → run → Review pending → Approve + deploy).
 
-Tell user: "Triggered publish workflows. You'll need to approve the environment gates in GitHub Actions UI."
+Tell user: "Triggered both publish workflows (Marketplace + Open VSX). You'll need to approve the environment gate on each in GitHub Actions UI."
 
 Monitor runs:
 
 ```sh
-gh run list --workflow=publishVSCode.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishVSCode.yml  -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishOpenVSX.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
