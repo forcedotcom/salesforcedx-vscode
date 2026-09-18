@@ -161,6 +161,7 @@ graphify-out/
 # Claude Code worktrees
 .auto-build/
 .claude/worktrees/
+.cursor/worktrees/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
 .claude/backlog-grooming-*.md
