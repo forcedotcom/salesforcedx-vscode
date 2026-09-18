@@ -5,9 +5,9 @@ Guide for testing pre-release builds before publishing to marketplace.
 ## Overview
 
 This guide covers testing and publishing for:
-- **Stable releases** (built by `build-release.yml`)
+- **Stable releases** (built by `build-github-release.yml`)
 - **Patch releases** (built by `build-and-release-patch-branch.yml`)
-- **Emergency pre-releases** (built by `build-release.yml` with `publishAsPrerelease=true`)
+- **Emergency pre-releases** (built by `build-github-release.yml` with `publishAsPrerelease=true`)
 
 After any build workflow creates a pre-release, follow these steps to test and publish.
 
@@ -48,14 +48,21 @@ find . -name "*.vsix" -exec code --install-extension {} \;
 
 ### Stable Release
 
+Dispatch **both** registries — dispatching one does not trigger the other:
+
 ```bash
 # Trigger marketplace publish workflow
 gh workflow run publishVSCode.yml \
   -f version="v67.12.0" \
   --repo forcedotcom/salesforcedx-vscode
+
+# Trigger Open VSX publish workflow
+gh workflow run publishOpenVSX.yml \
+  -f release-tag="v67.12.0" \
+  --repo forcedotcom/salesforcedx-vscode
 ```
 
-Monitor the workflow at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml
+Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml
 
 ### Pre-release (Emergency Hotfix)
 
@@ -108,9 +115,17 @@ Follow the testing checklist above.
 
 ### 3. Publish to Marketplace
 
+Dispatch **both** registries with `isHotfix=true` (dispatching one does not trigger the other; the hotfix commit never went through develop's branch protection or a nightly pipeline, so each workflow's own gate-check must test it directly):
+
 ```bash
 gh workflow run publishVSCode.yml \
   -f version="v67.12.1" \
+  -f isHotfix=true \
+  --repo forcedotcom/salesforcedx-vscode
+
+gh workflow run publishOpenVSX.yml \
+  -f release-tag="v67.12.1" \
+  -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
@@ -139,7 +154,7 @@ For urgent hotfixes that need immediate marketplace publication as pre-release:
 
 ```bash
 # From hotfix branch or specific commit
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f publishAsPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
