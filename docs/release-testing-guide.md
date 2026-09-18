@@ -48,7 +48,13 @@ find . -name "*.vsix" -exec code --install-extension {} \;
 
 ### Stable Release
 
-Dispatch **both** registries — dispatching one does not trigger the other:
+First, promote the release from pre-release to a full release. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable:
+
+```bash
+gh release edit v67.12.0 --prerelease=false --repo forcedotcom/salesforcedx-vscode
+```
+
+This automatically fires both `publishVSCode.yml` and `publishOpenVSX.yml` via the `release: types: [released]` event (both still gated by the `publish` environment approval). If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
 
 ```bash
 # Trigger marketplace publish workflow
