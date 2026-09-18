@@ -1607,8 +1607,11 @@ describe('Run Apex tests asynchronously', () => {
 
       // Setup mock to return different results based on query type
       const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQuery.onFirstCall().resolves(mockApexResults);
-      mockToolingQuery.onSecondCall().resolves(mockFlowResults);
+      mockToolingQuery
+        .withArgs(sinon.match(/ApexTestResult/))
+        .resolves(mockApexResults)
+        .withArgs(sinon.match(/FlowTestResult/))
+        .resolves(mockFlowResults);
 
       // Execute the test
       const results = await asyncTests.getAsyncTestResults(testQueueResult);

@@ -7,7 +7,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
-import { treeKill } from '../../../src/core/crossSpawnAndTreeKill';
+import * as treeKill from 'tree-kill';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
@@ -17,7 +17,7 @@ import {
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
 
-vi.mock('../../../src/core/crossSpawnAndTreeKill');
+vi.mock('tree-kill');
 
 const treeKillMocked = vi.mocked(treeKill);
 

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TELEMETRY_HEADER, CancellationToken, Command } from '@salesforce/salesforcedx-utils';
+import * as crossSpawn from 'cross-spawn';
 import { SpawnOptions } from 'node:child_process';
 import { CliCommandExecution } from './cliCommandExecution';
-import { crossSpawn } from './crossSpawnAndTreeKill';
 
 export class CliCommandExecutor {
   private readonly command: Command;
