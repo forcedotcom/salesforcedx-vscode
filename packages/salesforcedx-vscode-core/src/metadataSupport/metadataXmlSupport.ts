@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionPackageJsonSchema, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -46,10 +46,6 @@ class XmlConfigurationInspectError extends Schema.TaggedError<XmlConfigurationIn
 class RedHatXmlSupportError extends Schema.TaggedError<RedHatXmlSupportError>()('RedHatXmlSupportError', {
   message: Schema.String
 }) {}
-
-const RedHatXmlPackageJsonSchema = Schema.Struct({
-  version: Schema.optional(Schema.Unknown)
-});
 
 const MIN_XML_SERVER_HEAP_MB = 1024;
 const XMX_REGEX = /-Xmx(\d+)([kKmMgG]?)\b/;
@@ -221,7 +217,9 @@ export const initializeMetadataSupport = Effect.fn('metadataXmlSupport.initializ
       }
     );
     // 0.14.0 or 0.16+ are supported, 0.15.0 has a regression
-    yield* Schema.decodeUnknown(RedHatXmlPackageJsonSchema)(redHatExtension.packageJSON).pipe(
+    yield* Schema.decodeUnknown(ExtensionPackageJsonSchema.pipe(Schema.pick('version')))(
+      redHatExtension.packageJSON
+    ).pipe(
       Effect.map(({ version }) => version),
       Effect.filterOrFail(
         Schema.is(Schema.NonEmptyString),
