@@ -51,7 +51,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
          │                                                                │
          ▼                                                                │
 ┌─────────────────────────────────────────────────────────────────┐
-│  build-release.yml (AUTOMATED CRON)                             │
+│  build-github-release.yml (AUTOMATED CRON)                      │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │
@@ -112,7 +112,7 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            │                                                       │      │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐        │      │
-   │ Step 1: build-release.yml                            │        │      │
+   │ Step 1: build-github-release.yml                     │        │      │
    │ -f publishAsPrerelease=true                          │        │      │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
@@ -260,7 +260,7 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
 WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ build-release.yml (AUTOMATED 7 AM UTC)
+                              ├─ build-github-release.yml (AUTOMATED 7 AM UTC)
                               │    • Finds previous Wed's marketplace-prerelease-* tag
                               │    • Creates ephemeral staging branch
                               │    • Builds stable VSIXs

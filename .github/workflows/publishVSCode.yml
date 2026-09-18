@@ -23,7 +23,7 @@ on:
         default: false
         type: boolean
       isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-release.yml startFromRef, which have no other automated test gate.'
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
         required: false
         default: false
         type: boolean
@@ -100,7 +100,7 @@ jobs:
           fi
           echo "✅ Release $RELEASE_TAG exists"
 
-  # Only needed for stable hotfixes (isHotfix=true): these are built via build-release.yml's
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.
@@ -193,7 +193,7 @@ jobs:
       - name: Determine prerelease version to relabel
         id: relabel-version
         run: |
-          # build-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
+          # build-github-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
           # even when the source was startFromRef rather than an actual nightly tag -- the
           # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
           NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
@@ -250,7 +250,7 @@ jobs:
           if [ -z "$VSIX_FILES" ]; then
             echo "::error::No VSIX files found in release $RELEASE_TAG"
             echo "::error::Release exists but contains no .vsix assets"
-            echo "::error::This may indicate build-release.yml failed to upload VSIXs"
+            echo "::error::This may indicate build-github-release.yml failed to upload VSIXs"
             exit 1
           fi
 

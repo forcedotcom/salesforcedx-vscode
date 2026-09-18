@@ -35,7 +35,7 @@ test('opens the command palette', async ({ vscodeApp }) => {
 });
 ```
 
-See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext) for the full set of exports, web/headless config factories (`createWebConfig`, `createHeadlessServer`), and example configurations.
+See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext) for the full set of exports, config factories (`createWebConfig`, `createHeadlessServer`, `createDesktopConfig`, `createContainerConfig`), and example configurations.
 
 > Note: the desktop test factory (`createDesktopTest`) currently assumes a monorepo layout where extension VSIX paths are resolved relative to a repo root containing `packages/`. It is primarily intended for use inside the `salesforcedx-vscode` monorepo; external consumers should use the web/headless and helper exports.
 
