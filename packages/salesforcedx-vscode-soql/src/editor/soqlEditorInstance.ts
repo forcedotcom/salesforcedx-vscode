@@ -40,6 +40,12 @@ const appendToChannel = (message: string) =>
     Effect.flatMap(svc => svc.appendToChannel(message))
   );
 
+const reportMessageError = (event: SoqlEditorEvent) =>
+  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`)).pipe(
+    Effect.tapErrorCause(Effect.logError),
+    Effect.ignore
+  );
+
 const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const metadataDescribe = yield* api.services.MetadataDescribeService;
@@ -147,12 +153,7 @@ export class SOQLEditorInstance {
           });
         }).pipe(
           Stream.mapEffect(
-            event =>
-              this.handleMessageEffect(event).pipe(
-                Effect.catchAllCause(_cause =>
-                  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
-                )
-              ),
+            event => this.handleMessageEffect(event).pipe(Effect.catchAllCause(() => reportMessageError(event))),
             { concurrency: 'unbounded' }
           ),
           Stream.runDrain
@@ -257,20 +258,26 @@ export class SOQLEditorInstance {
       }
 
       case 'run_query': {
-        const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
         const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
         return Effect.promise(() =>
           getSoqlRuntime().runPromise(
-            runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
-              Effect.catchAllCause(cause => {
-                const err = Cause.squash(cause);
-                return appendToChannel(
-                  nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
-                ).pipe(Effect.andThen(runQueryDone()));
-              })
-            )
+            Effect.gen(function* () {
+              const api = yield* (yield* ExtensionProviderService).getServicesApi;
+              const maxRows = yield* api.services.SettingsService.getValue<number>(
+                'salesforcedx-vscode-soql',
+                'maxQueryLimit'
+              );
+              yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
+                Effect.catchAllCause(cause => {
+                  const err = Cause.squash(cause);
+                  return appendToChannel(
+                    nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
+                  ).pipe(Effect.andThen(runQueryDone()));
+                })
+              );
+            })
           )
         ).pipe(Effect.withSpan('SOQLEditor.run_query'));
       }

@@ -9,10 +9,11 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { detectConflicts } from '../../../src/conflict/conflictFlow';
 import * as conflictDetection from '../../../src/conflict/conflictDetection';
 import * as conflictDetectionTimestamp from '../../../src/conflict/conflictDetectionTimestamp';
+import * as deployOnSaveSettings from '../../../src/settings/deployOnSaveSettings';
 
 // Mock vscode
 jest.mock('vscode', () => ({
@@ -33,11 +34,13 @@ jest.mock('../../../src/conflict/conflictDetectionTimestamp', () => ({
 }));
 
 jest.mock('../../../src/settings/deployOnSaveSettings', () => ({
-  getDetectConflictsForDeployAndRetrieve: jest.fn(() => true)
+  getDetectConflictsForDeployAndRetrieve: jest.fn(() => Effect.succeed(true))
 }));
 
 // Minimal branded NonEmptyComponentSet for testing
 const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
+const mockGetValue = jest.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
+const settingsService = SettingsService.make({ getValue: mockGetValue } as never);
 
 const createMockTargetOrgRef = (tracksSource: boolean) =>
   SubscriptionRef.make({ orgId: 'test-org', tracksSource }) as Effect.Effect<
@@ -48,7 +51,8 @@ const createMockTargetOrgRef = (tracksSource: boolean) =>
 
 const createMockServicesApi = (tracksSource: boolean) => ({
   services: {
-    TargetOrgRef: () => createMockTargetOrgRef(tracksSource)
+    TargetOrgRef: () => createMockTargetOrgRef(tracksSource),
+    SettingsService
   }
 });
 
@@ -58,25 +62,20 @@ const createMockExtensionProvider = (tracksSource: boolean) =>
   }) as unknown as ExtensionProviderService;
 
 const provideServices = (tracksSource: boolean) => (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)));
+  e.pipe(
+    Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)),
+    Effect.provideService(SettingsService, settingsService)
+  );
 
 const runWithServices = (effect: Effect.Effect<any, any, any>, tracksSource = true) =>
   Effect.runPromise(effect.pipe(provideServices(tracksSource)) as Effect.Effect<any, any, never>);
 
 describe('detectConflicts', () => {
-  let mockGetConfiguration: jest.Mock;
-  let mockGet: jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGet = jest.fn();
-    mockGetConfiguration = vscode.workspace.getConfiguration as jest.Mock;
-    mockGetConfiguration.mockReturnValue({
-      get: mockGet
-    });
 
     // Default: conflict detection enabled
-    mockGet.mockReturnValue(false);
+    mockGetValue.mockReturnValue(Effect.succeed(false));
 
     // Setup default mocks for conflict detection functions
     (conflictDetection.detectConflictsFromTracking as jest.Mock).mockReturnValue(Effect.succeed([]));
@@ -86,7 +85,7 @@ describe('detectConflicts', () => {
   describe('when conflict detection is disabled via setting', () => {
     beforeEach(() => {
       // Set the enable flag to false (disabled)
-      mockGet.mockReturnValue(false);
+      mockGetValue.mockReturnValue(Effect.succeed(false));
     });
 
     it('should skip conflict detection for tracking orgs', async () => {
@@ -129,7 +128,7 @@ describe('detectConflicts', () => {
   describe('when conflict detection is enabled (default)', () => {
     beforeEach(() => {
       // Default setting: conflict detection enabled
-      mockGet.mockReturnValue(true);
+      mockGetValue.mockReturnValue(Effect.succeed(true));
     });
 
     it('should run conflict detection for tracking orgs', async () => {
@@ -139,6 +138,7 @@ describe('detectConflicts', () => {
       await runWithServices(detectConflicts(cs, 'deploy'), true);
 
       expect(conflictDetection.detectConflictsFromTracking).toHaveBeenCalledWith(cs);
+      expect(deployOnSaveSettings.getDetectConflictsForDeployAndRetrieve).not.toHaveBeenCalled();
     });
 
     // Note: timestamp-based conflict detection test removed due to complex mocking requirements.

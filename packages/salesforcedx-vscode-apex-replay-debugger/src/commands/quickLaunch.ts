@@ -37,13 +37,14 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
 
   const testService = new TestService(connection);
   const singleTestName = testName ? `${testClass}.${testName}` : undefined;
+  const retrieveCodeCoverage = yield* retrieveTestCodeCoverage();
   const payload = yield* Effect.promise(() =>
     testService.buildSyncPayload(
       'RunSpecifiedTests',
       singleTestName,
       singleTestName ? undefined : testClass,
       undefined,
-      !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+      !retrieveCodeCoverage // the setting enables code coverage, so we need to pass false to disable it
     )
   );
   // W-18453221
@@ -51,7 +52,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
   const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
   yield* Effect.promise(() =>
-    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveTestCodeCoverage())
+    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveCodeCoverage)
   );
 
   const tests: ApexTestResultData[] = result.tests;

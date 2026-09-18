@@ -10,6 +10,32 @@ import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
 jest.mock('vscode');
+const mockGetRestartBehavior = jest.fn((_section: string, _key: string, defaultValue?: unknown) =>
+  require('effect/Effect').succeed(defaultValue)
+);
+jest.mock('../../../src/services/runtime', () => {
+  const Effect = require('effect/Effect');
+  const { ExtensionProviderService } = require('@salesforce/effect-ext-utils');
+  const { SettingsService } = require('salesforcedx-vscode-services/src/vscode/settingsService');
+  const settingsService = {
+    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
+  };
+  return {
+    getRuntime: () => ({
+      runFork: (effect: import('effect/Effect').Effect<unknown, unknown>) =>
+        Effect.runFork(
+          effect.pipe(
+            Effect.provideService(ExtensionProviderService, {
+              getServicesApi: Effect.succeed({
+                services: { SettingsService }
+              })
+            }),
+            Effect.provideService(SettingsService, SettingsService.make(settingsService))
+          )
+        )
+    })
+  };
+});
 
 describe('ApexLSPStatusBarItem', () => {
   let statusBarItem: ApexLSPStatusBarItem;
@@ -18,6 +44,9 @@ describe('ApexLSPStatusBarItem', () => {
   let mockRestartStatusItem: vscode.LanguageStatusItem;
 
   beforeEach(() => {
+    mockGetRestartBehavior.mockImplementation((_section, _key, defaultValue) =>
+      require('effect/Effect').succeed(defaultValue)
+    );
     mockLanguageStatusItem = {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
@@ -107,6 +136,18 @@ describe('ApexLSPStatusBarItem', () => {
       statusBarItem.restarting();
       expect(mockLanguageStatusItem.text).toBe(nls.localize('apex_language_server_restarting'));
       expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
+      expect(mockRestartStatusItem.command).toBeUndefined();
+    });
+
+    it('does not restore the restart command after restarting while the setting is loading', async () => {
+      const { promise, resolve } = Promise.withResolvers<string>();
+      mockGetRestartBehavior.mockReturnValueOnce(require('effect/Effect').promise(() => promise));
+
+      statusBarItem.ready();
+      statusBarItem.restarting();
+      resolve('prompt');
+      await new Promise(done => setImmediate(done));
+
       expect(mockRestartStatusItem.command).toBeUndefined();
     });
   });

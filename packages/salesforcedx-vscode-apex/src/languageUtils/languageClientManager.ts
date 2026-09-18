@@ -26,7 +26,7 @@ import { createLanguageServer } from '../languageServer';
 import { nls } from '../messages';
 import { fireErrorSpan, fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
-import { retrieveEnableSyncInitJobs } from '../settings';
+import { getApexLanguageServerRestartBehavior, retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
   Unavailable,
@@ -205,8 +205,9 @@ export class LanguageClientManager {
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+    const restartBehavior = await getRuntime().runPromise(
+      getApexLanguageServerRestartBehavior().pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+    );
 
     // If launched from command palette, always show prompt with default option first
     if (source === 'commandPalette') {
@@ -405,8 +406,11 @@ export class LanguageClientManager {
         catch: cause => languageClientSetupError('start', cause)
       });
       fireSpan('apex.lsp.startup', { activationTime: globalThis.performance.now() - langClientStartTime });
+      const enableSyncInitJobs = yield* retrieveEnableSyncInitJobs().pipe(
+        Effect.mapError(cause => languageClientSetupError('initialization', cause))
+      );
       yield* Effect.tryPromise({
-        try: () => this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem),
+        try: () => this.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem),
         catch: cause => languageClientSetupError('initialization', cause)
       });
       yield* Effect.try({

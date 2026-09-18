@@ -6,6 +6,7 @@
  */
 
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import { window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -20,7 +21,7 @@ describe('Telemetry', () => {
 
   beforeEach(() => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
-    jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
+    jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(Effect.succeed(true));
     jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
     jest.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
       cliId: 'cli',

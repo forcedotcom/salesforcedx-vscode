@@ -18,7 +18,11 @@ const mockRecordedSpans: RecordedSpan[] = [];
 const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name === 'apex.lsp.client');
 
 jest.mock('../../src/services/runtime', () =>
-  require('./testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans)
+  require('./testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, {
+    provideExtensionProvider: true,
+    settingsGetValue: (_section: string, _key: string, defaultValue?: unknown) =>
+      require('effect/Effect').succeed(defaultValue)
+  })
 );
 
 // Stub the java/requirements resolution so createServer doesn't touch the filesystem/JDK.
@@ -40,6 +44,7 @@ import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { resolveRequirements } from '../../src/requirements';
 import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { getRuntime } from '../../src/services/runtime';
 
 const runCreateLanguageServer = (context: vscode.ExtensionContext) =>
@@ -62,7 +67,18 @@ describe('languageServer client span', () => {
     (vscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
       get: (_key: string, def?: unknown) => def
     });
-    (vscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+    (vscode.extensions.getExtension as jest.Mock).mockImplementation((id: string) =>
+      id === 'salesforce.salesforcedx-vscode-services'
+        ? {
+            isActive: true,
+            exports: {
+              services: {
+                SettingsService
+              }
+            }
+          }
+        : undefined
+    );
   });
 
   const mockContext = {
@@ -129,7 +145,18 @@ describe('languageServer client span', () => {
         (isolatedVscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
           get: (_key: string, def?: unknown) => def
         });
-        (isolatedVscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+        (isolatedVscode.extensions.getExtension as jest.Mock).mockImplementation((id: string) =>
+          id === 'salesforce.salesforcedx-vscode-services'
+            ? {
+                isActive: true,
+                exports: {
+                  services: {
+                    SettingsService: require('salesforcedx-vscode-services/src/vscode/settingsService').SettingsService
+                  }
+                }
+              }
+            : undefined
+        );
         (IsolatedApexLanguageClient as unknown as jest.Mock).mockImplementation(() => ({
           onTelemetry: jest.fn()
         }));

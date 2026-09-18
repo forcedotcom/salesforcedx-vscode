@@ -9,7 +9,6 @@ import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-e
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
@@ -44,9 +43,6 @@ export class RestOASGenerationDisabled extends Data.TaggedError('RestOASGenerati
 
 /** Whether REST (@RestResource) OpenAPI generation is enabled. Off by default — it depends on an external
  * AI model service that has proven unreliable; AuraEnabled generation is unaffected. */
-const isRestOASGenEnabled = (): boolean =>
-  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex-oas.enableRestOASGen', false);
-
 /**
  * Creates an OpenAPI Document.
  */
@@ -81,7 +77,12 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
   // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
   if (hasValidRestAnnotations(context)) {
-    if (!isRestOASGenEnabled()) {
+    const isRestOASGenEnabled = yield* api.services.SettingsService.getValue(
+      'salesforcedx-vscode-apex-oas',
+      'enableRestOASGen',
+      false
+    );
+    if (!isRestOASGenEnabled) {
       return yield* new RestOASGenerationDisabled({ message: nls.localize('rest_oas_gen_disabled') });
     }
     yield* LLMService.ensureAvailable();

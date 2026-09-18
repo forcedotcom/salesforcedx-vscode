@@ -72,7 +72,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
-  if (getActivationMode() === 'off') {
+  if ((yield* getActivationMode()) === 'off') {
     yield* channelSvc.appendToChannel(nls.localize('lwc_activation_mode_off'));
     return;
   }
@@ -97,7 +97,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   const workspaceType: WorkspaceType = detected !== 'UNKNOWN' ? detected : isSalesforceProject ? 'SFDX' : detected;
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
+  if ((yield* getActivationMode()) === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     yield* channelSvc.appendToChannel(nls.localize('lwc_autodetect_no_project', workspaceType));
     return;
@@ -259,7 +259,10 @@ export const deactivate = () => {
   getRuntime().runFork(Effect.void.pipe(Effect.withSpan('extensionDeactivated')));
 };
 
-const getActivationMode = (): string => {
-  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
-};
+const getActivationMode = Effect.fn('lwc:getActivationMode')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return (
+    (yield* api.services.SettingsService.getValue('salesforcedx-vscode-lightning', 'activationMode', 'autodetect')) ??
+    'autodetect'
+  );
+});
