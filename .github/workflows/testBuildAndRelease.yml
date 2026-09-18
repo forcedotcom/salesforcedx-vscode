@@ -2,7 +2,7 @@ name: Test, Build, and Release (DEPRECATED)
 
 # DEPRECATED: This workflow is part of the old release branch flow.
 # Triggered by PreRelease workflow completion (also deprecated).
-# Use build-release.yml → publishVSCode.yml workflow instead.
+# Use build-github-release.yml → publishVSCode.yml workflow instead.
 # Scheduled for removal after migration complete.
 
 on:

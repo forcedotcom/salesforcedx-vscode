@@ -1,8 +1,8 @@
-# DEPRECATED: Replaced by build-release.yml
+# DEPRECATED: Replaced by build-github-release.yml
 #
-# build-release.yml builds from nightly tags published to marketplace as prerelease (no release branch) + supports
+# build-github-release.yml builds from nightly tags published to marketplace as prerelease (no release branch) + supports
 # emergency pre-releases via publishAsPrerelease=true.
-# See: .github/workflows/build-release.yml
+# See: .github/workflows/build-github-release.yml
 # Docs: contributing/publishing.md
 #
 # TODO: Delete this file after 2-3 successful releases with new system (W-23988524)
@@ -13,7 +13,7 @@ name: Create Release Branch (DEPRECATED)
 on:
   repository_dispatch:
     types: [create_release_branch]
-  # DISABLED: Monday cron schedule - use build-release.yml instead
+  # DISABLED: Monday cron schedule - use build-github-release.yml instead
   # schedule:
   #   - cron: '0 13 * * 1'
   workflow_dispatch:

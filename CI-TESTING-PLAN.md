@@ -45,10 +45,10 @@ git push ci-testing "v${OLD_VERSION}"
 
 ### Test 1: Auto-Detection of Promoted Pre-release
 
-**Goal:** Verify `build-release.yml` auto-detects latest `marketplace-prerelease-*` tracking tag
+**Goal:** Verify `build-github-release.yml` auto-detects latest `marketplace-prerelease-*` tracking tag
 
 **Steps:**
-1. Go to Actions → `build-release.yml`
+1. Go to Actions → `build-github-release.yml`
 2. Click "Run workflow"
 3. Leave all inputs empty (test auto-detection)
 4. Run workflow
@@ -96,7 +96,7 @@ git push ci-testing hotfix/test-emergency-fix
 ```
 
 **Steps:**
-1. Go to Actions → `build-release.yml`
+1. Go to Actions → `build-github-release.yml`
 2. Click "Run workflow"
 3. Set inputs:
    - `publishAsPrerelease`: `true`
@@ -316,7 +316,7 @@ git push ci-testing HEAD:release-base/v67.11.x
 **Goal:** Verify workflows reject invalid tag formats
 
 **Steps:**
-1. Try to trigger `build-release.yml` with invalid prereleaseTag:
+1. Try to trigger `build-github-release.yml` with invalid prereleaseTag:
    - `prereleaseTag`: `v67.12.0-invalid-format`
 2. Run workflow
 

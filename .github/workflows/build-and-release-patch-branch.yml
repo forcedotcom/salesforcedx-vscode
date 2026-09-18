@@ -219,9 +219,10 @@ jobs:
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "1. **Download and test VSIX files** from the pre-release" >> $GITHUB_STEP_SUMMARY
-          echo "2. **If tests pass**, trigger \`publishVSCode.yml\` workflow:" >> $GITHUB_STEP_SUMMARY
+          echo "2. **If tests pass**, dispatch BOTH publish workflows (one does not trigger the other) with \`isHotfix=true\`:" >> $GITHUB_STEP_SUMMARY
           echo '   ```bash' >> $GITHUB_STEP_SUMMARY
-          echo "   gh workflow run publishVSCode.yml -f releaseVersion=$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishVSCode.yml -f version=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishOpenVSX.yml -f release-tag=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
           echo '   ```' >> $GITHUB_STEP_SUMMARY
           echo "3. **Cherry-pick fixes to develop** (see release notes for commands)" >> $GITHUB_STEP_SUMMARY
           echo "4. **Delete the release branch** after successful publish:" >> $GITHUB_STEP_SUMMARY

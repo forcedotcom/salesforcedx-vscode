@@ -3,8 +3,8 @@ name: Promote to Pre-release
 on:
   schedule:
     # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
-    # Creates tracking tag for NEXT week's build-release.yml (which runs at 7 AM)
-    # IMPORTANT: Runs AFTER build-release (7 AM) so that stable builds use last week's
+    # Creates tracking tag for NEXT week's build-github-release.yml (which runs at 7 AM)
+    # IMPORTANT: Runs AFTER build-github-release (7 AM) so that stable builds use last week's
     # tested prerelease (7+ days on marketplace), not today's newly promoted one
     - cron: '0 8 * * 3'
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
         required: false
         type: string
       isHotfix:
-        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
+        description: 'Skip nightly-pipeline gate-check for tags built via build-github-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
         required: false
         default: false
         type: boolean
@@ -59,7 +59,7 @@ jobs:
         # The meaningful, available signals here are that the nightly compiled/packaged the
         # VSIXs and published the GitHub release cleanly.
         #
-        # Skipped for isHotfix: tags built via build-release.yml's startFromRef never go
+        # Skipped for isHotfix: tags built via build-github-release.yml's startFromRef never go
         # through this repo's nightly pipeline, so these check-run names never exist on that
         # commit regardless of outcome. See "Test hotfix commit directly" below instead.
         if: ${{ !inputs.isHotfix }}
