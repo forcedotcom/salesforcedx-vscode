@@ -7,7 +7,6 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
-import type treeKill from 'tree-kill';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
@@ -16,6 +15,8 @@ import {
   NO_STDOUT_ERROR,
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
+
+type TreeKillFunction = NonNullable<ConstructorParameters<typeof CliCommandExecution>[3]>;
 
 describe('CliCommandExecution Unit Tests.', () => {
   const testCommand: Command = {
@@ -29,7 +30,7 @@ describe('CliCommandExecution Unit Tests.', () => {
   let intervalSpy: VitestMockInstance;
   let subscribeSpy: VitestMockInstance;
   let unsubscribeSpy: VitestMockInstance;
-  let treeKillMock: ReturnType<typeof vi.fn<typeof treeKill>>;
+  let treeKillMock: ReturnType<typeof vi.fn<TreeKillFunction>>;
 
   beforeEach(() => {
     testChildProcess = {
@@ -50,7 +51,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     intervalSpy = vi.spyOn(rxjs, 'interval').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
-    treeKillMock = vi.fn<typeof treeKill>();
+    treeKillMock = vi.fn<TreeKillFunction>();
   });
 
   afterEach(() => {
@@ -78,12 +79,7 @@ describe('CliCommandExecution Unit Tests.', () => {
 
   describe('Subscribe handlers.', () => {
     it('Should call timer unsubscribe on exit.', () => {
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken,
-        treeKillMock
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[0][0];
       exitSubscribeHandler();
@@ -91,12 +87,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     });
 
     it('Should call timer unsubscribe on error.', () => {
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken,
-        treeKillMock
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[1][0];
       exitSubscribeHandler();

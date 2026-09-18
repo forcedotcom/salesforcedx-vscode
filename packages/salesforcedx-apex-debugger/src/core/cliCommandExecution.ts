@@ -9,6 +9,8 @@ import { ChildProcess } from 'node:child_process';
 import { fromEvent, interval, Observable, Subscription } from 'rxjs';
 import * as treeKill from 'tree-kill';
 
+type TreeKillFunction = (processId: number, signal: string, callback: (error?: Error) => void) => void;
+
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
 export const NO_STDERR_ERROR = 'No stderr found for childProcess';
@@ -29,7 +31,7 @@ export class CliCommandExecution implements CommandExecution {
     command: Command,
     childProcess: ChildProcess,
     cancellationToken?: CancellationToken,
-    private readonly treeKillFunction: typeof treeKill = treeKill
+    private readonly treeKillFunction: TreeKillFunction = treeKill
   ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
@@ -90,7 +92,7 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string, treeKillFunction: typeof treeKill): Promise<void> =>
+const killPromise = (processId: number, signal: string, treeKillFunction: TreeKillFunction): Promise<void> =>
   new Promise<void>((resolve, reject) => {
     treeKillFunction(processId, signal, (err: Error | undefined) => {
       if (err) {

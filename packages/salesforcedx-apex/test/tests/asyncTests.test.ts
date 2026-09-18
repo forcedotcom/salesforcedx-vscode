@@ -1626,11 +1626,16 @@ describe('Run Apex tests asynchronously', () => {
       };
 
       // Setup mock to return different results based on query type
-      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query').callsFake(async query => {
-        if (/FROM ApexTestResult\b/.test(query)) return mockApexResults;
-        if (/FROM FlowTestResult\b/.test(query)) return mockFlowResults;
+      const queryResult = (query: string): ReturnType<typeof mockConnection.tooling.query> => {
+        if (/FROM ApexTestResult\b/.test(query)) {
+          return mockApexResults as unknown as ReturnType<typeof mockConnection.tooling.query>;
+        }
+        if (/FROM FlowTestResult\b/.test(query)) {
+          return mockFlowResults as unknown as ReturnType<typeof mockConnection.tooling.query>;
+        }
         throw new Error(`Unexpected tooling query: ${query}`);
-      });
+      };
+      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query').callsFake(queryResult);
 
       // Execute the test
       const results = await asyncTests.getAsyncTestResults(testQueueResult);

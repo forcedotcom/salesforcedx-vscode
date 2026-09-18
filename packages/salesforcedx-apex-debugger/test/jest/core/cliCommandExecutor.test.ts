@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Command, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
-import type crossSpawn from 'cross-spawn';
 import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
 vi.mock('../../../src/core/cliCommandExecution');
 const CliCommandExecutorMock = vi.mocked(CliCommandExecution);
+type CrossSpawnFunction = NonNullable<ConstructorParameters<typeof CliCommandExecutor>[2]>;
 
 describe('CliCommandExecutor Unit Tests.', () => {
   const fakeCommand: Command = {
@@ -38,7 +38,7 @@ describe('CliCommandExecutor Unit Tests.', () => {
 
   it('Should be able to execute the command.', () => {
     const fakeChildProcess = {};
-    const crossSpawnMock = vi.fn<typeof crossSpawn>().mockReturnValue(fakeChildProcess as any);
+    const crossSpawnMock = vi.fn<CrossSpawnFunction>().mockReturnValue(fakeChildProcess as any);
     const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, crossSpawnMock);
     cliCommandExecutor.execute();
     expect(crossSpawnMock).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, patchedOptions);
