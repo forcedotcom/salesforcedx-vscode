@@ -95,7 +95,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JUnit out
             <property name="skipped" value="0"/>
             <property name="passRate" value="67%"/>
             <property name="failRate" value="33%"/>
-            <property name="testStartTime" value="Sun Jan 01 2023 6:00:00 AM"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
             <property name="testExecutionTime" value="1.50 s"/>
             <property name="testTotalTime" value="2.50 s"/>
             <property name="commandTime" value="3.50 s"/>
@@ -319,7 +319,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
             <property name="skipped" value="0"/>
             <property name="passRate" value="67%"/>
             <property name="failRate" value="33%"/>
-            <property name="testStartTime" value="Sun Jan 01 2023 6:00:00 AM"/>
+            <property name="testStartTime" value="[TIMESTAMP]"/>
             <property name="testExecutionTime" value="1.50 s"/>
             <property name="testTotalTime" value="2.50 s"/>
             <property name="commandTime" value="3.50 s"/>
