@@ -92,6 +92,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           if ! gh release view "$RELEASE_TAG" &> /dev/null; then
             echo "::error::Release $RELEASE_TAG does not exist. Cannot proceed with publish."
@@ -242,6 +244,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           # Get VSIX filenames from release assets
           VSIX_FILES=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name | endswith(".vsix")) | .name')
