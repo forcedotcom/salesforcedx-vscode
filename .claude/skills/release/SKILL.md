@@ -138,7 +138,7 @@ Verify live:
 Compose from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
 - Header: `*Salesforce Extensions for VS Code v<version> is out* :tada:`
-- Link: `<https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode|VS Code Marketplace>` → "see *Changelog* tab"
+- Link: bare URL on its own line — `VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode` (see *Changelog* tab for full details). Do **not** use Slack's `<url|text>` bracket-pipe syntax: anything outside Slack's own composer (chat clients, clipboards, other markdown renderers) tends to do naive URL auto-detection, grabs everything up to the next whitespace, and mangles the link — encoding the `|` as `%7C` and swallowing the leading text into the URL.
 - Sections: `*Added*` / `*Fixed*`
 - Subsections (`#### foo`) → blockquote (`> foo`)
 - Drop PR/issue trailers
