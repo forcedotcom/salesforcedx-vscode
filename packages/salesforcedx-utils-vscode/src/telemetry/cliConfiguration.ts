@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '../config/configUtil';
+import { SF_CONFIG_DISABLE_TELEMETRY } from '../constants';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 export const isCLITelemetryAllowed = async (): Promise<boolean> => {
   // In web mode, ConfigAggregator may not work correctly, so default to allowing telemetry
@@ -13,8 +14,8 @@ export const isCLITelemetryAllowed = async (): Promise<boolean> => {
     return true;
   }
   try {
-    const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
-    return !isTelemetryDisabled;
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    return configAggregator.getPropertyValue(SF_CONFIG_DISABLE_TELEMETRY) !== 'true';
   } catch (e) {
     console.log(`Error checking cli settings: ${e}`);
   }

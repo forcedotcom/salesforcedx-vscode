@@ -6,19 +6,12 @@
  */
 
 export { ChannelService } from './commands/channelService';
-export { notificationService } from './commands/notificationService';
-export { ConfigUtil } from './config/configUtil';
-export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
+export { SFDX_CORE_CONFIGURATION_NAME } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { type OrgUserInfo } from './context/orgUserInfo';
-export { shapeFrom, type OrgShape, type OrgShapeInfo } from './context/workspaceOrgShape';
+export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { createDirectory, fileOrFolderExists, readFile, safeDelete, writeFile } from './helpers/fs';
+export { fileOrFolderExists, readFile } from './helpers/fs';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
-export { getTargetDevHubOrAlias } from './util/authInfo';
-export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
-
-export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
-export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';

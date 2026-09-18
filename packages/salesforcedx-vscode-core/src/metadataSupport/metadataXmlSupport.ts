@@ -4,16 +4,48 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isError, isNotUndefined, isString } from 'effect/Predicate';
-import * as path from 'node:path';
+import { ExtensionPackageJsonSchema, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
+import { isError, isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { getCoreChannelService } from '../channels';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 type XMLExtensionApi = {
   addXMLCatalogs: (catalogs: string[]) => void;
   addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
 };
+
+type SchemaDocumentationInspection =
+  | Pick<
+      NonNullable<ReturnType<vscode.WorkspaceConfiguration['inspect']>>,
+      'globalValue' | 'workspaceValue' | 'workspaceFolderValue' | 'globalLanguageValue' | 'workspaceLanguageValue'
+    >
+  | undefined;
+
+class RedHatXmlExtensionSetupError extends Schema.TaggedError<RedHatXmlExtensionSetupError>()(
+  'RedHatXmlExtensionSetupError',
+  {
+    message: Schema.String,
+    cause: Schema.Unknown
+  }
+) {}
+
+class XmlConfigurationInspectError extends Schema.TaggedError<XmlConfigurationInspectError>()(
+  'XmlConfigurationInspectError',
+  {
+    message: Schema.String,
+    cause: Schema.Unknown,
+    setting: Schema.String
+  }
+) {}
+
+class RedHatXmlSupportError extends Schema.TaggedError<RedHatXmlSupportError>()('RedHatXmlSupportError', {
+  message: Schema.String
+}) {}
 
 const MIN_XML_SERVER_HEAP_MB = 1024;
 const XMX_REGEX = /-Xmx(\d+)([kKmMgG]?)\b/;
@@ -49,120 +81,180 @@ export const ensureMinXmlHeap = (vmArgs: string | undefined): string | undefined
   return current.replace(XMX_REGEX, `-Xmx${MIN_XML_SERVER_HEAP_MB}M`);
 };
 
-/**
- * Provides XML schema support for Salesforce metadata files using RedHat XML extension
- */
-export class MetadataXmlSupport {
-  private static instance: MetadataXmlSupport;
+export const shouldSetSchemaDocumentationTypeToNone = (inspection: SchemaDocumentationInspection): boolean =>
+  [
+    inspection?.globalValue,
+    inspection?.workspaceValue,
+    inspection?.workspaceFolderValue,
+    inspection?.globalLanguageValue,
+    inspection?.workspaceLanguageValue
+  ].every(isUndefined);
 
-  public static getInstance(): MetadataXmlSupport {
-    if (!MetadataXmlSupport.instance) {
-      MetadataXmlSupport.instance = new MetadataXmlSupport();
-    }
-    return MetadataXmlSupport.instance;
-  }
+const getLocalFilePaths = (extensionUri: URI, targetFileNames: string[]): string[] =>
+  targetFileNames.map(targetFileName => Utils.joinPath(extensionUri, 'resources', targetFileName).fsPath);
 
-  private getLocalFilePath(targetFileNames: string[], extensionContext: vscode.ExtensionContext): string[] {
-    const listOfPaths: string[] = [];
-    targetFileNames.forEach(targetFileName => {
-      listOfPaths.push(extensionContext.asAbsolutePath(path.join('resources', targetFileName)));
-    });
-    return listOfPaths;
-  }
+const getErrorMessage = (error: unknown): string => (isError(error) ? error.message : String(error));
 
-  /**
-   * Setup RedHat XML extension with metadata schema support
-   * @param inputCatalogs - list of catalog file paths
-   * @param inputFileAssociations - list of file associations
-   */
-  private async setupRedhatXml(
+const reportToChannel = Effect.fn('metadataXmlSupport.reportToChannel')(function* (message: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  yield* channelService.appendToChannel(message);
+});
+
+const reportCaughtMessage = (error: { message: string }) => reportToChannel(error.message);
+
+const reportSetupFailure = Effect.fn('metadataXmlSupport.reportSetupFailure')(function* (error: unknown) {
+  yield* reportToChannel(nls.localize('metadata_xml_fail_redhat_extension'));
+  yield* reportToChannel(getErrorMessage(error));
+});
+
+/** Setup Red Hat XML with Salesforce metadata schemas and settings. */
+const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
+  function* (
     inputCatalogs: Parameters<XMLExtensionApi['addXMLCatalogs']>[0],
     inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0],
     redHatExtension: vscode.Extension<XMLExtensionApi>
-  ): Promise<void> {
-    const channel = getCoreChannelService();
-    try {
-      if (!redHatExtension.isActive) {
-        await redHatExtension.activate();
-      }
-      redHatExtension.exports.addXMLCatalogs(inputCatalogs);
-      redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
+  ) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
+    const settingsService = yield* api.services.SettingsService;
 
-      // Suppress RedHat XML schema documentation (unless user opts in) to prevent duplication,
-      // but only if they haven't already set a value for the xml setting at any scope.
-      const doNotSuppress = vscode.workspace
-        .getConfiguration('salesforcedx-vscode-core')
-        .get<boolean>('metadata.doNotSuppressRedhatSchemaDocumentation', false);
-      if (!doNotSuppress) {
-        const config = vscode.workspace.getConfiguration('xml');
-        const docTypeInspect = config.inspect<string>('preferences.showSchemaDocumentationType');
-        const userHasSetValue =
-          isNotUndefined(docTypeInspect?.globalValue) ||
-          isNotUndefined(docTypeInspect?.workspaceValue) ||
-          isNotUndefined(docTypeInspect?.workspaceFolderValue) ||
-          isNotUndefined(docTypeInspect?.globalLanguageValue) ||
-          isNotUndefined(docTypeInspect?.workspaceLanguageValue);
-        if (!userHasSetValue) {
-          await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+    yield* Effect.tryPromise({
+      try: async () => {
+        if (!redHatExtension.isActive) {
+          await redHatExtension.activate();
         }
+        redHatExtension.exports.addXMLCatalogs(inputCatalogs);
+        redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
+      },
+      catch: cause =>
+        new RedHatXmlExtensionSetupError({
+          message: getErrorMessage(cause),
+          cause
+        })
+    });
+
+    const inspectXmlConfiguration = <A>(setting: string) =>
+      Effect.try({
+        try: () => vscode.workspace.getConfiguration('xml').inspect<A>(setting),
+        catch: cause =>
+          new XmlConfigurationInspectError({
+            message: getErrorMessage(cause),
+            cause,
+            setting
+          })
+      });
+
+    // Suppress Red Hat XML schema documentation (unless user opts in) to prevent duplication,
+    // but only if they haven't already set a value for the XML setting at any scope.
+    const doNotSuppress = yield* settingsService.getValue<boolean>(
+      'salesforcedx-vscode-core',
+      'metadata.doNotSuppressRedhatSchemaDocumentation',
+      false
+    );
+    if (!doNotSuppress) {
+      const docTypeInspect = yield* inspectXmlConfiguration<string>('preferences.showSchemaDocumentationType');
+      if (shouldSetSchemaDocumentationTypeToNone(docTypeInspect)) {
+        yield* settingsService.setValue(
+          'xml',
+          'preferences.showSchemaDocumentationType',
+          'none',
+          vscode.ConfigurationTarget.Workspace
+        );
       }
+    }
 
-      // Ensure the XML language server has enough memory to avoid OOM crashes on large Salesforce
-      // projects. Write to User settings so it persists across all projects, but only if the
-      // current User-level value is absent or below the minimum heap threshold.
-      const xmlConfig = vscode.workspace.getConfiguration('xml');
-      const vmArgsInspect = xmlConfig.inspect<string>('server.vmargs');
-      const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
-      if (isNotUndefined(updatedVmArgs)) {
-        await xmlConfig.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
-        channel.appendLine(nls.localize('metadata_xml_vmargs_configured'));
+    // Ensure the XML language server has enough memory to avoid OOM crashes on large Salesforce
+    // projects. Write to User settings so it persists across all projects, but only if the
+    // current User-level value is absent or below the minimum heap threshold.
+    const vmArgsInspect = yield* inspectXmlConfiguration<string>('server.vmargs');
+    const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
+    if (isNotUndefined(updatedVmArgs)) {
+      yield* settingsService.setValue('xml', 'server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
+      yield* channelService.appendToChannel(nls.localize('metadata_xml_vmargs_configured'));
+    }
+
+    yield* channelService.appendToChannel(nls.localize('metadata_xml_redhat_extension_setup_success'));
+  },
+  Effect.catchTags({
+    MissingSettingsError: reportSetupFailure,
+    RedHatXmlExtensionSetupError: error => reportSetupFailure(error.cause),
+    XmlConfigurationInspectError: error => reportSetupFailure(error.cause)
+  })
+);
+
+const setupCompatibleRedhatXml = Effect.fn('metadataXmlSupport.setupCompatibleRedhatXml')(function* (
+  redHatExtension: vscode.Extension<XMLExtensionApi>
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const extensionContext = yield* (yield* api.services.ExtensionContextService).getContext;
+  const extensionUri = URI.parse(extensionContext.extensionUri.toString());
+  yield* setupRedhatXml(
+    getLocalFilePaths(extensionUri, ['metadata-catalog.xml']),
+    [
+      {
+        systemId: getLocalFilePaths(extensionUri, ['salesforce_metadata_api_namespace1.xsd'])[0],
+        pattern: '**/*-meta.xml'
       }
+    ],
+    redHatExtension
+  );
+});
 
-      channel.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
-    } catch (error) {
-      channel.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
-      const errorMsg = isError(error) ? error.message : String(error);
-      channel.appendLine(errorMsg);
-    }
-  }
-
-  /**
-   * Initialize metadata XML support by configuring RedHat XML extension
-   */
-  public async initializeMetadataSupport(extensionContext: vscode.ExtensionContext): Promise<void> {
-    const channel = getCoreChannelService();
-    const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
-
-    if (!redHatExtension) {
-      channel.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
-      return;
-    }
-
-    const pluginVersionNumber = redHatExtension.packageJSON['version'];
-
-    if (!isString(pluginVersionNumber)) {
-      channel.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
-      return;
-    }
-
-    // Check if the installed plugin version is compatible
+/** Initialize metadata XML support by configuring Red Hat XML. */
+export const initializeMetadataSupport = Effect.fn('metadataXmlSupport.initializeMetadataSupport')(
+  function* () {
+    const redHatExtension = yield* Option.match(
+      Option.fromNullable(vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml')),
+      {
+        onNone: () =>
+          Effect.fail(
+            new RedHatXmlSupportError({
+              message: nls.localize('metadata_xml_no_redhat_extension_found')
+            })
+          ),
+        onSome: Effect.succeed
+      }
+    );
     // 0.14.0 or 0.16+ are supported, 0.15.0 has a regression
-    const [major, minor] = pluginVersionNumber.split('.').map(i => parseInt(i, 10));
-
-    if (major >= 1 || minor === 14 || minor >= 16) {
-      const catalogs = this.getLocalFilePath(['metadata-catalog.xml'], extensionContext);
-      const fileAssociations = [
-        {
-          systemId: this.getLocalFilePath(['salesforce_metadata_api_namespace1.xsd'], extensionContext)[0],
-          pattern: '**/*-meta.xml'
-        }
-      ];
-
-      await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
-    } else if (minor === 15) {
-      channel.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
-    } else {
-      channel.appendLine(nls.localize('metadata_xml_deprecated_redhat_extension'));
-    }
-  }
-}
+    yield* Schema.decodeUnknown(ExtensionPackageJsonSchema.pipe(Schema.pick('version')))(
+      redHatExtension.packageJSON
+    ).pipe(
+      Effect.map(({ version }) => version),
+      Effect.filterOrFail(
+        Schema.is(Schema.NonEmptyString),
+        () =>
+          new RedHatXmlSupportError({
+            message: nls.localize('metadata_xml_no_redhat_extension_found')
+          })
+      ),
+      Effect.map(version => version.split('.').map(part => parseInt(part, 10))),
+      Effect.map(([major, minor]) => ({ major, minor })),
+      Effect.flatMap(parsed =>
+        Match.value(parsed).pipe(
+          Match.when(
+            ({ major: maj, minor: min }) => maj >= 1 || min === 14 || min >= 16,
+            () => setupCompatibleRedhatXml(redHatExtension)
+          ),
+          Match.when(
+            ({ minor: min }) => min === 15,
+            () =>
+              Effect.fail(
+                new RedHatXmlSupportError({
+                  message: nls.localize('metadata_xml_redhat_extension_regression')
+                })
+              )
+          ),
+          Match.orElse(() =>
+            Effect.fail(
+              new RedHatXmlSupportError({
+                message: nls.localize('metadata_xml_deprecated_redhat_extension')
+              })
+            )
+          )
+        )
+      )
+    );
+  },
+  Effect.catchTag('RedHatXmlSupportError', reportCaughtMessage)
+);

@@ -95,9 +95,9 @@ return yield* runApexTests({ /* ... */ }).pipe(
   Effect.tap(() => channelService.showChannel),
   Effect.tap(result =>
     Effect.sync(() => {
-      (result === undefined
-        ? notificationService.showFailedExecution
-        : notificationService.showSuccessfulExecution)(executionName);
+      void (result === undefined
+        ? vscode.window.showErrorMessage
+        : vscode.window.showInformationMessage)(executionName);
     })
   )
 );
@@ -161,7 +161,8 @@ Bail conditions (`if (isDebug || !single) return;`) aren't dispatch dimensions.
    two.
 
 Pattern: short-circuit prerequisites up top, matcher handles real variance on
-proven-good input.
+proven-good input. Expected skip (missing optional plugin, incompatible version):
+nls write on that guard — not `fail`+`catchTag` whose only arm prints `message`.
 
 ## Linear body → point-free pipe, not a generator
 
@@ -266,6 +267,52 @@ not a scatter of single-use helpers above it. And don't touch genuine multi-step
 composition — a `Stream` inside `mapConcatEffect`, a branch with its own chain.
 Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
+## Attach recovery to a subsequence — pipe from the first Effect
+
+Inside an already-running gen, recover a span of yields by piping from that span's first Effect. Nested `Effect.gen` is a wrapper around a sequence combinators already cover.
+
+```typescript
+// PREFERRED — seed at the first recovered Effect
+yield* api.services.QueryService.pipe(
+  Effect.flatMap(qs =>
+    qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
+  ),
+  Effect.map(({ totalSize }) => totalSize),
+  Effect.orElseSucceed(() => 'query failed')
+)
+
+// AVOID — nested gen whose only job is to make the sequence pipeable
+yield* Effect.gen(function* () {
+  const qs = yield* api.services.QueryService
+  const { totalSize } = yield* qs.query(
+    { soql: 'SELECT COUNT() FROM SourceMember', tooling: true },
+    Schema.Unknown
+  )
+  return totalSize
+}).pipe(Effect.orElseSucceed(() => 'query failed'))
+```
+
+`unnecessaryEffectGen` does **not** catch this — it matches a gen whose whole body is one `yield* X`. Two+ yields plus a trailing recovery pipe still need this rewrite.
+
+Keep recovery on the recovered subject. A nested pipe over a *different* subject is load-bearing when the inner chain has its own recovery. Hoisting `catchAllCause` / `orElseSucceed` onto an outer lookup pipe changes which failures recover.
+
+```typescript
+// PREFERRED — only the query recovers; getServicesApi / getValue still fail
+getServicesApi.pipe(
+  Effect.flatMap(api => api.services.SettingsService.getValue('salesforcedx-vscode-soql', 'maxQueryLimit')),
+  Effect.flatMap(maxRows =>
+    runBuilderQueryEffect(maxRows).pipe(Effect.catchAllCause(recover))
+  )
+)
+
+// AVOID — lookup failure now takes the recover path
+getServicesApi.pipe(
+  Effect.flatMap(api => api.services.SettingsService.getValue('salesforcedx-vscode-soql', 'maxQueryLimit')),
+  Effect.flatMap(maxRows => runBuilderQueryEffect(maxRows)),
+  Effect.catchAllCause(recover)
+)
+```
+
 ## Quick reference
 
 | Situation | Do | Don't |
@@ -289,3 +336,5 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 | Single-use inner pipe / payload | inline it in the one pipe (goal: one large pipe, no intermediate vars) | extract a single-use `const`/helper just to shorten the pipe |
 | Nested pipe that only sequences steps | flatten to sibling steps | leave nesting that adds no branching |
 | Nested pipe with real branching or its own `Stream`/sub-chain | keep nested — it's genuine composition | flatten mechanically and lose the structure |
+| Recovery around a subsequence of an outer gen | pipe from the first Effect of that span; recovery as a sibling | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchAllCause)` |
+| Inner chain has its own recovery | keep the nested pipe on that subject | hoist `catchAllCause` / `orElseSucceed` onto an outer lookup pipe |
