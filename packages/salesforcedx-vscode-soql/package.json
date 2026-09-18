@@ -217,7 +217,9 @@
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
-      "output": []
+      "output": [
+        "junit-custom-queryResults-unitTests.xml"
+      ]
     },
     "test:ui-bundle-budgets": {
       "command": "node scripts/check-ui-bundle-budgets.mjs",

@@ -23,6 +23,22 @@ vi.mock('@salesforce/core', async () => ({
   }
 }));
 
+vi.mock('@salesforce/core/fs', async () => {
+  const actual = await vi.importActual<typeof import('@salesforce/core/fs')>('@salesforce/core/fs');
+  return {
+    ...actual,
+    fs: {
+      ...actual.fs,
+      promises: {
+        ...actual.fs.promises,
+        watch: vi.fn(() => {
+          throw Object.assign(new Error('file watching disabled in unit tests'), { code: 'EACCES' });
+        })
+      }
+    }
+  };
+});
+
 import { activate, deactivate } from '../../src/index';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

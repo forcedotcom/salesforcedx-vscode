@@ -278,6 +278,7 @@
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
+        "./packages/playwright-vscode-ext:test",
         "./packages/effect-ext-utils:test"
       ]
     },

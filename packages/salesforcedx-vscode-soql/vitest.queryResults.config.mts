@@ -13,6 +13,7 @@ export default defineConfig({
     ...baseConfig.test,
     environment: 'jsdom',
     include: ['test/jest/queryDataView/queryDataViewController.test.ts'],
-    exclude: [...(baseConfig.test?.exclude ?? []), '.wireit/**']
+    exclude: [...(baseConfig.test?.exclude ?? []), '.wireit/**'],
+    reporters: ['default', ['junit', { outputFile: 'junit-custom-queryResults-unitTests.xml' }]]
   }
 });

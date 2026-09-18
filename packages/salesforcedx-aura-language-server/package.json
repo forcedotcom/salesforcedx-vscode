@@ -67,6 +67,7 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "vitest.setup.js",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",
         "../../scripts/setupVitest.ts",
