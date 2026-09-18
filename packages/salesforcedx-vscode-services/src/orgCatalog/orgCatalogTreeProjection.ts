@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
@@ -24,6 +25,15 @@ import {
   OrgMetadataReferenceService,
   type OrgMetadataReference
 } from './orgMetadataReference';
+
+const emptyCustomFieldInventory: TypeInventory = {
+  observedAt: '1970-01-01T00:00:00.000Z',
+  complete: false,
+  components: HashMap.empty(),
+  componentIdentityOrder: [],
+  folders: HashMap.empty(),
+  folderFullNameOrder: []
+};
 
 export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProjection>()('OrgCatalogTreeProjection', {
   accessors: true,
@@ -52,7 +62,13 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       const objectApiName = objectEntry.namespacePrefix
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
-      const fieldInventory = yield* inventories.loadType(orgId, 'CustomField');
+      const fieldInventory = yield* inventories
+        .loadType(orgId, 'CustomField')
+        .pipe(
+          Effect.catchTag('ListMetadataError', error =>
+            Effect.logWarning('Failed to list CustomField inventory', error).pipe(Effect.as(emptyCustomFieldInventory))
+          )
+        );
       yield* state.ensureHydrated(orgId);
       const acquireDescription = metadataDescribeService.describeCustomObject(objectApiName, orgId).pipe(
         Effect.flatMap(transmogrifier.toMinimalSObject),
@@ -67,7 +83,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         .getSObjectDescription(orgId, objectApiName)
         .pipe(Effect.flatMap(description => (description ? Effect.succeed(description) : acquireDescription)));
       const describedObject =
-        Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
+        fieldInventory.complete && Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
           ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
               Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
               Effect.flatMap(transmogrifier.toMinimalSObject),

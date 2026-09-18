@@ -24,7 +24,11 @@ import { ComponentSetService } from '../../../src/core/componentSetService';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
-import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import {
+  FOLDERED_METADATA_TYPES,
+  ListMetadataError,
+  MetadataDescribeService
+} from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
@@ -81,6 +85,7 @@ type HarnessOptions = {
   readonly storeSaveError?: Error;
   readonly connectionOrgId?: string;
   readonly listMetadataError?: InactiveOrgOperationError;
+  readonly failListMetadataTypes?: readonly string[];
 };
 
 const emptySObject = (name: string): SObject => ({
@@ -124,7 +129,15 @@ const makeHarness = (options: HarnessOptions = {}) => {
       ? setOrg(options.listMetadataError.observedOrgId ?? '00D000000000002').pipe(
           Effect.andThen(options.listMetadataError)
         )
-      : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
+      : options.failListMetadataTypes?.includes(xmlName)
+        ? Effect.fail(
+            new ListMetadataError({
+              cause: new Error(`listMetadata ${xmlName} failed`),
+              metadataType: xmlName,
+              message: `Failed to list metadata type ${xmlName}`
+            })
+          )
+        : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
   );
   const listSObjects = jest.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
   const describeCustomObject = jest.fn((apiName: string) =>
@@ -1029,6 +1042,35 @@ describe('OrgMetadataCatalog contract', () => {
         workspaceUri: URI.file('/workspace/force-app/main/default/objects/Broker__c/fields/Email__c.field-meta.xml')
       })
     ]);
+  });
+
+  it('returns described custom fields when CustomField listMetadata fails', async () => {
+    const { layer } = makeHarness({
+      metadataByType: {
+        CustomObject: [{ fullName: 'Broker__c' }]
+      },
+      failListMetadataTypes: ['CustomField'],
+      descriptions: {
+        Broker__c: {
+          ...emptySObject('Broker__c'),
+          fields: [customStringField('Email__c'), customStringField('Title__c')]
+        }
+      }
+    });
+
+    const children = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })
+    );
+
+    expect(children.map(child => child.name)).toEqual(['Email__c', 'Title__c']);
+    expect(children[0]).toMatchObject({
+      reference: { type: 'CustomField', fullName: 'Broker__c.Email__c' },
+      field: { name: 'Email__c', type: 'string', length: 80 }
+    });
+    expect(children[1]).toMatchObject({
+      reference: { type: 'CustomField', fullName: 'Broker__c.Title__c' },
+      field: { name: 'Title__c', type: 'string', length: 80 }
+    });
   });
 
   it('returns an empty child collection for a known empty metadata folder', async () => {
