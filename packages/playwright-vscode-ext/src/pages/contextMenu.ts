@@ -60,10 +60,11 @@ const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): P
     throw new Error(`No non-sticky tree item found matching "${itemName}"`);
   }
   await treeItem.waitFor({ state: 'visible', timeout: 10_000 });
-  // Scroll into view to ensure item is visible before right-clicking
+  // Scroll into view before selecting the row.
   await treeItem.scrollIntoViewIfNeeded();
-  // The sticky container can overlay the row and intercept pointer events. Focus the real row and
-  // open its context menu with the keyboard instead of bypassing pointer actionability.
+  // Select the real row in VS Code's tree model; DOM focus alone leaves the prior row selected.
+  await treeItem.click();
+  // Open the context menu with the keyboard instead of bypassing pointer actionability.
   await treeItem.focus();
   await page.keyboard.press('Shift+F10');
   const contextMenu = page.locator(CONTEXT_MENU);
