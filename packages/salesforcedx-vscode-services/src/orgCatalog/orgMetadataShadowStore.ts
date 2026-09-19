@@ -6,13 +6,18 @@
  */
 
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';
+import * as Equal from 'effect/Equal';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
+import * as Order from 'effect/Order';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { FsService } from '../vscode/fsService';
+import { HashableUri } from '../vscode/hashableUri';
 import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -34,14 +39,6 @@ const ShadowManifest = Schema.Struct({
 
 type ShadowManifest = typeof ShadowManifest.Type;
 
-export type OrgMetadataShadowArtifact = {
-  readonly rootUri: URI;
-  readonly primaryUri: URI;
-  readonly fileUris: readonly URI[];
-  readonly remoteLastModifiedDate?: string;
-  readonly materializedAt: string;
-};
-
 const encodedSegments = (value: string) => Effect.all(value.split('/').map(Encoding.encodeUriComponent));
 
 const relativePath = (root: URI, child: URI): string | undefined => {
@@ -49,8 +46,15 @@ const relativePath = (root: URI, child: URI): string | undefined => {
   return child.path.startsWith(prefix) ? child.path.slice(prefix.length) : undefined;
 };
 
-const containsUri = (root: URI, child: URI): boolean =>
-  root.scheme === child.scheme && (child.path === root.path || child.path.startsWith(`${root.path}/`));
+type RevisionManifest = {
+  readonly manifest: ShadowManifest;
+  readonly rootUri: HashableUri;
+};
+
+const byNewestThenRoot = Order.combine(
+  Order.mapInput(Order.reverse(Order.string), (candidate: RevisionManifest) => candidate.manifest.materializedAt),
+  Order.mapInput(Order.string, (candidate: RevisionManifest) => candidate.rootUri.uri.path)
+);
 
 export const isOrgMetadataShadowUri = (workspaceUri: URI, uri: URI): boolean => {
   const root = Utils.joinPath(workspaceUri, '.sf', 'orgs');
@@ -163,10 +167,10 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
 
     const pruneRevisions = Effect.fn('OrgMetadataShadowStore.pruneRevisions')(function* (currentRootUri: URI) {
       const revisionsUri = Utils.dirname(currentRootUri);
-      const revisionRoots = (yield* fsService.readDirectory(revisionsUri)).filter(
-        uri => !Utils.basename(uri).endsWith('.__staging__')
-      );
-      const manifests = (yield* Effect.forEach(
+      const revisionRoots = yield* fsService
+        .readDirectory(revisionsUri)
+        .pipe(Effect.map(uris => uris.filter(uri => !Utils.basename(uri).endsWith('.__staging__'))));
+      const manifests = yield* Effect.forEach(
         revisionRoots,
         rootUri =>
           fsService.readJSON(Utils.joinPath(rootUri, MANIFEST_FILE).toString(), ShadowManifest).pipe(
@@ -174,30 +178,39 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
             Effect.map(manifest => ({ manifest, rootUri }))
           ),
         { concurrency: 'unbounded' }
-      )).flatMap(({ manifest, rootUri }) => (Option.isSome(manifest) ? [{ manifest: manifest.value, rootUri }] : []));
-      const protectedRoots = new Set(
+      ).pipe(
+        Effect.map(
+          Arr.filterMap(({ manifest, rootUri }) =>
+            Option.map(manifest, value => ({ manifest: value, rootUri: HashableUri.fromUri(rootUri) }))
+          )
+        )
+      );
+      const currentRoot = HashableUri.fromUri(currentRootUri);
+      const protectedRoots = HashSet.fromIterable(
         vscode.workspace.textDocuments.flatMap(document => {
-          const openUri = URI.parse(document.uri.toString());
-          const root = manifests.find(candidate => containsUri(candidate.rootUri, openUri))?.rootUri;
-          return root ? [root.toString()] : [];
+          const openUri = HashableUri.fromUri(URI.parse(document.uri.toString()));
+          return Option.toArray(
+            Arr.findFirst(manifests, candidate => isUriEqualOrWithin(candidate.rootUri.uri, openUri.uri)).pipe(
+              Option.map(candidate => candidate.rootUri)
+            )
+          );
         })
       );
-      const retainedRoots = new Set([
-        currentRootUri.toString(),
-        ...manifests
-          .filter(candidate => candidate.rootUri.toString() !== currentRootUri.toString())
-          .toSorted(
-            (left, right) =>
-              right.manifest.materializedAt.localeCompare(left.manifest.materializedAt) ||
-              right.rootUri.toString().localeCompare(left.rootUri.toString())
+      const retainedRoots = HashSet.union(
+        HashSet.fromIterable([
+          currentRoot,
+          ...Arr.sort(
+            manifests.filter(candidate => !Equal.equals(candidate.rootUri, currentRoot)),
+            byNewestThenRoot
           )
-          .slice(0, ORG_METADATA_SHADOW_REVISIONS_TO_KEEP - 1)
-          .map(candidate => candidate.rootUri.toString()),
-        ...protectedRoots
-      ]);
+            .slice(0, ORG_METADATA_SHADOW_REVISIONS_TO_KEEP - 1)
+            .map(candidate => candidate.rootUri)
+        ]),
+        protectedRoots
+      );
       const staleRoots = manifests
-        .map(candidate => candidate.rootUri)
-        .filter(rootUri => !retainedRoots.has(rootUri.toString()));
+        .filter(candidate => !HashSet.has(retainedRoots, candidate.rootUri))
+        .map(candidate => candidate.rootUri.uri);
       yield* Effect.forEach(staleRoots, rootUri => fsService.safeDelete(rootUri, { recursive: true }), {
         concurrency: 'unbounded',
         discard: true
@@ -205,7 +218,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
       yield* Effect.annotateCurrentSpan({
         scannedRevisionCount: revisionRoots.length,
         validRevisionCount: manifests.length,
-        protectedRevisionCount: protectedRoots.size,
+        protectedRevisionCount: HashSet.size(protectedRoots),
         deletedRevisionCount: staleRoots.length
       });
     });
@@ -260,10 +273,8 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
 
     return {
       get,
-      getRootUri,
       prepare,
       prepareBatch,
-      pruneRevisions,
       publish
     };
   })

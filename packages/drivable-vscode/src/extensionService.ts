@@ -8,7 +8,6 @@
 import type { DrivableVscodeExtension } from './schemas';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
-import { ExtensionPackageJsonSchema } from '@salesforce/effect-ext-utils';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -16,16 +15,11 @@ import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
 import { causeMessage, DrivableVscodeExtensionError } from './errors';
 
-const RequiredExtensionPackageJsonSchema = ExtensionPackageJsonSchema.pipe(
-  Schema.pick('name', 'publisher', 'version'),
-  Schema.compose(
-    Schema.Struct({
-      name: Schema.String,
-      publisher: Schema.String,
-      version: Schema.String
-    })
-  )
-);
+const RequiredExtensionPackageJsonSchema = Schema.Struct({
+  name: Schema.String,
+  publisher: Schema.String,
+  version: Schema.String
+});
 const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(RequiredExtensionPackageJsonSchema));
 
 export class ExtensionService extends Effect.Service<ExtensionService>()('DrivableVscode/ExtensionService', {

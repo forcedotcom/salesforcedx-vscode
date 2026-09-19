@@ -6,11 +6,11 @@
  */
 
 import type { TypeInventory } from './orgCatalogInternalTypes';
-import type { OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import { URI } from 'vscode-uri';
+import * as HashMap from 'effect/HashMap';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
-import { emptyPresence, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
+import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
@@ -61,14 +61,7 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
                   .listMetadata(xmlName, undefined, orgId)
                   .pipe(Effect.map(components => ({ components, folders: [] })));
         const [orgListing, workspaceInventory] = yield* Effect.all(
-          [
-            listOrgComponents,
-            workspace
-              .scanWorkspaceInventory(xmlName)
-              .pipe(
-                Effect.catchAll(() => Effect.succeed({ namespace: null, components: new Map<string, URI>() } as const))
-              )
-          ],
+          [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
           { concurrency: 'unbounded' }
         );
         const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
@@ -83,31 +76,21 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
             workspaceNamespace: workspaceInventory.namespace,
             observedAt
           }).pipe(Effect.provideService(OrgMetadataReferenceService, references)),
-          folders: new Map(orgListing.folders.map(folder => [folder.fullName, folder]))
+          componentIdentityOrder: Arr.dedupe(
+            orgListing.components.map(component =>
+              componentIdentity(
+                { xmlName, fullName: component.fullName },
+                'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+              )
+            )
+          ),
+          folders: HashMap.fromIterable(orgListing.folders.map(folder => [folder.fullName, folder] as const)),
+          folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
         } satisfies TypeInventory;
         yield* state.setInventory(orgId, xmlName, inventory);
         if (!restored) yield* state.queuePersist(orgId);
         return inventory;
       }).pipe(semaphore.withPermits(1));
-    });
-
-    const getPresence = Effect.fn('OrgCatalogInventory.getPresence')(function* (
-      orgId: string,
-      reference: OrgMetadataComponentReference
-    ) {
-      const cachedEntry = findInventoryComponent(
-        (yield* state.getInventory(orgId, reference.xmlName))?.components ?? new Map(),
-        reference
-      );
-      const entry =
-        cachedEntry ?? findInventoryComponent((yield* loadType(orgId, reference.xmlName)).components, reference);
-      return entry
-        ? ({
-            inOrg: entry.inOrg,
-            inWorkspace: entry.inWorkspace,
-            ...('workspaceUri' in entry && entry.workspaceUri ? { workspaceUri: entry.workspaceUri } : {})
-          } satisfies OrgMetadataPresence)
-        : emptyPresence();
     });
 
     const getEntry = Effect.fn('OrgCatalogInventory.getEntry')(function* (
@@ -132,13 +115,10 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
       );
     });
 
-    const getCachedInventory = Effect.fn('OrgCatalogInventory.getCachedInventory')(function* (
-      orgId: string,
-      xmlName: string
-    ) {
-      return yield* state.getInventory(orgId, xmlName);
-    });
+    const getCachedInventory = Effect.fn('OrgCatalogInventory.getCachedInventory')((orgId: string, xmlName: string) =>
+      state.getInventory(orgId, xmlName)
+    );
 
-    return { getCachedInventory, getEntry, getPresence, loadType } as const;
+    return { getCachedInventory, getEntry, loadType } as const;
   })
 }) {}

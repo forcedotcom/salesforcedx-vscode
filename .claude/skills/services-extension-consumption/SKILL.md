@@ -212,7 +212,9 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ConnectionService](references/connection-service.md) - Org connections
 - [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
-- [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (value-based URI equality for HashSet/HashMap keys)
+- [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (`comparisonKey` of URI fields, not `.toString()`)
+- `OrgMetadataCatalog` - inventory/presence; `getChildren` / `getEntries` / `resolveComponents`. Types: catalog + entries, `OrgMetadataCatalogError` (type-only), `OrgMetadataComponentReference`, `OrgMetadataCatalogChange`. [ADR 0021](../../../docs/adr/0021-org-metadata-catalog.md)
+- `TransmogrifierService` - REST/workspace SObject describe → canonical `SObject`. Types: `TransmogrifierService`, `TransmogrifierError` (type-only)
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run argv commands (desktop-only)

@@ -6,7 +6,9 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import type { TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
@@ -38,26 +40,32 @@ describe('Org Catalog inventory projection', () => {
         xmlName: 'ApexClass',
         observedAt: '2026-08-03T12:00:00.000Z',
         orgComponents: [{ fullName: 'Both', lastModifiedDate: '2026-08-03T11:00:00.000Z' }, { fullName: 'RemoteOnly' }],
-        workspaceUris: new Map([
+        workspaceUris: HashMap.fromIterable([
           ['Both', workspaceUri],
           ['LocalOnly', localOnlyUri]
         ])
       })
     );
 
-    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'Both' }))).toMatchObject({
+    expect(
+      Option.getOrUndefined(HashMap.get(inventory, componentIdentity({ xmlName: 'ApexClass', fullName: 'Both' })))
+    ).toMatchObject({
       provenance: 'metadata-api+workspace',
       inOrg: true,
       inWorkspace: true,
       workspaceUri,
       remoteLastModifiedDate: '2026-08-03T11:00:00.000Z'
     });
-    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteOnly' }))).toMatchObject({
+    expect(
+      Option.getOrUndefined(HashMap.get(inventory, componentIdentity({ xmlName: 'ApexClass', fullName: 'RemoteOnly' })))
+    ).toMatchObject({
       provenance: 'metadata-api',
       inOrg: true,
       inWorkspace: false
     });
-    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'LocalOnly' }))).toMatchObject({
+    expect(
+      Option.getOrUndefined(HashMap.get(inventory, componentIdentity({ xmlName: 'ApexClass', fullName: 'LocalOnly' })))
+    ).toMatchObject({
       provenance: 'workspace',
       inOrg: false,
       inWorkspace: true,
@@ -73,16 +81,22 @@ describe('Org Catalog inventory projection', () => {
         xmlName: 'ApexClass',
         observedAt: '2026-08-03T12:00:00.000Z',
         orgComponents: [{ fullName: 'MyClass', namespacePrefix: 'InstalledPackage' }],
-        workspaceUris: new Map([['MyClass', workspaceUri]]),
+        workspaceUris: HashMap.make(['MyClass', workspaceUri]),
         workspaceNamespace: null
       })
     );
 
-    expect(inventory.size).toBe(2);
+    expect(HashMap.size(inventory)).toBe(2);
     expect(
-      inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, 'InstalledPackage'))
+      Option.getOrUndefined(
+        HashMap.get(inventory, componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, 'InstalledPackage'))
+      )
     ).toMatchObject({ namespacePrefix: 'InstalledPackage', inOrg: true, inWorkspace: false });
-    expect(inventory.get(componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, null))).toMatchObject({
+    expect(
+      Option.getOrUndefined(
+        HashMap.get(inventory, componentIdentity({ xmlName: 'ApexClass', fullName: 'MyClass' }, null))
+      )
+    ).toMatchObject({
       inOrg: false,
       inWorkspace: true,
       workspaceUri
@@ -97,13 +111,13 @@ describe('Org Catalog inventory projection', () => {
         xmlName: 'ApexClass',
         observedAt: '2026-08-03T12:00:00.000Z',
         orgComponents: [{ fullName: 'MyClass', namespacePrefix: 'MyPackage' }],
-        workspaceUris: new Map([['myclass', workspaceUri]]),
+        workspaceUris: HashMap.make(['myclass', workspaceUri]),
         workspaceNamespace: 'mypackage'
       })
     );
 
-    expect(inventory.size).toBe(1);
-    expect(inventory.values().next().value).toMatchObject({
+    expect(HashMap.size(inventory)).toBe(1);
+    expect(HashMap.toValues(inventory)[0]).toMatchObject({
       namespacePrefix: 'MyPackage',
       reference: { xmlName: 'ApexClass', fullName: 'MyClass' },
       provenance: 'metadata-api+workspace',
@@ -120,14 +134,16 @@ describe('Org Catalog inventory projection', () => {
         xmlName: 'Report',
         observedAt: '2026-08-03T12:00:00.000Z',
         orgComponents: [{ fullName: 'Sales/Quarterly' }],
-        workspaceUris: new Map([['Local/Draft', URI.file('/workspace/reports/Local/Draft.report-meta.xml')]])
+        workspaceUris: HashMap.make(['Local/Draft', URI.file('/workspace/reports/Local/Draft.report-meta.xml')])
       })
     );
     const inventory: TypeInventory = {
       observedAt: '2026-08-03T12:00:00.000Z',
       complete: true,
       components,
-      folders: new Map([['Sales', { fullName: 'Sales' }]])
+      componentIdentityOrder: ['Report\0Sales/Quarterly', 'Report\0Local/Draft'],
+      folders: HashMap.make(['Sales', { fullName: 'Sales' }]),
+      folderFullNameOrder: ['Sales']
     };
 
     expect(run(projectChildren('org-one', 'Report', undefined, inventory))).toEqual([

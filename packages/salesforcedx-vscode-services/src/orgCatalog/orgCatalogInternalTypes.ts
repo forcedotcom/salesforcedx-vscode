@@ -8,6 +8,7 @@
 import type { PersistedTypeInventory } from './orgMetadataCatalogStore';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
+import type * as HashMap from 'effect/HashMap';
 
 export type ListedMetadataComponent = {
   readonly fullName: string;
@@ -22,16 +23,23 @@ export type TypeInventory = {
   readonly observedAt: string;
   /** Whether this inventory represents a complete type listing rather than consumer-discovered members. */
   readonly complete: boolean;
-  readonly components: ReadonlyMap<string, OrgMetadataCatalogEntry>;
-  readonly folders: ReadonlyMap<string, ListedMetadataComponent>;
+  readonly components: HashMap.HashMap<string, OrgMetadataCatalogEntry>;
+  readonly componentIdentityOrder: readonly string[];
+  readonly folders: HashMap.HashMap<string, ListedMetadataComponent>;
+  readonly folderFullNameOrder: readonly string[];
 };
 
-export type InventoryCache = ReadonlyMap<string, TypeInventory>;
-export type PersistedInventoryCache = ReadonlyMap<string, PersistedTypeInventory>;
+export type InventoryCache = HashMap.HashMap<string, TypeInventory>;
+export type PersistedInventoryCache = HashMap.HashMap<string, PersistedTypeInventory>;
 
 export type RemoteTrackingObservation = {
   readonly reference: OrgMetadataComponentReference;
   readonly signature: string;
+};
+
+export type RemoteTrackingObservations = {
+  readonly byIdentity: HashMap.HashMap<string, RemoteTrackingObservation>;
+  readonly identityOrder: readonly string[];
 };
 
 export type MetadataTypeObservation = {
