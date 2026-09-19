@@ -40,7 +40,7 @@ export const createAndOpenApexScript = async (
   if (opts.content) {
     // Populate the .apex file with content
     const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.click({ force: true });
+    await editorArea.focus();
     await page.keyboard.press('Control+a');
     await page.keyboard.type(opts.content);
     await page.keyboard.press('Control+s');

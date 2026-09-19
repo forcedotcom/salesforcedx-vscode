@@ -89,15 +89,18 @@ await page.keyboard.press('Escape');
 
 Clicking a tree item (e.g. a Test Explorer node) raises a Monaco hover widget (`.hover-contents`, e.g. `lwc1 (Not yet run)`). On Windows it lingers and **intercepts pointer events** on adjacent rows/buttons, so the next `.click()` times out with `subtree intercepts pointer events`. `keyboard.press('Escape')` does not reliably dismiss it.
 
-Fix — force the clicks and retry the whole select → reveal → act sequence (the sanctioned exception to "avoid retries"):
+Fix — force the clicks and retry the whole select → reveal → act sequence (the sanctioned exception to "avoid retries"). Each forced action must use the exact narrow suppression and rationale shown below:
 
 ```typescript
 await testCase.scrollIntoViewIfNeeded();
 await expect(async () => {
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await testCase.click({ force: true });
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await testCase.hover({ force: true });
   const runButton = testCase.getByRole('button', { name: /^Run Test/ });
   await runButton.waitFor({ state: 'visible', timeout: 3000 });
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await runButton.click({ force: true });
 }).toPass({ timeout: 30_000 });
 ```

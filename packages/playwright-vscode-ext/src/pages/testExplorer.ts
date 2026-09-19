@@ -18,8 +18,8 @@ export const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
  * Types `text` into the Test Explorer filter box, replacing whatever is there.
  *
  * Desktop uses a Monaco editor (`data-uri="testing:filter"`) backed by a hidden `<textarea>`;
- * web uses a plain input. The Monaco view-lines layer intercepts pointer events, so click the
- * wrapper (force) and drive keys via `page.keyboard` (focused on the hidden textarea). On macOS
+ * web uses a plain input. Focus the Monaco wrapper and drive keys via `page.keyboard` (focused on
+ * the hidden textarea). On macOS
  * Ctrl+A is bound to "cursor home" in Monaco, not select-all, so clear with Home → Shift+End → Delete.
  *
  * Pass an empty string to clear the filter (or use {@link clearFilter}).
@@ -28,7 +28,7 @@ export const focusAndTypeInFilter = async (page: Page, text: string): Promise<vo
   const monacoFilter = page.locator(`${EDITOR}[data-uri="testing:filter"]`);
   const inputFilter = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
   if (await monacoFilter.isVisible().catch(() => false)) {
-    await monacoFilter.click({ force: true });
+    await monacoFilter.focus();
     await page.keyboard.press('Home');
     await page.keyboard.press('Shift+End');
     await page.keyboard.press('Delete');

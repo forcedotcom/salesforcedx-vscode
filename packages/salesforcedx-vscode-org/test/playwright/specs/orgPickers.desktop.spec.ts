@@ -210,7 +210,8 @@ const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: 
     .filter({ hasNotText: 'SFDX:' })
     .first();
   await row.waitFor({ state: 'visible', timeout: 10_000 });
-  await row.click({ force: true });
+  await expect(row).toBeEnabled({ timeout: 10_000 });
+  await row.click();
 };
 
 /** Assert no error toast surfaced (UserCancellationError must map to CANCEL, never an error notification). */

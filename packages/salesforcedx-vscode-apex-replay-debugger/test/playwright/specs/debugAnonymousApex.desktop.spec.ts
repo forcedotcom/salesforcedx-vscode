@@ -67,7 +67,7 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
 
     // Select the entire file contents — keep editor focus so editorHasSelection is true
     const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.click({ force: true });
+    await editorArea.focus();
     await page.keyboard.press('Control+a');
 
     await executeCommandWithCommandPalette(page, packageNls.apex_debug_document_text as string, undefined, {

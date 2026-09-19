@@ -43,14 +43,18 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
-    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
+    const componentType = activeQuickInputWidget(page).getByRole('option').first();
+    await expect(componentType).toBeVisible({ timeout: 10_000 });
+    await componentType.click();
     await activeQuickInputWidget(page)
       .getByText(/Enter Lightning Web Component name/i)
       .waitFor({ state: 'attached', timeout: 10_000 });
     await page.keyboard.type(oldName);
     await page.keyboard.press('Enter');
     await waitForQuickInputFirstOption(page);
-    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
+    const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
+    await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
+    await outputDirectory.click();
     await page
       .locator('[role="tab"]')
       .filter({ hasText: new RegExp(`${oldName}\\.js`, 'i') })
@@ -66,7 +70,10 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await saveScreenshot(page, 'rename.context-menu-fired.png');
 
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-    await activeQuickInputTextField(page).fill(newName, { force: true });
+    const input = activeQuickInputTextField(page);
+    await expect(input).toBeVisible({ timeout: 10_000 });
+    await expect(input).toBeEditable({ timeout: 10_000 });
+    await input.fill(newName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.entered-new-name.png');
   });
@@ -92,7 +99,10 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
   await test.step('rename again via editor context menu', async () => {
     await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
-    await activeQuickInputTextField(page).fill(finalName, { force: true });
+    const input = activeQuickInputTextField(page);
+    await expect(input).toBeVisible({ timeout: 10_000 });
+    await expect(input).toBeEditable({ timeout: 10_000 });
+    await input.fill(finalName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.editor-menu-fired.png');
   });

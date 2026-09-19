@@ -52,7 +52,9 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     // Click the first option instead of Enter — 1.116+ sometimes drops Enter on quick picks (see PR #7193).
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
+    const componentType = activeQuickInputWidget(page).getByRole('option').first();
+    await expect(componentType).toBeVisible({ timeout: 10_000 });
+    await componentType.click();
     await saveScreenshot(page, 'step1.component-type-selected.png');
 
     // Step 2: Enter component name
@@ -67,7 +69,9 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     // Step 3: Select output directory (click first option instead of Enter)
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.directory-prompt-visible.png');
-    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
+    const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
+    await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
+    await outputDirectory.click();
     await saveScreenshot(page, 'step1.after-accept-directory.png');
 
     // Step 4: Wait for editor to open with the new component
