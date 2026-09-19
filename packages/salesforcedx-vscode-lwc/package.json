@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
@@ -75,6 +76,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-lwc-language-server:compile",
         "../salesforcedx-lightning-lsp-common:compile",

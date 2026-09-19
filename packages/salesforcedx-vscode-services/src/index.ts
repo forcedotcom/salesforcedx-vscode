@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
@@ -526,7 +526,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       onSome: otelTracer =>
         OtelTracer.layerWithoutOtelTracer.pipe(Layer.provide(Layer.succeed(OtelTracer.OtelTracer, otelTracer)))
     });
-    const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
+    const runtime = makeVscodeExtensionRuntime(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
     setServicesRuntime(runtime);
 
     await runtime.runPromise(

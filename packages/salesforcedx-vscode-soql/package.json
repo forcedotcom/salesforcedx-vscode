@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/soql-builder-ui": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
@@ -112,6 +113,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "compile:lit-ui",
         "../soql-common:compile",
         "../soql-model:compile",

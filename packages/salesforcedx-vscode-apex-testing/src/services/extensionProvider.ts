@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { buildAllServicesLayer as buildBaseServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';
@@ -62,4 +63,4 @@ type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
 >;
 // eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getApexTestingRuntime
 let _apexTestingRuntime: ApexTestingRuntime | undefined;
-export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getApexTestingRuntime = () => (_apexTestingRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));

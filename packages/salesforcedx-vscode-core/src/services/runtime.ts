@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import { AllServicesLayer } from './extensionProvider';
 
-const createCoreRuntime = () => ManagedRuntime.make(AllServicesLayer);
+const createCoreRuntime = () => makeVscodeExtensionRuntime(AllServicesLayer);
 let _coreRuntime: ReturnType<typeof createCoreRuntime> | undefined;
 export const getRuntime = () => {
   _coreRuntime ??= createCoreRuntime();

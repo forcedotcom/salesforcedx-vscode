@@ -50,6 +50,7 @@
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
+    "@salesforce/vscode-extension-runtime": "*",
     "effect": "^3.21.2",
     "jsforce": "^3.10.24",
     "o11y_schema": "^264.89.0",
@@ -98,6 +99,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../vscode-extension-runtime:compile",
         "build:icons",
         "generate-types",
         "../salesforcedx-utils:compile",

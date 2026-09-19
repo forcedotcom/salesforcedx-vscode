@@ -1,0 +1,73 @@
+{
+  "name": "@salesforce/vscode-extension-runtime",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Effect runtime construction for Salesforce VS Code extensions",
+  "license": "BSD-3-Clause",
+  "main": "out/src/makeVscodeExtensionRuntime.js",
+  "types": "out/src/makeVscodeExtensionRuntime.d.ts",
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "test": "wireit",
+    "test:compile": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "effect": "^3.21.2"
+  }
+}

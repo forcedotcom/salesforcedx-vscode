@@ -30,6 +30,7 @@
   "dependencies": {
     "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
@@ -72,6 +73,7 @@
         "copy:jar",
         "../salesforcedx-apex:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

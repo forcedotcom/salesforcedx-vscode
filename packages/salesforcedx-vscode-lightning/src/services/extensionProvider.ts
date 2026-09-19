@@ -6,8 +6,9 @@
  */
 
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 
 // eslint-disable-next-line functional/no-let -- Module-level mutable; set during activation, read by getRuntime
 let allServicesLayer: ReturnType<typeof buildAllServicesLayer>;
@@ -24,4 +25,4 @@ let _auraRuntime:
     >
   | undefined;
 
-export const getRuntime = () => (_auraRuntime ??= ManagedRuntime.make(allServicesLayer));
+export const getRuntime = () => (_auraRuntime ??= makeVscodeExtensionRuntime(allServicesLayer));

@@ -30,6 +30,7 @@
   "dependencies": {
     "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
@@ -73,6 +74,7 @@
         "../salesforcedx-apex:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [

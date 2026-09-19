@@ -6,9 +6,10 @@
  */
 
 import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 
 /**
@@ -47,7 +48,7 @@ type OrgRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 let _orgRuntime: OrgRuntime | undefined;
-export const getOrgRuntime = () => (_orgRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getOrgRuntime = () => (_orgRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));
 
 export const disposeOrgRuntime = async (): Promise<void> => {
   if (_orgRuntime) {

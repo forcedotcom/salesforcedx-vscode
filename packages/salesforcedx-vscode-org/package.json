@@ -30,6 +30,7 @@
   "dependencies": {
     "@salesforce/core": "^9.1.9",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
@@ -68,6 +69,7 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-services-types:compile"
       ],
       "files": [

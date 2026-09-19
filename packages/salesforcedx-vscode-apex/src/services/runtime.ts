@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import { AllServicesLayer } from './extensionProvider';
 
-const createApexRuntime = () => ManagedRuntime.make(AllServicesLayer);
+const createApexRuntime = () => makeVscodeExtensionRuntime(AllServicesLayer);
 let _apexRuntime: ReturnType<typeof createApexRuntime> | undefined;
 export const getRuntime = () => {
   _apexRuntime ??= createApexRuntime();

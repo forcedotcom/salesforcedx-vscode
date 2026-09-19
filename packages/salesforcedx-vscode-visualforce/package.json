@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "vscode-css-languageservice": "^6.3.7",
@@ -71,6 +72,7 @@
         "../salesforcedx-visualforce-language-server:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [

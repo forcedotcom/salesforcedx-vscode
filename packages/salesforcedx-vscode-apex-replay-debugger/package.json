@@ -30,6 +30,7 @@
   "dependencies": {
     "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -80,6 +81,7 @@
         "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-metadata:compile"
       ],
       "files": [

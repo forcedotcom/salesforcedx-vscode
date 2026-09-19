@@ -6,9 +6,10 @@
  */
 
 import { buildAllServicesLayer as buildSharedServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
@@ -41,7 +42,7 @@ type SoqlRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 let _soqlRuntime: SoqlRuntime | undefined;
-export const getSoqlRuntime = () => (_soqlRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getSoqlRuntime = () => (_soqlRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));
 
 export const disposeSoqlRuntime = async (): Promise<void> => {
   if (_soqlRuntime) {

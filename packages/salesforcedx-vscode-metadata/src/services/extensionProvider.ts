@@ -10,9 +10,10 @@ import {
   ExtensionProviderService,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 
 /** Apply the Services-owned target-org guard. */
@@ -53,7 +54,7 @@ type MetadataRuntime = ManagedRuntime.ManagedRuntime<
 >;
 // eslint-disable-next-line functional/no-let
 let _metadataRuntime: MetadataRuntime | undefined;
-export const getMetadataRuntime = () => (_metadataRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getMetadataRuntime = () => (_metadataRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));
 
 export const disposeMetadataRuntime = async (): Promise<void> => {
   if (_metadataRuntime) {
