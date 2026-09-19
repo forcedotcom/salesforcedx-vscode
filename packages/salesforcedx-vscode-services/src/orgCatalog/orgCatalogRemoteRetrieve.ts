@@ -7,11 +7,14 @@
 
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ComponentSetService } from '../core/componentSetService';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { FsService } from '../vscode/fsService';
+import { HashableUri } from '../vscode/hashableUri';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
@@ -20,6 +23,8 @@ type RetrieveRequest = {
   readonly reference: OrgMetadataComponentReference;
   readonly expectedRemoteLastModifiedDate?: string;
 };
+
+const uniqueHashableUris = (uris: readonly URI[]): readonly HashableUri[] => Arr.dedupe(uris.map(HashableUri.fromUri));
 
 const sourceComponentFilePaths = (sourceComponent?: {
   readonly content?: string;
@@ -117,18 +122,16 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
               const sourceContentUri = sourceComponent?.content
                 ? yield* fsService.toUri(sourceComponent.content)
                 : undefined;
-              const fileUris = [
-                ...new Map([...reportedUris, ...stagedFiles].map(uri => [uri.toString(), uri])).values()
-              ];
+              const fileUris = uniqueHashableUris([...reportedUris, ...stagedFiles]);
               const primaryUri =
-                fileUris.find(uri => basenames.has(Utils.basename(uri))) ??
-                fileUris.find(uri => !uri.path.endsWith('-meta.xml')) ??
-                sourceContentUri ??
+                fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
+                fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
+                (sourceContentUri ? HashableUri.fromUri(sourceContentUri) : undefined) ??
                 fileUris[0];
               yield* Effect.annotateCurrentSpan({
                 discoveredFileCount: fileUris.length,
                 responsePathCount: responsePaths.length,
-                selectedPrimaryPath: primaryUri?.toString()
+                selectedPrimaryPath: primaryUri?.uri.toString()
               });
               if (!primaryUri) {
                 return yield* new OrgMetadataCatalogError({
@@ -142,9 +145,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 path => fsService.toUri(path),
                 { concurrency: 'unbounded' }
               );
-              const artifactFileUris = [
-                ...new Map([...fileUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])).values()
-              ];
+              const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
               const fileProperties = Array.isArray(result.response.fileProperties)
                 ? result.response.fileProperties
                 : [result.response.fileProperties];
@@ -155,8 +156,8 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 orgId,
                 reference,
                 stagingUri,
-                primaryUri,
-                fileUris: artifactFileUris,
+                primaryUri: primaryUri.uri,
+                fileUris: artifactFileUris.map(uri => uri.uri),
                 remoteLastModifiedDate: request.expectedRemoteLastModifiedDate ?? remoteLastModifiedDate
               });
               if (artifact) return artifact;
@@ -219,14 +220,10 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                       path => fsService.toUri(path),
                       { concurrency: 'unbounded' }
                     );
-                    const fileUris = [
-                      ...new Map(
-                        [...reportedUris, ...discoveredUris, ...sourceComponentUris].map(uri => [uri.toString(), uri])
-                      ).values()
-                    ];
+                    const fileUris = uniqueHashableUris([...reportedUris, ...discoveredUris, ...sourceComponentUris]);
                     const primaryUri =
-                      fileUris.find(uri => basenames.has(Utils.basename(uri))) ??
-                      fileUris.find(uri => !uri.path.endsWith('-meta.xml')) ??
+                      fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
+                      fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
                       fileUris[0];
                     if (!primaryUri) {
                       return yield* new OrgMetadataCatalogError({
@@ -247,7 +244,8 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                     );
                     const copiedUris = yield* Effect.forEach(
                       fileUris,
-                      uri => {
+                      hashable => {
+                        const uri = hashable.uri;
                         const stagingPrefix = stagingUri.path.endsWith('/') ? stagingUri.path : `${stagingUri.path}/`;
                         const relative = uri.path.startsWith(stagingPrefix)
                           ? uri.path.slice(stagingPrefix.length)
@@ -255,24 +253,29 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                         const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
                         return fsService.readFile(uri).pipe(
                           Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),
-                          Effect.as([uri.toString(), targetUri] as const)
+                          Effect.as([hashable, targetUri] as const)
                         );
                       },
                       { concurrency: 10 }
                     );
-                    const copiedBySource = new Map(copiedUris);
-                    const copiedPrimaryUri = copiedBySource.get(primaryUri.toString());
-                    if (!copiedPrimaryUri) {
-                      return yield* Effect.die(
-                        new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`)
-                      );
-                    }
+                    const copiedPrimaryUri = yield* Option.match(
+                      HashMap.get(HashMap.fromIterable(copiedUris), primaryUri),
+                      {
+                        onNone: () =>
+                          new OrgMetadataCatalogError({
+                            cause: new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`),
+                            message: `Failed to stage ${reference.xmlName} '${reference.fullName}'`,
+                            reference
+                          }),
+                        onSome: Effect.succeed
+                      }
+                    );
                     const artifact = yield* shadowStore.publish({
                       orgId,
                       reference,
                       stagingUri: componentStagingUri,
                       primaryUri: copiedPrimaryUri,
-                      fileUris: [...copiedBySource.values()],
+                      fileUris: copiedUris.map(([, targetUri]) => targetUri),
                       remoteLastModifiedDate
                     });
                     return artifact

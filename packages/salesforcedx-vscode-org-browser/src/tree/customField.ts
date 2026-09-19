@@ -4,20 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogFieldEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalogComponentEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 
-export const createCustomFieldNode = (entry: OrgMetadataCatalogFieldEntry): OrgBrowserTreeItem =>
+export const fieldNodeLabel = (entry: OrgMetadataCatalogComponentEntry): string =>
+  entry.field ? getFieldLabel(entry.field) : entry.name;
+
+export const createCustomFieldNode = (entry: OrgMetadataCatalogComponentEntry): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({
     kind: 'component',
     xmlName: 'CustomField',
     componentName: entry.reference.fullName,
-    label: getFieldLabel(entry.field),
+    label: fieldNodeLabel(entry),
     filePresent: entry.inWorkspace,
     orgPresent: entry.inOrg
   });
 
-/** build out the label for a CustomField */
 const getFieldLabel = (field: OrgMetadataFieldDetails): string => {
   switch (field.type) {
     case 'string':

@@ -70,6 +70,15 @@ node packages/drivable-vscode/scripts/drivable-vscode-example.mjs
 
 Example source: `packages/drivable-vscode/scripts/drivable-vscode-example.mjs`.
 
+Org Browser catalog manual gaps (`orgBrowserDreamhouseTestOrg`):
+
+```bash
+npm run vscode:bundle
+node packages/drivable-vscode/scripts/catalog-manual-coverage.mjs
+```
+
+Covers CustomObject fields, field retrieve to `force-app`, `Broker__c` overwrite modal (`Yes` / `window.dialogStyle: custom`), Report folders, Hide Local/Hide Org. Skips catalog state (`sf:internal_dev`).
+
 ### Agent-Driven
 
 Use for open-ended goals, exploratory testing, bug reproduction, or evidence capture.
@@ -94,8 +103,9 @@ Use drivable-vscode to reproduce the reported deploy-command failure. Explore th
 
 - 1 server process owns at most 1 active session. Call `finish` before starting another.
 - Observe before every action; stale sequences fail by design.
-- Prefer role/name actions and command titles visible in the latest observation.
+- Prefer role/name actions and command titles visible in the latest observation. Duplicate names: `click`/`fill` `within: { role, name }` (e.g. Retrieve Metadata inside `treeitem` `Email__c`).
 - Treat unexpected UI and tool errors as evidence, not signals to improvise fallback selectors.
 - `finish` on success and failure; it saves final screenshot, video, action log, console log, findings, and summary.
 - Text artifacts redact common credentials. Screenshots/video do not; avoid displaying secrets.
 - Native OS dialogs and external windows are outside drivable-vscode control.
+- Do not import `@salesforce/effect-ext-utils` into MCP runtime (barrel pulls `vscode` at require time).

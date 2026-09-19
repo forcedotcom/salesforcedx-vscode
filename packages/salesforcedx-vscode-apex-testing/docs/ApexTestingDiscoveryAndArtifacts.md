@@ -48,7 +48,7 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## Org Catalog Integration
 
 - Test run artifact persistence (`.sfdx/tools/testresults/apex`) is unchanged.
-- Test discovery queries services-owned `OrgMetadataCatalog` presence for each Apex class.
+- Test discovery reports Tooling-discovered Apex classes through `OrgMetadataCatalog.resolveComponents`.
 - Workspace classes use their existing `file:` URI.
 - Org-only classes use a read-only `sf-org-metadata:` text document supplied by services.
 - Source bodies are fetched lazily when the document is opened; discovery does not fetch or persist bodies.

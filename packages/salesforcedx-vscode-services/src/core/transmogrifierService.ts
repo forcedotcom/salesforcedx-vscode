@@ -16,35 +16,33 @@ import { SObjectSchema, type SObject, type SObjectField } from './schemas/sObjec
 
 type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 
-/** Re-exported raw jsforce describe result for consumer type safety */
 export type DescribeSObjectResult = RawDescribeSObjectResult;
 
-export type RestSObjectDescribeTransmogrifierInput = {
+type RestSObjectDescribeTransmogrifierInput = {
   readonly source: 'rest-sobject-describe';
   readonly identity: SObjectArtifactIdentity;
   readonly value: DescribeSObjectResult;
 };
 
-export type WorkspaceSObjectMetadataDocument = {
+type WorkspaceSObjectMetadataDocument = {
   readonly fullName: string;
   readonly metadata: Readonly<Record<string, unknown>>;
   readonly definitionUri: URI;
 };
 
 /** Structured metadata parsed by SDR. Raw XML is never interpreted by the Transmogrifier. */
-export type WorkspaceSObjectMetadata = {
+type WorkspaceSObjectMetadata = {
   readonly object: WorkspaceSObjectMetadataDocument;
   readonly fields: readonly WorkspaceSObjectMetadataDocument[];
 };
 
-export type WorkspaceSObjectMetadataTransmogrifierInput = {
+type WorkspaceSObjectMetadataTransmogrifierInput = {
   readonly source: 'workspace-sobject-metadata';
   readonly identity: SObjectArtifactIdentity;
   readonly value: WorkspaceSObjectMetadata;
 };
 
-/** Provider-native SObject inputs accepted by the canonical transformation boundary. */
-export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
+type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
   source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata'),

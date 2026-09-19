@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ListedMetadataComponent, RemoteTrackingObservation } from './orgCatalogInternalTypes';
+import type {
+  ListedMetadataComponent,
+  RemoteTrackingObservation,
+  RemoteTrackingObservations
+} from './orgCatalogInternalTypes';
 import type {
   OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
   OrgSObjectDescription,
@@ -14,6 +18,8 @@ import type {
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import type { URI } from 'vscode-uri';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
@@ -55,21 +61,20 @@ type TrackingRemoteChange = {
 };
 
 export const compareTrackingObservations = (
-  previous: ReadonlyMap<string, RemoteTrackingObservation>,
-  current: ReadonlyMap<string, RemoteTrackingObservation>
-): OrgMetadataComponentReference[] => [
-  ...Arr.dedupe([...previous.keys(), ...current.keys()])
-    .filter(key => previous.get(key)?.signature !== current.get(key)?.signature)
-    .flatMap(key => {
-      const observation = current.get(key) ?? previous.get(key);
-      return observation ? [observation.reference] : [];
-    })
-    .reduce(
-      (references, reference) => references.set(componentIdentity(reference), reference),
-      new Map<string, OrgMetadataComponentReference>()
-    )
-    .values()
-];
+  previous: RemoteTrackingObservations,
+  current: RemoteTrackingObservations
+): OrgMetadataComponentReference[] =>
+  Arr.dedupe([...previous.identityOrder, ...current.identityOrder]).flatMap(identity => {
+    const previousObservation = Option.getOrUndefined(HashMap.get(previous.byIdentity, identity));
+    const currentObservation = Option.getOrUndefined(HashMap.get(current.byIdentity, identity));
+    return previousObservation?.signature === currentObservation?.signature
+      ? []
+      : currentObservation
+        ? [currentObservation.reference]
+        : previousObservation
+          ? [previousObservation.reference]
+          : [];
+  });
 
 const componentObservation = (component: ListedMetadataComponent): ListedMetadataComponent => ({
   fullName: component.fullName,
@@ -121,13 +126,12 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
               .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
               .pipe(Effect.map(documentUri => [`${component.type}\0${component.fullName}`, documentUri] as const)),
           { concurrency: 'unbounded' }
-        ).pipe(Effect.map(entries => new Map(entries)));
-        yield* state.updateInventories(current => {
-          const next = new Map(current);
-          components.forEach(component => {
+        ).pipe(Effect.map(HashMap.fromIterable));
+        yield* state.updateInventories(current =>
+          components.reduce((inventories, component) => {
             const reference = { xmlName: component.type, fullName: component.fullName };
             const key = typeCacheKey(orgId, component.type);
-            const inventory = next.get(key);
+            const inventory = Option.getOrUndefined(HashMap.get(inventories, key));
             const previous = inventory
               ? findInventoryComponent(inventory.components, reference, component.namespacePrefix ?? null)
               : undefined;
@@ -140,7 +144,9 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   ? 'metadata-api+workspace'
                   : provenance,
               reference,
-              documentUri: documentUris.get(`${component.type}\0${component.fullName}`) ?? previous!.documentUri,
+              documentUri:
+                Option.getOrUndefined(HashMap.get(documentUris, `${component.type}\0${component.fullName}`)) ??
+                previous!.documentUri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,
               kind: 'component',
               namespacePrefix: component.namespacePrefix ?? previous?.namespacePrefix,
@@ -150,18 +156,27 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
               lastModifiedDate: component.lastModifiedDate ?? previous?.lastModifiedDate,
               remoteLastModifiedDate: component.lastModifiedDate ?? previous?.remoteLastModifiedDate
             };
-            next.set(key, {
+            return HashMap.set(inventories, key, {
               observedAt,
               complete: inventory?.complete ?? false,
-              components: new Map(inventory?.components).set(
+              components: HashMap.set(
+                inventory?.components ?? HashMap.empty(),
                 componentIdentity(reference, component.namespacePrefix ?? null),
                 entry
               ),
-              folders: inventory?.folders ?? new Map()
+              componentIdentityOrder: inventory?.componentIdentityOrder.includes(
+                componentIdentity(reference, component.namespacePrefix ?? null)
+              )
+                ? inventory.componentIdentityOrder
+                : [
+                    ...(inventory?.componentIdentityOrder ?? []),
+                    componentIdentity(reference, component.namespacePrefix ?? null)
+                  ],
+              folders: inventory?.folders ?? HashMap.empty(),
+              folderFullNameOrder: inventory?.folderFullNameOrder ?? []
             });
-          });
-          return next;
-        });
+          }, current)
+        );
         yield* state.queuePersist(orgId);
         yield* Effect.annotateCurrentSpan({ orgId, provenance, observationCount: components.length });
       });
@@ -284,29 +299,35 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         remoteChanges: readonly TrackingRemoteChange[]
       ) {
         yield* state.ensureHydrated(orgId);
-        const revisionByIdentity = new Map(
-          remoteChanges.map(change => [
-            componentIdentity({ xmlName: change.type, fullName: change.name }),
-            JSON.stringify([
-              change.revisionCounter,
-              change.lastModifiedDate,
-              change.memberIdOrName,
-              change.deleted,
-              change.modified
-            ])
-          ])
+        const revisionByIdentity = HashMap.fromIterable(
+          remoteChanges.map(
+            change =>
+              [
+                componentIdentity({ xmlName: change.type, fullName: change.name }),
+                JSON.stringify([
+                  change.revisionCounter,
+                  change.lastModifiedDate,
+                  change.memberIdOrName,
+                  change.deleted,
+                  change.modified
+                ])
+              ] as const
+          )
         );
-        const observations = new Map<string, RemoteTrackingObservation>();
-        status
-          .filter(row => row.origin === 'remote')
-          .forEach(row => {
+        const remoteStatus = status.filter(row => row.origin === 'remote');
+        const observations: RemoteTrackingObservations = {
+          byIdentity: remoteStatus.reduce((tracking, row) => {
             const reference = { xmlName: row.type, fullName: row.fullName };
             const key = componentIdentity(reference);
-            observations.set(key, {
+            return HashMap.set(tracking, key, {
               reference,
-              signature: `${row.state}\0${revisionByIdentity.get(key) ?? ''}`
+              signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisionByIdentity, key), () => '')}`
             });
-          });
+          }, HashMap.empty<string, RemoteTrackingObservation>()),
+          identityOrder: Arr.dedupe(
+            remoteStatus.map(row => componentIdentity({ xmlName: row.type, fullName: row.fullName }))
+          )
+        };
         const previous = yield* state.getTracking(orgId);
         const changedReferences = compareTrackingObservations(previous, observations);
         if (changedReferences.length > 0) {
@@ -320,7 +341,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         }
         yield* Effect.annotateCurrentSpan({
           orgId,
-          observationCount: observations.size,
+          observationCount: HashMap.size(observations.byIdentity),
           changedCount: changedReferences.length,
           affectedTypeCount: new Set(changedReferences.map(reference => reference.xmlName)).size
         });

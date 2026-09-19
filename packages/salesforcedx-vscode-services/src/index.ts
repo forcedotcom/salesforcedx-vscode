@@ -280,50 +280,27 @@ export type {
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
-export {
-  OrgCatalogObservationSchema,
-  OrgMetadataCatalogEntrySchema,
-  OrgMetadataCatalogError,
-  OrgSObjectDescriptionSchema,
-  OrgSObjectSummarySchema,
-  type OrgCatalogObservation,
-  type OrgMetadataCatalog,
-  type OrgMetadataCatalogComponentEntry,
-  type OrgMetadataCatalogComponentReference,
-  type OrgMetadataCatalogEntry,
-  type OrgMetadataCatalogFieldEntry,
-  type OrgMetadataCatalogFolderEntry,
-  type OrgMetadataCatalogTypeEntry,
-  type OrgMetadataCatalogReference,
-  type OrgMetadataComponentResolution,
-  type OrgMetadataConsistency,
-  type OrgMetadataHierarchyConsistency,
-  type OrgMetadataEntryKind,
-  type OrgMetadataFieldDetails,
-  type OrgMetadataPresence,
-  type OrgSObjectDescription,
-  type OrgSObjectSummary
-} from './orgCatalog/orgMetadataCatalog';
+export type { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
+export type { OrgMetadataCatalogError } from './orgCatalog/orgMetadataCatalogErrors';
 export type {
-  OrgMetadataComponentReference,
-  OrgMetadataDocumentLocation,
-  OrgMetadataReference
-} from './orgCatalog/orgMetadataReference';
+  OrgMetadataCatalogComponentEntry,
+  OrgMetadataCatalogComponentReference,
+  OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFieldEntry,
+  OrgMetadataCatalogFolderEntry,
+  OrgMetadataCatalogReference,
+  OrgMetadataConsistency,
+  OrgMetadataFieldDetails,
+  OrgMetadataHierarchyConsistency
+} from './orgCatalog/orgMetadataCatalogTypes';
+export type { OrgMetadataComponentReference } from './orgCatalog/orgMetadataReference';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type {
   MetadataDescribeError,
   ListMetadataError,
   SObjectGlobalDescribeItem
 } from './core/metadataDescribeService';
-export type {
-  DescribeSObjectResult,
-  RestSObjectDescribeTransmogrifierInput,
-  TransmogrifierInput,
-  TransmogrifierService,
-  WorkspaceSObjectMetadata,
-  WorkspaceSObjectMetadataDocument,
-  WorkspaceSObjectMetadataTransmogrifierInput
-} from './core/transmogrifierService';
+export type { TransmogrifierService, TransmogrifierError } from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
 export {
   SObjectSchema,
@@ -331,7 +308,6 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/schemas/sObject';
-export { TransmogrifierError } from './core/transmogrifierService';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';

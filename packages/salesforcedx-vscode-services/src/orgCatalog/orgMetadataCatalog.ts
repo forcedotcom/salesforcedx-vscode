@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable barrel-files/avoid-barrel-files -- temporary re-export layer during refactoring. Consider removing once consumers can import directly from source modules. */
-
 import type { OrgMetadataComponentReference, OrgMetadataReference } from './orgMetadataReference';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -28,32 +27,6 @@ import {
   type OrgMetadataCatalogReference,
   type OrgMetadataConsistency,
   type OrgMetadataHierarchyConsistency
-} from './orgMetadataCatalogTypes';
-
-export {
-  OrgCatalogObservationSchema,
-  OrgMetadataCatalogEntrySchema,
-  OrgSObjectDescriptionSchema,
-  OrgSObjectSummarySchema
-} from './orgMetadataCatalogTypes';
-export { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
-export type {
-  OrgCatalogObservation,
-  OrgMetadataCatalogComponentEntry,
-  OrgMetadataCatalogComponentReference,
-  OrgMetadataCatalogEntry,
-  OrgMetadataCatalogFieldEntry,
-  OrgMetadataCatalogFolderEntry,
-  OrgMetadataCatalogReference,
-  OrgMetadataComponentResolution,
-  OrgMetadataConsistency,
-  OrgMetadataHierarchyConsistency,
-  OrgMetadataCatalogTypeEntry,
-  OrgMetadataEntryKind,
-  OrgMetadataFieldDetails,
-  OrgMetadataPresence,
-  OrgSObjectDescription,
-  OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
 
 const toInternalReference = (reference: OrgMetadataCatalogReference): OrgMetadataReference => ({
@@ -161,11 +134,14 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       const internalReference = toInternalReference(reference);
       if (options.consistency === 'cache-only') {
         return internalReference.xmlName
-          ? ((yield* treeProjection.getChildrenCached(orgId, internalReference)) ?? []).map(toCatalogEntry)
+          ? yield* treeProjection.getChildrenCached(orgId, internalReference).pipe(
+              Effect.map(children => children ?? []),
+              Effect.map(Arr.map(toCatalogEntry))
+            )
           : [];
       }
       if (options.consistency === 'refresh') yield* invalidateHierarchy(orgId, internalReference);
-      return (yield* treeProjection.getChildren(orgId, internalReference)).map(toCatalogEntry);
+      return yield* treeProjection.getChildren(orgId, internalReference).pipe(Effect.map(Arr.map(toCatalogEntry)));
     });
 
     const getEntries = Effect.fn('OrgMetadataCatalog.getEntries')(function* (
