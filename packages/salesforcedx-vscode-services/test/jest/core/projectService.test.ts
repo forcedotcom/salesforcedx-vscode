@@ -82,7 +82,7 @@ describe('ProjectService folder URIs', () => {
 
 describe('ProjectService opened context', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('updates VS Code only when the project-opened value changes', async () => {
@@ -100,7 +100,7 @@ describe('ProjectService opened context', () => {
 
 describe('ProjectService namespace', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it.each([
@@ -128,7 +128,7 @@ describe('ProjectService namespace', () => {
   );
 
   it('reads canonical namespace casing through ProjectService', async () => {
-    jest.spyOn(SfProject, 'resolve').mockResolvedValue({
+    vi.spyOn(SfProject, 'resolve').mockResolvedValue({
       getSfProjectJson: () => ({ getContents: () => ({ namespace: 'MyPackage' }) })
     } as unknown as SfProject);
 
@@ -140,7 +140,7 @@ describe('ProjectService namespace', () => {
   });
 
   it('reports a missing Salesforce project as a typed resolution failure', async () => {
-    jest.spyOn(SfProject, 'resolve').mockRejectedValue(new Error('not a Salesforce project'));
+    vi.spyOn(SfProject, 'resolve').mockRejectedValue(new Error('not a Salesforce project'));
 
     const exit = await Effect.runPromiseExit(
       ProjectService.getProjectNamespace().pipe(Effect.provide(layerFor(URI.file('/missing-project-namespace'))))

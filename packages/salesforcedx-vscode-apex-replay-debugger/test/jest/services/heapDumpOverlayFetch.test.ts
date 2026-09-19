@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
@@ -30,7 +31,7 @@ const overlayRecord = (id: string) => ({
   }
 });
 
-const makeConn = (queryImpl: jest.Mock): Connection =>
+const makeConn = (queryImpl: VitestMock): Connection =>
   ({ version: '60.0', tooling: { query: queryImpl } }) as unknown as Connection;
 
 /** Layer that hands the fetch service a fake connection through the services-extension API. */
@@ -43,7 +44,7 @@ const provideConn = (conn: Connection) =>
 
 // The fake's getConnection is R=never at runtime, but api's ConnectionService type re-adds the
 // requirement to the channel; cast it away since provideConn fully satisfies it at runtime.
-const run = (query: jest.Mock, log: string) =>
+const run = (query: VitestMock, log: string) =>
   fetchHeapDumpOverlayResults(log).pipe(Effect.provide(provideConn(makeConn(query)))) as Effect.Effect<
     HeapDumpResult[],
     unknown,
@@ -52,14 +53,14 @@ const run = (query: jest.Mock, log: string) =>
 
 describe('fetchHeapDumpOverlayResults', () => {
   it('returns empty array when the log has no heap dumps', async () => {
-    const query = jest.fn();
+    const query = vi.fn();
     const results = await Effect.runPromise(run(query, 'no dumps here'));
     expect(results).toEqual([]);
     expect(query).not.toHaveBeenCalled();
   });
 
   it('dedups repeated heap-dump ids into one query and preserves the HeapDump payload', async () => {
-    const query = jest.fn().mockResolvedValue({ records: [overlayRecord('id1')] });
+    const query = vi.fn().mockResolvedValue({ records: [overlayRecord('id1')] });
     const log = [heapDumpLine('id1'), heapDumpLine('id1'), heapDumpLine('id1')].join('\n');
 
     const results = await Effect.runPromise(run(query, log));
@@ -76,7 +77,7 @@ describe('fetchHeapDumpOverlayResults', () => {
 
   it('chunks more than 200 ids into two queries', async () => {
     const ids = Array.from({ length: 230 }, (_, i) => `id${i}`);
-    const query = jest.fn().mockImplementation((soql: string) => {
+    const query = vi.fn().mockImplementation((soql: string) => {
       const inIds = soql.match(/'([^']+)'/g)!.map(quoted => quoted.slice(1, -1));
       return Promise.resolve({ records: inIds.map(overlayRecord) });
     });
@@ -90,7 +91,7 @@ describe('fetchHeapDumpOverlayResults', () => {
   });
 
   it('maps an id with no returned record to an error result', async () => {
-    const query = jest.fn().mockResolvedValue({ records: [] });
+    const query = vi.fn().mockResolvedValue({ records: [] });
     const log = heapDumpLine('id1');
 
     const results = await Effect.runPromise(run(query, log));
@@ -99,7 +100,7 @@ describe('fetchHeapDumpOverlayResults', () => {
   });
 
   it('fails with a tagged error when the query rejects', async () => {
-    const query = jest.fn().mockRejectedValue(new Error('network down'));
+    const query = vi.fn().mockRejectedValue(new Error('network down'));
     const log = heapDumpLine('id1');
 
     const exit = await Effect.runPromiseExit(run(query, log));

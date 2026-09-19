@@ -49,10 +49,12 @@ const makeEvent = (
  */
 const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map<string, string> = new Map()) {
   const pubsub = yield* PubSub.unbounded<MetadataOperationEventType>({ replay: 16 });
-  const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
+  const incrementalUpdate = vi.fn<(_files: Map<string, string>, _replace: boolean) => Promise<void>>(() =>
+    Promise.resolve()
+  );
   const testController = { incrementalUpdate } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
 
-  const readFileFn = jest.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
+  const readFileFn = vi.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
 
   const notificationLayer = Layer.succeed(MetadataChangeNotificationService, { pubsub } as any);
   const fsLayer = Layer.succeed(FsService, { readFile: readFileFn } as unknown as InstanceType<typeof FsService>);

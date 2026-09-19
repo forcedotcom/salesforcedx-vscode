@@ -6,27 +6,44 @@
  */
 
 // Mock os module before any other imports
-jest.mock('os', () => ({
-  ...jest.requireActual('os'),
-  homedir: jest.fn(() => '/tmp')
+vi.mock('node:os', async () => ({
+  ...(await vi.importActual<typeof import('node:os')>('node:os')),
+  homedir: vi.fn(() => '/tmp')
 }));
 
 // Mock @salesforce/core
-jest.mock('@salesforce/core', () => ({
-  ...jest.requireActual('@salesforce/core'),
+vi.mock('@salesforce/core', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
   Global: {
     SF_DIR: '/tmp/sf',
     DIR: '/tmp/sf',
     SF_STATE_FOLDER: '.sf',
     isWeb: false,
-    getEnvironmentMode: jest.fn(() => 'production')
+    getEnvironmentMode: vi.fn(() => 'production')
   }
 }));
+
+vi.mock('@salesforce/core/fs', async () => {
+  const actual = await vi.importActual<typeof import('@salesforce/core/fs')>('@salesforce/core/fs');
+  return {
+    ...actual,
+    fs: {
+      ...actual.fs,
+      promises: {
+        ...actual.fs.promises,
+        watch: vi.fn(() => {
+          throw Object.assign(new Error('file watching disabled in unit tests'), { code: 'EACCES' });
+        })
+      }
+    }
+  };
+});
 
 import { activate, deactivate } from '../../src/index';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as vscode from 'vscode';
 import { isServicesRuntimeReady } from '../../src/servicesRuntime';
 import { getExtensionScope } from '../../src/vscode/extensionScope';
 import { ConfigService } from '../../src/core/configService';
@@ -34,26 +51,26 @@ import { ConnectionService } from '../../src/core/connectionService';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
-  open: jest.fn().mockReturnValue({
+  open: vi.fn().mockReturnValue({
     onsuccess: null,
     onerror: null,
     onupgradeneeded: null,
     result: {
-      transaction: jest.fn().mockReturnValue({
-        objectStore: jest.fn().mockReturnValue({
-          put: jest.fn().mockReturnValue({
+      transaction: vi.fn().mockReturnValue({
+        objectStore: vi.fn().mockReturnValue({
+          put: vi.fn().mockReturnValue({
             onsuccess: null,
             onerror: null
           }),
-          get: jest.fn().mockReturnValue({
+          get: vi.fn().mockReturnValue({
             onsuccess: null,
             onerror: null
           }),
-          getAll: jest.fn().mockReturnValue({
+          getAll: vi.fn().mockReturnValue({
             onsuccess: null,
             onerror: null
           }),
-          delete: jest.fn().mockReturnValue({
+          delete: vi.fn().mockReturnValue({
             onsuccess: null,
             onerror: null
           })
@@ -61,11 +78,11 @@ const mockIndexedDB: Partial<IDBFactory> = {
         oncomplete: null,
         onerror: null
       }),
-      createObjectStore: jest.fn(),
+      createObjectStore: vi.fn(),
       objectStoreNames: {
-        contains: jest.fn().mockReturnValue(false)
+        contains: vi.fn().mockReturnValue(false)
       },
-      close: jest.fn()
+      close: vi.fn()
     }
   })
 };
@@ -77,10 +94,10 @@ type GlobalWithIDB = typeof globalThis & {
 };
 const g = globalThis as GlobalWithIDB;
 g.indexedDB = mockIndexedDB as unknown as IDBFactory;
-g.IDBOpenDBRequest = jest.fn() as unknown as typeof IDBOpenDBRequest;
+g.IDBOpenDBRequest = vi.fn() as unknown as typeof IDBOpenDBRequest;
 
 // Mock spansNode to avoid path.join issues
-jest.mock('../../src/observability/spansNode', () => {
+vi.mock('../../src/observability/spansNode', () => {
   const E = require('effect');
   return {
     NodeSdkLayerFor: () => E.Layer.empty
@@ -88,8 +105,10 @@ jest.mock('../../src/observability/spansNode', () => {
 });
 
 // Mock IndexedDB Storage Service
-jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
-  const originalModule = jest.requireActual('../../src/virtualFsProvider/indexedDbStorage');
+vi.mock('../../src/virtualFsProvider/indexedDbStorage', async () => {
+  const originalModule = await vi.importActual<typeof import('../../src/virtualFsProvider/indexedDbStorage')>(
+    '../../src/virtualFsProvider/indexedDbStorage'
+  );
   const E = require('effect');
 
   const mockStorage = {
@@ -106,36 +125,36 @@ jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
 });
 
 // Mock FsProvider to avoid IndexedDB initialization
-jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
+vi.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
   FsProvider: class MockFsProvider {
-    public readonly onDidChangeFile = { event: jest.fn() };
+    public readonly onDidChangeFile = { event: vi.fn() };
 
-    public exists = jest.fn().mockReturnValue(false);
-    public createDirectory = jest.fn();
-    public writeFile = jest.fn();
-    public readFile = jest.fn();
-    public delete = jest.fn();
-    public rename = jest.fn();
-    public stat = jest.fn();
-    public readDirectory = jest.fn().mockReturnValue([]);
-    public watch = jest.fn();
+    public exists = vi.fn().mockReturnValue(false);
+    public createDirectory = vi.fn();
+    public writeFile = vi.fn();
+    public readFile = vi.fn();
+    public delete = vi.fn();
+    public rename = vi.fn();
+    public stat = vi.fn();
+    public readDirectory = vi.fn().mockReturnValue([]);
+    public watch = vi.fn();
   }
 }));
 
 // Mock memfsWatcher to avoid file watching in tests
-jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
+vi.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
   startWatch: () => {
     const E = require('effect');
     return E.Effect.succeed(undefined);
   },
   emitter: {
-    event: jest.fn(),
-    fire: jest.fn()
+    event: vi.fn(),
+    fire: vi.fn()
   }
 }));
 
 // Mock FileWatcherLayer to avoid vscode.workspace.createFileSystemWatcher
-jest.mock('../../src/vscode/fileWatcherService', () => {
+vi.mock('../../src/vscode/fileWatcherService', () => {
   const E = require('effect');
   return {
     FileWatcherLayer: E.Layer.empty
@@ -143,7 +162,7 @@ jest.mock('../../src/vscode/fileWatcherService', () => {
 });
 
 // Mock SettingsWatcherLayer to avoid vscode.workspace.onDidChangeConfiguration
-jest.mock('../../src/vscode/settingsWatcherService', () => {
+vi.mock('../../src/vscode/settingsWatcherService', () => {
   const E = require('effect');
   return {
     SettingsWatcherLayer: E.Layer.empty
@@ -151,21 +170,21 @@ jest.mock('../../src/vscode/settingsWatcherService', () => {
 });
 
 // Mock node:os module
-jest.mock('node:os', () => ({
-  homedir: jest.fn(() => '/tmp'),
-  platform: jest.fn(() => 'linux'),
-  arch: jest.fn(() => 'x64'),
-  tmpdir: jest.fn(() => '/tmp'),
-  hostname: jest.fn(() => 'mock-hostname'),
-  type: jest.fn(() => 'Linux'),
-  release: jest.fn(() => '5.4.0'),
-  totalmem: jest.fn(() => 8_589_934_592),
-  freemem: jest.fn(() => 4_294_967_296),
-  cpus: jest.fn(() => []),
-  networkInterfaces: jest.fn(() => ({})),
-  userInfo: jest.fn(() => ({ username: 'testuser', uid: 1000, gid: 1000, shell: '/bin/bash', homedir: '/tmp' })),
-  uptime: jest.fn(() => 123_456),
-  loadavg: jest.fn(() => [0.5, 0.3, 0.2]),
+vi.mock('node:os', () => ({
+  homedir: vi.fn(() => '/tmp'),
+  platform: vi.fn(() => 'linux'),
+  arch: vi.fn(() => 'x64'),
+  tmpdir: vi.fn(() => '/tmp'),
+  hostname: vi.fn(() => 'mock-hostname'),
+  type: vi.fn(() => 'Linux'),
+  release: vi.fn(() => '5.4.0'),
+  totalmem: vi.fn(() => 8_589_934_592),
+  freemem: vi.fn(() => 4_294_967_296),
+  cpus: vi.fn(() => []),
+  networkInterfaces: vi.fn(() => ({})),
+  userInfo: vi.fn(() => ({ username: 'testuser', uid: 1000, gid: 1000, shell: '/bin/bash', homedir: '/tmp' })),
+  uptime: vi.fn(() => 123_456),
+  loadavg: vi.fn(() => [0.5, 0.3, 0.2]),
   EOL: '\n',
   constants: {
     signals: {},
@@ -178,20 +197,20 @@ jest.mock('node:os', () => ({
 // jest 30 resolves 'node:fs' and 'fs' to the same module registry entry, so this factory
 // also serves unrelated consumers that require('fs') (e.g. got). Spread the real module so
 // only the members below are replaced.
-jest.mock('node:fs', () => ({
-  ...jest.requireActual('node:fs'),
-  watch: jest.fn(() => ({
-    close: jest.fn()
+vi.mock('node:fs', async () => ({
+  ...(await vi.importActual<typeof import('node:fs')>('node:fs')),
+  watch: vi.fn(() => ({
+    close: vi.fn()
   })),
   promises: {
-    access: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    mkdir: jest.fn(),
-    readdir: jest.fn(),
-    stat: jest.fn(),
-    unlink: jest.fn(),
-    rmdir: jest.fn()
+    access: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    mkdir: vi.fn(),
+    readdir: vi.fn(),
+    stat: vi.fn(),
+    unlink: vi.fn(),
+    rmdir: vi.fn()
   },
   constants: {
     F_OK: 0,
@@ -208,25 +227,27 @@ const mockExtensionUri = URI.file('/mock/extension');
 describe('Extension', () => {
   beforeEach(() => {
     // Mock workspace.workspaceFolders to have at least one folder
-    const vscode = require('vscode');
-    vscode.extensions = {
-      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri }),
+    Object.assign(vscode.extensions, {
+      getExtension: vi.fn().mockReturnValue({ extensionUri: mockExtensionUri }),
       all: [],
-      onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() })
-    };
-    vscode.workspace.workspaceFolders = [
-      {
-        uri: {
-          scheme: 'file',
-          fsPath: '/mock/workspace',
-          toString: (): string => 'file:///mock/workspace'
-        },
-        name: 'mock-workspace',
-        index: 0
-      }
-    ];
+      onDidChange: vi.fn().mockReturnValue({ dispose: vi.fn() })
+    });
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      value: [
+        {
+          uri: {
+            scheme: 'file',
+            fsPath: '/mock/workspace',
+            toString: (): string => 'file:///mock/workspace'
+          },
+          name: 'mock-workspace',
+          index: 0
+        }
+      ]
+    });
     // Mock the updateWorkspaceFolders method that's called in the index.ts
-    vscode.workspace.updateWorkspaceFolders = jest.fn();
+    vscode.workspace.updateWorkspaceFolders = vi.fn();
   });
 
   it('activates with shared services and an external span SDK', async () => {
@@ -242,8 +263,8 @@ describe('Extension', () => {
         }
       },
       globalState: {
-        get: jest.fn().mockReturnValue(undefined),
-        update: jest.fn().mockResolvedValue(undefined)
+        get: vi.fn().mockReturnValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined)
       }
     } as unknown as import('vscode').ExtensionContext;
 
@@ -255,7 +276,7 @@ describe('Extension', () => {
     const services = api.services.prebuiltServicesDependencies;
     Context.get(services, ConfigService);
     Context.get(services, ConnectionService);
-    const consoleLog = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     Effect.runSync(
       Effect.logInfo('api layer 00D000000000000!api-layer-secret').pipe(
         Effect.provide(api.services.prebuiltServicesLayer)
@@ -277,9 +298,8 @@ describe('Extension', () => {
 
   it('cleans up the runtime and extension scope when activation fails after acquisition', async () => {
     await deactivate();
-    const vscode = require('vscode');
     const acquiredScope = Effect.runSync(getExtensionScope());
-    vscode.commands.executeCommand = jest.fn().mockRejectedValue(new Error('activation failed'));
+    vi.mocked(vscode.commands.executeCommand).mockRejectedValue(new Error('activation failed'));
     const context = {
       subscriptions: [],
       extension: {
@@ -290,8 +310,8 @@ describe('Extension', () => {
         }
       },
       globalState: {
-        get: jest.fn().mockReturnValue(undefined),
-        update: jest.fn().mockResolvedValue(undefined)
+        get: vi.fn().mockReturnValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined)
       }
     } as unknown as import('vscode').ExtensionContext;
 
@@ -299,7 +319,7 @@ describe('Extension', () => {
 
     expect(isServicesRuntimeReady()).toBe(false);
     expect(Effect.runSync(getExtensionScope())).not.toBe(acquiredScope);
-    vscode.commands.executeCommand.mockResolvedValue(undefined);
+    vi.mocked(vscode.commands.executeCommand).mockResolvedValue(undefined);
     await expect(activate(context)).resolves.toBeDefined();
     expect(isServicesRuntimeReady()).toBe(true);
     await deactivate();

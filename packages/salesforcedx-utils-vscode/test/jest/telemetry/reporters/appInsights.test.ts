@@ -9,6 +9,9 @@ import { workspace } from 'vscode';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { CommonProperties, InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
 import { getCommonProperties, getInternalProperties } from '../../../../src/telemetry/reporters/telemetryUtils';
+import { isInternalHost } from '../../../../src/telemetry/utils/isInternal';
+
+vi.mock('../../../../src/telemetry/utils/isInternal', () => ({ isInternalHost: vi.fn() }));
 
 describe('AppInsights', () => {
   const fakeExtensionId = 'anExtensionId';
@@ -18,16 +21,16 @@ describe('AppInsights', () => {
 
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     const dummyOrgId = '000dummyOrgId';
-    const getMock = jest.fn().mockReturnValueOnce(true);
+    const getMock = vi.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
 
     let appInsights: AppInsights;
-    const trackExceptionMock = jest.fn();
-    const trackEventMock = jest.fn();
+    const trackExceptionMock = vi.fn();
+    const trackEventMock = vi.fn();
 
     beforeEach(() => {
-      jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
-      jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
+      vi.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
+      vi.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
@@ -103,7 +106,7 @@ describe('AppInsights', () => {
 
   describe('dispose', () => {
     let appInsights: AppInsights;
-    const flushMock = jest.fn().mockImplementation((options: { callback: () => void }) => {
+    const flushMock = vi.fn().mockImplementation((options: { callback: () => void }) => {
       // Simulate flush completion by calling the callback immediately
       options.callback();
     });
@@ -163,19 +166,11 @@ describe('AppInsights', () => {
     let internalProperties: InternalProperties;
 
     beforeEach(() => {
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
-      jest.spyOn(os, 'userInfo').mockReturnValue({
-        username: 'testuser',
-        uid: 1001,
-        gid: 1001,
-        shell: '/bin/bash',
-        homedir: '/home/testuser'
-      });
       internalProperties = getInternalProperties();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should return internal properties', () => {
@@ -183,11 +178,11 @@ describe('AppInsights', () => {
     });
 
     it('should return hostname', () => {
-      expect(internalProperties['sfInternal.hostname']).toBe('test.internal.salesforce.com');
+      expect(internalProperties['sfInternal.hostname']).toBe(os.hostname());
     });
 
     it('should return username', () => {
-      expect(internalProperties['sfInternal.username']).toBe('testuser');
+      expect(internalProperties['sfInternal.username']).toBe(os.userInfo().username);
     });
   });
 
@@ -195,32 +190,12 @@ describe('AppInsights', () => {
     let appInsights: AppInsights;
 
     beforeEach(() => {
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
-      jest.spyOn(os, 'cpus').mockReturnValue([
-        {
-          model: 'AMD EPYC 7763 64-Core Processor',
-          speed: 3242,
-          times: {
-            user: 100_000,
-            nice: 0,
-            sys: 100_000,
-            idle: 1_000_000,
-            irq: 0
-          }
-        }
-      ]);
-      jest.spyOn(os, 'userInfo').mockReturnValue({
-        username: 'testuser',
-        uid: 1001,
-        gid: 1001,
-        shell: '/bin/bash',
-        homedir: '/home/testuser'
-      });
+      vi.mocked(isInternalHost).mockReturnValue(true);
       appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should return properties', () => {
@@ -235,7 +210,7 @@ describe('AppInsights', () => {
     });
 
     it('should return common properties when is not internal user', () => {
-      jest.spyOn(os, 'hostname').mockReturnValue('test.salesforce.com');
+      vi.mocked(isInternalHost).mockReturnValue(false);
       const commonProps = getCommonProperties(fakeExtensionId, fakeExtensionVersion);
       const result = appInsights['aggregateLoggingProperties']();
       expect(result).toEqual({ ...commonProps, webUserId: 'test-webUser' });

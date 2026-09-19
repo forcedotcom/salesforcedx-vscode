@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -12,10 +13,10 @@ import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';
 import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testResultProcessor';
 
 // Mock HumanReporter before imports
-const mockFormat = jest.fn().mockReturnValue('Mocked HumanReporter Output\nTest Results\n');
+const mockFormat = vi.fn().mockReturnValue('Mocked HumanReporter Output\nTest Results\n');
 
-jest.mock('@salesforce/apex-node', () => {
-  const actual = jest.requireActual('@salesforce/apex-node') as any;
+vi.mock('@salesforce/apex-node', async () => {
+  const actual = (await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')) as any;
   // Create a mock class that returns an object with format method
   class MockHumanReporter {
     public format = mockFormat;
@@ -27,41 +28,6 @@ jest.mock('@salesforce/apex-node', () => {
 });
 
 describe('testResultProcessor', () => {
-  // Mock vscode.Uri.file to return a proper URI object
-  beforeEach(() => {
-    (vscode.Uri.file as jest.Mock) = jest.fn((path: string) => ({
-      fsPath: path,
-      path,
-      scheme: 'file',
-      authority: '',
-      query: '',
-      fragment: ''
-    })) as any;
-
-    // Mock vscode.Range as a constructor for parseStackTrace tests
-
-    (vscode.Range as any) = jest.fn(
-      (startLine: number, startCharacter: number, endLine: number, endCharacter: number) => ({
-        start: { line: startLine, character: startCharacter },
-        end: { line: endLine, character: endCharacter }
-      })
-    );
-
-    // Mock vscode.Location as a constructor for parseStackTrace tests
-
-    (vscode.Location as any) = jest.fn((uri: URI, range: vscode.Range) => ({
-      uri,
-      range
-    }));
-
-    // Mock vscode.TestMessage as a constructor for updateTestRunResults tests
-
-    (vscode.TestMessage as any) = jest.fn((message: string) => ({
-      message,
-      location: undefined
-    }));
-  });
-
   const createMockTestItem = (id: string, label: string, uri?: URI, children?: vscode.TestItem[]): vscode.TestItem => {
     // Create a plain object with label and uri as direct, enumerable properties
     // The implementation accesses item.label and item.uri, so we need to ensure they're accessible
@@ -73,14 +39,14 @@ describe('testResultProcessor', () => {
       uri,
       children: {
         size: childrenArray.length,
-        forEach: jest.fn((callback: (item: vscode.TestItem) => void) => {
+        forEach: vi.fn((callback: (item: vscode.TestItem) => void) => {
           childrenArray.forEach(callback);
         }),
-        get: jest.fn(),
-        has: jest.fn(),
-        values: jest.fn().mockReturnValue(childrenArray),
-        keys: jest.fn(),
-        entries: jest.fn(),
+        get: vi.fn(),
+        has: vi.fn(),
+        values: vi.fn().mockReturnValue(childrenArray),
+        keys: vi.fn(),
+        entries: vi.fn(),
         // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts); yield a fresh iterator per call
         [Symbol.iterator]: () => childrenArray.map(child => [child.id, child] as const)[Symbol.iterator]()
       } as unknown as vscode.TestItemCollection
@@ -90,13 +56,13 @@ describe('testResultProcessor', () => {
 
   const createMockTestRun = (): vscode.TestRun =>
     ({
-      appendOutput: jest.fn(),
-      passed: jest.fn(),
-      failed: jest.fn(),
-      skipped: jest.fn(),
-      errored: jest.fn(),
-      started: jest.fn(),
-      end: jest.fn()
+      appendOutput: vi.fn(),
+      passed: vi.fn(),
+      failed: vi.fn(),
+      skipped: vi.fn(),
+      errored: vi.fn(),
+      started: vi.fn(),
+      end: vi.fn()
     }) as any;
 
   describe('parseStackTrace', () => {
@@ -268,7 +234,7 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      const failedCall = (run.failed as jest.Mock).mock.calls[0];
+      const failedCall = (run.failed as VitestMock).mock.calls[0];
       expect(failedCall[0]).toBe(methodItem);
       // Check that TestMessage was created (it's a mock constructor)
       expect(failedCall[1]).toBeDefined();
@@ -313,7 +279,7 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      const failedCall = (run.failed as jest.Mock).mock.calls[0];
+      const failedCall = (run.failed as VitestMock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;
       expect(message.location).toBeDefined();
@@ -460,7 +426,7 @@ describe('testResultProcessor', () => {
 
       // The output is split by lines and each line is added separately with \r\n
       // So we need to check if any call contains the HumanReporter output
-      const outputCalls = (run.appendOutput as jest.Mock).mock.calls;
+      const outputCalls = (run.appendOutput as VitestMock).mock.calls;
       const allOutput = outputCalls.map(call => call[0]).join('');
       expect(allOutput).toContain('Mocked HumanReporter Output');
     });
@@ -568,7 +534,7 @@ describe('testResultProcessor', () => {
 
       updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
-      const failedCall = (run.failed as jest.Mock).mock.calls[0];
+      const failedCall = (run.failed as VitestMock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;
 
@@ -850,10 +816,8 @@ describe('testResultProcessor', () => {
       expect(run.failed).toHaveBeenCalledWith(failingSuite, expect.any(Object), 50);
 
       // Verify passingSuite was NOT marked as failed
-      const failedCalls = (run.failed as jest.Mock).mock.calls;
-      const passingSuiteFailedCall = failedCalls.find(
-        (call: [vscode.TestItem, vscode.TestMessage, number]) => call[0].id === 'suite:PassingSuite'
-      );
+      const failedCalls = (run.failed as VitestMock).mock.calls;
+      const passingSuiteFailedCall = failedCalls.find(call => call[0].id === 'suite:PassingSuite');
       expect(passingSuiteFailedCall).toBeUndefined();
     });
   });

@@ -11,14 +11,14 @@ import { aliasListCommand } from '../../../src/commands/aliasList';
 
 describe('aliasListCommand', () => {
   it('writes the Alias/Username table to the channel and shows it', async () => {
-    const getAllAliases = jest.fn(() =>
+    const getAllAliases = vi.fn(() =>
       Effect.succeed({
         minimalTestOrg: 'test@example.com',
         devHub: 'hub@example.com'
       })
     );
-    const appendToChannel = jest.fn<Effect.Effect<void>, [string]>(() => Effect.void);
-    const show = jest.fn();
+    const appendToChannel = vi.fn<(_alias: string) => Effect.Effect<void>>(() => Effect.void);
+    const show = vi.fn();
 
     await Effect.runPromise(
       aliasListCommand().pipe(

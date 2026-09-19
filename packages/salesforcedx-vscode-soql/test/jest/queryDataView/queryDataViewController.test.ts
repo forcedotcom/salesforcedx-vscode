@@ -25,12 +25,12 @@ type TableOptions = {
 class FakeTabulator {
   public static readonly instances: FakeTabulator[] = [];
 
-  public readonly destroy = jest.fn();
-  public readonly on = jest.fn((eventName: string, handler: () => void) => {
+  public readonly destroy = vi.fn();
+  public readonly on = vi.fn((eventName: string, handler: () => void) => {
     this.eventHandlers.set(eventName, handler);
   });
-  public readonly redraw = jest.fn();
-  public readonly setHeight = jest.fn();
+  public readonly redraw = vi.fn();
+  public readonly setHeight = vi.fn();
   private readonly eventHandlers = new Map<string, () => void>();
 
   constructor(
@@ -46,11 +46,12 @@ class FakeTabulator {
 }
 
 describe('Query Data View controller baseline', () => {
-  const getState = jest.fn();
-  const setState = jest.fn();
-  const postMessage = jest.fn();
+  const getState = vi.fn();
+  const setState = vi.fn();
+  const postMessage = vi.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
     FakeTabulator.instances.length = 0;
     document.body.innerHTML = `
       <div>
@@ -91,7 +92,8 @@ describe('Query Data View controller baseline', () => {
       value: FakeTabulator
     });
 
-    jest.requireActual('../../../src/soql-data-view/queryDataViewController.js');
+    // @ts-expect-error Browser script intentionally has no TypeScript declaration.
+    await import('../../../src/soql-data-view/queryDataViewController.js');
   });
 
   it('restores, renders, updates, exports, and resizes through the existing protocol', () => {

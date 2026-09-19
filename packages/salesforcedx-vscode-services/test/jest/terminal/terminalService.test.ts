@@ -24,13 +24,13 @@ import { SettingsError, SettingsService } from '../../../src/vscode/settingsServ
 const settings: { values: Record<string, unknown>; fail: boolean } = { values: {}, fail: false };
 const cliTelemetry: { disabled: boolean; fail: boolean } = { disabled: false, fail: false };
 
-const getValueMock = jest.fn();
+const getValueMock = vi.fn();
 const getValueImpl = (section: string, key: string, defaultValue?: unknown) =>
   settings.fail
     ? Effect.fail(new SettingsError({ cause: new Error('settings unavailable'), section, key, message: 'boom' }))
     : Effect.succeed(settings.values[`${section}.${key}`] ?? defaultValue);
 
-const isCliTelemetryDisabledMock = jest.fn();
+const isCliTelemetryDisabledMock = vi.fn();
 const isCliTelemetryDisabledImpl = () =>
   cliTelemetry.fail
     ? Effect.fail(new FailedToCreateConfigAggregatorError({ message: 'no workspace open' }))
@@ -192,7 +192,7 @@ describe('TerminalService.simpleExec', () => {
 
   it('trims stdout and passes it to parse on the happy path', async () => {
     const { layer } = withStart({ stdout: '  hello world  \n' });
-    const parse = jest.fn((s: string) => s.toUpperCase());
+    const parse = vi.fn((s: string) => s.toUpperCase());
 
     const result = await run(
       TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ executable: 'sf', args: ['foo'], parse }))),

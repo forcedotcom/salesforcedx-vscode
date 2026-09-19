@@ -52,7 +52,7 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
         URI.file('/workspace/force-app/main/default/classes/One.cls')
       )
     } as vscode.Tab;
-    const close = jest.fn(async () => true);
+    const close = vi.fn(async () => true);
     Object.defineProperty(vscode.window, 'tabGroups', {
       configurable: true,
       value: {

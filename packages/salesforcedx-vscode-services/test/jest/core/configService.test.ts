@@ -8,23 +8,22 @@
 import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
 
-jest.mock('@salesforce/core', () => ({
-  ...jest.requireActual('@salesforce/core'),
-  Config: { create: jest.fn(), getDefaultOptions: jest.fn().mockReturnValue({}) }
+vi.mock('@salesforce/core', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
+  Config: { create: vi.fn(), getDefaultOptions: vi.fn().mockReturnValue({}) }
 }));
 
-jest.mock('@salesforce/core/configAggregator', () => ({
-  ConfigAggregator: { create: jest.fn() }
+vi.mock('@salesforce/core/configAggregator', () => ({
+  ConfigAggregator: { create: vi.fn() }
 }));
 
-const vscode = require('vscode');
-
-const setMock = jest.fn();
-const writeMock = jest.fn();
-const createMock = jest.mocked(Config.create);
-const aggregatorCreateMock = jest.mocked(ConfigAggregator.create);
+const setMock = vi.fn();
+const writeMock = vi.fn();
+const createMock = vi.mocked(Config.create);
+const aggregatorCreateMock = vi.mocked(ConfigAggregator.create);
 
 describe('ConfigService.setTargetOrg', () => {
   beforeEach(() => {
@@ -66,7 +65,7 @@ const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
 const TARGET_DEV_HUB_KEY: string = OrgConfigProperties.TARGET_DEV_HUB;
 
 describe('ConfigService.getTargetOrg', () => {
-  const getPropertyValueMock = jest.fn();
+  const getPropertyValueMock = vi.fn();
 
   beforeEach(() => {
     getPropertyValueMock.mockReset();
@@ -76,13 +75,16 @@ describe('ConfigService.getTargetOrg', () => {
       reload: () => Promise.resolve(agg)
     } as unknown as ConfigAggregator;
     aggregatorCreateMock.mockReset().mockResolvedValue(agg);
-    vscode.workspace.workspaceFolders = [
-      {
-        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
-        name: 'mock-workspace',
-        index: 0
-      }
-    ];
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      value: [
+        {
+          uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+          name: 'mock-workspace',
+          index: 0
+        }
+      ]
+    });
   });
 
   it('returns the configured target-org value', async () => {
@@ -103,7 +105,7 @@ describe('ConfigService.getTargetOrg', () => {
 });
 
 describe('ConfigService.getTargetDevHub', () => {
-  const getPropertyValueMock = jest.fn();
+  const getPropertyValueMock = vi.fn();
 
   beforeEach(() => {
     getPropertyValueMock.mockReset();
@@ -113,13 +115,16 @@ describe('ConfigService.getTargetDevHub', () => {
       reload: () => Promise.resolve(agg)
     } as unknown as ConfigAggregator;
     aggregatorCreateMock.mockReset().mockResolvedValue(agg);
-    vscode.workspace.workspaceFolders = [
-      {
-        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
-        name: 'mock-workspace',
-        index: 0
-      }
-    ];
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      value: [
+        {
+          uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+          name: 'mock-workspace',
+          index: 0
+        }
+      ]
+    });
   });
 
   it('returns the configured target-dev-hub value', async () => {
@@ -142,7 +147,7 @@ describe('ConfigService.getTargetDevHub', () => {
 const DISABLE_TELEMETRY_KEY: string = SfConfigProperties.DISABLE_TELEMETRY;
 
 describe('ConfigService.isCliTelemetryDisabled', () => {
-  const getPropertyValueMock = jest.fn();
+  const getPropertyValueMock = vi.fn();
 
   beforeEach(() => {
     getPropertyValueMock.mockReset();
@@ -152,13 +157,16 @@ describe('ConfigService.isCliTelemetryDisabled', () => {
       reload: () => Promise.resolve(agg)
     } as unknown as ConfigAggregator;
     aggregatorCreateMock.mockReset().mockResolvedValue(agg);
-    vscode.workspace.workspaceFolders = [
-      {
-        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
-        name: 'mock-workspace',
-        index: 0
-      }
-    ];
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      value: [
+        {
+          uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+          name: 'mock-workspace',
+          index: 0
+        }
+      ]
+    });
   });
 
   it('treats the string "true" as disabled', async () => {

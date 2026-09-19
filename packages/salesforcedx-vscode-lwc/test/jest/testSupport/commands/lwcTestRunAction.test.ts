@@ -6,10 +6,10 @@
  */
 import { URI } from 'vscode-uri';
 
-const runByExecutionInfo = jest.fn();
-const runActiveEditorFile = jest.fn();
+const runByExecutionInfo = vi.fn();
+const runActiveEditorFile = vi.fn();
 
-jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
+vi.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 

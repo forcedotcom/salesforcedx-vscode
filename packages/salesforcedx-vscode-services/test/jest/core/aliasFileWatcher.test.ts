@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -18,7 +19,7 @@ import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { HostFileWatcher } from '../../../src/core/hostFileWatcher';
 import type { FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
-jest.mock('@salesforce/core/global', () => ({
+vi.mock('@salesforce/core/global', () => ({
   Global: { SFDX_DIR: '/Users/testuser/.sfdx' }
 }));
 
@@ -27,7 +28,7 @@ const ALIAS_FILE_PATH = '/Users/testuser/.sfdx/alias.json';
 const makeHostFileWatcherLayer = (pubsub: PubSub.PubSub<FileChangeEvent>) =>
   Layer.succeed(HostFileWatcher, { watch: () => Stream.fromPubSub(pubsub) } as unknown as HostFileWatcher);
 
-const makeAliasServiceLayer = (getAliasesFromUsername: jest.Mock) =>
+const makeAliasServiceLayer = (getAliasesFromUsername: VitestMock) =>
   Layer.succeed(
     AliasService,
     new AliasService({
@@ -44,7 +45,7 @@ describe('watchAliasFile', () => {
   });
 
   const runWatcherTest = async (
-    getAliasesFromUsernameMock: jest.Mock,
+    getAliasesFromUsernameMock: VitestMock,
     initialOrgInfo: { username?: string; aliases?: string[] }
   ) => {
     const fileChanges = await Effect.runPromise(PubSub.sliding<FileChangeEvent>(10));
@@ -75,25 +76,25 @@ describe('watchAliasFile', () => {
   };
 
   it('updates aliases when alias.json changes', async () => {
-    const mock = jest.fn().mockReturnValue(Effect.succeed(['myAlias', 'otherAlias']));
+    const mock = vi.fn().mockReturnValue(Effect.succeed(['myAlias', 'otherAlias']));
     const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['myAlias'] });
     expect(result.aliases).toEqual(['myAlias', 'otherAlias']);
   });
 
   it('preserves the primary alias at position 0 when disk order differs', async () => {
-    const mock = jest.fn().mockReturnValue(Effect.succeed(['newAlias', 'originalAlias']));
+    const mock = vi.fn().mockReturnValue(Effect.succeed(['newAlias', 'originalAlias']));
     const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['originalAlias'] });
     expect(result.aliases).toEqual(['originalAlias', 'newAlias']);
   });
 
   it('falls back to disk order when primary alias was deleted externally', async () => {
-    const mock = jest.fn().mockReturnValue(Effect.succeed(['remainingAlias']));
+    const mock = vi.fn().mockReturnValue(Effect.succeed(['remainingAlias']));
     const result = await runWatcherTest(mock, { username: 'user@example.com', aliases: ['deletedAlias'] });
     expect(result.aliases).toEqual(['remainingAlias']);
   });
 
   it('is a no-op when there is no active username in defaultOrgRef', async () => {
-    const mock = jest.fn();
+    const mock = vi.fn();
     await runWatcherTest(mock, {});
     expect(mock).not.toHaveBeenCalled();
   });

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
@@ -15,18 +16,18 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
-jest.mock('../../../src/channels', () => ({
-  getOrgChannelService: () => ({ appendLine: jest.fn(), showChannelOutput: jest.fn() }),
-  setOrgChannel: jest.fn()
+vi.mock('../../../src/channels', () => ({
+  getOrgChannelService: () => ({ appendLine: vi.fn(), showChannelOutput: vi.fn() }),
+  setOrgChannel: vi.fn()
 }));
 
-const mockUpdateConfigAndStateAggregators = jest.fn<Promise<void>, []>();
-jest.mock('../../../src/util/orgUtil', () => ({
+const mockUpdateConfigAndStateAggregators = vi.fn<() => Promise<void>>();
+vi.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => mockUpdateConfigAndStateAggregators()
 }));
 
-const mockGather = jest.fn<Effect.Effect<{ orgs: OrgToDelete[] }, { _tag: 'UserCancellationError' }>, []>();
-jest.mock('../../../src/parameterGatherers/selectDeletableOrg', () => ({
+const mockGather = vi.fn<() => Effect.Effect<{ orgs: OrgToDelete[] }, { _tag: 'UserCancellationError' }>>();
+vi.mock('../../../src/parameterGatherers/selectDeletableOrg', () => ({
   gather: () => mockGather()
 }));
 
@@ -36,13 +37,13 @@ type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isS
 
 // The default-delete command clears the reactive org ref after a successful delete so reactive consumers
 // (e.g. the source tracking status bar icons) reset instead of lingering on the now-deleted org (W-23950821).
-const mockClearDefaultOrgRef = jest.fn(() => Effect.void);
+const mockClearDefaultOrgRef = vi.fn(() => Effect.void);
 
 const buildServices = (
   orgInfo: OrgSnapshot,
   confirm: boolean,
-  simpleExec: jest.Mock,
-  onAppend: jest.Mock = jest.fn(() => Effect.void)
+  simpleExec: VitestMock,
+  onAppend: VitestMock = vi.fn(() => Effect.void)
 ) => ({
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
@@ -65,7 +66,7 @@ const buildServices = (
   ClearDefaultOrgRef: mockClearDefaultOrgRef
 });
 
-const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock, onAppend?: jest.Mock) =>
+const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: VitestMock, onAppend?: VitestMock) =>
   Effect.runPromiseExit(
     orgDeleteDefaultCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -76,14 +77,14 @@ const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock, onAp
 
 describe('orgDeleteDefaultCommand', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
-    // resetMocks:true (jest.base.config) clears impls each test, so (re)set the return here
+    // resetMocks:true (vitest.base.config) clears implementations each test, so reset the return here
     mockClearDefaultOrgRef.mockReturnValue(Effect.void);
   });
 
   it('runs `sf org delete scratch` for a scratch default org', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', isScratch: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -99,7 +100,7 @@ describe('orgDeleteDefaultCommand', () => {
   });
 
   it('runs `sf org delete sandbox` for a sandbox default org', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', isSandbox: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -112,7 +113,7 @@ describe('orgDeleteDefaultCommand', () => {
   });
 
   it('passes --target-org so delete does not depend on the extension-host cwd', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', username: 'me@scratch.org', isScratch: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -125,7 +126,7 @@ describe('orgDeleteDefaultCommand', () => {
   });
 
   it('fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', username: 'me@prod.org' }, true, simpleExec);
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -137,8 +138,8 @@ describe('orgDeleteDefaultCommand', () => {
   });
 
   it('appends a fallback success message when sf emits empty stdout', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(''));
-    const onAppend = jest.fn(() => Effect.void);
+    const simpleExec = vi.fn(() => Effect.succeed(''));
+    const onAppend = vi.fn(() => Effect.void);
     const exit = await run({ username: 'me@scratch.org', isScratch: true }, true, simpleExec, onAppend);
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -146,7 +147,7 @@ describe('orgDeleteDefaultCommand', () => {
   });
 
   it('fails with UserCancellationError and does not exec when the user declines', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
     const exit = await run({ orgId: '00D', isScratch: true }, false, simpleExec);
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -170,12 +171,12 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
   message: Schema.String
 }) {}
 
-const appendToChannel = jest.fn<Effect.Effect<void>, [string]>();
+const appendToChannel = vi.fn<(_username: string) => Effect.Effect<void>>();
 
 // Mirrors the real withCancellableProgress (promptService.ts): a fiber interrupt (Cancel) is converted into a
 // typed UserCancellationError. Modeling it this way lets the cancellation test interrupt mid-loop the same way
 // clicking Cancel does, instead of faking a typed failure out of simpleExec.
-const buildUsernameServices = (simpleExec: jest.Mock) => ({
+const buildUsernameServices = (simpleExec: VitestMock) => ({
   PromptService: Effect.succeed({
     withCancellableProgress:
       <A, E>(_message: string, _location?: unknown) =>
@@ -198,7 +199,7 @@ const buildUsernameServices = (simpleExec: jest.Mock) => ({
   })
 });
 
-const runUsername = (simpleExec: jest.Mock) =>
+const runUsername = (simpleExec: VitestMock) =>
   Effect.runPromiseExit(
     orgDeleteUsernameCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -212,15 +213,15 @@ const sandboxOrg: OrgToDelete = { username: 'b@sandbox.org', orgType: 'sandbox' 
 
 describe('orgDeleteUsernameCommand', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
-    // resetMocks:true (jest.base.config) clears impls each test, so (re)set them here
+    // resetMocks:true (vitest.base.config) clears implementations each test, so reset them here
     appendToChannel.mockReturnValue(Effect.void);
   });
 
   it('deletes each picked org with the right scratch/sandbox subcommand and --target-org', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
 
     const exit = await runUsername(simpleExec);
 
@@ -244,7 +245,7 @@ describe('orgDeleteUsernameCommand', () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
     // org-1 fails the way the real service does: non-zero CLI exit → TerminalServiceError.
     // A bare simpleExec loop would short-circuit here and never run org-2.
-    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+    const simpleExec = vi.fn((params: { args: readonly string[] }) =>
       params.args.includes('a@scratch.org')
         ? Effect.tryPromise({
             try: () => Promise.reject(new Error('Command failed: non-zero exit')),
@@ -281,7 +282,7 @@ describe('orgDeleteUsernameCommand', () => {
     // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
     // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
     // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)
-    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+    const simpleExec = vi.fn((params: { args: readonly string[] }) =>
       params.args.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
     );
 
@@ -301,7 +302,7 @@ describe('orgDeleteUsernameCommand', () => {
 
   it('appends a fallback success message per org when sf emits empty stdout', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg] }));
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    const simpleExec = vi.fn(() => Effect.succeed(''));
 
     const exit = await runUsername(simpleExec);
 
@@ -311,7 +312,7 @@ describe('orgDeleteUsernameCommand', () => {
 
   it('does not delete or flush when the picker cancels', async () => {
     mockGather.mockReturnValue(Effect.fail(userCancellationError));
-    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
 
     const exit = await runUsername(simpleExec);
 

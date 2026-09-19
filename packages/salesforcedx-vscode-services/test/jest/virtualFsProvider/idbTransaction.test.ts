@@ -19,7 +19,7 @@ const fire = (handler: IdbHandler, type: string): void => {
 };
 
 const fakeIdb = (result = 'saved-key') => {
-  const abort = jest.fn();
+  const abort = vi.fn();
   const transaction = {
     error: null as DOMException | null,
     oncomplete: null as IdbHandler,

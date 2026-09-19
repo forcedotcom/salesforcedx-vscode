@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { DEFAULT_LOCALE } from '../../../src/constants';
 import { LocalizationService, LocalizationConfig, MessageBundleManager } from '../../../src/i18n/advancedLocalization';
 import { AdvancedMessageBundle } from '../../../src/types/localization/advancedTypes';
 
 describe('Advanced Localization Unit Tests', () => {
-  let consoleWarnSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+  let consoleWarnSpy: VitestMockInstance;
+  let consoleErrorSpy: VitestMockInstance;
 
   beforeEach(() => {
     // Clear all singletons before each test
@@ -20,13 +21,13 @@ describe('Advanced Localization Unit Tests', () => {
     (LocalizationConfig as any).instance = undefined;
 
     // Mock console methods to avoid noise in tests
-    jest.spyOn(console, 'log').mockImplementation();
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('LocalizationConfig', () => {

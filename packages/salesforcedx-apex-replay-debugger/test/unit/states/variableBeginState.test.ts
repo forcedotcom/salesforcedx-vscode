@@ -6,14 +6,15 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { StackFrame } from '@vscode/debugadapter';
 import { strict as assert } from 'node:assert';
 import { URI } from 'vscode-uri';
@@ -24,8 +25,8 @@ import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableBeginState } from '../../../src/states';
 
 describe('Variable begin scope event', () => {
-  let getUriFromSignatureStub: jest.SpyInstance;
-  let getStaticMapStub: jest.SpyInstance;
+  let getUriFromSignatureStub: VitestMockInstance;
+  let getStaticMapStub: VitestMockInstance;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -41,8 +42,8 @@ describe('Variable begin scope event', () => {
 
   beforeEach(() => {
     map = new Map<string, Map<string, ApexVariable>>([['fakeClass', new Map<string, ApexVariable>()]]);
-    getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
-    getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map as any);
+    getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
+    getStaticMapStub = vi.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map as any);
   });
 
   afterEach(() => {

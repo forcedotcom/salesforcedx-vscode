@@ -20,8 +20,8 @@ import { URI } from 'vscode-uri';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';
 import { getTestController } from '../../../src/views/testController';
 
-jest.mock('../../../src/views/testController', () => ({
-  getTestController: jest.fn()
+vi.mock('../../../src/views/testController', () => ({
+  getTestController: vi.fn()
 }));
 
 type OrgInfo = { orgId?: string };
@@ -36,16 +36,18 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
   const targetOrgRef = yield* SubscriptionRef.make<OrgInfo>(initial);
   const catalogChanges = yield* PubSub.sliding<OrgMetadataCatalogChange>(100);
 
-  const refresh = jest.fn<Promise<void>, []>(() => Promise.resolve());
-  const clearAllTestItems = jest.fn<Promise<void>, []>(() => Promise.resolve());
-  const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
+  const refresh = vi.fn<() => Promise<void>>(() => Promise.resolve());
+  const clearAllTestItems = vi.fn<() => Promise<void>>(() => Promise.resolve());
+  const incrementalUpdate = vi.fn<(_files: Map<string, string>, _replace: boolean) => Promise<void>>(() =>
+    Promise.resolve()
+  );
   const testController = {
     refresh,
     clearAllTestItems,
     incrementalUpdate
   } as unknown as ReturnType<typeof getTestController>;
 
-  const appendToChannel = jest.fn(() => Effect.void);
+  const appendToChannel = vi.fn(() => Effect.void);
   const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {

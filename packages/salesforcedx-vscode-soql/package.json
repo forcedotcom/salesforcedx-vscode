@@ -37,23 +37,23 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/soql-builder-ui": "*",
-    "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
+    "@salesforce/soql-model": "*",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
+    "effect": "^3.21.2",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-decorators": "7.29.7",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.5.0",
-    "@lwc/jest-preset": "^19.6.1",
     "@lwc/rollup-plugin": "^9.3.4",
     "@lwc/synthetic-shadow": "^9.1.1",
     "@rollup/plugin-alias": "^6.0.0",
@@ -69,7 +69,6 @@
     "@salesforce/ts-types": "^3.0.0",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "jest-environment-jsdom": "^30.4.1",
     "rollup": "^4.0.0",
     "salesforcedx-vscode-services": "*"
   },
@@ -191,7 +190,7 @@
       ]
     },
     "test:soql-builder-ui": {
-      "command": "jest --config src/soql-builder-ui/jest.config.js",
+      "command": "vitest run --config src/soql-builder-ui/vitest.config.mts",
       "dependencies": [
         "../soql-builder-ui:compile",
         "../soql-model:compile"
@@ -199,23 +198,29 @@
       "files": [
         "src/soql-builder-ui/lit/**/*.ts",
         "src/soql-builder-ui/modules/**",
-        "src/soql-builder-ui/jest.config.js",
-        "src/soql-builder-ui/jestSetup/**",
+        "src/soql-builder-ui/vitest.config.mts",
+        "src/soql-builder-ui/testSetup/**",
         "test/jest/soql-builder-ui/**"
       ],
-      "output": []
+      "output": [
+        "junit-custom-soqlBuilder-unitTests.xml"
+      ]
     },
     "test:query-results-ui": {
-      "command": "jest --config jest.query-results.config.js --runInBand",
+      "command": "vitest run --config vitest.queryResults.config.mts",
       "files": [
         "src/soql-data-view/index.html",
         "src/soql-data-view/queryDataViewController.js",
         "test/jest/queryDataView/queryDataViewController.test.ts",
-        "jest.query-results.config.js",
-        "../../config/jest.base.config.js",
-        "../../scripts/setup-jest.ts"
+        "vitest.queryResults.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
-      "output": []
+      "output": [
+        "junit-custom-queryResults-unitTests.xml"
+      ]
     },
     "test:ui-bundle-budgets": {
       "command": "node scripts/check-ui-bundle-budgets.mjs",
@@ -316,17 +321,23 @@
       "files": []
     },
     "test": {
-      "command": "jest",
+      "command": "vitest run",
       "dependencies": [
-        "test:compile"
+        "test:compile",
+        "test:soql-builder-ui",
+        "test:query-results-ui"
       ],
       "files": [
         "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage"
+        "coverage",
+        "junit-custom-unitTests.xml"
       ]
     },
     "lint": {

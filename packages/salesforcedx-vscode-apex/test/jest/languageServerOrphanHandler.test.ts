@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -110,24 +111,18 @@ const makeApi = (responses: { match: string; result: ExecResult }[], settingsStu
  * the powershell command path their stubs don't mock. The ExtensionProviderService tag is re-required
  * from the same graph so the provided service matches the tag identity the handler resolves against.
  */
-const loadHandler = (platform: NodeJS.Platform) => {
+const loadHandler = async (platform: NodeJS.Platform) => {
   const original = process.platform;
   Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-  let result:
-    | {
-        checkAndResolveOrphanedLanguageServers: typeof import('../../src/languageServerOrphanHandler').checkAndResolveOrphanedLanguageServers;
-        Provider: typeof ExtensionProviderService;
-      }
-    | undefined;
-  jest.isolateModules(() => {
-    const { ExtensionProviderService: Provider } =
-      require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
-    const { checkAndResolveOrphanedLanguageServers } =
-      require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
-    result = { checkAndResolveOrphanedLanguageServers, Provider };
-  });
-  Object.defineProperty(process, 'platform', { value: original, configurable: true });
-  return result!;
+  vi.doMock('vscode', () => vscode);
+  vi.resetModules();
+  try {
+    const { ExtensionProviderService: Provider } = await import('@salesforce/effect-ext-utils');
+    const { checkAndResolveOrphanedLanguageServers } = await import('../../src/languageServerOrphanHandler.js');
+    return { checkAndResolveOrphanedLanguageServers, Provider };
+  } finally {
+    Object.defineProperty(process, 'platform', { value: original, configurable: true });
+  }
 };
 
 const provide =
@@ -150,12 +145,12 @@ const captureRoot = (holder: { root?: Tracer.Span }) => (effect: Effect.Effect<v
     return yield* effect;
   }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
 
-const run = (
+const run = async (
   responses: { match: string; result: ExecResult }[],
   holder: { root?: Tracer.Span } = {},
   settingsStub?: SettingsStub
 ) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
+  const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
   return Effect.runPromise(
     (
       checkAndResolveOrphanedLanguageServers(3, 0).pipe(
@@ -177,12 +172,12 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 ).reduce((sum, s) => sum + s, 0);
 
 /** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
-const runWithClock = (
+const runWithClock = async (
   responses: { match: string; result: ExecResult }[],
   holder: { root?: Tracer.Span } = {},
   settingsStub?: SettingsStub
 ) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
+  const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
   return Effect.runPromise(
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
@@ -199,7 +194,7 @@ const setWarningChoices = ({ warning = [], confirm = [], autoTerminateConfirm = 
   const queue = [...warning];
   const confirmQueue = [...confirm];
   const autoTerminateConfirmQueue = [...autoTerminateConfirm];
-  (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string, ...args: unknown[]) => {
+  (vscode.window.showWarningMessage as VitestMock).mockImplementation((message: string, ...args: unknown[]) => {
     // Route based on message content and modal option presence.
     // Use detail text as discriminator for the auto-terminate confirmation modal (unique substring).
     const modalOpts = args.find(
@@ -216,11 +211,11 @@ const setWarningChoices = ({ warning = [], confirm = [], autoTerminateConfirm = 
 };
 
 describe('languageServerOrphanHandler', () => {
-  let killSpy: jest.SpyInstance;
+  let killSpy: VitestMockInstance;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    killSpy = jest.spyOn(process, 'kill').mockReturnValue(true);
+    vi.clearAllMocks();
+    killSpy = vi.spyOn(process, 'kill').mockReturnValue(true);
     delete process.env.ESBUILD_PLATFORM;
   });
 
@@ -251,7 +246,7 @@ describe('languageServerOrphanHandler', () => {
 
   it('orphan disappears on re-check → no prompt, no kill', async () => {
     let psCallCount = 0;
-    const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
+    const { checkAndResolveOrphanedLanguageServers, Provider } = await loadHandler('darwin');
     const statefulSimpleExec = ({
       executable,
       args,
@@ -396,7 +391,7 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
   const originalPlatform = process.platform;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
   });
 
@@ -408,26 +403,23 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     // Build the effect + its service provision entirely inside the isolated module graph so the handler's
     // module-level isWindows (true here) and the ExtensionProviderService tag identity stay consistent.
     const holder: { root?: Tracer.Span } = {};
-    let program: Effect.Effect<void> | undefined;
-    jest.isolateModules(() => {
-      const { ExtensionProviderService: IsolatedProvider } =
-        require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
-      const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
-        require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
-      program = Effect.gen(function* () {
-        holder.root = yield* Effect.currentSpan;
-        return yield* checkOnWindows().pipe(
-          Effect.provideService(IsolatedProvider, {
-            getServicesApi: Effect.succeed(
-              makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
-            )
-          } as unknown as ExtensionProviderService)
-        );
-      }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
-    });
-    const killSpy = jest.spyOn(process, 'kill').mockReturnValue(true);
+    vi.resetModules();
+    const { ExtensionProviderService: IsolatedProvider } = await import('@salesforce/effect-ext-utils');
+    const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
+      await import('../../src/languageServerOrphanHandler.js');
+    const program = Effect.gen(function* () {
+      holder.root = yield* Effect.currentSpan;
+      return yield* checkOnWindows().pipe(
+        Effect.provideService(IsolatedProvider, {
+          getServicesApi: Effect.succeed(
+            makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
+          )
+        } as unknown as ExtensionProviderService)
+      );
+    }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
+    const killSpy = vi.spyOn(process, 'kill').mockReturnValue(true);
 
-    await Effect.runPromise(program!);
+    await Effect.runPromise(program);
 
     expect(holder.root?.attributes.get('orphanCheckError')).toBe('powershell not found');
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();

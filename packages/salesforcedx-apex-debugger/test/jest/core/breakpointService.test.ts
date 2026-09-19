@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { BreakpointService, DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
@@ -13,27 +14,27 @@ describe('breakpointService Unit Tests.', () => {
   const bpId = `${DEBUGGER_BREAKPOINT_ID_PREFIX}defabreakpoint`;
 
   let breakpointService: BreakpointService;
-  let fakeRequestService: jest.SpyInstance;
-  let getEnvVarsMock: jest.SpyInstance;
-  let executeMock: jest.SpyInstance;
-  let getCmdResultMock: jest.SpyInstance;
+  let fakeRequestService: VitestMockInstance;
+  let getEnvVarsMock: VitestMockInstance;
+  let executeMock: VitestMockInstance;
+  let getCmdResultMock: VitestMockInstance;
   beforeEach(() => {
-    getEnvVarsMock = jest.fn();
+    getEnvVarsMock = vi.fn();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     fakeRequestService = {
       getEnvVars: getEnvVarsMock.mockReturnValue({})
     } as any;
 
-    executeMock = jest.fn().mockReturnValue(undefined);
-    jest.spyOn(CliCommandExecutor.prototype, 'execute').mockImplementation(executeMock as any);
+    executeMock = vi.fn().mockReturnValue(undefined);
+    vi.spyOn(CliCommandExecutor.prototype, 'execute').mockImplementation(executeMock as any);
 
-    jest.spyOn(SfCommandBuilder.prototype, 'withArg').mockReturnThis();
-    jest.spyOn(SfCommandBuilder.prototype, 'withFlag').mockReturnThis();
-    jest.spyOn(SfCommandBuilder.prototype, 'withJson').mockReturnThis();
-    jest.spyOn(SfCommandBuilder.prototype, 'build').mockReturnValue({} as any);
+    vi.spyOn(SfCommandBuilder.prototype, 'withArg').mockReturnThis();
+    vi.spyOn(SfCommandBuilder.prototype, 'withFlag').mockReturnThis();
+    vi.spyOn(SfCommandBuilder.prototype, 'withJson').mockReturnThis();
+    vi.spyOn(SfCommandBuilder.prototype, 'build').mockReturnValue({} as any);
 
-    getCmdResultMock = jest.fn();
-    jest.spyOn(CommandOutput.prototype, 'getCmdResult').mockImplementation(getCmdResultMock as any);
+    getCmdResultMock = vi.fn();
+    vi.spyOn(CommandOutput.prototype, 'getCmdResult').mockImplementation(getCmdResultMock as any);
 
     breakpointService = new BreakpointService(fakeRequestService as any);
   });
@@ -221,30 +222,28 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)).rejects.toEqual(
-        expectedResults
-      );
+      await expect(
+        breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)
+      ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)).rejects.toEqual(
-        expectedResults
-      );
+      await expect(
+        breakpointService.createLineBreakpoint('fake/project/path', 'fakeSessionId', 'test', 1)
+      ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
@@ -263,26 +262,24 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
+      await expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
+      await expect(breakpointService.deleteBreakpoint('fake/project/path', bpId)).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
@@ -291,9 +288,9 @@ describe('breakpointService Unit Tests.', () => {
   describe('reconcileLineBreakpoints()', () => {
     const fakeUri = 'fake/project/path';
     beforeEach(() => {
-      jest.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(bpId);
-      jest.spyOn(breakpointService, 'createLineBreakpoint').mockResolvedValue(bpId);
-      jest.spyOn(breakpointService, 'getTyperefFor').mockReturnValue('typeref');
+      vi.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(bpId);
+      vi.spyOn(breakpointService, 'createLineBreakpoint').mockResolvedValue(bpId);
+      vi.spyOn(breakpointService, 'getTyperefFor').mockReturnValue('typeref');
     });
 
     it('Should delete breakpoint if known and not in clientLines.', async () => {
@@ -339,28 +336,26 @@ describe('breakpointService Unit Tests.', () => {
       expect(result).toEqual(bpId);
     });
 
-    it('Should reject with result if not a breakpoint id.', () => {
+    it('Should reject with result if not a breakpoint id.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       });
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(
+      await expect(
         breakpointService.createExceptionBreakpoint('fake/project/path', 'fakeSessionId', 'fakeTypeRef')
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
     });
 
-    it('Should reject with result if not able to parse.', () => {
+    it('Should reject with result if not able to parse.', async () => {
       const expectedResults = JSON.stringify({
         result: { id: 'notABPId' }
       }).substring(1);
       getCmdResultMock.mockResolvedValue(expectedResults);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expect(
+      await expect(
         breakpointService.createExceptionBreakpoint('fake/project/path', 'fakeSessionId', 'fakeTypeRef')
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
@@ -370,12 +365,12 @@ describe('breakpointService Unit Tests.', () => {
 
   describe('reconcileExceptionBreakpoints()', () => {
     beforeEach(() => {
-      jest.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(undefined);
-      jest.spyOn(breakpointService, 'createExceptionBreakpoint').mockResolvedValue(bpId);
+      vi.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(undefined);
+      vi.spyOn(breakpointService, 'createExceptionBreakpoint').mockResolvedValue(bpId);
       (breakpointService as any).exceptionBreakpointCache = {
-        get: jest.fn().mockReturnValue('test'),
-        set: jest.fn(),
-        delete: jest.fn()
+        get: vi.fn().mockReturnValue('test'),
+        set: vi.fn(),
+        delete: vi.fn()
       };
     });
     it('Should delete breakpoint if known and never.', async () => {

@@ -7,10 +7,10 @@
 import * as vscode from 'vscode';
 import { CommandEventDispatcher } from '../../../../src/commands/util/commandEventDispatcher';
 
-const mockDisposable = { dispose: jest.fn() };
+const mockDisposable = { dispose: vi.fn() };
 
 beforeEach(() => {
-  jest.spyOn(vscode.commands, 'registerCommand').mockReturnValue(mockDisposable as unknown as vscode.Disposable);
+  vi.spyOn(vscode.commands, 'registerCommand').mockReturnValue(mockDisposable as unknown as vscode.Disposable);
   // Reset singleton so each test gets a fresh instance
   (CommandEventDispatcher as unknown as { instance: undefined }).instance = undefined;
 });

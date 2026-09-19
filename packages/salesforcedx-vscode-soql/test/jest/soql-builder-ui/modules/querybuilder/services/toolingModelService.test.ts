@@ -25,9 +25,9 @@ import {
 
 const makeTestMessageLayer = () => {
   const listeners: Array<(e: HostToUiSoqlEditorEvent) => void> = [];
-  const sendMessage = jest.fn();
-  const setState = jest.fn();
-  const getState = jest.fn();
+  const sendMessage = vi.fn();
+  const setState = vi.fn();
+  const getState = vi.fn();
   const service: IMessageService = {
     onMessage: cb => {
       listeners.push(cb);

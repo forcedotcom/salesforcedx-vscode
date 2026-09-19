@@ -8,23 +8,23 @@
 import * as Effect from 'effect/Effect';
 import * as pkg from '../../package.json';
 
-const registerCommandWithRuntime = jest.fn(() => () => Effect.succeed({ dispose: jest.fn() }));
+const registerCommandWithRuntime = vi.fn(() => () => Effect.succeed({ dispose: vi.fn() }));
 
-jest.mock('../../src/services/extensionProvider', () => ({
+vi.mock('../../src/services/extensionProvider', () => ({
   buildAllServicesLayer: () => ({}),
-  setAllServicesLayer: jest.fn(),
+  setAllServicesLayer: vi.fn(),
   getApexOasRuntime: () => ({ runPromise: <A, E>(eff: Effect.Effect<A, E>) => Effect.runPromise(eff) })
 }));
 
-jest.mock('@salesforce/effect-ext-utils', () => ({
+vi.mock('@salesforce/effect-ext-utils', () => ({
   ExtensionProviderService: {
-    pipe: jest.fn()
+    pipe: vi.fn()
   }
 }));
 
 // Provide ExtensionProviderService via Effect.gen yield* — return shape matching (yield* ExtensionProviderService).getServicesApi
-jest.mock('../../src/index', () => {
-  const actual = jest.requireActual('../../src/index');
+vi.mock('../../src/index', async () => {
+  const actual = await vi.importActual<typeof import('../../src/index')>('../../src/index');
   return actual;
 });
 

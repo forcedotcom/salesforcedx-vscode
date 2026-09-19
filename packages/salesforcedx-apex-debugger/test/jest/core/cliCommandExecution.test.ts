@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
-import * as kill from 'tree-kill';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
@@ -16,46 +16,46 @@ import {
   CliCommandExecution
 } from '../../../src/core/cliCommandExecution';
 
-jest.mock('tree-kill');
-
-const treeKillMocked = jest.mocked(kill);
+type TreeKillFunction = NonNullable<ConstructorParameters<typeof CliCommandExecution>[3]>;
 
 describe('CliCommandExecution Unit Tests.', () => {
   const testCommand: Command = {
     command: 'do a thing',
     args: ['arg1', 'arg2'],
-    toCommand: jest.fn()
+    toCommand: vi.fn()
   };
   let testChildProcess: any;
   let testCancelationToken: CancellationToken;
-  let fromEventSpy: jest.SpyInstance;
-  let intervalSpy: jest.SpyInstance;
-  let subscribeSpy: jest.SpyInstance;
-  let unsubscribeSpy: jest.SpyInstance;
+  let fromEventSpy: VitestMockInstance;
+  let intervalSpy: VitestMockInstance;
+  let subscribeSpy: VitestMockInstance;
+  let unsubscribeSpy: VitestMockInstance;
+  let treeKillMock: ReturnType<typeof vi.fn<TreeKillFunction>>;
 
   beforeEach(() => {
     testChildProcess = {
       pid: 1234,
-      stdout: jest.fn(),
-      stderr: jest.fn()
+      stdout: vi.fn(),
+      stderr: vi.fn()
     };
     testCancelationToken = {
       isCancellationRequested: false
     };
-    unsubscribeSpy = jest.fn();
-    subscribeSpy = jest.fn().mockReturnValue({
+    unsubscribeSpy = vi.fn();
+    subscribeSpy = vi.fn().mockReturnValue({
       unsubscribe: unsubscribeSpy
     });
-    fromEventSpy = jest.spyOn(rxjs, 'fromEvent').mockReturnValue({
+    fromEventSpy = vi.spyOn(rxjs, 'fromEvent').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
-    intervalSpy = jest.spyOn(rxjs, 'interval').mockReturnValue({
+    intervalSpy = vi.spyOn(rxjs, 'interval').mockReturnValue({
       subscribe: subscribeSpy
     } as any);
+    treeKillMock = vi.fn<TreeKillFunction>();
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('Should be able to create an instance.', () => {
@@ -117,54 +117,56 @@ describe('CliCommandExecution Unit Tests.', () => {
   });
 
   describe('kill on timeout.', () => {
-    let logSpy: jest.SpyInstance;
+    let logSpy: VitestMockInstance;
 
     beforeEach(() => {
-      logSpy = jest.spyOn(console, 'log');
+      logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     });
     it('Should be able to successfully kill child process.', async () => {
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
       const timeoutPromise = timoutHandler();
-      expect(treeKillMocked).toHaveBeenCalledTimes(1);
-      expect(treeKillMocked.mock.calls[0][0]).toEqual(testChildProcess.pid);
-      expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
+      expect(treeKillMock).toHaveBeenCalledTimes(1);
+      expect(treeKillMock.mock.calls[0][0]).toEqual(testChildProcess.pid);
+      expect(treeKillMock.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
-      const killCallback = treeKillMocked.mock.calls[0][2];
-      if (killCallback) {
-        killCallback();
-      } else {
-        fail('Should have had a kill callback function.');
-      }
-      timeoutPromise.then(() => {
-        expect(logSpy).not.toHaveBeenCalled();
-      });
+      const killCallback = treeKillMock.mock.calls[0][2];
+      expect(killCallback).toBeDefined();
+      killCallback?.();
+      await timeoutPromise;
+      expect(logSpy).not.toHaveBeenCalled();
     });
 
-    it('Should log if fails to kill child process.', () => {
+    it('Should log if fails to kill child process.', async () => {
       const killError = new Error('Failed to kill');
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
+      const cliCommandExecution = new CliCommandExecution(
+        testCommand,
+        testChildProcess,
+        testCancelationToken,
+        treeKillMock
+      );
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
       const timeoutPromise = timoutHandler();
-      expect(treeKillMocked).toHaveBeenCalledTimes(1);
-      expect(treeKillMocked.mock.calls[0][0]).toEqual(testChildProcess.pid);
-      expect(treeKillMocked.mock.calls[0][1]).toEqual(KILL_CODE);
+      expect(treeKillMock).toHaveBeenCalledTimes(1);
+      expect(treeKillMock.mock.calls[0][0]).toEqual(testChildProcess.pid);
+      expect(treeKillMock.mock.calls[0][1]).toEqual(KILL_CODE);
       // call the passed kill handler
-      const killCallback = treeKillMocked.mock.calls[0][2];
-      if (killCallback) {
-        killCallback(killError);
-      } else {
-        fail('Should have had a kill callback function.');
-      }
-      timeoutPromise.then(() => {
-        expect(logSpy).toHaveBeenCalledWith(killError);
-      });
+      const killCallback = treeKillMock.mock.calls[0][2];
+      expect(killCallback).toBeDefined();
+      killCallback?.(killError);
+      await timeoutPromise;
+      expect(logSpy).toHaveBeenCalledWith(killError);
     });
   });
 });

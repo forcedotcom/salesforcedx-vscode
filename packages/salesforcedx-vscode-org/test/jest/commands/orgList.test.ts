@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, OrgAuthorization } from '@salesforce/core';
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
+import { AuthInfo, AuthRemover, OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
@@ -17,29 +18,28 @@ import {
   removeExpiredAndDeletedOrgs,
   displayRemainingOrgs,
   shouldRemoveOrg,
-  getConnectionStatusFromError,
-  GetAuthFieldsError
+  getConnectionStatusFromError
 } from '../../../src/util/orgUtil';
-import * as orgUtil from '../../../src/util/orgUtil';
 
 // The migrated helpers are pure Effects: they resolve org auths through ConnectionService.listAllAuthorizations
 // (an Effect) and write to the Effect ChannelService (yielded off the services api), never the legacy singleton.
-let listAllAuthorizationsMock: jest.Mock;
-let getConnectionMock: jest.Mock;
-let appendToChannelMock: jest.Mock;
-let showChannelMock: jest.Mock;
+let listAllAuthorizationsMock: VitestMock;
+let getConnectionMock: VitestMock;
+let appendToChannelMock: VitestMock;
+let showChannelMock: VitestMock;
 
 // Mock the dependencies
-jest.mock('@salesforce/core', () => ({
+vi.mock('@salesforce/core', () => ({
   AuthRemover: {
-    create: jest.fn()
+    create: vi.fn()
   },
   AuthInfo: {
-    listAllAuthorizations: jest.fn()
+    create: vi.fn(),
+    listAllAuthorizations: vi.fn()
   },
   ConfigAggregator: {
-    create: jest.fn().mockImplementation(() => ({
-      getPropertyValue: jest.fn()
+    create: vi.fn().mockImplementation(() => ({
+      getPropertyValue: vi.fn()
     }))
   },
   OrgConfigProperties: {
@@ -47,10 +47,10 @@ jest.mock('@salesforce/core', () => ({
     TARGET_ORG: 'target-org'
   }
 }));
-jest.mock('@salesforce/effect-ext-utils', () => {
-  const actual = jest.requireActual('@salesforce/effect-ext-utils');
+vi.mock('@salesforce/effect-ext-utils', async () => {
+  const actual = await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
   return {
-    createTable: jest.fn(),
+    createTable: vi.fn(),
     ExtensionProviderService: actual.ExtensionProviderService
   };
 });
@@ -58,7 +58,7 @@ jest.mock('@salesforce/effect-ext-utils', () => {
 // Seed ExtensionProviderService with the mocked ConnectionService.listAllAuthorizations (an Effect),
 // a ConfigService whose default-org lookups resolve to undefined, and a ChannelService whose
 // appendToChannel/showChannel are jest mocks so we can assert channel output.
-const buildServicesLayer = (listMock: jest.Mock) =>
+const buildServicesLayer = (listMock: VitestMock) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
@@ -94,36 +94,35 @@ const runWithServices = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
   );
 
 describe('orgList command', () => {
-  let mockGetAuthFieldsFor: jest.SpyInstance;
+  let mockAuthInfoCreate: VitestMockInstance;
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Default the ConnectionService.listAllAuthorizations mock to an empty Effect; suites override below.
-    listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+    listAllAuthorizationsMock = vi.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
     // Default getConnection to a never-called stub; the determineConnectedStatus suite overrides it.
-    getConnectionMock = jest.fn();
-    appendToChannelMock = jest.fn();
-    showChannelMock = jest.fn();
+    getConnectionMock = vi.fn();
+    appendToChannelMock = vi.fn();
+    showChannelMock = vi.fn();
 
     // Mock createTable function
-    (createTable as jest.Mock).mockReturnValue('mocked table output');
+    (createTable as VitestMock).mockReturnValue('mocked table output');
 
-    // Spy on getAuthFieldsFor (now Effect-returning)
-    mockGetAuthFieldsFor = jest.spyOn(orgUtil, 'getAuthFieldsFor');
+    mockAuthInfoCreate = vi.mocked(AuthInfo.create);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('determineConnectedStatusForNonScratchOrg', () => {
     // conn stands in for the jsforce Connection getConnection(username) resolves to.
     const mockConn = {
-      getAuthInfoFields: jest.fn(),
-      refreshAuth: jest.fn(),
-      getUsername: jest.fn().mockReturnValue('test@example.com')
+      getAuthInfoFields: vi.fn(),
+      refreshAuth: vi.fn(),
+      getUsername: vi.fn().mockReturnValue('test@example.com')
     };
 
     beforeEach(() => {
@@ -271,17 +270,17 @@ describe('orgList command', () => {
     });
 
     it('should skip dev hubs', async () => {
-      mockGetAuthFieldsFor.mockReturnValue(Effect.succeed({}));
+      mockAuthInfoCreate.mockResolvedValue({ getFields: () => ({}) });
 
       await runWithServices(findRemovableOrgs());
 
-      expect(mockGetAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
+      expect(mockAuthInfoCreate).not.toHaveBeenCalledWith({ username: 'devhub@example.com' });
     });
 
     it('should classify expired orgs as removable without removing them', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      mockGetAuthFieldsFor.mockImplementation((username: string) =>
-        Effect.succeed(username === 'expired@example.com' ? { expirationDate: pastDate } : {})
+      mockAuthInfoCreate.mockImplementation(({ username }: { username: string }) =>
+        Promise.resolve({ getFields: () => (username === 'expired@example.com' ? { expirationDate: pastDate } : {}) })
       );
 
       const result = await runWithServices(findRemovableOrgs());
@@ -292,9 +291,7 @@ describe('orgList command', () => {
     });
 
     it('should not classify orgs when getAuthFieldsFor fails with a non-removable error', async () => {
-      mockGetAuthFieldsFor.mockImplementation((username: string) =>
-        Effect.fail(new GetAuthFieldsError({ message: 'Auth fields error', username }))
-      );
+      mockAuthInfoCreate.mockRejectedValue('Auth fields error');
 
       const result = await runWithServices(findRemovableOrgs());
 
@@ -309,11 +306,11 @@ describe('orgList command', () => {
 
   describe('removeExpiredAndDeletedOrgs', () => {
     const mockAuthRemover = {
-      removeAuth: jest.fn()
+      removeAuth: vi.fn()
     };
 
     beforeEach(() => {
-      (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
+      (AuthRemover.create as VitestMock).mockResolvedValue(mockAuthRemover);
       mockAuthRemover.removeAuth.mockResolvedValue(undefined);
     });
 
@@ -357,7 +354,9 @@ describe('orgList command', () => {
     beforeEach(() => {
       listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
       // scratch (has expirationDate) => 'Active' branch, so determineConnectedStatusForNonScratchOrg is skipped
-      mockGetAuthFieldsFor.mockReturnValue(Effect.succeed({ expirationDate: new Date('2999-01-01').toISOString() }));
+      mockAuthInfoCreate.mockResolvedValue({
+        getFields: () => ({ expirationDate: new Date('2999-01-01').toISOString() })
+      });
     });
 
     it('should display message when no orgs found', async () => {
@@ -407,18 +406,18 @@ describe('orgList command', () => {
         ] as unknown as OrgAuthorization[])
       );
       // Non-scratch (no expirationDate) => determineConnectedStatusForNonScratchOrg runs the live probe.
-      mockGetAuthFieldsFor.mockReturnValue(Effect.succeed({}));
+      mockAuthInfoCreate.mockResolvedValue({ getFields: () => ({}) });
       const mockConn = {
-        getAuthInfoFields: jest.fn().mockReturnValue({}),
-        refreshAuth: jest.fn().mockResolvedValue(undefined),
-        getUsername: jest.fn().mockReturnValue('hub@example.com')
+        getAuthInfoFields: vi.fn().mockReturnValue({}),
+        refreshAuth: vi.fn().mockResolvedValue(undefined),
+        getUsername: vi.fn().mockReturnValue('hub@example.com')
       };
       getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
 
       await runWithServices(displayRemainingOrgs());
 
       // The org was processed (not early-returned): its auth fields were fetched and the live probe ran.
-      expect(mockGetAuthFieldsFor).toHaveBeenCalledWith('hub@example.com');
+      expect(mockAuthInfoCreate).toHaveBeenCalledWith({ username: 'hub@example.com' });
       expect(mockConn.refreshAuth).toHaveBeenCalled();
     });
   });

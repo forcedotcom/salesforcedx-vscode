@@ -7,13 +7,13 @@
 import { URI } from 'vscode-uri';
 import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
 
-const runByExecutionInfo = jest.fn();
-const runActiveEditorFile = jest.fn();
+const runByExecutionInfo = vi.fn();
+const runActiveEditorFile = vi.fn();
 const mockRecordedSpans: RecordedSpan[] = [];
 
-jest.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
+vi.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
-jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
+vi.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 
@@ -51,7 +51,7 @@ describe('lwcTestDebugAction routes through the controller', () => {
   });
 
   it('records the completed debug session span', () => {
-    const performanceNow = jest.spyOn(globalThis.performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(125);
+    const performanceNow = vi.spyOn(globalThis.performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(125);
     workspaceService.setCurrentWorkspaceType('SFDX');
     const session = {
       configuration: { sfDebugSessionId: 'debug-session' }

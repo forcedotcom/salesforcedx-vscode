@@ -5,20 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 
-// resetMocks: true (jest.base.config) wipes implementations before each test, so the impls are
-// (re)installed in beforeEach; the factories only forward to these stable jest.fn references.
-const updateConfigAndStateAggregators = jest.fn<Promise<void>, []>();
-jest.mock('../../../src/util/orgUtil', () => ({
+// resetMocks: true (vitest.base.config) wipes implementations before each test, so the implementations are
+// (re)installed in beforeEach; the factories only forward to these stable vi.fn references.
+const updateConfigAndStateAggregators = vi.fn<() => Promise<void>>();
+vi.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => updateConfigAndStateAggregators()
 }));
 
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+vi.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ChannelService: {
     getInstance: () => ({}),
     getChannel: () => ({})
@@ -37,11 +38,11 @@ const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { orgId: '00Dxx', use
 
 type Services = {
   devHub: string | undefined;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  show: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  show: VitestMock;
   isProject?: boolean;
-  showSuccessNotification?: jest.Mock;
+  showSuccessNotification?: VitestMock;
 };
 
 const buildServices = (opts: Services) => ({
@@ -96,30 +97,30 @@ const run = (opts: Services) =>
   );
 
 describe('orgCreateCommand', () => {
-  let showQuickPick: jest.Mock;
-  let showInputBox: jest.Mock;
-  let showErrorMessage: jest.Mock;
-  let showInformationMessage: jest.Mock;
-  let findFiles: jest.Mock;
+  let showQuickPick: VitestMock;
+  let showInputBox: VitestMock;
+  let showErrorMessage: VitestMock;
+  let showInformationMessage: VitestMock;
+  let findFiles: VitestMock;
   // shared per-test service doubles; the default simpleExec returns the success stdout. Tests that need a
   // different impl (failure, parse error) reassign `simpleExec` before calling `run`.
-  let simpleExec: jest.Mock;
-  let appendToChannel: jest.Mock;
-  let show: jest.Mock;
+  let simpleExec: VitestMock;
+  let appendToChannel: VitestMock;
+  let show: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     updateConfigAndStateAggregators.mockResolvedValue(undefined);
-    simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    appendToChannel = jest.fn();
-    show = jest.fn();
-    showQuickPick = vscode.window.showQuickPick as unknown as jest.Mock;
-    showInputBox = vscode.window.showInputBox as unknown as jest.Mock;
-    showErrorMessage = vscode.window.showErrorMessage as unknown as jest.Mock;
+    simpleExec = vi.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    appendToChannel = vi.fn();
+    show = vi.fn();
+    showQuickPick = vscode.window.showQuickPick as unknown as VitestMock;
+    showInputBox = vscode.window.showInputBox as unknown as VitestMock;
+    showErrorMessage = vscode.window.showErrorMessage as unknown as VitestMock;
     // the missing-Dev-Hub prompt awaits showInformationMessage, so the mock must return a thenable
-    showInformationMessage = vscode.window.showInformationMessage as unknown as jest.Mock;
+    showInformationMessage = vscode.window.showInformationMessage as unknown as VitestMock;
     showInformationMessage.mockResolvedValue(undefined);
-    findFiles = vscode.workspace.findFiles as unknown as jest.Mock;
+    findFiles = vscode.workspace.findFiles as unknown as VitestMock;
     // Utils.basename(uri) reads uri.path (not fsPath); provide both so the quickpick item label resolves
     findFiles.mockResolvedValue([
       { fsPath: '/repo/config/project-scratch-def.json', path: '/repo/config/project-scratch-def.json' }
@@ -158,7 +159,7 @@ describe('orgCreateCommand', () => {
   });
 
   it('shows the success toast with the command display text (including its ellipsis)', async () => {
-    const showSuccessNotification = jest.fn();
+    const showSuccessNotification = vi.fn();
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show, showSuccessNotification });
 
@@ -170,7 +171,7 @@ describe('orgCreateCommand', () => {
   });
 
   it('appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)', async () => {
-    simpleExec = jest.fn(() => Effect.succeed(JSON.stringify({ status: 1, message: 'create failed' })));
+    simpleExec = vi.fn(() => Effect.succeed(JSON.stringify({ status: 1, message: 'create failed' })));
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 
@@ -267,7 +268,7 @@ describe('orgCreateCommand', () => {
 
   it('starts Dev Hub authorization without awaiting it, then cancels before any picker', async () => {
     showInformationMessage.mockResolvedValueOnce(nls.localize('notification_make_default_dev'));
-    (vscode.commands.executeCommand as unknown as jest.Mock).mockReturnValueOnce(new Promise(() => undefined));
+    (vscode.commands.executeCommand as unknown as VitestMock).mockReturnValueOnce(new Promise(() => undefined));
 
     const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
 
@@ -284,7 +285,7 @@ describe('orgCreateCommand', () => {
 
   it('shows an error when Dev Hub authorization cannot start', async () => {
     showInformationMessage.mockResolvedValueOnce(nls.localize('notification_make_default_dev'));
-    (vscode.commands.executeCommand as unknown as jest.Mock).mockRejectedValueOnce(new Error('command failed'));
+    (vscode.commands.executeCommand as unknown as VitestMock).mockRejectedValueOnce(new Error('command failed'));
 
     const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
     await Effect.runPromise(Effect.yieldNow());
@@ -316,7 +317,7 @@ describe('orgCreateCommand', () => {
   });
 
   it('fails with OrgCreateParseError on malformed stdout and does not refresh aggregators', async () => {
-    simpleExec = jest.fn(() => Effect.succeed('not json at all'));
+    simpleExec = vi.fn(() => Effect.succeed('not json at all'));
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 

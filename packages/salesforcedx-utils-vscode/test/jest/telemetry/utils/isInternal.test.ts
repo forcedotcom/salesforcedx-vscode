@@ -4,18 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as os from 'node:os';
 import { isInternalHost } from '../../../../src/telemetry/utils/isInternal';
 
 describe('Telemetry internal user check', () => {
-  let osHostnameSpy: jest.SpyInstance;
+  let osHostnameSpy: VitestMockInstance;
 
   beforeEach(() => {
-    osHostnameSpy = jest.spyOn(os, 'hostname');
+    osHostnameSpy = vi.spyOn(os, 'hostname');
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return true if internal user', () => {

@@ -6,14 +6,15 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
@@ -46,11 +47,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
   };
 
   describe('Scopes request', () => {
-    let hasHeapDumpForTopFrameStub: jest.SpyInstance;
-    let getFrameHandlerStub: jest.SpyInstance | undefined;
-    let copyStateForHeapDumpStub: jest.SpyInstance;
-    let replaceVariablesWithHeapDumpStub: jest.SpyInstance;
-    let resetLastSeenHeapDumpLogLineStub: jest.SpyInstance;
+    let hasHeapDumpForTopFrameStub: VitestMockInstance;
+    let getFrameHandlerStub: VitestMockInstance | undefined;
+    let copyStateForHeapDumpStub: VitestMockInstance;
+    let replaceVariablesWithHeapDumpStub: VitestMockInstance;
+    let resetLastSeenHeapDumpLogLineStub: VitestMockInstance;
     let response: DebugProtocol.ScopesResponse;
     let args: DebugProtocol.ScopesArguments;
     let frameHandler: Handles<ApexDebugStackFrameInfo>;
@@ -87,9 +88,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     it('Should return no scopes for unknown frame', async () => {
-      hasHeapDumpForTopFrameStub = jest
-        .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
-        .mockReturnValue(undefined);
+      hasHeapDumpForTopFrameStub = vi.spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame').mockReturnValue(undefined);
 
       await adapter.scopesRequest(response, args);
 
@@ -99,12 +98,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     it('Should return local, static, and global scopes', async () => {
-      hasHeapDumpForTopFrameStub = jest
-        .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
-        .mockReturnValue(undefined);
+      hasHeapDumpForTopFrameStub = vi.spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame').mockReturnValue(undefined);
       const id = frameHandler.create(new ApexDebugStackFrameInfo(0, 'foo'));
       args.frameId = id;
-      getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
+      getFrameHandlerStub = vi.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
 
       await adapter.scopesRequest(response, args);
 
@@ -117,12 +114,12 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     it('Should replace with heapdump variables', async () => {
-      hasHeapDumpForTopFrameStub = jest
+      hasHeapDumpForTopFrameStub = vi
         .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
         .mockReturnValue('heapDumpId');
-      copyStateForHeapDumpStub = jest.spyOn(LogContext.prototype, 'copyStateForHeapDump');
-      replaceVariablesWithHeapDumpStub = jest.spyOn(HeapDumpService.prototype, 'replaceVariablesWithHeapDump');
-      resetLastSeenHeapDumpLogLineStub = jest.spyOn(LogContext.prototype, 'resetLastSeenHeapDumpLogLine');
+      copyStateForHeapDumpStub = vi.spyOn(LogContext.prototype, 'copyStateForHeapDump');
+      replaceVariablesWithHeapDumpStub = vi.spyOn(HeapDumpService.prototype, 'replaceVariablesWithHeapDump');
+      resetLastSeenHeapDumpLogLineStub = vi.spyOn(LogContext.prototype, 'resetLastSeenHeapDumpLogLine');
 
       await adapter.scopesRequest(response, args);
 
@@ -133,8 +130,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
   });
 
   describe('Variables request', () => {
-    let getVariableHandlerStub: jest.SpyInstance;
-    let getAllVariablesStub: jest.SpyInstance;
+    let getVariableHandlerStub: VitestMockInstance;
+    let getAllVariablesStub: VitestMockInstance;
     let response: DebugProtocol.VariablesResponse;
     let args: DebugProtocol.VariablesArguments;
     let variableHandler: Handles<ApexVariableContainer>;
@@ -169,8 +166,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     it('Should collect variables from scope container', async () => {
-      getVariableHandlerStub = jest.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
-      getAllVariablesStub = jest
+      getVariableHandlerStub = vi.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
+      getAllVariablesStub = vi
         .spyOn(ApexVariableContainer.prototype, 'getAllVariables')
         .mockReturnValue([new ApexVariable('foo', 'bar', 'String')]);
       const id = variableHandler.create(new ApexVariableContainer('foo', 'bar', 'String'));
@@ -199,14 +196,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     describe('replaceVariablesWithHeapDump', () => {
-      let getTopFrameStub: jest.SpyInstance;
-      let getHeapDumpForThisLocationStub: jest.SpyInstance;
-      let createStringRefsFromHeapdumpSpy: jest.SpyInstance;
-      let updateLeafReferenceContainerSpy: jest.SpyInstance;
-      let createVariableFromReferenceSpy: jest.SpyInstance;
-      let getFrameHandlerStub: jest.SpyInstance;
-      let getRefsMapStub: jest.SpyInstance;
-      let getStaticVariablesClassMapStub: jest.SpyInstance;
+      let getTopFrameStub: VitestMockInstance;
+      let getHeapDumpForThisLocationStub: VitestMockInstance;
+      let createStringRefsFromHeapdumpSpy: VitestMockInstance;
+      let updateLeafReferenceContainerSpy: VitestMockInstance;
+      let createVariableFromReferenceSpy: VitestMockInstance;
+      let getFrameHandlerStub: VitestMockInstance;
+      let getRefsMapStub: VitestMockInstance;
+      let getStaticVariablesClassMapStub: VitestMockInstance;
       const topFrame: StackFrame = {
         id: 0,
         name: 'Foo.cls',
@@ -224,14 +221,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
-        getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
+        getTopFrameStub = vi.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
 
-        createStringRefsFromHeapdumpSpy = jest.spyOn(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
-        updateLeafReferenceContainerSpy = jest.spyOn(HeapDumpService.prototype, 'updateLeafReferenceContainer');
-        createVariableFromReferenceSpy = jest.spyOn(HeapDumpService.prototype, 'createVariableFromReference');
-        getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
-        getRefsMapStub = jest.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
-        getStaticVariablesClassMapStub = jest
+        createStringRefsFromHeapdumpSpy = vi.spyOn(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
+        updateLeafReferenceContainerSpy = vi.spyOn(HeapDumpService.prototype, 'updateLeafReferenceContainer');
+        createVariableFromReferenceSpy = vi.spyOn(HeapDumpService.prototype, 'createVariableFromReference');
+        getFrameHandlerStub = vi.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
+        getRefsMapStub = vi.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
+        getStaticVariablesClassMapStub = vi
           .spyOn(LogContext.prototype, 'getStaticVariablesClassMap')
           .mockReturnValue(staticVariablesClassMap);
       });
@@ -248,7 +245,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should not switch variables without a heapdump for current location', () => {
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(undefined);
 
@@ -261,7 +258,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should not switch variables without a successful heapdump for current location', () => {
         const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
 
@@ -298,7 +295,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should not follow reference chain when creating leaf variables except strings', () => {
         const heapdump = createHeapDumpWithNestedRefs();
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
@@ -345,7 +342,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should follow reference chain when creating instance variables from references', () => {
         const heapdump = createHeapDumpWithNestedRefs();
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
 
@@ -412,7 +409,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
             ]
           }
         } as ApexExecutionOverlayResultCommandSuccess);
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
         const nonRefVariable = new ApexVariableContainer('theInt', '2', 'Double');
@@ -457,7 +454,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
             ]
           }
         } as ApexExecutionOverlayResultCommandSuccess);
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
         const nonRefVariable = new ApexVariableContainer('theInt', '2', 'Double');
@@ -477,7 +474,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should correctly deal with circular references and variable values', () => {
         const heapdump = createHeapDumpWithCircularRefs();
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
 
@@ -512,13 +509,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
     }); // Describe replaceVariablesWithHeapDump
 
     describe('heapDumpTriggerContextVariables', () => {
-      let getTopFrameStub: jest.SpyInstance;
-      let getHeapDumpForThisLocationStub: jest.SpyInstance;
-      let getFrameHandlerStub: jest.SpyInstance;
-      let getRefsMapStub: jest.SpyInstance;
-      let getStaticVariablesClassMapStub: jest.SpyInstance;
-      let isRunningApexTriggerStub: jest.SpyInstance;
-      let getVariableHandlerStub: jest.SpyInstance;
+      let getTopFrameStub: VitestMockInstance;
+      let getHeapDumpForThisLocationStub: VitestMockInstance;
+      let getFrameHandlerStub: VitestMockInstance;
+      let getRefsMapStub: VitestMockInstance;
+      let getStaticVariablesClassMapStub: VitestMockInstance;
+      let isRunningApexTriggerStub: VitestMockInstance;
+      let getVariableHandlerStub: VitestMockInstance;
       let variableHandler: Handles<ApexVariableContainer>;
 
       const topFrame: StackFrame = {
@@ -538,14 +535,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
-        getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
-        getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
-        getRefsMapStub = jest.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
-        getStaticVariablesClassMapStub = jest
+        getTopFrameStub = vi.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
+        getFrameHandlerStub = vi.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
+        getRefsMapStub = vi.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
+        getStaticVariablesClassMapStub = vi
           .spyOn(LogContext.prototype, 'getStaticVariablesClassMap')
           .mockReturnValue(staticVariablesClassMap);
         variableHandler = new Handles<ApexVariableContainer>();
-        isRunningApexTriggerStub = jest.spyOn(LogContext.prototype, 'isRunningApexTrigger');
+        isRunningApexTriggerStub = vi.spyOn(LogContext.prototype, 'isRunningApexTrigger');
       });
 
       afterEach(() => {
@@ -565,13 +562,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
       it('Should not create global trigger variables if not processing a trigger heapdump', () => {
         const heapdump = createHeapDumpResultForTriggers();
 
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
 
-        getVariableHandlerStub = jest
-          .spyOn(LogContext.prototype, 'getVariableHandler')
-          .mockReturnValue(variableHandler);
+        getVariableHandlerStub = vi.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
 
         isRunningApexTriggerStub.mockReturnValue(false);
 
@@ -587,13 +582,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
       it('Should create trigger variables if processing a trigger heapdump', () => {
         const heapdump = createHeapDumpResultForTriggers();
 
-        getHeapDumpForThisLocationStub = jest
+        getHeapDumpForThisLocationStub = vi
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
 
-        getVariableHandlerStub = jest
-          .spyOn(LogContext.prototype, 'getVariableHandler')
-          .mockReturnValue(variableHandler);
+        getVariableHandlerStub = vi.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
 
         isRunningApexTriggerStub.mockReturnValue(true);
 

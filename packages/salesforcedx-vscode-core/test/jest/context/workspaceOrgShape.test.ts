@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import { getDefaultOrgInfo } from '../../../src/context/defaultOrgInfo';
 import { getOrgShape } from '../../../src/context/workspaceOrgShape';
@@ -11,9 +12,9 @@ import { getOrgShape } from '../../../src/context/workspaceOrgShape';
 // Mutable workspace info the WorkspaceService mock returns; tests flip `isEmpty`.
 const mockWorkspaceInfo = { isEmpty: false };
 
-jest.mock('@salesforce/effect-ext-utils', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const Context = jest.requireActual('effect/Context');
+vi.mock('@salesforce/effect-ext-utils', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
   const mockServicesApi = {
     services: {
@@ -30,30 +31,32 @@ jest.mock('@salesforce/effect-ext-utils', () => {
   };
 });
 
-jest.mock('../../../src/context/defaultOrgInfo', () => ({
-  getDefaultOrgInfo: jest.fn()
+vi.mock('../../../src/context/defaultOrgInfo', () => ({
+  getDefaultOrgInfo: vi.fn()
 }));
 
 // Real runtime: runs the actual getOrgShapeEffect (WorkspaceService -> getDefaultOrgInfo -> shapeFrom)
 // and its catchAll, providing the mocked ExtensionProviderService tag.
-jest.mock('../../../src/services/runtime', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  const { ExtensionProviderService } = require('@salesforce/effect-ext-utils');
+vi.mock('../../../src/services/runtime', async () => {
+  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
   return {
     getRuntime: () => ({
       runPromise: (effect: Effect.Effect<unknown>) =>
-        EffectLib.runPromise(EffectLib.provideService(effect, ExtensionProviderService, ExtensionProviderService))
+        EffectLib.runPromise(
+          EffectLib.provideService(effect, ExtensionProviderService, ExtensionProviderService as never)
+        )
     })
   };
 });
 
-const getDefaultOrgInfoMock = getDefaultOrgInfo as unknown as jest.Mock;
+const getDefaultOrgInfoMock = getDefaultOrgInfo as unknown as VitestMock;
 
 describe('getOrgShape', () => {
   const username = 'test-user';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockWorkspaceInfo.isEmpty = false;
   });
 

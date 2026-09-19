@@ -484,17 +484,12 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
-      "name": "Debug Apex Debug Jest Unit Tests",
+      "name": "Debug Apex Debugger Vitest Unit Tests",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
       "type": "node",
       "request": "launch",
-      "runtimeArgs": [
-        "--inspect-brk",
-        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest",
-        "--runInBand",
-        "--coverage",
-        "false"
-      ],
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "--config", "vitest.config.mts", "--no-coverage"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }

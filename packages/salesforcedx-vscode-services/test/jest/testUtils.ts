@@ -13,6 +13,6 @@ import * as vscode from 'vscode';
  */
 export const createMockOutputChannel = (): vscode.OutputChannel =>
   ({
-    appendLine: jest.fn(),
-    show: jest.fn()
+    appendLine: vi.fn(),
+    show: vi.fn()
   }) as unknown as vscode.OutputChannel;

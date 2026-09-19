@@ -9,7 +9,7 @@ import { createRecordingRuntimeMock, type RecordedSpan } from './testUtils/recor
 
 const mockRecordedSpans: RecordedSpan[] = [];
 
-jest.mock('../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
+vi.mock('../../src/services/runtime', () => createRecordingRuntimeMock(() => mockRecordedSpans));
 
 import { deactivate } from '../../src';
 

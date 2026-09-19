@@ -16,14 +16,12 @@ import { FileWatcherLayer } from '../../../src/vscode/fileWatcherService';
 describe('FileWatcherLayer', () => {
   it('watches workspace files only', async () => {
     const watcher = {
-      onDidCreate: jest.fn(),
-      onDidChange: jest.fn(),
-      onDidDelete: jest.fn(),
-      dispose: jest.fn()
+      onDidCreate: vi.fn(),
+      onDidChange: vi.fn(),
+      onDidDelete: vi.fn(),
+      dispose: vi.fn()
     };
-    jest
-      .mocked(vscode.workspace.createFileSystemWatcher)
-      .mockReturnValue(watcher as unknown as vscode.FileSystemWatcher);
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue(watcher as unknown as vscode.FileSystemWatcher);
 
     const layer = FileWatcherLayer.pipe(
       Layer.provide(Layer.mergeAll(FileChangePubSub.Default, ChannelService.Default))
@@ -31,7 +29,7 @@ describe('FileWatcherLayer', () => {
     const fiber = layer.pipe(Layer.launch, Effect.runFork);
     await Effect.runPromise(Effect.sleep(10));
 
-    const patterns = jest.mocked(vscode.workspace.createFileSystemWatcher).mock.calls.map(([pattern]) => pattern);
+    const patterns = vi.mocked(vscode.workspace.createFileSystemWatcher).mock.calls.map(([pattern]) => pattern);
     await fiber.pipe(Fiber.interrupt, Effect.runPromise);
 
     expect(patterns).toEqual(['**/*']);

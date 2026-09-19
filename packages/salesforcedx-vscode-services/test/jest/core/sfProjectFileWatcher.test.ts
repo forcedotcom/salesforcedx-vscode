@@ -37,7 +37,7 @@ const makeWorkspaceServiceLayer = (fsPath: string) =>
 
 const runWatcherTest = (publishUri: string, workspaceFsPath = WORKSPACE_DIR) => {
   const ordering: string[] = [];
-  const invalidateSpy = jest
+  const invalidateSpy = vi
     .spyOn(projectService, 'invalidateSfProjectCache')
     .mockImplementation(() => Effect.sync(() => ordering.push('invalidate')));
 
@@ -70,7 +70,7 @@ const runWatcherTest = (publishUri: string, workspaceFsPath = WORKSPACE_DIR) => 
 };
 
 describe('watchSfProjectFile', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it('invalidates the SfProject cache when sfdx-project.json changes', async () => {
     const { invalidateSpy } = await runWatcherTest(PROJECT_FILE_PATH);
@@ -103,12 +103,12 @@ describe('watchSfProjectFile', () => {
 });
 
 describe('invalidateSfProjectCache', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it('clears the @salesforce/core SfProject instance cache so memoized sfProjectJson is dropped', async () => {
     // Without clearInstances, SfProject.resolve returns the same memoized instance (sfProject.js:436),
     // whose parsed sfProjectJson is also memoized (sfProject.js:468) -> stale sourceApiVersion survives.
-    const clearSpy = jest.spyOn(SfProject, 'clearInstances').mockImplementation(() => {});
+    const clearSpy = vi.spyOn(SfProject, 'clearInstances').mockImplementation(() => {});
     await Effect.runPromise(projectService.invalidateSfProjectCache('/Users/testuser/project'));
     expect(clearSpy).toHaveBeenCalledTimes(1);
   });

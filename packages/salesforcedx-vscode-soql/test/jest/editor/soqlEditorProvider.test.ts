@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-const mockRunPromise = jest.fn();
-jest.mock('../../../src/services/extensionProvider', () => ({
+const mockRunPromise = vi.fn();
+vi.mock('../../../src/services/extensionProvider', () => ({
   AllServicesLayer: require('effect/Layer').empty,
   getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
 }));
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
@@ -21,9 +22,9 @@ import * as org from '../../../src/services/org';
 
 describe('SOQLEditorProvider', () => {
   let extensionContext: vscode.ExtensionContext;
-  let registerCustomEditorProviderMock: jest.SpyInstance;
-  let isDefaultOrgSetSpy: jest.SpyInstance;
-  let uriFileSpy: jest.SpyInstance;
+  let registerCustomEditorProviderMock: VitestMockInstance;
+  let isDefaultOrgSetSpy: VitestMockInstance;
+  let uriFileSpy: VitestMockInstance;
   const mockDisposable = new vscode.Disposable(() => {});
 
   beforeEach(() => {
@@ -33,18 +34,18 @@ describe('SOQLEditorProvider', () => {
       extensionUri: URI.file('/path/to/extension'),
       subscriptions: [],
       /** Get the absolute path of a resource contained in the extension. */
-      asAbsolutePath: jest.fn((p: string) => `/path/to/extension/${p}`),
+      asAbsolutePath: vi.fn((p: string) => `/path/to/extension/${p}`),
       extension: {
         packageJSON: {
           soqlBuilderWebAssetsPath: ['path', 'to', 'soqlBuilder']
         }
       }
     } as unknown as vscode.ExtensionContext;
-    registerCustomEditorProviderMock = (vscode.window.registerCustomEditorProvider as jest.Mock) = jest
+    registerCustomEditorProviderMock = (vscode.window.registerCustomEditorProvider as VitestMock) = vi
       .fn()
       .mockReturnValue(mockDisposable);
-    isDefaultOrgSetSpy = jest.spyOn(org, 'isDefaultOrgSet');
-    uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
+    isDefaultOrgSetSpy = vi.spyOn(org, 'isDefaultOrgSet');
+    uriFileSpy = vi.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
       scheme: 'file',
       path: pathFile,
       fsPath: pathFile,
@@ -54,7 +55,7 @@ describe('SOQLEditorProvider', () => {
       $mid: 1,
       _sep: 1,
       toString: () => `file://${pathFile}`,
-      with: jest.fn(),
+      with: vi.fn(),
       toJSON: () => ({ scheme: 'file', path: pathFile })
     }));
   });
@@ -74,9 +75,9 @@ describe('SOQLEditorProvider', () => {
   describe('resolveCustomTextEditor', () => {
     let mockDocument: vscode.TextDocument;
     let mockWebviewPanel: vscode.WebviewPanel;
-    let transformHtmlMock: jest.SpyInstance;
-    let workspaceOnDidChangeSpy: jest.SpyInstance;
-    let webViewPanelSpy: jest.SpyInstance;
+    let transformHtmlMock: VitestMockInstance;
+    let workspaceOnDidChangeSpy: VitestMockInstance;
+    let webViewPanelSpy: VitestMockInstance;
 
     beforeEach(() => {
       mockDocument = {
@@ -85,20 +86,20 @@ describe('SOQLEditorProvider', () => {
 
       mockWebviewPanel = {
         webview: {
-          onDidReceiveMessage: jest.fn(),
+          onDidReceiveMessage: vi.fn(),
           html: '',
           options: {}
         },
-        onDidDispose: jest.fn(),
-        dispose: jest.fn()
+        onDidDispose: vi.fn(),
+        dispose: vi.fn()
       } as unknown as vscode.WebviewPanel;
-      workspaceOnDidChangeSpy = (vscode.workspace.onDidChangeTextDocument as jest.Mock) = jest.fn();
+      workspaceOnDidChangeSpy = (vscode.workspace.onDidChangeTextDocument as VitestMock) = vi.fn();
       workspaceOnDidChangeSpy.mockImplementation((listener, context, disposables) => ({
-        dispose: jest.fn()
+        dispose: vi.fn()
       }));
-      webViewPanelSpy = (vscode.window.createWebviewPanel as jest.Mock) = jest.fn();
+      webViewPanelSpy = (vscode.window.createWebviewPanel as VitestMock) = vi.fn();
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
-      transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
+      transformHtmlMock = vi.spyOn(HtmlUtils, 'transformHtml');
     });
 
     it('should configure the webview options and set the HTML content', async () => {

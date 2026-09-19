@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -14,8 +15,8 @@ import * as vscode from 'vscode';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
 import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
 
-const mockUpdateConfigAndStateAggregatorsEffect = jest.fn<Effect.Effect<void, never, never>, []>(() => Effect.void);
-jest.mock('../../../../src/util/orgUtil', () => ({
+const mockUpdateConfigAndStateAggregatorsEffect = vi.fn<() => Effect.Effect<void, never, never>>(() => Effect.void);
+vi.mock('../../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect()
 }));
 
@@ -26,7 +27,7 @@ const buildServices = (opts: {
   confirm: boolean;
   orgInfo: OrgSnapshot;
   isCurrentTargetOrg: boolean;
-  unsetTargetOrg: jest.Mock;
+  unsetTargetOrg: VitestMock;
 }) => ({
   ProjectService: {
     getSfProject: () =>
@@ -49,7 +50,7 @@ const run = (opts: {
   confirm: boolean;
   orgInfo: OrgSnapshot;
   isCurrentTargetOrg?: boolean;
-  unsetTargetOrg: jest.Mock;
+  unsetTargetOrg: VitestMock;
 }) =>
   Effect.runPromiseExit(
     orgLogoutDefaultCommand().pipe(
@@ -60,24 +61,24 @@ const run = (opts: {
   );
 
 describe('orgLogoutDefaultCommand', () => {
-  let removeAuthMock: jest.Mock;
-  let unsetTargetOrgMock: jest.Mock;
-  let showInformationMessageMock: jest.Mock;
+  let removeAuthMock: VitestMock;
+  let unsetTargetOrgMock: VitestMock;
+  let showInformationMessageMock: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    removeAuthMock = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(AuthRemover, 'create').mockResolvedValue({
+    vi.clearAllMocks();
+    removeAuthMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
-    unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+    unsetTargetOrgMock = vi.fn().mockReturnValue(Effect.void);
     mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
-    showInformationMessageMock = vscode.window.showInformationMessage as unknown as jest.Mock;
+    showInformationMessageMock = vscode.window.showInformationMessage as unknown as VitestMock;
     showInformationMessageMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('logs out a non-scratch default org, refreshes, and clears the target-org ref', async () => {

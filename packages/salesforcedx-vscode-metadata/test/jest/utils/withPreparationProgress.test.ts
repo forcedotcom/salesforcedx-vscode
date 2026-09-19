@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -56,17 +57,19 @@ const runWithServicesExit = <A>(
 
 /** Make withProgress call the task callback immediately, returning a controllable token */
 const setupWithProgress = () => {
-  const progress = { report: jest.fn() };
+  const progress = { report: vi.fn() };
   const cancellationListeners: (() => void)[] = [];
   const token = {
     isCancellationRequested: false,
-    onCancellationRequested: jest.fn((listener: () => void) => {
+    onCancellationRequested: vi.fn((listener: () => void) => {
       cancellationListeners.push(listener);
-      return { dispose: jest.fn() };
+      return { dispose: vi.fn() };
     })
   };
 
-  (vscode.window.withProgress as jest.Mock).mockImplementation((_options: unknown, task: any) => task(progress, token));
+  (vscode.window.withProgress as VitestMock).mockImplementation((_options: unknown, task: any) =>
+    task(progress, token)
+  );
 
   const cancel = () => cancellationListeners.forEach(l => l());
   return { progress, token, cancel };
@@ -112,7 +115,7 @@ describe('withPreparationProgress', () => {
   it('runs detectConflictsFn when provided', async () => {
     setupWithProgress();
     const cs = makeCS();
-    const detectConflictsFn = jest.fn(() => Effect.void);
+    const detectConflictsFn = vi.fn(() => Effect.void);
 
     await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn)));
 
@@ -124,12 +127,12 @@ describe('withPreparationProgress', () => {
     const cs = makeCS();
     const calls: string[] = [];
 
-    const detectConflictsFn = jest.fn(() => {
+    const detectConflictsFn = vi.fn(() => {
       calls.push('detect');
       return Effect.void;
     });
 
-    jest.mocked(progress.report).mockImplementation(({ message }: { message?: string }) => {
+    vi.mocked(progress.report).mockImplementation(({ message }: { message?: string }) => {
       if (message) calls.push(message);
     });
 
@@ -162,7 +165,7 @@ describe('withPreparationProgress', () => {
     setupWithProgress();
     const cs = makeCS();
     const conflictsError = new ConflictsDetectedError({ pairs: [], componentSet: cs, operationType: 'deploy' });
-    const detectConflictsFn = jest.fn(() => Effect.fail(conflictsError));
+    const detectConflictsFn = vi.fn(() => Effect.fail(conflictsError));
 
     const exit = await runWithServicesExit(
       Effect.succeed(cs).pipe(withPreparationProgress('deploy', detectConflictsFn))

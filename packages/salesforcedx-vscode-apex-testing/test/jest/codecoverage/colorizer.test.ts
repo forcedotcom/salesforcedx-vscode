@@ -6,26 +6,26 @@
  */
 
 // Controllable settings values surfaced through the mock SettingsService (replaces the old
-// jest.mock('../../../src/settings') target, which is no longer in the coverage call path).
+// vi.mock('../../../src/settings') target, which is no longer in the coverage call path).
 const settingsValues: { restorePrevious: boolean; disableWarnings: boolean } = {
   restorePrevious: true,
   disableWarnings: false
 };
-const mockAppendToChannel = jest.fn();
+const mockAppendToChannel = vi.fn();
 
 // Build a real CodeCoverageService.Default over a mock ExtensionProviderService whose api.services
 // exposes a controllable SettingsService + ChannelService. getApexTestingRuntime runs effects for real.
-jest.mock('../../../src/services/extensionProvider', () => {
-  const EffectActual = jest.requireActual('effect/Effect');
-  const LayerActual = jest.requireActual('effect/Layer');
-  const ManagedRuntimeActual = jest.requireActual('effect/ManagedRuntime');
-  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
-  const { CodeCoverageService: CodeCoverageServiceActual } = jest.requireActual(
-    '../../../src/codecoverage/codeCoverageService'
-  );
-  // require (not import) so this resolves the same mocked vscode the tests spy on (vscode.workspace.fs)
-  const vscodeMock = require('vscode');
-  const { Utils: UtilsActual } = require('vscode-uri');
+vi.mock('../../../src/services/extensionProvider', async () => {
+  const EffectActual = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const LayerActual = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
+  const ManagedRuntimeActual = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
+  const { ExtensionProviderService } =
+    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const { CodeCoverageService: CodeCoverageServiceActual } = await vi.importActual<
+    typeof import('../../../src/codecoverage/codeCoverageService')
+  >('../../../src/codecoverage/codeCoverageService');
+  const vscodeMock = await import('vscode');
+  const { Utils: UtilsActual } = await import('vscode-uri');
 
   const mockSettingsService = {
     getValue: (_section: string, key: string, _default: unknown) =>
@@ -40,12 +40,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
   // fs op surfaces as an Effect failure the service's catchAll can handle (not a defect).
   const mockFsService = {
     readFile: (uri: unknown) =>
-      EffectActual.tryPromise(async () => new TextDecoder().decode(await vscodeMock.workspace.fs.readFile(uri))),
-    stat: (uri: unknown) => EffectActual.tryPromise(() => vscodeMock.workspace.fs.stat(uri)),
+      EffectActual.tryPromise(async () =>
+        new TextDecoder().decode(await vscodeMock.workspace.fs.readFile(uri as import('vscode').Uri))
+      ),
+    stat: (uri: unknown) => EffectActual.tryPromise(() => vscodeMock.workspace.fs.stat(uri as import('vscode').Uri)),
     readDirectoryWithTypes: (dirUri: unknown) =>
       EffectActual.tryPromise(async () =>
-        (await vscodeMock.workspace.fs.readDirectory(dirUri)).map(([name, type]: [string, unknown]) => ({
-          uri: UtilsActual.joinPath(dirUri, name),
+        (await vscodeMock.workspace.fs.readDirectory(dirUri as import('vscode').Uri)).map(([name, type]) => ({
+          uri: UtilsActual.joinPath(dirUri as import('vscode-uri').URI, name),
           type
         }))
       )
@@ -61,7 +63,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
   const ExtensionProviderLive = LayerActual.succeed(ExtensionProviderService, {
     getServicesApi: EffectActual.succeed(mockServicesApi)
-  });
+  } as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService);
   // merge (not provide): ExtensionProviderService is yielded at call time, so it must remain in the
   // runtime context (mirrors production, where buildAllServicesLayer keeps it ambient).
   const TestLayer = LayerActual.merge(CodeCoverageServiceActual.Default, ExtensionProviderLive);
@@ -73,10 +75,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
-jest.mock('../../../src/utils/pathHelpers', () => ({
-  getTestResultsFolder: jest.fn()
+vi.mock('../../../src/utils/pathHelpers', () => ({
+  getTestResultsFolder: vi.fn()
 }));
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -99,8 +102,8 @@ const recentMtime = now - 1000 * 60 * 60; // 1 hour ago
 const makeDocument = (uriPath: string): vscode.TextDocument =>
   ({
     uri: URI.file(uriPath),
-    getText: jest.fn().mockReturnValue('public class MyClass { }'),
-    lineAt: jest.fn().mockReturnValue({
+    getText: vi.fn().mockReturnValue('public class MyClass { }'),
+    lineAt: vi.fn().mockReturnValue({
       range: { start: { character: 0, line: 0 }, end: { character: 20, line: 0 } }
     }),
     lineCount: 1
@@ -128,13 +131,13 @@ describe('CodeCoverageHandler', () => {
 
     mockStatusBar = {
       isHighlightingEnabled: false,
-      toggle: jest.fn(),
-      dispose: jest.fn()
+      toggle: vi.fn(),
+      dispose: vi.fn()
     } as unknown as StatusBarToggle;
 
     mockEditor = {
       document: makeDocument('/workspace/project/MyClass.cls'),
-      setDecorations: jest.fn()
+      setDecorations: vi.fn()
     } as unknown as vscode.TextEditor;
 
     Object.defineProperty(vscode.window, 'activeTextEditor', {
@@ -154,7 +157,7 @@ describe('CodeCoverageHandler', () => {
 
       expect(mockStatusBar.toggle).toHaveBeenCalledWith(false);
       // clear() returns empty ranges → both decoration sets cleared
-      const calls = (mockEditor.setDecorations as jest.Mock).mock.calls;
+      const calls = (mockEditor.setDecorations as VitestMock).mock.calls;
       expect(calls[0][1]).toEqual([]);
       expect(calls[1][1]).toEqual([]);
     });
@@ -162,20 +165,20 @@ describe('CodeCoverageHandler', () => {
     it('when highlighting is disabled should turn on and apply coverage decorations', async () => {
       (mockStatusBar as { isHighlightingEnabled: boolean }).isHighlightingEnabled = false;
       setWorkspaceFolders();
-      (getTestResultsFolder as jest.Mock).mockReturnValue(Effect.succeed(orgScopedFolder));
-      jest
-        .spyOn(vscode.workspace.fs, 'readDirectory')
-        .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest
-        .spyOn(vscode.workspace.fs, 'readFile')
-        .mockResolvedValue(encode({ codecoverage: [{ name: 'MyClass', coveredLines: [1], uncoveredLines: [2] }] }));
+      (getTestResultsFolder as VitestMock).mockReturnValue(Effect.succeed(orgScopedFolder));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+        ['test-result-001.json', vscode.FileType.File]
+      ]);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(
+        encode({ codecoverage: [{ name: 'MyClass', coveredLines: [1], uncoveredLines: [2] }] })
+      );
 
       await handler.toggleCoverage();
 
       expect(mockStatusBar.toggle).toHaveBeenCalledWith(true);
       // both decoration sets applied with the computed ranges (covered + uncovered)
-      const calls = (mockEditor.setDecorations as jest.Mock).mock.calls;
+      const calls = (mockEditor.setDecorations as VitestMock).mock.calls;
       expect(calls[0][1]).toHaveLength(1);
       expect(calls[1][1]).toHaveLength(1);
     });
@@ -191,12 +194,12 @@ describe('CodeCoverageService', () => {
   const run = <A, E>(effect: Effect.Effect<A, E, any>) => runtime.runPromise(effect);
 
   beforeEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     mockAppendToChannel.mockClear();
     settingsValues.restorePrevious = true;
     settingsValues.disableWarnings = false;
     setWorkspaceFolders();
-    (getTestResultsFolder as jest.Mock).mockReturnValue(Effect.succeed(orgScopedFolder));
+    (getTestResultsFolder as VitestMock).mockReturnValue(Effect.succeed(orgScopedFolder));
     runtime = getApexTestingRuntime();
   });
 
@@ -209,13 +212,13 @@ describe('CodeCoverageService', () => {
       const classADoc = () => makeDocument('/workspace/project/force-app/main/default/classes/ClassA.cls');
       expect(await run(CodeCoverageService.getRanges())).toEqual({ coveredLines: [], uncoveredLines: [] });
 
-      jest
-        .spyOn(vscode.workspace.fs, 'readDirectory')
-        .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest
-        .spyOn(vscode.workspace.fs, 'readFile')
-        .mockResolvedValue(encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2] }] }));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+        ['test-result-001.json', vscode.FileType.File]
+      ]);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(
+        encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2] }] })
+      );
 
       await run(CodeCoverageService.applyForEditor(classADoc()));
       const populated = await run(CodeCoverageService.getRanges());
@@ -232,12 +235,12 @@ describe('CodeCoverageService', () => {
     const classADoc = () => makeDocument('/workspace/project/force-app/main/default/classes/ClassA.cls');
 
     it('aggregates coverage from multiple recent files (most recent wins per class)', async () => {
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File],
         ['test-result-002.json', vscode.FileType.File]
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         if (uri.path.endsWith('test-result-001.json')) {
           return Promise.resolve(
             encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2, 3] }] })
@@ -255,12 +258,12 @@ describe('CodeCoverageService', () => {
     });
 
     it('merges coverage from different classes across runs', async () => {
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File],
         ['test-result-002.json', vscode.FileType.File]
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         if (uri.path.endsWith('test-result-001.json')) {
           return Promise.resolve(encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [] }] }));
         }
@@ -278,16 +281,16 @@ describe('CodeCoverageService', () => {
 
     it('excludes files older than 24 hours', async () => {
       const oldMtime = now - 25 * 60 * 60 * 1000; // 25 hours ago
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File],
         ['test-result-002.json', vscode.FileType.File]
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri: URI) =>
+      vi.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri: URI) =>
         Promise.resolve({
           mtime: uri.path.endsWith('test-result-001.json') ? oldMtime : recentMtime
         } as vscode.FileStat)
       );
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         if (uri.path.endsWith('test-result-001.json')) {
           return Promise.resolve(
             encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2, 3, 4, 5] }] })
@@ -305,12 +308,12 @@ describe('CodeCoverageService', () => {
     });
 
     it('excludes -codecoverage.json files from aggregation', async () => {
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File],
         ['test-result-001-codecoverage.json', vscode.FileType.File]
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      const readFileSpy = jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      const readFileSpy = vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         if (uri.path.endsWith('test-result-001.json')) {
           return Promise.resolve(encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [] }] }));
         }
@@ -329,13 +332,13 @@ describe('CodeCoverageService', () => {
 
     it('only reads the most recent file', async () => {
       settingsValues.restorePrevious = false;
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File],
         ['test-result-002.json', vscode.FileType.File]
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
       const readCalls: string[] = [];
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         readCalls.push(uri.path);
         if (uri.path.endsWith('test-result-002.json')) {
           return Promise.resolve(
@@ -355,17 +358,17 @@ describe('CodeCoverageService', () => {
       settingsValues.restorePrevious = false;
       const olderMtime = now - 1000 * 60 * 60 * 2; // 2 hours ago
       const newerMtime = now - 1000 * 60; // 1 minute ago
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-707xx0000099999.json', vscode.FileType.File], // alphabetically last, but older
         ['test-result-707xx0000011111.json', vscode.FileType.File] // alphabetically first, but newer
       ]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri: URI) =>
+      vi.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri: URI) =>
         Promise.resolve({
           mtime: uri.path.endsWith('test-result-707xx0000099999.json') ? olderMtime : newerMtime
         } as vscode.FileStat)
       );
       const readCalls: string[] = [];
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
         readCalls.push(uri.path);
         if (uri.path.endsWith('test-result-707xx0000011111.json')) {
           return Promise.resolve(
@@ -388,36 +391,36 @@ describe('CodeCoverageService', () => {
     const classADoc = () => makeDocument('/workspace/project/force-app/main/default/classes/ClassA.cls');
 
     it('NoCoverageOnProjectError when results directory is empty', async () => {
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([]);
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([]);
       const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageOnProjectError);
     });
 
     it('NoCoverageOnProjectError when readDirectory fails', async () => {
-      jest.spyOn(vscode.workspace.fs, 'readDirectory').mockRejectedValue(new Error('boom'));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockRejectedValue(new Error('boom'));
       const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageOnProjectError);
     });
 
     it('StaleResultsError when files exist but none contain coverage keys', async () => {
-      jest
-        .spyOn(vscode.workspace.fs, 'readDirectory')
-        .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(encode({ tests: [{ outcome: 'Pass' }] }));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+        ['test-result-001.json', vscode.FileType.File]
+      ]);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(encode({ tests: [{ outcome: 'Pass' }] }));
 
       const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(StaleResultsError);
     });
 
     it('NoCoverageForFileError when no coverage entry matches the current file', async () => {
-      jest
-        .spyOn(vscode.workspace.fs, 'readDirectory')
-        .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest
-        .spyOn(vscode.workspace.fs, 'readFile')
-        .mockResolvedValue(encode({ codecoverage: [{ name: 'OtherClass', coveredLines: [1], uncoveredLines: [] }] }));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+        ['test-result-001.json', vscode.FileType.File]
+      ]);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(
+        encode({ codecoverage: [{ name: 'OtherClass', coveredLines: [1], uncoveredLines: [] }] })
+      );
 
       const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageForFileError);
@@ -425,16 +428,16 @@ describe('CodeCoverageService', () => {
 
     it('OutOfSyncCoverageError when a coverage line is outside the document range', async () => {
       const doc = makeDocument('/workspace/project/force-app/main/default/classes/ClassA.cls');
-      (doc.lineAt as jest.Mock).mockImplementation(() => {
+      (doc.lineAt as VitestMock).mockImplementation(() => {
         throw new Error('line out of range');
       });
-      jest
-        .spyOn(vscode.workspace.fs, 'readDirectory')
-        .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
-      jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
-      jest
-        .spyOn(vscode.workspace.fs, 'readFile')
-        .mockResolvedValue(encode({ codecoverage: [{ name: 'ClassA', coveredLines: [999], uncoveredLines: [] }] }));
+      vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+        ['test-result-001.json', vscode.FileType.File]
+      ]);
+      vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
+      vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(
+        encode({ codecoverage: [{ name: 'ClassA', coveredLines: [999], uncoveredLines: [] }] })
+      );
 
       const failure = await run(CodeCoverageService.applyForEditor(doc).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(OutOfSyncCoverageError);
@@ -450,7 +453,7 @@ describe('CodeCoverageService', () => {
 
     it('shows a warning message when disable-warnings is disabled', async () => {
       settingsValues.disableWarnings = false;
-      const showWarning = jest
+      const showWarning = vi
         .spyOn(vscode.window, 'showWarningMessage')
         .mockResolvedValue(undefined as unknown as vscode.MessageItem);
       await run(CodeCoverageService.handleCoverageException(new StaleResultsError({ message: 'no coverage' })));

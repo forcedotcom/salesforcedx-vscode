@@ -60,7 +60,7 @@ describe('Custom Select', () => {
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('UI RENDERING', () => {
@@ -124,7 +124,7 @@ describe('Custom Select', () => {
 
     it('should fire a custom event when the options are opened', () => {
       document.body.appendChild(customSelect);
-      const handler = jest.fn();
+      const handler = vi.fn();
       document.addEventListener(CUSTOM_SELECT_EVENT_NAME, handler);
       const searchBar = getInputSearchBar();
       searchBar.click();
@@ -262,7 +262,7 @@ describe('Custom Select', () => {
         document.body.appendChild(customSelect);
         expect(customSelect.multiple).toBe(false);
         const searchBar = getInputSearchBar();
-        const selectSpy = jest.spyOn(searchBar, 'select');
+        const selectSpy = vi.spyOn(searchBar, 'select');
         searchBar.click();
         return Promise.resolve().then(() => {
           expect(selectSpy).toHaveBeenCalled();
@@ -275,7 +275,7 @@ describe('Custom Select', () => {
         expect(customSelect.multiple).toBe(false);
         const dropdownTrigger = getDropdownTrigger();
         const searchBar = getInputSearchBar();
-        const selectSpy = jest.spyOn(searchBar, 'select');
+        const selectSpy = vi.spyOn(searchBar, 'select');
         dropdownTrigger.click();
         return Promise.resolve().then(() => {
           expect(selectSpy).toHaveBeenCalled();
@@ -305,7 +305,7 @@ describe('Custom Select', () => {
         expect(customSelect.multiple).toBe(true);
         const dropdownTrigger = getDropdownTrigger();
         const searchBar = getInputSearchBar();
-        const focusSpy = jest.spyOn(searchBar, 'focus');
+        const focusSpy = vi.spyOn(searchBar, 'focus');
         dropdownTrigger.click();
         return Promise.resolve().then(() => {
           expect(focusSpy).toHaveBeenCalled();
@@ -435,7 +435,7 @@ describe('Custom Select', () => {
     });
 
     it('should fire a selection event & set value when selection is made', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       customSelect.addEventListener(EVENT_OPTION_SELECTION, handler);
 
       searchBar.click();
@@ -458,7 +458,7 @@ describe('Custom Select', () => {
     let searchBar;
 
     beforeEach(() => {
-      mockScrollIntoView = jest.fn();
+      mockScrollIntoView = vi.fn();
       window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
       document.body.appendChild(customSelect);
       searchBar = getInputSearchBar();
@@ -535,7 +535,7 @@ describe('Custom Select', () => {
     it('should allow option selection with ENTER', () => {
       let firstOption;
       let optionsList;
-      const handler = jest.fn();
+      const handler = vi.fn();
       customSelect.addEventListener(EVENT_OPTION_SELECTION, handler);
       // open the list of options
       searchBar.click();

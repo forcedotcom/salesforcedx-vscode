@@ -4,24 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { GatedSpanExporter } from '../../../src/observability/gatedSpanExporter';
 import { SpanTransformProcessor } from '../../../src/observability/spanTransformProcessor';
 import { isProductionTelemetryExportEnabled } from '../../../src/observability/appInsights';
 
-jest.mock('../../../src/observability/appInsights', () => ({
-  isProductionTelemetryExportEnabled: jest.fn()
+vi.mock('../../../src/observability/appInsights', () => ({
+  isProductionTelemetryExportEnabled: vi.fn()
 }));
 
-const mockedIsProductionTelemetryExportEnabled = jest.mocked(isProductionTelemetryExportEnabled);
+const mockedIsProductionTelemetryExportEnabled = vi.mocked(isProductionTelemetryExportEnabled);
 
-const makeFakeExporter = (): SpanExporter & { export: jest.Mock; forceFlush: jest.Mock; shutdown: jest.Mock } => ({
-  export: jest.fn((_spans: ReadableSpan[], callback: (result: ExportResult) => void) =>
+const makeFakeExporter = (): SpanExporter & { export: VitestMock; forceFlush: VitestMock; shutdown: VitestMock } => ({
+  export: vi.fn((_spans: ReadableSpan[], callback: (result: ExportResult) => void) =>
     callback({ code: ExportResultCode.SUCCESS })
   ),
-  forceFlush: jest.fn().mockResolvedValue(undefined),
-  shutdown: jest.fn().mockResolvedValue(undefined)
+  forceFlush: vi.fn().mockResolvedValue(undefined),
+  shutdown: vi.fn().mockResolvedValue(undefined)
 });
 
 const stampedSpan = (
@@ -34,7 +35,7 @@ const stampedSpan = (
     attributes: telemetryIgnore ? { telemetryIgnore: true } : {},
     parentSpanContext: undefined,
     resource: { attributes: {} },
-    setAttribute: jest.fn()
+    setAttribute: vi.fn()
   } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
   new SpanTransformProcessor({
     exporter: makeFakeExporter(),
@@ -48,9 +49,9 @@ describe('GatedSpanExporter', () => {
 
   it('does not construct the delegate when disabled', () => {
     mockedIsProductionTelemetryExportEnabled.mockReturnValue(false);
-    const make = jest.fn(makeFakeExporter);
+    const make = vi.fn(makeFakeExporter);
     const exporter = new GatedSpanExporter({ make });
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([stampedSpan('allowed', 'nonGov')], callback);
 
@@ -60,9 +61,9 @@ describe('GatedSpanExporter', () => {
 
   it('exports only valid nonGov spans from a mixed batch', () => {
     const delegate = makeFakeExporter();
-    const make = jest.fn(() => delegate);
+    const make = vi.fn(() => delegate);
     const exporter = new GatedSpanExporter({ make });
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export(
       [
@@ -80,10 +81,10 @@ describe('GatedSpanExporter', () => {
   });
 
   it.each(['gov', 'unknown'] as const)('does not construct the delegate for %s spans', classification => {
-    const make = jest.fn(makeFakeExporter);
+    const make = vi.fn(makeFakeExporter);
     const exporter = new GatedSpanExporter({ make });
 
-    exporter.export([stampedSpan(classification, classification)], jest.fn());
+    exporter.export([stampedSpan(classification, classification)], vi.fn());
 
     expect(make).not.toHaveBeenCalled();
   });
@@ -95,20 +96,20 @@ describe('GatedSpanExporter', () => {
       bypassGovernance: true
     });
 
-    exporter.export([stampedSpan('gov', 'gov'), stampedSpan('unknown', 'unknown')], jest.fn());
+    exporter.export([stampedSpan('gov', 'gov'), stampedSpan('unknown', 'unknown')], vi.fn());
 
     expect(delegate.export.mock.calls[0][0]).toHaveLength(2);
   });
 
   it('re-checks enablement and reuses the delegate', () => {
     const delegate = makeFakeExporter();
-    const make = jest.fn(() => delegate);
+    const make = vi.fn(() => delegate);
     const exporter = new GatedSpanExporter({ make, o11yEndpoint: 'http://localhost:4318' });
     const span = stampedSpan('allowed', 'nonGov');
 
-    exporter.export([span], jest.fn());
+    exporter.export([span], vi.fn());
     mockedIsProductionTelemetryExportEnabled.mockReturnValue(false);
-    exporter.export([span], jest.fn());
+    exporter.export([span], vi.fn());
 
     expect(mockedIsProductionTelemetryExportEnabled).toHaveBeenCalledWith('http://localhost:4318');
     expect(make).toHaveBeenCalledTimes(1);
@@ -117,12 +118,12 @@ describe('GatedSpanExporter', () => {
 
   it('flushes and shuts down only an initialized delegate', async () => {
     const delegate = makeFakeExporter();
-    const make = jest.fn(() => delegate);
+    const make = vi.fn(() => delegate);
     const exporter = new GatedSpanExporter({ make });
 
     await exporter.forceFlush();
     expect(make).not.toHaveBeenCalled();
-    exporter.export([stampedSpan('allowed', 'nonGov')], jest.fn());
+    exporter.export([stampedSpan('allowed', 'nonGov')], vi.fn());
     await exporter.forceFlush();
     await exporter.shutdown();
 

@@ -8,19 +8,19 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getBaseClientOptions } from '../../../src/languageClient/clientOptions';
 
-jest.mock('vscode');
+vi.mock('vscode');
 
 describe('clientOptions', () => {
   describe('getBaseClientOptions', () => {
     it('should configure file system watcher for directory deletions with correct flags', () => {
       const mockWatcher = {
-        onDidCreate: jest.fn(),
-        onDidChange: jest.fn(),
-        onDidDelete: jest.fn(),
-        dispose: jest.fn()
+        onDidCreate: vi.fn(),
+        onDidChange: vi.fn(),
+        onDidDelete: vi.fn(),
+        dispose: vi.fn()
       } as unknown as vscode.FileSystemWatcher;
 
-      const createFileSystemWatcherSpy = jest
+      const createFileSystemWatcherSpy = vi
         .spyOn(vscode.workspace, 'createFileSystemWatcher')
         .mockReturnValue(mockWatcher);
 
@@ -50,13 +50,13 @@ describe('clientOptions', () => {
 
     it('should configure multiple file system watchers including directory watcher', () => {
       const mockWatcher = {
-        onDidCreate: jest.fn(),
-        onDidChange: jest.fn(),
-        onDidDelete: jest.fn(),
-        dispose: jest.fn()
+        onDidCreate: vi.fn(),
+        onDidChange: vi.fn(),
+        onDidDelete: vi.fn(),
+        dispose: vi.fn()
       } as unknown as vscode.FileSystemWatcher;
 
-      const createFileSystemWatcherSpy = jest
+      const createFileSystemWatcherSpy = vi
         .spyOn(vscode.workspace, 'createFileSystemWatcher')
         .mockReturnValue(mockWatcher);
 
@@ -85,21 +85,23 @@ describe('clientOptions', () => {
 
     it('should scope watchers to package directory URIs with relative patterns', () => {
       const mockWatcher = {
-        onDidCreate: jest.fn(),
-        onDidChange: jest.fn(),
-        onDidDelete: jest.fn(),
-        dispose: jest.fn()
+        onDidCreate: vi.fn(),
+        onDidChange: vi.fn(),
+        onDidDelete: vi.fn(),
+        dispose: vi.fn()
       } as unknown as vscode.FileSystemWatcher;
       const packageUris = [
         URI.parse('memfs:/workspace/packages/force-app'),
         URI.parse('vscode-remote://ssh-remote+host/home/project/packages/shared')
       ];
-      const relativePatternMock = jest.fn((baseUri: URI, pattern: string) => ({ baseUri, pattern }));
+      const relativePatternMock = vi.fn(function (baseUri: URI, pattern: string) {
+        return { baseUri, pattern };
+      });
       Object.defineProperty(vscode, 'RelativePattern', {
         configurable: true,
         value: relativePatternMock
       });
-      const createFileSystemWatcherSpy = jest
+      const createFileSystemWatcherSpy = vi
         .spyOn(vscode.workspace, 'createFileSystemWatcher')
         .mockReturnValue(mockWatcher);
 

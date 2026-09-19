@@ -25,10 +25,10 @@ const brandedCliId = (value: string) => Schema.decodeSync(CliId)(value);
 type GlobalState = Map<string, string>;
 
 const buildContextService = (state: GlobalState) => {
-  const update = jest.fn(async (key: string, value: string) => {
+  const update = vi.fn(async (key: string, value: string) => {
     state.set(key, value);
   });
-  const get = jest.fn(<T>(key: string): T | undefined => state.get(key) as T | undefined);
+  const get = vi.fn(<T>(key: string): T | undefined => state.get(key) as T | undefined);
   const ctx = { globalState: { get, update } } as unknown as ExtensionContext;
   const service = { getContext: Effect.succeed(ctx) } as unknown as ExtensionContextService;
   return { update, get, layer: Layer.succeed(ExtensionContextService, service) };
@@ -45,7 +45,7 @@ describe('seedTelemetryIdentities', () => {
   afterEach(() => {
     if (originalPlatform === undefined) delete process.env.ESBUILD_PLATFORM;
     else process.env.ESBUILD_PLATFORM = originalPlatform;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('uses cliId from globalState when present', async () => {
@@ -63,7 +63,7 @@ describe('seedTelemetryIdentities', () => {
 
   it('desktop falls back to getCliId when globalState empty', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
+    vi.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
@@ -74,7 +74,7 @@ describe('seedTelemetryIdentities', () => {
 
   it('desktop generates UUID when getCliId returns None', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.none()));
+    vi.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.none()));
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
@@ -87,7 +87,7 @@ describe('seedTelemetryIdentities', () => {
 
   it('web generates UUID without invoking sf telemetry', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
-    const cliSpy = jest.spyOn(cliTelemetryModule, 'getCliId');
+    const cliSpy = vi.spyOn(cliTelemetryModule, 'getCliId');
     const state: GlobalState = new Map();
     const { layer } = buildContextService(state);
 
@@ -100,7 +100,7 @@ describe('seedTelemetryIdentities', () => {
 
   it('preserves existing webUserId when already present', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
+    vi.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
     const state: GlobalState = new Map([['telemetryWebUserId', 'sha256-existing']]);
     const { update, layer } = buildContextService(state);
 

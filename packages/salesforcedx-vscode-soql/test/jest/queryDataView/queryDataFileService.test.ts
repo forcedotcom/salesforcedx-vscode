@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import type { QueryResult } from '../../../src/types';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
 
-const mockRunPromise = jest.fn();
-jest.mock('../../../src/services/extensionProvider', () => ({
+const mockRunPromise = vi.fn();
+vi.mock('../../../src/services/extensionProvider', () => ({
   AllServicesLayer: require('effect/Layer').empty,
   getSoqlRuntime: () => ({ runFork: () => undefined, runPromise: mockRunPromise })
 }));
@@ -57,7 +58,7 @@ describe('Query Data File Service', () => {
       const service = new QueryDataFileService(queryText, queryData, format, soqlDocument);
       await service.save();
 
-      const calledWith = (vscode.window.showSaveDialog as jest.Mock).mock.calls[0][0];
+      const calledWith = (vscode.window.showSaveDialog as VitestMock).mock.calls[0][0];
       expect(calledWith.defaultUri.path.endsWith(expectedName)).toBe(true);
     }
   });

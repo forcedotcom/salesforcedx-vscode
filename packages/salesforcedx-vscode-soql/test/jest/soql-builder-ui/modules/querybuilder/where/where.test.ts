@@ -109,7 +109,7 @@ describe('Where', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -199,7 +199,7 @@ describe('Where', () => {
       whereCmp.whereExpr = modelManager.getModelWithOneCondition();
       document.body.appendChild(whereCmp);
 
-      const handler = jest.fn();
+      const handler = vi.fn();
       const orButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=OR]');
       const andButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=AND]');
 
@@ -217,7 +217,7 @@ describe('Where', () => {
     it('not emit event if last group is incomplete', () => {
       whereCmp.whereExpr = modelManager.getModelWithIncompleteConditions();
       document.body.appendChild(whereCmp);
-      const handler = jest.fn();
+      const handler = vi.fn();
       const modifierGroups = whereCmp.shadowRoot.querySelectorAll('querybuilder-where-modifier-group');
       const orButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=OR]');
       whereCmp.addEventListener('where__andor_selection', handler);
@@ -234,7 +234,7 @@ describe('Where', () => {
       modelManager.setAndOr(AndOr.Or);
       whereCmp.whereExpr = modelManager.getModelWithTwoConditions();
       document.body.appendChild(whereCmp);
-      const modGroupHandler = jest.fn();
+      const modGroupHandler = vi.fn();
       whereCmp.addEventListener('where__group_selection', modGroupHandler);
       const firstModifierGroup = whereCmp.shadowRoot.querySelector('querybuilder-where-modifier-group');
       // Event dispatched from child component does not contain AndOr

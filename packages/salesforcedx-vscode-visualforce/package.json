@@ -121,18 +121,22 @@
       ]
     },
     "test": {
-      "command": "jest --passWithNoTests",
+      "command": "vitest run",
       "dependencies": [
         "test:compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage"
+        "coverage",
+        "junit-custom-unitTests.xml"
       ]
     },
     "check:circular-deps": {

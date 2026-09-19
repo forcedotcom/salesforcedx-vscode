@@ -5,15 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import { workspace } from 'vscode';
 import { O11yReporter } from '../../../../src/telemetry/reporters/o11yReporter';
 
 // getConnection is a module thunk resolving the services api lazily; mocking the api is the only way to reach it.
-const mockGetConnectionSvc = jest.fn();
+const mockGetConnectionSvc = vi.fn();
 
-jest.mock('@salesforce/effect-ext-utils', () => {
+vi.mock('@salesforce/effect-ext-utils', () => {
   const E = require('effect/Effect');
   const Layer = require('effect/Layer');
   return {
@@ -35,35 +36,35 @@ describe('O11yReporter', () => {
   const fakeUserId = 'test-user-id'; // Provide a test user ID
   const dummyOrgId = '00Dxx0000001gPFEAY';
 
-  let sendMock: jest.Mock;
-  let sendWithSchemaMock: jest.Mock;
-  let uploadMock: jest.Mock;
-  let forceFlushMock: jest.Mock;
-  let enableAutoBatchingMock: jest.Mock;
+  let sendMock: VitestMock;
+  let sendWithSchemaMock: VitestMock;
+  let uploadMock: VitestMock;
+  let forceFlushMock: VitestMock;
+  let enableAutoBatchingMock: VitestMock;
   let o11yReporter: O11yReporter;
 
   beforeEach(() => {
     // Mock O11yService
-    sendMock = jest.fn();
-    sendWithSchemaMock = jest.fn();
-    uploadMock = jest.fn();
-    forceFlushMock = jest.fn().mockResolvedValue(undefined);
-    enableAutoBatchingMock = jest.fn().mockReturnValue(() => {
+    sendMock = vi.fn();
+    sendWithSchemaMock = vi.fn();
+    uploadMock = vi.fn();
+    forceFlushMock = vi.fn().mockResolvedValue(undefined);
+    enableAutoBatchingMock = vi.fn().mockReturnValue(() => {
       // Return a cleanup function
     });
 
-    jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+    vi.spyOn(O11yService, 'getInstance').mockReturnValue({
       logEvent: sendMock,
       logEventWithSchema: sendWithSchemaMock,
       upload: uploadMock,
       forceFlush: forceFlushMock,
       enableAutoBatching: enableAutoBatchingMock,
-      initialize: jest.fn().mockResolvedValue(undefined)
+      initialize: vi.fn().mockResolvedValue(undefined)
     } as any);
 
     // Mock workspace config for telemetry tag
-    jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
-      get: jest.fn().mockReturnValue('testTelemetryTag')
+    vi.spyOn(workspace, 'getConfiguration').mockReturnValue({
+      get: vi.fn().mockReturnValue('testTelemetryTag')
     } as any);
 
     o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId, 'test-webUser');
@@ -75,13 +76,13 @@ describe('O11yReporter', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('initialize', () => {
     it('should call o11yService.initialize with extensionName, endpoint, and getConnection', async () => {
-      const initializeMock = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+      const initializeMock = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(O11yService, 'getInstance').mockReturnValue({
         logEvent: sendMock,
         upload: uploadMock,
         forceFlush: forceFlushMock,
@@ -107,8 +108,8 @@ describe('O11yReporter', () => {
     });
 
     it('getConnection thunk re-resolves current org per call', async () => {
-      const initializeMock = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+      const initializeMock = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(O11yService, 'getInstance').mockReturnValue({
         logEvent: sendMock,
         upload: uploadMock,
         forceFlush: forceFlushMock,
@@ -175,7 +176,7 @@ describe('O11yReporter', () => {
 
     it('should not throw when logEvent fails', () => {
       const error = new Error('send failed');
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       sendMock.mockImplementation(() => {
         throw error;
       });
@@ -186,15 +187,16 @@ describe('O11yReporter', () => {
 
     it('should contain PFT event failures', async () => {
       const error = new Error('PFT send failed');
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       o11yReporter.productFeatureId = 'test-feature';
       sendWithSchemaMock.mockImplementation(() => {
         throw error;
       });
 
       expect(() => o11yReporter.sendTelemetryEvent('commandExecution', { commandName: 'test.command' })).not.toThrow();
-      await new Promise<void>(resolve => process.nextTick(resolve));
-      expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter sendPftEvent failed:', error);
+      await vi.waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter sendPftEvent failed:', error);
+      });
     });
   });
 
@@ -232,7 +234,7 @@ describe('O11yReporter', () => {
 
     it('should not throw when logEvent fails', () => {
       const error = new Error('send failed');
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       sendMock.mockImplementation(() => {
         throw error;
       });
@@ -249,7 +251,7 @@ describe('O11yReporter', () => {
 
     it('should resolve when forceFlush fails', async () => {
       const error = new Error('flush failed');
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       forceFlushMock.mockRejectedValue(error);
 
       await expect(o11yReporter.dispose()).resolves.toBeUndefined();
@@ -267,8 +269,8 @@ describe('O11yReporter', () => {
 
     it('should not include telemetryTag if not set', () => {
       // Override workspace config to return undefined for telemetryTag
-      jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
-        get: jest.fn().mockReturnValue(undefined)
+      vi.spyOn(workspace, 'getConfiguration').mockReturnValue({
+        get: vi.fn().mockReturnValue(undefined)
       } as any);
 
       const reporterWithoutTag = new O11yReporter(

@@ -5,24 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
-(jest.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation(() => ({ isActive: true, exports: {} }));
+(vi.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation(() => ({ isActive: true, exports: {} }));
 
 // Mock vscode commands
-jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
+vi.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
 
-jest.mock('./../../src/apexLspStatusBarItem');
+vi.mock('./../../src/apexLspStatusBarItem');
+vi.mock('../../src/languageUtils/languageClientManager', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../src/languageUtils/languageClientManager')>()),
+  createLanguageClient: vi.fn().mockResolvedValue(undefined)
+}));
 
-jest.mock('../../src/services/extensionProvider', () => ({
+vi.mock('../../src/services/extensionProvider', () => ({
   buildAllServicesLayer: () => ({}),
   setAllServicesLayer: () => {}
 }));
 
-jest.mock('../../src/services/runtime', () => ({
+vi.mock('../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) }),
   disposeRuntime: () => Promise.resolve()
 }));
@@ -37,25 +42,25 @@ import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 
 describe('index tests', () => {
   describe('indexDoneHandler', () => {
-    let setStatusSpy: jest.SpyInstance;
-    let onNotificationSpy: jest.SpyInstance;
+    let setStatusSpy: VitestMockInstance;
+    let onNotificationSpy: VitestMockInstance;
     let mockLanguageClient: any;
     let languageServerStatusBarItem: ApexLSPStatusBarItem;
 
     beforeEach(() => {
-      setStatusSpy = jest.spyOn(languageClientManager, 'setStatus');
+      setStatusSpy = vi.spyOn(languageClientManager, 'setStatus');
       mockLanguageClient = {
-        onNotification: jest.fn(),
+        onNotification: vi.fn(),
         errorHandler: {
-          serviceHasStartedSuccessfully: jest.fn()
+          serviceHasStartedSuccessfully: vi.fn()
         }
       };
-      onNotificationSpy = jest.spyOn(mockLanguageClient, 'onNotification');
+      onNotificationSpy = vi.spyOn(mockLanguageClient, 'onNotification');
       languageServerStatusBarItem = new ApexLSPStatusBarItem();
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
@@ -85,18 +90,18 @@ describe('index tests', () => {
   });
 
   describe('Settings Change Handler', () => {
-    let executeCommandMock: jest.SpyInstance;
+    let executeCommandMock: VitestMockInstance;
     let mockEvent: any;
 
     beforeEach(() => {
-      executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
+      executeCommandMock = vi.spyOn(vscode.commands, 'executeCommand');
       mockEvent = {
-        affectsConfiguration: jest.fn()
+        affectsConfiguration: vi.fn()
       };
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should execute restart command when lspParityCapabilities setting changes', () => {
@@ -223,16 +228,11 @@ describe('index tests', () => {
       // Store original workspaceFolders
       originalWorkspaceFolders = vscode.workspace.workspaceFolders;
 
-      // Mock languageClientManager
-      jest.mock('../../src/languageUtils/languageClientManager', () => ({
-        createLanguageClient: jest.fn().mockResolvedValue(undefined)
-      }));
-
       // Mock workspace.createFileSystemWatcher
-      jest.spyOn(vscode.workspace, 'createFileSystemWatcher').mockReturnValue({
-        onDidCreate: jest.fn(),
-        onDidChange: jest.fn(),
-        dispose: jest.fn()
+      vi.spyOn(vscode.workspace, 'createFileSystemWatcher').mockReturnValue({
+        onDidCreate: vi.fn(),
+        onDidChange: vi.fn(),
+        dispose: vi.fn()
       } as unknown as vscode.FileSystemWatcher);
     });
 
@@ -271,7 +271,7 @@ describe('index tests', () => {
 
       const unexpectedStart = new Error('unexpected Apex language server start');
 
-      const activateLanguageClientSpy = jest
+      const activateLanguageClientSpy = vi
         .spyOn(languageClientManager, 'activateLanguageClient')
         .mockReturnValue(Effect.die(unexpectedStart));
 
@@ -294,7 +294,7 @@ describe('index tests', () => {
 
       const expectedStart = new Error('expected Apex language server start');
 
-      const activateLanguageClientSpy = jest
+      const activateLanguageClientSpy = vi
         .spyOn(languageClientManager, 'activateLanguageClient')
         .mockReturnValue(Effect.die(expectedStart));
 
@@ -305,13 +305,13 @@ describe('index tests', () => {
   });
 
   describe('deactivate', () => {
-    let stopSpy: jest.SpyInstance;
+    let stopSpy: VitestMockInstance;
 
     beforeEach(() => {
-      stopSpy = jest.fn();
-      jest
-        .spyOn(languageClientManager, 'getClientInstance')
-        .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
+      stopSpy = vi.fn();
+      vi.spyOn(languageClientManager, 'getClientInstance').mockReturnValue({
+        stop: stopSpy
+      } as unknown as ApexLanguageClient);
     });
 
     it('should call stop on the language client', async () => {
@@ -320,7 +320,7 @@ describe('index tests', () => {
     });
 
     it('should handle case when client instance is null', async () => {
-      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(undefined);
+      vi.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(undefined);
       await index.deactivate();
       expect(stopSpy).not.toHaveBeenCalled();
     });

@@ -10,7 +10,7 @@ import { runQuery } from '../../../src/editor/queryRunner';
 
 describe('runQuery ALL ROWS handling', () => {
   const makeConn = () => {
-    const query = jest.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
+    const query = vi.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
     return { conn: { query } as unknown as Connection, query };
   };
 

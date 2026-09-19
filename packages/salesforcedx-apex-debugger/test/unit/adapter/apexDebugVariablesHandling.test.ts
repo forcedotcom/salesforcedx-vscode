@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import {
   ApexDebug,
@@ -466,7 +467,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
   describe('resolveApexIdToVariableReference', () => {
     let adapter: ApexDebugForTest;
-    let referencesSpy: jest.SpyInstance;
+    let referencesSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
@@ -503,7 +504,7 @@ describe('Debugger adapter variable handling - unit', () => {
           ]
         }
       ];
-      referencesSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(
+      referencesSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue(
         JSON.stringify({
           referencesResponse: {
             references: {
@@ -525,7 +526,7 @@ describe('Debugger adapter variable handling - unit', () => {
   });
 
   describe('ApexDebugStackFrameInfo', () => {
-    let stateSpy: jest.SpyInstance;
+    let stateSpy: VitestMockInstance;
     let adapter: ApexDebugForTest;
 
     beforeEach(() => {
@@ -567,8 +568,8 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
-      jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
+      stateSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
+      vi.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -617,8 +618,8 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
-      jest.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
+      stateSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(stateResponse));
+      vi.spyOn(BreakpointService.prototype, 'getSourcePathFromTyperef').mockReturnValue('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -658,7 +659,7 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = jest.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(frameRespObj));
+      stateSpy = vi.spyOn(RequestService.prototype, 'execute').mockResolvedValue(JSON.stringify(frameRespObj));
 
       // when
       await adapter.fetchFrameVariables(frameInfo);
@@ -752,7 +753,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.locals[0] = variableValue;
-      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
+      vi.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Local, 1001);
 
       const localScope = new ScopeContainer('local', frameInfo);
@@ -772,7 +773,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.statics[0] = variableValue;
-      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
+      vi.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Static, 1001);
 
       const localScope = new ScopeContainer('static', frameInfo);
@@ -792,7 +793,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics = [];
       frameInfo.globals = [];
       frameInfo.globals[0] = variableValue;
-      jest.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
+      vi.spyOn(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference').mockResolvedValue(1001);
       const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Global, 1001);
 
       const localScope = new ScopeContainer('global', frameInfo);
@@ -804,13 +805,13 @@ describe('Debugger adapter variable handling - unit', () => {
 
   describe('variablesRequest', () => {
     let adapter: ApexDebugForTest;
-    let resetIdleTimersSpy: jest.SpyInstance;
+    let resetIdleTimersSpy: VitestMockInstance;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-      resetIdleTimersSpy = jest.spyOn(ApexDebugForTest.prototype, 'resetIdleTimer');
+      resetIdleTimersSpy = vi.spyOn(ApexDebugForTest.prototype, 'resetIdleTimer');
     });
 
     it('Should return no variables for unknown variablesReference', async () => {

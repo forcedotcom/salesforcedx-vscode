@@ -4,22 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
-const vscodeMocked = jest.mocked(vscode);
+const vscodeMocked = vi.mocked(vscode);
 
 describe('LogStream', () => {
   const fakeExtensionId = 'myExtension';
   const fakeLogFilePath = '/path/to/logs';
   let logStream: LogStream;
-  let writeFileSpy: jest.SpyInstance;
+  let writeFileSpy: VitestMockInstance;
 
   const expectedUri = Utils.joinPath(URI.file(fakeLogFilePath), `${fakeExtensionId}.txt`);
 
   beforeEach(() => {
-    writeFileSpy = jest.spyOn(vscodeMocked.workspace.fs, 'writeFile');
+    writeFileSpy = vi.spyOn(vscodeMocked.workspace.fs, 'writeFile');
     writeFileSpy.mockResolvedValue(undefined);
   });
 

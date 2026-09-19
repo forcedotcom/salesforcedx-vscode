@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import type { Connection } from '@salesforce/core';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -25,12 +26,12 @@ type ListItem = {
   lastModifiedDate?: string;
 };
 
-const recordMetadataListing = jest.fn(() => Effect.void);
+const recordMetadataListing = vi.fn(() => Effect.void);
 
 const createMockConnectionService = (
   listResult: ListItem | ListItem[],
-  listMock = jest.fn().mockResolvedValue(listResult)
-): { layer: Layer.Layer<ConnectionService>; listMock: jest.Mock } => ({
+  listMock = vi.fn().mockResolvedValue(listResult)
+): { layer: Layer.Layer<ConnectionService>; listMock: VitestMock } => ({
   listMock,
   layer: Layer.succeed(
     ConnectionService,
@@ -44,7 +45,7 @@ const createMockConnectionService = (
         Effect.succeed({
           version: '60.0',
           metadata: {
-            list: jest.fn().mockResolvedValue(listResult)
+            list: vi.fn().mockResolvedValue(listResult)
           }
         } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
@@ -112,7 +113,7 @@ const runListMetadataWithMock = (listResult: ListItem | ListItem[], type: string
 };
 
 describe('MetadataDescribeService.listMetadata', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it('sorts an out-of-order array by fullName', async () => {
     const result = await runListMetadata([

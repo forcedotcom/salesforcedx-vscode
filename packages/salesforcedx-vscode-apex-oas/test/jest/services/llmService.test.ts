@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -16,14 +17,15 @@ import { LLMService } from '../../../src/services/llmService';
 /** Mock the service provider so we control whether/when an LLM service can be obtained. The `getService`
  * mock is created up front and referenced directly (never extracted off the namespace) to keep ESLint's
  * unbound-method rule satisfied. */
-const mockGetService = jest.fn();
-jest.mock('@salesforce/vscode-service-provider', () => ({
-  ServiceProvider: { getService: (...args: unknown[]) => mockGetService(...args) },
-  ServiceType: { LLMService: 'LLMService' }
-}));
+const mockGetService = vi.fn();
+vi.mock('@salesforce/vscode-service-provider', () => {
+  const ServiceProvider = { getService: (...args: unknown[]) => mockGetService(...args) };
+  const ServiceType = { LLMService: 'LLMService' };
+  return { default: { ServiceProvider, ServiceType }, ServiceProvider, ServiceType };
+});
 
 /** Handle to the shared vscode mock's getExtension (used by the v4-regression hint). */
-const mockGetExtension = vscode.extensions.getExtension as unknown as jest.Mock;
+const mockGetExtension = vscode.extensions.getExtension as unknown as VitestMock;
 /** Make getExtension report the GPT extension installed at the given version (or absent when undefined). */
 const setGptExtensionVersion = (version: string | undefined): void => {
   mockGetExtension.mockReturnValue(version === undefined ? undefined : { packageJSON: { version } });
@@ -41,7 +43,7 @@ describe('LLMService.ensureAvailable', () => {
   });
 
   it('succeeds when the service is obtainable on the first try', async () => {
-    mockGetService.mockResolvedValue({ callLLM: jest.fn() });
+    mockGetService.mockResolvedValue({ callLLM: vi.fn() });
     const exit = await runEnsureAvailable();
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(mockGetService).toHaveBeenCalledTimes(1);
@@ -51,7 +53,7 @@ describe('LLMService.ensureAvailable', () => {
     // Fail-fast on the first attempt (command not registered yet), then succeed — mirrors the activation race.
     mockGetService
       .mockRejectedValueOnce(new Error('Command llmservice cannot be found in the current vscode session.'))
-      .mockResolvedValue({ callLLM: jest.fn() });
+      .mockResolvedValue({ callLLM: vi.fn() });
     const exit = await runEnsureAvailable();
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(mockGetService.mock.calls.length).toBeGreaterThanOrEqual(2);
@@ -120,7 +122,7 @@ describe('LLMService.callLLM error classification', () => {
 
   /** Drive the real callLLM through a controllable service-instance callLLM that rejects with `cause`. */
   const runCallLLMRejecting = (cause: Error) => {
-    mockGetService.mockResolvedValue({ callLLM: jest.fn().mockRejectedValue(cause) });
+    mockGetService.mockResolvedValue({ callLLM: vi.fn().mockRejectedValue(cause) });
     return Effect.runPromiseExit(LLMService.callLLM('prompt', undefined, 750).pipe(Effect.provide(LLMService.Default)));
   };
 

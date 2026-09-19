@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -15,8 +16,8 @@ import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../sr
 // Both commands shell out to `sf org display --json` via TerminalService.simpleExec (mirrors
 // orgCreate/orgOpen); the picker is mocked so the tests assert command construction, table
 // rendering from the CLI JSON, and the failure/parse branches.
-const gatherOrgForDisplay = jest.fn();
-jest.mock('../../../src/parameterGatherers/selectOrgForDisplay', () => ({
+const gatherOrgForDisplay = vi.fn();
+vi.mock('../../../src/parameterGatherers/selectOrgForDisplay', () => ({
   gatherOrgForDisplay: () => gatherOrgForDisplay()
 }));
 
@@ -64,10 +65,10 @@ type OrgSnapshot = { orgId?: string; username?: string };
 type Opts = {
   isProject?: boolean;
   orgInfo?: OrgSnapshot;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  show: jest.Mock;
-  withProgress?: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  show: VitestMock;
+  withProgress?: VitestMock;
 };
 
 const buildServices = (opts: Opts) => ({
@@ -110,15 +111,15 @@ const run = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernam
   );
 
 describe('orgDisplayDefaultCommand', () => {
-  let simpleExec: jest.Mock;
-  let appendToChannel: jest.Mock;
-  let show: jest.Mock;
+  let simpleExec: VitestMock;
+  let appendToChannel: VitestMock;
+  let show: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
-    appendToChannel = jest.fn();
-    show = jest.fn();
+    vi.clearAllMocks();
+    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    appendToChannel = vi.fn();
+    show = vi.fn();
   });
 
   it('runs `sf org display --target-org <default> --json` and writes the table to the channel', async () => {
@@ -139,7 +140,7 @@ describe('orgDisplayDefaultCommand', () => {
   });
 
   it('wraps the sf round-trip in a cancellable progress notification', async () => {
-    const withProgress = jest.fn();
+    const withProgress = vi.fn();
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show, withProgress });
 
@@ -157,7 +158,7 @@ describe('orgDisplayDefaultCommand', () => {
   });
 
   it('renders the non-scratch table (connectedStatus, no scratch block)', async () => {
-    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(NON_SCRATCH_RESULT)));
+    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(NON_SCRATCH_RESULT)));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -178,7 +179,7 @@ describe('orgDisplayDefaultCommand', () => {
   });
 
   it('appends the failure message when sf returns a non-zero status (proves Match.tag dispatch)', async () => {
-    simpleExec = jest.fn(() => Effect.succeed(JSON.stringify({ status: 68, message: 'No default environment found' })));
+    simpleExec = vi.fn(() => Effect.succeed(JSON.stringify({ status: 68, message: 'No default environment found' })));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -190,7 +191,7 @@ describe('orgDisplayDefaultCommand', () => {
   it('recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload', async () => {
     // sf exits non-zero on failure, so simpleExec fails; its message carries the JSON error payload,
     // which decodeTaggedCliResponse extracts after TerminalService's command-free failure prefix.
-    simpleExec = jest.fn(() =>
+    simpleExec = vi.fn(() =>
       Effect.fail(
         new TerminalServiceError({
           message: `Command failed\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
@@ -208,7 +209,7 @@ describe('orgDisplayDefaultCommand', () => {
   it('propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)', async () => {
     // infra failure, not a CLI-reported one: there is nothing to decode, so the typed error must reach
     // ErrorHandlerService with its real diagnostic instead of becoming an opaque OrgDisplayParseError.
-    simpleExec = jest.fn(() => Effect.fail(new TerminalServiceError({ message: 'sh: sf: command not found' })));
+    simpleExec = vi.fn(() => Effect.fail(new TerminalServiceError({ message: 'sh: sf: command not found' })));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -223,7 +224,7 @@ describe('orgDisplayDefaultCommand', () => {
 
   it('renders the table when stdout is prefixed with a CLI warning line', async () => {
     // sf can prepend non-JSON warning lines even with --json + SF_JSON_TO_STDOUT (seen on macOS CI).
-    simpleExec = jest.fn(() =>
+    simpleExec = vi.fn(() =>
       Effect.succeed(`Warning: The following orgs expire in the next 5 days:\n${stdoutFor(SCRATCH_RESULT)}`)
     );
 
@@ -234,7 +235,7 @@ describe('orgDisplayDefaultCommand', () => {
   });
 
   it('fails with OrgDisplayParseError on malformed stdout and writes nothing', async () => {
-    simpleExec = jest.fn(() => Effect.succeed('not json at all'));
+    simpleExec = vi.fn(() => Effect.succeed('not json at all'));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -246,15 +247,15 @@ describe('orgDisplayDefaultCommand', () => {
 });
 
 describe('orgDisplayUsernameCommand', () => {
-  let simpleExec: jest.Mock;
-  let appendToChannel: jest.Mock;
-  let show: jest.Mock;
+  let simpleExec: VitestMock;
+  let appendToChannel: VitestMock;
+  let show: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
-    appendToChannel = jest.fn();
-    show = jest.fn();
+    vi.clearAllMocks();
+    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    appendToChannel = vi.fn();
+    show = vi.fn();
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
   });
 

@@ -27,7 +27,7 @@ describe('waitForLanguageClientReady', () => {
   });
 
   it('returns false after language-client readiness polling expires', async () => {
-    const getStatus = jest.fn(() => status(false, false));
+    const getStatus = vi.fn(() => status(false, false));
     const result = await Effect.runPromise(
       Effect.gen(function* () {
         const fiber = yield* Effect.fork(waitForLanguageClientReady(getStatus));

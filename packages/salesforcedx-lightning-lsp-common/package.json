@@ -77,20 +77,24 @@
       ]
     },
     "test": {
-      "command": "jest",
+      "command": "vitest run",
       "dependencies": [
         "compile"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "jest/**/*.ts",
-        "jest.config.js",
-        "jest.setup.js",
-        "../../config/jest.base.config.js"
+        "vitest/**/*.ts",
+        "vitest.config.mts",
+        "vitest.setup.js",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage"
+        "coverage",
+        "junit-custom-unitTests.xml"
       ]
     },
     "lint": {
@@ -102,7 +106,7 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "jest/**/*.ts",
+        "vitest/**/*.ts",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -126,7 +130,6 @@
     "@types/ejs": "^3.1.5",
     "@types/vscode": "1.90.0",
     "find-node-modules": "^2.1.3",
-    "jest-extended": "^0.11.5",
     "lwc": "2.50.0"
   }
 }

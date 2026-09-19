@@ -14,7 +14,7 @@ import { isSpanValidForProductionTelemetry } from '../../../src/observability/sp
 // isTelemetryExtensionConfigurationEnabled reads config.get; spy explicitly each test so results are
 // independent of the shared default mock (resetMocks clears the spy between tests).
 const spyConfig = (enabled: boolean): void => {
-  jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
+  vi.spyOn(workspace, 'getConfiguration').mockReturnValue({
     get: () => enabled
   } as unknown as ReturnType<typeof workspace.getConfiguration>);
 };

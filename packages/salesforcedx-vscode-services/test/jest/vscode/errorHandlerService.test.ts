@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
@@ -19,8 +20,8 @@ describe('ErrorHandlerService', () => {
   let mockChannel: vscode.OutputChannel;
   let mockChannelService: ChannelService;
   let errorHandler: ErrorHandlerService;
-  let showErrorMessageSpy: jest.SpyInstance;
-  let showInformationMessageSpy: jest.SpyInstance;
+  let showErrorMessageSpy: VitestMockInstance;
+  let showInformationMessageSpy: VitestMockInstance;
 
   beforeEach(() => {
     // Mock OutputChannel
@@ -38,8 +39,8 @@ describe('ErrorHandlerService', () => {
     });
 
     // Mock vscode.window.showErrorMessage
-    showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
-    showInformationMessageSpy = jest.spyOn(vscode.window, 'showInformationMessage').mockResolvedValue(undefined);
+    showErrorMessageSpy = vi.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
+    showInformationMessageSpy = vi.spyOn(vscode.window, 'showInformationMessage').mockResolvedValue(undefined);
 
     // Create ErrorHandlerService with mocked ChannelService
     const layer = Layer.provide(ErrorHandlerService.Default, Layer.succeed(ChannelService, mockChannelService));
@@ -47,7 +48,7 @@ describe('ErrorHandlerService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('handleCause', () => {

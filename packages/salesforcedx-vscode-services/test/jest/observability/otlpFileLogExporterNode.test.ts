@@ -5,17 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExportResultCode } from '@opentelemetry/core';
 import type { ReadableLogRecord } from '@opentelemetry/sdk-logs';
 import * as fs from 'node:fs';
 import { OtlpFileLogExporterNode } from '../../../src/observability/otlpFileLogExporterNode';
 
-jest.mock('node:fs');
-jest.mock('../../../src/observability/otlpFileSpanExporterNode', () => ({
+vi.mock('node:fs');
+vi.mock('../../../src/observability/otlpFileSpanExporterNode', () => ({
   getOtlpFilePath: () => '/tmp/test-otlp.jsonl'
 }));
 
-const mockAppendFileSync = fs.appendFileSync as jest.Mock;
+const mockAppendFileSync = fs.appendFileSync as VitestMock;
 
 const makeLogRecord = (overrides: Partial<ReadableLogRecord> = {}): ReadableLogRecord =>
   ({
@@ -37,7 +38,7 @@ describe('OtlpFileLogExporterNode', () => {
 
   it('writes to the shared OTLP file path', () => {
     const exporter = new OtlpFileLogExporterNode();
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([makeLogRecord()], callback);
 
@@ -47,7 +48,7 @@ describe('OtlpFileLogExporterNode', () => {
 
   it('serializes log records with kind discriminator and trace correlation', () => {
     const exporter = new OtlpFileLogExporterNode();
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([makeLogRecord()], callback);
 
@@ -66,7 +67,7 @@ describe('OtlpFileLogExporterNode', () => {
 
   it('handles missing span context', () => {
     const exporter = new OtlpFileLogExporterNode();
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([makeLogRecord({ spanContext: undefined })], callback);
 
@@ -79,7 +80,7 @@ describe('OtlpFileLogExporterNode', () => {
 
   it('handles empty log array without writing', () => {
     const exporter = new OtlpFileLogExporterNode();
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([], callback);
 
@@ -92,7 +93,7 @@ describe('OtlpFileLogExporterNode', () => {
       throw new Error('disk full');
     });
     const exporter = new OtlpFileLogExporterNode();
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     exporter.export([makeLogRecord()], callback);
 

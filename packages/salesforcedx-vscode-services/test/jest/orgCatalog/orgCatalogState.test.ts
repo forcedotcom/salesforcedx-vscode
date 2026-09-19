@@ -20,8 +20,8 @@ import {
 
 const makeStore = (snapshot?: OrgMetadataCatalogSnapshot) => {
   const saved: OrgMetadataCatalogSnapshot[] = [];
-  const load = jest.fn(() => Effect.succeed(snapshot));
-  const save = jest.fn((next: OrgMetadataCatalogSnapshot) =>
+  const load = vi.fn(() => Effect.succeed(snapshot));
+  const save = vi.fn((next: OrgMetadataCatalogSnapshot) =>
     Effect.sync(() => {
       saved.push(next);
       return URI.file(`/workspace/${next.orgId}/catalog.json`);

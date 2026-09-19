@@ -30,7 +30,7 @@ describe('showVerificationCodeIfNeeded', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {

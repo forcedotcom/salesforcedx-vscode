@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 
 const mockChannel = {
   appendToChannel: (msg: string) => Effect.void,
   clearChannel: Effect.void,
-  getChannel: Effect.succeed({ show: jest.fn() })
+  getChannel: Effect.succeed({ show: vi.fn() })
 };
 
 const mockExtensionProvider = {
@@ -19,7 +20,10 @@ const mockExtensionProvider = {
   } as unknown as SalesforceVSCodeServicesApi)
 };
 
-jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/effect-ext-utils'));
+vi.mock(
+  '@salesforce/effect-ext-utils',
+  async () => await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils')
+);
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
@@ -726,8 +730,8 @@ describe('DataQuery Pure Functions', () => {
 
   describe('runSoqlQuery ALL ROWS handling', () => {
     const makeApiMock = () => {
-      const restQuery = jest.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
-      const toolingQuery = jest.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
+      const restQuery = vi.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
+      const toolingQuery = vi.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
       const connection = { query: restQuery, tooling: { query: toolingQuery } };
       const mockPromptService = {
         withProgress:
@@ -798,7 +802,7 @@ describe('DataQuery Pure Functions', () => {
 
   describe('displayTableResults', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     const runWithMocks = <A>(eff: Effect.Effect<A, unknown, ExtensionProviderService | ChannelService>) =>
@@ -986,7 +990,7 @@ describe('DataQuery Pure Functions', () => {
 
   describe('executeDataQuery', () => {
     beforeEach(() => {
-      (vscode.window.showInformationMessage as jest.Mock).mockResolvedValue(undefined);
+      (vscode.window.showInformationMessage as VitestMock).mockResolvedValue(undefined);
     });
 
     const noopPromptService = {
@@ -996,9 +1000,9 @@ describe('DataQuery Pure Functions', () => {
           self
     } as unknown as PromptService;
 
-    const makeProvider = (query: jest.Mock) => {
-      const show = jest.fn();
-      const appendToChannel = jest.fn((_msg: string) => Effect.void);
+    const makeProvider = (query: VitestMock) => {
+      const show = vi.fn();
+      const appendToChannel = vi.fn((_msg: string) => Effect.void);
       const channel = {
         appendToChannel,
         clearChannel: Effect.void,
@@ -1020,7 +1024,7 @@ describe('DataQuery Pure Functions', () => {
       return { provider, show, appendToChannel };
     };
 
-    const run = (query: jest.Mock) => {
+    const run = (query: VitestMock) => {
       const { provider, show, appendToChannel } = makeProvider(query);
       return Effect.runPromise(
         executeDataQuery('SELECT Id FROM Account', 'REST').pipe(
@@ -1036,14 +1040,14 @@ describe('DataQuery Pure Functions', () => {
     };
 
     it('routes a query rejection through catchAllCause: appends formatted error and shows channel once', async () => {
-      const query = jest.fn().mockRejectedValue(new Error('boom'));
+      const query = vi.fn().mockRejectedValue(new Error('boom'));
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_error_message', 'boom'));
       expect(show).toHaveBeenCalledTimes(1);
     });
 
     it('appends completion message and shows channel once on success', async () => {
-      const query = jest.fn().mockResolvedValue({ records: [{ Id: '001' }], totalSize: 1, done: true });
+      const query = vi.fn().mockResolvedValue({ records: [{ Id: '001' }], totalSize: 1, done: true });
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_complete', 1));
       expect(show).toHaveBeenCalledTimes(1);

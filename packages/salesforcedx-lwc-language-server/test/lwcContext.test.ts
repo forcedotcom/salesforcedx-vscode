@@ -35,7 +35,7 @@ beforeAll(() => {
     }) as Connection
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
@@ -44,20 +44,19 @@ beforeAll(() => {
     }
     return Promise.resolve(undefined);
   });
-  jest
-    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+    Promise.resolve(contentMap.get(normalizePath(uri)))
+  );
+  vi.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
     return Promise.resolve();
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
     contentMap.delete(normalizePath(pathOrUri));
     return Promise.resolve();
   });
-  jest
-    .spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync')
-    .mockImplementation((pattern: string, basePath: NormalizedPath) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync').mockImplementation(
+    (pattern: string, basePath: NormalizedPath) => {
       const base = normalizePath(basePath);
       const prefix = `${base}/`;
       const results: NormalizedPath[] = [];
@@ -70,7 +69,8 @@ beforeAll(() => {
         }
       }
       return Promise.resolve(results);
-    });
+    }
+  );
 });
 
 describe('LWCWorkspaceContext', () => {
@@ -172,7 +172,7 @@ describe('LWCWorkspaceContext', () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
     context.connection = {
-      sendRequest: jest.fn().mockResolvedValue({ applied: true })
+      sendRequest: vi.fn().mockResolvedValue({ applied: true })
     } as unknown as Connection;
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
@@ -233,7 +233,7 @@ describe('LWCWorkspaceContext', () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemAccessor);
     context.initialize('SFDX');
     context.connection = {
-      sendRequest: jest.fn().mockResolvedValue({ applied: true })
+      sendRequest: vi.fn().mockResolvedValue({ applied: true })
     } as unknown as Connection;
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
 

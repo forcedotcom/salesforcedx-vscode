@@ -4,23 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as vscode from 'vscode';
 import * as workspaceUtils from '../../../../src/workspaces/workspaceUtils';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+vi.mock('vscode');
+const vscodeMocked = vi.mocked(vscode, { deep: true });
 
 describe('TelemetryFile', () => {
   let telemetryFile: TelemetryFile;
-  let writeToFileMock: jest.SpyInstance;
-  let getRootWorkspacePathSpy: jest.SpyInstance;
+  let writeToFileMock: VitestMockInstance;
+  let getRootWorkspacePathSpy: VitestMockInstance;
   const dummyExtensionId = 'extensionId';
   const mockWorkspacePath = '/mock/workspace/path';
 
   beforeEach(() => {
     // Mock getRootWorkspacePath first
-    getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(mockWorkspacePath);
+    getRootWorkspacePathSpy = vi.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(mockWorkspacePath);
 
     // Mock Uri.file before creating TelemetryFile instance
     vscodeMocked.Uri.file.mockImplementation(filePath => ({
@@ -30,14 +31,14 @@ describe('TelemetryFile', () => {
       path: filePath,
       query: '',
       fragment: '',
-      with: jest.fn(),
-      toString: jest.fn().mockReturnValue(`file://${filePath}`),
-      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+      with: vi.fn(),
+      toString: vi.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: vi.fn().mockReturnValue({ scheme: 'file', path: filePath })
     }));
 
     // Create TelemetryFile instance after mocks are set up
     telemetryFile = new TelemetryFile(dummyExtensionId);
-    writeToFileMock = jest.spyOn(telemetryFile as any, 'writeToFile');
+    writeToFileMock = vi.spyOn(telemetryFile as any, 'writeToFile');
     vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
   });
 
@@ -92,14 +93,14 @@ describe('TelemetryFile', () => {
 
   describe('writeToFile', () => {
     it('should append data to the telemetry file', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
+      vi.useFakeTimers().setSystemTime(new Date('2020-01-01'));
       const eventName = 'testEvent';
       const properties = { key1: 'value1', key2: 'value2' };
 
       await (telemetryFile as any).writeToFile(eventName, properties);
 
       expect(vscodeMocked.workspace.fs.writeFile).toHaveBeenCalled();
-      const writeCall = (vscodeMocked.workspace.fs.writeFile as jest.Mock).mock.calls[0];
+      const writeCall = (vscodeMocked.workspace.fs.writeFile as VitestMock).mock.calls[0];
       const writtenData = writeCall[1].toString();
       expect([`${dummyExtensionId}-telemetry.json`, writtenData]).toMatchSnapshot();
     });

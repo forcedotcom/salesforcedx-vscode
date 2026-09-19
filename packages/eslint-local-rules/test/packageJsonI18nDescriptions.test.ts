@@ -5,18 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mocked as VitestMocked } from 'vitest';
 import * as fs from 'node:fs';
 import { packageJsonI18nDescriptions } from '../src/packageJsonI18nDescriptions';
 import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
-jest.mock('node:fs');
-const mockFs = fs as jest.Mocked<typeof fs>;
+vi.mock('node:fs');
+const mockFs = fs as VitestMocked<typeof fs>;
 
 const RULE_NAME = 'package-json-i18n-descriptions';
 
 describe('package-json-i18n-descriptions', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should be exported', () => {

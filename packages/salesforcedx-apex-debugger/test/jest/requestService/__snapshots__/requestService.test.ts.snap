@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`RequestService unit tests. execute() Should include proxy authorization info if defined. 1`] = `
+exports[`RequestService unit tests. > execute() > Should include proxy authorization info if defined. 1`] = `
 [
   {
     "data": "this-is-a-test-request-body",
@@ -19,7 +19,7 @@ exports[`RequestService unit tests. execute() Should include proxy authorization
 ]
 `;
 
-exports[`RequestService unit tests. execute() Should include proxy info if defined. 1`] = `
+exports[`RequestService unit tests. > execute() > Should include proxy info if defined. 1`] = `
 [
   {
     "data": "this-is-a-test-request-body",
@@ -37,7 +37,7 @@ exports[`RequestService unit tests. execute() Should include proxy info if defin
 ]
 `;
 
-exports[`RequestService unit tests. execute() Should include query string if defined. 1`] = `
+exports[`RequestService unit tests. > execute() > Should include query string if defined. 1`] = `
 [
   {
     "data": undefined,

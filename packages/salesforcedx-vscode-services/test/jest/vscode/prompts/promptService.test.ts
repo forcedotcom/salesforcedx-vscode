@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as vscode from 'vscode';
@@ -16,16 +17,16 @@ const runConfirm = (params: { message: string; confirmLabel: string }) =>
   );
 
 describe('PromptService.confirmOrThrow', () => {
-  let showWarningMessageSpy: jest.SpyInstance;
+  let showWarningMessageSpy: VitestMockInstance;
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('resolves when the user clicks the confirm button', async () => {
-    showWarningMessageSpy = jest
+    showWarningMessageSpy = vi
       .spyOn(vscode.window, 'showWarningMessage')
-      // showWarningMessage with string items resolves to `string | undefined`; jest.spyOn infers the
+      // showWarningMessage with string items resolves to `string | undefined`; vi.spyOn infers the
       // MessageItem overload, so cast the spy's resolved value to that overload's type.
       .mockResolvedValue('Delete' as unknown as vscode.MessageItem);
 
@@ -36,7 +37,7 @@ describe('PromptService.confirmOrThrow', () => {
   });
 
   it('fails with UserCancellationError when the user dismisses the modal', async () => {
-    jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+    vi.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
 
     const exit = await runConfirm({ message: 'Delete the org?', confirmLabel: 'Delete' });
 
@@ -47,15 +48,15 @@ describe('PromptService.confirmOrThrow', () => {
 
 describe('PromptService.withCancellableProgressReporting', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('surfaces progress + token to the wrapped effect and returns its value', async () => {
     const tokenSource = new vscode.CancellationTokenSource();
     // invoke the withProgress callback synchronously with a real progress + the (uncancelled) token
-    jest
-      .spyOn(vscode.window, 'withProgress')
-      .mockImplementation((_opts: any, cb: any) => cb({ report: jest.fn() }, tokenSource.token));
+    vi.spyOn(vscode.window, 'withProgress').mockImplementation((_opts: any, cb: any) =>
+      cb({ report: vi.fn() }, tokenSource.token)
+    );
 
     const exit = await Effect.runPromiseExit(
       Effect.flatMap(PromptService, svc =>
@@ -75,8 +76,8 @@ describe('PromptService.withCancellableProgressReporting', () => {
   it('interrupts the wrapped effect and fails with UserCancellationError when the token is cancelled', async () => {
     const tokenSource = new vscode.CancellationTokenSource();
     // fire cancel after registering the handler, then resolve the progress promise
-    jest.spyOn(vscode.window, 'withProgress').mockImplementation((_opts: any, cb: any) => {
-      const promise = cb({ report: jest.fn() }, tokenSource.token);
+    vi.spyOn(vscode.window, 'withProgress').mockImplementation((_opts: any, cb: any) => {
+      const promise = cb({ report: vi.fn() }, tokenSource.token);
       tokenSource.cancel();
       return promise;
     });

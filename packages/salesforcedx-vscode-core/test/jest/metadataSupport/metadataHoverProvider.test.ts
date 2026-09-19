@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { isNotNull } from 'effect/Predicate';
 import { MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
@@ -17,33 +18,34 @@ import {
 } from '../../../src/metadataSupport/metadataHoverProvider';
 
 // Mock MarkdownString after import
-(vscode.MarkdownString as jest.Mock) = jest.fn().mockImplementation(() => ({
-  appendCodeblock: jest.fn().mockReturnThis(),
-  appendMarkdown: jest.fn().mockReturnThis(),
-  value: ''
-}));
+(vscode.MarkdownString as VitestMock) = vi.fn().mockImplementation(function () {
+  return {
+    appendCodeblock: vi.fn().mockReturnThis(),
+    appendMarkdown: vi.fn().mockReturnThis(),
+    value: ''
+  };
+});
 
-(vscode.Hover as jest.Mock) = jest.fn().mockImplementation((contents, range) => ({
-  contents,
-  range
-}));
+(vscode.Hover as VitestMock) = vi.fn().mockImplementation(function (contents, range) {
+  return { contents, range };
+});
 
 // Mock MetadataDocumentationService
 const createMockDocumentationService = (
   validTypes: Set<string> = new Set(['ApexClass', 'CustomObject', 'CustomField'])
 ) =>
   ({
-    isValidMetadataType: jest.fn((type: string) => validTypes.has(type)),
-    getDocumentation: jest.fn(),
-    getFieldDocumentation: jest.fn(),
-    initialize: jest.fn().mockResolvedValue(undefined)
+    isValidMetadataType: vi.fn((type: string) => validTypes.has(type)),
+    getDocumentation: vi.fn(),
+    getFieldDocumentation: vi.fn(),
+    initialize: vi.fn().mockResolvedValue(undefined)
   }) as any as MetadataDocumentationService;
 
 // Mock document
 const createMockDocument = (fileName: string, content: string) =>
   ({
     fileName,
-    getText: jest.fn((range?: vscode.Range) => {
+    getText: vi.fn((range?: vscode.Range) => {
       if (!range) return content;
       const lines = content.split('\n');
       if (range.start.line === range.end.line) {
@@ -52,7 +54,7 @@ const createMockDocument = (fileName: string, content: string) =>
       }
       return content; // For multi-line ranges, return full content for simplicity
     }),
-    getWordRangeAtPosition: jest.fn((position: vscode.Position) => {
+    getWordRangeAtPosition: vi.fn((position: vscode.Position) => {
       const lines = content.split('\n');
       const line = lines[position.line];
       if (!line) return undefined;
@@ -100,7 +102,7 @@ const createMockDocument = (fileName: string, content: string) =>
         end: { line: position.line, character: end }
       } as vscode.Range;
     }),
-    lineAt: jest.fn((line: number) => ({
+    lineAt: vi.fn((line: number) => ({
       text: content.split('\n')[line] || '',
       lineNumber: line
     }))
@@ -111,7 +113,7 @@ describe('MetadataHoverProvider', () => {
 
   beforeEach(() => {
     hoverProvider = new MetadataHoverProvider();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isMetadataFile', () => {
@@ -358,28 +360,32 @@ describe('MetadataHoverProvider', () => {
     beforeEach(() => {
       // Mock the documentation service to return test data
       const mockDocumentationService = {
-        isValidMetadataType: jest.fn((type: string) =>
+        isValidMetadataType: vi.fn((type: string) =>
           ['ApexClass', 'CustomObject', 'Flow', 'Prompt', 'PromptVersion', 'ApexComponent'].includes(type)
         ),
-        getFieldDocumentation: jest.fn(),
-        getDocumentation: jest.fn()
+        getFieldDocumentation: vi.fn(),
+        getDocumentation: vi.fn()
       };
       (hoverProvider as any).documentationService = mockDocumentationService;
 
       // Mock MarkdownString constructor
       Object.defineProperty(vscode, 'MarkdownString', {
-        value: jest.fn().mockImplementation(() => ({
-          appendCodeblock: jest.fn().mockReturnThis(),
-          appendMarkdown: jest.fn().mockReturnThis(),
-          value: ''
-        })),
+        value: vi.fn().mockImplementation(function () {
+          return {
+            appendCodeblock: vi.fn().mockReturnThis(),
+            appendMarkdown: vi.fn().mockReturnThis(),
+            value: ''
+          };
+        }),
         writable: true,
         configurable: true
       });
 
       // Mock Hover constructor
       Object.defineProperty(vscode, 'Hover', {
-        value: jest.fn().mockImplementation((contents, range) => ({ contents, range })),
+        value: vi.fn().mockImplementation(function (contents, range) {
+          return { contents, range };
+        }),
         writable: true,
         configurable: true
       });
@@ -711,28 +717,32 @@ describe('MetadataHoverProvider', () => {
     beforeEach(() => {
       // Mock the documentation service
       const mockDocumentationService = {
-        isValidMetadataType: jest.fn((type: string) =>
+        isValidMetadataType: vi.fn((type: string) =>
           ['ApexClass', 'CustomObject', 'Flow', 'Prompt', 'PromptVersion', 'ApexComponent'].includes(type)
         ),
-        getDocumentation: jest.fn(),
-        getFieldDocumentation: jest.fn()
+        getDocumentation: vi.fn(),
+        getFieldDocumentation: vi.fn()
       };
       (hoverProvider as any).documentationService = mockDocumentationService;
 
       // Mock MarkdownString constructor
       Object.defineProperty(vscode, 'MarkdownString', {
-        value: jest.fn().mockImplementation(() => ({
-          appendCodeblock: jest.fn().mockReturnThis(),
-          appendMarkdown: jest.fn().mockReturnThis(),
-          value: ''
-        })),
+        value: vi.fn().mockImplementation(function () {
+          return {
+            appendCodeblock: vi.fn().mockReturnThis(),
+            appendMarkdown: vi.fn().mockReturnThis(),
+            value: ''
+          };
+        }),
         writable: true,
         configurable: true
       });
 
       // Mock Hover constructor
       Object.defineProperty(vscode, 'Hover', {
-        value: jest.fn().mockImplementation((contents, range) => ({ contents, range })),
+        value: vi.fn().mockImplementation(function (contents, range) {
+          return { contents, range };
+        }),
         writable: true,
         configurable: true
       });

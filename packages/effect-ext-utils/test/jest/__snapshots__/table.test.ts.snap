@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`createTable should align columns correctly with emoji in first column 1`] = `
+exports[`createTable > should align columns correctly with emoji in first column 1`] = `
 "    Type     Alias               Username                     
 ──  ───────  ──────────────────  ─────────────────────────────
     Scratch  nonTrackingTestOrg  test-ysyqxtqwtzfw@example.com
@@ -9,14 +9,14 @@ exports[`createTable should align columns correctly with emoji in first column 1
 "
 `;
 
-exports[`createTable should create a simple table with 1 row and 3 columns 1`] = `
+exports[`createTable > should create a simple table with 1 row and 3 columns 1`] = `
 "Name   Age  City
 ─────  ───  ────
 Alice  30   NYC 
 "
 `;
 
-exports[`createTable should create a table with multiple rows 1`] = `
+exports[`createTable > should create a table with multiple rows 1`] = `
 "Name     Age  City   
 ───────  ───  ───────
 Alice    30   NYC    
@@ -25,7 +25,7 @@ Charlie  35   Chicago
 "
 `;
 
-exports[`createTable should handle empty cells 1`] = `
+exports[`createTable > should handle empty cells 1`] = `
 "Name   Age  City   
 ─────  ───  ───────
 Alice  30   NYC    
@@ -34,7 +34,7 @@ Bob    25
 "
 `;
 
-exports[`createTable should handle empty first column (for emoji markers) 1`] = `
+exports[`createTable > should handle empty first column (for emoji markers) 1`] = `
 "    Type     Alias         
 ──  ───────  ──────────────
     Scratch  testOrg       
@@ -42,7 +42,7 @@ exports[`createTable should handle empty first column (for emoji markers) 1`] = 
 "
 `;
 
-exports[`createTable should handle multiline cells 1`] = `
+exports[`createTable > should handle multiline cells 1`] = `
 "Name   Age  City
 ─────  ───  ────
 Alice  30   NYC 
@@ -51,7 +51,7 @@ Bob    25   LA
 "
 `;
 
-exports[`createTable should handle table with title 1`] = `
+exports[`createTable > should handle table with title 1`] = `
 "=== Test Table
 Name   Age
 ─────  ───
@@ -59,7 +59,7 @@ Alice  30
 "
 `;
 
-exports[`createTable should match org list table format 1`] = `
+exports[`createTable > should match org list table format 1`] = `
 "    Type     Alias                        Username                       Org Id              Status  Expires   
 ──  ───────  ───────────────────────────  ─────────────────────────────  ──────────────────  ──────  ──────────
     Scratch  orgBrowserDreamhouseTestOrg  test-zsnw86qj2ggg@example.com  00DEc00000ZNoxdMAD  Active  2026-02-27

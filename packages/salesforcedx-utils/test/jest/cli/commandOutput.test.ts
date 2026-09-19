@@ -21,13 +21,13 @@ describe('CommandOutput Unit Tests.', () => {
   beforeEach(() => {
     fakeExecution = {
       stdoutSubject: {
-        subscribe: jest.fn()
+        subscribe: vi.fn()
       },
       stderrSubject: {
-        subscribe: jest.fn()
+        subscribe: vi.fn()
       },
       processExitSubject: {
-        subscribe: jest.fn()
+        subscribe: vi.fn()
       },
       command: {
         command: 'sf'

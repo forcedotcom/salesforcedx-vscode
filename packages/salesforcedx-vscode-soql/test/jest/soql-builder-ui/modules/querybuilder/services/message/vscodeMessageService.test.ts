@@ -28,7 +28,7 @@ describe('VscodeMessageService', () => {
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,no-undef
     vsCodeApi = acquireVsCodeApi();
-    listener = jest.fn();
+    listener = vi.fn();
     vscodeMessageService = makeVscodeMessageService();
     vscodeMessageService.onMessage(listener);
   });
@@ -38,7 +38,7 @@ describe('VscodeMessageService', () => {
   });
 
   it('calls postMessage with activated type immediately when created', () => {
-    jest.spyOn(vsCodeApi, 'postMessage');
+    vi.spyOn(vsCodeApi, 'postMessage');
     const service = makeVscodeMessageService();
     expect(vsCodeApi.postMessage).toHaveBeenCalledWith({ type: MessageType.UI_ACTIVATED });
     service.dispose();

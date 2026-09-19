@@ -17,6 +17,7 @@
  * This is a known limitation in the TS + Jest ecosystem.
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { determineLocalReporters, determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
@@ -25,16 +26,16 @@ import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamCo
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
 
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+vi.mock('vscode');
+const vscodeMocked = vi.mocked(vscode);
 
 describe('determineReporters', () => {
   let config: TelemetryReporterConfig;
 
   beforeEach(() => {
     // local logging
-    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('false') });
-    LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(false);
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('false') });
+    LogStreamConfig.isEnabledFor = vi.fn().mockReturnValue(false);
     config = {
       extName: 'salesforcedx-vscode',
       version: '1.0.0',
@@ -51,14 +52,14 @@ describe('determineReporters', () => {
       path: filePath,
       query: '',
       fragment: '',
-      with: jest.fn(),
-      toString: jest.fn().mockReturnValue(`file://${filePath}`),
-      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+      with: vi.fn(),
+      toString: vi.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: vi.fn().mockReturnValue({ scheme: 'file', path: filePath })
     }));
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should return an array', () => {
@@ -81,7 +82,7 @@ describe('determineReporters', () => {
     });
 
     it('should return TelemetryFile reporter when local logging is enabled', () => {
-      vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('true') });
+      vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('true') });
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(1);
       expect(reporters[0]).toBeInstanceOf(TelemetryFile);
@@ -108,7 +109,7 @@ describe('determineReporters', () => {
 
     it('should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled', () => {
       vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
-      LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(true);
+      LogStreamConfig.isEnabledFor = vi.fn().mockReturnValue(true);
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(2);
       expect(reporters[0]).toBeInstanceOf(AppInsights);
@@ -117,7 +118,7 @@ describe('determineReporters', () => {
   });
 
   it('keeps local reporters independent from production reporters', () => {
-    vscodeMocked.workspace.getConfiguration = jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue('true') });
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('true') });
     config.isDevMode = true;
 
     const reporters = determineLocalReporters(config);
@@ -133,27 +134,28 @@ describe('initializeO11yReporter', () => {
   const o11yUploadEndpoint = 'https://o11y.salesforce.com/upload';
   const userId = 'user-abc';
   const version = '2.0.0';
-  let O11yReporterMock: jest.Mock;
-  let initializeMock: jest.Mock;
+  let O11yReporterMock: VitestMock;
+  let initializeMock: VitestMock;
 
   beforeEach(() => {
-    jest.resetModules();
-    jest.clearAllMocks();
+    vi.resetModules();
+    vi.clearAllMocks();
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('false') });
     // Mock O11yReporter and its initialize method
-    initializeMock = jest.fn().mockResolvedValue(undefined);
-    O11yReporterMock = jest.fn().mockImplementation(() => ({
-      initialize: initializeMock
-    }));
-    jest.doMock('../../../../src/telemetry/reporters/o11yReporter', () => ({
+    initializeMock = vi.fn().mockResolvedValue(undefined);
+    O11yReporterMock = vi.fn().mockImplementation(function () {
+      return { initialize: initializeMock };
+    });
+    vi.doMock('../../../../src/telemetry/reporters/o11yReporter', () => ({
       O11yReporter: O11yReporterMock
     }));
     // Clear the require cache for determineReporters to pick up the new mock
-    jest.resetModules();
+    vi.resetModules();
   });
 
   afterEach(() => {
-    jest.resetModules();
-    jest.clearAllMocks();
+    vi.resetModules();
+    vi.clearAllMocks();
   });
 
   it('should initialize and add an O11yReporter instance', async () => {

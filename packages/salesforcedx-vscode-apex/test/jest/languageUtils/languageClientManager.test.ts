@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
@@ -22,7 +23,7 @@ import type { RecordedSpan } from '../testUtils/recordingTracer';
 const restartFlag = languageClientManager as unknown as { isRestarting: boolean };
 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
-// Prefixed `mock*` so jest.mock's factory may reference it (jest hoists the factory above imports).
+// Prefixed `mock*` so vi.mock's factory may reference it (jest hoists the factory above imports).
 const mockRecordedSpans: RecordedSpan[] = [];
 const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
@@ -36,31 +37,32 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 
 // forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
 // on the calling stack (runSync) rather than detaching a fiber.
-jest.mock('../../../src/services/runtime', () =>
-  require('../testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true })
-);
+vi.mock('../../../src/services/runtime', async () => {
+  const { createRecordingRuntimeMock } = await import('../testUtils/recordingTracer.js');
+  return createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true });
+});
 
 // Mock ApexLSPStatusBarItem class
-jest.mock('../../../src/apexLspStatusBarItem', () => ({
+vi.mock('../../../src/apexLspStatusBarItem', () => ({
   __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    dispose: jest.fn(),
-    ready: jest.fn(),
-    error: jest.fn(),
-    restarting: jest.fn()
+  default: vi.fn().mockImplementation(() => ({
+    dispose: vi.fn(),
+    ready: vi.fn(),
+    error: vi.fn(),
+    restarting: vi.fn()
   }))
 }));
 
-jest.mock('../../../src/languageServer', () => ({
-  createLanguageServer: jest.fn()
+vi.mock('../../../src/languageServer', () => ({
+  createLanguageServer: vi.fn()
 }));
 
-jest.mock('../../../src/settings', () => ({
-  retrieveEnableSyncInitJobs: jest.fn()
+vi.mock('../../../src/settings', () => ({
+  retrieveEnableSyncInitJobs: vi.fn()
 }));
 
 // Mock setTimeout and clearTimeout
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Language Client Manager', () => {
   describe('Client Status Management', () => {
@@ -129,9 +131,9 @@ describe('Language Client Manager', () => {
 
     it('Should manage status bar instance', () => {
       const mockLanguageStatusItem = {
-        dispose: jest.fn()
+        dispose: vi.fn()
       };
-      (vscode.languages.createLanguageStatusItem as jest.Mock).mockReturnValue(mockLanguageStatusItem);
+      (vscode.languages.createLanguageStatusItem as VitestMock).mockReturnValue(mockLanguageStatusItem);
 
       const mockStatusBar = new ApexLSPStatusBarItem();
 
@@ -161,24 +163,24 @@ describe('Language Client Manager', () => {
     let mockStatusBar: ApexLSPStatusBarItem;
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       mockRecordedSpans.length = 0;
       const errorHandler = {
-        addListener: jest.fn(),
-        serviceHasStartedSuccessfully: jest.fn()
+        addListener: vi.fn(),
+        serviceHasStartedSuccessfully: vi.fn()
       };
       mockClient = {
         errorHandler,
-        start: jest.fn().mockResolvedValue(undefined),
-        onNotification: jest.fn()
+        start: vi.fn().mockResolvedValue(undefined),
+        onNotification: vi.fn()
       } as unknown as ApexLanguageClient;
-      mockContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
+      mockContext = { subscriptions: { push: vi.fn() } } as unknown as vscode.ExtensionContext;
       mockStatusBar = {
-        ready: jest.fn(),
-        error: jest.fn()
+        ready: vi.fn(),
+        error: vi.fn()
       } as unknown as ApexLSPStatusBarItem;
-      (createLanguageServer as unknown as jest.Mock).mockReturnValue(Effect.succeed(mockClient));
-      (retrieveEnableSyncInitJobs as jest.Mock).mockReturnValue(true);
+      (createLanguageServer as unknown as VitestMock).mockReturnValue(Effect.succeed(mockClient));
+      (retrieveEnableSyncInitJobs as VitestMock).mockReturnValue(true);
       languageClientManager.setClientInstance(undefined);
       languageClientManager.setStatus(ClientStatus.Unavailable, '');
     });
@@ -196,7 +198,7 @@ describe('Language Client Manager', () => {
     });
 
     it('reports a typed client start failure through existing status UI', async () => {
-      (mockClient.start as jest.Mock).mockRejectedValue(new Error('start failed'));
+      (mockClient.start as VitestMock).mockRejectedValue(new Error('start failed'));
 
       await Effect.runPromise(languageClientManager.activateLanguageClient(mockContext, mockStatusBar));
 
@@ -216,38 +218,38 @@ describe('Language Client Manager', () => {
     let mockExtensionContext: vscode.ExtensionContext;
     let mockClient: ApexLanguageClient;
     let mockStatusBar: ApexLSPStatusBarItem;
-    let setTimeoutSpy: jest.SpyInstance;
+    let setTimeoutSpy: VitestMockInstance;
 
     beforeEach(() => {
       // Reset mocks
-      jest.clearAllMocks();
-      jest.clearAllTimers();
+      vi.clearAllMocks();
+      vi.clearAllTimers();
       mockRecordedSpans.length = 0;
 
       // Setup setTimeout spy
-      setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
       // Setup mocks
       mockExtensionContext = {} as vscode.ExtensionContext;
       mockClient = {
-        stop: jest.fn().mockResolvedValue(undefined),
-        dispose: jest.fn()
+        stop: vi.fn().mockResolvedValue(undefined),
+        dispose: vi.fn()
       } as unknown as ApexLanguageClient;
 
       // Create a proper mock for the status bar with the restarting method
       mockStatusBar = {
-        dispose: jest.fn(),
-        ready: jest.fn(),
-        error: jest.fn(),
-        restarting: jest.fn()
+        dispose: vi.fn(),
+        ready: vi.fn(),
+        error: vi.fn(),
+        restarting: vi.fn()
       } as unknown as ApexLSPStatusBarItem;
 
       // Mock VSCode workspace configuration
-      const mockGetConfiguration = jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue('prompt')
+      const mockGetConfiguration = vi.fn().mockReturnValue({
+        get: vi.fn().mockReturnValue('prompt')
       });
-      (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
-      (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+      (vscode.workspace.getConfiguration as VitestMock) = mockGetConfiguration;
+      (vscode.extensions.getExtension as VitestMock).mockReturnValue({
         isActive: true,
         exports: {
           services: {
@@ -289,7 +291,7 @@ describe('Language Client Manager', () => {
 
     it('should cancel operation if no option is selected', async () => {
       // Mock showQuickPick to return undefined (no selection)
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(undefined);
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce(undefined);
 
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -304,13 +306,13 @@ describe('Language Client Manager', () => {
 
     it('should restart without cleaning DB when restart only option is selected', async () => {
       // Mock showQuickPick to return the restart only option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
         label: nls.localize('apex_language_server_restart_dialog_restart_only'),
         type: 'restart'
       });
 
       // Mock createLanguageClient to resolve immediately
-      jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+      vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -322,7 +324,7 @@ describe('Language Client Manager', () => {
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
       // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
+      vi.runAllTimers();
       await Promise.resolve();
 
       // Verify createLanguageClient was called
@@ -331,7 +333,7 @@ describe('Language Client Manager', () => {
 
     it('should restart and clean DB when clean and restart option is selected', async () => {
       // Mock showQuickPick to return the clean and restart option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
         label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
         type: 'reset'
       });
@@ -340,8 +342,8 @@ describe('Language Client Manager', () => {
       const workspaceUri = URI.parse('file:///workspace');
       const toolsUri = Utils.joinPath(workspaceUri, '.sfdx', 'tools');
       // FsService.readDirectoryWithTypes yields typed entries; safeDelete records the URIs it removes.
-      const safeDelete = jest.fn().mockImplementation(() => Effect.void);
-      (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+      const safeDelete = vi.fn().mockImplementation(() => Effect.void);
+      (vscode.extensions.getExtension as VitestMock).mockReturnValue({
         isActive: true,
         exports: {
           services: {
@@ -372,7 +374,7 @@ describe('Language Client Manager', () => {
       });
 
       // Mock createLanguageClient to resolve immediately
-      jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+      vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -385,11 +387,11 @@ describe('Language Client Manager', () => {
 
       // Only the NNN tools dirs are deleted (behavior preserved).
       expect(safeDelete).toHaveBeenCalledTimes(2);
-      const deletedPaths = safeDelete.mock.calls.map(([uri]: [URI]) => uri.path).toSorted();
+      const deletedPaths = safeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
       // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
+      vi.runAllTimers();
       await Promise.resolve();
 
       // Verify createLanguageClient was called
@@ -398,13 +400,13 @@ describe('Language Client Manager', () => {
 
     it('should complete restart without stranding isRestarting when services extension is unavailable', async () => {
       // Mock showQuickPick to return the clean and restart option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
         label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
         type: 'reset'
       });
 
       // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
-      (vscode.extensions.getExtension as jest.Mock)
+      (vscode.extensions.getExtension as VitestMock)
         .mockReturnValueOnce({
           isActive: true,
           exports: { services: { PromptService: Effect.succeed(promptService) } }
@@ -412,7 +414,7 @@ describe('Language Client Manager', () => {
         .mockReturnValue(undefined);
 
       // Mock createLanguageClient to resolve immediately
-      jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+      vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method — must resolve, not reject.
       await expect(
@@ -424,7 +426,7 @@ describe('Language Client Manager', () => {
 
       // Fast-forward timers and drain the setTimeout callback's async chain (dispose → create → finally)
       // without coupling to its internal await depth.
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
 
       // Restart still completed and the flag was reset (a follow-up restart won't short-circuit).
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -433,17 +435,17 @@ describe('Language Client Manager', () => {
 
     it('should handle errors during client stop', async () => {
       // Mock showQuickPick to return the restart only option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
         label: nls.localize('apex_language_server_restart_dialog_restart_only'),
         type: 'restart'
       });
 
       // Mock client.stop to throw an error
       const errorMessage = 'Test error';
-      (mockClient.stop as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+      (mockClient.stop as VitestMock).mockRejectedValueOnce(new Error(errorMessage));
 
       // Mock createLanguageClient to resolve immediately
-      jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+      vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -454,7 +456,7 @@ describe('Language Client Manager', () => {
       );
 
       // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
+      vi.runAllTimers();
       await Promise.resolve();
 
       // Verify createLanguageClient was called
@@ -466,7 +468,7 @@ describe('Language Client Manager', () => {
       languageClientManager.setClientInstance(undefined);
 
       // Mock showQuickPick to return the restart only option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
+      (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce(
         nls.localize('apex_language_server_restart_dialog_restart_only')
       );
 
@@ -480,13 +482,13 @@ describe('Language Client Manager', () => {
     describe('Restart Behavior Setting', () => {
       it('should use prompt behavior by default', async () => {
         // Mock showQuickPick to return the restart only option
-        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
           label: nls.localize('apex_language_server_restart_dialog_restart_only'),
           type: 'restart'
         });
 
         // Mock createLanguageClient to resolve immediately
-        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+        vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Call the method
         await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -505,13 +507,13 @@ describe('Language Client Manager', () => {
 
       it('should use restart behavior when configured', async () => {
         // Mock getConfiguration to return 'restart' behavior
-        const mockGetConfiguration = jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue('restart')
+        const mockGetConfiguration = vi.fn().mockReturnValue({
+          get: vi.fn().mockReturnValue('restart')
         });
-        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+        (vscode.workspace.getConfiguration as VitestMock) = mockGetConfiguration;
 
         // Mock createLanguageClient to resolve immediately
-        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+        vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Call the method
         await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'statusBar');
@@ -530,22 +532,22 @@ describe('Language Client Manager', () => {
 
       it('should use reset behavior when configured', async () => {
         // Mock getConfiguration to return 'reset' behavior
-        const mockGetConfiguration = jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue('reset')
+        const mockGetConfiguration = vi.fn().mockReturnValue({
+          get: vi.fn().mockReturnValue('reset')
         });
-        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+        (vscode.workspace.getConfiguration as VitestMock) = mockGetConfiguration;
 
         // Mock showQuickPick to return the reset option
-        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({
           label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
           type: 'reset'
         });
 
         // Mock createLanguageClient to resolve immediately
-        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+        vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Reset any previous calls to showQuickPick
-        (vscode.window.showQuickPick as jest.Mock).mockClear();
+        (vscode.window.showQuickPick as VitestMock).mockClear();
 
         // Call the method
         await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -582,7 +584,7 @@ describe('Language Client Manager', () => {
         expect(mockStatusBar.restarting).toHaveBeenCalled();
 
         // Fast-forward timers and wait for promises to resolve
-        jest.runAllTimers();
+        vi.runAllTimers();
         await Promise.resolve();
 
         // Verify createLanguageClient was called

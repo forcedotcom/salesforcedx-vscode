@@ -148,8 +148,8 @@ describe('SoqlUtils', () => {
       originalSoqlStatement: `// Comments here${EOL}SELECT Id FROM Foo`
     };
     const transformedSoql = convertUiModelToSoql(modelWithComments);
-    const transformedSoqlNormalized = transformedSoql.replace(/\n\s+/g, '\n');
-    expect(transformedSoqlNormalized).toEqual(`// Comments here${EOL}SELECT Id${EOL}FROM Foo${EOL}`);
+    const transformedSoqlNormalized = transformedSoql.replace(/\r\n/g, '\n').replace(/\n\s+/g, '\n');
+    expect(transformedSoqlNormalized).toEqual('// Comments here\nSELECT Id\nFROM Foo\n');
   });
 
   it('transforms Soql to UI Model', () => {

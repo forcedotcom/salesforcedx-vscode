@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
@@ -13,15 +14,15 @@ import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode
 import * as vscode from 'vscode';
 import { debuggerStop, DebuggerSessionQueryError } from '../../../src/commands/debuggerStop';
 
-jest.mock('@salesforce/core', () => ({
-  AuthInfo: { create: jest.fn() },
-  Connection: { create: jest.fn() }
+vi.mock('@salesforce/core', () => ({
+  AuthInfo: { create: vi.fn() },
+  Connection: { create: vi.fn() }
 }));
 
 type QueryResult = { records: { Id: string }[] };
 
-const getProgressLocation = jest.fn(() => Effect.succeed(15 /* vscode.ProgressLocation.Notification */));
-const showSuccessNotification = jest.fn(() => Effect.void);
+const getProgressLocation = vi.fn(() => Effect.succeed(15 /* vscode.ProgressLocation.Notification */));
+const showSuccessNotification = vi.fn(() => Effect.void);
 const notificationMode = {
   getProgressLocation,
   showSuccessNotification
@@ -29,8 +30,8 @@ const notificationMode = {
 
 // Fake jsforce Connection: `tooling.query` returns the seeded records; `tooling.sobject(...).update` is a spy.
 const makeConnection = (queryImpl: () => Promise<QueryResult>) => {
-  const update = jest.fn(() => Promise.resolve({ success: true }));
-  const sobject = jest.fn(() => ({ update }));
+  const update = vi.fn(() => Promise.resolve({ success: true }));
+  const sobject = vi.fn(() => ({ update }));
   return { conn: { tooling: { query: queryImpl, sobject } }, update, sobject };
 };
 
@@ -78,7 +79,7 @@ const runFlipped = (conn: unknown) =>
 
 describe('debuggerStop', () => {
   beforeEach(() => {
-    (vscode.window.showInformationMessage as jest.Mock) = jest.fn();
+    (vscode.window.showInformationMessage as VitestMock) = vi.fn();
     getProgressLocation.mockReturnValue(Effect.succeed(15 /* vscode.ProgressLocation.Notification */));
     showSuccessNotification.mockReturnValue(Effect.void);
   });
@@ -118,8 +119,8 @@ describe('debuggerStop', () => {
   it('builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org', async () => {
     const { conn, sobject, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '07aXX0000000002' }] }));
     const mockAuthInfo = {};
-    (AuthInfo.create as jest.Mock).mockResolvedValue(mockAuthInfo);
-    (Connection.create as jest.Mock).mockResolvedValue(conn);
+    (AuthInfo.create as VitestMock).mockResolvedValue(mockAuthInfo);
+    (Connection.create as VitestMock).mockResolvedValue(conn);
 
     await run(undefined, 'fakeSessionId', 'https://na1.salesforce.com');
 

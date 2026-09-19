@@ -21,7 +21,7 @@ const PAST_ALL_RETRIES = '200 seconds';
 /** Mock LLMService whose callLLM returns queued responses in order; throws if it runs dry. */
 const mockLLMLayer = (responses: string[]) => {
   const queue = [...responses];
-  const callLLM = jest.fn(() =>
+  const callLLM = vi.fn(() =>
     Effect.suspend(() => {
       if (queue.length === 0) throw new Error('callLLM invoked more times than queued responses');
       return Effect.succeed(queue.shift()!);
@@ -32,7 +32,7 @@ const mockLLMLayer = (responses: string[]) => {
 
 /** Mock LLMService whose callLLM always fails with the given (already-classified) error. */
 const failingLLMLayer = (error: unknown) => {
-  const callLLM = jest.fn(() => Effect.fail(error));
+  const callLLM = vi.fn(() => Effect.fail(error));
   return { layer: Layer.succeed(LLMService, { callLLM } as unknown as InstanceType<typeof LLMService>), callLLM };
 };
 
@@ -42,7 +42,7 @@ const run = <A, E>(effect: Effect.Effect<A, E, LLMService>, llmLayer: Layer.Laye
 describe('callLLMWithRetry', () => {
   it('returns the response when the first call is non-empty', async () => {
     const { layer, callLLM } = mockLLMLayer(['{"openapi":"3.0.0"}']);
-    const exit = await run(callLLMWithRetry('prompt', 750, jest.fn()), layer);
+    const exit = await run(callLLMWithRetry('prompt', 750, vi.fn()), layer);
     expect(Exit.isSuccess(exit)).toBe(true);
     if (Exit.isSuccess(exit)) expect(exit.value).toBe('{"openapi":"3.0.0"}');
     expect(callLLM).toHaveBeenCalledTimes(1);
@@ -53,7 +53,7 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, jest.fn()));
+        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
         // Advance past the backoff windows so the scheduled retries fire.
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
@@ -71,7 +71,7 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, jest.fn()));
+        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
       }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
@@ -90,7 +90,7 @@ describe('callLLMWithRetry', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, jest.fn()));
+        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, vi.fn()));
         yield* TestClock.adjust(PAST_ALL_RETRIES);
         return yield* Fiber.join(fiber);
       }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
@@ -109,7 +109,7 @@ describe('callLLMWithRetry', () => {
   });
 
   it('invokes the onAttempt callback once per attempt', async () => {
-    const onAttempt = jest.fn();
+    const onAttempt = vi.fn();
     const { layer } = mockLLMLayer(['', '{"openapi":"3.0.0"}']);
 
     await Effect.runPromiseExit(

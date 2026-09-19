@@ -13,11 +13,11 @@ import * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
 import { extractErrorMessage, initSObjectDefinitions } from '../../../src/commands/refreshSObjects';
 
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  fileOrFolderExists: jest.fn()
+vi.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  fileOrFolderExists: vi.fn()
 }));
 
-const fileOrFolderExistsMock = jest.mocked(fileOrFolderExists);
+const fileOrFolderExistsMock = vi.mocked(fileOrFolderExists);
 type RecordedSpan = {
   name: string;
   attributes: Map<string, unknown>;
@@ -91,7 +91,7 @@ describe('initSObjectDefinitions', () => {
   beforeEach(() => {
     recordedSpans.length = 0;
     fileOrFolderExistsMock.mockReset();
-    jest.mocked(vscode.commands.executeCommand).mockReset().mockResolvedValue(undefined);
+    vi.mocked(vscode.commands.executeCommand).mockReset().mockResolvedValue(undefined);
   });
 
   it.each([
@@ -122,7 +122,7 @@ describe('initSObjectDefinitions', () => {
   it('records command errors and preserves the failure', async () => {
     fileOrFolderExistsMock.mockResolvedValue(false);
     const error = new Error('boom');
-    jest.mocked(vscode.commands.executeCommand).mockRejectedValue(error);
+    vi.mocked(vscode.commands.executeCommand).mockRejectedValue(error);
 
     await expect(runWithRecordingTracer(initSObjectDefinitions('/project', true))).rejects.toThrow('boom');
 

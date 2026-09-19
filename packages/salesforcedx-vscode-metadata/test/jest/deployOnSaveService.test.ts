@@ -22,7 +22,7 @@ import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 const workspaceRoot = path.join(path.sep, 'workspace');
 const otherRoot = path.join(path.sep, 'other');
 
-const mockAppendToChannel = jest.fn();
+const mockAppendToChannel = vi.fn();
 
 const createMockChannelService = (): ChannelService =>
   new ChannelService({
@@ -30,7 +30,7 @@ const createMockChannelService = (): ChannelService =>
       () =>
         ({
           appendLine: mockAppendToChannel,
-          clear: jest.fn()
+          clear: vi.fn()
         }) as unknown as vscode.OutputChannel
     ),
     showChannel: Effect.void,
@@ -86,7 +86,7 @@ const createMockExtensionProvider = (): ExtensionProviderService => ({
 
 describe('shouldDeploy', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('file filesystem', () => {

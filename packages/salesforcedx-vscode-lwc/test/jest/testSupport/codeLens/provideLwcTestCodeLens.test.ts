@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -20,7 +21,7 @@ describe('provideLwcTestCodeLens', () => {
       uri: {
         fsPath: '/test/path/testFile.test.js'
       },
-      getText: jest.fn()
+      getText: vi.fn()
     } as unknown as TextDocument;
     mockToken = {} as CancellationToken;
   });
@@ -33,7 +34,7 @@ describe('Test Suite', () => {
   });
 });
 `;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+    (mockDocument.getText as VitestMock).mockReturnValue(testContent);
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
@@ -50,7 +51,7 @@ describe('Outer Suite', () => {
   });
 });
 `;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+    (mockDocument.getText as VitestMock).mockReturnValue(testContent);
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
@@ -66,7 +67,7 @@ describe('Outer Suite', () => {
       uri: {
         fsPath: tempFile
       },
-      getText: jest.fn().mockReturnValue('')
+      getText: vi.fn().mockReturnValue('')
     } as unknown as TextDocument;
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
@@ -82,7 +83,7 @@ describe('Outer Suite', () => {
     const mockJestRunnerExtension = {
       isActive: true
     };
-    const getExtensionSpy = jest.spyOn(extensions, 'getExtension');
+    const getExtensionSpy = vi.spyOn(extensions, 'getExtension');
     getExtensionSpy.mockImplementation((extensionId: string) => {
       if (extensionId === 'firsttris.vscode-jest-runner') {
         return mockJestRunnerExtension as unknown as vscode.Extension<unknown>;
@@ -97,7 +98,7 @@ describe('Test Suite', () => {
   });
 });
 `;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+    (mockDocument.getText as VitestMock).mockReturnValue(testContent);
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
@@ -105,7 +106,7 @@ describe('Test Suite', () => {
     expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
 
     // Restore the original function
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should return code lenses regardless of Jest Runner extension presence', () => {
@@ -117,7 +118,7 @@ describe('Test Suite', () => {
   });
 });
 `;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+    (mockDocument.getText as VitestMock).mockReturnValue(testContent);
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
@@ -133,7 +134,7 @@ describe('Test Suite', () => {
   });
 });
 `;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+    (mockDocument.getText as VitestMock).mockReturnValue(testContent);
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 

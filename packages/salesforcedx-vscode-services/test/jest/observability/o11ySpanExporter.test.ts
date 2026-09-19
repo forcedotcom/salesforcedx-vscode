@@ -21,7 +21,7 @@ describe('O11ySpanExporter attribution', () => {
       startTime: [0, 0],
       endTime: [1, 0],
       duration: [1, 0],
-      setAttribute: jest.fn()
+      setAttribute: vi.fn()
     } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
     const processor = new SpanTransformProcessor({
       exporter: {} as never,

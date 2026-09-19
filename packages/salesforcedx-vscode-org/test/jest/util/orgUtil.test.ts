@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { AuthInfo, StateAggregator } from '@salesforce/core';
 import {
   ExtensionProviderService,
@@ -20,13 +21,13 @@ import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
 describe('orgUtil tests', () => {
-  let showWarningMessageSpy: jest.SpyInstance;
+  let showWarningMessageSpy: VitestMockInstance;
   // checkForSoonToBeExpiredOrgs now writes via the Effect ChannelService (yielded off the services api),
   // not the legacy channelService singleton. These mocks stand in for appendToChannel/showChannel.
-  let appendToChannelMock: jest.Mock;
-  let showChannelMock: jest.Mock;
-  let listAllAuthorizationsSpy: jest.SpyInstance;
-  let authInfoCreateSpy: jest.SpyInstance;
+  let appendToChannelMock: VitestMock;
+  let showChannelMock: VitestMock;
+  let listAllAuthorizationsSpy: VitestMockInstance;
+  let authInfoCreateSpy: VitestMockInstance;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
@@ -66,26 +67,26 @@ describe('orgUtil tests', () => {
 
   beforeEach(() => {
     mockWatcher = {
-      onDidChange: jest.fn(),
-      onDidCreate: jest.fn(),
-      onDidDelete: jest.fn()
+      onDidChange: vi.fn(),
+      onDidCreate: vi.fn(),
+      onDidDelete: vi.fn()
     };
     (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
     (vscode.window.createStatusBarItem as any).mockReturnValue({
       command: '',
       text: '',
       tooltip: '',
-      show: jest.fn(),
-      dispose: jest.fn()
+      show: vi.fn(),
+      dispose: vi.fn()
     });
     // Ensure core API is available for OrgList constructor usage
-    jest.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
+    vi.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
       exports: {
         WorkspaceContext: {
           getInstance: () => ({
             username: undefined,
             alias: undefined,
-            onOrgChange: jest.fn()
+            onOrgChange: vi.fn()
           })
         }
       }
@@ -93,15 +94,15 @@ describe('orgUtil tests', () => {
     // The expiry-soon warning is now a direct vscode.window.showWarningMessage with a Show Output action.
     // Default the return to undefined (user dismissed without clicking) so the channel reveal stays gated;
     // tests that assert the reveal set a resolved value matching the button label.
-    showWarningMessageSpy = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
-    appendToChannelMock = jest.fn();
-    showChannelMock = jest.fn();
-    listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
-    authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
+    showWarningMessageSpy = vi.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
+    appendToChannelMock = vi.fn();
+    showChannelMock = vi.fn();
+    listAllAuthorizationsSpy = vi.spyOn(AuthInfo, 'listAllAuthorizations');
+    authInfoCreateSpy = vi.spyOn(AuthInfo, 'create');
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should not display a notification when no orgs are present', async () => {
@@ -358,20 +359,20 @@ describe('orgUtil tests', () => {
 });
 
 describe('updateConfigAndStateAggregators', () => {
-  let getConnectionMock: jest.Mock;
-  let invalidateCachedConnectionsMock: jest.Mock;
-  let invalidateConfigAggregatorMock: jest.Mock;
+  let getConnectionMock: VitestMock;
+  let invalidateCachedConnectionsMock: VitestMock;
+  let invalidateConfigAggregatorMock: VitestMock;
 
   beforeEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     resetOrgRuntimeForTesting();
 
-    jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
-    (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+    vi.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
+    (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
 
-    getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
-    invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
-    invalidateConfigAggregatorMock = jest.fn().mockReturnValue(Effect.void);
+    getConnectionMock = vi.fn().mockReturnValue(Effect.succeed({}));
+    invalidateCachedConnectionsMock = vi.fn().mockReturnValue(Effect.void);
+    invalidateConfigAggregatorMock = vi.fn().mockReturnValue(Effect.void);
 
     const mockServicesApi = {
       services: {
@@ -398,7 +399,7 @@ describe('updateConfigAndStateAggregators', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     resetOrgRuntimeForTesting();
   });
 

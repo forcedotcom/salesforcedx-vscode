@@ -30,13 +30,13 @@ const workspaceLayer = Layer.succeed(
 );
 
 const createFsProvider = (projectExists: boolean) => {
-  const createDirectory = jest.fn().mockResolvedValue(undefined);
-  const writeFile = jest.fn().mockResolvedValue(undefined);
+  const createDirectory = vi.fn().mockResolvedValue(undefined);
+  const writeFile = vi.fn().mockResolvedValue(undefined);
   const provider = {
-    exists: jest.fn((uri: URI) => projectExists && uri.toString() === `${projectUri.toString()}/sfdx-project.json`),
+    exists: vi.fn((uri: URI) => projectExists && uri.toString() === `${projectUri.toString()}/sfdx-project.json`),
     createDirectory,
     writeFile,
-    readDirectory: jest.fn().mockReturnValue([])
+    readDirectory: vi.fn().mockReturnValue([])
   } as unknown as FsProvider;
 
   return { provider, createDirectory, writeFile };

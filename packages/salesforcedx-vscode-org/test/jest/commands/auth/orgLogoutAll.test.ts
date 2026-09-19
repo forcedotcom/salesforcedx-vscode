@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { isNotNull } from 'effect/Predicate';
@@ -19,15 +20,15 @@ import { orgLogoutAllCommand } from '../../../../src/commands/auth/orgLogout';
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
 // orgList.ts uses toSorted which trips ts-jest; the command only needs the two helpers it imports.
-jest.mock('../../../../src/orgPicker/orgList', () => ({
+vi.mock('../../../../src/orgPicker/orgList', () => ({
   buildOrgQuickPickItems: (auths: Array<{ username: string }>) =>
     auths.map(a => ({ label: a.username, orgUsername: a.username })),
   isOrgItem: (item: unknown): boolean => typeof item === 'object' && isNotNull(item) && 'orgUsername' in item
 }));
 
-const mockGetFreshAuthorizations = jest.fn<Effect.Effect<unknown, never, never>, []>();
-const mockUpdateConfigAndStateAggregatorsEffect = jest.fn<Effect.Effect<void, never, never>, []>(() => Effect.void);
-jest.mock('../../../../src/util/orgUtil', () => ({
+const mockGetFreshAuthorizations = vi.fn<() => Effect.Effect<unknown, never, never>>();
+const mockUpdateConfigAndStateAggregatorsEffect = vi.fn<() => Effect.Effect<void, never, never>>(() => Effect.void);
+vi.mock('../../../../src/util/orgUtil', () => ({
   getFreshAuthorizations: () => mockGetFreshAuthorizations(),
   updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect()
 }));
@@ -61,25 +62,25 @@ const run = (opts: { isProject: boolean; confirm: boolean }) =>
   );
 
 describe('orgLogoutAllCommand', () => {
-  let removeAuthMock: jest.Mock;
-  let showQuickPickMock: jest.SpyInstance;
+  let removeAuthMock: VitestMock;
+  let showQuickPickMock: VitestMockInstance;
 
   const selectAll = (auths: Authorization[]) =>
     showQuickPickMock.mockResolvedValueOnce(auths.map(a => ({ label: a.username, orgUsername: a.username })));
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    removeAuthMock = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(AuthRemover, 'create').mockResolvedValue({
+    vi.clearAllMocks();
+    removeAuthMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
-    showQuickPickMock = jest.spyOn(vscode.window, 'showQuickPick');
+    showQuickPickMock = vi.spyOn(vscode.window, 'showQuickPick');
     mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: [] }));
     mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('logs out each selected org and refreshes config/state', async () => {

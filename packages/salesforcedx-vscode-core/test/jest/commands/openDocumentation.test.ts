@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -14,9 +15,11 @@ import { EditorService, NoActiveEditorError } from 'salesforcedx-vscode-services
 import { openDocumentationCommand } from '../../../src/commands/openDocumentation';
 import { nls } from '../../../src/messages';
 
+vi.mock('effect/Effect', { spy: true });
+
 describe('openDocumentationCommand', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it.each([
@@ -38,9 +41,9 @@ describe('openDocumentationCommand', () => {
     ['no active editor', undefined, 'default', nls.localize('default_doc_url')],
     ['default', '/force-app/main/default/staticresources/example-image.png', 'default', nls.localize('default_doc_url')]
   ])('opens %s documentation and emits its type', async (_label, fileName, type, expectedUrl) => {
-    const openExternal = jest.fn().mockResolvedValue(true);
-    (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
-    const annotateCurrentSpan = jest.spyOn(Effect, 'annotateCurrentSpan');
+    const openExternal = vi.fn().mockResolvedValue(true);
+    (vscode.env as unknown as { openExternal: VitestMock }).openExternal = openExternal;
+    const annotateCurrentSpan = vi.mocked(Effect.annotateCurrentSpan);
     const getActiveEditorUri = () =>
       fileName
         ? Effect.succeed(URI.file(fileName))

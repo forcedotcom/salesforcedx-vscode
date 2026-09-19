@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import * as Effect from 'effect/Effect';
 import {
@@ -31,17 +32,17 @@ describe('normalizeToInternal', () => {
 const makeInspectConfig = (globalValue: unknown, workspaceValue: unknown, workspaceFolderValue: unknown) =>
   ({
     inspect: () => ({ key: '', globalValue, workspaceValue, workspaceFolderValue }),
-    get: jest.fn(),
-    has: jest.fn(),
-    update: jest.fn()
+    get: vi.fn(),
+    has: vi.fn(),
+    update: vi.fn()
   }) as unknown as vscode.WorkspaceConfiguration;
 
 const makeGetConfig = (value: unknown) =>
   ({
     get: () => value,
     inspect: () => undefined,
-    has: jest.fn(),
-    update: jest.fn()
+    has: vi.fn(),
+    update: vi.fn()
   }) as unknown as vscode.WorkspaceConfiguration;
 
 const makeConfig = (values: {
@@ -53,7 +54,7 @@ const makeConfig = (values: {
   extWorkspaceFolder?: unknown;
   globalGet?: unknown;
 }) =>
-  jest.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
+  vi.spyOn(vscode.workspace, 'getConfiguration').mockImplementation((section?: string) => {
     if (section === 'ext.commandLevelNotifications')
       return makeInspectConfig(values.cmdGlobal, values.cmdWorkspace, values.cmdWorkspaceFolder);
     if (section === 'ext') return makeInspectConfig(values.extGlobal, values.extWorkspace, values.extWorkspaceFolder);
@@ -65,7 +66,7 @@ describe('getInternalMode', () => {
   const commandSection = 'ext.commandLevelNotifications';
   const command = 'My Command';
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it('uses the most specific command setting and normalizes its mode type', () => {
     makeConfig({
@@ -99,18 +100,18 @@ describe('NotificationModeService.Default', () => {
     command: undefined as string | undefined,
     name: undefined as string | undefined,
     text: undefined as string | undefined,
-    dispose: jest.fn(),
-    hide: jest.fn(),
-    show: jest.fn()
+    dispose: vi.fn(),
+    hide: vi.fn(),
+    show: vi.fn()
   };
-  const commandDisposable = { dispose: jest.fn() };
+  const commandDisposable = { dispose: vi.fn() };
 
   beforeEach(() => {
-    (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(item);
-    (vscode.commands.registerCommand as jest.Mock).mockReturnValue(commandDisposable);
+    (vscode.window.createStatusBarItem as VitestMock).mockReturnValue(item);
+    (vscode.commands.registerCommand as VitestMock).mockReturnValue(commandDisposable);
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   const runWithService = <A>(effect: Effect.Effect<A, never, NotificationModeService>) =>
     Effect.runPromise(effect.pipe(Effect.provide(NotificationModeService.Default('ext', 'status-id', 'Status Name'))));
@@ -141,7 +142,7 @@ describe('NotificationModeService.Default', () => {
   it('fires an action-less success toast without awaiting dismissal', async () => {
     makeConfig({ extGlobal: 'progressToastSuccessToast' });
     // Never resolves: if showSuccessNotification awaited this, the test would hang/timeout.
-    (vscode.window.showInformationMessage as jest.Mock).mockReturnValue(new Promise(() => {}));
+    (vscode.window.showInformationMessage as VitestMock).mockReturnValue(new Promise(() => {}));
 
     await NotificationModeService.showSuccessNotification('Command', 'done').pipe(runWithService);
 

@@ -23,7 +23,7 @@ describe('OrderBy should', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
@@ -32,7 +32,7 @@ describe('OrderBy should', () => {
   it('emit event when orderby field is selected', () => {
     document.body.appendChild(orderBy);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     orderBy.addEventListener('orderby__selected', handler);
     const selectField = orderBy.shadowRoot.querySelector('querybuilder-custom-select');
     selectField.selectedOptions = ['foo'];
@@ -50,7 +50,7 @@ describe('OrderBy should', () => {
   it('emit event when orderby field is selected, adds order and nulls', () => {
     document.body.appendChild(orderBy);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     orderBy.addEventListener('orderby__selected', handler);
     const selectField = orderBy.shadowRoot.querySelector('querybuilder-custom-select');
     selectField.selectedOptions = ['foo'];
@@ -72,7 +72,7 @@ describe('OrderBy should', () => {
   it('not emit event when orderby field is empty', () => {
     document.body.appendChild(orderBy);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     orderBy.addEventListener('orderby__selected', handler);
     const selectField = orderBy.shadowRoot.querySelector('querybuilder-custom-select');
     selectField.selectedOptions = [''];
@@ -88,7 +88,7 @@ describe('OrderBy should', () => {
     orderBy.selectedOrderByFields = [{ field: 'foo' }];
     document.body.appendChild(orderBy);
 
-    const handler = jest.fn();
+    const handler = vi.fn();
     orderBy.addEventListener('orderby__removed', handler);
 
     const selectedFieldCloseEl = orderBy.shadowRoot.querySelector("[data-field='foo']");

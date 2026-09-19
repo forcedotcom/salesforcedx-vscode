@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -14,24 +15,24 @@ import { DEFAULT_ALIAS } from '../../../../src/commands/auth/authParamsGatherer'
 import { orgLoginWebDevHubCommand } from '../../../../src/commands/auth/orgLoginWebDevHub';
 import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
 
-jest.mock('../../../../src/util/orgUtil', () => ({
-  updateConfigAndStateAggregators: jest.fn()
+vi.mock('../../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregators: vi.fn()
 }));
 
 // withCancellableProgress forks the effect and reports via vscode.window.withProgress; the jest
 // vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
 const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: jest.Mock }).withProgress = jest.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: jest.Mock }) => unknown) =>
-      task({ report: jest.fn() }, { onCancellationRequested: jest.fn() })
+  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
+    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
+      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
   );
 };
 
 const buildServices = (opts: {
   isProject: boolean;
-  simpleExec: jest.Mock;
-  appendToChannel: jest.Mock;
-  showChannel: jest.Mock;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  showChannel: VitestMock;
 }) => ({
   // getSfProject sets the project context and fails when there's no project; the command ignores the
   // returned SfProject, so the success path yields a sentinel.
@@ -62,7 +63,12 @@ const buildServices = (opts: {
   }
 });
 
-const run = (opts: { isProject: boolean; simpleExec: jest.Mock; appendToChannel: jest.Mock; showChannel: jest.Mock }) =>
+const run = (opts: {
+  isProject: boolean;
+  simpleExec: VitestMock;
+  appendToChannel: VitestMock;
+  showChannel: VitestMock;
+}) =>
   Effect.runPromiseExit(
     orgLoginWebDevHubCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -72,27 +78,27 @@ const run = (opts: { isProject: boolean; simpleExec: jest.Mock; appendToChannel:
   );
 
 describe('orgLoginWebDevHubCommand', () => {
-  let appendToChannel: jest.Mock;
-  let showChannel: jest.Mock;
-  let showErrorMessage: jest.Mock;
+  let appendToChannel: VitestMock;
+  let showChannel: VitestMock;
+  let showErrorMessage: VitestMock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (updateConfigAndStateAggregators as jest.Mock).mockResolvedValue(undefined);
-    appendToChannel = jest.fn();
-    showChannel = jest.fn();
-    showErrorMessage = jest.fn();
+    vi.clearAllMocks();
+    (updateConfigAndStateAggregators as VitestMock).mockResolvedValue(undefined);
+    appendToChannel = vi.fn();
+    showChannel = vi.fn();
+    showErrorMessage = vi.fn();
     stubWithProgress();
-    (vscode.window as unknown as { showErrorMessage: jest.Mock }).showErrorMessage = showErrorMessage;
+    (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('runs `sf org login web --alias <alias> --set-default-dev-hub` (env injected by simpleExec)', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = vi.fn(() => Effect.succeed(''));
 
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
@@ -107,8 +113,8 @@ describe('orgLoginWebDevHubCommand', () => {
   });
 
   it('defaults the alias to DEFAULT_ALIAS on empty-string input', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('');
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('');
+    const simpleExec = vi.fn(() => Effect.succeed(''));
 
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
@@ -119,8 +125,8 @@ describe('orgLoginWebDevHubCommand', () => {
   });
 
   it('cancels (UserCancellationError) and does not exec when the alias prompt is dismissed (undefined)', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
+    const simpleExec = vi.fn(() => Effect.succeed(''));
 
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
@@ -131,8 +137,8 @@ describe('orgLoginWebDevHubCommand', () => {
   });
 
   it('fails (getSfProject) and does not exec when not in a project', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = vi.fn(() => Effect.succeed(''));
 
     const exit = await run({ isProject: false, simpleExec, appendToChannel, showChannel });
 
@@ -142,8 +148,8 @@ describe('orgLoginWebDevHubCommand', () => {
   });
 
   it('appends output + refreshes aggregators on success', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() => Effect.succeed('ok'));
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = vi.fn(() => Effect.succeed('ok'));
 
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
@@ -155,8 +161,8 @@ describe('orgLoginWebDevHubCommand', () => {
   });
 
   it('does not update the config/state aggregators when the exec fails', async () => {
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() =>
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = vi.fn(() =>
       Effect.fail({ _tag: 'TerminalServiceError' as const, message: 'some other CLI failure' })
     );
 
@@ -171,8 +177,8 @@ describe('orgLoginWebDevHubCommand', () => {
   it('maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (shared executor)', async () => {
     const showOutputText = 'Show Output';
     showErrorMessage.mockResolvedValue(showOutputText);
-    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() =>
+    vi.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = vi.fn(() =>
       Effect.fail({ _tag: 'TerminalServiceError' as const, message: 'EADDRINUSE: port 1717 already in use' })
     );
 
