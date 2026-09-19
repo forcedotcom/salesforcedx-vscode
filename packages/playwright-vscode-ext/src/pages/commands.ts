@@ -14,7 +14,7 @@ import {
   waitForQuickInputFirstOption
 } from '../utils/helpers';
 import { WORKBENCH } from '../utils/locators';
-import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
+import { activeQuickInputWidget, waitForActiveQuickInputTextField } from '../utils/quickInput';
 
 export type OpenCommandPaletteOptions = {
   /**
@@ -58,23 +58,19 @@ export const openCommandPalette = async (page: Page, options?: OpenCommandPalett
     // `editorHasSelection` to false and hiding selection-guarded commands. When preserving
     // selection we assume the caller already gave the editor focus (selection implies focus).
     if (!options?.preserveSelection) {
-      await page
-        .locator(WORKBENCH)
-        .click({ force: true })
-        .catch(() => {});
+      await page.locator(WORKBENCH).focus();
     }
 
     // Press F1 to open command palette
     await page.keyboard.press('F1');
 
     // VS Code 1.116+: `.quick-input-widget` and `input.input` often fail `toBeVisible()` while still usable
-    const input = activeQuickInputTextField(page);
-    await input.waitFor({ state: 'attached', timeout: 15_000 });
+    const input = await waitForActiveQuickInputTextField(page, 15_000);
     // Clicking the palette input is fine for focus; it does not alter the underlying editor
     // selection (the palette is a separate widget). Skip it when preserving selection out of
     // caution — on web, any mouse event can trigger blur-driven selection resets.
     if (!options?.preserveSelection) {
-      await input.click({ force: true, timeout: 5000 });
+      await input.click({ timeout: 5000 });
     }
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   }).toPass({ timeout: 30_000 });
@@ -87,19 +83,17 @@ const executeCommand = async (
   paletteOptions?: OpenCommandPaletteOptions
 ): Promise<void> => {
   const widget = activeQuickInputWidget(page);
-  const input = activeQuickInputTextField(page);
-
-  await input.waitFor({ state: 'attached', timeout: 5000 });
+  const input = await waitForActiveQuickInputTextField(page);
   // Skip the extra palette-input click when preserving selection. On web, any mouse event can
   // trigger a blur on the monaco editor that collapses/clears its selection, which re-evaluates
   // `editorHasSelection` to false and drops the selection-guarded command from the palette list.
   if (!paletteOptions?.preserveSelection) {
-    await input.click({ force: true, timeout: 5000 });
+    await input.click({ timeout: 5000 });
   }
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // fill() is faster than pressSequentially on CI (avoids timeout on macOS)
-  await input.fill(`>${command}`, { force: true });
+  await input.fill(`>${command}`);
 
   // Wait for command list to appear
   await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
@@ -115,7 +109,8 @@ const executeCommand = async (
     // Check exact match or exact match before ", " (for keyboard shortcuts)
     if (ariaLabel === command || (ariaLabel.includes(', ') && ariaLabel.split(', ')[0] === command)) {
       await option.scrollIntoViewIfNeeded().catch(() => {});
-      await option.click({ force: true, timeout: 5000 });
+      await expect(option).toBeVisible({ timeout: 5000 });
+      await option.click({ timeout: 5000 });
       found = true;
       break;
     }
@@ -229,9 +224,9 @@ const retryCommandPaletteSearch = async (
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
 
-    const input = activeQuickInputTextField(page);
-    await input.click({ force: true, timeout: 5000 });
-    await input.fill(`>${commandText}`, { force: true });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
+    await input.fill(`>${commandText}`);
 
     await waitForQuickInputFirstOption(page, { optionVisibleTimeout: 15_000 });
 

@@ -62,13 +62,10 @@ const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): P
   await treeItem.waitFor({ state: 'visible', timeout: 10_000 });
   // Scroll into view to ensure item is visible before right-clicking
   await treeItem.scrollIntoViewIfNeeded();
-  // Hover first to ensure item is ready
-  await treeItem.hover({ timeout: 2000 }).catch(() => {
-    // Hover might fail if item is already visible, continue
-  });
-  // Use force: true to bypass sticky container interception
-  // The sticky container overlays the tree item and intercepts pointer events
-  await treeItem.click({ button: 'right', force: true });
+  // The sticky container can overlay the row and intercept pointer events. Focus the real row and
+  // open its context menu with the keyboard instead of bypassing pointer actionability.
+  await treeItem.focus();
+  await page.keyboard.press('Shift+F10');
   const contextMenu = page.locator(CONTEXT_MENU);
   await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
   return contextMenu;

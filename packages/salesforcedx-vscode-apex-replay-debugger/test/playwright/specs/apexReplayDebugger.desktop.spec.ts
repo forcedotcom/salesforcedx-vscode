@@ -137,7 +137,8 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     // updateLastOpened (setting LAST_OPENED_LOG_KEY) when the active file is a .log file.
     // Without LAST_OPENED_LOG_KEY, "launch from last log file" opens the native file picker.
     const logTab = page.locator('.tab').filter({ hasText: /debug\.log/ });
-    await logTab.click({ force: true });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await logTab.click();
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     await continueDebugSession(page);
   });

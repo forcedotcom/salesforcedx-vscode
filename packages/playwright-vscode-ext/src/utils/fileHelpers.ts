@@ -42,7 +42,7 @@ import {
   QUICK_INPUT_WIDGET,
   WORKBENCH
 } from './locators';
-import { activeQuickInputWidget } from './quickInput';
+import { activeQuickInputWidget, waitForActiveQuickInputTextField } from './quickInput';
 import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
@@ -256,9 +256,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await input.waitFor({ state: 'attached', timeout: 5000 });
-    await input.click({ force: true, timeout: 5000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
 
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
@@ -268,9 +267,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await input.waitFor({ state: 'attached', timeout: 5000 });
-    await input.click({ force: true, timeout: 5000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
   }
 
   // Type the filename
@@ -312,7 +310,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   const matchingText = resultTexts[matchingIndex];
   const matchingResult = results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
   await expect(matchingResult).toBeVisible({ timeout: 5000 });
-  await matchingResult.click({ force: true });
+  await expect(matchingResult).toBeEnabled({ timeout: 5000 });
+  await matchingResult.click();
 
   // Wait for editor to open with the file
   await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });

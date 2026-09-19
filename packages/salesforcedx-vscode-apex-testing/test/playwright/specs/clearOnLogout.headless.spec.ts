@@ -94,7 +94,9 @@ public class ${className} {
       // Close editors (a leftover active one blocks test-item nav), expand the class, double-click the
       // leaf method (only a leaf with a range triggers "go to test", which opens the catalog document).
       await closeAllEditors(page);
-      await classItem.locator('.monaco-tl-twistie').click({ force: true });
+      const twistie = classItem.locator('.monaco-tl-twistie');
+      await expect(twistie).toBeVisible({ timeout: 10_000 });
+      await twistie.click();
       const methodItem = findTestExplorerItem(page, 'clearsOnLogout');
       await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
       await methodItem.dblclick();

@@ -12,8 +12,8 @@ export const continueDebugSession = async (page: Page, maxContinues = 2): Promis
   const toolbar = page.locator('.debug-toolbar');
   for (let i = 0; i < maxContinues; i++) {
     await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
-    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
-    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
+    // Focus editor area to dismiss search-bar hover that can cover debug toolbar and block F5
+    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().focus();
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
     // Catch intentionally swallows rejection to detect debug session end (pre-existing pattern)
