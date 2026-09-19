@@ -12,4 +12,4 @@ import * as Option from 'effect/Option';
 export const makeVscodeExtensionRuntime = <R, E>(
   layer: Layer.Layer<R, E, never>
 ): ManagedRuntime.ManagedRuntime<R, E> =>
-  ManagedRuntime.make(layer.pipe(Layer.merge(Layer.setVersionMismatchErrorLogLevel(Option.none()))));
+  ManagedRuntime.make(Layer.merge(layer, Layer.setVersionMismatchErrorLogLevel(Option.none())));
