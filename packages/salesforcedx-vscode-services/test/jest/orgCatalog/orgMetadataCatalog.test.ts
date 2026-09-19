@@ -24,7 +24,11 @@ import { ComponentSetService } from '../../../src/core/componentSetService';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
-import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import {
+  FOLDERED_METADATA_TYPES,
+  ListMetadataError,
+  MetadataDescribeService
+} from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
@@ -81,6 +85,7 @@ type HarnessOptions = {
   readonly storeSaveError?: Error;
   readonly connectionOrgId?: string;
   readonly listMetadataError?: InactiveOrgOperationError;
+  readonly failListMetadataTypes?: readonly string[];
 };
 
 const emptySObject = (name: string): SObject => ({
@@ -124,7 +129,15 @@ const makeHarness = (options: HarnessOptions = {}) => {
       ? setOrg(options.listMetadataError.observedOrgId ?? '00D000000000002').pipe(
           Effect.andThen(options.listMetadataError)
         )
-      : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
+      : options.failListMetadataTypes?.includes(xmlName)
+        ? Effect.fail(
+            new ListMetadataError({
+              cause: new Error(`listMetadata ${xmlName} failed`),
+              metadataType: xmlName,
+              message: `Failed to list metadata type ${xmlName}`
+            })
+          )
+        : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
   );
   const listSObjects = jest.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
   const describeCustomObject = jest.fn((apiName: string) =>
@@ -419,11 +432,10 @@ const getEntry = (
     .getEntries([{ type: reference.xmlName, fullName: reference.fullName }])
     .pipe(Effect.map(entries => entries[0]));
 
-const materializeRemoteSource = (
+const materializePrimaryDocument = (
   remoteSource: InstanceType<typeof OrgCatalogRemoteSource>,
-  reference: { readonly xmlName: string; readonly fullName: string },
-  options: { readonly consistency?: 'cache-first' | 'refresh' } = {}
-) => remoteSource.materializeRemoteSource('00D000000000001', reference, options);
+  reference: { readonly xmlName: string; readonly fullName: string }
+) => remoteSource.materializePrimaryDocument('00D000000000001', reference);
 
 const runWithCatalogAndRemoteSource = <A, E, LayerError>(
   layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource | OrgMetadataReferenceService, LayerError>,
@@ -694,6 +706,23 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restored.find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
     expect(restarted.mocks.storeLoad).toHaveBeenCalledWith('00D000000000001');
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('persists metadata components in listing order', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const { layer } = makeHarness({
+      catalogSnapshots,
+      metadataByType: {
+        ApexClass: [{ fullName: 'ZuluTest' }, { fullName: 'AlphaTest' }]
+      }
+    });
+
+    await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
+
+    expect(catalogSnapshots.get('00D000000000001')?.inventory[0]?.components).toEqual([
+      expect.objectContaining({ fullName: 'ZuluTest' }),
+      expect.objectContaining({ fullName: 'AlphaTest' })
+    ]);
   });
 
   it('persists refreshed inventory for a catalog restart', async () => {
@@ -1015,6 +1044,35 @@ describe('OrgMetadataCatalog contract', () => {
     ]);
   });
 
+  it('returns described custom fields when CustomField listMetadata fails', async () => {
+    const { layer } = makeHarness({
+      metadataByType: {
+        CustomObject: [{ fullName: 'Broker__c' }]
+      },
+      failListMetadataTypes: ['CustomField'],
+      descriptions: {
+        Broker__c: {
+          ...emptySObject('Broker__c'),
+          fields: [customStringField('Email__c'), customStringField('Title__c')]
+        }
+      }
+    });
+
+    const children = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })
+    );
+
+    expect(children.map(child => child.name)).toEqual(['Email__c', 'Title__c']);
+    expect(children[0]).toMatchObject({
+      reference: { type: 'CustomField', fullName: 'Broker__c.Email__c' },
+      field: { name: 'Email__c', type: 'string', length: 80 }
+    });
+    expect(children[1]).toMatchObject({
+      reference: { type: 'CustomField', fullName: 'Broker__c.Title__c' },
+      field: { name: 'Title__c', type: 'string', length: 80 }
+    });
+  });
+
   it('returns an empty child collection for a known empty metadata folder', async () => {
     const { layer } = makeHarness({
       metadataByType: {
@@ -1160,7 +1218,7 @@ describe('OrgMetadataCatalog contract', () => {
     });
 
     const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
+      materializePrimaryDocument(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/objects/Broker__c/listViews/All.listView-meta.xml')).toBe(true);
@@ -1194,143 +1252,10 @@ describe('OrgMetadataCatalog contract', () => {
     );
 
     const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
+      materializePrimaryDocument(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
     );
 
     expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
     expect(artifact.fileUris).toEqual([artifact.primaryUri]);
-  });
-
-  it('refreshes remote source independently of cached inventory and records the observed revision', async () => {
-    const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks, remoteSourceLayer } = makeHarness({
-      metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
-    });
-    mocks.shadowGet.mockImplementation(() =>
-      Effect.succeed({
-        rootUri: URI.file('/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1'),
-        primaryUri: URI.file(
-          '/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1/Property.prompt-meta.xml'
-        ),
-        fileUris: [
-          URI.file(
-            '/workspace/.sf/orgs/00D000000000001/metadata-shadow/Prompt/Property/revision-1/Property.prompt-meta.xml'
-          )
-        ],
-        remoteLastModifiedDate: 'revision-1',
-        materializedAt: '2026-07-30T00:00:00.000Z'
-      })
-    );
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = Utils.joinPath(
-        stagingUri,
-        'package',
-        'main',
-        'default',
-        'prompts',
-        'Property.prompt-meta.xml'
-      ).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [{ filePath, fullName: 'Property', state: 'Changed', type: 'Prompt' }],
-        response: {
-          fileProperties: [{ fullName: 'Property', lastModifiedDate: 'revision-2', type: 'Prompt' }]
-        }
-      });
-    });
-
-    const { artifact, entry } = await runWithCatalogAndRemoteSource(
-      Layer.merge(layer, remoteSourceLayer),
-      (catalog, remoteSource) =>
-        Effect.gen(function* () {
-          yield* getEntry(catalog, reference);
-          const materialized = yield* materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' });
-          return { artifact: materialized, entry: yield* getEntry(catalog, reference) };
-        })
-    );
-
-    expect(mocks.shadowGet).not.toHaveBeenCalled();
-    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
-    expect(mocks.retrieveComponentSetToDirectory.mock.calls[0]?.[2]).toEqual({ expectedOrgId: '00D000000000001' });
-    expect(mocks.shadowPrepare).toHaveBeenCalledWith('00D000000000001', reference, undefined);
-    expect(artifact.remoteLastModifiedDate).toBe('revision-2');
-    expect(entry?.lastModifiedDate).toBe('revision-2');
-  });
-
-  it('does not gate fresh materialization on cached inventory presence', async () => {
-    const reference = { xmlName: 'Prompt', fullName: 'Property' };
-    const { layer, mocks, remoteSourceLayer } = makeHarness();
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = Utils.joinPath(
-        stagingUri,
-        'package',
-        'main',
-        'default',
-        'prompts',
-        'Property.prompt-meta.xml'
-      ).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [{ filePath, fullName: 'Property', state: 'Changed', type: 'Prompt' }],
-        response: { fileProperties: [] }
-      });
-    });
-
-    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializeRemoteSource(remoteSource, reference, { consistency: 'refresh' })
-    );
-
-    expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
-    expect(mocks.listMetadata).not.toHaveBeenCalled();
-  });
-
-  it('materializes multiple fresh components with one retrieve operation', async () => {
-    const references = [
-      { xmlName: 'Prompt', fullName: 'Property' },
-      { xmlName: 'Prompt', fullName: 'Broker' }
-    ];
-    const { layer, mocks, remoteSourceLayer } = makeHarness();
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = (fullName: string) =>
-        Utils.joinPath(stagingUri, 'package', 'main', 'default', 'prompts', `${fullName}.prompt-meta.xml`).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: ({ fullName }: { fullName: string }) => [filePath(fullName)]
-        },
-        getFileResponses: () =>
-          references.map(reference => ({
-            filePath: filePath(reference.fullName),
-            fullName: reference.fullName,
-            state: 'Changed',
-            type: reference.xmlName
-          })),
-        response: {
-          fileProperties: references.map(reference => ({
-            fullName: reference.fullName,
-            lastModifiedDate: `revision-${reference.fullName}`,
-            type: reference.xmlName
-          }))
-        }
-      });
-    });
-
-    const materialized = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      remoteSource.materializeRemoteSources('00D000000000001', references, { consistency: 'refresh' })
-    );
-
-    expect(materialized.map(({ reference }) => reference)).toEqual(references);
-    expect(mocks.buildComponentSet).toHaveBeenCalledWith(
-      references.map(reference => ({ type: reference.xmlName, fullName: reference.fullName }))
-    );
-    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
-    expect(mocks.shadowPrepareBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.shadowPublish).toHaveBeenCalledTimes(2);
   });
 });

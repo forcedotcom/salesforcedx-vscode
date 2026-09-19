@@ -6,9 +6,9 @@
  */
 
 import type { OrgMetadataReference } from './orgMetadataReference';
+import type { SObject } from '../core/schemas/sObject';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
-import { SObjectSchema } from '../core/schemas/sObject';
 
 const UriSchema = Schema.declare((value): value is URI => value instanceof URI, {
   identifier: 'URI',
@@ -20,13 +20,13 @@ const OrgMetadataPresenceSchema = Schema.Struct({
   inWorkspace: Schema.Boolean,
   workspaceUri: Schema.optional(UriSchema)
 });
-export type OrgMetadataPresence = typeof OrgMetadataPresenceSchema.Type;
+type OrgMetadataPresence = typeof OrgMetadataPresenceSchema.Type;
 
 export type OrgMetadataConsistency = 'cache-first' | 'refresh';
 
 export type OrgMetadataHierarchyConsistency = OrgMetadataConsistency | 'cache-only';
 
-/** Public catalog hierarchy reference. Metadata API `xmlName` is exposed as the conventional `type`. */
+/** Catalog hierarchy reference. Metadata API `xmlName` is exposed as the conventional `type`. */
 export type OrgMetadataCatalogReference = {
   readonly type?: string;
   readonly fullName?: string;
@@ -38,16 +38,7 @@ const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
 });
 export type OrgMetadataCatalogComponentReference = typeof OrgMetadataCatalogComponentReferenceSchema.Type;
 
-/** Document resolution for a consumer-discovered org component. */
-export type OrgMetadataComponentResolution = {
-  readonly reference: OrgMetadataCatalogComponentReference;
-  readonly presence: 'org' | 'both';
-  readonly preferredUri: URI;
-  readonly orgUri: URI;
-  readonly workspaceUri?: URI;
-};
-
-export const OrgCatalogObservationSchema = Schema.Struct({
+const OrgCatalogObservationSchema = Schema.Struct({
   orgId: Schema.String,
   observedAt: Schema.String,
   provenance: Schema.Literal(
@@ -60,23 +51,10 @@ export const OrgCatalogObservationSchema = Schema.Struct({
   ),
   remoteLastModifiedDate: Schema.optional(Schema.String)
 });
-export type OrgCatalogObservation = typeof OrgCatalogObservationSchema.Type;
+type OrgCatalogObservation = typeof OrgCatalogObservationSchema.Type;
 
-export const OrgSObjectSummarySchema = Schema.Struct({
-  ...OrgCatalogObservationSchema.fields,
-  name: Schema.String,
-  custom: Schema.Boolean,
-  queryable: Schema.Boolean
-});
-export type OrgSObjectSummary = typeof OrgSObjectSummarySchema.Type;
-
-export const OrgSObjectDescriptionSchema = Schema.Struct({
-  ...SObjectSchema.fields,
-  ...OrgCatalogObservationSchema.fields
-});
-export type OrgSObjectDescription = typeof OrgSObjectDescriptionSchema.Type;
-
-export type OrgMetadataEntryKind = 'type' | 'folder' | 'component';
+export type OrgSObjectSummary = OrgCatalogObservation & Pick<SObject, 'name' | 'custom' | 'queryable'>;
+export type OrgSObjectDescription = SObject & OrgCatalogObservation;
 
 const OrgMetadataFieldDetailsSchema = Schema.Struct({
   name: Schema.String,
@@ -143,7 +121,6 @@ const OrgMetadataCatalogTypeEntrySchema = Schema.Struct({
   reference: Schema.Struct({ type: Schema.String.pipe(Schema.minLength(1)) }),
   field: Schema.optional(OrgMetadataFieldDetailsSchema)
 });
-export type OrgMetadataCatalogTypeEntry = typeof OrgMetadataCatalogTypeEntrySchema.Type;
 
 const OrgMetadataCatalogComponentEntrySchema = Schema.Struct({
   ...OrgMetadataCatalogEntryBaseSchema.fields,
@@ -157,10 +134,10 @@ export type OrgMetadataCatalogFieldEntry = Omit<OrgMetadataCatalogComponentEntry
   readonly field: OrgMetadataFieldDetails;
 };
 
-/** Consumer-facing entry shape and runtime contract. */
 export const OrgMetadataCatalogEntrySchema = Schema.Union(
   OrgMetadataCatalogTypeEntrySchema,
   OrgMetadataCatalogFolderEntrySchema,
   OrgMetadataCatalogComponentEntrySchema
 );
+/** Consumer-facing catalog entry. */
 export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;

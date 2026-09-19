@@ -257,16 +257,14 @@ const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(
   if (members.length === 0) {
     return HashMap.empty<string, ResolvedPackageInfo>();
   }
-  const subscriberPackageIds = Array.dedupe(members.map(m => m.SubscriberPackageId));
-  const packages = yield* batchedQuery(
+  const packageBySubscriberId = yield* batchedQuery(
     Package2Row,
     connection,
-    subscriberPackageIds,
+    Array.dedupe(members.map(m => m.SubscriberPackageId)),
     // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
     chunk =>
       `SELECT Id, Name, ContainerOptions, SubscriberPackageId FROM Package2 WHERE SubscriberPackageId IN (${inClause(chunk)})`
-  );
-  const packageBySubscriberId = HashMap.fromIterable(packages.map(pkg => [pkg.SubscriberPackageId, pkg] as const));
+  ).pipe(Effect.map(pkgs => HashMap.fromIterable(pkgs.map(pkg => [pkg.SubscriberPackageId, pkg] as const))));
 
   return HashMap.fromIterable(
     Array.filterMap(members, member =>
@@ -296,7 +294,7 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
     return HashMap.empty<string, ResolvedPackageInfo>();
   }
   const requested = HashSet.fromIterable(requestedIds);
-  const perPackage = yield* Effect.forEach(
+  return yield* Effect.forEach(
     packages,
     pkg =>
       queryDecoded(
@@ -314,8 +312,7 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
         Effect.catchAll(() => Effect.succeed(Array.empty<readonly [string, ResolvedPackageInfo]>()))
       ),
     { concurrency: BATCH_CONCURRENCY }
-  );
-  return HashMap.fromIterable(Array.flatten(perPackage));
+  ).pipe(Effect.map(Array.flatten), Effect.map(HashMap.fromIterable));
 });
 
 /**
