@@ -10,9 +10,10 @@ import {
   ExtensionProviderService,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
@@ -60,7 +61,7 @@ type OrgBrowserRuntime = ManagedRuntime.ManagedRuntime<
 >;
 // eslint-disable-next-line functional/no-let
 let _orgBrowserRuntime: OrgBrowserRuntime | undefined;
-export const getOrgBrowserRuntime = () => (_orgBrowserRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getOrgBrowserRuntime = () => (_orgBrowserRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));
 
 export const disposeOrgBrowserRuntime = async (): Promise<void> => {
   if (_orgBrowserRuntime) {

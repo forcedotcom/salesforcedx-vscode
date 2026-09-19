@@ -30,6 +30,7 @@
   "dependencies": {
     "@salesforce/core": "^9.1.9",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
@@ -71,6 +72,7 @@
       "dependencies": [
         "../salesforcedx-vscode-apex:compile",
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-apex-debugger:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

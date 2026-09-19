@@ -31,6 +31,7 @@
   "main": "./out/src",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/vscode-i18n": "*",
@@ -107,6 +108,7 @@
       "command": "tsc --pretty",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile",
         "../salesforcedx-aura-language-server:compile",

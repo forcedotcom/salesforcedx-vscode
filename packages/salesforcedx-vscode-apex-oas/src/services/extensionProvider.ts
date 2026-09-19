@@ -6,9 +6,10 @@
  */
 
 import { buildAllServicesLayer as buildBaseServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { ApexMetadataService } from './apexMetadataService';
 import { LLMService } from './llmService';
@@ -42,4 +43,4 @@ type ApexOasRuntime = ManagedRuntime.ManagedRuntime<
 >;
 // eslint-disable-next-line functional/no-let -- Lazy singleton runtime
 let _apexOasRuntime: ApexOasRuntime | undefined;
-export const getApexOasRuntime = () => (_apexOasRuntime ??= ManagedRuntime.make(AllServicesLayer));
+export const getApexOasRuntime = () => (_apexOasRuntime ??= makeVscodeExtensionRuntime(AllServicesLayer));

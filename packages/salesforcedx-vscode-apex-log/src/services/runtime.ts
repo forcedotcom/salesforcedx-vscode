@@ -7,8 +7,9 @@
 
 // type-only import: TS strips this, no runtime cycle
 import type { buildAllServicesLayer } from './extensionProvider';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 
 type ServicesLayer = ReturnType<typeof buildAllServicesLayer>;
 type ApexLogRuntime = ManagedRuntime.ManagedRuntime<
@@ -26,7 +27,7 @@ export const setAllServicesLayer = (layer: ServicesLayer): void => {
 // eslint-disable-next-line functional/no-let -- Lazy singleton runtime
 let _apexLogRuntime: ApexLogRuntime | undefined;
 
-export const getRuntime = (): ApexLogRuntime => (_apexLogRuntime ??= ManagedRuntime.make(allServicesLayer));
+export const getRuntime = (): ApexLogRuntime => (_apexLogRuntime ??= makeVscodeExtensionRuntime(allServicesLayer));
 
 export const disposeRuntime = async (): Promise<void> => {
   if (_apexLogRuntime) {

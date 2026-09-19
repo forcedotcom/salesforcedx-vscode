@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { makeVscodeExtensionRuntime } from '@salesforce/vscode-extension-runtime';
 import { AllServicesLayer } from './extensionProvider';
 
-const createApexDebuggerRuntime = () => ManagedRuntime.make(AllServicesLayer);
+const createApexDebuggerRuntime = () => makeVscodeExtensionRuntime(AllServicesLayer);
 let _apexDebuggerRuntime: ReturnType<typeof createApexDebuggerRuntime> | undefined;
 export const getRuntime = () => {
   _apexDebuggerRuntime ??= createApexDebuggerRuntime();

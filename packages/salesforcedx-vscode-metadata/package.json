@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-extension-runtime": "*",
     "effect": "^3.21.2",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
@@ -72,6 +73,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../vscode-extension-runtime:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],

@@ -182,6 +182,7 @@
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
         "./packages/effect-ext-utils:compile",
+        "./packages/vscode-extension-runtime:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
         "./packages/salesforcedx-visualforce-language-server:compile",
@@ -217,6 +218,7 @@
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
+        "./packages/vscode-extension-runtime:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
         "./packages/salesforcedx-vscode-apex:lint",
@@ -274,7 +276,8 @@
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
-        "./packages/effect-ext-utils:test"
+        "./packages/effect-ext-utils:test",
+        "./packages/vscode-extension-runtime:test"
       ]
     },
     "test:ai-safeguards": {
