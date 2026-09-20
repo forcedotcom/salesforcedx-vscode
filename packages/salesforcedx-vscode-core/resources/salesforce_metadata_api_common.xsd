@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-09-13T13:12:04.274Z
+Generated on: 2026-09-20T13:11:42.343Z
 Total metadata types: 1604
 -->
 <xsd:schema
@@ -2373,6 +2373,12 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="actionableListDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>The actionable list definition that&apos;s associated with the column. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: master/detail</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="dataDomain" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures</xsd:documentation>
@@ -2409,6 +2415,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="isSourceObjectField" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the dataset column belongs to source data model object or not. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="objectName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the object that&apos;s associated with the dataset column. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact</xsd:documentation>
@@ -2417,7 +2429,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="sourceColumnApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The API name of the column in the source dataset.</xsd:documentation>
+       <xsd:documentation>The API name of the column in the source dataset. Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -2452,6 +2464,18 @@ Total metadata types: 1604
        <xsd:appinfo>Type: ActionableListMemberStatus[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="actionableListType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the type of actionable list. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: static enum</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isactive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the actionable list definition is active (yes) or not (no). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="batchCalcJobDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The batch calculation job definition that&apos;s associated with the creation of an actionable list. This field is a relationship field.</xsd:documentation>
@@ -2462,6 +2486,12 @@ Total metadata types: 1604
       <xsd:annotation>
        <xsd:documentation>The name of the dataset that is associated with the actionable list.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The description of the actionable list definition. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: text</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="edgeMart" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -2486,6 +2516,18 @@ Total metadata types: 1604
       <xsd:annotation>
        <xsd:documentation>Required. The object for which the actionable list is created.Possible values are organized by the API version in which they were introduced. Values are available in all versions after introduction unless noted otherwise. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="sourceObjectFieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the source object field associated with the actionable list definition. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: text</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="sourceObjectName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The source object name for which the actionable list is created. Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: text</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -6333,6 +6375,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableAsyncApexElasticExecutions" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Use elastic limits for asynchronous Apex jobs (Beta) setting is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableAuraApexCtrlAuthUserAccessCheckPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Authenticated Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.</xsd:documentation>
@@ -6342,6 +6390,12 @@ Total metadata types: 1604
      <xsd:element name="enableAuraApexCtrlGuestUserAccessCheckPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Guest and Portal Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableBlockPackagedApexExecAnon" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Block Apex Anonymous Code Execution from Managed Packages release update is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -14042,28 +14096,24 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The description about the clause category configuration.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>configuration.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. A user-friendly name for ClauseCatgConfiguration, which is defined when the ClauseCatgConfiguration is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="usageType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Required. The usage type of the clause category configuration.Possible values are: ContractClauseCategory DisclosureCategory</xsd:documentation>
-       <xsd:appinfo>Type: ClmCategoryUsageType</xsd:appinfo>
+       <xsd:documentation>Required. The usage type of the clause category configuration. Possible values are: ContractClauseCategory DisclosureCategory</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -23501,7 +23551,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="entityPayload" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process.</xsd:documentation>
+       <xsd:documentation>A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process. Keep the compressed JSON payload under 100 KB. Data 360 automatically compresses the payload before storage. but, compression results vary depending on the structure of the data. A payload that’s under 100 KB before compression can exceed the limit after compression. If the compressed payload exceeds 100 KB, reduce the payload size or split the component.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -25465,28 +25515,21 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The description about the disclosure definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
      </xsd:element>
-     <xsd:element name="disclosureType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="disclosureType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The API name of the disclosure type associated with this definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. A user-friendly name for DisclosureDefinition, which is defined when the DisclosureDefinition is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -25502,76 +25545,61 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="authoringMode" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="authoringMode" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the authoring mode used to launch the disclosure authoring experience. Possible values are: Microsoft 365 Word Omniscript and Microsoft 365 Word Omniscript Form</xsd:documentation>
-       <xsd:appinfo>Type: AuthoringMode (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The description about the disclosure definition version.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>version.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="disclosureDefCurrVer" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>For internal use only.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
+     <xsd:element name="disclosureDefCurrVer" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
      </xsd:element>
-     <xsd:element name="disclosureDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="disclosureDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The API name of the disclosure definition associated with this version.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="documentTemplateGlobalKey" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="documentTemplateGlobalKey" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The document template global key associated with the DOCX template for the disclosure definition version.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>DOCX template for the disclosure definition version.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the disclosure definition version is an active version (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>an active version (true) or not (false). The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isCurrentVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isCurrentVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether this is the current version of the disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. A user-friendly name for DisclosureDefinitionVersion, which is defined when the DisclosureDefinitionVersion is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="omniScriptCnfgApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="omniScriptCnfgApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The API name of the Omniscript configuration that&apos;s associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="omniScriptConfiguration" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="omniScriptConfiguration" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>The ID of the Omniscript configuration record. Note: The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="versionNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="versionNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The version of the disclosure definition published by the author.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -25587,40 +25615,28 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     </xsd:element>
+     <xsd:element name="disclosureBodyLogo" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The description about the disclosure type.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>or a company is making a disclosure.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="disclosureBodyLogo" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The logo ID of the standard body to which an individual or a company is making a disclosure.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
+     <xsd:element name="disclosureBodyUrl" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
      </xsd:element>
-     <xsd:element name="disclosureBodyUrl" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The URL of the disclosure standard body.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="disclosureCategory" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="disclosureCategory" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the clause category that&apos;s used for disclosure.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. A user-friendly name for DisclosureType, which is defined when the DisclosureType is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -42936,40 +42952,31 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     </xsd:element>
+     <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Description about the fuel type.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the fuel type is active (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="isStationaryAssetFuel" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isStationaryAssetFuel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the fuel type is used in stationary assets (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isVehicleAssetFuel" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isVehicleAssetFuel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the fuel type is used in a vehicle asset (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>asset (true) or not (false). The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. A user-friendly name for FuelType, which is defined when the FuelType is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -42985,28 +42992,24 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="fuelType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fuelType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the fuel type that’s mapped to the unit of measure. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>A user-friendly name for FuelTypeSustnUom, which is defined when the FuelTypeSustnUom is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>is created.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="unitOfMeasure" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="unitOfMeasure" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Required. The unit of measure that’s mapped to the fuel type.Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>Required. The unit of measure that’s mapped to the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -63247,7 +63250,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="crossFilters" minOccurs="0" maxOccurs="unbounded" type="ReportCrossFilter">
       <xsd:annotation>
-       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.</xsd:documentation>
+       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ReportCrossFilter[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -69065,13 +69068,13 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="isoCode" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The ISO-standard code populates this field when you issue a retrieve() call. This field is read only in the API but you can edit the label in Setup.</xsd:documentation>
+       <xsd:documentation>The ISO-standard code populates this field when you issue a retrieve() call.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The label is what users see in picklists in Salesforce. This field is read only in the API but you can edit the label in Setup.</xsd:documentation>
+       <xsd:documentation>The label is what users see in picklists in Salesforce.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -69996,52 +69999,41 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The description of the unit of measure.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
      </xsd:element>
-     <xsd:element name="isProductUom" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProductUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the unit of measure is for a product that the company has procured in its supply chain operations (true) or not (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isStationaryAssetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isStationaryAssetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the unit of measure is used in the stationary asset calculations (true) or (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isVehicleAssetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isVehicleAssetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the unit of measure is used in the vehicle asset calculations (true) or (false). The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>(true) or (false). The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isWasteUom" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isWasteUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the unit of measure is used in the generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The label assigned to this object.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="unitType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="unitType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight</xsd:documentation>
-       <xsd:appinfo>Type: UnitType (enumeration of type string)</xsd:appinfo>
+       <xsd:documentation>(enumeration of type string) Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -70057,47 +70049,37 @@ Total metadata types: 1604
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="conversionFactor" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
+     <xsd:element name="conversionFactor" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The conversion factor that&apos;s used to convert values from one unit of measure to another for the fuel type.</xsd:documentation>
-       <xsd:appinfo>Type: double</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fuelType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fuelType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The name of the fuel type.Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>The name of the fuel type. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
+       <xsd:documentation>of the metadata type. The default value is false.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>A user-friendly name for SustnUomConversion, which is defined when the SustnUomConversion is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
+       <xsd:documentation>SustnUomConversion is created.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="sourceUom" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="sourceUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The source unit of measure for the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="targetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="targetUom" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The target unit of measure for the fuel type.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="uomsKey" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The key associated with a unit of measure for the fuel type.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
+     <xsd:element name="uomsKey" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
