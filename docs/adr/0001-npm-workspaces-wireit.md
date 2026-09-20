@@ -1,6 +1,6 @@
-# Build orchestration: npm workspaces + Wireit
+# Build orchestration: npm workspaces + Wireit (superseded)
 
-The monorepo uses npm workspaces with [Wireit](../../.claude/skills/wireit/SKILL.md) for task graph/caching, not Lerna and not NX. Wireit keeps task definitions in each `package.json` and caches by input fingerprint without a separate build tool.
+Superseded by [ADR 0022](./0022-pnpm-cutover.md): pnpm replaced npm for package and workspace management; [Wireit](../../.claude/skills/wireit/SKILL.md) remains the task orchestrator.
 
 ## Considered Options
 
