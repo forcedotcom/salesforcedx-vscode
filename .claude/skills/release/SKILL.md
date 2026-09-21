@@ -59,8 +59,10 @@ Do not proceed until the user explicitly confirms testing is complete.
 Once user confirms testing is complete, first promote the GitHub release from pre-release to a full release — this is the actual "make it stable" signal, and it's required before `vsce publish` will accept the VSIX. The publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce` whenever it's still `true`; that fails outright since these VSIXs were packaged as stable (`Cannot use '--pre-release' flag with a package that was not packaged as pre-release`):
 
 ```sh
-gh release edit v<version> --prerelease=false --repo forcedotcom/salesforcedx-vscode
+gh release edit v<version> --prerelease=false --title "Release <version> - Tested & Approved" --latest --repo forcedotcom/salesforcedx-vscode
 ```
+
+Also updates the release title from "Ready for Testing" to "Tested & Approved" to reflect that manual testing passed, and marks it `--latest` so GitHub (and anything resolving "the latest release" via the API) points at it instead of whatever shipped previously.
 
 Flip auto-fires both workflows via `on.release.types: [released]` ([`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishVSCode.yml), [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishOpenVSX.yml)):
 
