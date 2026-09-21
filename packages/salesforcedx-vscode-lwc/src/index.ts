@@ -261,8 +261,9 @@ export const deactivate = () => {
 
 const getActivationMode = Effect.fn('lwc:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (
-    (yield* api.services.SettingsService.getValue('salesforcedx-vscode-lightning', 'activationMode', 'autodetect')) ??
+  return yield* api.services.SettingsService.getValueOrElse(
+    'salesforcedx-vscode-lightning',
+    'activationMode',
     'autodetect'
   );
 });

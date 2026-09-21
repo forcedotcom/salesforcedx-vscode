@@ -151,24 +151,22 @@ const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(func
   );
 });
 
-/** Read the auto-terminate setting; any failure (missing setting / services unavailable) degrades to false. */
-const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(function* () {
-  return yield* Effect.gen(function* () {
+/** Auto-terminate setting; read/services failure → false. */
+const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
+  function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* (yield* api.services.SettingsService).getValue<boolean>(
+    return yield* (yield* api.services.SettingsService).getValueOrElse(
       APEX_SETTINGS_SECTION,
       AUTO_TERMINATE_KEY,
       false
     );
-  }).pipe(
-    Effect.map(v => v === true),
-    Effect.catchTags({
-      MissingSettingsError: () => Effect.succeed(false),
-      ServicesExtensionNotFoundError: () => Effect.succeed(false),
-      InvalidServicesApiError: () => Effect.succeed(false)
-    })
-  );
-});
+  },
+  Effect.catchTags({
+    MissingSettingsError: () => Effect.succeed(false),
+    ServicesExtensionNotFoundError: () => Effect.succeed(false),
+    InvalidServicesApiError: () => Effect.succeed(false)
+  })
+);
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
   numTries = 3,

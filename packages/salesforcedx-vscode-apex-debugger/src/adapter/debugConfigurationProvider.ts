@@ -67,10 +67,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
           return yield* Effect.all({
-            proxyUrl: api.services.SettingsService.getValue('http', 'proxy', ''),
-            proxyStrictSSL: api.services.SettingsService.getValue('http', 'proxyStrictSSL', false),
-            proxyAuth: api.services.SettingsService.getValue('http', 'proxyAuthorization', ''),
-            connectionTimeoutMs: api.services.SettingsService.getValue(
+            proxyUrl: api.services.SettingsService.getValueOrElse('http', 'proxy', ''),
+            proxyStrictSSL: api.services.SettingsService.getValueOrElse('http', 'proxyStrictSSL', false),
+            proxyAuth: api.services.SettingsService.getValueOrElse('http', 'proxyAuthorization', ''),
+            connectionTimeoutMs: api.services.SettingsService.getValueOrElse(
               'salesforcedx-vscode-apex-debugger',
               'connectionTimeoutMs',
               20_000
@@ -79,10 +79,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         })
       );
       config.workspaceSettings = {
-        proxyUrl: workspaceSettings.proxyUrl ?? '',
-        proxyStrictSSL: workspaceSettings.proxyStrictSSL ?? false,
-        proxyAuth: workspaceSettings.proxyAuth ?? '',
-        connectionTimeoutMs: workspaceSettings.connectionTimeoutMs ?? 20_000 // should match pjson default
+        proxyUrl: workspaceSettings.proxyUrl,
+        proxyStrictSSL: workspaceSettings.proxyStrictSSL,
+        proxyAuth: workspaceSettings.proxyAuth,
+        connectionTimeoutMs: workspaceSettings.connectionTimeoutMs
       } satisfies WorkspaceSettings;
     }
 

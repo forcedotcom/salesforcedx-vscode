@@ -77,7 +77,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
   // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
   if (hasValidRestAnnotations(context)) {
-    const isRestOASGenEnabled = yield* api.services.SettingsService.getValue(
+    const isRestOASGenEnabled = yield* api.services.SettingsService.getValueOrElse(
       'salesforcedx-vscode-apex-oas',
       'enableRestOASGen',
       false

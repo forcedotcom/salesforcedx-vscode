@@ -53,7 +53,8 @@ import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
 
 const settingsService = SettingsService.make({
-  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue)
+  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
+  getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
 } as never);
 
 describe('DataQuery Pure Functions', () => {

@@ -145,6 +145,12 @@ const MockSettingsServiceLayer = Layer.succeed(
         catch: () =>
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
+    getValueOrElse: <T>(_section: string, _key: string, defaultValue: T) =>
+      Effect.try({
+        try: () => defaultValue,
+        catch: () =>
+          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
+      }),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,

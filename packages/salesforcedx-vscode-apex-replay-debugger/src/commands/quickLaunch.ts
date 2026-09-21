@@ -29,7 +29,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   if (isEmpty) return false;
   const connection = yield* api.services.ConnectionService.getConnection();
 
-  if (!(yield* Effect.promise(() => ensureTraceFlagsForCurrentUser()))) return false;
+  if (!(yield* ensureTraceFlagsForCurrentUser())) return false;
 
   if (checkpointService.hasOneOrMoreActiveCheckpoints()) {
     if (!(yield* Effect.promise(() => sfCreateCheckpoints()))) return false;

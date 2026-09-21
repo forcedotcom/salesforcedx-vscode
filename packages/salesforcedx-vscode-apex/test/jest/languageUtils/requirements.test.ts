@@ -61,7 +61,10 @@ jest.mock('../../../src/services/runtime', () => ({
               return mockGetServicesApi();
             }
           } as unknown as ExtensionProviderService),
-          Effect.provideService(SettingsService, SettingsService.make({ getValue: mockGetValue } as never))
+          Effect.provideService(
+            SettingsService,
+            SettingsService.make({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never)
+          )
         )
       )
   })

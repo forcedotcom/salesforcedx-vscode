@@ -168,7 +168,13 @@ describe('selectStrategyByBidRule', () => {
             }
           } as never)
         }),
-        Effect.provideService(SettingsService, SettingsService.make({ getValue: () => Effect.succeed(rule) } as never))
+        Effect.provideService(
+          SettingsService,
+          SettingsService.make({
+            getValue: () => Effect.succeed(rule),
+            getValueOrElse: () => Effect.succeed(rule)
+          } as never)
+        )
       ) as Effect.Effect<GenerationStrategy, unknown, never>
     );
 

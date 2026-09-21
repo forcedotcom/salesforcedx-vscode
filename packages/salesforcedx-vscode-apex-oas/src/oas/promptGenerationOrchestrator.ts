@@ -7,6 +7,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { nls } from '../messages/nls';
 import { GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
@@ -17,7 +19,8 @@ export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified
   readonly message: string;
 }> {}
 
-export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS';
+const BidRule = Schema.Literal('LEAST_CALLS', 'MOST_CALLS');
+export type BidRule = typeof BidRule.Type;
 
 const validBidsByCount = (bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>) =>
   Array.from(bids.entries())
@@ -51,26 +54,29 @@ export const applyRule = (rule: BidRule, bids: Map<GenerationStrategyType, Promp
   }
 };
 
-const isBidRule = (value: unknown): value is BidRule => value === 'LEAST_CALLS' || value === 'MOST_CALLS';
-
 const getBidRule = Effect.fn('ApexOas.Strategy.getBidRule')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const currentBidRule = yield* api.services.SettingsService.getValue<BidRule>(
-    'salesforcedx-vscode-apex-oas',
-    'generation_strategy',
-    'LEAST_CALLS'
-  );
-  return isBidRule(currentBidRule) ? currentBidRule : 'LEAST_CALLS';
+  const current = yield* api.services.SettingsService.getValue('salesforcedx-vscode-apex-oas', 'generation_strategy');
+  return yield* Schema.decodeUnknown(BidRule)(current).pipe(Effect.orElseSucceed((): BidRule => 'LEAST_CALLS'));
 });
 
 export const selectStrategyByBidRule = Effect.fn('ApexOas.Strategy.bid')(function* (
   metadata: ApexClassOASEligibleResponse,
   context: ApexClassOASGatherContextResponse
 ) {
-  const { strategies, bids } = yield* initializeAndBid(metadata, context).pipe(
-    Effect.mapError(cause => new StrategyNotQualified({ message: `Strategy initialization failed: ${String(cause)}` }))
+  const [{ strategies, bids }, rule] = yield* Effect.all([
+    initializeAndBid(metadata, context).pipe(
+      Effect.mapError(
+        cause => new StrategyNotQualified({ message: `Strategy initialization failed: ${String(cause)}` })
+      )
+    ),
+    getBidRule()
+  ]);
+  return yield* applyRule(rule, bids).pipe(
+    Effect.map(type => strategies.get(type)),
+    Effect.filterOrFail(
+      isNotUndefined,
+      () => new StrategyNotQualified({ message: nls.localize('strategy_not_qualified') })
+    )
   );
-  const selectedStrategyType = yield* applyRule(yield* getBidRule(), bids);
-  const strategy = strategies.get(selectedStrategyType);
-  return strategy ?? (yield* new StrategyNotQualified({ message: nls.localize('strategy_not_qualified') }));
 });

@@ -38,8 +38,11 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
   );
 
-  const maxFetch =
-    (yield* api.services.SettingsService.getValue('salesforcedx-vscode-soql', 'maxQueryLimit', 50_000)) ?? 50_000;
+  const maxFetch = yield* api.services.SettingsService.getValueOrElse(
+    'salesforcedx-vscode-soql',
+    'maxQueryLimit',
+    50_000
+  );
   const { soql, scanAll } = stripAllRows(query);
   const promptService = yield* api.services.PromptService;
   const notificationMode = yield* api.services.NotificationModeService;
@@ -82,7 +85,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
-  if ((yield* api.services.SettingsService.getValue('salesforcedx-vscode-core', 'clearOutputTab', false)) ?? false) {
+  if (yield* api.services.SettingsService.getValueOrElse('salesforcedx-vscode-core', 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 

@@ -17,7 +17,8 @@ import { nls } from '../../../src/messages';
 
 const decode = Schema.decodeUnknownSync(QueryPlanResponse);
 const settingsService = SettingsService.make({
-  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue)
+  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
+  getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
 } as never);
 
 const rawNote = {

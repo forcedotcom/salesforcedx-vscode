@@ -12,11 +12,9 @@ const APEX_TESTING_CONFIGURATION_NAME = 'salesforcedx-vscode-apex-testing';
 
 export const retrieveTestCodeCoverage = Effect.fn('retrieveTestCodeCoverage')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (
-    (yield* api.services.SettingsService.getValue(
-      APEX_TESTING_CONFIGURATION_NAME,
-      'retrieve-test-code-coverage',
-      false
-    )) ?? false
+  return yield* api.services.SettingsService.getValueOrElse(
+    APEX_TESTING_CONFIGURATION_NAME,
+    'retrieve-test-code-coverage',
+    false
   );
 });

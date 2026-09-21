@@ -74,6 +74,7 @@ const mockGetValue = jest.fn((_section: string, key: string, defaultValue: unkno
 );
 const mockSettingsService = {
   getValue: mockGetValue,
+  getValueOrElse: mockGetValue,
   setValue: jest.fn(() => Effect.void)
 };
 

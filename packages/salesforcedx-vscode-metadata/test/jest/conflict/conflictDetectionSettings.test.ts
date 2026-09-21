@@ -11,8 +11,8 @@ import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/setting
 import { isConflictDetectionEnabled } from '../../../src/conflict/conflictDetectionSettings';
 
 describe('conflictDetectionSettings', () => {
-  const getValue = jest.fn();
-  const settingsService = SettingsService.make({ getValue } as never);
+  const getValueOrElse = jest.fn();
+  const settingsService = SettingsService.make({ getValueOrElse } as never);
   const run = () =>
     Effect.runPromise(
       isConflictDetectionEnabled().pipe(
@@ -26,46 +26,38 @@ describe('conflictDetectionSettings', () => {
     );
 
   beforeEach(() => {
-    getValue.mockReset();
+    getValueOrElse.mockReset();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('isConflictDetectionEnabled (Effect version)', () => {
-    it('should return true when setting is false (conflict detection enabled by default)', async () => {
-      getValue.mockReturnValue(Effect.succeed(true));
+  describe('isConflictDetectionEnabled', () => {
+    it('returns true when the setting is true', async () => {
+      getValueOrElse.mockReturnValue(Effect.succeed(true));
 
       const result = await run();
 
       expect(result).toBe(true);
-      expect(getValue).toHaveBeenCalledWith(
+      expect(getValueOrElse).toHaveBeenCalledWith(
         'salesforcedx-vscode-metadata',
         'sourceTracking.enableConflictDetection',
         true
       );
     });
 
-    it('should return false when setting is false (conflict detection disabled)', async () => {
-      getValue.mockReturnValue(Effect.succeed(false));
+    it('returns false when the setting is false', async () => {
+      getValueOrElse.mockReturnValue(Effect.succeed(false));
 
       const result = await run();
 
       expect(result).toBe(false);
-      expect(getValue).toHaveBeenCalledWith(
+      expect(getValueOrElse).toHaveBeenCalledWith(
         'salesforcedx-vscode-metadata',
         'sourceTracking.enableConflictDetection',
         true
       );
-    });
-
-    it('should return true when setting is undefined (default behavior)', async () => {
-      getValue.mockReturnValue(Effect.succeed(undefined));
-
-      const result = await run();
-
-      expect(result).toBe(true);
     });
   });
 });
