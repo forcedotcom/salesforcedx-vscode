@@ -458,10 +458,28 @@ jobs:
           echo "version=$NEXT_ODD_VERSION" >> "$GITHUB_OUTPUT"
           echo "Stable release $RELEASE_VERSION -> develop advances to $NEXT_ODD_VERSION"
 
+      # Guards against an out-of-order dispatch (e.g. manually rebuilding an older stable
+      # candidate after a newer one already shipped) moving develop's version backward or
+      # sideways -- update-release-versions.js overwrites unconditionally with no monotonicity
+      # check of its own, so this has to happen before calling it.
+      - name: Guard against non-monotonic version
+        id: guard
+        run: |
+          CURRENT_MINOR=$(node -pe "require('./packages/salesforcedx-vscode/package.json').version" | cut -d. -f2)
+          NEXT_MINOR=$(echo "${{ steps.next-odd.outputs.version }}" | cut -d. -f2)
+          if [ "$NEXT_MINOR" -le "$CURRENT_MINOR" ]; then
+            echo "::notice::develop is already at minor $CURRENT_MINOR (>= computed $NEXT_MINOR) - skipping to avoid downgrade"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Bump develop to next odd minor
+        if: steps.guard.outputs.skip != 'true'
         run: node scripts/update-release-versions.js ${{ steps.next-odd.outputs.version }}
 
       - uses: ./.github/actions/commitAndPushToDevelop
+        if: steps.guard.outputs.skip != 'true'
         with:
           files: packages/*/package.json package-lock.json
           message: |
