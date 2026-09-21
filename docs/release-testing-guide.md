@@ -7,7 +7,7 @@ Guide for testing pre-release builds before publishing to marketplace.
 This guide covers testing and publishing for:
 - **Stable releases** (built by `build-github-release.yml`)
 - **Patch releases** (built by `build-and-release-patch-branch.yml`)
-- **Emergency pre-releases** (built by `build-github-release.yml` with `publishAsPrerelease=true`)
+- **Emergency pre-releases** (built by `build-github-release.yml` with `emergencyPrerelease=true`)
 
 After any build workflow creates a pre-release, follow these steps to test and publish.
 
@@ -161,7 +161,7 @@ For urgent hotfixes that need immediate marketplace publication as pre-release:
 ```bash
 # From hotfix branch or specific commit
 gh workflow run build-github-release.yml \
-  -f publishAsPrerelease=true \
+  -f emergencyPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
 ```

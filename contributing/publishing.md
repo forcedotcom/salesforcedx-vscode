@@ -26,7 +26,7 @@ Manual workflow [`build-github-release.yml`](https://github.com/forcedotcom/sale
 Inputs:
 - `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty
 - `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
-- `publishAsPrerelease`: `true` → pre-release; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
+- `emergencyPrerelease`: `true` → emergency-hotfix build path; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
 
 Uses scripts:
 - [`scripts/calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease version, bump minor

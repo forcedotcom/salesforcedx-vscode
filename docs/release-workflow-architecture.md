@@ -113,7 +113,7 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐        │      │
    │ Step 1: build-github-release.yml                     │        │      │
-   │ -f publishAsPrerelease=true                          │        │      │
+   │ -f emergencyPrerelease=true                          │        │      │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │

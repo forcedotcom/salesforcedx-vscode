@@ -1,7 +1,7 @@
 # DEPRECATED: Replaced by build-github-release.yml
 #
 # build-github-release.yml builds from nightly tags published to marketplace as prerelease (no release branch) + supports
-# emergency pre-releases via publishAsPrerelease=true.
+# emergency pre-releases via emergencyPrerelease=true.
 # See: .github/workflows/build-github-release.yml
 # Docs: contributing/publishing.md
 #

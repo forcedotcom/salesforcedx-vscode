@@ -99,7 +99,7 @@ git push ci-testing hotfix/test-emergency-fix
 1. Go to Actions → `build-github-release.yml`
 2. Click "Run workflow"
 3. Set inputs:
-   - `publishAsPrerelease`: `true`
+   - `emergencyPrerelease`: `true`
    - `startFromRef`: `hotfix/test-emergency-fix`
 4. Run workflow
 
