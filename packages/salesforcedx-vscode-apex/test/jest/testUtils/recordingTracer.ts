@@ -26,7 +26,7 @@ export const createRecordingRuntimeMock = (
   options?: {
     forkSync?: boolean;
     provideExtensionProvider?: boolean;
-    settingsGetValue?: SettingsService['getValue'];
+    settingsGetValue?: (section: string, key: string, defaultValue?: unknown) => Effect.Effect<unknown>;
   }
 ) => {
   const recordingTracer = Tracer.make({
@@ -66,14 +66,20 @@ export const createRecordingRuntimeMock = (
       : effect;
     return options?.settingsGetValue
       ? withExtensionProvider.pipe(
-          Effect.provideService(SettingsService, SettingsService.make({ getValue: options.settingsGetValue } as never))
+          Effect.provideService(
+            SettingsService,
+            SettingsService.make({
+              getValue: options.settingsGetValue,
+              getValueOrElse: options.settingsGetValue
+            } as never)
+          )
         )
       : withExtensionProvider;
   };
   return {
     getRuntime: () => ({
       runPromise: (eff: Effect.Effect<unknown, unknown>) =>
-        Effect.runPromise(provideRuntimeServices(eff).pipe(Effect.provide(layer))),
+        provideRuntimeServices(eff).pipe(Effect.provide(layer), Effect.runPromise),
       runFork: (eff: Effect.Effect<unknown, unknown>) => {
         const provided = provideRuntimeServices(eff).pipe(
           Effect.provide(layer),
@@ -87,7 +93,7 @@ export const createRecordingRuntimeMock = (
         return undefined;
       },
       runSync: (eff: Effect.Effect<unknown, unknown>) =>
-        Effect.runSync(provideRuntimeServices(eff).pipe(Effect.provide(layer)))
+        provideRuntimeServices(eff).pipe(Effect.provide(layer), Effect.runSync)
     })
   };
 };

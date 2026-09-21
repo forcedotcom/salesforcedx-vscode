@@ -18,7 +18,8 @@ jest.mock('../../../src/services/runtime', () => {
   const { ExtensionProviderService } = require('@salesforce/effect-ext-utils');
   const { SettingsService } = require('salesforcedx-vscode-services/src/vscode/settingsService');
   const settingsService = {
-    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
+    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args),
+    getValueOrElse: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
   };
   return {
     getRuntime: () => ({

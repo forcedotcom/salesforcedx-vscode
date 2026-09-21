@@ -11,7 +11,7 @@ import { retrieveAAMethodAnnotations, retrieveEnableSyncInitJobs } from '../../s
 
 describe('settings Unit Tests.', () => {
   const getValue = jest.fn();
-  const settingsService = SettingsService.make({ getValue } as never);
+  const settingsService = SettingsService.make({ getValue, getValueOrElse: getValue } as never);
   const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | SettingsService>) =>
     Effect.runPromise(
       effect.pipe(

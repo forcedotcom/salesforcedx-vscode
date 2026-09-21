@@ -8,25 +8,23 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { getRuntime } from './runtime';
 
-/** Promise bridge for imperative code. Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
-export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
-  getRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const traceFlagService = yield* api.services.TraceFlagService;
-      const userId = yield* traceFlagService.getUserId();
-      const durationMinutes =
-        (yield* api.services.SettingsService.getValue(
-          'salesforcedx-vscode-apex-log',
-          'traceFlagsDefaultDurationMinutes',
-          30
-        )) ?? 30;
-      yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
-      return true;
-    }).pipe(
-      Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
-      Effect.catchAll(() => Effect.succeed(false))
-    )
-  );
+/** Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
+export const ensureTraceFlagsForCurrentUser = Effect.fn('ensureTraceFlagsForCurrentUser')(
+  function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const traceFlagService = yield* api.services.TraceFlagService;
+    const [userId, durationMinutes] = yield* Effect.all([
+      traceFlagService.getUserId(),
+      api.services.SettingsService.getValueOrElse(
+        'salesforcedx-vscode-apex-log',
+        'traceFlagsDefaultDurationMinutes',
+        30
+      )
+    ]);
+    yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
+    return true;
+  },
+  Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
+  Effect.orElseSucceed(() => false)
+);

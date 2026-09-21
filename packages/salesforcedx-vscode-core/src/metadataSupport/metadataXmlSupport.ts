@@ -147,7 +147,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
 
     // Suppress Red Hat XML schema documentation (unless user opts in) to prevent duplication,
     // but only if they haven't already set a value for the XML setting at any scope.
-    const doNotSuppress = yield* settingsService.getValue<boolean>(
+    const doNotSuppress = yield* settingsService.getValueOrElse(
       'salesforcedx-vscode-core',
       'metadata.doNotSuppressRedhatSchemaDocumentation',
       false

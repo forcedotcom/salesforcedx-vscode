@@ -117,6 +117,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.restartCommandUpdate++;
     this.languageStatusItem.dispose();
     this.restartStatusItem.dispose();
-    this.disposables.forEach(d => d.dispose());
+    for (const disposable of this.disposables) {
+      disposable.dispose();
+    }
   }
 }

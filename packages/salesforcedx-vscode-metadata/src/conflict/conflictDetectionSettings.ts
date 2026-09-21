@@ -22,11 +22,9 @@ import * as Effect from 'effect/Effect';
  */
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (
-    (yield* api.services.SettingsService.getValue(
-      'salesforcedx-vscode-metadata',
-      'sourceTracking.enableConflictDetection',
-      true
-    )) ?? true
+  return yield* api.services.SettingsService.getValueOrElse(
+    'salesforcedx-vscode-metadata',
+    'sourceTracking.enableConflictDetection',
+    true
   );
 });

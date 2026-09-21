@@ -133,8 +133,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const [methodItems, classItems, codeCoverage, concise] = yield* Effect.all([
         ApexTestTreeService.getMethodItems(),
         ApexTestTreeService.getClassItems(),
-        settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
-        settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)
+        settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
+        settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false)
       ]);
       const run = yield* Effect.sync(() => ctx.controller.createTestRun(new vscode.TestRunRequest()));
       yield* Effect.sync(() =>
@@ -144,8 +144,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           testsToRun: [],
           methodItems,
           classItems,
-          codeCoverage: codeCoverage ?? false,
-          concise: concise ?? false
+          codeCoverage,
+          concise
         })
       ).pipe(Effect.ensuring(Effect.sync(() => run.end())));
     });
@@ -247,15 +247,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Generate and open the report (non-fatal: log + continue on failure).
       const reportSettings = yield* api.services.SettingsService;
-      const outputFormat =
-        (yield* reportSettings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ??
-        'markdown';
-      const sortOrder =
-        (yield* reportSettings.getValue<'runtime' | 'coverage' | 'severity'>(
-          APEX_TESTING_SECTION,
-          'testSortOrder',
-          'runtime'
-        )) ?? 'runtime';
+      const outputFormat = yield* reportSettings.getValueOrElse<'markdown' | 'text'>(
+        APEX_TESTING_SECTION,
+        'outputFormat',
+        'markdown'
+      );
+      const sortOrder = yield* reportSettings.getValueOrElse<'runtime' | 'coverage' | 'severity'>(
+        APEX_TESTING_SECTION,
+        'testSortOrder',
+        'runtime'
+      );
       const reportUri = yield* writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
         Effect.tap(() => Effect.annotateCurrentSpan({ outputFormat, trigger: 'testExplorer' })),
         Effect.withSpan('apexTestReportGenerated'),
@@ -472,8 +473,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           const tmpFolder = yield* getTempFolder();
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
           const settings = yield* api.services.SettingsService;
-          const codeCoverage =
-            (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
+          const codeCoverage = yield* settings.getValueOrElse(
+            APEX_TESTING_SECTION,
+            'retrieve-test-code-coverage',
+            false
+          );
           const runAllTestsInOrg =
             runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
           yield* executeTests({

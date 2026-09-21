@@ -89,12 +89,10 @@ const updateDisplay =
 /** Helper to read polling interval config */
 const getPollingIntervalSeconds = Effect.fn('getPollingIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (
-    (yield* api.services.SettingsService.getValue(
-      'salesforcedx-vscode-metadata',
-      'sourceTracking.pollingIntervalSeconds',
-      60
-    )) ?? 60
+  return yield* api.services.SettingsService.getValueOrElse(
+    'salesforcedx-vscode-metadata',
+    'sourceTracking.pollingIntervalSeconds',
+    60
   );
 });
 

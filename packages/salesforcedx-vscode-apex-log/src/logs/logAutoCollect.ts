@@ -108,7 +108,7 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
 const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const settings = yield* api.services.SettingsService;
-  return (yield* settings.getValue('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30)) ?? 30;
+  return yield* settings.getValueOrElse('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30);
 });
 
 /** Polling stream that auto-collects Apex logs when trace flags are active. Writes to collectorRef for status bar display. */

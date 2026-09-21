@@ -58,19 +58,13 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaMemory = await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return (
-        (yield* api.services.SettingsService.getValue<number | null>(
-          'salesforcedx-vscode-apex',
-          'java.memory',
-          null
-        )) ?? null
-      );
+      return yield* api.services.SettingsService.getValue<number>('salesforcedx-vscode-apex', 'java.memory');
     })
   );
   await checkJavaVersion(javaHome);
   return {
     java_home: javaHome,
-    java_memory: javaMemory
+    java_memory: javaMemory ?? null
   };
 };
 

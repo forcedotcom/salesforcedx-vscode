@@ -13,6 +13,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
@@ -71,7 +72,7 @@ const startedInDebugMode = (): boolean => {
   const args = process.execArgv;
   if (args) {
     return args.some(
-      (arg: any) =>
+      arg =>
         /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
     );
   }
@@ -90,12 +91,12 @@ const createServer = Effect.fn('apex.lsp.createServer')(
     const { enableSemanticErrors, enableCompletionStatistics } = yield* Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       return yield* Effect.all({
-        enableSemanticErrors: api.services.SettingsService.getValue(
+        enableSemanticErrors: api.services.SettingsService.getValueOrElse(
           'salesforcedx-vscode-apex',
           'enable-semantic-errors',
           false
         ),
-        enableCompletionStatistics: api.services.SettingsService.getValue(
+        enableCompletionStatistics: api.services.SettingsService.getValueOrElse(
           'salesforcedx-vscode-apex',
           'advanced.enable-completion-statistics',
           false
@@ -103,13 +104,13 @@ const createServer = Effect.fn('apex.lsp.createServer')(
       });
     }).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
 
+    const { languageServerDir } = yield* Schema.decodeUnknown(Schema.Struct({ languageServerDir: Schema.String }))(
+      extensionContext.extension.packageJSON
+    ).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
+
     return yield* Effect.try({
       try: (): Executable => {
-        const uberJar = path.resolve(
-          extensionContext.extensionPath,
-          extensionContext.extension.packageJSON.languageServerDir,
-          UBER_JAR_NAME
-        );
+        const uberJar = path.resolve(extensionContext.extensionPath, languageServerDir, UBER_JAR_NAME);
         const jvmMaxHeap = requirementsData.java_memory;
 
         const args: string[] = [
@@ -217,7 +218,7 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* Effect.all(
       {
-        lspParityCapabilities: api.services.SettingsService.getValue(
+        lspParityCapabilities: api.services.SettingsService.getValueOrElse(
           'salesforcedx-vscode-apex',
           'advanced.lspParityCapabilities',
           true

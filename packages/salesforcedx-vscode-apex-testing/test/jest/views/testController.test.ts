@@ -88,6 +88,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
       // (yield* api.services.SettingsService), so wrap in Effect.succeed.
       SettingsService: EffectLib.succeed({
         getValue: (_section: string, key: string, defaultValue: unknown) =>
+          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue),
+        getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
           EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
       }),
       // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):

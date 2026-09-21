@@ -75,7 +75,7 @@ export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: 
 
   const settingsService = yield* SettingsService;
 
-  if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
+  if (yield* settingsService.getValueOrElse('salesforce-web-console', 'protectedOrg', false)) {
     vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
     const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
     // protected org: make apex read only

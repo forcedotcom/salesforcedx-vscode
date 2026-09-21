@@ -214,12 +214,11 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const urlMapping =
     context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
     `/${context.classDetail.name}/`;
-  const outputTokenLimit =
-    (yield* api.services.SettingsService.getValue(
-      'salesforcedx-vscode-apex-oas',
-      'generation_output_token_limit',
-      750
-    )) ?? 750;
+  const outputTokenLimit = yield* api.services.SettingsService.getValueOrElse(
+    'salesforcedx-vscode-apex-oas',
+    'generation_output_token_limit',
+    750
+  );
 
   const genState = yield* buildGenState(metadata, context, classPrompt, sourceText);
   // eslint-disable-next-line functional/no-let

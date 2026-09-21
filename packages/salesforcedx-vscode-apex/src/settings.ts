@@ -32,7 +32,7 @@ const SECTION = 'salesforcedx-vscode-apex';
 
 const getSetting = Effect.fn('apex.getSetting')(function* <T>(key: string, defaultValue: T) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (yield* api.services.SettingsService.getValue(SECTION, key, defaultValue)) ?? defaultValue;
+  return yield* api.services.SettingsService.getValueOrElse(SECTION, key, defaultValue);
 });
 
 export const retrieveEnableSyncInitJobs = Effect.fn('apex.retrieveEnableSyncInitJobs')(function* () {

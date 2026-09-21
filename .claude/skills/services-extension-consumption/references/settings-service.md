@@ -6,10 +6,18 @@ VS Code settings read/write. Accessor pattern: call methods directly.
 
 ### getValue
 
-Get a setting value:
+Unset → `T | undefined`.
 
 ```typescript
-const value = yield* api.services.SettingsService.getValue('section', 'key', defaultValue);
+const value = yield* api.services.SettingsService.getValue<string>('section', 'key');
+```
+
+### getValueOrElse
+
+Unset or `null` → `defaultValue`. Success type is `T`.
+
+```typescript
+const value = yield* api.services.SettingsService.getValueOrElse('section', 'key', false);
 ```
 
 ### setValue
@@ -75,6 +83,14 @@ Get retrieve on load setting:
 
 ```typescript
 const value = yield* api.services.SettingsService.getRetrieveOnLoad();
+```
+
+### getInternalDev
+
+`salesforcedx-vscode-core.internal-development`. Unset/`null` → `false`.
+
+```typescript
+const internalDev = yield* api.services.SettingsService.getInternalDev();
 ```
 
 ## Errors

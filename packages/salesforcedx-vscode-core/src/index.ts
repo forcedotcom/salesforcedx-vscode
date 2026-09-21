@@ -28,7 +28,7 @@ import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport'
 import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
-import { salesforceCoreSettings } from './settings';
+import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
@@ -75,7 +75,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   void showTelemetryMessage(extensionContext);
 
   // Set internal dev context
-  const internalDev = yield* salesforceCoreSettings.getInternalDev();
+  const internalDev = yield* servicesApi.services.SettingsService.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
@@ -106,12 +106,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   ) {
     // Refresh SObject definitions only for an open Salesforce project
     // when faux classes are missing (metadata extension registers the command).
-    const sobjectRefreshStartup =
-      (yield* servicesApi.services.SettingsService.getValue(
-        SFDX_CORE_CONFIGURATION_NAME,
-        ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-        false
-      )) ?? false;
+    const sobjectRefreshStartup = yield* servicesApi.services.SettingsService.getValueOrElse(
+      SFDX_CORE_CONFIGURATION_NAME,
+      ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+      false
+    );
     yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
@@ -180,7 +179,7 @@ const handleTheUnhandled = (): void => {
       .find(w => w.startsWith('salesforcedx-vscode'));
 
     getRuntime().runFork(
-      salesforceCoreSettings.getEnableAllExceptionCatcher().pipe(
+      getEnableAllExceptionCatcher().pipe(
         Effect.flatMap(exceptionCatcher => {
           // Send detailed telemetry data for only dx extensions by default.
           // If the exception catcher is enabled, send telemetry data for all extensions.
