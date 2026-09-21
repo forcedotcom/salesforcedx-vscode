@@ -14,19 +14,27 @@ From repo root (no global `ts-node`):
 
 - `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
 
-## Step 0 — Verify Wednesday stable build
+## Step 0 — Trigger Wednesday stable build
 
 Run `detect-state.ts` first.
 
 > **Note:** `createReleaseBranch.yml` deprecated — use `build-github-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
 
-Check scheduled `build-github-release.yml` ran Wednesday:
+After Wednesday's `promote-to-prerelease.yml` run completes, select the previous Wednesday's promoted nightly—the candidate with 7 days of customer validation—and dispatch the stable build explicitly:
+
+```sh
+gh workflow run build-github-release.yml \
+  -f prereleaseTag=v<version>-nightly.develop.<YYYYMMDD> \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Then find the run and report its status + timestamp:
 
 ```sh
 gh run list --workflow=build-github-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
 ```
 
-Report status + timestamp. On **failure**, inspect logs:
+On **failure**, inspect logs:
 
 ```sh
 gh run view <runId> --repo forcedotcom/salesforcedx-vscode
@@ -35,15 +43,17 @@ gh run view <runId> --repo forcedotcom/salesforcedx-vscode
 Decision matrix:
 
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
-- **Build failed** → check logs. Issues: no marketplace prerelease (wait Wed 7 AM UTC) or build script error. Re-run:
+- **Build failed** → check logs, correct the input or build error, then re-run with the same validated prerelease tag:
   ```sh
-  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml \
+    -f prereleaseTag=v<version>-nightly.develop.<YYYYMMDD> \
+    --repo forcedotcom/salesforcedx-vscode
   ```
-- **No run this week** → Either:
-  - Wait (Wed 8 AM UTC)
-  - Trigger manually:
+- **No run this week** → trigger it with the validated prerelease tag:
   ```sh
-  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml \
+    -f prereleaseTag=v<version>-nightly.develop.<YYYYMMDD> \
+    --repo forcedotcom/salesforcedx-vscode
   ```
 
 After re-dispatch, watch until complete:

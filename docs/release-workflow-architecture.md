@@ -47,15 +47,15 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
          │ Real users test prerelease in production before stable build   │
          │ ════════════════════════════════════════════════════           │
          │                                                                │
-Next Wednesday (Week N+1 - 8 AM UTC)                                      │
+Next Wednesday (Week N+1 - after 8 AM promotion)                          │
          │                                                                │
          ▼                                                                │
 ┌─────────────────────────────────────────────────────────────────┐
-│  build-github-release.yml (AUTOMATED CRON)                      │
+│  build-github-release.yml (MANUAL DISPATCH)                     │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
-│  │ 1. Finds marketplace-prerelease-* tracking tag               │
-│  │    (previous Wednesday's promoted build that customer tested)│
+│  │ 1. Uses previous Wednesday's promoted nightly tag            │
+│  │    (selected via prereleaseTag after 7 days of testing)       │
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
 │  │ 4. Bumps version in isolated branch                          │
@@ -260,8 +260,8 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
 WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ build-github-release.yml (AUTOMATED 7 AM UTC)
-                              │    • Finds previous Wed's marketplace-prerelease-* tag
+                              ├─ build-github-release.yml (MANUAL, AFTER 8 AM PROMOTION)
+                              │    • Uses previous Wed's promoted nightly via prereleaseTag
                               │    • Creates ephemeral staging branch
                               │    • Builds stable VSIXs
                               │    ✓ ZERO merge conflicts

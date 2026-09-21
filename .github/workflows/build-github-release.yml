@@ -1,12 +1,6 @@
 name: Build GitHub Release
 
 on:
-  schedule:
-    # Wednesdays at 7 AM UTC
-    # Builds stable release from LAST week's marketplace pre-release (which has been tested for 7+ days)
-    # IMPORTANT: Runs BEFORE promote-to-prerelease (8 AM) to ensure we build from last week's
-    # tested prerelease, not the one being promoted today
-    - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:
       startFromRef:

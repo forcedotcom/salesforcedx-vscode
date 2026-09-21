@@ -3,9 +3,7 @@ name: Promote to Pre-release
 on:
   schedule:
     # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
-    # Creates tracking tag for NEXT week's build-github-release.yml (which runs at 7 AM)
-    # IMPORTANT: Runs AFTER build-github-release (7 AM) so that stable builds use last week's
-    # tested prerelease (7+ days on marketplace), not today's newly promoted one
+    # Creates a tracking tag for a manually dispatched stable build after customer validation
     - cron: '0 8 * * 3'
   workflow_dispatch:
     inputs:
