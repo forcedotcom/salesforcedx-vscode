@@ -40,7 +40,7 @@ jobs:
       release_version: ${{ steps.calculate-version.outputs.version }}
       prerelease_tag: ${{ steps.detect-tag.outputs.tag }}
       release_tag: ${{ steps.calculate-version.outputs.release_tag }}
-      is_prerelease: ${{ steps.calculate-version.outputs.is_prerelease }}
+      is_emergency_prerelease: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -164,24 +164,24 @@ jobs:
               VERSION=$(node scripts/calculate-prerelease-hotfix-version.js)
               echo "Auto-calculated pre-release version from registries: $VERSION"
             fi
-            IS_PRERELEASE="true"
+            IS_EMERGENCY_PRERELEASE="true"
           else
             # Stable mode: Calculate using script (bumps version)
             VERSION=$(node scripts/calculate-release-version.js \
               "$SOURCE_TAG" \
               "$INPUT_VERSION")
-            IS_PRERELEASE="false"
+            IS_EMERGENCY_PRERELEASE="false"
           fi
 
           # Normalize: ensure VERSION has no leading 'v' before adding prefix
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
-          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          echo "Release version: $VERSION (prerelease: $IS_PRERELEASE)"
+          echo "is_emergency_prerelease=$IS_EMERGENCY_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION (prerelease: $IS_EMERGENCY_PRERELEASE)"
 
       - name: Preserve scripts before checkout
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         run: |
           # Copy scripts to temp location for restoration after checkout
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
@@ -208,7 +208,7 @@ jobs:
           cat /tmp/release-scripts/checksums.txt
 
       - name: Create isolated release branch
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         env:
           SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
           RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
@@ -225,7 +225,7 @@ jobs:
           echo "✓ Created isolated branch at $(git rev-parse HEAD)"
 
       - name: Restore scripts
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         run: |
           # Restore scripts from temp location
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
@@ -259,17 +259,17 @@ jobs:
           echo "✓ Script integrity verified"
 
       - name: Configure git
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
       - name: Update package versions
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
 
       - name: Commit release-only version changes
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         env:
           RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
           RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
@@ -288,7 +288,7 @@ jobs:
           echo "✓ Committed version changes at $(git rev-parse HEAD)"
 
       - name: Checkout source ref for pre-release
-        if: steps.calculate-version.outputs.is_prerelease == 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease == 'true'
         env:
           SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
         run: |
@@ -301,10 +301,10 @@ jobs:
       - name: Create and push release tag
         env:
           RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
-          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+          IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
           SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
         run: |
-          if [ "$IS_PRERELEASE" = "true" ]; then
+          if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
             # For emergency pre-release, tag the source ref directly
             echo "Creating emergency pre-release tag at source ref"
             git tag "$RELEASE_TAG" "$SOURCE_REF"
@@ -329,7 +329,7 @@ jobs:
         # pre-releases skip this -- they don't go through the weekly promote cycle. Stable
         # hotfixes built via startFromRef also skip it (SOURCE_TAG there is an arbitrary
         # ref, not a nightly tag), keeping whatever changelog is already in the working tree.
-        if: steps.calculate-version.outputs.is_prerelease != 'true'
+        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         env:
           RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
           SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
@@ -351,9 +351,9 @@ jobs:
         # with that flag baked in, so emergency pre-release mode needs the prerelease
         # packaging script here, not the stable one.
         env:
-          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+          IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
         run: |
-          if [ "$IS_PRERELEASE" = "true" ]; then
+          if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
             npm run vscode:package:prerelease
           else
             npm run vscode:package
@@ -374,13 +374,13 @@ jobs:
           RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
           RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
           PRERELEASE_TAG: ${{ steps.detect-tag.outputs.tag }}
-          IS_PRERELEASE: ${{ steps.calculate-version.outputs.is_prerelease }}
+          IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
         run: |
           echo "Creating GitHub pre-release: $RELEASE_TAG"
 
           # Generate release notes from inlined template
           # (Inlined to avoid template unavailability after checkout)
-          if [ "$IS_PRERELEASE" = "true" ]; then
+          if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
             # Emergency pre-release template
             cat > release_notes.md <<EOF
           ## Emergency Pre-release ${RELEASE_VERSION}
@@ -424,11 +424,11 @@ jobs:
   # (see calculate-release-version.js). Nightlies built on develop have no reason to know
   # that happened, so without this, develop keeps patch-bumping under the now-shipped odd
   # minor indefinitely. Advance develop to the next odd minor past the stable release so
-  # nightlies resume there instead. Skipped for emergency pre-releases (is_prerelease ==
+  # nightlies resume there instead. Skipped for emergency pre-releases (is_emergency_prerelease ==
   # 'true'): those don't bump a minor at all, so there's nothing to advance past.
   bump-develop-nightly-minor:
     needs: build-release
-    if: needs.build-release.outputs.is_prerelease != 'true'
+    if: needs.build-release.outputs.is_emergency_prerelease != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout develop
