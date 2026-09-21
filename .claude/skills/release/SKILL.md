@@ -8,51 +8,6 @@ review: never
 
 Full doc: [contributing/publishing.md](../../../contributing/publishing.md)
 
-## Scripts in this skill
-
-From repo root (no global `ts-node`):
-
-- `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
-
-## Step 0 — Verify Wednesday stable build
-
-Run `detect-state.ts` first.
-
-> **Note:** `createReleaseBranch.yml` deprecated — use `build-github-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
-
-Check scheduled `build-github-release.yml` ran Wednesday:
-
-```sh
-gh run list --workflow=build-github-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
-```
-
-Report status + timestamp. On **failure**, inspect logs:
-
-```sh
-gh run view <runId> --repo forcedotcom/salesforcedx-vscode
-```
-
-Decision matrix:
-
-- **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
-- **Build failed** → check logs. Issues: no marketplace prerelease (wait Wed 7 AM UTC) or build script error. Re-run:
-  ```sh
-  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
-  ```
-- **No run this week** → Either:
-  - Wait (Wed 8 AM UTC)
-  - Trigger manually:
-  ```sh
-  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
-  ```
-
-After re-dispatch, watch until complete:
-
-```sh
-gh run list --workflow=build-github-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
-gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
-```
-
 ## Step 1 — Download stable release build
 
 Get VSIX + SHA256 from GitHub pre-release created by `build-github-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
@@ -107,7 +62,13 @@ Once user confirms testing is complete, first promote the GitHub release from pr
 gh release edit v<version> --prerelease=false --repo forcedotcom/salesforcedx-vscode
 ```
 
-This flip also auto-fires both workflows below via the `release: types: [released]` event, using whatever's on the default branch (`develop`) at that moment. Manual dispatch is only needed if a run needs retrying.
+Flip auto-fires both workflows via `on.release.types: [released]` ([`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishVSCode.yml), [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishOpenVSX.yml)):
+
+- `publish` → `vscode-publish-release-vsix.yml` with `release-tag` = that tag (VSIXs on the GH release)
+- `prepare-release-metadata` checks out `ref: develop` only to compare tags + set Code Builder / GUS patch-vs-minor metadata — does **not** publish develop's tree
+- Open VSX checks out `$RELEASE_TAG`
+
+Both still need `publish` environment approval. Manual `workflow_dispatch` = retry only.
 
 Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
 
