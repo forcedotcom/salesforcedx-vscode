@@ -550,7 +550,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process.",
+        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process. Keep the compressed JSON payload under 100 KB. Data 360 automatically compresses the payload before storage. but, compression results vary depending on the structure of the data. A payload that’s under 100 KB before compression can exceed the limit after compression. If the compressed payload exceeds 100 KB, reduce the payload size or split the component.",
         "Field Name": "entityPayload",
         "Field Type": "string"
       },
@@ -2489,6 +2489,16 @@
         "Field Type": "ActionableListMemberStatus[]"
       },
       {
+        "Description": "Specifies the type of actionable list. Available in API version 68.0 and later.",
+        "Field Name": "actionableListType",
+        "Field Type": "static enum"
+      },
+      {
+        "Description": "Indicates whether the actionable list definition is active (yes) or not (no). Available in API version 68.0 and later.",
+        "Field Name": "isactive",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The batch calculation job definition that's associated with the creation of an actionable list. This field is a relationship field.",
         "Field Name": "batchCalcJobDefinition",
         "Field Type": "string"
@@ -2497,6 +2507,11 @@
         "Description": "The name of the dataset that is associated with the actionable list.",
         "Field Name": "datasetName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The description of the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "description",
+        "Field Type": "text"
       },
       {
         "Description": "The edgemart dataset that's associated with the actionable list. Available in API version 58.0 and later.",
@@ -2517,6 +2532,16 @@
         "Description": "Required. The object for which the actionable list is created.Possible values are organized by the API version in which they were introduced. Values are available in all versions after introduction unless noted otherwise. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The name of the source object field associated with the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectFieldName",
+        "Field Type": "text"
+      },
+      {
+        "Description": "The source object name for which the actionable list is created. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectName",
+        "Field Type": "text"
       }
     ],
     "short_description": "Represents the data source definition details associated with an actionable list.",
@@ -2525,6 +2550,11 @@
   },
   "ActionableListDatasetColumn": {
     "fields": [
+      {
+        "Description": "The actionable list definition that's associated with the column. Available in API version 68.0 and later.",
+        "Field Name": "actionableListDefinition",
+        "Field Type": "master/detail"
+      },
       {
         "Description": "The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures",
         "Field Name": "dataDomain",
@@ -2556,12 +2586,17 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the dataset column belongs to source data model object or not. Available in API version 68.0 and later.",
+        "Field Name": "isSourceObjectField",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The name of the object that's associated with the dataset column. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
       },
       {
-        "Description": "The API name of the column in the source dataset.",
+        "Description": "The API name of the column in the source dataset. Available in API version 68.0 and later.",
         "Field Name": "sourceColumnApiName",
         "Field Type": "string"
       },
@@ -9239,24 +9274,24 @@
   "ClauseCatgConfiguration": {
     "fields": [
       {
-        "Description": "The description about the clause category configuration.",
+        "Description": "configuration.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for ClauseCatgConfiguration, which is defined when the ClauseCatgConfiguration is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The usage type of the clause category configuration.Possible values are: ContractClauseCategory DisclosureCategory",
+        "Description": "Required. The usage type of the clause category configuration. Possible values are: ContractClauseCategory DisclosureCategory",
         "Field Name": "usageType",
-        "Field Type": "ClmCategoryUsageType"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the configuration about the clause category that can be used to categorize your disclosure and compliance reports from standardized disclosure templates in a response document.",
@@ -17299,24 +17334,24 @@
   "DisclosureDefinition": {
     "fields": [
       {
-        "Description": "The description about the disclosure definition.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure type associated with this definition.",
         "Field Name": "disclosureType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinition, which is defined when the DisclosureDefinition is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information that defines a disclosure type, such as details of the publisher or vendor who created or implemented the report.",
@@ -17328,62 +17363,62 @@
       {
         "Description": "Specifies the authoring mode used to launch the disclosure authoring experience. Possible values are: Microsoft 365 Word Omniscript and Microsoft 365 Word Omniscript Form",
         "Field Name": "authoring​Mode",
-        "Field Type": "AuthoringMode (enumeration of type string)"
+        "Field Type": ""
       },
       {
-        "Description": "The description about the disclosure definition version.",
+        "Description": "version.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "For internal use only.",
+        "Description": "",
         "Field Name": "disclosureDef​CurrVer",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure definition associated with this version.",
         "Field Name": "disclosureDefinition",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The document template global key associated with the DOCX template for the disclosure definition version.",
+        "Description": "DOCX template for the disclosure definition version.",
         "Field Name": "documentTemplate​GlobalKey",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the disclosure definition version is an active version (true) or not (false). The default value is false.",
+        "Description": "an active version (true) or not (false). The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether this is the current version of the disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
+        "Description": "disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
         "Field Name": "isCurrentVersion",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinitionVersion, which is defined when the DisclosureDefinitionVersion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The API name of the Omniscript configuration that's associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
+        "Description": "definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
         "Field Name": "omniScriptCnfgApiName",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
+        "Description": "The ID of the Omniscript configuration record. Note: The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
         "Field Name": "omniScriptConfiguration",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The version of the disclosure definition published by the author.",
         "Field Name": "versionNumber",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the version information about the disclosure definition.",
@@ -17393,34 +17428,34 @@
   "DisclosureType": {
     "fields": [
       {
-        "Description": "The description about the disclosure type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The logo ID of the standard body to which an individual or a company is making a disclosure.",
+        "Description": "or a company is making a disclosure.",
         "Field Name": "disclosureBodyLogo",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The URL of the disclosure standard body.",
+        "Description": "",
         "Field Name": "disclosureBodyUrl",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The name of the clause category that's used for disclosure.",
         "Field Name": "disclosureCategory",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureType, which is defined when the DisclosureType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the types of disclosures that are done by an individual or an organization and the associated metadata.",
@@ -27190,34 +27225,34 @@
   "FuelType": {
     "fields": [
       {
-        "Description": "Description about the fuel type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is active (true) or not (false). The default value is false.",
+        "Description": "The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the fuel type is used in stationary assets (true) or not (false). The default value is false.",
         "Field Name": "isStationaryAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is used in a vehicle asset (true) or not (false). The default value is false.",
+        "Description": "asset (true) or not (false). The default value is false.",
         "Field Name": "isVehicleAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for FuelType, which is defined when the FuelType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a custom fuel type in an org.",
@@ -27229,22 +27264,22 @@
       {
         "Description": "Required. The name of the fuel type that’s mapped to the unit of measure. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for FuelTypeSustnUom, which is defined when the FuelTypeSustnUom is created.",
+        "Description": "is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The unit of measure that’s mapped to the fuel type.Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
+        "Description": "Required. The unit of measure that’s mapped to the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "unitOfMeasure",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a mapping between the custom fuel types and their corresponding unit of measure (UOM) values defined by a customer in an org.",
@@ -39277,7 +39312,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 68.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -41742,12 +41777,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "The ISO-standard code populates this field when you issue a retrieve() call. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The ISO-standard code populates this field when you issue a retrieve() call.",
         "Field Name": "isoCode",
         "Field Type": "string"
       },
       {
-        "Description": "The label is what users see in picklists in Salesforce. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The label is what users see in picklists in Salesforce.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -42470,6 +42505,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the Use elastic limits for asynchronous Apex jobs (Beta) setting is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableAsyncApexElasticExecutions",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Authenticated Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlAuthUserAccessCheckPref",
         "Field Type": "boolean"
@@ -42477,6 +42517,11 @@
       {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Guest and Portal Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlGuestUserAccessCheckPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Block Apex Anonymous Code Execution from Managed Packages release update is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableBlockPackagedApexExecAnon",
         "Field Type": "boolean"
       },
       {
@@ -52766,44 +52811,44 @@
   "SustainabilityUom": {
     "fields": [
       {
-        "Description": "The description of the unit of measure.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is for a product that the company has procured in its supply chain operations (true) or not (false). The default value is false.",
         "Field Name": "isProductUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is used in the stationary asset calculations (true) or (false). The default value is false.",
         "Field Name": "isStationaryAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the vehicle asset calculations (true) or (false). The default value is false.",
+        "Description": "(true) or (false). The default value is false.",
         "Field Name": "isVehicleAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
+        "Description": "generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
         "Field Name": "isWasteUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. The label assigned to this object.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
+        "Description": "(enumeration of type string) Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
         "Field Name": "unitType",
-        "Field Type": "UnitType (enumeration of type string)"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the unit of measure (UOM) values for custom fuel types in an org. Track fuel consumption and emission results with the flexibility to add custom fuel types and UOM values.",
@@ -52815,37 +52860,37 @@
       {
         "Description": "Required. The conversion factor that's used to convert values from one unit of measure to another for the fuel type.",
         "Field Name": "conversionFactor",
-        "Field Type": "double"
+        "Field Type": ""
       },
       {
-        "Description": "The name of the fuel type.Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
+        "Description": "The name of the fuel type. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for SustnUomConversion, which is defined when the SustnUomConversion is created.",
+        "Description": "SustnUomConversion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The source unit of measure for the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "sourceUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The target unit of measure for the fuel type.",
         "Field Name": "targetUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The key associated with a unit of measure for the fuel type.",
+        "Description": "",
         "Field Name": "uomsKey",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information about the unit of measure (UOM) conversion for the custom fuel types defined by a customer in an org.",

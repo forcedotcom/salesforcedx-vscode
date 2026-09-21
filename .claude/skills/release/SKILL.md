@@ -18,12 +18,12 @@ From repo root (no global `ts-node`):
 
 Run `detect-state.ts` first.
 
-> **Note:** `createReleaseBranch.yml` deprecated — use `build-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
+> **Note:** `createReleaseBranch.yml` deprecated — use `build-github-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
 
-Check scheduled `build-release.yml` ran Wednesday:
+Check scheduled `build-github-release.yml` ran Wednesday:
 
 ```sh
-gh run list --workflow=build-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-github-release.yml -L 5 --repo forcedotcom/salesforcedx-vscode
 ```
 
 Report status + timestamp. On **failure**, inspect logs:
@@ -37,25 +37,25 @@ Decision matrix:
 - **Build succeeded** → GitHub pre-release created w/ VSIX + SHA256. Continue to Step 1.
 - **Build failed** → check logs. Issues: no marketplace prerelease (wait Wed 7 AM UTC) or build script error. Re-run:
   ```sh
-  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 - **No run this week** → Either:
   - Wait (Wed 8 AM UTC)
   - Trigger manually:
   ```sh
-  gh workflow run build-release.yml --repo forcedotcom/salesforcedx-vscode
+  gh workflow run build-github-release.yml --repo forcedotcom/salesforcedx-vscode
   ```
 
 After re-dispatch, watch until complete:
 
 ```sh
-gh run list --workflow=build-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=build-github-release.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
 ## Step 1 — Download stable release build
 
-Get VSIX + SHA256 from GitHub pre-release created by `build-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
+Get VSIX + SHA256 from GitHub pre-release created by `build-github-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
 
 ```sh
 gh release list --repo forcedotcom/salesforcedx-vscode | head -5
@@ -99,22 +99,32 @@ Suggested smoke checks the user may run before confirming:
 
 Do not proceed until the user explicitly confirms testing is complete.
 
-## Step 4 — Trigger marketplace publish
+## Step 4 — Promote the release, then trigger marketplace publish
 
-Once user confirms testing is complete, automatically trigger [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) with version (e.g., `67.12.0`):
+Once user confirms testing is complete, first promote the GitHub release from pre-release to a full release — this is the actual "make it stable" signal, and it's required before `vsce publish` will accept the VSIX. The publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce` whenever it's still `true`; that fails outright since these VSIXs were packaged as stable (`Cannot use '--pre-release' flag with a package that was not packaged as pre-release`):
 
 ```sh
-gh workflow run publishVSCode.yml -f releaseVersion=<version> --repo forcedotcom/salesforcedx-vscode
+gh release edit v<version> --prerelease=false --repo forcedotcom/salesforcedx-vscode
 ```
 
-Triggers `publishOpenVSX.yml`. Both gated by `publish` environment — user will approve in GitHub UI (Actions → run → Review pending → Approve + deploy).
+This flip also auto-fires both workflows below via the `release: types: [released]` event, using whatever's on the default branch (`develop`) at that moment. Manual dispatch is only needed if a run needs retrying.
 
-Tell user: "Triggered publish workflows. You'll need to approve the environment gates in GitHub Actions UI."
+Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
+
+```sh
+gh workflow run publishVSCode.yml  -f version="v<version>"      --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishOpenVSX.yml -f release-tag="v<version>" --repo forcedotcom/salesforcedx-vscode
+```
+
+Both gated by the `publish` environment — user will approve **each** run in GitHub UI (Actions → run → Review pending → Approve + deploy).
+
+Tell user: "Triggered both publish workflows (Marketplace + Open VSX). You'll need to approve the environment gate on each in GitHub Actions UI."
 
 Monitor runs:
 
 ```sh
-gh run list --workflow=publishVSCode.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishVSCode.yml  -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishOpenVSX.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
@@ -128,7 +138,7 @@ Verify live:
 Compose from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
 - Header: `*Salesforce Extensions for VS Code v<version> is out* :tada:`
-- Link: `<https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode|VS Code Marketplace>` → "see *Changelog* tab"
+- Link: bare URL on its own line — `VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode` (see *Changelog* tab for full details). Do **not** use Slack's `<url|text>` bracket-pipe syntax: anything outside Slack's own composer (chat clients, clipboards, other markdown renderers) tends to do naive URL auto-detection, grabs everything up to the next whitespace, and mangles the link — encoding the `|` as `%7C` and swallowing the leading text into the URL.
 - Sections: `*Added*` / `*Fixed*`
 - Subsections (`#### foo`) → blockquote (`> foo`)
 - Drop PR/issue trailers

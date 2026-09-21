@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
@@ -113,7 +114,7 @@ describe('OrgMetadataCatalogRecorder', () => {
           { type: 'ApexClass', fullName: 'DiscoveredTest', lastModifiedDate: '2026-08-13T00:00:00.000Z' }
         ]);
         const discovered = findInventoryComponent(
-          (yield* state.getInventory('org-one', 'ApexClass'))?.components ?? new Map(),
+          (yield* state.getInventory('org-one', 'ApexClass'))?.components ?? HashMap.empty(),
           { xmlName: 'ApexClass', fullName: 'DiscoveredTest' }
         );
         yield* Effect.sleep('350 millis');
@@ -136,25 +137,40 @@ describe('OrgMetadataCatalogRecorder', () => {
     ]);
   });
 
-  it('publishes one targeted tracking change and suppresses an identical observation', async () => {
+  it('publishes tracking changes in previous-then-current status order and suppresses an identical observation', async () => {
     const { catalogChanges, layer } = makeHarness();
 
     const result = await Effect.runPromise(
       Effect.gen(function* () {
         const recorder = yield* OrgMetadataCatalogRecorder;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        const status = [{ origin: 'remote', type: 'ApexClass', fullName: 'Foo', state: 'modify' }];
-        const remote = [{ type: 'ApexClass', name: 'Foo', revisionCounter: 1 }];
-        const first = yield* recorder.recordTrackingStatus('org-one', status, remote);
+        const previous = [
+          { origin: 'remote', type: 'ApexClass', fullName: 'Removed', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Changed', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Stable', state: 'modify' }
+        ];
+        yield* recorder.recordTrackingStatus('org-one', previous, []);
+        yield* Queue.take(subscription);
+        const current = [
+          { origin: 'remote', type: 'ApexClass', fullName: 'Changed', state: 'delete' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Stable', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Added', state: 'add' }
+        ];
+        const changed = yield* recorder.recordTrackingStatus('org-one', current, []);
         const event = yield* Queue.take(subscription);
-        const second = yield* recorder.recordTrackingStatus('org-one', status, remote);
-        return { event, first, second, queued: yield* Queue.size(subscription) };
+        const unchanged = yield* recorder.recordTrackingStatus('org-one', current, []);
+        return { changed, event, unchanged, queued: yield* Queue.size(subscription) };
       }).pipe(Effect.scoped, Effect.provide(layer))
     );
 
-    expect(result.first).toEqual([{ xmlName: 'ApexClass', fullName: 'Foo' }]);
-    expect(result.second).toEqual([]);
-    expect(result.event).toMatchObject({ kind: 'tracking', orgId: 'org-one' });
+    const references = [
+      { xmlName: 'ApexClass', fullName: 'Removed' },
+      { xmlName: 'ApexClass', fullName: 'Changed' },
+      { xmlName: 'ApexClass', fullName: 'Added' }
+    ];
+    expect(result.changed).toEqual(references);
+    expect(result.unchanged).toEqual([]);
+    expect(result.event).toEqual({ kind: 'tracking', orgId: 'org-one', references });
     expect(result.queued).toBe(0);
   });
 
@@ -166,15 +182,15 @@ describe('OrgMetadataCatalogRecorder', () => {
         const recorder = yield* OrgMetadataCatalogRecorder;
         const state = yield* OrgCatalogState;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        yield* state.setTracking(
-          'org-one',
-          new Map([
+        yield* state.setTracking('org-one', {
+          byIdentity: HashMap.fromIterable([
             [
               componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' }),
               { reference: { xmlName: 'ApexClass', fullName: 'Foo' }, signature: 'modify\0revision-1' }
             ]
-          ])
-        );
+          ]),
+          identityOrder: [componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' })]
+        });
         yield* recorder.recordOperation({
           orgId: 'org-one',
           operation: 'retrieve',
@@ -189,6 +205,6 @@ describe('OrgMetadataCatalogRecorder', () => {
     );
 
     expect(result.event).toMatchObject({ kind: 'operation', event: { orgId: 'org-one' } });
-    expect(result.tracking.size).toBe(0);
+    expect(HashMap.size(result.tracking.byIdentity)).toBe(0);
   });
 });

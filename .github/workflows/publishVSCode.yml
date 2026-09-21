@@ -1,4 +1,5 @@
 name: Publish Release to Marketplace
+run-name: "Release ${{ inputs.version || github.event.release.tag_name }}"
 
 # Publishes releases to VS Code Marketplace and Open VSX Registry.
 # Auto-triggers for stable releases. Manual dispatch supports both stable and prerelease tags.
@@ -23,7 +24,7 @@ on:
         default: false
         type: boolean
       isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-release.yml startFromRef, which have no other automated test gate.'
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
         required: false
         default: false
         type: boolean
@@ -92,6 +93,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           if ! gh release view "$RELEASE_TAG" &> /dev/null; then
             echo "::error::Release $RELEASE_TAG does not exist. Cannot proceed with publish."
@@ -100,7 +103,7 @@ jobs:
           fi
           echo "✅ Release $RELEASE_TAG exists"
 
-  # Only needed for stable hotfixes (isHotfix=true): these are built via build-release.yml's
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.
@@ -193,7 +196,7 @@ jobs:
       - name: Determine prerelease version to relabel
         id: relabel-version
         run: |
-          # build-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
+          # build-github-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
           # even when the source was startFromRef rather than an actual nightly tag -- the
           # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
           NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
@@ -242,6 +245,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           # Get VSIX filenames from release assets
           VSIX_FILES=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name | endswith(".vsix")) | .name')
@@ -250,7 +255,7 @@ jobs:
           if [ -z "$VSIX_FILES" ]; then
             echo "::error::No VSIX files found in release $RELEASE_TAG"
             echo "::error::Release exists but contains no .vsix assets"
-            echo "::error::This may indicate build-release.yml failed to upload VSIXs"
+            echo "::error::This may indicate build-github-release.yml failed to upload VSIXs"
             exit 1
           fi
 
