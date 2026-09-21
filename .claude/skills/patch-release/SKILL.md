@@ -107,13 +107,13 @@ For **immediate** marketplace hotfix as pre-release (bypasses stable testing):
 ```sh
 # From hotfix branch
 gh workflow run build-github-release.yml \
-  -f publishAsPrerelease=true \
+  -f emergencyPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
 
 # From specific commit
 gh workflow run build-github-release.yml \
-  -f publishAsPrerelease=true \
+  -f emergencyPrerelease=true \
   -f startFromRef="abc123def456" \
   --repo forcedotcom/salesforcedx-vscode
 ```

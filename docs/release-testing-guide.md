@@ -7,7 +7,7 @@ Guide for testing pre-release builds before publishing to marketplace.
 This guide covers testing and publishing for:
 - **Stable releases** (built by `build-github-release.yml`)
 - **Patch releases** (built by `build-and-release-patch-branch.yml`)
-- **Emergency pre-releases** (built by `build-github-release.yml` with `publishAsPrerelease=true`)
+- **Emergency pre-releases** (built by `build-github-release.yml` with `emergencyPrerelease=true`)
 
 After any build workflow creates a pre-release, follow these steps to test and publish.
 
@@ -48,10 +48,10 @@ find . -name "*.vsix" -exec code --install-extension {} \;
 
 ### Stable Release
 
-First, promote the release from pre-release to a full release. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable:
+First, promote the release from pre-release to a full release. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable. Also update the title to reflect testing passed, and mark it `--latest`:
 
 ```bash
-gh release edit v67.12.0 --prerelease=false --repo forcedotcom/salesforcedx-vscode
+gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest --repo forcedotcom/salesforcedx-vscode
 ```
 
 This automatically fires both `publishVSCode.yml` and `publishOpenVSX.yml` via the `release: types: [released]` event (both still gated by the `publish` environment approval). If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
@@ -161,7 +161,7 @@ For urgent hotfixes that need immediate marketplace publication as pre-release:
 ```bash
 # From hotfix branch or specific commit
 gh workflow run build-github-release.yml \
-  -f publishAsPrerelease=true \
+  -f emergencyPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
 ```
