@@ -18,8 +18,6 @@ From repo root (no global `ts-node`):
 
 Run `detect-state.ts` first.
 
-> **Note:** `createReleaseBranch.yml` deprecated — use `build-github-release.yml`. Old workflow scheduled for deletion after proven stability (W-23988524).
-
 Check scheduled `build-github-release.yml` ran Wednesday:
 
 ```sh
