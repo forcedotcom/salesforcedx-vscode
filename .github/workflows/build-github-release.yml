@@ -18,11 +18,11 @@ on:
         required: false
         type: string
       releaseVersion:
-        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate: stable mode bumps minor from the prerelease tag; publishAsPrerelease mode bumps patch on top of the higher of Marketplace/Open VSX''s latest published version.'
+        description: 'Release version (e.g., 67.12.0). Leave empty to auto-calculate: stable mode bumps minor from the prerelease tag; emergencyPrerelease mode bumps patch on top of the higher of Marketplace/Open VSX''s latest published version.'
         required: false
         type: string
-      publishAsPrerelease:
-        description: 'Publish as pre-release instead of stable? Use for emergency pre-release hotfixes. When releaseVersion is provided it is used as-is; when left empty it is auto-calculated from the registries.'
+      emergencyPrerelease:
+        description: 'Build via the emergency-hotfix path instead of stable? This workflow never publishes anything itself either way -- it only builds and creates the GitHub release. When true, skips the minor-bump/isolated-branch/changelog-relabel steps and packages the VSIX with vsce''s --pre-release flag, for a build meant to be promoted to the marketplace pre-release channel via promote-to-prerelease.yml. When releaseVersion is provided it is used as-is; when left empty it is auto-calculated from the registries.'
         required: false
         default: false
         type: boolean
@@ -148,11 +148,11 @@ jobs:
       - name: Calculate release version
         id: calculate-version
         env:
-          PUBLISH_AS_PRERELEASE: ${{ github.event.inputs.publishAsPrerelease }}
+          EMERGENCY_PRERELEASE: ${{ github.event.inputs.emergencyPrerelease }}
           INPUT_VERSION: ${{ github.event.inputs.releaseVersion }}
           SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
         run: |
-          if [ "$PUBLISH_AS_PRERELEASE" = "true" ]; then
+          if [ "$EMERGENCY_PRERELEASE" = "true" ]; then
             # Pre-release mode: use provided version as-is, or auto-calculate the next
             # patch on top of whichever registry (Marketplace/Open VSX) is further ahead -
             # the two can drift out of sync, so there's no single tag to derive this from.
