@@ -420,6 +420,56 @@ jobs:
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
 
+  # Stable releases always bump the source nightly's odd minor to the next even minor
+  # (see calculate-release-version.js). Nightlies built on develop have no reason to know
+  # that happened, so without this, develop keeps patch-bumping under the now-shipped odd
+  # minor indefinitely. Advance develop to the next odd minor past the stable release so
+  # nightlies resume there instead. Skipped for emergency pre-releases (is_prerelease ==
+  # 'true'): those don't bump a minor at all, so there's nothing to advance past.
+  bump-develop-nightly-minor:
+    needs: build-release
+    if: needs.build-release.outputs.is_prerelease != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Compute next odd minor
+        id: next-odd
+        env:
+          RELEASE_VERSION: ${{ needs.build-release.outputs.release_version }}
+        run: |
+          MAJOR=$(echo "$RELEASE_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$RELEASE_VERSION" | cut -d. -f2)
+          NEXT_ODD_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          echo "version=$NEXT_ODD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Stable release $RELEASE_VERSION -> develop advances to $NEXT_ODD_VERSION"
+
+      - name: Bump develop to next odd minor
+        run: node scripts/update-release-versions.js ${{ steps.next-odd.outputs.version }}
+
+      - uses: ./.github/actions/commitAndPushToDevelop
+        with:
+          files: packages/*/package.json package-lock.json
+          message: |
+            chore: bump nightly minor to ${{ steps.next-odd.outputs.version }} after v${{ needs.build-release.outputs.release_version }} stable release [skip ci]
+
+            Keeps develop's nightly minor odd and ahead of the stable minor that
+            was just cut, per the VS Code Marketplace pre-release/stable convention.
+
   summary:
     needs: build-release
     runs-on: ubuntu-latest
