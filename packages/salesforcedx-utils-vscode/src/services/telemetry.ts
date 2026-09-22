@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { classifyOrgForTelemetry, isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
+import { classifyOrgForTelemetry, isLoopbackHttpEndpoint, isPreReleaseVersion } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -41,7 +41,6 @@ import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 import { OrgIdentity, TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-import { isPreReleaseVersion } from '../telemetry/utils/isPreRelease';
 
 type IdentityFromServices = {
   cliId: string | undefined;

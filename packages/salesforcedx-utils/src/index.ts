@@ -22,3 +22,4 @@ export { SfCommandBuilder } from './cli/sfCommandBuilder';
 // Helpers
 export { classifyOrgForTelemetry, type TelemetryClassification } from './helpers/classifyOrgForTelemetry';
 export { isLoopbackHttpEndpoint } from './helpers/isLoopbackHttpEndpoint';
+export { isPreReleaseVersion } from './helpers/isPreReleaseVersion';

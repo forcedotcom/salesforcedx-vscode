@@ -17,7 +17,13 @@ import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
-export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
+export const WebSdkLayerFor = ({
+  extensionName,
+  extensionVersion,
+  isPreRelease,
+  o11yEndpoint,
+  productFeatureId
+}: SdkLayerConfig) =>
   WebSdk.layer(
     Effect.gen(function* () {
       return {
@@ -28,6 +34,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           attributes: {
             'extension.name': extensionName,
             'extension.version': extensionVersion,
+            'extension.isPreRelease': isPreRelease,
             'service.environment': 'vscode-extension',
             'service.platform': 'web'
           }

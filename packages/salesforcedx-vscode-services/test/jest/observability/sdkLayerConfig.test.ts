@@ -57,6 +57,16 @@ describe('getSdkLayerConfigFromContext — connectionString resolution', () => {
   });
 });
 
+describe('getSdkLayerConfigFromContext — isPreRelease resolution', () => {
+  it.each([
+    ['67.19.0', true],
+    ['67.20.0', false]
+  ] as const)('for version %s, sets isPreRelease to %s', (version, expected) => {
+    const config = getSdkLayerConfigFromContext(makeContext({ name: 'ext', version }));
+    expect(config.isPreRelease).toBe(expected);
+  });
+});
+
 describe('local ingestion endpoint', () => {
   const original = process.env.SF_OTEL_INGESTION_ENDPOINT;
 

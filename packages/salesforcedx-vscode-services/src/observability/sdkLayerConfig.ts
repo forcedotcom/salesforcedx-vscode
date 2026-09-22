@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
+import { isLoopbackHttpEndpoint, isPreReleaseVersion } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
@@ -12,6 +12,7 @@ import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 export type SdkLayerConfig = {
   extensionName: string;
   extensionVersion: string;
+  isPreRelease: boolean;
   o11yEndpoint?: string;
   productFeatureId?: string;
   enableCustomEventsFromSpans?: boolean;
@@ -77,6 +78,7 @@ export const getSdkLayerConfigFromPackageJSON = (
 ): SdkLayerConfig => ({
   extensionName: packageJSON.name,
   extensionVersion: packageJSON.version,
+  isPreRelease: isPreReleaseVersion(packageJSON.version),
   o11yEndpoint:
     isDevOrTest && isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT)
       ? process.env.O11Y_ENDPOINT

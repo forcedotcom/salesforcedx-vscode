@@ -51,6 +51,7 @@ export class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter
 export const NodeSdkLayerFor = ({
   extensionName,
   extensionVersion,
+  isPreRelease,
   o11yEndpoint,
   productFeatureId,
   enableCustomEventsFromSpans,
@@ -74,7 +75,8 @@ export const NodeSdkLayerFor = ({
           serviceVersion: '2026-03-02T01:00.304Z',
           attributes: {
             'extension.name': extensionName,
-            'extension.version': extensionVersion
+            'extension.version': extensionVersion,
+            'extension.isPreRelease': isPreRelease
           }
         },
         spanProcessor: [
