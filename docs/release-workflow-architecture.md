@@ -40,6 +40,9 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
+│  │ ✓ Tags nightly release title with " - published" suffix      │
+│  │   (visible at-a-glance on Releases page which nightly went   │
+│  │    out as that week's marketplace pre-release)               │
 │  │ ✓ Zero manual intervention                                   │
 │  │                                                              │
 │  │ WHY IT MATTERS:                                              │
@@ -261,6 +264,7 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
+                              │    • Tags nightly release title with " - published" suffix
                               │    ✓ Real users test in production
                               │
                               │    [7 DAYS OF CUSTOMER TESTING]
