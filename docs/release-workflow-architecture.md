@@ -1,6 +1,13 @@
 # Release Workflow Architecture
 
-> **Status:** `createReleaseBranch.yml` deprecated, scheduled for deletion after proven stability (W-23988524).
+> **Status:** Legacy release-branch automation removed after the mid-September 2026 wait and 2 successful stable-mode replacement builds (W-23988524).
+
+Retirement evidence:
+
+- [`v67.18.0` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/34322271715): scheduled replacement workflow completed successfully on September 9, 2026 and created tag [`v67.18.0`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.0).
+- [`v67.18.2` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/35029771847): replacement workflow completed successfully on September 15, 2026 and created tag [`v67.18.2`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.2), later promoted to a full release.
+
+The old workflow names below remain only as historical timeline labels.
 
 ## Workflow Overview
 

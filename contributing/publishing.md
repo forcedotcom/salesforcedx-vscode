@@ -106,24 +106,6 @@ Published releases extract extension names from VSIX filenames in release assets
 6. Approve marketplace publish gates
 7. Marketplace updates (usually within minutes)
 
-### Merge to main (Automated)
-
-Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
-- Run tests, build VSIXs, create git tag + GitHub release, send Slack notification
-
-Then triggers both `publishVSCode.yml` and `publishOpenVSX.yml` (each auto-triggered when the release is marked "released", not pre-release).
-
-Before approving marketplace publish, download VSIX files, install locally, verify functionality.
-
-Use [gh cli](https://cli.github.com/) (replace `v64.8.0` with your tag; `code` → `code-insiders` as needed):
-
-```sh
-gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
-find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
-```
-
-After testing (per internal template), approve the "Publish Release to Marketplace" and "Publish in Open VSX Registry" runs.
-
 ### Web Console Release
 
 After extensions are published to the MS Marketplace, Web Console needs a new release so customers get the updated extensions. There are two paths:
@@ -273,28 +255,6 @@ $ vsce login (publisher name)
 
 It's **crucial** that you publish the .vsix that you had before so that the
 SHA256 match. If you were to repackage, the SHA256 would be different.
-
-## Merging Back From the Release Branch Into Develop and Main
-
-### Prerequisite
-
-- Artifacts have been published.
-
-### Steps
-
-See this
-[guide](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow)
-from Atlassian on the flow. These steps are manual because you might encounter merge conflicts.
-
-1. `git checkout main`
-1. `git pull` to get the latest changes (there shouldn't be any since you are
-   the person releasing).
-1. `git merge release/vxx.y.z`
-1. `git push`
-1. `git checkout develop`
-1. `git pull` to get the latest changes.
-1. `git merge release/vxx.y.z`
-1. `git push`
 
 ## Manual Publish in Open VSX Registry
 
