@@ -467,7 +467,7 @@ describe('Telemetry', () => {
           orgEdition: 'Developer Edition',
           telemetryClassification: 'nonGov'
         });
-        expect(payload.properties).toEqual({ key: 'before' });
+        expect(payload.properties).toEqual({ isPreRelease: 'false', key: 'before' });
         expect(Object.isFrozen(payload)).toBe(true);
         expect(Object.isFrozen(payload.identity)).toBe(true);
         expect(Object.isFrozen(payload.properties)).toBe(true);
@@ -529,6 +529,25 @@ describe('Telemetry', () => {
           instance.dispose();
           context.subscriptions[0]?.dispose();
         }).not.toThrow();
+      });
+    });
+
+    describe('initializeService derives isPreRelease from version parity', () => {
+      it.each([
+        ['67.19.0', true],
+        ['67.20.0', false]
+      ] as const)('for version %s, sets isPreRelease to %s', async (version, expected) => {
+        const context = {
+          extension: { packageJSON: { name: 'test-extension', version } },
+          extensionMode: 1,
+          subscriptions: []
+        } as unknown as ExtensionContext;
+        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(false);
+        jest.spyOn(instance, 'checkCliTelemetry').mockResolvedValue(false);
+
+        await instance.initializeService(context);
+
+        expect((instance as any).isPreRelease).toBe(expected);
       });
     });
 

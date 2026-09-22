@@ -41,6 +41,7 @@ import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 import { OrgIdentity, TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
+import { isPreReleaseVersion } from '../telemetry/utils/isPreRelease';
 
 type IdentityFromServices = {
   cliId: string | undefined;
@@ -120,6 +121,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   private version: string = '';
   public isInternal: boolean = false;
   public isDevMode: boolean = false;
+  public isPreRelease: boolean = false;
 
   /**
    * Retrieve Telemetry Service according to the extension name.
@@ -186,6 +188,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
+    this.isPreRelease = isPreReleaseVersion(this.version);
 
     // prime the memoized CLI opt-out lookup so the reporter checks below don't pay for it during activation
     await this.checkCliTelemetry().catch(error => {
@@ -446,7 +449,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     const identity = getIdentitySnapshotFromServices();
     const payload: TelemetryPayload = Object.freeze({
       ...item,
-      properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
+      properties: Object.freeze({ isPreRelease: String(this.isPreRelease), ...item.properties }),
       measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
       identity: Object.freeze({ ...identity })
     });
