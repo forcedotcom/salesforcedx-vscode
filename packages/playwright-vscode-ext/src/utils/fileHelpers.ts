@@ -128,17 +128,29 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await ensureSecondarySideBarHidden(page);
     await disableMonacoAutoClosing(page);
 
-    // Focus the editor - click and verify it's ready for input by checking view lines are present
+    // Click activates the editor group. Focus the hidden textarea so Select All targets this
+    // file, not another Monaco editor (Output, Test Explorer filter).
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+    const textarea = editor.locator('textarea.inputarea');
+    // DOM focus, not locator.focus(): the textarea is not pointer-actionable (view-lines sit on top).
+    // Do not focus again after Select All — a second focus collapses the selection.
+    await textarea.evaluate(el => {
+      el.focus();
+    });
+    await expect(textarea).toBeFocused();
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
     await selectAll(page);
-
-    // Delete the selected content
     await page.keyboard.press('Delete');
-
-    await page.keyboard.type(content);
+    // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
+    await page.keyboard.insertText(content);
+    const marker =
+      content
+        .split('\n')
+        .map(line => line.trim())
+        .find(line => line.length > 0 && !line.startsWith('public with sharing class ') && line !== '}') ?? content;
+    await expect(editor.locator('.view-lines')).toContainText(marker);
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await saveFile(page);
