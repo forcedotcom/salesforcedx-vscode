@@ -106,7 +106,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   ) {
     // Refresh SObject definitions only for an open Salesforce project
     // when faux classes are missing (metadata extension registers the command).
-    const sobjectRefreshStartup = yield* servicesApi.services.SettingsService.getValueOrElse(
+    const sobjectRefreshStartup = yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
       SFDX_CORE_CONFIGURATION_NAME,
       ENABLE_SOBJECT_REFRESH_ON_STARTUP,
       false

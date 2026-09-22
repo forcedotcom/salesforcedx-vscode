@@ -245,10 +245,4 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       getInternalDev
     };
   })
-}) {
-  // Effect.Service cannot generate accessors for generic service methods.
-  public static readonly getValue = <T>(section: string, key: string) =>
-    Effect.flatMap(SettingsService, settingsService => settingsService.getValue<T>(section, key));
-  public static readonly getValueOrElse = <T>(section: string, key: string, defaultValue: T) =>
-    Effect.flatMap(SettingsService, settingsService => settingsService.getValueOrElse(section, key, defaultValue));
-}
+}) {}

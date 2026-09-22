@@ -70,7 +70,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     { concurrency: 'unbounded' }
   );
 
-  yield* Effect.promise(() => startLanguageClient(context));
+  yield* startLanguageClient(context);
   yield* svc.appendToChannel('SOQL Extension Activated');
 });
 

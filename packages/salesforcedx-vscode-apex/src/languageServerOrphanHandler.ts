@@ -11,6 +11,7 @@ import {
   ExtensionProviderService,
   type Row
 } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
@@ -170,7 +171,7 @@ const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
   numTries = 3,
-  delayBetweenTriesMs = 2000
+  delayBetweenTries: Duration.DurationInput = Duration.seconds(2)
 ) {
   // Check up to numTries times, pausing between checks: a process may self-exit between checks
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
@@ -179,7 +180,7 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   let confirmedOrphans: ProcessDetail[] = [];
   for (let i = 1; i <= numTries; i++) {
     if (i > 1) {
-      yield* Effect.sleep(delayBetweenTriesMs);
+      yield* Effect.sleep(delayBetweenTries);
     }
     confirmedOrphans = yield* findOrphanedProcessesSafe();
     if (confirmedOrphans.length === 0) {

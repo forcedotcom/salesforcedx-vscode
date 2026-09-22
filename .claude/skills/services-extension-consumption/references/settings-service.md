@@ -1,6 +1,6 @@
 # SettingsService
 
-VS Code settings read/write. Accessor pattern: call methods directly.
+VS Code settings read/write. `getValue` and `getValueOrElse` are generic, so yield the service and call the instance method. Other methods use the generated accessor.
 
 ## Methods
 
@@ -9,7 +9,8 @@ VS Code settings read/write. Accessor pattern: call methods directly.
 Unset → `T | undefined`.
 
 ```typescript
-const value = yield* api.services.SettingsService.getValue<string>('section', 'key');
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValue<string>('section', 'key');
 ```
 
 ### getValueOrElse
@@ -17,7 +18,8 @@ const value = yield* api.services.SettingsService.getValue<string>('section', 'k
 Unset or `null` → `defaultValue`. Success type is `T`.
 
 ```typescript
-const value = yield* api.services.SettingsService.getValueOrElse('section', 'key', false);
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValueOrElse('section', 'key', false);
 ```
 
 ### setValue

@@ -185,17 +185,17 @@ export class LanguageClientManager {
     );
 
     if (selectedOption) {
-      await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
+      this.sendRestartTelemetry(selectedOption, source, restartBehavior);
       return selectedOption.label;
     }
     return undefined;
   }
 
-  private async sendRestartTelemetry(
+  private sendRestartTelemetry(
     selectedOption: RestartQuickPickItem,
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
-  ): Promise<void> {
+  ): void {
     fireSpan('apex.lsp.restart', {
       restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
       selectedOption: selectedOption.type,
@@ -230,14 +230,14 @@ export class LanguageClientManager {
     if (source === 'statusBar') {
       switch (restartBehavior) {
         case 'restart':
-          await this.sendRestartTelemetry(
+          this.sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             source,
             restartBehavior
           );
           return this.RESTART_OPTIONS.restartOnly;
         case 'reset':
-          await this.sendRestartTelemetry(
+          this.sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
             source,
             restartBehavior
@@ -409,7 +409,7 @@ export class LanguageClientManager {
       const enableSyncInitJobs = yield* retrieveEnableSyncInitJobs().pipe(
         Effect.mapError(cause => languageClientSetupError('initialization', cause))
       );
-      yield* Effect.tryPromise({
+      yield* Effect.try({
         try: () => this.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem),
         catch: cause => languageClientSetupError('initialization', cause)
       });
@@ -442,25 +442,22 @@ export class LanguageClientManager {
     });
   }
 
-  public async indexerDoneHandler(
+  public indexerDoneHandler(
     enableSyncInitJobs: boolean,
     languageClient: ApexLanguageClient,
     languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  ): void {
     if (!enableSyncInitJobs) {
       this.setStatus(ClientStatus.Indexing, '');
       languageClient.onNotification(API.doneIndexing, () => {
-        void this.setClientReady(languageClient, languageServerStatusBarItem);
+        this.setClientReady(languageClient, languageServerStatusBarItem);
       });
     } else {
-      await this.setClientReady(languageClient, languageServerStatusBarItem);
+      this.setClientReady(languageClient, languageServerStatusBarItem);
     }
   }
 
-  private async setClientReady(
-    languageClient: ApexLanguageClient,
-    languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  private setClientReady(languageClient: ApexLanguageClient, languageServerStatusBarItem: ApexLSPStatusBarItem): void {
     languageServerStatusBarItem.ready();
     this.setStatus(ClientStatus.Ready, '');
     languageClient?.errorHandler?.serviceHasStartedSuccessfully();

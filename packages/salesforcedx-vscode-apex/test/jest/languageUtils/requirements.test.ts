@@ -7,13 +7,14 @@
 
 import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { SettingsError, SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as path from 'node:path';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { checkJavaVersion, resolveRequirements } from '../../../src/requirements';
+import { checkJavaVersion, JavaRequirementsError, resolveRequirements } from '../../../src/requirements';
 
 // Mock vscode workspace
 jest.mock('vscode', () => ({
@@ -49,26 +50,21 @@ const succeedApi = (): ExtensionProviderService['getServicesApi'] =>
   }) as unknown as ExtensionProviderService['getServicesApi'];
 const mockGetServicesApi = jest.fn(succeedApi);
 
-// Mock the services runtime: real getRuntime builds AllServicesLayer (unset in unit tests), so run
-// effects against a stub ExtensionProviderService whose getServicesApi / FsService are jest.fns.
-jest.mock('../../../src/services/runtime', () => ({
-  getRuntime: () => ({
-    runPromise: (eff: Effect.Effect<boolean, never, ExtensionProviderService>): Promise<boolean> =>
-      Effect.runPromise(
-        eff.pipe(
-          Effect.provideService(ExtensionProviderService, {
-            get getServicesApi() {
-              return mockGetServicesApi();
-            }
-          } as unknown as ExtensionProviderService),
-          Effect.provideService(
-            SettingsService,
-            SettingsService.make({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never)
-          )
-        )
-      )
-  })
-}));
+const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | SettingsService | FsService>): Promise<A> =>
+  Effect.runPromise(
+    effect.pipe(
+      Effect.provideService(ExtensionProviderService, {
+        get getServicesApi() {
+          return mockGetServicesApi();
+        }
+      } as unknown as ExtensionProviderService),
+      Effect.provideService(
+        SettingsService,
+        SettingsService.make({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never)
+      ),
+      Effect.provideService(FsService, FsService.make({ fileOrFolderExists: mockFileOrFolderExists } as never))
+    )
+  );
 
 // Mock find-java-home module
 jest.mock('find-java-home', () =>
@@ -82,9 +78,15 @@ jest.mock('find-java-home', () =>
 
 // Mock os module
 jest.mock('node:os', () => ({
-  ...jest.requireActual('node:os'),
+  ...(jest.requireActual('node:os') as typeof import('node:os')),
   homedir: jest.fn().mockReturnValue('/mock/home/directory')
 }));
+
+const invokeExecFileCallback = (args: readonly unknown[], error: unknown, stderr: string): void => {
+  const cb = args.at(-1);
+  if (typeof cb !== 'function') return;
+  (cb as (error: unknown, stdout: string, stderr: string) => void)(error, '', stderr);
+};
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = path.join('/mock/home/directory', 'java_home', 'real', 'jdk', jdk);
@@ -114,11 +116,10 @@ describe('Java Requirements Test', () => {
       mockGetValue.mockImplementation((_section, key, defaultValue) =>
         Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
       );
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 11.0.0');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 11.0.0');
       });
-      const requirements = await resolveRequirements();
+      const requirements = await run(resolveRequirements());
       expect(requirements.java_home).toContain(jdk);
     });
 
@@ -127,25 +128,26 @@ describe('Java Requirements Test', () => {
         Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
       );
       mockFileOrFolderExists.mockReturnValue(Effect.succeed(false));
-      try {
-        await resolveRequirements();
-        fail('Should have thrown when the java home path does not exist');
-      } catch (err) {
-        expect(err).toEqual(
-          nls.localize('source_missing_text', nls.localize('source_java_home_setting_text'), SET_JAVA_DOC_LINK)
-        );
-      }
+      const err = await run(resolveRequirements().pipe(Effect.flip));
+      expect(err).toBeInstanceOf(JavaRequirementsError);
+      expect(err.message).toEqual(
+        nls.localize('source_missing_text', nls.localize('source_java_home_setting_text'), SET_JAVA_DOC_LINK)
+      );
     });
 
     it('Should reject when reading the Java setting fails', async () => {
       mockGetValue.mockReturnValue(
-        Effect.fail(new Error('setting read failed')) as unknown as ReturnType<typeof mockGetValue>
+        Effect.fail(
+          new SettingsError({ cause: 'setting read failed', key: 'java.home', message: 'setting read failed' })
+        ) as unknown as ReturnType<typeof mockGetValue>
       );
 
-      await expect(resolveRequirements()).rejects.toThrow('setting read failed');
+      const err = await run(resolveRequirements().pipe(Effect.flip));
+      expect(err).toBeInstanceOf(SettingsError);
+      expect(err.message).toBe('setting read failed');
     });
 
-    it('Should treat a services-extension failure as a missing path (catchTags → false)', async () => {
+    it('Should fail when the services extension is unavailable', async () => {
       mockGetValue.mockImplementation((_section, key, defaultValue) =>
         Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
       );
@@ -154,104 +156,91 @@ describe('Java Requirements Test', () => {
         .mockReturnValue(
           Effect.fail(new ServicesExtensionNotFoundError()) as unknown as ExtensionProviderService['getServicesApi']
         );
-      try {
-        await resolveRequirements();
-        fail('Should have rejected when the services extension is unavailable');
-      } catch (err) {
-        expect(err).toEqual(
-          nls.localize('source_missing_text', nls.localize('source_java_home_setting_text'), SET_JAVA_DOC_LINK)
-        );
-      }
+      await expect(run(resolveRequirements().pipe(Effect.flip))).resolves.toBeInstanceOf(
+        ServicesExtensionNotFoundError
+      );
     });
 
     it('Should not support Java 8', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 1.8.0');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 1.8.0');
       });
-      try {
-        await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
-        fail('Should have thrown when the Java version is not supported');
-      } catch (err) {
-        expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
-      }
+      const err = await Effect.runPromise(
+        checkJavaVersion(path.join('/mock/home/directory', 'java_home')).pipe(Effect.flip)
+      );
+      expect(err).toBeInstanceOf(JavaRequirementsError);
+      expect(err.message).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     });
 
     it('Should support Java 11', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 11.0.0');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 11.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
+        const result = await Effect.runPromise(checkJavaVersion(path.join('/mock/home/directory', 'java_home')));
         expect(result).toBe(true);
       } catch (err) {
-        fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
+        fail(`Should not have thrown when the Java version is 11.  The error was: ${String(err)}`);
       }
     });
 
     it('Should support Java 17', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 17.2.3');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 17.2.3');
       });
       try {
-        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
+        const result = await Effect.runPromise(checkJavaVersion(path.join('/mock/home/directory', 'java_home')));
         expect(result).toBe(true);
       } catch (err) {
-        fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+        fail(`Should not have thrown when the Java version is 17.  The error was: ${String(err)}`);
       }
     });
 
     it('Should support Java 21', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 21.0.0');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 21.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
+        const result = await Effect.runPromise(checkJavaVersion(path.join('/mock/home/directory', 'java_home')));
         expect(result).toBe(true);
       } catch (err) {
-        fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
+        fail(`Should not have thrown when the Java version is 21.  The error was: ${String(err)}`);
       }
     });
 
     it('Should support Java 23', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb('', '', 'java.version = 23.0.0');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, '', 'java.version = 23.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
+        const result = await Effect.runPromise(checkJavaVersion(path.join('/mock/home/directory', 'java_home')));
         expect(result).toBe(true);
       } catch (err) {
-        fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
+        fail(`Should not have thrown when the Java version is 23.  The error was: ${String(err)}`);
       }
     });
 
     it('Should reject java version check when execFile fails', async () => {
-      execFileSpy.mockImplementation((...args) => {
-        const cb = args.at(-1);
-        cb({ message: 'its broken' }, '', '');
+      execFileSpy.mockImplementation((...args: readonly unknown[]) => {
+        invokeExecFileCallback(args, { message: 'its broken' }, '');
       });
-      try {
-        await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
-        fail('Should have thrown when the Java version is not supported');
-      } catch (err) {
-        const expectedPath = path.join(
-          '/mock/home/directory',
-          'java_home',
-          'bin',
-          process.platform === 'win32' ? 'java.exe' : 'java'
-        );
-        expect(err).toEqual(
-          nls.localize(
-            'java_version_check_command_failed',
-            `${expectedPath} -XshowSettings:properties -version`,
-            'its broken'
-          )
-        );
-      }
+      const expectedPath = path.join(
+        '/mock/home/directory',
+        'java_home',
+        'bin',
+        process.platform === 'win32' ? 'java.exe' : 'java'
+      );
+      const err = await Effect.runPromise(
+        checkJavaVersion(path.join('/mock/home/directory', 'java_home')).pipe(Effect.flip)
+      );
+      expect(err).toBeInstanceOf(JavaRequirementsError);
+      expect(err.message).toEqual(
+        nls.localize(
+          'java_version_check_command_failed',
+          `${expectedPath} -XshowSettings:properties -version`,
+          'its broken'
+        )
+      );
     });
   });
 });

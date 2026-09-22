@@ -78,7 +78,13 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
   const servicesApi = yield* getServicesApi;
   const channelService = yield* servicesApi.services.ChannelService;
 
-  if (yield* servicesApi.services.SettingsService.getValueOrElse('salesforcedx-vscode-core', 'clearOutputTab', false)) {
+  if (
+    yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
+      'salesforcedx-vscode-core',
+      'clearOutputTab',
+      false
+    )
+  ) {
     yield* channelService.clearChannel;
   }
 

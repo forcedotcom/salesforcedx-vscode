@@ -83,26 +83,30 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = Effect.fn('apex.lsp.createServer')(
   function* (extensionContext: vscode.ExtensionContext) {
-    const requirementsData = yield* Effect.tryPromise({
-      try: resolveRequirements,
-      catch: cause => languageClientSetupError('requirements', cause)
-    });
+    const requirementsData = yield* resolveRequirements().pipe(
+      Effect.mapError(cause => languageClientSetupError('requirements', cause))
+    );
 
-    const { enableSemanticErrors, enableCompletionStatistics } = yield* Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return yield* Effect.all({
-        enableSemanticErrors: api.services.SettingsService.getValueOrElse(
-          'salesforcedx-vscode-apex',
-          'enable-semantic-errors',
-          false
+    const { enableSemanticErrors, enableCompletionStatistics } =
+      yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+        Effect.flatMap(api =>
+          Effect.flatMap(api.services.SettingsService, settings =>
+            Effect.all({
+              enableSemanticErrors: settings.getValueOrElse(
+                'salesforcedx-vscode-apex',
+                'enable-semantic-errors',
+                false
+              ),
+              enableCompletionStatistics: settings.getValueOrElse(
+                'salesforcedx-vscode-apex',
+                'advanced.enable-completion-statistics',
+                false
+              )
+            })
+          )
         ),
-        enableCompletionStatistics: api.services.SettingsService.getValueOrElse(
-          'salesforcedx-vscode-apex',
-          'advanced.enable-completion-statistics',
-          false
-        )
-      });
-    }).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
+        Effect.mapError(cause => languageClientSetupError('configuration', cause))
+      );
 
     const { languageServerDir } = yield* Schema.decodeUnknown(Schema.Struct({ languageServerDir: Schema.String }))(
       extensionContext.extension.packageJSON
@@ -216,9 +220,10 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
 
   const settings = yield* Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const settingsService = yield* api.services.SettingsService;
     return yield* Effect.all(
       {
-        lspParityCapabilities: api.services.SettingsService.getValueOrElse(
+        lspParityCapabilities: settingsService.getValueOrElse(
           'salesforcedx-vscode-apex',
           'advanced.lspParityCapabilities',
           true

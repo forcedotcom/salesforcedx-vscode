@@ -299,7 +299,11 @@ Keep recovery on the recovered subject. A nested pipe over a *different* subject
 ```typescript
 // PREFERRED — only the query recovers; getServicesApi / getValue still fail
 getServicesApi.pipe(
-  Effect.flatMap(api => api.services.SettingsService.getValue('salesforcedx-vscode-soql', 'maxQueryLimit')),
+  Effect.flatMap(api =>
+    Effect.flatMap(api.services.SettingsService, settings =>
+      settings.getValue<number>('salesforcedx-vscode-soql', 'maxQueryLimit')
+    )
+  ),
   Effect.flatMap(maxRows =>
     runBuilderQueryEffect(maxRows).pipe(Effect.catchAllCause(recover))
   )
@@ -307,7 +311,11 @@ getServicesApi.pipe(
 
 // AVOID — lookup failure now takes the recover path
 getServicesApi.pipe(
-  Effect.flatMap(api => api.services.SettingsService.getValue('salesforcedx-vscode-soql', 'maxQueryLimit')),
+  Effect.flatMap(api =>
+    Effect.flatMap(api.services.SettingsService, settings =>
+      settings.getValue<number>('salesforcedx-vscode-soql', 'maxQueryLimit')
+    )
+  ),
   Effect.flatMap(maxRows => runBuilderQueryEffect(maxRows)),
   Effect.catchAllCause(recover)
 )

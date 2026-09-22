@@ -12,7 +12,7 @@ import { ALL_EXCEPTION_CATCHER_ENABLED } from '../constants';
 
 export const getEnableAllExceptionCatcher = Effect.fn('getEnableAllExceptionCatcher')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.SettingsService.getValueOrElse(
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
     SFDX_CORE_CONFIGURATION_NAME,
     ALL_EXCEPTION_CATCHER_ENABLED,
     false

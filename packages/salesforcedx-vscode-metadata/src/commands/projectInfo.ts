@@ -123,7 +123,10 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
 const getSettingEntry = Effect.fn('getSettingEntry')(function* (fullKey: string) {
   const firstDot = fullKey.indexOf('.');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const value = yield* api.services.SettingsService.getValue(fullKey.slice(0, firstDot), fullKey.slice(firstDot + 1));
+  const value = yield* (yield* api.services.SettingsService).getValue(
+    fullKey.slice(0, firstDot),
+    fullKey.slice(firstDot + 1)
+  );
   return [fullKey, value] as const;
 });
 

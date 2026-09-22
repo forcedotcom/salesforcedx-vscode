@@ -265,7 +265,7 @@ export class SOQLEditorInstance {
           getSoqlRuntime().runPromise(
             Effect.gen(function* () {
               const api = yield* (yield* ExtensionProviderService).getServicesApi;
-              const maxRows = yield* api.services.SettingsService.getValue<number>(
+              const maxRows = yield* (yield* api.services.SettingsService).getValue<number>(
                 'salesforcedx-vscode-soql',
                 'maxQueryLimit'
               );

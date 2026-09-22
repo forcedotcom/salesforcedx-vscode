@@ -14,13 +14,10 @@ export const ensureTraceFlagsForCurrentUser = Effect.fn('ensureTraceFlagsForCurr
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const traceFlagService = yield* api.services.TraceFlagService;
+    const settings = yield* api.services.SettingsService;
     const [userId, durationMinutes] = yield* Effect.all([
       traceFlagService.getUserId(),
-      api.services.SettingsService.getValueOrElse(
-        'salesforcedx-vscode-apex-log',
-        'traceFlagsDefaultDurationMinutes',
-        30
-      )
+      settings.getValueOrElse('salesforcedx-vscode-apex-log', 'traceFlagsDefaultDurationMinutes', 30)
     ]);
     yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
     return true;

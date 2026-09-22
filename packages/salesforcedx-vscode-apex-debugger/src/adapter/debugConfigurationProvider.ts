@@ -66,11 +66,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       const workspaceSettings = await getRuntime().runPromise(
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const settings = yield* api.services.SettingsService;
           return yield* Effect.all({
-            proxyUrl: api.services.SettingsService.getValueOrElse('http', 'proxy', ''),
-            proxyStrictSSL: api.services.SettingsService.getValueOrElse('http', 'proxyStrictSSL', false),
-            proxyAuth: api.services.SettingsService.getValueOrElse('http', 'proxyAuthorization', ''),
-            connectionTimeoutMs: api.services.SettingsService.getValueOrElse(
+            proxyUrl: settings.getValueOrElse('http', 'proxy', ''),
+            proxyStrictSSL: settings.getValueOrElse('http', 'proxyStrictSSL', false),
+            proxyAuth: settings.getValueOrElse('http', 'proxyAuthorization', ''),
+            connectionTimeoutMs: settings.getValueOrElse(
               'salesforcedx-vscode-apex-debugger',
               'connectionTimeoutMs',
               20_000

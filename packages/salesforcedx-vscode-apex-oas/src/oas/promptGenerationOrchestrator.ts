@@ -56,7 +56,10 @@ export const applyRule = (rule: BidRule, bids: Map<GenerationStrategyType, Promp
 
 const getBidRule = Effect.fn('ApexOas.Strategy.getBidRule')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const current = yield* api.services.SettingsService.getValue('salesforcedx-vscode-apex-oas', 'generation_strategy');
+  const current = yield* (yield* api.services.SettingsService).getValue(
+    'salesforcedx-vscode-apex-oas',
+    'generation_strategy'
+  );
   return yield* Schema.decodeUnknown(BidRule)(current).pipe(Effect.orElseSucceed((): BidRule => 'LEAST_CALLS'));
 });
 

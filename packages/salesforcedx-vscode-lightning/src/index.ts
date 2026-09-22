@@ -42,7 +42,7 @@ import { getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.SettingsService.getValueOrElse(
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
     'salesforcedx-vscode-lightning',
     'activationMode',
     'autodetect'
