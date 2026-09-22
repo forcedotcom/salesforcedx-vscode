@@ -196,3 +196,25 @@ jobs:
       extension-name: 'salesforcedx-vscode'
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
+
+  # Step 5: Mark the nightly release as published. The reusable promote workflow only
+  # publishes VSIXs to the marketplaces -- it never touches the nightly release itself --
+  # so tag the title here to make it obvious at a glance on the Releases page which
+  # nightly has already gone out as this week's marketplace pre-release.
+  mark-release-published:
+    needs: [find-nightly, promote]
+    if: always() && needs.promote.result == 'success' && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+    steps:
+      - name: Append "- published" to release title
+        run: |
+          CURRENT_TITLE=$(gh release view "$NIGHTLY_TAG" --repo "${{ github.repository }}" --json name --jq .name)
+          if [[ "$CURRENT_TITLE" == *" - published" ]]; then
+            echo "⏭️ Release already marked published — skipping (idempotent rerun)"
+          else
+            gh release edit "$NIGHTLY_TAG" --repo "${{ github.repository }}" --title "$CURRENT_TITLE - published"
+            echo "Renamed release title to: $CURRENT_TITLE - published"
+          fi
