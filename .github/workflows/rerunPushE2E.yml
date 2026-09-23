@@ -1,0 +1,54 @@
+name: Rerun Push E2E
+
+# This file runs from the default branch. workflow_run does not start it until then.
+on:
+  workflow_run:
+    workflows:
+      - Apex Debugger E2E (Playwright)
+      - Apex Log E2E (Playwright)
+      - Apex LSP E2E (Playwright)
+      - Apex OAS E2E (Playwright)
+      - Apex Replay Debugger E2E (Playwright)
+      - Apex Testing E2E (Playwright)
+      - Aura E2E (Playwright)
+      - Core E2E (Playwright)
+      - LWC E2E (Playwright)
+      - Metadata E2E (Playwright)
+      - Org E2E (Playwright)
+      - OrgBrowser E2E (Playwright)
+      - Playwright VS Code Ext E2E Tests
+      - Services E2E (Playwright)
+      - SOQL E2E (Playwright)
+      - Visualforce E2E (Playwright)
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rerun-push-e2e-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      EVENT: ${{ github.event.workflow_run.event }}
+      ACTOR: ${{ github.event.workflow_run.actor.login }}
+      CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      RUN_STARTED_AT: ${{ github.event.workflow_run.run_started_at }}
+      UPDATED_AT: ${{ github.event.workflow_run.updated_at }}
+      RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      REPO: ${{ github.repository }}
+    steps:
+      # Gate script is the default-branch copy. Do not checkout workflow_run head SHA.
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Rerun failed jobs
+        run: bash scripts/rerunPushE2EGate.sh

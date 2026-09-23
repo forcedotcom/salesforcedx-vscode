@@ -29,7 +29,11 @@ Run packages in this exact order (dependency-based):
 4. **salesforcedx-vscode-apex-log**
    - web → desktop
 5. **salesforcedx-vscode-apex-testing**
-   - web → desktop
+   - web → desktop (`test:web` / `test:desktop` = full suite)
+   - CI (`.github/workflows/apexTestingE2E.yml`) matrices `lane: org-wide | class-scoped | ride-along`; each lane = wireit script + one scratch org. Do not pass `--ignore` / CLI filters.
+     - `test:{web,desktop}:org-wide` — `NON_TRACKING_ORG_ALIAS` (`--no-track-source`): runApexTestsCommandPalette, testExplorer, clearApexTestResults, staleTestResultsRestoration
+     - `test:{web,desktop}:class-scoped` — same non-tracking alias: runApexTestsCodeLens, apexTestSuite, runApexTestsFailAndFix, codeCoverageColorizer, inWorkspaceFilter, orgOnlyClassRetrieve
+     - `test:{web,desktop}:ride-along` — `MINIMAL_ORG_ALIAS` for apexTestSuiteDelete; plus clearOnLogout, noOrgVisibility, noProjectVisibility
 6. **salesforcedx-vscode-org-browser**
    - web → desktop
 7. **salesforcedx-vscode-soql**
