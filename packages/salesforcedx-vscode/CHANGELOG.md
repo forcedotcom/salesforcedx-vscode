@@ -1,4 +1,4 @@
-# 67.19.2 - September 25, 2026
+# 67.23.1 - September 25, 2026
 
 ## Added
 
@@ -15,6 +15,8 @@
 ## Fixed
 
 #### docs
+
+- Fall back past stale tracking tags in release auto-detect - W-24276485 ([PR #8242](https://github.com/forcedotcom/salesforcedx-vscode/pull/8242))
 
 - Update release title and mark --latest on promotion to stable ([PR #8238](https://github.com/forcedotcom/salesforcedx-vscode/pull/8238))
 
