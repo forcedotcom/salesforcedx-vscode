@@ -79,7 +79,9 @@ describe('executeQueryPlan', () => {
           appendToChannel,
           clearChannel: Effect.void,
           getChannel: Effect.succeed({ show }),
-          showChannel: Effect.sync(() => show())
+          showChannel: Effect.sync(() => {
+            show();
+          })
         }),
         SettingsService
       }

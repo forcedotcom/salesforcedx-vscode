@@ -7,7 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { retrieveAAMethodAnnotations, retrieveEnableSyncInitJobs } from '../../src/settings';
+import { apexLanguageServerSettings, retrieveEnableSyncInitJobs } from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
   const getValue = jest.fn();
@@ -36,12 +36,11 @@ describe('settings Unit Tests.', () => {
     expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'wait-init-jobs', true);
   });
 
-  it('Should be able to get retrieveAAMethodAnnotations setting.', async () => {
+  it('joins apex language server method annotations.', async () => {
     getValue.mockReturnValue(Effect.succeed(['AuraEnabled', 'UserDefinedModifier', 'UserDefinedModifier']));
 
-    const result = await run(retrieveAAMethodAnnotations());
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(expect.arrayContaining(['AuraEnabled', 'UserDefinedModifier']));
+    const result = await run(apexLanguageServerSettings());
+    expect(result.apexActionMethodAnnotations.split(',').toSorted()).toEqual(['AuraEnabled', 'UserDefinedModifier']);
     expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'apexoas.aa.method.annotations', []);
   });
 });

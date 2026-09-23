@@ -18,13 +18,14 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
 
 export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const settings = yield* api.services.SettingsService;
-  const val = yield* settings.getValueOrElse('salesforcedx-vscode-apex-log', 'traceFlagsDefaultDurationMinutes', 30);
+  const val = yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'traceFlagsDefaultDurationMinutes', 30);
   return val > 0 ? val : 30;
 });
 

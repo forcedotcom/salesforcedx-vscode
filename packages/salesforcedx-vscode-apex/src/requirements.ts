@@ -15,7 +15,7 @@ import * as Schema from 'effect/Schema';
 import * as cp from 'node:child_process';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
-import { SET_JAVA_DOC_LINK } from './constants';
+import { APEX_SETTINGS_SECTION, SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -38,7 +38,7 @@ const getPlatformSpecificBinary = (binary: string): string => (process.platform 
 
 const readJavaConfig = Effect.fn('requirements.readJavaConfig')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValue<string>('salesforcedx-vscode-apex', 'java.home');
+  return yield* (yield* api.services.SettingsService).getValue<string>(APEX_SETTINGS_SECTION, 'java.home');
 });
 
 const validateJavaInstallation = Effect.fn('requirements.validateJavaInstallation')(function* (javaHome: string) {
@@ -145,7 +145,7 @@ export const resolveRequirements = Effect.fn('requirements.resolveRequirements')
   const javaHome = yield* checkJavaRuntime();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const javaMemory = yield* (yield* api.services.SettingsService).getValue<number>(
-    'salesforcedx-vscode-apex',
+    APEX_SETTINGS_SECTION,
     'java.memory'
   );
   yield* checkJavaVersion(javaHome);

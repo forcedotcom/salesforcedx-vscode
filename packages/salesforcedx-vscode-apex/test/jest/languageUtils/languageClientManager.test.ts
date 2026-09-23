@@ -42,10 +42,13 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 // forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
 // on the calling stack (runSync) rather than detaching a fiber.
 jest.mock('../../../src/services/runtime', () =>
-  require('../testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, {
-    forkSync: true,
-    settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
-  })
+  (require('../testUtils/recordingTracer') as typeof import('../testUtils/recordingTracer')).createRecordingRuntimeMock(
+    () => mockRecordedSpans,
+    {
+      forkSync: true,
+      settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
+    }
+  )
 );
 
 // Mock ApexLSPStatusBarItem class
@@ -64,7 +67,7 @@ jest.mock('../../../src/languageServer', () => ({
 }));
 
 jest.mock('../../../src/settings', () => ({
-  ...jest.requireActual('../../../src/settings'),
+  ...(jest.requireActual('../../../src/settings') as typeof import('../../../src/settings')),
   retrieveEnableSyncInitJobs: jest.fn()
 }));
 

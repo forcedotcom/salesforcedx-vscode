@@ -301,7 +301,7 @@ Keep recovery on the recovered subject. A nested pipe over a *different* subject
 getServicesApi.pipe(
   Effect.flatMap(api =>
     Effect.flatMap(api.services.SettingsService, settings =>
-      settings.getValue<number>('salesforcedx-vscode-soql', 'maxQueryLimit')
+      settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
     )
   ),
   Effect.flatMap(maxRows =>
@@ -313,7 +313,7 @@ getServicesApi.pipe(
 getServicesApi.pipe(
   Effect.flatMap(api =>
     Effect.flatMap(api.services.SettingsService, settings =>
-      settings.getValue<number>('salesforcedx-vscode-soql', 'maxQueryLimit')
+      settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
     )
   ),
   Effect.flatMap(maxRows => runBuilderQueryEffect(maxRows)),

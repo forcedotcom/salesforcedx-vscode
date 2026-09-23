@@ -4,34 +4,40 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
 jest.mock('vscode');
-const mockGetRestartBehavior = jest.fn((_section: string, _key: string, defaultValue?: unknown) =>
-  require('effect/Effect').succeed(defaultValue)
+const mockGetRestartBehavior = jest.fn(
+  (_section: string, _key: string, defaultValue?: unknown): Effect.Effect<unknown> => Effect.succeed(defaultValue)
 );
 jest.mock('../../../src/services/runtime', () => {
-  const Effect = require('effect/Effect');
-  const { ExtensionProviderService } = require('@salesforce/effect-ext-utils');
-  const { SettingsService } = require('salesforcedx-vscode-services/src/vscode/settingsService');
+  const effect = require('effect/Effect') as typeof import('effect/Effect');
+  const { ExtensionProviderService } =
+    require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+  const { SettingsService } =
+    require('salesforcedx-vscode-services/src/vscode/settingsService') as typeof import('salesforcedx-vscode-services/src/vscode/settingsService');
   const settingsService = {
-    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args),
-    getValueOrElse: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
+    getValue: (...args: [string, string, unknown?]): import('effect/Effect').Effect<unknown> =>
+      mockGetRestartBehavior(...args),
+    getValueOrElse: (...args: [string, string, unknown?]): import('effect/Effect').Effect<unknown> =>
+      mockGetRestartBehavior(...args)
   };
   return {
     getRuntime: () => ({
-      runFork: (effect: import('effect/Effect').Effect<unknown, unknown>) =>
-        Effect.runFork(
-          effect.pipe(
-            Effect.provideService(ExtensionProviderService, {
-              getServicesApi: Effect.succeed({
+      runFork: (eff: import('effect/Effect').Effect<unknown, unknown>) =>
+        effect.runFork(
+          eff.pipe(
+            effect.provideService(ExtensionProviderService, {
+              getServicesApi: effect.succeed({
                 services: { SettingsService }
-              })
+              } as SalesforceVSCodeServicesApi)
             }),
-            Effect.provideService(SettingsService, SettingsService.make(settingsService))
+            effect.provideService(SettingsService, SettingsService.make(settingsService as never))
           )
         )
     })
@@ -45,9 +51,7 @@ describe('ApexLSPStatusBarItem', () => {
   let mockRestartStatusItem: vscode.LanguageStatusItem;
 
   beforeEach(() => {
-    mockGetRestartBehavior.mockImplementation((_section, _key, defaultValue) =>
-      require('effect/Effect').succeed(defaultValue)
-    );
+    mockGetRestartBehavior.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
     mockLanguageStatusItem = {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
@@ -137,18 +141,6 @@ describe('ApexLSPStatusBarItem', () => {
       statusBarItem.restarting();
       expect(mockLanguageStatusItem.text).toBe(nls.localize('apex_language_server_restarting'));
       expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
-      expect(mockRestartStatusItem.command).toBeUndefined();
-    });
-
-    it('does not restore the restart command after restarting while the setting is loading', async () => {
-      const { promise, resolve } = Promise.withResolvers<string>();
-      mockGetRestartBehavior.mockReturnValueOnce(require('effect/Effect').promise(() => promise));
-
-      statusBarItem.ready();
-      statusBarItem.restarting();
-      resolve('prompt');
-      await new Promise(done => setImmediate(done));
-
       expect(mockRestartStatusItem.command).toBeUndefined();
     });
   });

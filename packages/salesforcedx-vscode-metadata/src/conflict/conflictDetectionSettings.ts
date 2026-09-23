@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { EXTENSION_NAME } from '../constants';
 
 /**
  * Centralized helper to check if conflict detection should be enabled.
@@ -23,7 +24,7 @@ import * as Effect from 'effect/Effect';
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-metadata',
+    EXTENSION_NAME,
     'sourceTracking.enableConflictDetection',
     true
   );
