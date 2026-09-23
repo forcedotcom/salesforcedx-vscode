@@ -43,9 +43,29 @@ Content for the prerelease on 9/16 (the stuff between 9/9 and 9/16)
 
 # 67.18.2 - September 18, 2026
 
-Compare the SHAs of the releases
+## Added
 
-Content for the prerelease on 9/9 (everything between 67.17.2 and 9/9?)
+#### salesforcedx-vscode-apex-log
+
+- You can now run anonymous Apex (`.apex`) scripts directly from the editor with an **Execute** CodeLens, including in web where the Apex extension isn't available. ([PR #8122](https://github.com/forcedotcom/salesforcedx-vscode/pull/8122))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We changed the destructive **Delete Source** and retrieve-overwrite prompts from a notification toast to a modal dialog that requires explicit confirmation before overwriting or deleting. ([PR #8090](https://github.com/forcedotcom/salesforcedx-vscode/pull/8090))
+
+#### salesforcedx-vscode-lwc
+
+- We fixed a bug where the LWC extension repeatedly rewrote `jsconfig.json` and watched directory creation events, causing sustained high file-watcher CPU usage in large projects. ([PR #7979](https://github.com/forcedotcom/salesforcedx-vscode/pull/7979), [ISSUE #7966](https://github.com/forcedotcom/salesforcedx-vscode/issues/7966))
+
+#### salesforcedx-vscode-org-browser
+
+- We fixed a bug where the **Org Browser** could show toolbar actions before their handlers were registered while waiting for a target org. The controls now stay hidden until they're ready. ([PR #8105](https://github.com/forcedotcom/salesforcedx-vscode/pull/8105), [ISSUE #8094](https://github.com/forcedotcom/salesforcedx-vscode/issues/8094))
+
+#### salesforcedx-vscode-services
+
+- We fixed a bug where in-flight deploy, retrieve, and delete operations kept running after you changed the target org. They're now canceled when the target org changes. ([PR #8079](https://github.com/forcedotcom/salesforcedx-vscode/pull/8079))
 
 # 67.17.2 - September 4, 2026
 
