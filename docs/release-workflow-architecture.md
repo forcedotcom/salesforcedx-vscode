@@ -1,6 +1,13 @@
 # Release Workflow Architecture
 
-> **Status:** `createReleaseBranch.yml` deprecated, scheduled for deletion after proven stability (W-23988524).
+> **Status:** Legacy release-branch automation removed after the mid-September 2026 wait and 2 successful stable-mode replacement builds (W-23988524).
+
+Retirement evidence:
+
+- [`v67.18.0` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/34322271715): scheduled replacement workflow completed successfully on September 9, 2026 and created tag [`v67.18.0`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.0).
+- [`v67.18.2` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/35029771847): replacement workflow completed successfully on September 15, 2026 and created tag [`v67.18.2`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.2), later promoted to a full release.
+
+The old workflow names below remain only as historical timeline labels.
 
 ## Workflow Overview
 
@@ -33,6 +40,9 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
+│  │ ✓ Tags nightly release title with " - published" suffix      │
+│  │   (visible at-a-glance on Releases page which nightly went   │
+│  │    out as that week's marketplace pre-release)               │
 │  │ ✓ Zero manual intervention                                   │
 │  │                                                              │
 │  │ WHY IT MATTERS:                                              │
@@ -55,6 +65,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │
+│  │    (loops through tags newest-first, resolves first match)   │
 │  │    (previous Wednesday's promoted build that customer tested)│
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
@@ -113,7 +124,7 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐        │      │
    │ Step 1: build-github-release.yml                     │        │      │
-   │ -f publishAsPrerelease=true                          │        │      │
+   │ -f emergencyPrerelease=true                          │        │      │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │
@@ -254,6 +265,7 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
+                              │    • Tags nightly release title with " - published" suffix
                               │    ✓ Real users test in production
                               │
                               │    [7 DAYS OF CUSTOMER TESTING]

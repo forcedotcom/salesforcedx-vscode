@@ -305,6 +305,8 @@
       "files": [
         "vitest.config.mts",
         "scripts/**/*.ts",
+        "scripts/rerunPushE2EGate.sh",
+        ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
         "tsconfig.json"
       ],
