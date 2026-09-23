@@ -10,6 +10,7 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
+import { EXTENSION_NAME } from '../constants';
 import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
@@ -78,7 +79,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
   if (hasValidRestAnnotations(context)) {
     const isRestOASGenEnabled = yield* (yield* api.services.SettingsService).getValueOrElse(
-      'salesforcedx-vscode-apex-oas',
+      EXTENSION_NAME,
       'enableRestOASGen',
       false
     );

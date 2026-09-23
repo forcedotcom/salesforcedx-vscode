@@ -14,6 +14,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { isConflictDetectionEnabled } from '../conflict/conflictDetectionSettings';
+import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
@@ -90,7 +91,7 @@ const updateDisplay =
 const getPollingIntervalSeconds = Effect.fn('getPollingIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-metadata',
+    EXTENSION_NAME,
     'sourceTracking.pollingIntervalSeconds',
     60
   );

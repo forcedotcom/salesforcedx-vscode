@@ -10,6 +10,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
+import { SFDX_CORE_SECTION } from '../constants';
 import { nls } from '../messages';
 import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
 
@@ -78,13 +79,7 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
   const servicesApi = yield* getServicesApi;
   const channelService = yield* servicesApi.services.ChannelService;
 
-  if (
-    yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
-      'salesforcedx-vscode-core',
-      'clearOutputTab',
-      false
-    )
-  ) {
+  if (yield* (yield* servicesApi.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 

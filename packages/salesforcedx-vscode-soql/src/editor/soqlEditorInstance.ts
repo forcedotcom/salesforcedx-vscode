@@ -18,6 +18,7 @@ import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
+import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -140,7 +141,13 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
+    vscode.workspace.onDidChangeTextDocument(
+      debounce((event: vscode.TextDocumentChangeEvent) => {
+        this.onDocumentChangeHandler(event);
+      }, 1000),
+      this,
+      this.subscriptions
+    );
 
     const instanceFiber = getSoqlRuntime().runFork(
       Effect.gen(this, function* () {
@@ -174,7 +181,13 @@ export class SOQLEditorInstance {
     );
     this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
 
-    webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
+    webviewPanel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      this,
+      this.subscriptions
+    );
   }
 
   protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
@@ -266,7 +279,7 @@ export class SOQLEditorInstance {
             Effect.gen(function* () {
               const api = yield* (yield* ExtensionProviderService).getServicesApi;
               const maxRows = yield* (yield* api.services.SettingsService).getValue<number>(
-                'salesforcedx-vscode-soql',
+                SOQL_CONFIGURATION_NAME,
                 'maxQueryLimit'
               );
               yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
@@ -345,7 +358,9 @@ export class SOQLEditorInstance {
   }
 
   protected dispose(): void {
-    this.subscriptions.forEach(disposable => disposable.dispose());
+    this.subscriptions.forEach(disposable => {
+      disposable.dispose();
+    });
     if (this.disposedCallback) {
       this.disposedCallback(this);
     }

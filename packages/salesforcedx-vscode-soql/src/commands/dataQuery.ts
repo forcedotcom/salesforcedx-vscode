@@ -11,6 +11,7 @@ import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
 import { Utils } from 'vscode-uri';
+import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
 import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
@@ -39,7 +40,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
   );
 
   const maxFetch = yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-soql',
+    SOQL_CONFIGURATION_NAME,
     'maxQueryLimit',
     50_000
   );
@@ -85,9 +86,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
-  if (
-    yield* (yield* api.services.SettingsService).getValueOrElse('salesforcedx-vscode-core', 'clearOutputTab', false)
-  ) {
+  if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 

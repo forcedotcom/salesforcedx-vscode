@@ -19,7 +19,10 @@ const mockExtensionProvider = {
   } as unknown as SalesforceVSCodeServicesApi)
 };
 
-jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/effect-ext-utils'));
+jest.mock(
+  '@salesforce/effect-ext-utils',
+  () => jest.requireActual('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils')
+);
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
@@ -950,7 +953,7 @@ describe('DataQuery Pure Functions', () => {
 
   describe('Edge Cases and Error Handling', () => {
     it('should handle circular references in objects', () => {
-      const obj: any = { Name: 'Test' };
+      const obj: { Name: string; circular?: unknown } = { Name: 'Test' };
       obj.circular = obj; // Create circular reference
 
       // Should not crash, should convert to string representation
@@ -1013,7 +1016,9 @@ describe('DataQuery Pure Functions', () => {
         appendToChannel,
         clearChannel: Effect.void,
         getChannel: Effect.succeed({ show }),
-        showChannel: Effect.sync(() => show())
+        showChannel: Effect.sync(() => {
+          show();
+        })
       };
       const provider = {
         getServicesApi: Effect.succeed({

@@ -19,6 +19,7 @@ import type {
   ApexOASMethodDetail
 } from 'salesforcedx-vscode-apex';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
+import { EXTENSION_NAME } from '../../../constants';
 import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
 import { nls } from '../../../messages/nls';
 import {
@@ -215,7 +216,7 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
     context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
     `/${context.classDetail.name}/`;
   const outputTokenLimit = yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-apex-oas',
+    EXTENSION_NAME,
     'generation_output_token_limit',
     750
   );

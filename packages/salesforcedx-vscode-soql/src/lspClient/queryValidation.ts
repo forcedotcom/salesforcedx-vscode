@@ -9,7 +9,7 @@ import { QueryValidationFeature } from '@salesforce/soql-language-server';
 import * as Effect from 'effect/Effect';
 import { isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import type { BaseLanguageClient as LanguageClient } from 'vscode-languageclient';
+import type { BaseLanguageClient as LanguageClient, StaticFeature } from 'vscode-languageclient';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { runQuery } from '../editor/queryRunner';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -18,7 +18,7 @@ export const init = (client: LanguageClient): LanguageClient => {
   const validationFeature = new QueryValidationFeature();
   // class exists in soql-language-server, but does not match vscode "Feature" interface
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  client.registerFeature(validationFeature as any);
+  client.registerFeature(validationFeature as StaticFeature);
   return client;
 };
 
@@ -76,6 +76,9 @@ export const afterStart = Effect.fn('queryValidation.afterStart')(function* (cli
     Effect.sync(() =>
       client.onRequest('runQuery', (queryText: string) => handleRunQuery(queryText).pipe(getSoqlRuntime().runPromise))
     ),
-    disposable => Effect.sync(() => disposable.dispose())
+    disposable =>
+      Effect.sync(() => {
+        disposable.dispose();
+      })
   );
 });

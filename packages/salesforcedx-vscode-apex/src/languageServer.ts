@@ -27,7 +27,7 @@ import {
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { UBER_JAR_NAME } from './constants';
+import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
@@ -37,22 +37,7 @@ import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import { resolveRequirements } from './requirements';
 import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
-import {
-  retrieveEnableApexLSErrorToTelemetry,
-  retrieveEnableSyncInitJobs,
-  retrieveAAClassDefModifiers,
-  retrieveAAClassAccessModifiers,
-  retrieveAAMethodDefModifiers,
-  retrieveAAMethodAccessModifiers,
-  retrieveAAPropDefModifiers,
-  retrieveAAPropAccessModifiers,
-  retrieveAAClassRestAnnotations,
-  retrieveAAMethodRestAnnotations,
-  retrieveAAMethodAnnotations,
-  retrieveGeneralClassAccessModifiers,
-  retrieveGeneralMethodAccessModifiers,
-  retrieveGeneralPropAccessModifiers
-} from './settings';
+import { apexLanguageServerSettings } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 
 const JDWP_DEBUG_PORT = 0;
@@ -92,13 +77,9 @@ const createServer = Effect.fn('apex.lsp.createServer')(
         Effect.flatMap(api =>
           Effect.flatMap(api.services.SettingsService, settings =>
             Effect.all({
-              enableSemanticErrors: settings.getValueOrElse(
-                'salesforcedx-vscode-apex',
-                'enable-semantic-errors',
-                false
-              ),
+              enableSemanticErrors: settings.getValueOrElse(APEX_SETTINGS_SECTION, 'enable-semantic-errors', false),
               enableCompletionStatistics: settings.getValueOrElse(
-                'salesforcedx-vscode-apex',
+                APEX_SETTINGS_SECTION,
                 'advanced.enable-completion-statistics',
                 false
               )
@@ -218,32 +199,9 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
     catch: cause => languageClientSetupError('options', cause)
   });
 
-  const settings = yield* Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const settingsService = yield* api.services.SettingsService;
-    return yield* Effect.all(
-      {
-        lspParityCapabilities: settingsService.getValueOrElse(
-          'salesforcedx-vscode-apex',
-          'advanced.lspParityCapabilities',
-          true
-        ),
-        enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
-        enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-        apexActionClassDefModifiers: retrieveAAClassDefModifiers(),
-        apexActionClassAccessModifiers: retrieveAAClassAccessModifiers(),
-        apexActionMethodDefModifiers: retrieveAAMethodDefModifiers(),
-        apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers(),
-        apexActionPropDefModifiers: retrieveAAPropDefModifiers(),
-        apexActionPropAccessModifiers: retrieveAAPropAccessModifiers(),
-        apexActionMethodAnnotations: retrieveAAMethodAnnotations(),
-        apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers(),
-        apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers(),
-        apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers()
-      },
-      { concurrency: 'unbounded' }
-    );
-  }).pipe(Effect.mapError(cause => languageClientSetupError('options', cause)));
+  const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
+    Effect.mapError(cause => languageClientSetupError('options', cause))
+  );
 
   return yield* Effect.try({
     try: (): ApexLanguageClientOptions => {
@@ -252,24 +210,11 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
       );
       const initializationOptions = {
         enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-        enableErrorToTelemetry: settings.enableErrorToTelemetry,
-        enableSynchronizedInitJobs: settings.enableSynchronizedInitJobs,
-        apexActionClassDefModifiers: settings.apexActionClassDefModifiers.join(','),
-        apexActionClassAccessModifiers: settings.apexActionClassAccessModifiers.join(','),
-        apexActionMethodDefModifiers: settings.apexActionMethodDefModifiers.join(','),
-        apexActionMethodAccessModifiers: settings.apexActionMethodAccessModifiers.join(','),
-        apexActionPropDefModifiers: settings.apexActionPropDefModifiers.join(','),
-        apexActionPropAccessModifiers: settings.apexActionPropAccessModifiers.join(','),
-        apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
-        apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
-        apexActionMethodAnnotations: settings.apexActionMethodAnnotations.join(','),
-        apexOASClassAccessModifiers: settings.apexOASClassAccessModifiers.join(','),
-        apexOASMethodAccessModifiers: settings.apexOASMethodAccessModifiers.join(','),
-        apexOASPropAccessModifiers: settings.apexOASPropAccessModifiers.join(',')
+        ...initializationSettings
       };
 
       // Create middleware that disables parity providers when setting is true
-      const parityMiddleware: Record<string, () => null> = settings.lspParityCapabilities
+      const parityMiddleware: Record<string, () => null> = lspParityCapabilities
         ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
         : {};
 

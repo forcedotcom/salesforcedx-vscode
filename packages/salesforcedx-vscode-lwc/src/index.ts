@@ -8,6 +8,7 @@
 import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
+  LIGHTNING_SETTINGS_SECTION,
   LWC_SERVER_READY_NOTIFICATION,
   type WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -262,7 +263,7 @@ export const deactivate = () => {
 const getActivationMode = Effect.fn('lwc:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-lightning',
+    LIGHTNING_SETTINGS_SECTION,
     'activationMode',
     'autodetect'
   );

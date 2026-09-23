@@ -11,7 +11,11 @@ import {
   ExtensionProviderService,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
-import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  AURA_SERVER_READY_NOTIFICATION,
+  isLWC,
+  LIGHTNING_SETTINGS_SECTION
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
@@ -19,6 +23,8 @@ import {
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import * as Effect from 'effect/Effect';
+import { isNone } from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
 import * as path from 'node:path';
@@ -43,7 +49,7 @@ import { getRuntime, setAllServicesLayer } from './services/extensionProvider';
 const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(
-    'salesforcedx-vscode-lightning',
+    LIGHTNING_SETTINGS_SECTION,
     'activationMode',
     'autodetect'
   );
@@ -115,8 +121,17 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
 
   // Start the Aura Language Server
   // TODO: derive the path from extensionUri instead of pjson
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+  const serverPath = yield* Schema.decodeUnknown(Schema.Struct({ serverPath: Schema.Array(Schema.String) }))(
+    extensionContext.extension.packageJSON
+  ).pipe(
+    Effect.map(decoded => decoded.serverPath),
+    Effect.option
+  );
+  if (isNone(serverPath)) {
+    log('Aura LSP - package.json serverPath is missing, exiting');
+    return;
+  }
+  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath.value));
 
   // The debug options for the server
   const debugOptions = {

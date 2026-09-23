@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages/nls';
 import { GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
 import { PromptGenerationStrategyBid } from './schemas';
@@ -56,10 +57,7 @@ export const applyRule = (rule: BidRule, bids: Map<GenerationStrategyType, Promp
 
 const getBidRule = Effect.fn('ApexOas.Strategy.getBidRule')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const current = yield* (yield* api.services.SettingsService).getValue(
-    'salesforcedx-vscode-apex-oas',
-    'generation_strategy'
-  );
+  const current = yield* (yield* api.services.SettingsService).getValue(EXTENSION_NAME, 'generation_strategy');
   return yield* Schema.decodeUnknown(BidRule)(current).pipe(Effect.orElseSucceed((): BidRule => 'LEAST_CALLS'));
 });
 
