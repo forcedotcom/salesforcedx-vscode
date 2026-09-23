@@ -169,6 +169,30 @@ jobs:
           zip -X "$VSIX" extension/changelog.md
 
           gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
+
+          # --clobber deletes and recreates the asset (new asset ID); the release's
+          # asset-listing API isn't guaranteed to reflect that within seconds, so the
+          # promote job's download (which starts right after this job) can 404 on the
+          # stale asset. Poll until the listed digest matches what we just uploaded
+          # before letting this job report success, so promote's `needs: changelog`
+          # dependency actually means the new asset is visible.
+          LOCAL_DIGEST="sha256:$(sha256sum "$VSIX" | cut -d' ' -f1)"
+          for attempt in 1 2 3 4 5; do
+            REMOTE_DIGEST=$(gh release view "$NIGHTLY_TAG" --json assets --jq ".assets[] | select(.name == \"$VSIX\") | .digest")
+            if [ "$REMOTE_DIGEST" = "$LOCAL_DIGEST" ]; then
+              echo "✅ Asset $VSIX visible with matching digest after $attempt attempt(s)"
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Asset $VSIX did not converge to the re-uploaded digest after 5 attempts"
+              echo "::error::Expected: $LOCAL_DIGEST"
+              echo "::error::Got: $REMOTE_DIGEST"
+              exit 1
+            fi
+            echo "⏳ Asset $VSIX not yet visible with new digest (attempt $attempt/5) -- retrying in 5s"
+            sleep 5
+          done
+
           rm -rf extension "$VSIX"
 
       - name: Prepend delta to root CHANGELOG (full history)
