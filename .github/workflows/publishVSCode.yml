@@ -30,16 +30,6 @@ on:
         type: boolean
 
 jobs:
-  debug-dry-run:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "raw inputs.dry-run: '${{ inputs.dry-run }}'"
-          echo "inputs.dry-run != true: ${{ inputs.dry-run != true }}"
-          echo "inputs.dry-run != 'true': ${{ inputs.dry-run != 'true' }}"
-          echo "github.event.inputs.dry-run: '${{ github.event.inputs.dry-run }}'"
-          echo "needs check unrelated - just dry-run isolation"
-
   prepare-release-metadata:
     name: 'Prepare Release Metadata'
     # Only run for extension releases (e.g. v66.7.0), not npm package releases
@@ -179,6 +169,20 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+
+  debug-old-pattern:
+    needs: [prepare-release-metadata, publish]
+    if: needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "debug-old-pattern ran"
+
+  debug-new-pattern:
+    needs: [prepare-release-metadata, publish]
+    if: always() && needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "debug-new-pattern ran"
 
   # promote-to-prerelease.yml committed this week's changelog delta to develop
   # labeled with the prerelease version. Now that it has shipped stable, relabel that same
