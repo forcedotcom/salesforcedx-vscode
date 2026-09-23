@@ -178,7 +178,7 @@ Compare via `Equal.equals` (`effect/Equal`):
 Equal.equals(fsService.HashableUri.fromUri(uri1), fsService.HashableUri.fromUri(uri2)); // true if same comparisonKey
 ```
 
-Underlying `URI` via `.uri`. Never deep-import from `salesforcedx-vscode-services/src/...` — bare index import pulls observability SDK side effect, breaks jest.
+Underlying `URI` via `.uri`. Never deep-import from `salesforcedx-vscode-services/src/...` — bare index import pulls observability SDK side effect, breaks vitest.
 
 ## Errors
 
