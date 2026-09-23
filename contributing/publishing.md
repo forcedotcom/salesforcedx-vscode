@@ -24,7 +24,7 @@ References:
 Manual workflow [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds release VSIXs from promoted prerelease tags. Auto-detects latest nightly tag + bumps minor, or accepts manual overrides. Emergency pre-release mode auto-calculates patch from registries if empty.
 
 Inputs:
-- `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty
+- `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty (loops through `marketplace-prerelease-*` tracking tags newest-first, uses first one that resolves to a real nightly tag)
 - `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
 - `emergencyPrerelease`: `true` → emergency-hotfix build path; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
 

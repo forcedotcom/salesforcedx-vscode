@@ -65,6 +65,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │
+│  │    (loops through tags newest-first, resolves first match)   │
 │  │    (previous Wednesday's promoted build that customer tested)│
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
