@@ -45,14 +45,18 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        org: [ non-tracking, minimal ]
+        lane: [ org-wide, class-scoped, ride-along ]
         include:
-          - org: non-tracking
-            playwright_args: '--ignore=**/apexTestSuiteDelete.headless.spec.ts'
+          - lane: org-wide
+            npm_script: test:web:org-wide
             scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
             scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
-          - org: minimal
-            playwright_args: apexTestSuiteDelete.headless.spec.ts
+          - lane: class-scoped
+            npm_script: test:web:class-scoped
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: ride-along
+            npm_script: test:web:ride-along
             scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
             scratch_delete: 'sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt'
       fail-fast: false
@@ -94,7 +98,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}"
+          npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing
 
       - name: Kill process on port 3001
         if: steps.try-run.outcome == 'failure'
@@ -159,7 +163,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}"
+          npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing
 
       - name: Recreate scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -180,7 +184,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}" --last-failed
+          npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -193,7 +197,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-apex-testing-web-${{ matrix.org }}
+          name: playwright-report-apex-testing-web-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
           retention-days: 14
@@ -202,7 +206,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-apex-testing-web-${{ matrix.org }}
+          name: playwright-test-results-apex-testing-web-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
           retention-days: 14
@@ -219,16 +223,20 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
-        org: [ non-tracking, minimal ]
+        lane: [ org-wide, class-scoped, ride-along ]
         include:
           - os: ubuntu-latest
             test_runner_prefix: 'xvfb-run -a '
-          - org: non-tracking
-            playwright_args: '--ignore=**/apexTestSuiteDelete.headless.spec.ts'
+          - lane: org-wide
+            npm_script: test:desktop:org-wide
             scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
             scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
-          - org: minimal
-            playwright_args: apexTestSuiteDelete.headless.spec.ts
+          - lane: class-scoped
+            npm_script: test:desktop:class-scoped
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: ride-along
+            npm_script: test:desktop:ride-along
             scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
             scratch_delete: 'sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt'
       fail-fast: false
@@ -277,7 +285,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}"
+        run: ${{ matrix.test_runner_prefix }}npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -338,7 +346,7 @@ jobs:
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}"
+        run: ${{ matrix.test_runner_prefix }}npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing
 
       - name: Recreate scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -359,7 +367,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- "${{ matrix.playwright_args }}" --last-failed
+        run: ${{ matrix.test_runner_prefix }}npm run ${{ matrix.npm_script }} -w salesforcedx-vscode-apex-testing -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -372,7 +380,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-apex-testing-desktop-${{ matrix.os }}-${{ matrix.org }}
+          name: playwright-report-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
           retention-days: 14
@@ -381,7 +389,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}-${{ matrix.org }}
+          name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
           retention-days: 14
