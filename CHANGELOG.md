@@ -39,7 +39,11 @@
 
 # 67.20.0 - September 23, 2026
 
-Content for the prerelease on 9/16 (the stuff between 9/9 and 9/16)
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed a security vulnerability where a malicious scratch-org definition folder name or ISV debugging project name could execute arbitrary shell commands. Salesforce CLI commands now run without a shell, so input is always treated as literal arguments. ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
 
 # 67.18.2 - September 18, 2026
 
