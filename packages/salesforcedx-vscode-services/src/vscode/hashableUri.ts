@@ -9,6 +9,7 @@ import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
 import { isRecord, isString } from 'effect/Predicate';
 import { URI } from 'vscode-uri';
+import { comparisonPath } from './uriComparison';
 
 /**
  * Wraps a `vscode-uri` `URI` with Effect's `Hash`/`Equal` interfaces so values can be
@@ -36,12 +37,10 @@ const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, obj
 const isHashableUriShape = (u: unknown): u is HashableUri =>
   hasObjectProp(u, 'uri') && isString(Object(u.uri).scheme) && typeof Object(u)[Equal.symbol] === 'function';
 
-const comparisonKey = (uri: URI): string => {
-  const path = uri.scheme === 'file' && /^\/[a-z]:/i.test(uri.path) ? uri.path.toLowerCase() : uri.path;
+const comparisonKey = (uri: URI): string =>
   // Use URI fields instead of toString(): VS Code and vscode-uri objects can
   // serialize the same URI differently across extension bundle boundaries.
-  return JSON.stringify([uri.scheme, uri.authority, path, uri.query, uri.fragment]);
-};
+  JSON.stringify([uri.scheme, uri.authority, comparisonPath(uri), uri.query, uri.fragment]);
 
 const fromUri = (uri: URI): HashableUri => {
   // Preserve path-segment casing for reads and display, but normalize the drive
@@ -50,9 +49,7 @@ const fromUri = (uri: URI): HashableUri => {
     uri.scheme === 'file' && /^\/[A-Z]:/.test(uri.path)
       ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, match => match.toLowerCase()) })
       : uri;
-  // Windows file paths are case-insensitive. VS Code and filesystem-backed
-  // services can report different casing for any path segment, so use a
-  // case-insensitive key without changing the URI consumers operate on.
+  // Windows file-drive paths: case-insensitive key (VS Code/FS casing can differ); .uri unchanged.
   const key = comparisonKey(normalized);
   const self: HashableUri = {
     uri: normalized,
