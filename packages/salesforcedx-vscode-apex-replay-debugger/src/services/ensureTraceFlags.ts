@@ -8,22 +8,20 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import { getRuntime } from './runtime';
 
-/** Promise bridge for imperative code. Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
-export const ensureTraceFlagsForCurrentUser = (): Promise<boolean> =>
-  getRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const traceFlagService = yield* api.services.TraceFlagService;
-      const userId = yield* traceFlagService.getUserId();
-      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-log');
-      const durationMinutes = config.get<number>('traceFlagsDefaultDurationMinutes', 30);
-      yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
-      return true;
-    }).pipe(
-      Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
-      Effect.catchAll(() => Effect.succeed(false))
-    )
-  );
+/** Ensures trace flags exist for the current target org user with the ReplayDebuggerLevels debug level. */
+export const ensureTraceFlagsForCurrentUser = Effect.fn('ensureTraceFlagsForCurrentUser')(
+  function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const traceFlagService = yield* api.services.TraceFlagService;
+    const settings = yield* api.services.SettingsService;
+    const [userId, durationMinutes] = yield* Effect.all([
+      traceFlagService.getUserId(),
+      settings.getValueOrElse('salesforcedx-vscode-apex-log', 'traceFlagsDefaultDurationMinutes', 30)
+    ]);
+    yield* traceFlagService.ensureTraceFlag(userId, Duration.minutes(durationMinutes));
+    return true;
+  },
+  Effect.tapError(e => Effect.logError('ensureTraceFlagsForCurrentUser failed', e)),
+  Effect.orElseSucceed(() => false)
+);

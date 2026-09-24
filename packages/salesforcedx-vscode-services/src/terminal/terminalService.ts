@@ -125,8 +125,7 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
     /** NODE_EXTRA_CA_CERTS omitted when unset — empty value breaks node's TLS bootstrap. */
     const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(
       function* () {
-        const logLevel =
-          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal')) ?? 'fatal';
+        const logLevel = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal');
         const caCerts =
           (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
           Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
@@ -145,9 +144,9 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
     /** Keep in sync with utils-vscode `isTelemetryExtensionConfigurationEnabled` (same two settings, negated). */
     const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
       function* () {
-        const level = yield* settingsService.getValue<string>('telemetry', 'telemetryLevel', 'all');
-        const coreEnabled = yield* settingsService.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', true);
-        return level === 'off' || coreEnabled === false;
+        const level = yield* settingsService.getValueOrElse('telemetry', 'telemetryLevel', 'all');
+        const coreEnabled = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', true);
+        return level === 'off' || !coreEnabled;
       },
       Effect.catchTag('MissingSettingsError', fallbackTo(false))
     );

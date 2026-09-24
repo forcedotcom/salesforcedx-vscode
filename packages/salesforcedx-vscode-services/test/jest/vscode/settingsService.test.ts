@@ -52,3 +52,72 @@ describe('SettingsService.getApiVersion', () => {
     expect(await runGetApiVersion()).toBe('63.0');
   });
 });
+
+describe('SettingsService.getValue / getValueOrElse', () => {
+  const mockGet = jest.fn();
+  const provide = <A, E>(effect: Effect.Effect<A, E, SettingsService>) =>
+    Effect.runPromise(effect.pipe(Effect.provide(SettingsService.Default)));
+
+  beforeEach(() => {
+    mockGet.mockReset();
+    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+      get: mockGet,
+      update: jest.fn()
+    } as unknown as vscode.WorkspaceConfiguration);
+  });
+
+  it('getValue returns the configured value', async () => {
+    mockGet.mockReturnValue('/usr/lib/jvm');
+    expect(
+      await provide(SettingsService.use(settings => settings.getValue<string>('salesforcedx-vscode-apex', 'java.home')))
+    ).toBe('/usr/lib/jvm');
+    expect(mockGet).toHaveBeenCalledWith('java.home');
+  });
+
+  it('getValue returns undefined when unset', async () => {
+    mockGet.mockReturnValue(undefined);
+    expect(
+      await provide(
+        SettingsService.use(settings => settings.getValue<boolean>('salesforcedx-vscode-core', 'clearOutputTab'))
+      )
+    ).toBeUndefined();
+  });
+
+  it('getValueOrElse returns the configured value', async () => {
+    mockGet.mockReturnValue(12_000);
+    expect(
+      await provide(
+        SettingsService.use(settings => settings.getValueOrElse('salesforcedx-vscode-soql', 'maxQueryLimit', 1))
+      )
+    ).toBe(12_000);
+  });
+
+  it('getValueOrElse returns default when unset', async () => {
+    mockGet.mockReturnValue(undefined);
+    expect(
+      await provide(
+        SettingsService.use(settings => settings.getValueOrElse('salesforcedx-vscode-core', 'clearOutputTab', false))
+      )
+    ).toBe(false);
+  });
+
+  it('getValueOrElse returns default when stored value is null', async () => {
+    mockGet.mockReturnValue(null);
+    expect(
+      await provide(
+        SettingsService.use(settings =>
+          settings.getValueOrElse('salesforcedx-vscode-core', 'NODE_EXTRA_CA_CERTS', 'fallback')
+        )
+      )
+    ).toBe('fallback');
+  });
+
+  it('getValueOrElse preserves false, 0, and empty string', async () => {
+    mockGet.mockReturnValue(false);
+    expect(await provide(SettingsService.use(settings => settings.getValueOrElse('s', 'bool', true)))).toBe(false);
+    mockGet.mockReturnValue(0);
+    expect(await provide(SettingsService.use(settings => settings.getValueOrElse('s', 'num', 1)))).toBe(0);
+    mockGet.mockReturnValue('');
+    expect(await provide(SettingsService.use(settings => settings.getValueOrElse('s', 'str', 'default')))).toBe('');
+  });
+});

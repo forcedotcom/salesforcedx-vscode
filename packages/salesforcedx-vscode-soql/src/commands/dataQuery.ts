@@ -10,8 +10,8 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
-import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
 import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
@@ -39,7 +39,11 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
   );
 
-  const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  const maxFetch = yield* (yield* api.services.SettingsService).getValueOrElse(
+    SOQL_CONFIGURATION_NAME,
+    'maxQueryLimit',
+    50_000
+  );
   const { soql, scanAll } = stripAllRows(query);
   const promptService = yield* api.services.PromptService;
   const notificationMode = yield* api.services.NotificationModeService;
@@ -82,7 +86,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
-  if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+  if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 

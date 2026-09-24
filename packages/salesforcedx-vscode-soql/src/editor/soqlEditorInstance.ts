@@ -18,6 +18,7 @@ import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
+import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -38,6 +39,12 @@ const appendToChannel = (message: string) =>
   getServicesApi.pipe(
     Effect.flatMap(api => api.services.ChannelService),
     Effect.flatMap(svc => svc.appendToChannel(message))
+  );
+
+const reportMessageError = (event: SoqlEditorEvent) =>
+  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`)).pipe(
+    Effect.tapErrorCause(Effect.logError),
+    Effect.ignore
   );
 
 const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: string) {
@@ -134,7 +141,13 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
+    vscode.workspace.onDidChangeTextDocument(
+      debounce((event: vscode.TextDocumentChangeEvent) => {
+        this.onDocumentChangeHandler(event);
+      }, 1000),
+      this,
+      this.subscriptions
+    );
 
     const instanceFiber = getSoqlRuntime().runFork(
       Effect.gen(this, function* () {
@@ -147,12 +160,7 @@ export class SOQLEditorInstance {
           });
         }).pipe(
           Stream.mapEffect(
-            event =>
-              this.handleMessageEffect(event).pipe(
-                Effect.catchAllCause(_cause =>
-                  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
-                )
-              ),
+            event => this.handleMessageEffect(event).pipe(Effect.catchAllCause(() => reportMessageError(event))),
             { concurrency: 'unbounded' }
           ),
           Stream.runDrain
@@ -173,7 +181,13 @@ export class SOQLEditorInstance {
     );
     this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
 
-    webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
+    webviewPanel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      this,
+      this.subscriptions
+    );
   }
 
   protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
@@ -257,20 +271,26 @@ export class SOQLEditorInstance {
       }
 
       case 'run_query': {
-        const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
         const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
         return Effect.promise(() =>
           getSoqlRuntime().runPromise(
-            runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
-              Effect.catchAllCause(cause => {
-                const err = Cause.squash(cause);
-                return appendToChannel(
-                  nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
-                ).pipe(Effect.andThen(runQueryDone()));
-              })
-            )
+            Effect.gen(function* () {
+              const api = yield* (yield* ExtensionProviderService).getServicesApi;
+              const maxRows = yield* (yield* api.services.SettingsService).getValue<number>(
+                SOQL_CONFIGURATION_NAME,
+                'maxQueryLimit'
+              );
+              yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
+                Effect.catchAllCause(cause => {
+                  const err = Cause.squash(cause);
+                  return appendToChannel(
+                    nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
+                  ).pipe(Effect.andThen(runQueryDone()));
+                })
+              );
+            })
           )
         ).pipe(Effect.withSpan('SOQLEditor.run_query'));
       }
@@ -338,7 +358,9 @@ export class SOQLEditorInstance {
   }
 
   protected dispose(): void {
-    this.subscriptions.forEach(disposable => disposable.dispose());
+    this.subscriptions.forEach(disposable => {
+      disposable.dispose();
+    });
     if (this.disposedCallback) {
       this.disposedCallback(this);
     }

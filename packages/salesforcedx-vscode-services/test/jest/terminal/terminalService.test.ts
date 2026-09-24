@@ -38,7 +38,7 @@ const isCliTelemetryDisabledImpl = () =>
 
 const MockSettingsServiceLayer = Layer.succeed(
   SettingsService,
-  SettingsService.make({ getValue: getValueMock } as unknown as SettingsService)
+  SettingsService.make({ getValue: getValueMock, getValueOrElse: getValueMock } as unknown as SettingsService)
 );
 
 const MockConfigServiceLayer = Layer.succeed(

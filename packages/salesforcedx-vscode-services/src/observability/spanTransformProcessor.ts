@@ -15,6 +15,7 @@ import * as Rec from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 type SpanCreationIdentity = Readonly<
@@ -112,7 +113,7 @@ const getAdditionalAttributes = (
     cliId,
     webUserId,
     orgEdition,
-    telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
+    telemetryTag: workspace.getConfiguration(SFDX_CORE_SECTION)?.get('telemetry-tag')
   });
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
