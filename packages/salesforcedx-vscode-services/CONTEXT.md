@@ -35,7 +35,7 @@
 
 - structural wrapper around `vscode-uri` `URI` adding Effect `Hash`/`Equal` symbols
 - shape: `{ readonly uri: URI; [Hash.symbol](); [Equal.symbol](that) }`
-- Equal/Hash use `comparisonKey` of URI fields (`scheme`, `authority`, `path`, `query`, `fragment`), not `uri.toString()`, so cross-bundle works (each ext bundles own copy; `instanceof` fails). Windows `file` paths are lowercased in the key; `.uri` keeps segment casing
+- Equal/Hash: `comparisonKey` of URI fields (`scheme`, `authority`, `path`, `query`, `fragment`), not `uri.toString()` (cross-bundle; each ext bundles own copy; `instanceof` fails). `comparisonPath` (`uriComparison.ts`) lowercases path only for `file` + Windows drive (`/^\/[a-z]:/i`); `.uri` keeps segment casing. Containment + `pathSuffixWithin` use same helper; containment strips trailing slashes itself
 - structural Equal also requires `Equal.symbol` on the candidate — rejects plain `{uri}` literals so the Equal contract stays symmetric with `Hash`
 - access underlying URI via `.uri` (no `.path`/`.scheme`/`.toUri()` etc. on wrapper)
 - construct via `HashableUri.fromUri(uri)`; `HashableUri.with(self, change)` (or curried `HashableUri.with(change)(self)`) returns new wrapper
