@@ -13,6 +13,7 @@ import {
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -47,10 +48,7 @@ test('Create Apex Unit Test Class via command palette', async ({ page }) => {
   });
 
   await test.step('select ApexUnitTest template in QuickPick', async () => {
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.type('ApexUnitTest');
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
+    await selectQuickInputOption(page, 'ApexUnitTest');
     await saveScreenshot(page, 'step.template-selected.png');
   });
 
