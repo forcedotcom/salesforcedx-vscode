@@ -21,6 +21,7 @@ import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { artifactNamespacesEqual, type ArtifactNamespace } from './artifactIdentity';
@@ -226,19 +227,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
       return (
         (yield* isSalesforceProject()) &&
-        (yield* getSfProject())
-          .getPackageDirectories()
-          // normalizes paths to forward slashes
-          .map(dir => toUri(dir.fullPath).path)
-          // Remove trailing forwardslash if present
-          .map(dir => dir.replace(/\/$/, ''))
-          .some(
-            dir =>
-              // Use URI.path which is normalized (always uses /) regardless of OS.
-              // Compare case-insensitively: VS Code provides uppercase drive letters on
-              // Windows (e.g. /C:/...) while vscode-uri normalizes to lowercase (/c:/...).
-              uri.path.toLowerCase().startsWith(`${dir.toLowerCase()}/`) || uri.path.toLowerCase() === dir.toLowerCase()
-          )
+        (yield* getSfProject()).getPackageDirectories().some(dir => isUriEqualOrWithin(toUri(dir.fullPath), uri))
       );
     });
 
