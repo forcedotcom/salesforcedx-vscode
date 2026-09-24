@@ -6,7 +6,7 @@ Release skipped. No customer-facing changes.
 
 ## Fixed
 
-#### salesforcedx-vscode-core
+#### salesforcedx-vscode-services
 
 - We fixed a security vulnerability where a malicious scratch-org definition folder name or ISV debugging project name could execute arbitrary shell commands. Salesforce CLI commands now run without a shell, so input is always treated as literal arguments. ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
 
