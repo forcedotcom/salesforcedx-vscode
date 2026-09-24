@@ -891,6 +891,14 @@ export default [
     }
   },
   {
+    // class-methods-use-this only (W-24183843). Not the soql block: that block also sets
+    // local/no-explicit-effect-return-type and related Effect rules.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'class-methods-use-this': 'error'
+    }
+  },
+  {
     // @ExportTaggedError is only for suppressing knip false-positives in packages that don't export errors externally.
     // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
     files: ['packages/salesforcedx-vscode-services/**/*.ts'],

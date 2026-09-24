@@ -110,6 +110,50 @@ const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(funct
   );
 });
 
+const sendRestartTelemetry = (
+  selectedOption: RestartQuickPickItem,
+  source: 'commandPalette' | 'statusBar',
+  restartBehavior: string
+): void => {
+  fireSpan('apex.lsp.restart', {
+    restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
+    selectedOption: selectedOption.type,
+    source,
+    defaultOption: restartBehavior
+  });
+};
+
+const showRestartQuickPick = (
+  items: RestartQuickPickItem[],
+  source: 'commandPalette' | 'statusBar',
+  restartBehavior: string
+): Promise<string | undefined> =>
+  promptForRestartOption(items).pipe(
+    Effect.catchTag('UserCancellationError', () => Effect.void),
+    Effect.provideService(ExtensionProviderService, { getServicesApi }),
+    Effect.tap(selectedOption =>
+      Effect.sync(() => {
+        if (!selectedOption) return;
+        sendRestartTelemetry(selectedOption, source, restartBehavior);
+      })
+    ),
+    Effect.map(selectedOption => (selectedOption ? selectedOption.label : undefined)),
+    getRuntime().runPromise
+  );
+
+const removeApexDB = (): Promise<void> =>
+  removeApexDbEffect().pipe(
+    // No services extension ⇒ skip DB cleanup.
+    Effect.catchTags({
+      ServicesExtensionNotFoundError: () => Effect.void,
+      InvalidServicesApiError: () => Effect.void
+    }),
+    // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
+    // needn't supply ExtensionProviderService.
+    Effect.provideService(ExtensionProviderService, { getServicesApi }),
+    getRuntime().runPromise
+  );
+
 export class LanguageClientManager {
   private static instance: LanguageClientManager;
   private clientInstance: ApexLanguageClient | undefined;
@@ -172,38 +216,6 @@ export class LanguageClientManager {
     return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
   }
 
-  private async showRestartQuickPick(
-    items: RestartQuickPickItem[],
-    source: 'commandPalette' | 'statusBar',
-    restartBehavior: string
-  ): Promise<string | undefined> {
-    const selectedOption = await getRuntime().runPromise(
-      promptForRestartOption(items).pipe(
-        Effect.catchTag('UserCancellationError', () => Effect.void),
-        Effect.provideService(ExtensionProviderService, { getServicesApi })
-      )
-    );
-
-    if (selectedOption) {
-      await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
-      return selectedOption.label;
-    }
-    return undefined;
-  }
-
-  private async sendRestartTelemetry(
-    selectedOption: RestartQuickPickItem,
-    source: 'commandPalette' | 'statusBar',
-    restartBehavior: string
-  ): Promise<void> {
-    fireSpan('apex.lsp.restart', {
-      restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
-      selectedOption: selectedOption.type,
-      source,
-      defaultOption: restartBehavior
-    });
-  }
-
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
     const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
     const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
@@ -222,21 +234,21 @@ export class LanguageClientManager {
               { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
             ];
 
-      return this.showRestartQuickPick(items, source, restartBehavior);
+      return showRestartQuickPick(items, source, restartBehavior);
     }
 
     // For status bar, use the setting value directly if not 'prompt'
     if (source === 'statusBar') {
       switch (restartBehavior) {
         case 'restart':
-          await this.sendRestartTelemetry(
+          sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             source,
             restartBehavior
           );
           return this.RESTART_OPTIONS.restartOnly;
         case 'reset':
-          await this.sendRestartTelemetry(
+          sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
             source,
             restartBehavior
@@ -247,7 +259,7 @@ export class LanguageClientManager {
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
           ];
-          return this.showRestartQuickPick(promptItems, source, restartBehavior);
+          return showRestartQuickPick(promptItems, source, restartBehavior);
       }
     }
 
@@ -292,7 +304,7 @@ export class LanguageClientManager {
 
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
         try {
-          await this.removeApexDB();
+          await removeApexDB();
         } catch (error) {
           // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
           // which are already caught via catchTags). Swallow so a failed DB cleanup can never
@@ -332,21 +344,6 @@ export class LanguageClientManager {
       // Reset the restarting flag if there's no client instance
       this.isRestarting = false;
     }
-  }
-
-  private async removeApexDB(): Promise<void> {
-    await getRuntime().runPromise(
-      removeApexDbEffect().pipe(
-        // No services extension ⇒ skip DB cleanup, exactly like the old hasRootWorkspace() guard returning false.
-        Effect.catchTags({
-          ServicesExtensionNotFoundError: () => Effect.void,
-          InvalidServicesApiError: () => Effect.void
-        }),
-        // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
-        // needn't supply ExtensionProviderService.
-        Effect.provideService(ExtensionProviderService, { getServicesApi })
-      )
-    );
   }
 
   public async createLanguageClient(
