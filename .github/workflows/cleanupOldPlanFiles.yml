@@ -81,7 +81,7 @@ jobs:
       - name: Create or update pull request
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
           base: ${{ env.BASE_REF }}
           branch: ${{ steps.pull-request.outputs.branch }}
           delete-branch: true
