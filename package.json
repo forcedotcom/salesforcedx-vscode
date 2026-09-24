@@ -507,9 +507,7 @@
         "check:peer-deps",
         "check:package-lock",
         "check:lock-sync",
-        "check:actions",
-        "check:knip",
-        "check:effect-diagnostics"
+        "check:actions"
       ]
     },
     "prepush": {
@@ -519,7 +517,9 @@
       },
       "dependencies": [
         "precommit",
-        "vscode:bundle"
+        "vscode:bundle",
+        "check:knip",
+        "check:effect-diagnostics"
       ]
     },
     "postinstall": {
