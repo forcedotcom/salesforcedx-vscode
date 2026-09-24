@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { FsService } from '../vscode/fsService';
 import { HashableUri } from '../vscode/hashableUri';
+import { pathSuffixWithin } from '../vscode/uriComparison';
 import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -40,11 +41,6 @@ const ShadowManifest = Schema.Struct({
 type ShadowManifest = typeof ShadowManifest.Type;
 
 const encodedSegments = (value: string) => Effect.all(value.split('/').map(Encoding.encodeUriComponent));
-
-const relativePath = (root: URI, child: URI): string | undefined => {
-  const prefix = root.path.endsWith('/') ? root.path : `${root.path}/`;
-  return child.path.startsWith(prefix) ? child.path.slice(prefix.length) : undefined;
-};
 
 type RevisionManifest = {
   readonly manifest: ShadowManifest;
@@ -239,9 +235,9 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
       readonly remoteLastModifiedDate?: string;
     }) {
       const rootUri = yield* getRootUri(orgId, reference, remoteLastModifiedDate);
-      const primaryPath = relativePath(stagingUri, primaryUri);
+      const primaryPath = pathSuffixWithin(stagingUri, primaryUri);
       const files = fileUris.flatMap(file => {
-        const path = relativePath(stagingUri, file);
+        const path = pathSuffixWithin(stagingUri, file);
         return path ? [path] : [];
       });
       if (!primaryPath) {

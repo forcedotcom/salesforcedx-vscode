@@ -158,7 +158,7 @@ const path = yield * api.services.FsService.uriToPath(uri);
 
 ### HashableUri
 
-`vscode-uri` `URI` lacks value equality → same-file URIs = distinct HashSet/HashMap keys. `FsService.HashableUri` wraps `URI` w/ Effect `Hash`/`Equal` (structural; identity is `comparisonKey` of URI fields, not `.toString()`). Use for dedupe/compare instead of hand-rolled `uri.toString()`.
+`vscode-uri` `URI` lacks value equality → same-file URIs = distinct HashSet/HashMap keys. `FsService.HashableUri` wraps `URI` w/ Effect `Hash`/`Equal` (structural; identity is `comparisonKey` of URI fields, not `.toString()`). Use for dedupe/compare instead of hand-rolled `uri.toString()`. Windows file-drive Equal/Hash casing: `packages/salesforcedx-vscode-services/CONTEXT.md` HashableUri (`comparisonPath`).
 
 Value namespace on the service, not an Effect-returning method. 2 ways to reach:
 

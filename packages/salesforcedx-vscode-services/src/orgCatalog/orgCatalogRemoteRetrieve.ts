@@ -15,6 +15,7 @@ import { ComponentSetService } from '../core/componentSetService';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { FsService } from '../vscode/fsService';
 import { HashableUri } from '../vscode/hashableUri';
+import { pathSuffixWithin } from '../vscode/uriComparison';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
@@ -246,10 +247,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                       fileUris,
                       hashable => {
                         const uri = hashable.uri;
-                        const stagingPrefix = stagingUri.path.endsWith('/') ? stagingUri.path : `${stagingUri.path}/`;
-                        const relative = uri.path.startsWith(stagingPrefix)
-                          ? uri.path.slice(stagingPrefix.length)
-                          : Utils.basename(uri);
+                        const relative = pathSuffixWithin(stagingUri, uri) ?? Utils.basename(uri);
                         const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
                         return fsService.readFile(uri).pipe(
                           Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),

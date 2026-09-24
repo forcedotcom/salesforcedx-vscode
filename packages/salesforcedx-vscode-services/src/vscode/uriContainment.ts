@@ -6,21 +6,17 @@
  */
 
 import type { URI } from 'vscode-uri';
+import { comparisonPath, isWindowsFileDrivePath } from './uriComparison';
 
-const WINDOWS_DRIVE_PATH = /^\/[a-z]:\//iu;
-
-const comparableUriPath = (uri: URI): string => {
-  const path = uri.path.replace(/\/$/u, '');
-  return WINDOWS_DRIVE_PATH.test(path) ? path.toLowerCase() : path;
-};
+const comparableUriPath = (uri: URI): string => comparisonPath(uri).replace(/\/$/u, '');
 
 export const uriPathIncludesSegments = (uri: URI, segments: readonly string[]): boolean => {
-  const windowsPath = WINDOWS_DRIVE_PATH.test(uri.path);
   const segmentPath = segments.join('/');
-  return comparableUriPath(uri).includes(`/${windowsPath ? segmentPath.toLowerCase() : segmentPath}/`);
+  const needle = isWindowsFileDrivePath(uri) ? segmentPath.toLowerCase() : segmentPath;
+  return comparableUriPath(uri).includes(`/${needle}/`);
 };
 
-/** URI containment with Windows file-path casing semantics. */
+/** URI containment. Windows file-drive paths compare case-insensitively; trailing slashes are ignored. */
 export const isUriEqualOrWithin = (root: URI, candidate: URI): boolean => {
   if (root.scheme.toLowerCase() !== candidate.scheme.toLowerCase()) return false;
   if (root.authority.toLowerCase() !== candidate.authority.toLowerCase()) return false;
