@@ -13,6 +13,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -48,11 +49,8 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
 
-    // Step 1: Select component type (JavaScript/TypeScript)
-    // Click the first option instead of Enter — 1.116+ sometimes drops Enter on quick picks (see PR #7193).
-    await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-    await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
+    await selectQuickInputOption(page, 'JavaScript');
     await saveScreenshot(page, 'step1.component-type-selected.png');
 
     // Step 2: Enter component name
