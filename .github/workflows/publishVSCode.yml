@@ -155,7 +155,7 @@ jobs:
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
+    if: always() && needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
@@ -175,7 +175,7 @@ jobs:
   # develop history entry (root CHANGELOG.md + the pack's CHANGELOG.md) to the stable version.
   relabel-changelog:
     needs: [prepare-release-metadata, publish]
-    if: needs.publish.result == 'success' && !inputs.dry-run
+    if: always() && needs.publish.result == 'success' && inputs.dry-run != true
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
@@ -236,7 +236,7 @@ jobs:
   # public repos from calling reusable workflows in private repos.
   trigger-cbw-release:
     needs: [publish, prepare-release-metadata]
-    if: needs.publish.result == 'success' && !inputs.dry-run && vars.CBW_TRIGGER_ENABLED != 'false'
+    if: always() && needs.publish.result == 'success' && inputs.dry-run != true && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
