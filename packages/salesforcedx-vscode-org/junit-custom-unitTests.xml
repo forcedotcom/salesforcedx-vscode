@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="189" failures="0" errors="0" time="0.333699376">
+    <testsuite name="test/jest/commands/aliasList.test.ts" timestamp="2026-09-24T04:32:03.427Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.004448917">
+        <testcase classname="test/jest/commands/aliasList.test.ts" name="aliasListCommand &gt; writes the Alias/Username table to the channel and shows it" time="0.003768833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/authParamsGatherer.test.ts" timestamp="2026-09-24T04:32:03.427Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="15" failures="0" errors="0" skipped="0" time="0.027704125">
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; programmatic instance URL (access-token re-auth flow) &gt; uses reauthAliasOrUsername for --alias when provided" time="0.004840083">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; programmatic instance URL (access-token re-auth flow) &gt; trims reauthAliasOrUsername" time="0.000928458">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; programmatic instance URL (access-token re-auth flow) &gt; falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted" time="0.00093975">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; programmatic instance URL (access-token re-auth flow) &gt; falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank" time="0.000652417">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; normalizes a valid https://example.com project URL" time="0.002292792">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; normalizes a valid http://example.com:8080/login project URL" time="0.001068584">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; warns and omits an invalid project URL: not a URL" time="0.001918125">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; warns and omits an invalid project URL: ftp://example.com" time="0.001278291">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; warns and omits an invalid project URL: https://example.com; touch /tmp/pwned" time="0.00207875">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; project default instance URL &gt; offers safe choices without warning when sfdcLoginUrl is absent" time="0.003317709">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; AccessTokenParamsGatherer &gt; CONTINUE happy path with explicit alias" time="0.001654375">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; AccessTokenParamsGatherer &gt; empty-string alias defaults to DEFAULT_ALIAS" time="0.000701">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; AccessTokenParamsGatherer &gt; cancels with UserCancellationError when instance URL prompt is dismissed (undefined)" time="0.002824416">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; AccessTokenParamsGatherer &gt; cancels with UserCancellationError when alias prompt is dismissed (undefined)" time="0.000862292">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/authParamsGatherer.test.ts" name="AuthParamsGatherer &gt; AccessTokenParamsGatherer &gt; wires validateInput on the instance-url and alias prompts" time="0.0007045">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/orgLoginAccessToken.test.ts" timestamp="2026-09-24T04:32:03.428Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.013023125">
+        <testcase classname="test/jest/commands/auth/orgLoginAccessToken.test.ts" name="orgLoginAccessTokenCommand &gt; execs the CLI with instance-url, alias, set-default, no-prompt; token rides env not argv" time="0.008944708">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginAccessToken.test.ts" name="orgLoginAccessTokenCommand &gt; surfaces UserCancellationError untransformed when the gatherer cancels" time="0.003404708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/orgLoginWeb.test.ts" timestamp="2026-09-24T04:32:03.428Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.019797542">
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; runs `sf org login web` with alias + --instance-url + --set-default flags" time="0.005951917">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; appends the output + success message, shows the channel, and refreshes aggregators on success" time="0.001661958">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; does not exec when not in a project (getSfProject precondition fails)" time="0.00822575">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (not the generic handler)" time="0.001089208">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; does not reveal the channel when the port-conflict notification is dismissed" time="0.0008995">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWeb.test.ts" name="orgLoginWebCommand &gt; rethrows a non-conflict TerminalServiceError to the generic handler" time="0.001084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/orgLoginWebDevHub.test.ts" timestamp="2026-09-24T04:32:03.429Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.013220167">
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; runs `sf org login web --alias &lt;alias&gt; --set-default-dev-hub` (env injected by simpleExec)" time="0.0054265">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; defaults the alias to DEFAULT_ALIAS on empty-string input" time="0.0012325">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; cancels (UserCancellationError) and does not exec when the alias prompt is dismissed (undefined)" time="0.002767333">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; fails (getSfProject) and does not exec when not in a project" time="0.000480792">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; appends output + refreshes aggregators on success" time="0.000692875">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; does not update the config/state aggregators when the exec fails" time="0.001031709">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLoginWebDevHub.test.ts" name="orgLoginWebDevHubCommand &gt; maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (shared executor)" time="0.000747125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/orgLogout.test.ts" timestamp="2026-09-24T04:32:03.430Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.011882833">
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; logs out a non-scratch default org, refreshes, and clears the target-org ref" time="0.004120833">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; does not clear the ref when the logged-out org was not the current target" time="0.001312375">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; logs out a scratch default org after the confirm prompt is accepted" time="0.001058459">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; cancels (no removeAuth/refresh/ref-clear) when the scratch confirm modal is declined" time="0.000894083">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; shows an info message (no removeAuth/refresh/ref-clear) when there is no default org" time="0.000480458">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; fails the precondition (no removeAuth) when not in a project" time="0.001904416">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogout.test.ts" name="orgLogoutDefaultCommand &gt; fails with OrgLogoutError (no refresh/ref-clear) when removeAuth rejects" time="0.001174375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/auth/orgLogoutAll.test.ts" timestamp="2026-09-24T04:32:03.430Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.018061542">
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; logs out each selected org and refreshes config/state" time="0.006741834">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; cancels (no removeAuth, no refresh) when nothing is selected" time="0.004598">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; logs out a scratch org after the scratch confirm prompt is accepted" time="0.001215958">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; short-circuits on the first removeAuth failure (fail-fast, no refresh)" time="0.002458167">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; cancels (no removeAuth, no refresh) when the confirm modal is declined" time="0.000748917">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; fails the precondition (no removeAuth) when not in a project" time="0.000509333">
+        </testcase>
+        <testcase classname="test/jest/commands/auth/orgLogoutAll.test.ts" name="orgLogoutAllCommand &gt; fails with OrgLogoutError when removeAuth rejects" time="0.000642125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/orgCreate.test.ts" timestamp="2026-09-24T04:32:03.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.035240958">
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; runs `sf org create scratch ... --set-default --json`, refreshes aggregators, reports to channel" time="0.008737708">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; shows the success toast with the command display text (including its ellipsis)" time="0.001847916">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)" time="0.0017185">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; prefills the alias/days input boxes with the defaults (folder name, 7) and uses them in the command" time="0.000970125">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; wires alias validateInput that accepts hyphens/alphanumerics and rejects shell metachars" time="0.001009209">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; validates expiration-day boundaries and NumberFromString forms" time="0.001302917">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; cancels (no exec) when the def-file picker is dismissed" time="0.00284425">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; cancels (no exec) when the alias input box is dismissed (Esc)" time="0.000662625">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; shows the no-scratch-def error and cancels when no def files match" time="0.001505083">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; starts Dev Hub authorization without awaiting it, then cancels before any picker" time="0.000842583">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; shows an error when Dev Hub authorization cannot start" time="0.003766042">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; cancels before any picker when the missing Dev Hub prompt is dismissed" time="0.001157">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; fails (getSfProject) without exec when not in a project" time="0.001017292">
+        </testcase>
+        <testcase classname="test/jest/commands/orgCreate.test.ts" name="orgCreateCommand &gt; fails with OrgCreateParseError on malformed stdout and does not refresh aggregators" time="0.002085708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/orgDelete.test.ts" timestamp="2026-09-24T04:32:03.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.016969542">
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; runs `sf org delete scratch` for a scratch default org" time="0.004938542">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; runs `sf org delete sandbox` for a sandbox default org" time="0.000834416">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; passes --target-org so delete does not depend on the extension-host cwd" time="0.000904792">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org" time="0.002737875">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; appends a fallback success message when sf emits empty stdout" time="0.000664375">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteDefaultCommand &gt; fails with UserCancellationError and does not exec when the user declines" time="0.000836375">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteUsernameCommand &gt; deletes each picked org with the right scratch/sandbox subcommand and --target-org" time="0.001361917">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteUsernameCommand &gt; continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall" time="0.00170775">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteUsernameCommand &gt; aborts the loop on cancellation (interrupt is not bucketed by partition)" time="0.001170209">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteUsernameCommand &gt; appends a fallback success message per org when sf emits empty stdout" time="0.000485667">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDelete.test.ts" name="orgDeleteUsernameCommand &gt; does not delete or flush when the picker cancels" time="0.00034775">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/orgDisplay.test.ts" timestamp="2026-09-24T04:32:03.432Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.050469">
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; runs `sf org display --target-org &lt;default&gt; --json` and writes the table to the channel" time="0.029768666">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; wraps the sf round-trip in a cancellable progress notification" time="0.001166083">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; omits --target-org (sf resolves its own default) when no default-org username is tracked" time="0.003779125">
+            <system-out>
+timestamp=2026-09-24T04:32:02.581Z level=INFO fiber=#2 message=&quot;no target-org username; falling back to sf default-org resolution&quot; message=&quot;{
+  \&quot;module\&quot;: \&quot;orgDisplay\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; renders the non-scratch table (connectedStatus, no scratch block)" time="0.000694334">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; fails (getSfProject) without exec when not in a project" time="0.003983541">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; appends the failure message when sf returns a non-zero status (proves Match.tag dispatch)" time="0.001643917">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload" time="0.000990459">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)" time="0.000808375">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; renders the table when stdout is prefixed with a CLI warning line" time="0.001085417">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayDefaultCommand &gt; fails with OrgDisplayParseError on malformed stdout and writes nothing" time="0.001027">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayUsernameCommand &gt; runs `sf org display --target-org &lt;picked&gt; --json` for the picked org and writes the table" time="0.000908584">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayUsernameCommand &gt; passes a username with spaces as a single argv element (no shell word splitting)" time="0.000526541">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayUsernameCommand &gt; propagates UserCancellationError (no exec, no channel writes) when the picker is cancelled" time="0.000499625">
+        </testcase>
+        <testcase classname="test/jest/commands/orgDisplay.test.ts" name="orgDisplayUsernameCommand &gt; fails the precondition (getSfProject) and never pickers when there is no project" time="0.000340292">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/orgList.test.ts" timestamp="2026-09-24T04:32:03.433Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="25" failures="0" errors="0" skipped="0" time="0.040650708">
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; determineConnectedStatusForNonScratchOrg &gt; should return undefined for scratch orgs" time="0.00548675">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; determineConnectedStatusForNonScratchOrg &gt; should return Connected for valid non-scratch org" time="0.001118417">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; determineConnectedStatusForNonScratchOrg &gt; should handle refreshAuth live-probe errors" time="0.001311167">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; determineConnectedStatusForNonScratchOrg &gt; should classify a removable getConnection failure via the distinct tag (not a generic collapse)" time="0.000513916">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; determineConnectedStatusForNonScratchOrg &gt; should fall through to the raw message for a non-removable getConnection failure" time="0.000658417">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; shouldRemoveOrg &gt; should return true for invalid_login errors" time="0.000143459">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; shouldRemoveOrg &gt; should return true for no such org errors" time="0.000121166">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; shouldRemoveOrg &gt; should return true for NamedOrgNotFound errors" time="0.0001105">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; shouldRemoveOrg &gt; should return true for NoAuthInfoFound errors" time="0.000517833">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; shouldRemoveOrg &gt; should return false for other errors" time="0.000157041">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; getConnectionStatusFromError &gt; should return specific message for expired access token" time="0.000222584">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; getConnectionStatusFromError &gt; should return maintenance message" time="0.00010575">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; getConnectionStatusFromError &gt; should return invalid org message for removable errors" time="0.000099375">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; getConnectionStatusFromError &gt; should return original message for unknown errors" time="0.000093916">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; getConnectionStatusFromError &gt; should handle string errors" time="0.000093125">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; findRemovableOrgs &gt; should skip dev hubs" time="0.004139333">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; findRemovableOrgs &gt; should classify expired orgs as removable without removing them" time="0.010388833">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; findRemovableOrgs &gt; should not classify orgs when getAuthFieldsFor fails with a non-removable error" time="0.003385">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; removeExpiredAndDeletedOrgs &gt; should remove each given org and return removed usernames" time="0.002359041">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; removeExpiredAndDeletedOrgs &gt; should keep removing after a removal failure and exclude the failed org" time="0.00099025">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; displayRemainingOrgs &gt; should display message when no orgs found" time="0.000491708">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; displayRemainingOrgs &gt; should create and display table for orgs" time="0.000965334">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; displayRemainingOrgs &gt; should add legend for emoji markers" time="0.000630125">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; displayRemainingOrgs &gt; should handle errors gracefully" time="0.004215875">
+        </testcase>
+        <testcase classname="test/jest/commands/orgList.test.ts" name="orgList command &gt; displayRemainingOrgs &gt; should not skip a non-scratch org whose isExpired is &quot;unknown&quot;" time="0.001094833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/orgOpen.test.ts" timestamp="2026-09-24T04:32:03.434Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.019869041">
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; runs `sf org open --url-only --json` with --target-org (env injected by simpleExec)" time="0.007415334">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; opens the url, appends the access message, and shows the channel on success" time="0.001233541">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; omits --target-org when there is no default-org username" time="0.002931459">
+            <system-out>
+timestamp=2026-09-24T04:32:02.555Z level=INFO fiber=#2 message=&quot;no target-org username; falling back to sf default-org resolution&quot; message=&quot;{
+  \&quot;module\&quot;: \&quot;orgOpen\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; fails (getSfProject) and does not exec or open when not in a project" time="0.002655709">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; appends the failure message and does not open when sf returns a failure result" time="0.000900292">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; surfaces the message for a non-1 failure status (e.g. NoDefaultEnvError status 68)" time="0.000612666">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; opens the url when stdout is prefixed with a CLI warning (expiration notice)" time="0.000616917">
+        </testcase>
+        <testcase classname="test/jest/commands/orgOpen.test.ts" name="orgOpenCommand &gt; fails with OrgOpenParseError on malformed stdout and does not open" time="0.000687666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgPicker/orgList.test.ts" timestamp="2026-09-24T04:32:03.435Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="23" failures="0" errors="0" skipped="0" time="0.020483417">
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; isOrgExpired tests &gt; should return true when org expiration date is in the past" time="0.002788084">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; isOrgExpired tests &gt; should return false when org expiration date is in the future" time="0.000638959">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; isOrgExpired tests &gt; should return false when org has no expiration date" time="0.000375459">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; should handle org login web authorization selection" time="0.001459833">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; should handle org login web dev hub authorization selection" time="0.000914792">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; should handle create default scratch org selection" time="0.000428958">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; should handle org login access token selection" time="0.000666375">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; should handle org list clean selection" time="0.000531667">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; Org picker SFDX commands &gt; fails with UserCancellationError when no selection is made" time="0.003262708">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; org selection (data-loading path via ConnectionService) &gt; lists the seeded org from ConnectionService in the picker" time="0.001379583">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; mocks &gt; setDefaultOrg tests &gt; org selection (data-loading path via ConnectionService) &gt; sets the picked org as default via ConfigService.setTargetOrg then refreshes the connection" time="0.000644292">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; sort/filter tests &gt; filters out expired orgs" time="0.000464041">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; sort/filter tests &gt; sorts orgs: Scratch, Sandbox, Other, DevHub, Defaults; alphabetical within each" time="0.000338166">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; sort/filter tests &gt; puts orgs with aliases before those without within each type" time="0.000198042">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; no alias: label, orgAlias undefined, setTargetOrg receives orgUsername" time="0.001984042">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; simple alias: label, setTargetOrg receives orgAlias" time="0.00047475">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; alias with dashes: label, setTargetOrg receives orgAlias" time="0.000363541">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; alias with multiple dashes (DevHub): label, setTargetOrg receives orgAlias" time="0.000280708">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; default org with alias: description has username then default suffix" time="0.000494833">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; default devhub with alias: description has username then default suffix" time="0.000507083">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; default org without alias: description is just default suffix" time="0.000273125">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; org that is both default org and default devhub gets combined description" time="0.000193667">
+        </testcase>
+        <testcase classname="test/jest/orgPicker/orgList.test.ts" name="OrgList tests &gt; authorizationsToQuickPickItems &gt; snapshot tests &gt; comma-separated aliases: label, orgAlias first, setTargetOrg receives orgAlias" time="0.000422875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/util/authErrorParser.test.ts" timestamp="2026-09-24T04:32:03.436Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.002630667">
+        <testcase classname="test/jest/util/authErrorParser.test.ts" name="authErrorParser &gt; detects the CLI message about killing process on port 1717" time="0.001100125">
+        </testcase>
+        <testcase classname="test/jest/util/authErrorParser.test.ts" name="authErrorParser &gt; detects port already in use errors for 1717" time="0.000284542">
+        </testcase>
+        <testcase classname="test/jest/util/authErrorParser.test.ts" name="authErrorParser &gt; does not flag unrelated auth failures as port conflict" time="0.000118667">
+        </testcase>
+        <testcase classname="test/jest/util/authErrorParser.test.ts" name="authErrorParser &gt; returns platform-specific port kill instructions" time="0.000330333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/util/orgAlias.test.ts" timestamp="2026-09-24T04:32:03.436Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="32" failures="0" errors="0" skipped="0" time="0.009701917">
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.001662709">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.00075775">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.000323334">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.0007125">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.000451417">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.0004715">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.00020425">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.00008825">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; accepts %p" time="0.000503125">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000194">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000143333">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.00006125">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000051542">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000049292">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000046416">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000093459">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000049917">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects %p" time="0.000049042">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="isValidOrgAlias &gt; rejects undefined" time="0.000080459">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000078875">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000048084">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000043958">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000044167">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000129375">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.00005125">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns undefined (valid) for %p" time="0.000044875">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000164167">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000048333">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000046834">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000046333">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000047167">
+        </testcase>
+        <testcase classname="test/jest/util/orgAlias.test.ts" name="validateAliasInput &gt; returns an error message for %p" time="0.000044875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/util/orgUtil.test.ts" timestamp="2026-09-24T04:32:03.438Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.025755">
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; should not display a notification when no orgs are present" time="0.01181275">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; should not display a notification when dev hubs are present" time="0.002445958">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; should display a notification when the scratch org has already expired" time="0.002760166">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; reveals the Output panel only when the user clicks Show Output on the expiry warning" time="0.002185709">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; should display multiple orgs in the output when there are several scratch orgs about to expire" time="0.002185833">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="orgUtil tests &gt; should display notifications for both an expired org and an org about to expire" time="0.001591625">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="updateConfigAndStateAggregators &gt; should call getConnection after invalidating caches to refresh TargetOrgRef" time="0.00102775">
+        </testcase>
+        <testcase classname="test/jest/util/orgUtil.test.ts" name="updateConfigAndStateAggregators &gt; should not throw when getConnection fails" time="0.000920667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/util/verificationCode.test.ts" timestamp="2026-09-24T04:32:03.438Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003790875">
+        <testcase classname="test/jest/util/verificationCode.test.ts" name="generateVerificationCode &gt; should return cc0a for test_token (matches server-side test vector)" time="0.001237291">
+        </testcase>
+        <testcase classname="test/jest/util/verificationCode.test.ts" name="generateVerificationCode &gt; should return 4 lowercase hex characters" time="0.000242291">
+        </testcase>
+        <testcase classname="test/jest/util/verificationCode.test.ts" name="generateVerificationCode &gt; should be deterministic" time="0.000112083">
+        </testcase>
+        <testcase classname="test/jest/util/verificationCode.test.ts" name="showVerificationCodeIfNeeded &gt; should show modal information message when CODE_BUILDER_STATE is set" time="0.001035875">
+        </testcase>
+        <testcase classname="test/jest/util/verificationCode.test.ts" name="showVerificationCodeIfNeeded &gt; should not show message when CODE_BUILDER_STATE is not set" time="0.00030375">
+        </testcase>
+    </testsuite>
+</testsuites>

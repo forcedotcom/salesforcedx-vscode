@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="0" errors="0" time="0.004293291">
+    <testsuite name="test/jest/auraLspStatusBarItem.test.ts" timestamp="2026-09-24T04:31:40.774Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.004293291">
+        <testcase classname="test/jest/auraLspStatusBarItem.test.ts" name="AuraLspStatusBarItem &gt; initialization &gt; should create language status item scoped to Aura file patterns" time="0.001846958">
+        </testcase>
+        <testcase classname="test/jest/auraLspStatusBarItem.test.ts" name="AuraLspStatusBarItem &gt; initialization &gt; should set indexing status on creation" time="0.000507334">
+        </testcase>
+        <testcase classname="test/jest/auraLspStatusBarItem.test.ts" name="AuraLspStatusBarItem &gt; status updates &gt; should update status when indexing" time="0.000278125">
+        </testcase>
+        <testcase classname="test/jest/auraLspStatusBarItem.test.ts" name="AuraLspStatusBarItem &gt; status updates &gt; should update status when ready" time="0.00034">
+        </testcase>
+        <testcase classname="test/jest/auraLspStatusBarItem.test.ts" name="AuraLspStatusBarItem &gt; disposal &gt; should dispose language status item" time="0.000359625">
+        </testcase>
+    </testsuite>
+</testsuites>

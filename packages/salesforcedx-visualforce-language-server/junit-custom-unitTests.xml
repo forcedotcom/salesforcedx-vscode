@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="38" failures="0" errors="0" time="0.729023334">
+    <testsuite name="test/jest/completion.test.ts" timestamp="2026-09-24T04:33:18.800Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.005831459">
+        <testcase classname="test/jest/completion.test.ts" name="HTML Completion &gt; Visualforce metadata" time="0.005117875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/documentLinks.test.ts" timestamp="2026-09-24T04:33:18.800Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.00425575">
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; resolves a RELATIVE base href, then ref (legacy url.resolve two-step)" time="0.001608833">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; resolves an ABSOLUTE base href" time="0.000245334">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; resolves a root-relative ref against workspacePath via Utils.joinPath" time="0.000484375">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; routes a base-resolved root-relative ref through workspacePath (not escaping to fs root)" time="0.00027375">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; resolves a doc-relative ref (no base, no workspacePath)" time="0.000160125">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; resolves against a memfs:// / web-scheme documentUri" time="0.000099083">
+        </testcase>
+        <testcase classname="test/jest/documentLinks.test.ts" name="resolveReference (document link resolution) &gt; falls back to ref-against-documentUri when base is unparseable (does not throw)" time="0.000493459">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/embedded.test.ts" timestamp="2026-09-24T04:33:18.801Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.004992083">
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle styles tag" time="0.001975334">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle styles tag for incomplete HTML" time="0.0002845">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle style tag in attribute" time="0.000439625">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle embedded styles" time="0.000443166">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle script tag" time="0.000403125">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle script tag in attribute" time="0.000436042">
+        </testcase>
+        <testcase classname="test/jest/embedded.test.ts" name="HTML Embedded Support &gt; Should handle script content" time="0.000199208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/formatting.test.ts" timestamp="2026-09-24T04:33:18.801Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.346252833">
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle HTML only" time="0.274442792">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle HTML &amp; Scripts" time="0.050526">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; HTML &amp; Scripts - Fixtures" time="0.007699125">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle script end tag" time="0.001204125">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle HTML &amp; multiple scripts" time="0.002489375">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle HTML &amp; styles" time="0.003773">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle EndWithNewline" time="0.001815583">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle inside script" time="0.001141541">
+        </testcase>
+        <testcase classname="test/jest/formatting.test.ts" name="HTML Embedded Formatting &gt; Should handle range after new line" time="0.000986167">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/hover.test.ts" timestamp="2026-09-24T04:33:18.802Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.005522667">
+        <testcase classname="test/jest/hover.test.ts" name="HTML Hover &gt; Single" time="0.004168041">
+        </testcase>
+        <testcase classname="test/jest/hover.test.ts" name="HTML Hover &gt; Visualforce mixed-case tags render original case" time="0.000686542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/javascriptMode.test.ts" timestamp="2026-09-24T04:33:18.802Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.348568375">
+        <testcase classname="test/jest/javascriptMode.test.ts" name="HTML Javascript Support &gt; Should display completions" time="0.34577475">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/links.test.ts" timestamp="2026-09-24T04:33:18.802Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.008343542">
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; JavaScript protocol links should be null" time="0.002857458">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle file system links" time="0.000354333">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle HTTP and HTTPS links" time="0.000370625">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle relative paths" time="0.001298709">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle file system specific cases" time="0.000597958">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle HTTPS specific cases" time="0.000151041">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should ignore invalid URIs" time="0.000146292">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link creation &gt; should handle folders starting with c character" time="0.000127916">
+        </testcase>
+        <testcase classname="test/jest/links.test.ts" name="HTML Link Detection &gt; Link detection" time="0.00144675">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/words.test.ts" timestamp="2026-09-24T04:33:18.803Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.005256625">
+        <testcase classname="test/jest/words.test.ts" name="Words &gt; Should handle basic words" time="0.003694083">
+        </testcase>
+        <testcase classname="test/jest/words.test.ts" name="Words &gt; Should handle multiline" time="0.000224042">
+        </testcase>
+    </testsuite>
+</testsuites>

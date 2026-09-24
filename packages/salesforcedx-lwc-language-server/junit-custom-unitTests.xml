@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="129" failures="0" errors="0" time="7.228744291">
+    <testsuite name="test/componentIndexer.test.ts" timestamp="2026-09-24T04:31:51.220Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.25751825">
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; new &gt; initializes with the root of a workspace" time="0.105734875">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #init &gt; adds a Tag to `tags` for each custom component" time="0.010630458">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #customComponents &gt; returns a list of files where the .js filename is the same as its parent directory name" time="0.014278417">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; findTagByName &gt; finds tag with an exact match" time="0.008728417">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; findTagByName &gt; finds tag with lwc prefix" time="0.008074042">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; findTagByName &gt; finds tag with aura prefix" time="0.01271525">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; findTagByName &gt; should return null when query provided cannot be mapped" time="0.007611958">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #findTagByURI &gt; finds a Tag by matching the URI" time="0.008826708">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #findTagByURI &gt; finds a Tag by its matching html file" time="0.007879041">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #staleTags &gt; returns a list of tags that are stale and should be removed" time="0.010682792">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; #generateIndex() &gt; creates Tag objects for all the component JS files" time="0.00697175">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; typescript path mapping &gt; #tsConfigPathMapping &gt; returns a map of files inside an lwc watched directory where the .js or .ts files match the directory name" time="0.013429666">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; instance methods &gt; typescript path mapping &gt; updateSfdxTsConfigPath &gt; updates tsconfig.sfdx.json path mapping" time="0.019620041">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; helper functions &gt; unIndexedFiles &gt; it returns entries 0 entries when they match" time="0.00628475">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; helper functions &gt; unIndexedFiles &gt; it returns entries 1 entries when the entries date is different" time="0.006889875">
+        </testcase>
+        <testcase classname="test/componentIndexer.test.ts" name="ComponentIndexer &gt; helper functions &gt; unIndexedFiles &gt; it returns entries 1 entries when there is no matching tag" time="0.006558209">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/javascript/compiler.test.ts" timestamp="2026-09-24T04:31:51.222Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.052818583">
+        <testcase classname="test/javascript/compiler.test.ts" name="can get metadata from a simple component" time="0.014691375">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="displays an error for a component with syntax error" time="0.004224417">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="returns empty metadata for a script without a clear main component class" time="0.007017625">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="returns metadata for a script with one component class, even when not exported" time="0.002706">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="displays an error for a component with other errors" time="0.00237825">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="does not include URL or codeDescription when error has no url" time="0.001787417">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="includes URL in message and codeDescription when error has url" time="0.001341">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="compileDocument returns list of javascript syntax errors" time="0.001429">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="compileDocument returns list of javascript regular errors" time="0.001958875">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="linter returns empty diagnostics on correct file" time="0.001818625">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="mapLwcMetadataToInternal returns expected javascript metadata" time="0.009875875">
+        </testcase>
+        <testcase classname="test/javascript/compiler.test.ts" name="use compileDocument()" time="0.002612208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/javascript/typeMapping.test.ts" timestamp="2026-09-24T04:31:51.223Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.044599083">
+        <testcase classname="test/javascript/typeMapping.test.ts" name="can map new metadata to old metadata" time="0.032859333">
+        </testcase>
+        <testcase classname="test/javascript/typeMapping.test.ts" name="Should handle mapping when there is a property with only a setter" time="0.010672875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/lwcContext.test.ts" timestamp="2026-09-24T04:31:51.223Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.01539375">
+        <testcase classname="test/lwcContext.test.ts" name="LWCWorkspaceContext &gt; isLWCJavascript()" time="0.005724125">
+        </testcase>
+        <testcase classname="test/lwcContext.test.ts" name="LWCWorkspaceContext &gt; isInsideModulesRoots()" time="0.002133125">
+        </testcase>
+        <testcase classname="test/lwcContext.test.ts" name="LWCWorkspaceContext &gt; isLWCTemplate()" time="0.001586917">
+        </testcase>
+        <testcase classname="test/lwcContext.test.ts" name="LWCWorkspaceContext &gt; configureProjectForTs()" time="0.002612417">
+        </testcase>
+        <testcase classname="test/lwcContext.test.ts" name="LWCWorkspaceContext &gt; configureProjectForTs() should not overwrite existing tsconfig.json" time="0.001060541">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/lwcDataProvider.test.ts" timestamp="2026-09-24T04:31:51.224Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.132245">
+        <testcase classname="test/lwcDataProvider.test.ts" name="provideValues() &gt; should return a list of values" time="0.106089917">
+        </testcase>
+        <testcase classname="test/lwcDataProvider.test.ts" name="provideValues() &gt; should validate an empty array is returned when tag.classMembers is undefined" time="0.011093625">
+        </testcase>
+        <testcase classname="test/lwcDataProvider.test.ts" name="provideAttributes() &gt; should return a set list of attributes for template tag" time="0.013603792">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/lwcServerNode.test.ts" timestamp="2026-09-24T04:31:51.224Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="52" failures="0" errors="0" skipped="0" time="6.507680083">
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; new &gt; creates a new instance" time="0.000731792">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; readJsonSync mock verification &gt; should track readJsonSync calls" time="0.000205917">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; should return a list of available completion items in a javascript file" time="0.28616825">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; should not return a list of completion items in a javascript file for open curly brace" time="0.000593042">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; returns a list of available tag completion items in a LWC template" time="0.195379875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; should return a list of available attribute completion items in a LWC template" time="0.188476292">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; should still return a list of completion items inside the curly brace without the trigger character in a LWC template" time="0.187293833">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onCompletion &gt; returns a list of available completion items in a Aura template" time="0.186762125">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onHover &gt; returns the docs for that hovered item" time="0.188836292">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onHover &gt; returns the docs for that hovered custom component in an aura template" time="0.006800583">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onHover &gt; should return the component library link for a standard component" time="0.185848667">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onDefinition &gt; returns the Location of the html tags corresponding .js file" time="0.008123208">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onDefinition &gt; returns the Location of the property in the elements content" time="0.007123542">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onDefinition &gt; returns the Location of an (`@api`) classMember from the html attribute" time="0.007055875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; #onDefinition &gt; returns the Location of a parent iterator node with an iterator attribute" time="0.006318708">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; delayed initialization notification &gt; sends LWC_SERVER_READY_NOTIFICATION after successful delayed initialization" time="0.186310834">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onInitialized() &gt; skip tsconfig initialization when salesforcedx-vscode-lwc.preview.typeScriptSupport = false" time="0.000425042">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onInitialized() &gt; initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true" time="0.2643545">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onInitialized() &gt; updates tsconfig.sfdx.json path mapping" time="0.230428583">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; updates tsconfig.sfdx.json path mapping when .js file created" time="0.1978405">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; removes tsconfig.sfdx.json path mapping when .js files deleted" time="0.202932458">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no updates to tsconfig.sfdx.json path mapping when .js files changed" time="0.189693209">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; doesn&apos;t update path mapping when parent directory is not lwc" time="0.188745625">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; updates tsconfig.sfdx.json path mapping when .ts file created" time="0.19905975">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; removes tsconfig.sfdx.json path mapping when .ts files deleted" time="0.199727166">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no updates to tsconfig.sfdx.json path mapping when .ts files changed" time="0.208244083">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; doesn&apos;t update path mapping when parent directory is not lwc" time="0.190424209">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .html on 1 event" time="0.190426875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .html on 2 event" time="0.190418292">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .html on 3 event" time="0.190471708">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .css on 1 event" time="0.190601917">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .css on 2 event" time="0.189820666">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .css on 3 event" time="0.190508458">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .js-meta.xml on 1 event" time="0.195446958">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .js-meta.xml on 2 event" time="0.188403291">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .js-meta.xml on 3 event" time="0.191926584">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .txt on 1 event" time="0.189231125">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .txt on 2 event" time="0.190873">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; handlers &gt; onDidChangeWatchedFiles &gt; no path mapping updates made for .txt on 3 event" time="0.189529708">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #capabilities &gt; returns what the server can do" time="0.000369167">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im in a start tag" time="0.000283208">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im on an attribute name" time="0.000215583">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im on a dynamic attribute value (inside &quot;{}&quot;)" time="0.000240916">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im on an attribute value" time="0.000127333">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im in content" time="0.000354958">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im in dynamic content" time="0.000283">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; #cursorInfo &gt; knows when Im not dynamic content" time="0.000180667">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; findDynamicContent &gt; returns the dynamic match at the given offset if it exists" time="0.000046875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; findDynamicContent &gt; returns the match if its not the only one in the string" time="0.0000345">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; findDynamicContent &gt; returns null when not on dynamic content" time="0.000035875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; Core All Workspace &gt; Should not throw during intialization" time="0.000046875">
+        </testcase>
+        <testcase classname="test/lwcServerNode.test.ts" name="lwcServerNode &gt; Core Partial Workspace &gt; Should not throw during intialization" time="0.0000325">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tag.test.ts" timestamp="2026-09-24T04:31:51.227Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="19" failures="0" errors="0" skipped="0" time="0.172256625">
+        <testcase classname="test/tag.test.ts" name="Tag &gt; .new &gt; returns a new Tag" time="0.000927209">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; .fromFile &gt; creates a tag from a lwc .js file" time="0.0344725">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #classMembers &gt; returns methods, properties, attributes. Everything defined on the component" time="0.01678725">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #classMember &gt; returns a classMember of a Tag by name" time="0.01320675">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #classMemberLocation &gt; returns a classMember of a Tag by name" time="0.008101958">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #publicAttributes &gt; returns the public attributes" time="0.007859041">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #range &gt; returns a range for the component" time="0.006129708">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #location &gt; returns a location for the component" time="0.015437292">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #allLocations &gt; returns multiple files if present" time="0.009205834">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #name &gt; returns the filename for the component" time="0.007004625">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #lwcTypingsName &gt; returns the lwc import name for the component" time="0.007154667">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #auraName &gt; returns the name for the lwc component when referenced in an aura component" time="0.004405875">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #lwcName &gt; returns the name for the component when referenced in another lwc component" time="0.009011792">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #attribute &gt; finds the attribute by name" time="0.0040125">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #attribute &gt; returns null when not found" time="0.004505708">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #attributeDocs &gt; returns public attributes formatted in markdown" time="0.003958209">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #methodDocs &gt; returns `api` method docs formatted in markdown" time="0.003790917">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; instance methods &gt; #description &gt; return markdown of component&apos;s documentation" time="0.011767792">
+        </testcase>
+        <testcase classname="test/tag.test.ts" name="Tag &gt; handling malformed Tag &gt; does not throw an error when finding a class member location without class members" time="0.002099875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/template/linter.test.ts" timestamp="2026-09-24T04:31:51.228Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.008791625">
+        <testcase classname="test/template/linter.test.ts" name="returns a list of all the template compilation errors" time="0.006777291">
+        </testcase>
+        <testcase classname="test/template/linter.test.ts" name="does not include URL or codeDescription when warning has no url" time="0.000687709">
+        </testcase>
+        <testcase classname="test/template/linter.test.ts" name="includes URL in message and codeDescription when warning has url" time="0.000481666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/typing.test.ts" timestamp="2026-09-24T04:31:51.228Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.013742833">
+        <testcase classname="test/typing.test.ts" name="createTyping &gt; cannot create a Typing with an invalid type" time="0.002756875">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="createTyping &gt; cannot create a Typing with an invalid meta file" time="0.000575791">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="getDeclaration &gt; generates the typing declaration for a content asset file." time="0.004583667">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="getDeclaration &gt; generate the typing declaration for a static resource file" time="0.000148125">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="getDeclaration &gt; generate the typing declaration for a message channels file" time="0.000157834">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="getDeclaration &gt; handles a full path" time="0.000148542">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="declarationsFromCustomLabels &gt; Generates declarations from parsed xml document" time="0.003452208">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="declarationsFromCustomLabels &gt; Generates declarations when the xml has a single labels element (xml2js object, not array)" time="0.000286375">
+        </testcase>
+        <testcase classname="test/typing.test.ts" name="declarationsFromCustomLabels &gt; should not generate declarations when parsing an empty labels xml document" time="0.000532916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/typingIndexer.test.ts" timestamp="2026-09-24T04:31:51.229Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.023698459">
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; new &gt; initializes with the root of a workspace" time="0.00123275">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; #createNewMetaTypings &gt; saves the meta files as t.ds files" time="0.001925833">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; #removeStaleTypings &gt; saves the meta files as t.ds files" time="0.0054085">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; #saveCustomLabelTypings &gt; saves the custom labels xml file to 1 typings file" time="0.000959833">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; #metaFilePaths &gt; it returns all the paths of meta files" time="0.001485041">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; #metaTypings &gt; it returns all the paths for meta files&apos; typings" time="0.000631875">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; pathBasename &gt; returns the basename of a path" time="0.000115">
+        </testcase>
+        <testcase classname="test/typingIndexer.test.ts" name="TypingIndexer &gt; .diffItems &gt; returns a list of strings that do not exist in the compare list" time="0.000166417">
+        </testcase>
+    </testsuite>
+</testsuites>

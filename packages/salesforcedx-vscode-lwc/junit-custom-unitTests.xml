@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="93" failures="0" errors="0" time="0.15371171">
+    <testsuite name="test/jest/channel/index.test.ts" timestamp="2026-09-24T04:31:35.750Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.006225542">
+        <testcase classname="test/jest/channel/index.test.ts" name="appendToChannel &gt; does not throw when the services runtime/layer is not yet available" time="0.005550167">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:31:35.751Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.006796875">
+        <testcase classname="test/jest/index.test.ts" name="deactivate &gt; records the extensionDeactivated span" time="0.00613625">
+            <system-out>
+Lightning Web Components Extension Deactivated
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageClient/clientOptions.test.ts" timestamp="2026-09-24T04:31:35.751Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.004816875">
+        <testcase classname="test/jest/languageClient/clientOptions.test.ts" name="clientOptions &gt; getBaseClientOptions &gt; should configure file system watcher for directory deletions with correct flags" time="0.001969458">
+        </testcase>
+        <testcase classname="test/jest/languageClient/clientOptions.test.ts" name="clientOptions &gt; getBaseClientOptions &gt; should configure multiple file system watchers including directory watcher" time="0.00055925">
+        </testcase>
+        <testcase classname="test/jest/languageClient/clientOptions.test.ts" name="clientOptions &gt; getBaseClientOptions &gt; should scope watchers to package directory URIs with relative patterns" time="0.001614291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/lwcLspStatusBarItem.test.ts" timestamp="2026-09-24T04:31:35.751Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.004611459">
+        <testcase classname="test/jest/lwcLspStatusBarItem.test.ts" name="LwcLspStatusBarItem &gt; initialization &gt; should create language status item scoped to LWC file patterns" time="0.002120083">
+        </testcase>
+        <testcase classname="test/jest/lwcLspStatusBarItem.test.ts" name="LwcLspStatusBarItem &gt; initialization &gt; should set indexing status on creation" time="0.000648542">
+        </testcase>
+        <testcase classname="test/jest/lwcLspStatusBarItem.test.ts" name="LwcLspStatusBarItem &gt; status updates &gt; should update status when indexing" time="0.0002825">
+        </testcase>
+        <testcase classname="test/jest/lwcLspStatusBarItem.test.ts" name="LwcLspStatusBarItem &gt; status updates &gt; should update status when ready" time="0.000259625">
+        </testcase>
+        <testcase classname="test/jest/lwcLspStatusBarItem.test.ts" name="LwcLspStatusBarItem &gt; disposal &gt; should dispose language status item" time="0.000333125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" timestamp="2026-09-24T04:31:35.752Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.009014417">
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should show notification when Jest Runner is active, lenses returned, and flag is unset" time="0.004068834">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should NOT show notification when Jest Runner is not active" time="0.000592917">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should NOT show notification when globalState flag is already set" time="0.000366833">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should NOT show notification when no lenses are returned" time="0.00020575">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should update globalState when user clicks &quot;Don&apos;t show again&quot;" time="0.001820917">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/lwcTestCodeLensProvider.test.ts" name="LwcTestCodeLensProvider notification logic &gt; should only show notification once per session" time="0.000472916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" timestamp="2026-09-24T04:31:35.752Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.014109083">
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should provide code lens for both describe blocks and it blocks" time="0.008618625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should provide code lens for nested describe blocks" time="0.001169">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should handle empty test file" time="0.000739083">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should return code lenses EVEN WHEN Jest Runner extension is present (deferral removed)" time="0.000765583">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should return code lenses regardless of Jest Runner extension presence" time="0.000733917">
+        </testcase>
+        <testcase classname="test/jest/testSupport/codeLens/provideLwcTestCodeLens.test.ts" name="provideLwcTestCodeLens &gt; should include (LWC) suffix in all code lens titles" time="0.00065625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/commands/lwcTestDebugAction.test.ts" timestamp="2026-09-24T04:31:35.752Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.007887958">
+        <testcase classname="test/jest/testSupport/commands/lwcTestDebugAction.test.ts" name="lwcTestDebugAction routes through the controller &gt; lwcTestFileDebug calls controller.runByExecutionInfo with isDebug=true" time="0.001384208">
+        </testcase>
+        <testcase classname="test/jest/testSupport/commands/lwcTestDebugAction.test.ts" name="lwcTestDebugAction routes through the controller &gt; lwcTestCaseDebug calls controller.runByExecutionInfo with isDebug=true" time="0.000285125">
+        </testcase>
+        <testcase classname="test/jest/testSupport/commands/lwcTestDebugAction.test.ts" name="lwcTestDebugAction routes through the controller &gt; lwcTestDebugActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=true" time="0.000296625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/commands/lwcTestDebugAction.test.ts" name="lwcTestDebugAction routes through the controller &gt; records the completed debug session span" time="0.005024875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/commands/lwcTestRunAction.test.ts" timestamp="2026-09-24T04:31:35.753Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002864917">
+        <testcase classname="test/jest/testSupport/commands/lwcTestRunAction.test.ts" name="lwcTestRunAction routes through the controller &gt; lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false" time="0.001523625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/commands/lwcTestRunAction.test.ts" name="lwcTestRunAction routes through the controller &gt; lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false" time="0.000298333">
+        </testcase>
+        <testcase classname="test/jest/testSupport/commands/lwcTestRunAction.test.ts" name="lwcTestRunAction routes through the controller &gt; lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false" time="0.000291334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testExplorer/lwcTestController.test.ts" timestamp="2026-09-24T04:31:35.753Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.029158667">
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController test item tags &gt; tags discovered file items and resolved case items with the in-workspace tag" time="0.003110334">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo resolves a file item and starts a test run" time="0.008686041">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runActiveEditorFile no-ops when there is no active editor" time="0.000515625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runActiveEditorFile no-ops when the active editor is not an LWC jest test" time="0.000367292">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo runs the resolved case item when a matching case is found" time="0.000657792">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo preserves testName when no matching case item is found (execOverride path)" time="0.0008695">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; URI normalization (macOS /private) &gt; runByExecutionInfo normalizes URI when resolving test item so tree item receives run updates" time="0.000814875">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; applyResults marks the discovery file item passed when jest reports an aliased (long) path" time="0.001674625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; reports a run-all crash and bounds result polling when no source item exists" time="0.004905042">
+            <system-out>
+Failed to read LWC test results JSON: (FiberFailure) MockFailure: no result file
+    at Object.&lt;anonymous&gt; (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/test/jest/testSupport/testExplorer/lwcTestController.test.ts:662:57)
+    at Object.Mock [as readFile] (file:///Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/node_modules/vitest/dist/chunks/spy.DQ0ZsPbi.js:320:40)
+    at /Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:893:40
+    at readJestResultsFile (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:891:36)
+    at readJestResultsFile (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:900:48)
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo sets error location on crash message when pseudoterminal captures a stack trace" time="0.003305916">
+            <system-out>
+Failed to read LWC test results JSON: (FiberFailure) MockFailure: no result file
+    at Object.&lt;anonymous&gt; (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/test/jest/testSupport/testExplorer/lwcTestController.test.ts:796:57)
+    at Object.Mock [as readFile] (file:///Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/node_modules/vitest/dist/chunks/spy.DQ0ZsPbi.js:320:40)
+    at /Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:893:40
+    at readJestResultsFile (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:891:36)
+    at readJestResultsFile (/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts:900:48)
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo preserves crash-extracted error when results file exists after crash" time="0.001158208">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; preserves a case-level crash error when the fallback resolves without an exit code and partial results exist" time="0.001079375">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo reveals Test Results panel when starting a run" time="0.000494875">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/lwcTestController.test.ts" name="LwcTestController public run API &gt; runByExecutionInfo reveals Test Results panel when starting a debug run" time="0.000431583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" timestamp="2026-09-24T04:31:35.753Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.0029725">
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; returns the PASS badge when Jest reports the file as passed and no assertions failed" time="0.001140375">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; returns the FAIL badge when Jest reports the file as failed" time="0.000204625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; returns the FAIL badge when any assertion failed even if the file status is not explicitly &quot;failed&quot;" time="0.000151375">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; returns the PASS badge when a single test passed and the rest are skipped (filtered via --testNamePattern)" time="0.000177625">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; returns the PASS badge when every assertion is skipped/pending and no test actually failed" time="0.000219834">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testExplorer/testResultsOutput.test.ts" name="testResultsOutput.fileBadge &gt; handles missing assertionResults gracefully and treats an unknown non-failed status as PASS" time="0.00010225">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testRunner/issue4690.repro.test.ts" timestamp="2026-09-24T04:31:35.754Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002541334">
+        <testcase classname="test/jest/testSupport/testRunner/issue4690.repro.test.ts" name="issue #4690 repro - LWC debug test with long output &gt; does not wrap the testNamePattern value in surrounding quotes (PR #4688 root-cause fix)" time="0.001078542">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/issue4690.repro.test.ts" name="issue #4690 repro - LWC debug test with long output &gt; keeps testNamePattern as a discrete array arg even for very long test names (no 1024 char shell limit)" time="0.000608542">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/issue4690.repro.test.ts" name="issue #4690 repro - LWC debug test with long output &gt; still escapes regex symbols in the test name (regression guard)" time="0.000192792">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" timestamp="2026-09-24T04:31:35.754Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="24" failures="0" errors="0" skipped="0" time="0.022079166">
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; spawns process with shell: true on non-Windows platforms" time="0.0038715">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; spawns process with cmd.exe on Windows when shellOptions provided" time="0.000992375">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; spawns process with shell: false on Windows (bypasses Git Bash)" time="0.000835667">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; captures stdout output" time="0.000747334">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; captures stderr output" time="0.000994125">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; captures combined stdout and stderr in order" time="0.000789084">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; fires onDidClose with exit code when process exits" time="0.000255208">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; fires onDidClose with error exit code" time="0.000229708">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; open &gt; fires onDidClose with exit code 1 on spawn error" time="0.0015715">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; close &gt; kills the process if not already killed" time="0.000886417">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; close &gt; does not kill if process already killed" time="0.00056575">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; extracts TypeError with stack trace" time="0.000518">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; extracts ReferenceError with stack trace" time="0.000162667">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; extracts SyntaxError with stack trace" time="0.000146834">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; extracts FAIL line with error details" time="0.003026041">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; stops at Jest summary section" time="0.000235208">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; stops at 2 consecutive blank lines" time="0.000138791">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; returns last 10 non-empty lines when no error pattern found" time="0.00022975">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; returns empty string when no output captured" time="0.000113167">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; extracts error from stderr" time="0.000537458">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; extractErrorSummary &gt; limits stack trace to 30 lines" time="0.00023275">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; getCapturedOutput &gt; returns all captured output" time="0.000169167">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; getCapturedOutput &gt; returns empty string when no output captured" time="0.0001065">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/jestPseudoterminal.test.ts" name="JestPseudoterminal &gt; getCapturedOutput &gt; bounds multibyte output while preserving error context at both ends" time="0.002368584">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testRunner/taskService.test.ts" timestamp="2026-09-24T04:31:35.755Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.00228675">
+        <testcase classname="test/jest/testSupport/testRunner/taskService.test.ts" name="TaskService &gt; createTask &gt; creates a task with a hidden, shared, reused terminal presentation" time="0.001669166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testRunner/testRunner.test.ts" timestamp="2026-09-24T04:31:35.755Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.010584792">
+        <testcase classname="test/jest/testSupport/testRunner/testRunner.test.ts" name="testRunner Unit Tests. &gt; test getTestNamePatternArgs &gt; Should return testNamePattern if flag is included" time="0.002209334">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/testRunner.test.ts" name="testRunner Unit Tests. &gt; test getTestNamePatternArgs &gt; Should escape certain symbols if testNamePattern is included" time="0.000366166">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/testRunner.test.ts" name="testRunner Unit Tests. &gt; test getTestNamePatternArgs &gt; Should not escape certain symbols if testNamePattern is included" time="0.000270708">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/testRunner.test.ts" name="testRunner Unit Tests. &gt; records the configured span when the task ends" time="0.006866041">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/testRunner/types.test.ts" timestamp="2026-09-24T04:31:35.756Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002497042">
+        <testcase classname="test/jest/testSupport/testRunner/types.test.ts" name="test support types Unit Tests. &gt; test isTestCase &gt; Should return true for a TestCase" time="0.001290042">
+        </testcase>
+        <testcase classname="test/jest/testSupport/testRunner/types.test.ts" name="test support types Unit Tests. &gt; test isTestCase &gt; Should return false for a TestFile" time="0.000236084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/types/constants.test.ts" timestamp="2026-09-24T04:31:35.756Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.006412875">
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; extracts location from a frame with a function name" time="0.002426417">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; extracts location from a bare frame with no function name" time="0.000653">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; captures the full path when a bare frame contains literal parentheses" time="0.00035275">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; captures the full path when a named frame contains literal parentheses" time="0.000567792">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; extracts a Windows drive-letter path containing literal parentheses" time="0.000611542">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; picks the first stack frame out of a multi-line message" time="0.000267958">
+        </testcase>
+        <testcase classname="test/jest/testSupport/types/constants.test.ts" name="matchJestStackTraceLocation &gt; returns undefined when there is no stack frame" time="0.000211333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testSupport/workspace/telemetrySpans.test.ts" timestamp="2026-09-24T04:31:35.756Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.018851458">
+        <testcase classname="test/jest/testSupport/workspace/telemetrySpans.test.ts" name="workspace telemetry spans &gt; records the unsupported-workspace exception" time="0.005773125">
+        </testcase>
+        <testcase classname="test/jest/testSupport/workspace/telemetrySpans.test.ts" name="workspace telemetry spans &gt; uses WorkspaceService and an Effect span when no workspace is open" time="0.0094065">
+        </testcase>
+        <testcase classname="test/jest/testSupport/workspace/telemetrySpans.test.ts" name="workspace telemetry spans &gt; returns the workspace folder containing the test URI" time="0.00294325">
+        </testcase>
+    </testsuite>
+</testsuites>

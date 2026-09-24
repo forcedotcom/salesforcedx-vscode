@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="129" failures="0" errors="0" time="0.488194084">
+    <testsuite name="test/jest/commands/packageInstall.test.ts" timestamp="2026-09-24T04:32:18.737Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.015599959">
+        <testcase classname="test/jest/commands/packageInstall.test.ts" name="packageInstallCommand package ID validation &gt; accepts valid package IDs and empty input and rejects malformed IDs" time="0.014297583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/projectInfo.test.ts" timestamp="2026-09-24T04:32:18.737Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.006010667">
+        <testcase classname="test/jest/commands/projectInfo.test.ts" name="projectInfo renderMarkdown &gt; renders the editor app name row" time="0.003818125">
+        </testcase>
+        <testcase classname="test/jest/commands/projectInfo.test.ts" name="projectInfo renderMarkdown &gt; does not render an undefined editor row" time="0.00073375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/refreshSObjects.test.ts" timestamp="2026-09-24T04:32:18.738Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.011351083">
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjects module &gt; exports refreshSObjectsCommand" time="0.00111625">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjects module &gt; exports the correct completion command ID" time="0.000203083">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjectsCommand completion + error surfacing &gt; emits SUCCESS_CODE on a successful refresh" time="0.002603833">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjectsCommand completion + error surfacing &gt; refreshes the selected category" time="0.001563167">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjectsCommand completion + error surfacing &gt; cancels when no category is selected" time="0.002478916">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjectsCommand completion + error surfacing &gt; surfaces the real underlying error (not &quot;An error has occurred&quot;) and emits FAILURE_CODE" time="0.001406542">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="refreshSObjectsCommand completion + error surfacing &gt; emits FAILURE_CODE when the writer reports token-based cancellation" time="0.000964917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/conflict/conflictDetectionCatalog.test.ts" timestamp="2026-09-24T04:32:18.738Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.020090583">
+        <testcase classname="test/jest/conflict/conflictDetectionCatalog.test.ts" name="conflict detection catalog integration &gt; uses catalog change status and materialized source for tracking conflicts" time="0.01440325">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictDetectionCatalog.test.ts" name="conflict detection catalog integration &gt; uses catalog timestamps and materialized source for non-tracking deploy conflicts" time="0.003942667">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictDetectionCatalog.test.ts" name="conflict detection catalog integration &gt; does not materialize remote source when catalog timestamps show no deploy conflict" time="0.000924708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/conflict/conflictDetectionSettings.test.ts" timestamp="2026-09-24T04:32:18.739Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.010868167">
+        <testcase classname="test/jest/conflict/conflictDetectionSettings.test.ts" name="conflictDetectionSettings &gt; isConflictDetectionEnabled (Effect version) &gt; should return true when setting is false (conflict detection enabled by default)" time="0.006289083">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictDetectionSettings.test.ts" name="conflictDetectionSettings &gt; isConflictDetectionEnabled (Effect version) &gt; should return false when setting is false (conflict detection disabled)" time="0.00155775">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictDetectionSettings.test.ts" name="conflictDetectionSettings &gt; isConflictDetectionEnabled (Effect version) &gt; should return true when setting is undefined (default behavior)" time="0.001437042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/conflict/conflictFlow.test.ts" timestamp="2026-09-24T04:32:18.739Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.009467917">
+        <testcase classname="test/jest/conflict/conflictFlow.test.ts" name="detectConflicts &gt; when conflict detection is disabled via setting &gt; should skip conflict detection for tracking orgs" time="0.004891334">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictFlow.test.ts" name="detectConflicts &gt; when conflict detection is disabled via setting &gt; should skip conflict detection for non-tracking orgs" time="0.000783209">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictFlow.test.ts" name="detectConflicts &gt; when conflict detection is disabled via setting &gt; should skip conflict detection for retrieve operations" time="0.0005365">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictFlow.test.ts" name="detectConflicts &gt; when conflict detection is disabled via setting &gt; should skip conflict detection for delete operations" time="0.000363209">
+        </testcase>
+        <testcase classname="test/jest/conflict/conflictFlow.test.ts" name="detectConflicts &gt; when conflict detection is enabled (default) &gt; should run conflict detection for tracking orgs" time="0.001571791">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/conflict/resultStorage.test.ts" timestamp="2026-09-24T04:32:18.739Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.113806791">
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; returns empty Map when directory does not exist" time="0.020970833">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; returns correct index from a single file and deletes nothing" time="0.017634458">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; deletes older file when newer fully supersedes it" time="0.015656">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; does not delete older file when it still contributes a winning component" time="0.014759166">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; skips malformed JSON and deletes it as stale (no valid rows)" time="0.014915209">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; ignores non-.json files and does not read or delete them" time="0.013824417">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorage.test.ts" name="buildTimestampIndexFromDir &gt; falls back to file-level timestamp when component lacks lastModifiedDate" time="0.014924542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/conflict/resultStorageCleanup.test.ts" timestamp="2026-09-24T04:32:18.740Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.009247584">
+        <testcase classname="test/jest/conflict/resultStorageCleanup.test.ts" name="getStaleUris &gt; returns all uris when byKey is empty" time="0.003977041">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorageCleanup.test.ts" name="getStaleUris &gt; returns empty set when every uri is a winner" time="0.001015875">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorageCleanup.test.ts" name="getStaleUris &gt; returns only the uri not referenced by any winning row" time="0.000836958">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorageCleanup.test.ts" name="getStaleUris &gt; keeps a uri that wins for at least one key even when it loses others" time="0.000675375">
+        </testcase>
+        <testcase classname="test/jest/conflict/resultStorageCleanup.test.ts" name="getStaleUris &gt; returns stale uri absent from byKey winners among three files" time="0.000909667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/deployOnSaveService.test.ts" timestamp="2026-09-24T04:32:18.740Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.030891083">
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; file filesystem &gt; should return true for valid metadata file in workspace" time="0.012915917">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; file filesystem &gt; should return false for file outside workspace" time="0.0015405">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; file filesystem &gt; should return false for dot files" time="0.002531083">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; file filesystem &gt; should return false for .soql files" time="0.003834583">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; file filesystem &gt; should return false for .apex files" time="0.001031041">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; virtual filesystem (memfs) &gt; should return true for valid metadata file in memfs workspace" time="0.000798791">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; virtual filesystem (memfs) &gt; should return false for file outside memfs workspace" time="0.0033335">
+        </testcase>
+        <testcase classname="test/jest/deployOnSaveService.test.ts" name="shouldDeploy &gt; virtual filesystem (memfs) &gt; should return false for .soql files in memfs workspace" time="0.003207166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/helpers.test.ts" timestamp="2026-09-24T04:32:18.741Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="10" failures="0" errors="0" skipped="0" time="0.105602167">
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should filter out ignored rows" time="0.003563291">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should prioritize conflicts first" time="0.000796959">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should deduplicate rows by fullName and type" time="0.000369125">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should handle empty array" time="0.000213791">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should handle all ignored rows" time="0.00017375">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="dedupeStatus &gt; should handle 25,000 rows with dupes, ignores, and conflicts under 500ms" time="0.025390375">
+            <system-out>
+dedupeStatus 25k rows: 14.53ms → 4750 unique (50 conflicts)
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="calculateCounts &gt; should count local, remote, and conflicts" time="0.000503875">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="calculateCounts &gt; should handle 25,000 rows under 50ms" time="0.034155084">
+            <system-out>
+calculateCounts 25k rows: 2.12ms
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="separateChanges &gt; should separate and sort changes" time="0.000889416">
+        </testcase>
+        <testcase classname="test/jest/helpers.test.ts" name="separateChanges &gt; should handle 25,000 rows under 2s" time="0.037829875">
+            <system-out>
+separateChanges 25k rows: 34.32ms
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:32:18.741Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.001633417">
+        <testcase classname="test/jest/index.test.ts" name="Salesforce Metadata Extension &gt; should have correct extension name" time="0.001034708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/retrieveOutcome.test.ts" timestamp="2026-09-24T04:32:18.742Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.00588875">
+        <testcase classname="test/jest/retrieveOutcome.test.ts" name="retrieveHasErrors &gt; returns true when any file response failed" time="0.003534708">
+        </testcase>
+        <testcase classname="test/jest/retrieveOutcome.test.ts" name="retrieveHasErrors &gt; returns true when response.success is false without file failures" time="0.000676208">
+        </testcase>
+        <testcase classname="test/jest/retrieveOutcome.test.ts" name="retrieveHasErrors &gt; returns true when status is SucceededPartial" time="0.000400167">
+        </testcase>
+        <testcase classname="test/jest/retrieveOutcome.test.ts" name="retrieveHasErrors &gt; returns false when succeeded with no failures" time="0.000390917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/shared/deploy/deployFailures.test.ts" timestamp="2026-09-24T04:32:18.742Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.011168375">
+        <testcase classname="test/jest/shared/deploy/deployFailures.test.ts" name="getMergedDeployFailures &gt; adds componentFailures from the API when missing from file responses" time="0.0085985">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/deployFailures.test.ts" name="getMergedDeployFailures &gt; does not duplicate a failure already present in file responses" time="0.000727209">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/deployFailures.test.ts" name="getMergedDeployFailures &gt; returns only file failures when componentFailures count does not exceed file failures" time="0.000479541">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/shared/deploy/formatDeployOutput.test.ts" timestamp="2026-09-24T04:32:18.742Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.014862208">
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; uses not-deployed wording and avoids raw Created for new components" time="0.004330625">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; labels unchanged components when deploy failed" time="0.000709708">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; labels changed components when deploy failed" time="0.000576959">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; uses not-deployed section when status is Canceled" time="0.000489625">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; treats missing response status as not applied" time="0.000638416">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; formats deletes that were not applied when deploy failed" time="0.000514417">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; outputs only deploy errors when every file response failed" time="0.001126292">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy did not apply to the org (Failed, Canceled, or missing status) &gt; includes merged componentFailures from the API in the error section" time="0.003887291">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy applied to the org (Succeeded or SucceededPartial) &gt; uses Deployed Source with raw API state when deploy succeeded" time="0.000920166">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy applied to the org (Succeeded or SucceededPartial) &gt; lists multiple deployed components with correct count" time="0.000425833">
+        </testcase>
+        <testcase classname="test/jest/shared/deploy/formatDeployOutput.test.ts" name="formatDeployOutput &gt; when deploy applied to the org (Succeeded or SucceededPartial) &gt; uses Deployed Source for successful components when status is SucceededPartial" time="0.000239834">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/shared/diff/diffHelpers.test.ts" timestamp="2026-09-24T04:32:18.743Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.067687917">
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; returns pairs when local .cls matches remote .cls path" time="0.009795209">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; returns empty when no remote component matches fullName" time="0.003404875">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; matches .cls not .cls-meta.xml when local file is ConflictsTest.cls" time="0.001888791">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; returns empty when localUriFilter filters out all local files" time="0.031373417">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; returns empty for empty projectComponents" time="0.001364917">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; matches when VS Code provides uppercase drive letter URI but component path is lowercase (Windows)" time="0.001338583">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="matchUrisToComponents &gt; matches Apex class in non-default directory (controllers, not classes)" time="0.001137459">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="filesAreNotIdentical &gt; returns true when local and remote content differ" time="0.001749583">
+        </testcase>
+        <testcase classname="test/jest/shared/diff/diffHelpers.test.ts" name="filesAreNotIdentical &gt; returns false when local and remote content are identical" time="0.001087333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/shared/diff/diffTypes.test.ts" timestamp="2026-09-24T04:32:18.743Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.002014958">
+        <testcase classname="test/jest/shared/diff/diffTypes.test.ts" name="diffTypes &gt; createDiffFilePair produces pair accepted by isDiffFilePair" time="0.001364833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/sobjects/fauxClassGenerator-fs.test.ts" timestamp="2026-09-24T04:32:18.743Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.005770708">
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should generate a faux class with a proper header comment" time="0.001079833">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid class with child relationship" time="0.000923">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid class for a platform event object" time="0.00022825">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid field name for a child relationship that is missing the relationshipName" time="0.000197875">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid class for a metadata object with EntityDefinition relationship target" time="0.000186792">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid class with a field and relationship" time="0.000180833">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should generate a faux class with field inline comments" time="0.000326583">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should generate a faux class with all types of fields that can be in custom SObjects" time="0.000193667">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should generate a faux class with all types of fields that show only in standard SObjects" time="0.000443583">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a class that has no duplicate field names" time="0.00017625">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid field reference to another SObject when missing the relationshipName" time="0.0001835">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a String field type for an external lookup relationship" time="0.000081292">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator-fs.test.ts" name="FauxClassGenerator Text Content Tests &gt; Should create a valid class for a metadata object with a __mdt target" time="0.000075667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/sobjects/fauxClassGenerator.test.ts" timestamp="2026-09-24T04:32:18.744Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="10" failures="0" errors="0" skipped="0" time="0.005161875">
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; commentToString() &gt; Should return empty string for empty input" time="0.001299625">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; commentToString() &gt; Should parse a simple field inline comment" time="0.000226792">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; commentToString() &gt; Should parse a complex field inline comment" time="0.000170625">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; commentToString() &gt; Should parse a comment with spaces." time="0.000992375">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should include the class header generated comment" time="0.000367583">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should generate a class declaration for a standard SObject" time="0.000108167">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should generate a class declaration for a custom SObject" time="0.000162083">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should include field declarations" time="0.000100125">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should list field declarations alphabetically by name" time="0.000628208">
+        </testcase>
+        <testcase classname="test/jest/sobjects/fauxClassGenerator.test.ts" name="FauxClassGenerator Unit Tests. &gt; generateFauxClassText() &gt; Should keep only the first of same-name field declarations" time="0.000157708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/sobjects/sobjectFilter.test.ts" timestamp="2026-09-24T04:32:18.744Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.011469833">
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should return only custom sobjects for MANUAL" time="0.001842125">
+        </testcase>
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should return only standard sobjects for MANUAL" time="0.000341667">
+        </testcase>
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should filter out sobjects if category is CUSTOM &amp; source MANUAL" time="0.005531958">
+        </testcase>
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should filter out sobjects if category is STANDARD &amp; source MANUAL" time="0.000234916">
+        </testcase>
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should filter out associated sobjects if category is ALL &amp; source is Startup" time="0.000368584">
+        </testcase>
+        <testcase classname="test/jest/sobjects/sobjectFilter.test.ts" name="Select sObjects &gt; Should filter out sobjects if category is ALL &amp; source is StartupMin" time="0.000275583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/sobjects/typingGenerator.test.ts" timestamp="2026-09-24T04:32:18.745Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.0044825">
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should generate a declaration file with all types of fields that can be in custom SObjects" time="0.001675916">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should generate a declaration file with all types of fields that show only in standard SObjects" time="0.000242875">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should create a declaration file with a field and relationship" time="0.000226959">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should create a String field type for an external lookup relationship" time="0.000179917">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should create a valid declaration file for a metadata object with EntityDefinition relationship target" time="0.000184875">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should create a valid declaration file for a metadata object with a __mdt target" time="0.000122208">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should create a valid declaration file for a platform event object" time="0.000175084">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should list field declarations alphabetically by name" time="0.000380542">
+        </testcase>
+        <testcase classname="test/jest/sobjects/typingGenerator.test.ts" name="SObject Javascript type declaration generator &gt; Should keep only the first of same-name field declarations" time="0.000432625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/withPreparationProgress.test.ts" timestamp="2026-09-24T04:32:18.745Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.025117542">
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; initial progress message &gt; reports &quot;Preparing deployment...&quot; for deploy" time="0.007541666">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; initial progress message &gt; reports &quot;Preparing retrieval...&quot; for retrieve" time="0.0017065">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; initial progress message &gt; reports &quot;Preparing deletion...&quot; for delete" time="0.001878667">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; returns the ComponentSet from prepare on success" time="0.002135167">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; runs detectConflictsFn when provided" time="0.004032417">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; updates progress message to checking_for_conflicts before running detectConflictsFn" time="0.001435166">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; does not call detectConflictsFn when not provided" time="0.001105167">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; propagates prepare failures" time="0.000955042">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; propagates ConflictsDetectedError from detectConflictsFn" time="0.001415791">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; is cancellable — progress notification has cancellable: true" time="0.000818667">
+        </testcase>
+        <testcase classname="test/jest/utils/withPreparationProgress.test.ts" name="withPreparationProgress &gt; uses ProgressLocation.Notification" time="0.000760334">
+        </testcase>
+    </testsuite>
+</testsuites>

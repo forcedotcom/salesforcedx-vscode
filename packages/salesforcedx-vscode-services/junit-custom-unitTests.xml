@@ -1,0 +1,1351 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="529" failures="0" errors="0" time="10.413352081">
+    <testsuite name="test/jest/core/aliasFileWatcher.test.ts" timestamp="2026-09-24T04:32:51.344Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.872412583">
+        <testcase classname="test/jest/core/aliasFileWatcher.test.ts" name="watchAliasFile &gt; updates aliases when alias.json changes" time="0.237875167">
+        </testcase>
+        <testcase classname="test/jest/core/aliasFileWatcher.test.ts" name="watchAliasFile &gt; preserves the primary alias at position 0 when disk order differs" time="0.21628625">
+        </testcase>
+        <testcase classname="test/jest/core/aliasFileWatcher.test.ts" name="watchAliasFile &gt; falls back to disk order when primary alias was deleted externally" time="0.210385833">
+        </testcase>
+        <testcase classname="test/jest/core/aliasFileWatcher.test.ts" name="watchAliasFile &gt; is a no-op when there is no active username in defaultOrgRef" time="0.205905917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/artifactIdentity.test.ts" timestamp="2026-09-24T04:32:51.345Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.0197935">
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; decodes a canonical sobject identity for Widget__c" time="0.00472725">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; decodes a canonical sobject identity for Widget__c" time="0.000798209">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; decodes a canonical metadata-component identity for Example" time="0.002454">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; requires an explicit null namespace for a global identity" time="0.007943208">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; normalizes comparison fields without changing the canonical input" time="0.000416209">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; matches namespace and name case-insensitively" time="0.000239125">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; does not conflate namespace with dotted names" time="0.000178458">
+        </testcase>
+        <testcase classname="test/jest/core/artifactIdentity.test.ts" name="artifact identity &gt; distinguishes target kind and metadata type" time="0.000148958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/artifactProjection.test.ts" timestamp="2026-09-24T04:32:51.346Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.013152042">
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; decodes an actual source URI and encodes it back to a JSON-safe string" time="0.010305417">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; represents truthful partial workspace SObject semantics without fabricated REST capabilities" time="0.000818042">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; accepts REST-known runtime SObject capabilities when they are available" time="0.0002385">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; decodes catalog descriptors without conflating workspace and org locations" time="0.000342334">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; publishes the catalog-entry projection descriptor" time="0.000205833">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; publishes the source-document projection descriptor" time="0.000086667">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; publishes the semantic-model projection descriptor" time="0.000178666">
+        </testcase>
+        <testcase classname="test/jest/core/artifactProjection.test.ts" name="canonical artifact projections &gt; reports projection unavailability separately from not-found" time="0.000119916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/configFileWatcher.test.ts" timestamp="2026-09-24T04:32:51.347Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.488388416">
+        <testcase classname="test/jest/core/configFileWatcher.test.ts" name="watchConfigFiles &gt; refreshes when project .sf/config.json changes" time="0.13046925">
+        </testcase>
+        <testcase classname="test/jest/core/configFileWatcher.test.ts" name="watchConfigFiles &gt; refreshes when global ~/.sf/config.json changes" time="0.116853459">
+        </testcase>
+        <testcase classname="test/jest/core/configFileWatcher.test.ts" name="watchConfigFiles &gt; ignores workspace alias.json on FileChangePubSub" time="0.117000042">
+        </testcase>
+        <testcase classname="test/jest/core/configFileWatcher.test.ts" name="watchConfigFiles &gt; keeps watching project config when global host watch fails" time="0.120236584">
+            <system-out>
+timestamp=2026-09-24T04:32:46.571Z level=WARN fiber=#124 message=&quot;Global config file watch failed; continuing with project config watch&quot; message=&quot;{
+  \&quot;path\&quot;: \&quot;/Users/test/.sf/config.json\&quot;,
+  \&quot;reason\&quot;: \&quot;EACCES\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/configFileWatcher.test.ts" name="watchConfigFiles &gt; tags missing vs other host-watch failures separately" time="0.002441209">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/configService.test.ts" timestamp="2026-09-24T04:32:51.348Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.099847542">
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.setTargetOrg &gt; writes the alias to target-org config" time="0.013953166">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.setTargetOrg &gt; wraps a write failure in ConfigWriteError" time="0.04573675">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.getTargetOrg &gt; returns the configured target-org value" time="0.008309541">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.getTargetOrg &gt; returns undefined when target-org is not set" time="0.004803333">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.getTargetDevHub &gt; returns the configured target-dev-hub value" time="0.00570225">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.getTargetDevHub &gt; returns undefined when target-dev-hub is not set" time="0.004024916">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.isCliTelemetryDisabled &gt; treats the string &quot;true&quot; as disabled" time="0.001648875">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.isCliTelemetryDisabled &gt; treats a boolean true as disabled" time="0.001577958">
+        </testcase>
+        <testcase classname="test/jest/core/configService.test.ts" name="ConfigService.isCliTelemetryDisabled &gt; returns false when disable-telemetry is unset" time="0.010112792">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/connectionService.test.ts" timestamp="2026-09-24T04:32:51.349Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="28" failures="0" errors="0" skipped="0" time="1.901883125">
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnectionForOrg &gt; returns a connection whose org ID matches the captured operation org" time="0.026223583">
+            <system-out>
+timestamp=2026-09-24T04:32:46.296Z level=WARN fiber=#26 message=&quot;User query failed&quot; message=&quot;{
+  \&quot;orgId\&quot;: \&quot;00D000000000001\&quot;,
+  \&quot;cause\&quot;: \&quot;UnknownException: An unknown error occurred in Effect.tryPromise\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnectionForOrg &gt; fails with the captured and observed org IDs when the target org changed" time="0.013648708">
+            <system-out>
+timestamp=2026-09-24T04:32:46.318Z level=WARN fiber=#52 message=&quot;User query failed&quot; message=&quot;{
+  \&quot;orgId\&quot;: \&quot;00D000000000002\&quot;,
+  \&quot;cause\&quot;: \&quot;UnknownException: An unknown error occurred in Effect.tryPromise\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="preventOrgChanges &gt; runs the command when the target org does not change" time="0.012493042">
+            <system-out>
+timestamp=2026-09-24T04:32:46.330Z level=WARN fiber=#78 message=&quot;User query failed&quot; message=&quot;{
+  \&quot;orgId\&quot;: \&quot;00D000000000003\&quot;,
+  \&quot;cause\&quot;: \&quot;UnknownException: An unknown error occurred in Effect.tryPromise\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="preventOrgChanges &gt; keeps an observed target-org change cancelled after switching back" time="0.014119667">
+            <system-out>
+timestamp=2026-09-24T04:32:46.342Z level=WARN fiber=#109 message=&quot;User query failed&quot; message=&quot;{
+  \&quot;orgId\&quot;: \&quot;00D000000000003\&quot;,
+  \&quot;cause\&quot;: \&quot;UnknownException: An unknown error occurred in Effect.tryPromise\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="preventOrgChanges &gt; ignores target-org updates that retain the same org ID" time="0.00570475">
+            <system-out>
+timestamp=2026-09-24T04:32:46.351Z level=WARN fiber=#140 message=&quot;User query failed&quot; message=&quot;{
+  \&quot;orgId\&quot;: \&quot;00D000000000003\&quot;,
+  \&quot;cause\&quot;: \&quot;UnknownException: An unknown error occurred in Effect.tryPromise\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="preventOrgChanges &gt; fails before the command when the connection has no org ID" time="0.003318417">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; skips (no identity call) when not access-token flow" time="0.001712417">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; validates via identity() and does not prompt on success; caches (skips identity on second call)" time="0.016161542">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; on identity failure shows modal ONCE across N concurrent callers (Cache dedup) and dispatches sf.org.login.web" time="0.004619541">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; falls back to username when no alias exists" time="0.002089583">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; does not dispatch login when modal dismissed, and fails with AccessTokenExpiredError" time="0.0022385">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; does not re-nag: a still-cached failed username is not re-validated on the next call (one modal per session)" time="0.008711042">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.validateAccessTokenOrPromptReauth &gt; does not stack modals when the Connection object is rebuilt for the same username (config-change churn)" time="0.010784458">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="updateDefaultOrgIdentity &gt; does not publish when the org identity is unchanged" time="0.000277125">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="updateDefaultOrgIdentity &gt; publishes when the org identity changes" time="0.00020325">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; given a username, resolves that username and skips the config target-org lookup" time="0.001784">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; given an alias, resolves it to the underlying username" time="0.013541667">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; given a username, does NOT fork the default-org ref update" time="0.008822125">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; no-arg path reads target-org from config" time="0.002112542">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; caches the configured alias with the resolved default-org identity" time="1.590730292">
+            <system-out>
+timestamp=2026-09-24T04:32:48.008Z level=INFO fiber=#28 message=&quot;sf telemetry output: {
+  \&quot;status\&quot;: 0,
+  \&quot;result\&quot;: {
+    \&quot;enabled\&quot;: true,
+    \&quot;cliId\&quot;: \&quot;fcfde14fddd318d553547db394579e007158acda\&quot;,
+    \&quot;tmpDir\&quot;: \&quot;/var/folders/r4/pj95jr_j41707b_yfx_pfwf80000gn/T/sf-telemetry\&quot;,
+    \&quot;cacheDir\&quot;: \&quot;/Users/shane.mclaughlin/Library/Caches/sf\&quot;
+  },
+  \&quot;warnings\&quot;: []
+}
+&quot;
+timestamp=2026-09-24T04:32:48.009Z level=INFO fiber=#28 message=&quot;Failed to fetch cliId: { readonly status: number; readonly result: { readonly cliId: a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt; } }
+└─ [\&quot;result\&quot;]
+   └─ { readonly cliId: a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt; }
+      └─ [\&quot;cliId\&quot;]
+         └─ a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt;
+            └─ Predicate refinement failure
+               └─ Expected a Universally Unique Identifier, actual \&quot;fcfde14fddd318d553547db394579e007158acda\&quot;&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; clears a cached alias when target-org is configured as the username" time="0.0040175">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; no-arg path captures AuthInfo orgId and instanceName" time="0.009390542">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; no-arg path with no configured target-org fails with NoTargetOrgConfiguredError" time="0.003766458">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; shares one User sObject query across concurrent default-org getConnection calls" time="0.066392">
+            <system-out>
+timestamp=2026-09-24T04:32:48.057Z level=WARN fiber=#19 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+timestamp=2026-09-24T04:32:48.058Z level=WARN fiber=#45 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+timestamp=2026-09-24T04:32:48.058Z level=WARN fiber=#73 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+timestamp=2026-09-24T04:32:48.059Z level=WARN fiber=#104 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+timestamp=2026-09-24T04:32:48.059Z level=WARN fiber=#135 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+timestamp=2026-09-24T04:32:48.059Z level=WARN fiber=#166 message=&quot;FailedToGetTracksSourceError: Failed to get tracks source from org: this.getConnection(...).singleRecordQuery is not a function&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; loads the new User id when default-org username changes on the same orgId" time="0.007755541">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; reuses cached User id after connection invalidate for the same username and orgId" time="0.016175334">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (desktop) &gt; does not apply an in-flight User lookup to a different username on the same orgId" time="0.025529542">
+        </testcase>
+        <testcase classname="test/jest/core/connectionService.test.ts" name="ConnectionService.getConnection (Web Console) &gt; supplies the raw access token to AuthInfo.create and preserves cache hits" time="0.027055916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/executeAnonymousService.test.ts" timestamp="2026-09-24T04:32:51.352Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.0047495">
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="buildSoapRequest &gt; produces correct URL with orgId from accessToken" time="0.001306458">
+        </testcase>
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="buildSoapRequest &gt; escapes apex code in body" time="0.001047958">
+        </testcase>
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="parseSoapResponse &gt; parses full success response with debug log" time="0.00042525">
+        </testcase>
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="parseSoapResponse &gt; returns empty logBody when header absent" time="0.000204792">
+        </testcase>
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="parseSoapResponse &gt; handles compile error with empty-object fields (xml2js quirk)" time="0.000213042">
+        </testcase>
+        <testcase classname="test/jest/core/executeAnonymousService.test.ts" name="parseSoapResponse &gt; returns error when result missing" time="0.000105584">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/lightningComponentService.test.ts" timestamp="2026-09-24T04:32:51.353Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.036223292">
+        <testcase classname="test/jest/core/lightningComponentService.test.ts" name="LightningComponentService.renameBundle &gt; renames every file in __tests__ whose name contains the old bundle name" time="0.018186917">
+        </testcase>
+        <testcase classname="test/jest/core/lightningComponentService.test.ts" name="LightningComponentService.renameBundle &gt; does not touch top-level files that merely contain the old name as a substring" time="0.0148145">
+        </testcase>
+        <testcase classname="test/jest/core/lightningComponentService.test.ts" name="LightningComponentService.renameBundle &gt; replaces all occurrences of the old name in a single filename" time="0.001863583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/metadataChangeNotificationService.test.ts" timestamp="2026-09-24T04:32:51.353Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.090994">
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="dedupeMetadataChanges &gt; collapses source and metadata file responses to one component and prefers the source file" time="0.003778125">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="dedupeMetadataChanges &gt; retains distinct component identities" time="0.000709042">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="dedupeMetadataChanges &gt; retains every distinct bundle file URI on the deduplicated component" time="0.000614958">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="MetadataChangeNotificationService workspace correlation &gt; suppresses matching source and sidecar events while retaining unrelated workspace changes" time="0.034633875">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="MetadataChangeNotificationService workspace correlation &gt; suppresses every recorded bundle path from one operation envelope" time="0.003071209">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="MetadataChangeNotificationService workspace correlation &gt; allows later manual changes after the operation correlation window expires" time="0.045842375">
+        </testcase>
+        <testcase classname="test/jest/core/metadataChangeNotificationService.test.ts" name="MetadataChangeNotificationService workspace correlation &gt; does not suppress a manual deletion that contradicts a recent retrieve" time="0.00095075">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/metadataDescribeService.test.ts" timestamp="2026-09-24T04:32:51.354Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.077097625">
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata &gt; sorts an out-of-order array by fullName" time="0.011022625">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata &gt; wraps a non-array (single object) response into an array of one" time="0.020407291">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata &gt; deduplicates entries with the same fullName" time="0.027481625">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata &gt; records both cache misses and cache hits under the resolved org" time="0.009760375">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata &gt; handles out-of-order, duplicate, and single-fullName entries together" time="0.001897042">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata (StandardValueSet) &gt; returns all known StandardValueSet names without calling the Metadata API" time="0.001785208">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata (StandardValueSet) &gt; returns StandardValueSet names in alphabetical order" time="0.001482584">
+        </testcase>
+        <testcase classname="test/jest/core/metadataDescribeService.test.ts" name="MetadataDescribeService.listMetadata (StandardValueSet) &gt; includes known StandardValueSet names from the registry" time="0.001406208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/projectService.test.ts" timestamp="2026-09-24T04:32:51.355Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="21" failures="0" errors="0" skipped="0" time="0.051229">
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getStateFolder is the workspace .sfdx folder" time="0.004764916">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getDebugLogsFolder is .sfdx/tools/debug/logs" time="0.001753375">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getApexTestResultsFolder is .sfdx/tools/testresults/apex" time="0.00112775">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; works for a virtual (memfs) workspace" time="0.0014015">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getStateFolder fails with NoWorkspaceOpenError when no workspace is open" time="0.018158416">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getDebugLogsFolder fails with NoWorkspaceOpenError when no workspace is open" time="0.002719542">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService folder URIs &gt; getApexTestResultsFolder fails with NoWorkspaceOpenError when no workspace is open" time="0.001329083">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService opened context &gt; updates VS Code only when the project-opened value changes" time="0.004019625">
+            <system-out>
+timestamp=2026-09-24T04:32:48.552Z level=INFO fiber=#10 message=&quot;[ProjectService] sf:project_opened=true reason=workspace_non_empty&quot;
+
+timestamp=2026-09-24T04:32:48.555Z level=INFO fiber=#12 message=&quot;[ProjectService] sf:project_opened=false reason=workspace_empty&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.000514042">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.000816625">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.000191541">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.00007425">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.0000555">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; normalizes project namespace %p to %p" time="0.000053375">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; evaluates requested namespace %p against project namespace %p" time="0.000102292">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; evaluates requested namespace %p against project namespace %p" time="0.000929417">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; evaluates requested namespace %p against project namespace %p" time="0.000460458">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; evaluates requested namespace %p against project namespace %p" time="0.000190917">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; evaluates requested namespace %p against project namespace %p" time="0.000066">
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; reads canonical namespace casing through ProjectService" time="0.001848416">
+            <system-out>
+timestamp=2026-09-24T04:32:48.560Z level=INFO fiber=#13 message=&quot;[ProjectService] sf:project_opened=true reason=workspace_non_empty&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/core/projectService.test.ts" name="ProjectService namespace &gt; reports a missing Salesforce project as a typed resolution failure" time="0.009531666">
+            <system-out>
+timestamp=2026-09-24T04:32:48.569Z level=INFO fiber=#14 message=&quot;[ProjectService] sf:project_opened=false reason=workspace_empty&quot;
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/retrieveOnLoad.test.ts" timestamp="2026-09-24T04:32:51.357Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="19" failures="0" errors="0" skipped="0" time="0.139901">
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should parse single metadata member" time="0.0013225">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should parse multiple metadata members" time="0.00033625">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should handle extra whitespace" time="0.000137541">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should filter out invalid entries without colon" time="0.000228916">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should filter out entries with empty parts" time="0.000177209">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should return empty array for empty string" time="0.000085959">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should return empty array for whitespace only" time="0.0001255">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="parseRetrieveOnLoad &gt; should handle trailing commas" time="0.000083375">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should include .cls files for ApexClass and not include cls-meta.xml" time="0.042748416">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should include .tab-meta.xml for CustomTab" time="0.007972458">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should filter out failed file responses" time="0.028613417">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should filter out file responses without filePath" time="0.002717375">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should produce a URI for Windows paths" time="0.002623375">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should handle multiple metadata types" time="0.00239825">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should filter out files with unrecognized suffix" time="0.003429666">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should return empty array when no file responses have recognized suffixes" time="0.00851425">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should handle empty file responses array" time="0.002130625">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should include only the main LWC .js file (basename matches parent folder)" time="0.017255125">
+        </testcase>
+        <testcase classname="test/jest/core/retrieveOnLoad.test.ts" name="filterFileResponses &gt; should include non-bundle files alongside the LWC main .js file" time="0.007886583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/schemas/authFields.test.ts" timestamp="2026-09-24T04:32:51.359Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.009130708">
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="AuthFields &gt; decodes the subset we read and ignores extra jsforce keys" time="0.00554075">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="AuthFields &gt; allows missing orgId" time="0.000396709">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="AuthFields &gt; rejects a present but invalid orgId" time="0.000424291">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="AuthFields &gt; trims instanceName" time="0.00115325">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="authFieldsFromConnection &gt; reads Connection.getAuthInfoFields()" time="0.000519292">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/authFields.test.ts" name="authFieldsFromConnection &gt; returns none when orgId is not an OrgId" time="0.000210417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/schemas/salesforceId.test.ts" timestamp="2026-09-24T04:32:51.359Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.00521925">
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; accepts %p" time="0.001240958">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; accepts %p" time="0.000264708">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000152584">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000282333">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000161958">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000084833">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000137208">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="SalesforceId &gt; rejects %p" time="0.000076375">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; accepts %p" time="0.000529917">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; accepts %p" time="0.000122792">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.000168">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.000065166">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.000095916">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.000054417">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.00005075">
+        </testcase>
+        <testcase classname="test/jest/core/schemas/salesforceId.test.ts" name="OrgId &gt; rejects %p" time="0.000050917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/sfProjectFileWatcher.test.ts" timestamp="2026-09-24T04:32:51.361Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="1.114594042">
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="watchSfProjectFile &gt; invalidates the SfProject cache when sfdx-project.json changes" time="0.227505375">
+        </testcase>
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="watchSfProjectFile &gt; invalidates with the cacheKey getSfProject would compute (the WorkspaceService fsPath)" time="0.23318475">
+        </testcase>
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="watchSfProjectFile &gt; publishes the project config event after invalidating the cache" time="0.232299708">
+        </testcase>
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="watchSfProjectFile &gt; does not invalidate when a non-project file changes" time="0.209528458">
+        </testcase>
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="watchSfProjectFile &gt; does not invalidate when a nested sfdx-project.json changes" time="0.210107625">
+        </testcase>
+        <testcase classname="test/jest/core/sfProjectFileWatcher.test.ts" name="invalidateSfProjectCache &gt; clears the @salesforce/core SfProject instance cache so memoized sfProjectJson is dropped" time="0.000315542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/sourceTrackingShadowRepoLifecycle.test.ts" timestamp="2026-09-24T04:32:51.362Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.001888083">
+        <testcase classname="test/jest/core/sourceTrackingShadowRepoLifecycle.test.ts" name="releaseSourceTrackingShadowRepo &gt; releases the project-scoped source tracking shadow repository" time="0.001017">
+        </testcase>
+        <testcase classname="test/jest/core/sourceTrackingShadowRepoLifecycle.test.ts" name="releaseSourceTrackingShadowRepo &gt; does nothing when the dependency no longer exposes its internal cache" time="0.000209875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/templateService.test.ts" timestamp="2026-09-24T04:32:51.362Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.186027542">
+        <testcase classname="test/jest/core/templateService.test.ts" name="TemplateService &gt; passes custom templates path when ORG_CUSTOM_METADATA_TEMPLATES is set" time="0.041040958">
+        </testcase>
+        <testcase classname="test/jest/core/templateService.test.ts" name="TemplateService &gt; passes undefined when ORG_CUSTOM_METADATA_TEMPLATES is not set" time="0.106842958">
+        </testcase>
+        <testcase classname="test/jest/core/templateService.test.ts" name="TemplateService &gt; falls back to undefined when getConfigAggregator fails" time="0.037095333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/traceFlagService.test.ts" timestamp="2026-09-24T04:32:51.362Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="18" failures="0" errors="0" skipped="0" time="0.118185">
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; queries name lookups on first call, skips them on second call (warm cache)" time="0.034568">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; queries only the missing ID on second call when a new entity is added" time="0.005838083">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; does not cache misses — re-queries an ID whose Name was never returned" time="0.00462475">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; invalidates the cache when default org changes" time="0.007338167">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; does not invalidate the cache when a non-identity field (alias) changes on same org" time="0.0074915">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; skips name resolution for unknown ID prefixes" time="0.002429125">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; populates debugLevelName from the DebugLevel.DeveloperName relationship join" time="0.002124334">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; leaves debugLevelName undefined when the DebugLevel relationship is absent (orphaned)" time="0.00188325">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlags id-&gt;name cache &gt; queries ApexTrigger names with the 01q prefix branch" time="0.002691">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlagForUser &gt; returns Option.none when no trace flag records exist" time="0.001544875">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getTraceFlagForUser &gt; returns Option.some with the decoded item when a record exists" time="0.010974">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getOrCreateDebugLevel &gt; returns the existing debug level id without creating one" time="0.005099209">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.getOrCreateDebugLevel &gt; creates a new debug level when none exists and returns the created id" time="0.004718625">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.createDebugLevel &gt; returns the created id and forwards the payload to tooling.create" time="0.007644208">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.createDebugLevel &gt; fails with DebugLevelCreateError when create returns no id" time="0.005410125">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.createDebugLevel &gt; fails with DebugLevelCreateError when tooling.create rejects" time="0.007799041">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.deleteDebugLevel &gt; forwards the id to tooling.delete" time="0.001730583">
+        </testcase>
+        <testcase classname="test/jest/core/traceFlagService.test.ts" name="TraceFlagService.deleteDebugLevel &gt; fails with DebugLevelDeleteError when tooling.delete rejects" time="0.001458458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/transmogrifierService.test.ts" timestamp="2026-09-24T04:32:51.364Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.011890875">
+        <testcase classname="test/jest/core/transmogrifierService.test.ts" name="TransmogrifierService &gt; preserves the existing minimal SObject operation" time="0.006234833">
+        </testcase>
+        <testcase classname="test/jest/core/transmogrifierService.test.ts" name="TransmogrifierService &gt; transforms REST Describe through one discriminated canonical boundary" time="0.002553916">
+        </testcase>
+        <testcase classname="test/jest/core/transmogrifierService.test.ts" name="TransmogrifierService &gt; transforms SDR-parsed workspace metadata without inventing runtime capabilities" time="0.0018655">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/fsService.test.ts" timestamp="2026-09-24T04:32:51.364Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="34" failures="0" errors="0" skipped="0" time="0.01699675">
+        <testcase classname="test/jest/fsService.test.ts" name="FsServiceError.message &gt; carries the underlying cause message so pretty errors show real text" time="0.007220583">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="FsServiceError.message &gt; sets message from the cause for a non-Error thrown value" time="0.001023667">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; virtual filesystem URIs (memfs) &gt; should parse memfs:/ URI string correctly" time="0.00109275">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; virtual filesystem URIs (memfs) &gt; should handle memfs:/ with single segment" time="0.000225291">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; virtual filesystem URIs (memfs) &gt; should handle memfs:/ with no leading slash in path" time="0.000163958">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; file:// URIs &gt; should parse file:// URI string correctly (POSIX)" time="0.000195542">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; file:// URIs &gt; should parse file:// URI string correctly (Windows)" time="0.000313167">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; other URI schemes &gt; should parse vscode-vfs:// URI" time="0.000136417">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; other URI schemes &gt; should parse untitled:// URI" time="0.000418375">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; other URI schemes &gt; should parse custom scheme with dots and dashes" time="0.00015">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; other URI schemes &gt; should parse custom scheme with plus sign" time="0.000146084">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; POSIX file paths (no scheme) &gt; should convert absolute POSIX path to file:// URI" time="0.000089084">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; POSIX file paths (no scheme) &gt; should convert relative POSIX path to file:// URI" time="0.000067959">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; POSIX file paths (no scheme) &gt; should handle POSIX path with spaces" time="0.000061417">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; POSIX file paths (no scheme) &gt; should handle POSIX path with special characters" time="0.000123834">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should convert absolute Windows path to file:// URI" time="0.000125375">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; normalizes uppercase drive letter to lowercase (cross-platform via /C:/ path)" time="0.000083083">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should convert Windows path with forward slashes" time="0.000071083">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should handle Windows UNC paths" time="0.000063833">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should handle Windows path with spaces" time="0.000060458">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should distinguish Windows drive letter from URI scheme" time="0.000308917">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; Windows file paths (no scheme) &gt; should distinguish D: drive from URI scheme" time="0.000071916">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; edge cases &gt; should handle empty string" time="0.000137125">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; edge cases &gt; should handle single character (not a drive letter)" time="0.00005175">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; edge cases &gt; should handle path with only dots" time="0.000057291">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; edge cases &gt; should handle path starting with tilde" time="0.000055958">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; edge cases &gt; should not confuse single-char scheme with Windows drive" time="0.000049542">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; scheme detection edge cases &gt; should recognize scheme with minimum length (2 chars)" time="0.000059208">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; scheme detection edge cases &gt; should handle scheme with numbers" time="0.000049459">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; scheme detection edge cases &gt; should handle scheme with underscore" time="0.00004925">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; scheme detection edge cases &gt; should handle multiple colons in path (only first matters)" time="0.000056125">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; round-trip conversions &gt; should round-trip memfs URI through toString()" time="0.000077834">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; round-trip conversions &gt; should round-trip file URI through toString()" time="0.000064709">
+        </testcase>
+        <testcase classname="test/jest/fsService.test.ts" name="toUri &gt; round-trip conversions &gt; should handle URI from Utils.joinPath result" time="0.00019025">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:32:51.367Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="2.289689208">
+        <testcase classname="test/jest/index.test.ts" name="Extension &gt; activates with shared services and an external span SDK" time="2.03439725">
+            <system-out>
+timestamp=2026-09-24T04:32:49.844Z level=INFO fiber=#194 message=&quot;sf telemetry output: {
+  \&quot;status\&quot;: 0,
+  \&quot;result\&quot;: {
+    \&quot;enabled\&quot;: true,
+    \&quot;cliId\&quot;: \&quot;fcfde14fddd318d553547db394579e007158acda\&quot;,
+    \&quot;tmpDir\&quot;: \&quot;/var/folders/r4/pj95jr_j41707b_yfx_pfwf80000gn/T/sf-telemetry\&quot;,
+    \&quot;cacheDir\&quot;: \&quot;/Users/shane.mclaughlin/Library/Caches/sf\&quot;
+  },
+  \&quot;warnings\&quot;: []
+}
+&quot;
+timestamp=2026-09-24T04:32:49.845Z level=INFO fiber=#194 message=&quot;Failed to fetch cliId: { readonly status: number; readonly result: { readonly cliId: a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt; } }
+└─ [\&quot;result\&quot;]
+   └─ { readonly cliId: a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt; }
+      └─ [\&quot;cliId\&quot;]
+         └─ a Universally Unique Identifier &amp; Brand&lt;\&quot;@services/CliId\&quot;&gt;
+            └─ Predicate refinement failure
+               └─ Expected a Universally Unique Identifier, actual \&quot;fcfde14fddd318d553547db394579e007158acda\&quot;&quot;
+
+timestamp=2026-09-24T04:32:49.886Z level=WARN fiber=#307 message=&quot;Global config file watch failed; continuing with project config watch&quot; message=&quot;{
+  \&quot;path\&quot;: \&quot;/Users/shane.mclaughlin/.sf/config.json\&quot;,
+  \&quot;reason\&quot;: \&quot;file watching disabled in unit tests\&quot;
+}&quot;
+
+timestamp=2026-09-24T04:32:49.895Z level=INFO fiber=#194 message=&quot;[ProjectService] sf:project_opened=false reason=workspace_empty&quot;
+
+Salesforce Services extension is now active!
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="Extension &gt; should deactivate successfully" time="0.056025125">
+            <system-out>
+Salesforce Services extension is now deactivated!
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="Extension &gt; cleans up the runtime and extension scope when activation fails after acquisition" time="0.1978175">
+            <system-out>
+Salesforce Services extension is now deactivated!
+
+timestamp=2026-09-24T04:32:50.007Z level=WARN fiber=#853 message=&quot;Global config file watch failed; continuing with project config watch&quot; message=&quot;{
+  \&quot;path\&quot;: \&quot;/Users/shane.mclaughlin/.sf/config.json\&quot;,
+  \&quot;reason\&quot;: \&quot;file watching disabled in unit tests\&quot;
+}&quot;
+
+timestamp=2026-09-24T04:32:50.105Z level=WARN fiber=#1387 message=&quot;Global config file watch failed; continuing with project config watch&quot; message=&quot;{
+  \&quot;path\&quot;: \&quot;/Users/shane.mclaughlin/.sf/config.json\&quot;,
+  \&quot;reason\&quot;: \&quot;file watching disabled in unit tests\&quot;
+}&quot;
+
+timestamp=2026-09-24T04:32:50.112Z level=INFO fiber=#1274 message=&quot;[ProjectService] sf:project_opened=false reason=workspace_empty&quot;
+
+Salesforce Services extension is now active!
+
+Salesforce Services extension is now deactivated!
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/notificationModeService.test.ts" timestamp="2026-09-24T04:32:51.368Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="17" failures="0" errors="0" skipped="0" time="0.026155459">
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressToastSuccessToast to progressToastSuccessToast" time="0.001001">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressToastSuccessOff to progressToastSuccessOff" time="0.000217083">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressStatusBarSuccessStatusBar to progressStatusBarSuccessStatusBar" time="0.00010375">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressStatusBarSuccessOff to progressStatusBarSuccessOff" time="0.000204583">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressToast to progressToastSuccessOff" time="0.000152584">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes progressStatusBar to progressStatusBarSuccessOff" time="0.00007875">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes successToast to progressToastSuccessToast" time="0.00013075">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes successStatusBar to progressStatusBarSuccessStatusBar" time="0.000071792">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="normalizeToInternal &gt; normalizes successOff to progressToastSuccessOff" time="0.0004185">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="getInternalMode &gt; uses the most specific command setting and normalizes its mode type" time="0.000683416">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="getInternalMode &gt; uses the extension setting before the global setting" time="0.000340083">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="getInternalMode &gt; uses the global setting when more specific values are invalid" time="0.000190625">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="getInternalMode &gt; defaults to toast progress and success for an invalid global setting" time="0.000282167">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="NotificationModeService.Default &gt; configures the status item and maps progressToastSuccessOff progress" time="0.014173041">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="NotificationModeService.Default &gt; configures the status item and maps progressStatusBarSuccessOff progress" time="0.003448708">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="NotificationModeService.Default &gt; disposes the registered command and status item when the service scope closes" time="0.002517167">
+        </testcase>
+        <testcase classname="test/jest/notificationModeService.test.ts" name="NotificationModeService.Default &gt; fires an action-less success toast without awaiting dismissal" time="0.001091542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/applicationInsightsWebExporter.test.ts" timestamp="2026-09-24T04:32:51.369Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.013339833">
+        <testcase classname="test/jest/observability/applicationInsightsWebExporter.test.ts" name="ApplicationInsightsWebExporter &gt; does not construct or dispose a reporter before a valid send" time="0.001835542">
+        </testcase>
+        <testcase classname="test/jest/observability/applicationInsightsWebExporter.test.ts" name="ApplicationInsightsWebExporter &gt; constructs on the first valid send and disposes the initialized reporter" time="0.010629666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/azureMonitorLogExporterWrapper.test.ts" timestamp="2026-09-24T04:32:51.369Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.015997042">
+        <testcase classname="test/jest/observability/azureMonitorLogExporterWrapper.test.ts" name="AzureMonitorLogExporterWrapper &gt; routes a LogRecord to the private _sender as an EventData Breeze envelope" time="0.01508775">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/gatedSpanExporter.test.ts" timestamp="2026-09-24T04:32:51.369Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.012773042">
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; does not construct the delegate when disabled" time="0.005653042">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; exports only valid nonGov spans from a mixed batch" time="0.001701125">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; does not construct the delegate for gov spans" time="0.000454792">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; does not construct the delegate for unknown spans" time="0.000377208">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; bypasses governance for local diversion" time="0.001235334">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; re-checks enablement and reuses the delegate" time="0.000425125">
+        </testcase>
+        <testcase classname="test/jest/observability/gatedSpanExporter.test.ts" name="GatedSpanExporter &gt; flushes and shuts down only an initialized delegate" time="0.000364875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/o11ySpanExporter.test.ts" timestamp="2026-09-24T04:32:51.369Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.005338542">
+        <testcase classname="test/jest/observability/o11ySpanExporter.test.ts" name="O11ySpanExporter attribution &gt; uses complete immutable creation identity after the default org switches" time="0.004658125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/otlpFileLogExporterNode.test.ts" timestamp="2026-09-24T04:32:51.370Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.004452083">
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; writes to the shared OTLP file path" time="0.001675541">
+        </testcase>
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; serializes log records with kind discriminator and trace correlation" time="0.000536917">
+        </testcase>
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; handles missing span context" time="0.000386416">
+        </testcase>
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; handles empty log array without writing" time="0.000271916">
+        </testcase>
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; returns FAILED when file write throws" time="0.000310625">
+        </testcase>
+        <testcase classname="test/jest/observability/otlpFileLogExporterNode.test.ts" name="OtlpFileLogExporterNode &gt; shutdown resolves" time="0.000424458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/redactSensitiveData.test.ts" timestamp="2026-09-24T04:32:51.370Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="37" failures="0" errors="0" skipped="0" time="0.011355792">
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; sfdx auth url" time="0.002752667">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; jwt" time="0.000193542">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; opaque access token" time="0.000176083">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; Bearer header value" time="0.000239292">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; sid cookie" time="0.0001775">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; refresh_token, url-encoded form" time="0.000094292">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; refresh_token, JSON-shaped" time="0.000122875">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; each shape gets its own label &gt; refreshToken, camelCase key" time="0.000075958">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; replaces multiple distinct secrets in one string in a single pass" time="0.000462584">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; redacts a token embedded in a multi-line Cause.pretty-shaped stack trace" time="0.000336041">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; consumes the whole token tail, including - = + _ that core accessTokenRegex stops at" time="0.000180917">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; stops the access token at a quote so surrounding JSON survives" time="0.000083875">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; short-circuits on the hint guard: hintless text comes back as the same reference" time="0.000066041">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; orgId, 18 char passes through untouched" time="0.000067625">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; orgId, 15 char passes through untouched" time="0.0000535">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; userId passes through untouched" time="0.000051541">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; webUserId, sha-256 hex passes through untouched" time="0.000050917">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; devHubOrgId passes through untouched" time="0.000048125">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; secrets &gt; ADR-0019: telemetry identity attributes survive &gt; leaves ids alone in a span-attribute-shaped string that also carries a token" time="0.000060208">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: first.last@example.com" time="0.000057792">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: josé@example.com" time="0.000050542">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: o&apos;hara@example.com" time="0.000054583">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: 用户@例子.公司" time="0.002052625">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: &quot;quoted local&quot;@example.com" time="0.000160083">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: contact=first.last+scratch@example.co.uk" time="0.000054542">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts username-or-email shaped values anywhere in telemetry: from user@example.com to admin@example.org" time="0.000052875">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: sf org display --target-org first.last@example.com --json" time="0.000081834">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: sf org display --target-org &quot;first.last@example.com&quot; --json" time="0.000051709">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: sf org display --target-org=my-scratch-org --json" time="0.000047708">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: sf org display -o &apos;my-scratch-org&apos; --json" time="0.000049458">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: sf org display -o=my-scratch-org --json" time="0.000047916">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts a target-org value while preserving command context: Command failed: sf org display -o my-scratch-org" time="0.000047458">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; redacts target-org values embedded in error text" time="0.000060541">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; is idempotent" time="0.001004375">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; applies generic email redaction outside target-org arguments" time="0.000340459">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; does not treat non-sf -o as target-org: ps -e -o pid,ppid,command" time="0.000195917">
+        </testcase>
+        <testcase classname="test/jest/observability/redactSensitiveData.test.ts" name="redactSensitiveData &gt; PII &gt; does not treat non-sf -o as target-org: git log -o output.txt" time="0.000134834">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/redactingConsoleLogger.test.ts" timestamp="2026-09-24T04:32:51.372Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.025295916">
+        <testcase classname="test/jest/observability/redactingConsoleLogger.test.ts" name="redactingConsoleLogger &gt; redacts secrets from messages, causes, and annotations before writing to the console" time="0.022483875">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingConsoleLogger.test.ts" name="redactingConsoleLogger &gt; preserves the default logger metadata and non-sensitive content" time="0.002011084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/redactingSpanProcessor.test.ts" timestamp="2026-09-24T04:32:51.372Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.012556916">
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts a string attribute value before any exporter sees the span" time="0.003554083">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts target-org PII from attributes, status, and exception events" time="0.000722333">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts every mutable exported string surface" time="0.000433583">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; changes only the approved payload surfaces and preserves structural fields and keys" time="0.001219958">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts status.message and keeps the status code" time="0.000426709">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts exception.message and exception.stacktrace of a recordException event" time="0.000272333">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts a string[] attribute element-wise" time="0.000175958">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; ADR-0019: orgId / userId / webUserId / devHubOrgId attributes are untouched" time="0.000440708">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts for a processor registered BEFORE it, because all onEnding run before any onEnd" time="0.000795583">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; guard: a span with no hint-bearing text is left alone, arrays included (no reallocation)" time="0.000301709">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; does not throw when an attribute value is a cyclic object" time="0.000190541">
+        </testcase>
+        <testcase classname="test/jest/observability/redactingSpanProcessor.test.ts" name="RedactingSpanProcessor &gt; redacts a 3135-element string[] without throwing" time="0.003106958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/sdkLayerConfig.test.ts" timestamp="2026-09-24T04:32:51.373Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.010211041">
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="getSdkLayerConfigFromContext — connectionString resolution &gt; uses otelConnectionString as-is when present" time="0.00239675">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="getSdkLayerConfigFromContext — connectionString resolution &gt; prefers otelConnectionString over aiKey when both present" time="0.000538459">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="getSdkLayerConfigFromContext — connectionString resolution &gt; normalizes bare UUID aiKey to InstrumentationKey= format" time="0.000284708">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="getSdkLayerConfigFromContext — connectionString resolution &gt; passes through full connection string aiKey unchanged" time="0.000513417">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="getSdkLayerConfigFromContext — connectionString resolution &gt; falls back to DEFAULT_AI_CONNECTION_STRING when neither otelConnectionString nor aiKey are present" time="0.000442375">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="local ingestion endpoint &gt; does not enable an environment override in production" time="0.000338875">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; preserves local development endpoint http://localhost:3002" time="0.000524875">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; preserves local development endpoint https://127.0.0.1:4318" time="0.000342792">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; preserves local development endpoint http://[::1]:3002" time="0.000991">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; rejects non-loopback override https://remote.example/o11y" time="0.000434917">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; rejects non-loopback override file:///tmp/o11y" time="0.0003545">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; rejects non-loopback override not a url" time="0.000197292">
+        </testcase>
+        <testcase classname="test/jest/observability/sdkLayerConfig.test.ts" name="O11Y_ENDPOINT override &gt; does not apply a loopback override in production" time="0.000560625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/seedTelemetryIdentities.test.ts" timestamp="2026-09-24T04:32:51.374Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.01885825">
+        <testcase classname="test/jest/observability/seedTelemetryIdentities.test.ts" name="seedTelemetryIdentities &gt; uses cliId from globalState when present" time="0.006372667">
+        </testcase>
+        <testcase classname="test/jest/observability/seedTelemetryIdentities.test.ts" name="seedTelemetryIdentities &gt; desktop falls back to getCliId when globalState empty" time="0.001943292">
+        </testcase>
+        <testcase classname="test/jest/observability/seedTelemetryIdentities.test.ts" name="seedTelemetryIdentities &gt; desktop generates UUID when getCliId returns None" time="0.007648041">
+        </testcase>
+        <testcase classname="test/jest/observability/seedTelemetryIdentities.test.ts" name="seedTelemetryIdentities &gt; web generates UUID without invoking sf telemetry" time="0.001068625">
+        </testcase>
+        <testcase classname="test/jest/observability/seedTelemetryIdentities.test.ts" name="seedTelemetryIdentities &gt; preserves existing webUserId when already present" time="0.001000667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/spanTransformProcessor.test.ts" timestamp="2026-09-24T04:32:51.374Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.002785917">
+        <testcase classname="test/jest/observability/spanTransformProcessor.test.ts" name="isInternalUser &gt; should return true on Desktop when hostname ends with internal.salesforce.com" time="0.001181667">
+        </testcase>
+        <testcase classname="test/jest/observability/spanTransformProcessor.test.ts" name="isInternalUser &gt; should return false on Desktop when hostname does not match" time="0.000222792">
+        </testcase>
+        <testcase classname="test/jest/observability/spanTransformProcessor.test.ts" name="isInternalUser &gt; should return undefined on Web" time="0.000247292">
+        </testcase>
+        <testcase classname="test/jest/observability/spanTransformProcessor.test.ts" name="isInternalUser &gt; should return false on Desktop when os.hostname is unavailable" time="0.000167291">
+        </testcase>
+        <testcase classname="test/jest/observability/spanTransformProcessor.test.ts" name="isInternalUser &gt; should return undefined when uiKindString is undefined" time="0.000238334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/spanUtils.test.ts" timestamp="2026-09-24T04:32:51.375Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.009974084">
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isSpanValidForProductionTelemetry &gt; drops a top-level span flagged telemetryIgnore" time="0.005307458">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isSpanValidForProductionTelemetry &gt; keeps a top-level span without telemetryIgnore" time="0.00027875">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isSpanValidForProductionTelemetry &gt; drops a command span flagged telemetryIgnore (ignore wins over command)" time="0.000116541">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isProductionTelemetryExportEnabled &gt; returns the telemetry setting value (true) when enabled and no localhost bypass" time="0.002495834">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isProductionTelemetryExportEnabled &gt; returns false when the telemetry setting is disabled and no localhost bypass" time="0.000474417">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isProductionTelemetryExportEnabled &gt; bypasses a disabled setting when o11yEndpoint is localhost (dev sink)" time="0.000098416">
+        </testcase>
+        <testcase classname="test/jest/observability/spanUtils.test.ts" name="isProductionTelemetryExportEnabled &gt; does not bypass for a non-localhost o11yEndpoint when disabled" time="0.000269875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/observability/spansNode.test.ts" timestamp="2026-09-24T04:32:51.375Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.016016416">
+        <testcase classname="test/jest/observability/spansNode.test.ts" name="FilteredAzureMonitorTraceExporter &gt; suppresses the _OTELRESOURCE_ resource metric while still exporting span envelopes" time="0.011751708">
+        </testcase>
+        <testcase classname="test/jest/observability/spansNode.test.ts" name="FilteredAzureMonitorTraceExporter &gt; control: unmodified AzureMonitorTraceExporter emits the _OTELRESOURCE_ metric" time="0.000809083">
+        </testcase>
+        <testcase classname="test/jest/observability/spansNode.test.ts" name="FilteredAzureMonitorTraceExporter &gt; shutdown resolves" time="0.002051">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgCatalogProjection.test.ts" timestamp="2026-09-24T04:32:51.375Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.034040417">
+        <testcase classname="test/jest/orgCatalog/orgCatalogProjection.test.ts" name="Org Catalog inventory projection &gt; merges remote observations with live workspace presence" time="0.013067791">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogProjection.test.ts" name="Org Catalog inventory projection &gt; keeps a namespaced remote component separate from an ineligible unnamespaced workspace file" time="0.002366125">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogProjection.test.ts" name="Org Catalog inventory projection &gt; merges matching project and remote namespaces while preserving provider casing" time="0.001323542">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogProjection.test.ts" name="Org Catalog inventory projection &gt; projects remote and workspace-only folder hierarchies one level at a time" time="0.015736541">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgCatalogState.test.ts" timestamp="2026-09-24T04:32:51.375Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.028508167">
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; persists remote inventory without retaining workspace-only presence" time="0.016025916">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; hydrates once and advances the persisted generation" time="0.002994584">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; flushes dirty state when its scope closes before the debounce elapses" time="0.002192667">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; flushes every dirty org exactly once when its scope closes" time="0.00212025">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; does not persist a clean hydrated org when its scope closes" time="0.001146209">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; does not persist a clean org when it is explicitly flushed" time="0.001472791">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogState.test.ts" name="OrgCatalogState &gt; persists a dirty org exactly once when it is explicitly flushed" time="0.001335417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgCatalogTracking.test.ts" timestamp="2026-09-24T04:32:51.376Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002914625">
+        <testcase classname="test/jest/orgCatalog/orgCatalogTracking.test.ts" name="OrgMetadataCatalogRecorder tracking comparison &gt; returns added, changed, and removed references without duplicating identities" time="0.001902917">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgCatalogTracking.test.ts" name="OrgMetadataCatalogRecorder tracking comparison &gt; returns no changes when signatures are stable" time="0.000252875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataCatalog.test.ts" timestamp="2026-09-24T04:32:51.376Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="21" failures="0" errors="0" skipped="0" time="0.775681875">
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; exposes only consumer-shaped operations" time="0.036621917">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; keeps the metadata document provider alive across org changes when no workspace is open" time="0.052777208">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; resolves consumer-known components during startup before the default org ref is populated" time="0.015271584">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; resolves consumer-known org components without acquiring Metadata API inventory" time="0.012429125">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; coalesces equivalent inventory requests and merges org/workspace presence with remote timestamps" time="0.056609084">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; does not commit inventory when acquisition detects that the active org changed" time="0.017884375">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; restores persisted inventory after a catalog restart" time="0.089168542">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; persists metadata components in listing order" time="0.022110833">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; persists refreshed inventory for a catalog restart" time="0.035001292">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; continues with provider-backed reads when catalog hydration or persistence fails" time="0.024832958">
+            <system-out>
+timestamp=2026-09-24T04:32:47.319Z level=WARN fiber=#1158 message=&quot;Failed to hydrate org metadata catalog&quot; message={}
+
+timestamp=2026-09-24T04:32:47.330Z level=WARN fiber=#1243 message=&quot;Failed to persist org metadata catalog&quot; message={}
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; refreshes and invalidates only affected metadata projections" time="0.053484">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; does not retain workspace presence from an inventory load that overlaps invalidation" time="0.029043208">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; removes workspace presence after source and sidecar deletion notifications" time="0.141964042">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; correlates Custom Object children with custom REST fields and metadata inventory" time="0.025433166">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; uses Custom Field inventory when the SObject description has no matching fields" time="0.024177584">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; returns described custom fields when CustomField listMetadata fails" time="0.02913725">
+            <system-out>
+timestamp=2026-09-24T04:32:47.620Z level=WARN fiber=#1875 message=&quot;Failed to list CustomField inventory&quot; message=&quot;{
+  \&quot;cause\&quot;: {},
+  \&quot;metadataType\&quot;: \&quot;CustomField\&quot;,
+  \&quot;message\&quot;: \&quot;Failed to list metadata type CustomField\&quot;,
+  \&quot;_tag\&quot;: \&quot;ListMetadataError\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; returns an empty child collection for a known empty metadata folder" time="0.035311334">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; reacquires a persisted SObject description older than Custom Field inventory" time="0.012265792">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; partitions cached inventory and document identities by org" time="0.023481167">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; materializes decomposed metadata represented only by a metadata XML file" time="0.01487625">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalog.test.ts" name="OrgMetadataCatalog contract &gt; materializes metadata by discovering files written to the staging directory" time="0.021881166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" timestamp="2026-09-24T04:32:51.377Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="1.124741833">
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" name="OrgMetadataCatalogRecorder &gt; updates memory before returning and coalesces unchanged observations on disk" time="0.390112542">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" name="OrgMetadataCatalogRecorder &gt; records normalized metadata describe and listing observations" time="0.357026916">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" name="OrgMetadataCatalogRecorder &gt; persists partial component discoveries without claiming a complete type inventory" time="0.358801583">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" name="OrgMetadataCatalogRecorder &gt; publishes tracking changes in previous-then-current status order and suppresses an identical observation" time="0.007045291">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogRecorder.test.ts" name="OrgMetadataCatalogRecorder &gt; invalidates affected state and publishes an operation before returning" time="0.008999417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" timestamp="2026-09-24T04:32:51.378Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.051869833">
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; recognizes only catalog checkpoint paths in the workspace" time="0.0014085">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; recognizes catalog paths when Windows drive-letter casing differs" time="0.000406959">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; atomically publishes and reloads a schema-valid per-org snapshot" time="0.015230791">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; rejects a snapshot stored beneath a different org partition" time="0.003754541">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; migrates version 1 snapshots with empty normalized observation collections" time="0.001236708">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogStore.test.ts" name="OrgMetadataCatalogStore &gt; returns no snapshot when the org has not been persisted" time="0.026957833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataCatalogTypes.test.ts" timestamp="2026-09-24T04:32:51.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.004728791">
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogTypes.test.ts" name="OrgMetadataCatalogEntrySchema &gt; accepts a component with a conventional type reference" time="0.001595">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataCatalogTypes.test.ts" name="OrgMetadataCatalogEntrySchema &gt; rejects a component without a full name" time="0.000296458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataDocumentProvider.test.ts" timestamp="2026-09-24T04:32:51.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.005499708">
+        <testcase classname="test/jest/orgCatalog/orgMetadataDocumentProvider.test.ts" name="OrgMetadataDocumentProvider lifecycle &gt; prunes inactive-org URIs and only notifies documents for the active org" time="0.001763875">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataDocumentProvider.test.ts" name="OrgMetadataDocumentProvider lifecycle &gt; closes stale text and diff tabs while preserving tabs for the active org" time="0.002032917">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataDocumentProvider.test.ts" name="OrgMetadataDocumentProvider lifecycle &gt; ignores internal Salesforce state with Windows drive-letter casing differences" time="0.00087975">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataReference.test.ts" timestamp="2026-09-24T04:32:51.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.060106375">
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; round-trips an Apex class with an editor-friendly extension" time="0.011729625">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; preserves foldered metadata names" time="0.002355666">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; round-trips metadata types returned by describe but missing from the SDR registry" time="0.019996583">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; round-trips a registered xml suffix without truncating a full name ending in xml" time="0.001639791">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; keeps the org ID as a direct path segment and encodes metadata name segments" time="0.001133125">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; rejects org IDs that are unsafe as path segments" time="0.004442">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; rejects unrelated and malformed URIs" time="0.016919875">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; reads org id from the URI path without registry access" time="0.000430583">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataReference.test.ts" name="org metadata document references &gt; recognizes only complete, non-empty component references" time="0.000482833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" timestamp="2026-09-24T04:32:51.380Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.064747834">
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; stages SDR conversion under remoteMetadata and publishes under metadata-shadow" time="0.012238209">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; prepares a shared SDR staging directory for batch materialization" time="0.0072575">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; keeps revision snapshots independently addressable" time="0.013592125">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; partitions identical component revisions by org" time="0.00283">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; retains only the newest bounded revisions for a component" time="0.018352416">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; preserves an older revision that backs an open editor document" time="0.003577208">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; does not fail publication when pruning an old revision fails" time="0.00448675">
+            <system-out>
+timestamp=2026-09-24T04:32:49.251Z level=WARN fiber=#47 message=&quot;Failed to prune metadata shadow revisions&quot; message={}
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; recognizes only metadata shadow paths in the workspace" time="0.000259959">
+        </testcase>
+        <testcase classname="test/jest/orgCatalog/orgMetadataShadowStore.test.ts" name="OrgMetadataShadowStore &gt; recognizes shadow paths when Windows drive-letter casing differs" time="0.000399292">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/terminal/crossSpawnCommandExecutor.test.ts" timestamp="2026-09-24T04:32:51.380Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.03004425">
+        <testcase classname="test/jest/terminal/crossSpawnCommandExecutor.test.ts" name="resolveCommandEnv &gt; merges the overlay over process.env so PATH survives" time="0.004957417">
+        </testcase>
+        <testcase classname="test/jest/terminal/crossSpawnCommandExecutor.test.ts" name="resolveCommandEnv &gt; still includes process.env when the overlay is empty" time="0.000353">
+        </testcase>
+        <testcase classname="test/jest/terminal/crossSpawnCommandExecutor.test.ts" name="CrossSpawnCommandExecutorLive &gt; rejects piped commands" time="0.0144395">
+        </testcase>
+        <testcase classname="test/jest/terminal/crossSpawnCommandExecutor.test.ts" name="CrossSpawnCommandExecutorLive &gt; rejects shell commands" time="0.000945209">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/terminal/terminalService.test.ts" timestamp="2026-09-24T04:32:51.381Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="28" failures="0" errors="0" skipped="0" time="0.205230375">
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; kills the process when the fiber is interrupted" time="0.023481417">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; trims stdout and passes it to parse on the happy path" time="0.006510958">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; executes with the executable + args separated without recording them in telemetry" time="0.008222042">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; records the timeout on the span" time="0.005314834">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; times out a hanging process" time="0.01310425">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; forwards a caller env unchanged and injects no sf env for a non-sf command" time="0.002334875">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR + SFDX_TOOL + the default SF_LOG_LEVEL for sf commands" time="0.002619167">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; injects the sf env based on the executable being `sf`, not an args prefix" time="0.001945917">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; passes the configured SF_LOG_LEVEL through" time="0.004327958">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; passes NODE_EXTRA_CA_CERTS from the setting" time="0.002150583">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; falls back to the ambient NODE_EXTRA_CA_CERTS when the setting is unset" time="0.001999208">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; omits NODE_EXTRA_CA_CERTS when neither the setting nor the env var is set" time="0.0092995">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; injects SF_DISABLE_TELEMETRY when the VS Code telemetry level is off" time="0.005111208">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; injects SF_DISABLE_TELEMETRY when the core telemetry.enabled setting is false" time="0.002178708">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; injects SF_DISABLE_TELEMETRY when the CLI disable-telemetry config is set" time="0.001870792">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; omits SF_DISABLE_TELEMETRY when every telemetry switch allows it" time="0.002139958">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; still executes when the CLI telemetry lookup fails" time="0.0207805">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; still executes when a settings read fails" time="0.024073834">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; lets a caller env override the auto-injected sf env" time="0.014913833">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; lets a caller env override a gathered setting" time="0.01440425">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; does not inject sf env for non-sf commands without a caller env" time="0.001422875">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; forwards cwd to the child when set" time="0.001437375">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; omits cwd when not set" time="0.001337834">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; preserves stdout in the error message (sf --json errors land on stdout)" time="0.011993">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; includes stdout once when reconstructing the failure message" time="0.004131083">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; omits the invocation from the typed exec failure" time="0.001750708">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; records only outcome metadata when exec fails" time="0.013231458">
+        </testcase>
+        <testcase classname="test/jest/terminal/terminalService.test.ts" name="TerminalService.simpleExec &gt; fails with TerminalServiceError on web" time="0.000681917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/fileSystemProvider.test.ts" timestamp="2026-09-24T04:32:51.382Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.020451417">
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; stat marks a read-only metadata type Readonly via the shared runtime" time="0.00867475">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; writeFile rejects a read-only metadata type via the shared runtime" time="0.001807583">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; delete rejects a read-only metadata type via the shared runtime" time="0.000866">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; rename rejects a read-only metadata type via the shared runtime" time="0.000503917">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; does not mark a non-metadata suffix Readonly" time="0.000464666">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime-ready (routed through shared runtime) &gt; does not mark anything Readonly when readOnly is empty (short-circuit)" time="0.000225625">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; runtime not ready (fallback layer) &gt; still resolves read-only via the fallback layer" time="0.00233775">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; file change events &gt; emits Created when writeFile creates a file" time="0.000695042">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/fileSystemProvider.test.ts" name="FsProvider read-only checks &gt; file change events &gt; emits Changed when writeFile overwrites a file" time="0.000598958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/idbTransaction.test.ts" timestamp="2026-09-24T04:32:51.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.0753915">
+        <testcase classname="test/jest/virtualFsProvider/idbTransaction.test.ts" name="settleIdbTransaction &gt; succeeds when the transaction completes" time="0.040916959">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/idbTransaction.test.ts" name="settleIdbTransaction &gt; fails when the transaction aborts" time="0.001566375">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/idbTransaction.test.ts" name="settleIdbTransaction &gt; aborts the transaction on timeout and unblocks a second write" time="0.032054125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/indexedDbStorage.test.ts" timestamp="2026-09-24T04:32:51.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.015639958">
+        <testcase classname="test/jest/virtualFsProvider/indexedDbStorage.test.ts" name="IndexedDBStorageService &gt; round trips arbitrary binary file contents" time="0.0149295">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/memfsWatcher.test.ts" timestamp="2026-09-24T04:32:51.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.023846541">
+        <testcase classname="test/jest/virtualFsProvider/memfsWatcher.test.ts" name="updateIDB &gt; continues after a persist error so the next event is saved" time="0.022791667">
+            <system-out>
+timestamp=2026-09-24T04:32:46.227Z level=WARN fiber=#1 message=&quot;updateIDB failed&quot; message=&quot;idb down&quot;
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/projectInit.test.ts" timestamp="2026-09-24T04:32:51.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.010001292">
+        <testcase classname="test/jest/virtualFsProvider/projectInit.test.ts" name="projectFiles &gt; creates the default Web Console project without Prettier files" time="0.008264708">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/projectInit.test.ts" name="projectFiles &gt; does not overwrite an existing project" time="0.001018834">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/projectRoot.test.ts" timestamp="2026-09-24T04:32:51.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.021462">
+        <testcase classname="test/jest/virtualFsProvider/projectRoot.test.ts" name="getProjectRoot &gt; falls back to /dx-project when no workspace folder is open" time="0.01256125">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/projectRoot.test.ts" name="getProjectRoot &gt; derives from the host-opened memfs folder (the CBW per-org path)" time="0.002602541">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/projectRoot.test.ts" name="getProjectRoot &gt; strips a trailing slash so consumers never build a double slash" time="0.001786375">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/projectRoot.test.ts" name="getProjectRoot &gt; falls back for a non-memfs folder (e.g. file: scheme)" time="0.001401584">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/projectRoot.test.ts" name="getProjectRoot &gt; falls back when the memfs folder path is empty/root" time="0.001764">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/virtualFsProvider/sfdxProject.test.ts" timestamp="2026-09-24T04:32:51.384Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.001870041">
+        <testcase classname="test/jest/virtualFsProvider/sfdxProject.test.ts" name="default API version constants stay in sync &gt; sfdx-project.json template uses the expected sourceApiVersion" time="0.000968208">
+        </testcase>
+        <testcase classname="test/jest/virtualFsProvider/sfdxProject.test.ts" name="default API version constants stay in sync &gt; package.json apiVersion setting defaults to the expected version" time="0.000236125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/context.test.ts" timestamp="2026-09-24T04:32:51.384Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.008426792">
+        <testcase classname="test/jest/vscode/context.test.ts" name="updateContext &gt; sets sf:default_org_deletable true for a scratch org" time="0.0057355">
+        </testcase>
+        <testcase classname="test/jest/vscode/context.test.ts" name="updateContext &gt; sets sf:default_org_deletable true for a sandbox org" time="0.001036541">
+        </testcase>
+        <testcase classname="test/jest/vscode/context.test.ts" name="updateContext &gt; sets sf:default_org_deletable false when neither isScratch nor isSandbox is set" time="0.000903542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/errorHandlerService.test.ts" timestamp="2026-09-24T04:32:51.384Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="21" failures="0" errors="0" skipped="0" time="0.03202825">
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; regular native JS errors &gt; should handle simple Error without cause or actions" time="0.005497583">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; regular native JS errors &gt; should handle Error with message only" time="0.001659">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with cause property &gt; should prefer inner cause message" time="0.001202334">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with cause property &gt; should handle deeply nested cause chain" time="0.000949667">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; string errors (edge case) &gt; should handle string error" time="0.004178667">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with actions array &gt; should handle error with actions and show View Details button" time="0.0043375">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with actions array &gt; should not show channel when View Details is not clicked" time="0.000848917">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with actions array &gt; should filter out empty strings from actions" time="0.000567209">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with actions array &gt; should treat empty actions array as no actions" time="0.001167125">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with both actions and cause &gt; should extract actions from both error and cause" time="0.000615667">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; errors with both actions and cause &gt; should prefer inner cause message when both have actions" time="0.000560375">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; Effect tagged errors &gt; should prefix channel output with the error tag" time="0.0007865">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; Effect tagged errors &gt; should prefix channel output with the error tag when actions are present" time="0.000804584">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; Effect tagged errors &gt; should present an inactive-org interruption as recoverable information" time="0.00100975">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; metadata completed-with-errors (deploy/retrieve partial failure) &gt; should show notification but not duplicate deploy summary in output channel" time="0.000519167">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; metadata completed-with-errors (deploy/retrieve partial failure) &gt; should show notification but not duplicate retrieve summary in output channel" time="0.000452875">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; nested cause chains &gt; should collect all actions from nested chain" time="0.000535667">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; nested cause chains &gt; should get base message from deepest cause in chain" time="0.000445667">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; edge cases &gt; should handle error with only empty string actions" time="0.000479125">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; edge cases &gt; should handle non-Error object with actions property" time="0.00251825">
+        </testcase>
+        <testcase classname="test/jest/vscode/errorHandlerService.test.ts" name="ErrorHandlerService &gt; handleCause &gt; edge cases &gt; should handle Cause.die" time="0.001462375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/fileWatcherService.test.ts" timestamp="2026-09-24T04:32:51.385Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.026115083">
+        <testcase classname="test/jest/vscode/fileWatcherService.test.ts" name="FileWatcherLayer &gt; watches workspace files only" time="0.022916625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/hashableUri.test.ts" timestamp="2026-09-24T04:32:51.385Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="21" failures="0" errors="0" skipped="0" time="0.009604417">
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; fromUri / .uri &gt; exposes the wrapped URI" time="0.001311208">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; fromUri / .uri &gt; does not mutate the input URI" time="0.0003125">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Equal contract &gt; treats two HashableUris with the same toString() as equal" time="0.000318458">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Equal contract &gt; treats different URIs as not equal" time="0.0002475">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Equal contract &gt; rejects plain { uri } objects without the Equal symbol" time="0.000237625">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Equal contract &gt; rejects objects whose uri.scheme is not a string" time="0.000112375">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Equal contract &gt; compares URI fields instead of bundle-specific serialization" time="0.000190666">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Hash contract &gt; produces equal hashes for equal HashableUris" time="0.000200125">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Windows drive-letter normalization &gt; normalizes uppercase drive letters to lowercase on file URIs" time="0.001507667">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Windows drive-letter normalization &gt; does not touch non-file schemes" time="0.000459958">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Windows drive-letter normalization &gt; does not touch posix paths that happen to start with a single uppercase letter" time="0.000236083">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashSet behavior &gt; dedupes equal HashableUris" time="0.000454">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashSet behavior &gt; membership check (HashSet.has) works on a structurally equal HashableUri" time="0.00019125">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashSet behavior &gt; treats Windows drive-letter case differences as the same key" time="0.000096042">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashSet behavior &gt; treats Windows path-segment case differences as the same key" time="0.00017325">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashMap behavior &gt; uses HashableUri as a key, deduping equal keys" time="0.000268583">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; HashMap behavior &gt; round-trips lookup with a freshly constructed key" time="0.000104041">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; Array.dedupe &gt; dedupes a list of HashableUris with structurally equal values" time="0.000840542">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; with() &gt; applies a URI change and returns a new HashableUri (data-first form)" time="0.000104209">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; with() &gt; supports the data-last (pipeable) form" time="0.000068208">
+        </testcase>
+        <testcase classname="test/jest/vscode/hashableUri.test.ts" name="HashableUri &gt; with() &gt; re-normalizes drive letters after a path change" time="0.000064916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/iconConsistency.test.ts" timestamp="2026-09-24T04:32:51.387Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="17" failures="0" errors="0" skipped="0" time="0.007818083">
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every SVG has an icons.json entry &gt; leaf" time="0.002705875">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every SVG has an icons.json entry &gt; tree" time="0.000389292">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every icons.json entry has a SVG file &gt; leaf" time="0.000415083">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every icons.json entry has a SVG file &gt; tree" time="0.000190875">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every SVG has a contributes.icons entry &gt; leaf" time="0.000233417">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every SVG has a contributes.icons entry &gt; tree" time="0.000080458">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every contributes.icons entry maps to a SVG &gt; sf-org-leaf" time="0.000110333">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; every contributes.icons entry maps to a SVG &gt; sf-org-tree" time="0.000094667">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons descriptions match icons.json &gt; sf-org-leaf" time="0.000429333">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons descriptions match icons.json &gt; sf-org-tree" time="0.000109209">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons font paths are consistent &gt; sf-org-leaf uses correct font path" time="0.000225">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons font paths are consistent &gt; sf-org-tree uses correct font path" time="0.0001195">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; ICONS constant custom refs match contributes.icons &gt; sf-org-leaf has a contributes.icons entry" time="0.000124667">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; ICONS constant custom refs match contributes.icons &gt; sf-org-tree has a contributes.icons entry" time="0.000060167">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; ICONS constant custom refs match contributes.icons &gt; every contributes.icons entry is referenced in ICONS constant" time="0.000294916">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons font characters are unique and sequential &gt; all font characters are unique" time="0.000076958">
+        </testcase>
+        <testcase classname="test/jest/vscode/iconConsistency.test.ts" name="Icon consistency &gt; contributes.icons font characters are unique and sequential &gt; font characters are valid unicode escapes" time="0.000125917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/prompts/promptService.test.ts" timestamp="2026-09-24T04:32:51.387Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.0294375">
+        <testcase classname="test/jest/vscode/prompts/promptService.test.ts" name="PromptService.confirmOrThrow &gt; resolves when the user clicks the confirm button" time="0.014537125">
+        </testcase>
+        <testcase classname="test/jest/vscode/prompts/promptService.test.ts" name="PromptService.confirmOrThrow &gt; fails with UserCancellationError when the user dismisses the modal" time="0.004129542">
+        </testcase>
+        <testcase classname="test/jest/vscode/prompts/promptService.test.ts" name="PromptService.withCancellableProgressReporting &gt; surfaces progress + token to the wrapped effect and returns its value" time="0.007161334">
+        </testcase>
+        <testcase classname="test/jest/vscode/prompts/promptService.test.ts" name="PromptService.withCancellableProgressReporting &gt; interrupts the wrapped effect and fails with UserCancellationError when the token is cancelled" time="0.0022075">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/vscode/settingsService.test.ts" timestamp="2026-09-24T04:32:51.388Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.008741708">
+        <testcase classname="test/jest/vscode/settingsService.test.ts" name="SettingsService.getAccessToken &gt; returns the trimmed token as a redacted value" time="0.005782166">
+        </testcase>
+        <testcase classname="test/jest/vscode/settingsService.test.ts" name="SettingsService.getApiVersion &gt; falls back to 67.0 when the setting is unset" time="0.000837">
+        </testcase>
+        <testcase classname="test/jest/vscode/settingsService.test.ts" name="SettingsService.getApiVersion &gt; falls back to 67.0 when the setting is an empty string" time="0.000669042">
+        </testcase>
+        <testcase classname="test/jest/vscode/settingsService.test.ts" name="SettingsService.getApiVersion &gt; returns the configured value when set" time="0.00059475">
+        </testcase>
+    </testsuite>
+</testsuites>

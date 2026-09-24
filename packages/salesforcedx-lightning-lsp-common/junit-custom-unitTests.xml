@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="117" failures="0" errors="0" time="0.103727458">
+    <testsuite name="test/areJsonValuesEqual.test.ts" timestamp="2026-09-24T04:32:04.740Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="27" failures="0" errors="0" skipped="0" time="0.009021875">
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; primitive values &gt; should handle null" time="0.002211">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; primitive values &gt; should handle undefined" time="0.000386125">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; primitive values &gt; should handle strings" time="0.000216792">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; primitive values &gt; should handle numbers" time="0.000416667">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; primitive values &gt; should handle booleans" time="0.000207958">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; arrays &gt; should handle empty arrays" time="0.000175833">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; arrays &gt; should handle arrays with primitives" time="0.000586542">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; arrays &gt; should handle nested arrays" time="0.000278375">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; arrays &gt; should handle arrays with mixed types" time="0.000458917">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; arrays &gt; should preserve array order" time="0.000179709">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; objects &gt; should handle empty objects" time="0.000300708">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; objects &gt; should handle objects with single property" time="0.000125541">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; objects &gt; should treat objects with different key orders as equal" time="0.00012825">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; objects &gt; should handle nested objects" time="0.000234333">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; objects &gt; should handle objects with various value types" time="0.000248042">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; complex structures &gt; should handle deeply nested structures" time="0.000377333">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; complex structures &gt; should handle arrays of objects" time="0.000191">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; complex structures &gt; should handle jsconfig-like structures with different array order" time="0.000214458">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; complex structures &gt; should handle jsconfig-like structures with same array order" time="0.000194542">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; edge cases &gt; should handle objects with special characters in keys" time="0.000103333">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; edge cases &gt; should handle empty strings as keys" time="0.000090417">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; edge cases &gt; should handle numeric string keys" time="0.00010225">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; consistency &gt; should produce same result for identical inputs" time="0.000060208">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; consistency &gt; should return false for semantically different objects" time="0.000179666">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; consistency &gt; should return true regardless of key order" time="0.000138958">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; reference equality fast path &gt; should return true for same reference" time="0.000058209">
+        </testcase>
+        <testcase classname="test/areJsonValuesEqual.test.ts" name="areJsonValuesEqual &gt; reference equality fast path &gt; should return true for primitive reference equality" time="0.000052833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/bundleRename.test.ts" timestamp="2026-09-24T04:32:04.743Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="44" failures="0" errors="0" skipped="0" time="0.008913458">
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.html" time="0.001237417">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.js" time="0.000233917">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.ts" time="0.000189042">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.js-meta.xml" time="0.000226583">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.css" time="0.000262">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.svg" time="0.000260458">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.test.js" time="0.000221208">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; matches myThing.test.ts" time="0.00011425">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match otherThing.js" time="0.000491375">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match myThing.txt" time="0.000151292">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match myThing.scss" time="0.000167167">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match myThing-meta.xml" time="0.000091375">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match myThingExtra.js" time="0.000079292">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; lwc &gt; does not match README.md" time="0.000079542">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.cmp" time="0.000251459">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.app" time="0.000144625">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.evt" time="0.000096417">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.css" time="0.000080916">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.svg" time="0.000081042">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.design" time="0.000075667">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.auradoc" time="0.000078083">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyAppController.js (helper-style js)" time="0.000069667">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyAppRenderer.js (helper-style js)" time="0.000055958">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyAppHelper.js (helper-style js)" time="0.000148417">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; matches MyApp.js (helper-style js)" time="0.000077458">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; does not match Other.cmp" time="0.000083417">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; does not match MyApp.txt" time="0.000081084">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; aura &gt; does not match MyAppOther.js" time="0.000079084">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="bundleFilePattern &gt; escapes regex metacharacters in component names" time="0.000154584">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; returns the bundle dir given a file inside it" time="0.000334209">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; returns the bundle dir given a file in __tests__" time="0.000086084">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; returns the bundle dir given the bundle dir itself" time="0.000074">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; returns none for a path with no lwc/aura segment" time="0.000099958">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; returns none when sourceUri is the lwc folder itself (no bundle)" time="0.000088583">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleUri &gt; handles aura siblings" time="0.000142875">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleKind &gt; lwc when parent is lwc" time="0.000186666">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleKind &gt; aura when parent is aura" time="0.000087458">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="getBundleKind &gt; undefined when parent is neither" time="0.000139208">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="hasFileNameCollision &gt; detects exact stem match" time="0.000102875">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="hasFileNameCollision &gt; detects case-insensitive stem match" time="0.000101584">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="hasFileNameCollision &gt; does not flag distinct names" time="0.00007975">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="normalizeComponentName &gt; lowercases first char for lwc" time="0.000146875">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="normalizeComponentName &gt; preserves casing for aura" time="0.000084709">
+        </testcase>
+        <testcase classname="test/bundleRename.test.ts" name="folder constants &gt; exports the expected literals" time="0.000106833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/context.test.ts" timestamp="2026-09-24T04:32:04.745Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.021538625">
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; WorkspaceContext" time="0.005263416">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureSfdxProject()" time="0.003954958">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureProject() does not add duplicate entries to jsconfig include on repeated calls" time="0.004162041">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureProject() does not rewrite jsconfig when content is semantically unchanged despite formatting differences" time="0.003167208">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureCoreProject()" time="0.001200417">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureProject() does not rewrite a semantically unchanged core jsconfig" time="0.001047667">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureCoreMulti()" time="0.000612917">
+        </testcase>
+        <testcase classname="test/context.test.ts" name="WorkspaceContext &gt; configureCoreAll()" time="0.001165458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/detectWorkspaceTypeVscode.test.ts" timestamp="2026-09-24T04:32:04.746Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.00574875">
+        <testcase classname="test/detectWorkspaceTypeVscode.test.ts" name="detectWorkspaceType &gt; returns UNKNOWN for empty workspaceRoots" time="0.002709625">
+        </testcase>
+        <testcase classname="test/detectWorkspaceTypeVscode.test.ts" name="detectWorkspaceType &gt; delegates to detectWorkspaceHelper for single root" time="0.000918084">
+        </testcase>
+        <testcase classname="test/detectWorkspaceTypeVscode.test.ts" name="detectWorkspaceType &gt; returns CORE_PARTIAL when all roots are CORE_PARTIAL" time="0.000683375">
+        </testcase>
+        <testcase classname="test/detectWorkspaceTypeVscode.test.ts" name="detectWorkspaceType &gt; returns UNKNOWN when any root is not CORE_PARTIAL (multi-root)" time="0.000188125">
+        </testcase>
+        <testcase classname="test/detectWorkspaceTypeVscode.test.ts" name="detectWorkspaceType &gt; short-circuits on first non-CORE_PARTIAL root" time="0.000302959">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/namespaceUtils.test.ts" timestamp="2026-09-24T04:32:04.746Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.049094708">
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory does not exist &gt; should return empty arrays" time="0.002595542">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory is empty &gt; should return empty arrays" time="0.004874833">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains LWC modules &gt; should find LWC module roots with name/name.js pattern" time="0.00390975">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains LWC modules &gt; should find multiple LWC module roots" time="0.001454458">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains LWC modules &gt; should find LWC roots in nested directories" time="0.008455208">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains folders named &quot;lwc&quot; &gt; should find lwc folder as root" time="0.002942916">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains ignored folders &gt; should skip node_modules" time="0.002683375">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains ignored folders &gt; should skip bin, target, jest-modules, repository, git folders" time="0.006592666">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when maxDepth is reached &gt; should stop traversing at maxDepth" time="0.003739167">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when maxDepth is reached &gt; should find components within maxDepth" time="0.001698417">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains non-module files &gt; should not treat directories without matching .js files as module roots" time="0.002090708">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when directory contains non-module files &gt; should not treat directories with only non-JS files as module roots" time="0.001588291">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; when custom maxDepth is provided &gt; should respect custom maxDepth parameter" time="0.002518167">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; edge cases &gt; should handle directories with special characters in names" time="0.00094725">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; edge cases &gt; should handle empty subdirectories" time="0.000606959">
+        </testcase>
+        <testcase classname="test/namespaceUtils.test.ts" name="findNamespaceRoots &gt; edge cases &gt; should handle symlinks gracefully" time="0.000696708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/testUtils.test.ts" timestamp="2026-09-24T04:32:04.747Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.002432625">
+        <testcase classname="test/testUtils.test.ts" name="readAsTextDocument()" time="0.001865458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/utils.test.ts" timestamp="2026-09-24T04:32:04.747Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.006977417">
+        <testcase classname="test/utils.test.ts" name="utils &gt; isLWCRootDirectoryChange" time="0.00143575">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; getExtension()" time="0.000308541">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; should return file name" time="0.000138417">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; test canonicalizing in nodejs" time="0.000222">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readJsonSync() &gt; should read json files" time="0.001290584">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readJsonSync() &gt; should read json files with comments" time="0.00035625">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readJsonSync() &gt; should return empty object for non-existing files" time="0.000486917">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; returns undefined when package.json does not exist" time="0.000180333">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; returns undefined when package.json content is not valid JSON" time="0.00044025">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; returns undefined when package.json is not an object" time="0.000170375">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; returns undefined when dependencies values are not strings" time="0.000171625">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; parses name" time="0.000102791">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; parses dependencies and devDependencies" time="0.000276542">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; parses lwc field" time="0.000102834">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; parses workspaces field" time="0.000088458">
+        </testcase>
+        <testcase classname="test/utils.test.ts" name="utils &gt; readPackageJson() &gt; returns empty object fields as undefined when not present" time="0.000149084">
+        </testcase>
+    </testsuite>
+</testsuites>

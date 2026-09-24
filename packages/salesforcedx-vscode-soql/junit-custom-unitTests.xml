@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="131" failures="0" errors="0" time="0.075012459">
+    <testsuite name="test/jest/commands/dataQuery.test.ts" timestamp="2026-09-24T04:33:21.424Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="97" failures="0" errors="0" skipped="0" time="0.022545">
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle null and undefined values" time="0.001218834">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle primitive values" time="0.000259167">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with Id" time="0.000124875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects without Id" time="0.000168">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should fallback to [Object] when no meaningful field exists" time="0.000215167">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should truncate long strings" time="0.000135583">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should not truncate short strings" time="0.0001225">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with multiple fields" time="0.000082459">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should filter out attributes field from objects" time="0.000466166">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with only attributes field" time="0.000117917">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with null and undefined values" time="0.000142333">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with numeric and boolean values" time="0.000071209">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with date values" time="0.000767791">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should truncate long comma-separated values" time="0.000507958">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle nested objects within objects" time="0.00008275">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle arrays within objects" time="0.00011325">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle empty objects" time="0.000057292">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValueForDisplay &gt; should handle objects with special characters" time="0.000060125">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValue &gt; should handle null and undefined values" time="0.000073291">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValue &gt; should handle primitive values" time="0.000064875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatFieldValue &gt; should stringify objects" time="0.000054709">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; escapeCSVField &gt; should not escape simple fields" time="0.000068375">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; escapeCSVField &gt; should escape fields with commas" time="0.000051417">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; escapeCSVField &gt; should escape fields with quotes" time="0.000121">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; escapeCSVField &gt; should escape fields with newlines" time="0.000051625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; escapeCSVField &gt; should escape fields with carriage returns" time="0.00005075">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; should return empty string for empty records" time="0.0000905">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; should convert simple records to CSV" time="0.000355875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; should filter out attributes field" time="0.000124833">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; should handle fields with special characters" time="0.000172208">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle null and undefined values" time="0.000080709">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle object values" time="0.000092625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle malformed records with undefined first record" time="0.000065916">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle malformed records with null first record" time="0.000107875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle malformed records with non-object first record" time="0.00006725">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle records with empty object as first record" time="0.000066708">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertToCSV &gt; bad data handling &gt; should handle records with malformed individual records" time="0.000064875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should return empty string for empty records" time="0.00007325">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should generate table for simple records" time="0.000294208">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should filter out attributes field" time="0.000094166">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle long field values with truncation" time="0.000092667">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle object values" time="0.000137041">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle dot notation fields from SOQL" time="0.000081875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle relationship objects without dot notation" time="0.00010225">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should flatten nested objects into separate columns" time="0.000165208">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle mixed null and non-null relationship objects" time="0.00013925">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should preserve field order and put Id first" time="0.00010625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle complex nested objects with multiple levels" time="0.000168208">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle records with attributes field properly" time="0.000179625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle empty nested objects" time="0.000068208">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should expand sub-query records into separate rows with prefixed columns" time="0.0002045">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should flatten nested Account.Parent on sub-query rows (CSV matches table)" time="0.00028225">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should stack multiple sub-queries independently (not cross-product)" time="0.0002665">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should emit the parent row with empty sub-columns when a sub-query has no records" time="0.000134083">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; should handle deeply nested objects" time="0.000102958">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; bad data handling &gt; should handle malformed records with undefined first record" time="0.00006975">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; bad data handling &gt; should handle malformed records with null first record" time="0.000062916">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; bad data handling &gt; should handle malformed records with non-object first record" time="0.00005825">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; bad data handling &gt; should handle records with empty object as first record" time="0.000069667">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; generateTableOutput &gt; bad data handling &gt; should handle records with malformed individual records" time="0.000075792">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertQueryResultToCSV &gt; should return no records message if records are empty" time="0.000066333">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertQueryResultToCSV &gt; should convert records to CSV if present" time="0.000069459">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; convertQueryResultToCSV &gt; should handle null records" time="0.000045625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: HTTP response contains html content" time="0.000136084">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: INVALID_SESSION_ID" time="0.000095709">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: INVALID_LOGIN" time="0.000049833">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: INSUFFICIENT_ACCESS" time="0.00004525">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: MALFORMED_QUERY" time="0.000046625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: INVALID_FIELD" time="0.00004425">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: INVALID_TYPE" time="0.000043583">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: connection error" time="0.000046666">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: tooling not found" time="0.000093">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle error: Some other error" time="0.000064459">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle Error instances" time="0.000063625">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle objects with message property" time="0.000046875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle string errors" time="0.000050916">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; formatErrorMessage &gt; should handle null and undefined" time="0.000058667">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; runSoqlQuery ALL ROWS handling &gt; strips trailing ALL ROWS and passes scanAll true on the REST branch" time="0.001831875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; runSoqlQuery ALL ROWS handling &gt; strips trailing ALL ROWS and passes scanAll true on the Tooling branch" time="0.000658125">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; runSoqlQuery ALL ROWS handling &gt; passes scanAll false and unchanged text when ALL ROWS is absent" time="0.000391916">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; displayTableResults &gt; should display no records message for empty results" time="0.000262209">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; displayTableResults &gt; should display table for results with records" time="0.000178833">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; displayTableResults &gt; should handle null records" time="0.000152084">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; displayTableResults &gt; should add newline before table output" time="0.000159791">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; isRecord &gt; should identify valid records through generateTableOutput" time="0.000081375">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; isRecord &gt; should handle invalid records through generateTableOutput" time="0.000052875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; flattenRecord &gt; should flatten records correctly through generateTableOutput" time="0.000102375">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; getAllFlattenedFields &gt; should collect all fields from multiple records" time="0.000099334">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; getAllFlattenedFields &gt; should preserve field order" time="0.000101292">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; getAllFlattenedFields &gt; should expand null relationship fields when a later record shows them as objects" time="0.000077875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Helper Functions &gt; getAllFlattenedFields &gt; should preserve SELECT column order when a primitive field is null in early records" time="0.000103458">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Edge Cases and Error Handling &gt; should handle circular references in objects" time="0.000067875">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Edge Cases and Error Handling &gt; should handle very large objects" time="0.000171709">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Edge Cases and Error Handling &gt; should handle objects with symbol properties" time="0.000055292">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; Edge Cases and Error Handling &gt; should handle objects with getter properties" time="0.000060166">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; executeDataQuery &gt; routes a query rejection through catchAllCause: appends formatted error and shows channel once" time="0.002726041">
+        </testcase>
+        <testcase classname="test/jest/commands/dataQuery.test.ts" name="DataQuery Pure Functions &gt; executeDataQuery &gt; appends completion message and shows channel once on success" time="0.002866542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/queryPlan.test.ts" timestamp="2026-09-24T04:33:21.430Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.007980208">
+        <testcase classname="test/jest/commands/queryPlan.test.ts" name="formatQueryPlanResults &gt; deduplicates identical notes across plans" time="0.002758541">
+        </testcase>
+        <testcase classname="test/jest/commands/queryPlan.test.ts" name="formatQueryPlanResults &gt; keeps distinct notes" time="0.000527708">
+        </testcase>
+        <testcase classname="test/jest/commands/queryPlan.test.ts" name="formatQueryPlanResults &gt; returns no-plans message for empty plans" time="0.000190292">
+        </testcase>
+        <testcase classname="test/jest/commands/queryPlan.test.ts" name="executeQueryPlan &gt; routes a request rejection through catchAllCause and shows channel once via ensuring" time="0.002907792">
+        </testcase>
+        <testcase classname="test/jest/commands/queryPlan.test.ts" name="executeQueryPlan &gt; shows channel exactly once on success (ensuring runs like finally)" time="0.000783875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/editor/allRows.test.ts" timestamp="2026-09-24T04:33:21.430Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.002813583">
+        <testcase classname="test/jest/editor/allRows.test.ts" name="stripAllRows &gt; strips a trailing ALL ROWS clause and sets scanAll true" time="0.00130325">
+        </testcase>
+        <testcase classname="test/jest/editor/allRows.test.ts" name="stripAllRows &gt; is case-insensitive and tolerates extra whitespace" time="0.000292666">
+        </testcase>
+        <testcase classname="test/jest/editor/allRows.test.ts" name="stripAllRows &gt; leaves a query without ALL ROWS unchanged with scanAll false" time="0.000196875">
+        </testcase>
+        <testcase classname="test/jest/editor/allRows.test.ts" name="stripAllRows &gt; does not strip ALL ROWS that is not at the end (e.g. inside a string literal)" time="0.000246708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/editor/metadataRequestGeneration.test.ts" timestamp="2026-09-24T04:33:21.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.011432375">
+        <testcase classname="test/jest/editor/metadataRequestGeneration.test.ts" name="metadata request generation &gt; publishes a response while its org generation is current" time="0.006946458">
+        </testcase>
+        <testcase classname="test/jest/editor/metadataRequestGeneration.test.ts" name="metadata request generation &gt; does not publish a late response after the org generation changes" time="0.001811541">
+        </testcase>
+        <testcase classname="test/jest/editor/metadataRequestGeneration.test.ts" name="metadata request generation &gt; finishes publication before a later org-change notification" time="0.001989">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/editor/queryRunner.test.ts" timestamp="2026-09-24T04:33:21.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.007439417">
+        <testcase classname="test/jest/editor/queryRunner.test.ts" name="runQuery ALL ROWS handling &gt; strips trailing ALL ROWS and passes scanAll true to conn.query" time="0.005115334">
+        </testcase>
+        <testcase classname="test/jest/editor/queryRunner.test.ts" name="runQuery ALL ROWS handling &gt; passes scanAll false and unchanged text when ALL ROWS is absent" time="0.001260334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/editor/soqlEditorProvider.test.ts" timestamp="2026-09-24T04:33:21.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.005157292">
+        <testcase classname="test/jest/editor/soqlEditorProvider.test.ts" name="SOQLEditorProvider &gt; register &gt; should register the custom editor provider" time="0.001726917">
+        </testcase>
+        <testcase classname="test/jest/editor/soqlEditorProvider.test.ts" name="SOQLEditorProvider &gt; resolveCustomTextEditor &gt; should configure the webview options and set the HTML content" time="0.001662417">
+        </testcase>
+        <testcase classname="test/jest/editor/soqlEditorProvider.test.ts" name="SOQLEditorProvider &gt; resolveCustomTextEditor &gt; should show information message if default org is not set" time="0.000489167">
+        </testcase>
+        <testcase classname="test/jest/editor/soqlEditorProvider.test.ts" name="SOQLEditorProvider &gt; disposeInstance &gt; should remove the instance from the list" time="0.000190542">
+        </testcase>
+        <testcase classname="test/jest/editor/soqlEditorProvider.test.ts" name="SOQLEditorProvider &gt; disposeInstance &gt; should not remove anything if instance not found" time="0.000218042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/lspClient/codeCompletion.test.ts" timestamp="2026-09-24T04:33:21.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.003556917">
+        <testcase classname="test/jest/lspClient/codeCompletion.test.ts" name="SOQL completion metadata describe integration &gt; expands the SObject placeholder from queryable catalog summaries" time="0.002133458">
+        </testcase>
+        <testcase classname="test/jest/lspClient/codeCompletion.test.ts" name="SOQL completion metadata describe integration &gt; expands the field placeholder from a catalog SObject description" time="0.000815291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/queryDataView/csvDataProvider.test.ts" timestamp="2026-09-24T04:33:21.431Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.008533125">
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="CsvDataProvider &gt; delegates CSV export to convertToCSV" time="0.002892">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="convertToCSV (Query Data View / SOQL Builder save) &gt; handles a simple flat SOQL-shaped result" time="0.000950875">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="convertToCSV (Query Data View / SOQL Builder save) &gt; preserves column order from field discovery and leaves missing cells empty" time="0.000513">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="convertToCSV (Query Data View / SOQL Builder save) &gt; handles subquery envelope with totalSize/done/records" time="0.000944583">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="convertToCSV (Query Data View / SOQL Builder save) &gt; returns empty string for empty data" time="0.000498333">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/csvDataProvider.test.ts" name="convertToCSV (Query Data View / SOQL Builder save) &gt; flattens nested sub-query rows into dotted columns" time="0.000886334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/queryDataView/queryDataFileService.test.ts" timestamp="2026-09-24T04:33:21.432Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002815542">
+        <testcase classname="test/jest/queryDataView/queryDataFileService.test.ts" name="Query Data File Service &gt; should save the file and return the file path" time="0.001713041">
+        </testcase>
+        <testcase classname="test/jest/queryDataView/queryDataFileService.test.ts" name="Query Data File Service &gt; strips .soql extension from the suggested save dialog filename" time="0.000417166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/soql-common/soqlComments.test.ts" timestamp="2026-09-24T04:33:21.432Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.002739">
+        <testcase classname="test/jest/soql-common/soqlComments.test.ts" name="Extract comments at the top of SOQL queries &gt; Handle single-line query with no comments" time="0.001164542">
+        </testcase>
+        <testcase classname="test/jest/soql-common/soqlComments.test.ts" name="Extract comments at the top of SOQL queries &gt; Handle multi-line query with no comments" time="0.000253833">
+        </testcase>
+        <testcase classname="test/jest/soql-common/soqlComments.test.ts" name="Extract comments at the top of SOQL queries &gt; Handle query with simple comments at the top" time="0.000181667">
+        </testcase>
+        <testcase classname="test/jest/soql-common/soqlComments.test.ts" name="Extract comments at the top of SOQL queries &gt; Handle query with multi-line comments at the top" time="0.000179125">
+        </testcase>
+        <testcase classname="test/jest/soql-common/soqlComments.test.ts" name="Extract comments at the top of SOQL queries &gt; Handle query with complex comments at the top" time="0.000171">
+        </testcase>
+    </testsuite>
+</testsuites>
