@@ -13,6 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Inspectable from 'effect/Inspectable';
 import * as Layer from 'effect/Layer';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
@@ -94,11 +95,11 @@ const withStart = (result: StartResult) => {
     const [standard] = Command.flatten(command);
     capture.command = standard;
     return Effect.acquireRelease(
-      result === 'hang'
-        ? Effect.succeed(fakeProcess({ hang: true, onKill: () => (capture.killed = true) }))
-        : 'platform' in result
-          ? Effect.fail(result.platform)
-          : Effect.succeed(fakeProcess(result)),
+      Match.value(result).pipe(
+        Match.when('hang', () => Effect.succeed(fakeProcess({ hang: true, onKill: () => (capture.killed = true) }))),
+        Match.when({ platform: Match.defined }, ({ platform }) => Effect.fail(platform)),
+        Match.orElse(success => Effect.succeed(fakeProcess(success)))
+      ),
       proc => Effect.ignore(proc.kill())
     );
   };

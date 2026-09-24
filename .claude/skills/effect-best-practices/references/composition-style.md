@@ -127,6 +127,10 @@ Effect chosen among 3+ cases → nested ternary nests visually. Build with
 `Match.value(...).pipe(Match.when(...), Match.orElse(...))` — each case one flat
 line, then continue the same pipe into tap/ignore/run.
 
+Enforced by `local/no-nested-effect-ternary` (`**/*.ts`, type-aware). Flags nested
+ternaries (3+ branches) typed as `Effect`. Non-Effect nested ternaries and a single
+Effect ternary stay allowed.
+
 ```typescript
 await Match.value(single.id).pipe(
   Match.when(
@@ -324,7 +328,7 @@ getServicesApi.pipe(
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |
 | Return the run's value | `return yield* effect.pipe(...)`; config-enforced by `returnEffectInGen` for a raw `return effect` (missing `yield*`). Binding the *yielded* value and returning it stays judgment (return expression isn't an Effect, so no rule fires); returning a local that still holds an un-run Effect does fire | bind to a local just to `return` it |
-| 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
+| 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)`; enforced by `local/no-nested-effect-ternary` (typed `Effect` only; a 2-branch Effect ternary and non-Effect nested ternaries stay allowed) | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
