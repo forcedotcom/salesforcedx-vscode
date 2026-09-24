@@ -50,8 +50,7 @@ export const createLocalApexTestSuiteFile = async (
 ): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
   const input = page.locator(EXPLORER_INLINE_INPUT);
-  await input.waitFor({ state: 'visible', timeout: 10_000 });
-  await input.fill(`main/default/testSuites/${testSuiteName}.testSuite-meta.xml`, { force: true });
+  await input.fill(`main/default/testSuites/${testSuiteName}.testSuite-meta.xml`);
   await page.keyboard.press('Enter');
 
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${testSuiteName}.testSuite-meta.xml"]`);

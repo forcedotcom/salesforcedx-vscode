@@ -36,8 +36,7 @@ export const STALE_FILTER_TAG = `@${APEX_TEST_CONTROLLER_ID}:stale`;
 export const STALE_AUTOCOMPLETE_OPTION = `${APEX_TEST_CONTROLLER_ID}:stale`;
 
 /**
- * Expands a tree row in the Test Explorer. Twistie click (force) needed for compact rows;
- * 400ms settle window matches the working pattern from prior test history (CI runs with
+ * Expands a tree row in the Test Explorer. The 400ms settle window matches the working pattern from prior test history (CI runs with
  * this pattern reliably reach the expanded state — see [run](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/26587894571)).
  */
 export const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
@@ -59,7 +58,8 @@ export const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<v
   }
 
   try {
-    await twistie.click({ force: true });
+    await expect(twistie).toBeVisible({ timeout: 5000 });
+    await twistie.click();
     await new Promise(resolve => setTimeout(resolve, 400));
   } catch {
     // continue

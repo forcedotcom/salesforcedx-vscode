@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { QUICK_INPUT_WIDGET } from './locators';
 
 /**
@@ -18,12 +18,23 @@ import { QUICK_INPUT_WIDGET } from './locators';
  * input keeps its value. Filter to visible widgets first so dismissed (`display: none`) ones are excluded; `.last()`
  * then disambiguates if more than one is genuinely open.
  *
- * Callers should still `waitFor({ state: 'attached' })` and `click`/`fill` with `{ force: true }`: from VS Code
- * 1.116 onward the widget can briefly fail visibility checks while animating in, and the `attached` wait on this
- * locator retries (re-evaluating `:visible`) until the live widget settles.
+ * `locator.fill()` and `locator.click()` already wait for visibility, and `fill()` also waits until the field is
+ * editable. `waitForActiveQuickInputTextField` is for `page.keyboard.type` and `locator.press()`, which do not.
+ * The `:visible` filter re-evaluates until the live widget settles after its opening animation.
  */
 export const activeQuickInputWidget = (page: Page): Locator =>
   page.locator(QUICK_INPUT_WIDGET).filter({ visible: true }).last();
 
 /** Text field of the active quick input. */
 export const activeQuickInputTextField = (page: Page) => activeQuickInputWidget(page).locator('input.input');
+
+/**
+ * Wait until the active quick input can take keyboard input.
+ * `fill()` and `click()` already perform this wait.
+ */
+export const waitForActiveQuickInputTextField = async (page: Page, timeout = 5000): Promise<Locator> => {
+  const input = activeQuickInputTextField(page);
+  await expect(input).toBeVisible({ timeout });
+  await expect(input).toBeEditable({ timeout });
+  return input;
+};

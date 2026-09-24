@@ -49,10 +49,9 @@ import {
 const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
 
 const getDiscoveredMethodPosition = async (className: string, methodName: string) => {
-  const { stdout: orgDisplayJson } = await execAsync(
-    `sf org display --target-org ${NON_TRACKING_ORG_ALIAS} --json`,
-    { env }
-  );
+  const { stdout: orgDisplayJson } = await execAsync(`sf org display --target-org ${NON_TRACKING_ORG_ALIAS} --json`, {
+    env
+  });
   const apiVersion = Number((JSON.parse(orgDisplayJson) as { result: { apiVersion: string } }).result.apiVersion);
   const query = apiVersion >= 68 ? 'testLevel=RunAllTestsInOrg' : 'showAllMethods=true';
   const restPath = `/services/data/v${apiVersion.toFixed(1)}/tooling/tests?${query}`;
@@ -119,7 +118,9 @@ public class ${className} {
       // leaf method, then double-click the method row — only a leaf with a range triggers VS Code's
       // "go to test" navigation, which opens the method's catalog document (the one place
       // the retrieve code lens renders).
-      await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
+      const twistie = classItem.first().locator('.monaco-tl-twistie');
+      await expect(twistie).toBeVisible({ timeout: 10_000 });
+      await twistie.click();
       const methodItem = findTestExplorerItem(page, methodName);
       await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
       await methodItem.dblclick();
