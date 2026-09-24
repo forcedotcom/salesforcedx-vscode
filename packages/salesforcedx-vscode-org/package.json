@@ -39,7 +39,6 @@
   "devDependencies": {
     "@effect/opentelemetry": "0.63.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "jest-junit": "17.0.0",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
