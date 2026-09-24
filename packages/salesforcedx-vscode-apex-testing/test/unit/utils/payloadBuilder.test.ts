@@ -1,0 +1,347 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { Mock as VitestMock, Mocked as VitestMocked } from 'vitest';
+import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
+import { buildTestPayload as buildTestPayloadEffect } from '../../../src/utils/payloadBuilder';
+
+// buildTestPayload is now an Effect.fn; run it to a Promise so the existing assertions hold.
+const buildTestPayload = (
+  testService: TestService,
+  testsToRun: vscode.TestItem[],
+  testNames: string[],
+  codeCoverage: boolean
+) => Effect.runPromise(buildTestPayloadEffect(testService, testsToRun, testNames, codeCoverage));
+
+describe('payloadBuilder', () => {
+  let mockTestService: VitestMocked<TestService>;
+
+  const createMockTestItem = (id: string, label: string): vscode.TestItem =>
+    ({
+      id,
+      label,
+      children: {
+        size: 0,
+        forEach: vi.fn(),
+        get: vi.fn(),
+        has: vi.fn(),
+        values: vi.fn().mockReturnValue([]),
+        keys: vi.fn(),
+        entries: vi.fn(),
+        [Symbol.iterator]: vi.fn()
+      }
+    }) as unknown as vscode.TestItem;
+
+  beforeEach(() => {
+    mockTestService = {
+      buildAsyncPayload: vi.fn()
+    } as any;
+  });
+
+  describe('buildTestPayload', () => {
+    it('should build payload for suite', async () => {
+      const suiteItem = createMockTestItem('suite:MyTestSuite', 'MyTestSuite');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [suiteItem], ['MyTestSuite'], false);
+
+      expect(result.hasSuite).toBe(true);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        undefined,
+        undefined,
+        'MyTestSuite',
+        undefined,
+        true // !codeCoverage (false)
+      );
+    });
+
+    it('should build payload for single class', async () => {
+      const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [classItem], ['MyTestClass'], false);
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(true);
+      expect(result.payload).toBe(mockPayload);
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        undefined,
+        'MyTestClass',
+        undefined,
+        undefined,
+        true // !codeCoverage (false)
+      );
+    });
+
+    it('should build payload for methods from same class', async () => {
+      const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['MyClass.testMethod1', 'MyClass.testMethod2'],
+        false
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        'MyClass.testMethod1,MyClass.testMethod2',
+        undefined,
+        undefined,
+        undefined,
+        true // !codeCoverage (false)
+      );
+    });
+
+    it('should build payload for methods from different classes', async () => {
+      const method1 = createMockTestItem('method:Class1.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:Class2.testMethod2', 'testMethod2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['Class1.testMethod1', 'Class2.testMethod2'],
+        false
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        'Class1.testMethod1,Class2.testMethod2',
+        undefined,
+        undefined,
+        undefined,
+        true // !codeCoverage (false)
+      );
+    });
+
+    it('should handle code coverage enabled', async () => {
+      const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      await buildTestPayload(mockTestService, [classItem], ['MyTestClass'], true);
+
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        undefined,
+        'MyTestClass',
+        undefined,
+        undefined,
+        false // !codeCoverage (true)
+      );
+    });
+
+    it('should build payload for multiple suites', async () => {
+      const suite1 = createMockTestItem('suite:MySuite1', 'MySuite1');
+      const suite2 = createMockTestItem('suite:MySuite2', 'MySuite2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [suite1, suite2], ['MySuite1', 'MySuite2'], false);
+
+      expect(result.hasSuite).toBe(true);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Multiple suites should be passed as comma-separated string
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        undefined,
+        undefined,
+        'MySuite1,MySuite2',
+        undefined,
+        true
+      );
+    });
+
+    it('should throw error if suite name cannot be determined', async () => {
+      const suiteItem = createMockTestItem('suite:', 'InvalidSuite');
+
+      await expect(buildTestPayload(mockTestService, [suiteItem], ['InvalidSuite'], false)).rejects.toThrow();
+    });
+
+    it('should throw error if payload is not built', async () => {
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(undefined);
+
+      await expect(buildTestPayload(mockTestService, [], [], false)).rejects.toThrow();
+    });
+
+    it('should throw error when mixing suite and class without methods', async () => {
+      const suiteItem = createMockTestItem('suite:MySuite', 'MySuite');
+      const classItem = createMockTestItem('class:MyClass', 'MyClass');
+
+      // When mixing suite and class without method expansion, payload cannot be built
+      await expect(
+        buildTestPayload(mockTestService, [suiteItem, classItem], ['MySuite', 'MyClass'], false)
+      ).rejects.toThrow();
+    });
+
+    it('should handle empty test names array', async () => {
+      const suiteItem = createMockTestItem('suite:MySuite', 'MySuite');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [suiteItem], [], false);
+
+      expect(result.hasSuite).toBe(true);
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalled();
+    });
+
+    it('should handle mixed class and method names', async () => {
+      const classItem = createMockTestItem('class:MyClass', 'MyClass');
+      const methodItem = createMockTestItem('method:OtherClass.testMethod', 'testMethod');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [classItem, methodItem],
+        ['MyClass', 'OtherClass.testMethod'],
+        false
+      );
+
+      expect(result.hasClass).toBe(false);
+      // When method names are present, always use them
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        'OtherClass.testMethod',
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+    });
+
+    it('should build payload for namespaced methods', async () => {
+      // Namespaced method: Namespace.Class.Method (3 parts)
+      const method1 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod2', 'testMethod2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['CodeBuilder.ApplicationTest.testMethod1', 'CodeBuilder.ApplicationTest.testMethod2'],
+        false
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload which correctly handles namespaces
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        'CodeBuilder.ApplicationTest.testMethod1,CodeBuilder.ApplicationTest.testMethod2',
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+    });
+
+    it('should build payload for mixed namespaced and non-namespaced methods', async () => {
+      const method1 = createMockTestItem('method:FooTest.testFoo', 'testFoo');
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testApp', 'testApp');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['FooTest.testFoo', 'CodeBuilder.ApplicationTest.testApp'],
+        true // code coverage enabled
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload which correctly handles namespaces
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        'FooTest.testFoo,CodeBuilder.ApplicationTest.testApp',
+        undefined,
+        undefined,
+        undefined,
+        false // code coverage enabled
+      );
+    });
+
+    it('should build payload for multiple classes', async () => {
+      const class1 = createMockTestItem('class:Class1', 'Class1');
+      const class2 = createMockTestItem('class:Class2', 'Class2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: 'RunSpecifiedTests'
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as VitestMock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [class1, class2], ['Class1', 'Class2'], false);
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Now delegates to buildAsyncPayload with comma-separated class names
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        'RunSpecifiedTests',
+        undefined,
+        'Class1,Class2',
+        undefined,
+        undefined,
+        true
+      );
+    });
+  });
+});

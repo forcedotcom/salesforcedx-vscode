@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="78" failures="0" errors="0" time="0.442787459">
+    <testsuite name="test/jest/codeBuilder/auth.test.ts" timestamp="2026-09-24T04:33:17.219Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.0075425">
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="resolveOrgBootEnv &gt; reads the token from show-access-token, NOT the redacted org display" time="0.002057792">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="resolveOrgBootEnv &gt; throws when instanceUrl is missing" time="0.0005">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="resolveOrgBootEnv &gt; throws when the access token is missing/null" time="0.002897083">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="resolveOrgBootEnv &gt; does not crash when show-access-token result is null (typeof null === object)" time="0.0003">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="resolveOrgBootEnv &gt; throws a diagnostic (command + snippet) when sf prints non-JSON stdout noise" time="0.000250917">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="bootEnvToDockerArgs &gt; maps to the CB image env keys the image reads at boot" time="0.000136417">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="bootEnvToDockerArgs &gt; includes extraEnv pairs" time="0.000338042">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/auth.test.ts" name="bootEnvToDockerArgs &gt; does not let extraEnv override the resolved core credentials" time="0.000231167">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/digest.test.ts" timestamp="2026-09-24T04:33:17.220Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="19" failures="0" errors="0" skipped="0" time="0.029180667">
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveExtensionRoot &gt; returns the dir itself when package.json is at the root (installed override shape)" time="0.002648208">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveExtensionRoot &gt; descends into extension/ when package.json is nested (raw .vsix shape)" time="0.000582166">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveExtensionRoot &gt; throws when no package.json is found" time="0.000551">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; returns null when main is absent (declarative extension)" time="0.000826333">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; returns null when main is empty string" time="0.000529291">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; resolves main to an absolute file path when it exists" time="0.00071925">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; throws UnresolvableEntrypointError when main is declared but missing (broken build/swap)" time="0.000464417">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; ignores browser and keys off main only (CB runs the desktop build)" time="0.000556958">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; throws when main uses `..` to escape the extension root" time="0.000732917">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; resolveEntrypoint strictness &gt; throws when main is an absolute path outside the root" time="0.000404125">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; computeExtensionDigest &gt; produces both digests when a bundle exists" time="0.00101525">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; computeExtensionDigest &gt; produces a null bundleDigest for a declarative extension" time="0.000321792">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; computeExtensionDigest &gt; changes bundleDigest when only the bundle bytes change (the false-green catch)" time="0.00125525">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; computeExtensionDigest &gt; is stable across the nested (.vsix) and flat (installed) layouts" time="0.001870125">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; canonical package.json digest (install-invariance) &gt; is identical despite key reordering + whitespace/indentation differences" time="0.000667875">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; canonical package.json digest (install-invariance) &gt; ignores an install-injected __metadata block" time="0.000802917">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; canonical package.json digest (install-invariance) &gt; strips __metadata only at the ROOT — a nested key named __metadata is meaningful content" time="0.000611916">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; canonical package.json digest (install-invariance) &gt; still differs when the meaningful content (version) changes" time="0.000538375">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/digest.test.ts" name="digest &gt; symlink escape &gt; throws when main is an in-root symlink pointing outside the extension root" time="0.00107225">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/lifecycle.test.ts" timestamp="2026-09-24T04:33:17.222Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.009880416">
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; pull issues docker pull" time="0.001155708">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; run builds the correct docker run argv (env, mount, port) and returns a healthy handle" time="0.001973125">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; run throws (with docker logs) AND tears down the container when readiness times out" time="0.005219083">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; checks the deadline before sleeping: timeoutMs 0 fast-fails without probing (no trailing sleep)" time="0.000319333">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; restart issues docker restart then waits for readiness" time="0.000226708">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/lifecycle.test.ts" name="lifecycle &gt; teardown removes the container and swallows errors" time="0.000157">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/manifest.test.ts" timestamp="2026-09-24T04:33:17.222Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.007338375">
+        <testcase classname="test/jest/codeBuilder/manifest.test.ts" name="manifest &gt; makeManifest maps swap results into schema-shaped entries" time="0.001677167">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/manifest.test.ts" name="manifest &gt; round-trips through disk (write → read) preserving null bundleDigest" time="0.001688834">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/manifest.test.ts" name="manifest &gt; throws on a missing manifest file" time="0.000589542">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/manifest.test.ts" name="manifest &gt; throws (validation) on a malformed manifest with a readable (formatted) schema error" time="0.001474042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/runner.test.ts" timestamp="2026-09-24T04:33:17.222Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.325876584">
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="runnerTimeoutMs &gt; defaults to a generous 10 minutes so a slow docker pull is not killed mid-progress" time="0.001027916">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="runnerTimeoutMs &gt; honors CB_RUNNER_TIMEOUT_MS" time="0.000229958">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="runnerTimeoutMs &gt; treats 0 as an explicit &quot;no timeout&quot;, not a fallback to the default" time="0.000274709">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="runnerTimeoutMs &gt; falls back to the default for a negative or non-numeric value" time="0.000122375">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="withTimeoutRetry &gt; returns the value on first success, no retry" time="0.000184">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="withTimeoutRetry &gt; retries ONLY on ETIMEDOUT, up to CB_RUNNER_MAX_ATTEMPTS, then bubbles the timeout" time="0.000461291">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="withTimeoutRetry &gt; does NOT retry a non-timeout failure (real non-zero exit) — throws immediately" time="0.000171625">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="withTimeoutRetry &gt; recovers if a later attempt succeeds after a transient timeout" time="0.000300833">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="withTimeoutRetry &gt; runs at least once even if CB_RUNNER_MAX_ATTEMPTS is 0/negative (never throws undefined)" time="0.000456708">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="defaultRunner &gt; returns stdout for a normal command" time="0.0178585">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/runner.test.ts" name="defaultRunner &gt; times out a hanging command and bubbles after the retries are exhausted" time="0.303488583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/seed.test.ts" timestamp="2026-09-24T04:33:17.223Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.003754625">
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; passes the fixture path as a container env var (not interpolated) and writes both files" time="0.001743709">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; honors a custom fixture path (still as an env token, safe for odd paths)" time="0.000212417">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; preflights jq inside the container so a missing jq fails loud, not opaque" time="0.000155083">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; validates the fixture path against the recorded mounts and throws on a mismatch" time="0.000468041">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; accepts a fixture path that matches a recorded mount" time="0.000247459">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/seed.test.ts" name="seedWorkspace &gt; appends docker logs to the error when the exec fails (diagnostic parity with lifecycle)" time="0.000153583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/swap.test.ts" timestamp="2026-09-24T04:33:17.224Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.037764042">
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; wipes BOTH the override dir and runtime symlink by publisher glob, first" time="0.005228791">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; docker cp&apos;s the extracted tree contents into a fresh &lt;prefix&gt;.&lt;name&gt;-&lt;version&gt; dir" time="0.0032235">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; emits a Manifest whose digests match the installed bytes (swap→verify reconciliation)" time="0.008033625">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; rejects an unsafe publisher prefix before touching the container" time="0.00055725">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; rejects a dot-only publisher prefix (would let the wipe glob reach the parent dir)" time="0.000246083">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; rejects a package.json name/version with shell metacharacters (no injection into bash -c)" time="0.003945875">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; fails loud when the extension package.json has no name/version (not a silent &quot;undefined&quot; dir)" time="0.001598042">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; fails fast on an empty vsixPaths list — no destructive wipe with nothing to install" time="0.000196">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; fails loud naming the source vsixPath when its package.json is malformed JSON" time="0.001847375">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; docker cp source ends in /. (loads a flat override dir, not a nested extension/)" time="0.002217916">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/swap.test.ts" name="swap &gt; installs an explicit list as-is (no dir scan, no dedup)" time="0.003983833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codeBuilder/verify.test.ts" timestamp="2026-09-24T04:33:17.224Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.02145025">
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; passes when the installed bytes match the manifest digest" time="0.005403583">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; issues the correct docker cp argv (seam correctness)" time="0.001839208">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails loud when a stale dir yields a digest mismatch (the false-green)" time="0.002402417">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails when the override bytes are correct but the runtime relink is missing (restart did not take)" time="0.00180825">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; passes when both the override bytes AND the runtime relink are present" time="0.00249075">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails when there is no override dir (swap did not install)" time="0.000439208">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails when a leftover second dir is present (duplicate)" time="0.000366417">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails when the only installed dir is a different version than the manifest" time="0.000770917">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; fails loud on an empty manifest (does not pass vacuously)" time="0.000452625">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; records a structured failure (not a throw) when docker cp fails" time="0.000445875">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; rejects an unsafe extension id before building the shell command" time="0.000652208">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; glob match isolation (-[0-9] anchor) &gt; does not match a longer sibling id (org vs org-browser)" time="0.000444625">
+        </testcase>
+        <testcase classname="test/jest/codeBuilder/verify.test.ts" name="verifyExtensions &gt; glob match isolation (-[0-9] anchor) &gt; DOES flag a genuine duplicate where a digit follows the boundary" time="0.000315166">
+        </testcase>
+    </testsuite>
+</testsuites>

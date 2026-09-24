@@ -6,14 +6,15 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { EOL } from 'node:os';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
@@ -23,8 +24,8 @@ import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';
 
 describe('User debug event', () => {
-  let warnToDebugConsoleStub: jest.SpyInstance;
-  let getLogLinesStub: jest.SpyInstance;
+  let warnToDebugConsoleStub: VitestMockInstance;
+  let getLogLinesStub: VitestMockInstance;
   let context: LogContext;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -37,8 +38,8 @@ describe('User debug event', () => {
 
   beforeEach(() => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    warnToDebugConsoleStub = jest.spyOn(ApexReplayDebug.prototype, 'warnToDebugConsole');
-    getLogLinesStub = jest
+    warnToDebugConsoleStub = vi.spyOn(ApexReplayDebug.prototype, 'warnToDebugConsole');
+    getLogLinesStub = vi
       .spyOn(LogContext.prototype, 'getLogLines')
       .mockReturnValue(['foo', 'bar', 'timestamp|USER_DEBUG|[3]|DEBUG|Next message']);
   });

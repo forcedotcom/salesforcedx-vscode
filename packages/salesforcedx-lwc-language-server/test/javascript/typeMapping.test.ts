@@ -5,17 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { collectBundleMetadata, BundleConfig, type ScriptFile } from '@lwc/metadata';
+import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { mapLwcMetadataToInternal } from '../../src/javascript/typeMapping';
 
 const isScriptFile = (file: any): file is ScriptFile => 'classes' in file;
 
 it('can map new metadata to old metadata', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'metadata.js'));
-  const fileBuffer = await vscode.workspace.fs.readFile(filepath);
-  const content = Buffer.from(fileBuffer).toString('utf8');
+  const content = await readFile(path.join(__dirname, 'fixtures', 'metadata.js'), 'utf8');
 
   const newMetadataOpts: BundleConfig = {
     type: 'internal',
@@ -38,9 +35,7 @@ it('can map new metadata to old metadata', async () => {
 });
 
 it('Should handle mapping when there is a property with only a setter', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'nogetter.js'));
-  const fileBuffer = await vscode.workspace.fs.readFile(filepath);
-  const content = Buffer.from(fileBuffer).toString('utf8');
+  const content = await readFile(path.join(__dirname, 'fixtures', 'nogetter.js'), 'utf8');
 
   const newMetadataOpts: BundleConfig = {
     type: 'internal',

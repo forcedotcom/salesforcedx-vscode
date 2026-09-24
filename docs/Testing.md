@@ -25,7 +25,7 @@ if you see a LOT of stubs, that's probably not a good unit test
 
 Use TS to make impossible states impossible (the compiler flags errors!) instead of writing unit tests to handle "does my function check for null handling" ?
 
-This repo uses `jest` for testing and it's probably the best place to start. [Docs](../contributing/tests.md)
+Unit tests: Vitest under `test/unit`. Start at [contributing/tests.md](../contributing/tests.md).
 
 ### coverage
 
@@ -81,5 +81,5 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 
 - [Build](./Build.md) - use packaged vsix for e2e tests
 - [Telemetry](./Telemetry.md) - telemetry implementation + testing telemetry output
-- [contributing/tests.md](../contributing/tests.md) - jest setup and running tests
+- [contributing/tests.md](../contributing/tests.md) - Vitest unit tests (`test/unit`) + run instructions
 - [contributing/e2e-instructions.md](../contributing/e2e-instructions.md) - Playwright e2e instructions

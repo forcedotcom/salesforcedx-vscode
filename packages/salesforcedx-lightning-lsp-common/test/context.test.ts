@@ -52,10 +52,10 @@ const buildContentMap = (root: string, structure: Record<string, string>): Map<s
 };
 
 const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: Map<string, string>): void => {
-  jest
-    .spyOn(accessor, 'getFileContent')
-    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
-  jest.spyOn(accessor, 'getFileStat').mockImplementation((uri: string) => {
+  vi.spyOn(accessor, 'getFileContent').mockImplementation((uri: string) =>
+    Promise.resolve(contentMap.get(normalizePath(uri)))
+  );
+  vi.spyOn(accessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
@@ -64,7 +64,7 @@ const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: 
     }
     return Promise.resolve(undefined);
   });
-  jest.spyOn(accessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
+  vi.spyOn(accessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
     const key = normalizePath(uri);
     const prefix = key ? `${key}/` : '';
     const entriesByFirst = new Map<string, 'file' | 'directory'>();
@@ -87,11 +87,11 @@ const mockAccessorWithVirtualFs = (accessor: LspFileSystemAccessor, contentMap: 
     );
     return Promise.resolve(entries);
   });
-  jest.spyOn(accessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+  vi.spyOn(accessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
     return Promise.resolve();
   });
-  jest.spyOn(accessor, 'findFilesWithGlobAsync').mockImplementation((pattern: string, basePath: NormalizedPath) => {
+  vi.spyOn(accessor, 'findFilesWithGlobAsync').mockImplementation((pattern: string, basePath: NormalizedPath) => {
     const base = normalizePath(basePath);
     const prefix = `${base}/`;
     const mm = new Minimatch(pattern, { matchBase: true });
@@ -115,7 +115,7 @@ const CORE_WORKSPACE_PATH = normalizePath(
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 
-beforeAll(() => {
+beforeEach(() => {
   delete process.env.P4PORT;
   delete process.env.P4CLIENT;
   delete process.env.P4USER;
@@ -355,7 +355,7 @@ describe('WorkspaceContext', () => {
     await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
 
     // Track writes by spying on updateFileContent
-    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    const writeSpy = vi.spyOn(freshAccessor, 'updateFileContent');
     writeSpy.mockClear(); // Clear any previous calls
 
     // Second configuration should detect semantic equality and skip the write
@@ -413,7 +413,7 @@ describe('WorkspaceContext', () => {
     const reformattedContent = JSON.stringify(generatedConfig, null, 4);
     await freshAccessor.updateFileContent(jsconfigPath, reformattedContent);
 
-    const writeSpy = jest.spyOn(freshAccessor, 'updateFileContent');
+    const writeSpy = vi.spyOn(freshAccessor, 'updateFileContent');
     writeSpy.mockClear();
 
     await context.configureProject();

@@ -6,14 +6,15 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { StackFrame } from '@vscode/debugadapter';
 import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
@@ -23,7 +24,7 @@ import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
 describe('Variable assignment event', () => {
-  let getUriFromSignatureStub: jest.SpyInstance;
+  let getUriFromSignatureStub: VitestMockInstance;
   let context: LogContext;
   let frameEntryHandleResult: boolean;
   const logFileName = 'foo.log';
@@ -54,9 +55,7 @@ describe('Variable assignment event', () => {
       beginState.handle(context);
       beginState = new VariableBeginState(LOCAL_PRIMITIVE_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
@@ -119,9 +118,7 @@ describe('Variable assignment event', () => {
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(LOCAL_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
@@ -263,9 +260,7 @@ describe('Variable assignment event', () => {
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(STATIC_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
@@ -384,9 +379,7 @@ describe('Variable assignment event', () => {
       assignState.handle(context);
       assignState = new VariableAssignmentState(PARENT_VARIABLE_ASSIGNMENT2.split('|'));
       assignState.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
@@ -459,9 +452,7 @@ describe('Variable assignment event', () => {
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       frameEntryHandleResult = state.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
@@ -532,9 +523,7 @@ describe('Variable assignment event', () => {
       frameEntryHandleResult = state.handle(context);
       const beginState = new VariableBeginState(NESTED_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = jest
-        .spyOn(LogContext.prototype, 'getUriFromSignature')
-        .mockReturnValue(uriFromSignature);
+      getUriFromSignatureStub = vi.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {

@@ -1,0 +1,253 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+// @ts-nocheck
+
+/**
+ * NOTE:
+ * This test file uses dynamic imports to allow Jest to properly mock VS Code dependencies.
+ * Due to TypeScript's ESM + moduleResolution=node16/nodenext behavior, dynamic imports require `.js` extensions,
+ * but Jest cannot resolve TypeScript sources with `.js` in the path.
+ *
+ * We suppress TS and ESLint rules here to enable working dynamic imports *without* breaking the test runtime.
+ * This is a known limitation in the TS + Jest ecosystem.
+ */
+
+import type { Mock as VitestMock } from 'vitest';
+import * as vscode from 'vscode';
+import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
+import { determineLocalReporters, determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
+import { LogStream } from '../../../../src/telemetry/reporters/logStream';
+import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';
+import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
+import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
+
+vi.mock('vscode');
+const vscodeMocked = vi.mocked(vscode);
+
+describe('determineReporters', () => {
+  let config: TelemetryReporterConfig;
+
+  beforeEach(() => {
+    // local logging
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('false') });
+    LogStreamConfig.isEnabledFor = vi.fn().mockReturnValue(false);
+    config = {
+      extName: 'salesforcedx-vscode',
+      version: '1.0.0',
+      aiKey: '1234567890',
+      userId: 'user123',
+      reporterName: 'salesforcedx-vscode',
+      isDevMode: false
+    };
+    // Mock Uri.file for LogStream
+    vscodeMocked.Uri.file.mockImplementation(filePath => ({
+      fsPath: filePath,
+      scheme: 'file',
+      authority: '',
+      path: filePath,
+      query: '',
+      fragment: '',
+      with: vi.fn(),
+      toString: vi.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: vi.fn().mockReturnValue({ scheme: 'file', path: filePath })
+    }));
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('should return an array', () => {
+    const reporters = determineReporters(config);
+    expect(reporters).toBeInstanceOf(Array);
+  });
+
+  describe('in dev mode', () => {
+    beforeEach(() => {
+      config.isDevMode = true;
+    });
+
+    afterEach(() => {
+      config.isDevMode = false;
+    });
+
+    it('should return no reporters', () => {
+      const reporters = determineReporters(config);
+      expect(reporters).toHaveLength(0);
+    });
+
+    it('should return TelemetryFile reporter when local logging is enabled', () => {
+      vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('true') });
+      const reporters = determineReporters(config);
+      expect(reporters).toHaveLength(1);
+      expect(reporters[0]).toBeInstanceOf(TelemetryFile);
+    });
+
+    it('should return empty reporters when O11Y_ENDPOINT is set but O11yReporter not initialized', () => {
+      const prev = process.env.O11Y_ENDPOINT;
+      process.env.O11Y_ENDPOINT = 'http://localhost:3002';
+      try {
+        expect(determineReporters(config)).toHaveLength(0);
+      } finally {
+        if (prev === undefined) delete process.env.O11Y_ENDPOINT;
+        else process.env.O11Y_ENDPOINT = prev;
+      }
+    });
+  });
+
+  describe('not in dev mode', () => {
+    it('should return AppInsights reporter when log stream is disabled', () => {
+      const reporters = determineReporters(config);
+      expect(reporters).toHaveLength(1);
+      expect(reporters[0]).toBeInstanceOf(AppInsights);
+    });
+
+    it('should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled', () => {
+      vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
+      LogStreamConfig.isEnabledFor = vi.fn().mockReturnValue(true);
+      const reporters = determineReporters(config);
+      expect(reporters).toHaveLength(2);
+      expect(reporters[0]).toBeInstanceOf(AppInsights);
+      expect(reporters[1]).toBeInstanceOf(LogStream);
+    });
+  });
+
+  it('keeps local reporters independent from production reporters', () => {
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('true') });
+    config.isDevMode = true;
+
+    const reporters = determineLocalReporters(config);
+
+    expect(reporters).toHaveLength(1);
+    expect(reporters[0]).toBeInstanceOf(TelemetryFile);
+    expect(reporters.some(reporter => reporter instanceof AppInsights)).toBe(false);
+  });
+});
+
+describe('initializeO11yReporter', () => {
+  const extName = 'test-ext';
+  const o11yUploadEndpoint = 'https://o11y.salesforce.com/upload';
+  const userId = 'user-abc';
+  const version = '2.0.0';
+  let O11yReporterMock: VitestMock;
+  let initializeMock: VitestMock;
+
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    vscodeMocked.workspace.getConfiguration = vi.fn().mockReturnValue({ get: vi.fn().mockReturnValue('false') });
+    // Mock O11yReporter and its initialize method
+    initializeMock = vi.fn().mockResolvedValue(undefined);
+    O11yReporterMock = vi.fn().mockImplementation(function () {
+      return { initialize: initializeMock };
+    });
+    vi.doMock('../../../../src/telemetry/reporters/o11yReporter', () => ({
+      O11yReporter: O11yReporterMock
+    }));
+    // Clear the require cache for determineReporters to pick up the new mock
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it('should initialize and add an O11yReporter instance', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    expect(O11yReporterMock).toHaveBeenCalledWith(
+      extName,
+      version,
+      o11yUploadEndpoint,
+      userId,
+      webUserId,
+      undefined,
+      false
+    );
+    expect(initializeMock).toHaveBeenCalledWith(extName);
+  });
+
+  it('should not re-initialize if already initialized', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    O11yReporterMock.mockClear();
+    initializeMock.mockClear();
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    expect(O11yReporterMock).not.toHaveBeenCalled();
+    expect(initializeMock).not.toHaveBeenCalled();
+  });
+
+  it('should wait for in-progress initialization if called concurrently', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
+    const { promise, resolve: resolveInit } = Promise.withResolvers<void>();
+    initializeMock.mockImplementation(() => promise);
+    const p1 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    const p2 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    resolveInit();
+    await Promise.all([p1, p2]);
+    expect(O11yReporterMock).toHaveBeenCalledTimes(1);
+    expect(initializeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clean up if initialization fails', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
+    initializeMock.mockRejectedValue(new Error('fail!'));
+    await expect(
+      initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId)
+    ).resolves.toBeUndefined();
+    // Try again, should attempt to re-initialize
+    initializeMock.mockResolvedValue(undefined);
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    expect(O11yReporterMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should add O11yReporter to reporters if initialized', async () => {
+    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } =
+      await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    const config = {
+      extName,
+      version,
+      aiKey: 'ai-key',
+      userId,
+      reporterName: 'test-reporter',
+      isDevMode: false
+    };
+    const reporters = reImportedDetermineReporters(config);
+    // Should include the O11yReporter instance
+    expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
+  });
+
+  it('should include the initialized O11yReporter in dev mode when O11Y_ENDPOINT is set', async () => {
+    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } =
+      await import('../../../../src/telemetry/reporters/determineReporters');
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, 'test-webUserId');
+    const prev = process.env.O11Y_ENDPOINT;
+    process.env.O11Y_ENDPOINT = 'http://localhost:3002';
+    try {
+      const reporters = reImportedDetermineReporters({
+        extName,
+        version,
+        aiKey: 'ai-key',
+        userId,
+        reporterName: 'test-reporter',
+        isDevMode: true
+      });
+      expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
+    } finally {
+      if (prev === undefined) delete process.env.O11Y_ENDPOINT;
+      else process.env.O11Y_ENDPOINT = prev;
+    }
+  });
+});

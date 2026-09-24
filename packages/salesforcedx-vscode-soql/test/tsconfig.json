@@ -5,5 +5,5 @@
     "composite": false
   },
   "include": ["**/*.ts"],
-  "exclude": ["jest/soql-builder-ui"]
+  "exclude": ["unit/soql-builder-ui"]
 }

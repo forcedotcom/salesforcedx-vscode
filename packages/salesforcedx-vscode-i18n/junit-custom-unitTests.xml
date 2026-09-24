@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="59" failures="0" errors="0" time="0.022429667">
+    <testsuite name="test/jest/envLocale.test.ts" timestamp="2026-09-24T04:33:14.062Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.002869792">
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns ja for a supported locale" time="0.000987084">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; lowercases before matching" time="0.000224292">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns undefined for an unsupported locale" time="0.000109666">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns undefined when the locale field is missing" time="0.00019125">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns undefined for undefined input" time="0.000231958">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns undefined for malformed JSON (no throw)" time="0.000170833">
+        </testcase>
+        <testcase classname="test/jest/envLocale.test.ts" name="parseNlsLocale &gt; returns undefined when locale is not a string" time="0.000171291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/i18n/advancedLocalization.test.ts" timestamp="2026-09-24T04:33:14.063Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="27" failures="0" errors="0" skipped="0" time="0.008471833">
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationConfig &gt; should create a singleton instance" time="0.001309959">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationConfig &gt; should recognize supported locales" time="0.000352541">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationConfig &gt; should handle non-string locale values" time="0.0003685">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationConfig &gt; should return the default locale" time="0.000179416">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should create separate instances for different instance names" time="0.0005065">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should return the same instance for the same instance name" time="0.000132417">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should register and load base message bundles" time="0.000240583">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should handle locale-specific message bundles" time="0.000154333">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should fall back to base messages for unsupported locales" time="0.000599541">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should fall back to locale from _locale key when locale property is not provided" time="0.0001735">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should throw error when no base messages are registered" time="0.000467333">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; MessageBundleManager &gt; should handle multiple locale bundles" time="0.000222">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should create separate instances for different instance names" time="0.00017675">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should return the same instance for the same instance name" time="0.000107709">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should provide access to message bundle manager" time="0.000135875">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should localize messages after registering bundles" time="0.000334167">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should handle fallback localization when no messages are registered" time="0.000185084">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should refresh localization when bundles are updated" time="0.000144583">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should handle locale-specific localization" time="0.000580125">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should access nls property lazily" time="0.000110709">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; serves JA when constructed with locale ja" time="0.000106791">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; serves base (en) when constructed without locale" time="0.000101167">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; first getInstance wins: later locale arg is ignored" time="0.000160667">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; LocalizationService &gt; should refresh localization and reinitialize nls" time="0.000124292">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; Integration Tests &gt; should handle complete localization workflow" time="0.000175541">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; Integration Tests &gt; should handle message bundle manager and service interaction" time="0.000122291">
+        </testcase>
+        <testcase classname="test/jest/i18n/advancedLocalization.test.ts" name="Advanced Localization Unit Tests &gt; Integration Tests &gt; should handle multiple services with different bundles" time="0.000121417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/i18n/localization.test.ts" timestamp="2026-09-24T04:33:14.065Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002403292">
+        <testcase classname="test/jest/i18n/localization.test.ts" name="Localization Unit Tests. &gt; Should be able to create an instance." time="0.001375334">
+        </testcase>
+        <testcase classname="test/jest/i18n/localization.test.ts" name="Localization Unit Tests. &gt; Should call though localize calls to delegate." time="0.000363417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/i18n/message.test.ts" timestamp="2026-09-24T04:33:14.066Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="18" failures="0" errors="0" skipped="0" time="0.005669584">
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; Should be able to create an instance." time="0.001169666">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; Should find the label in the primary messageBundle." time="0.000401083">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; Should find the label in the delegate messageBundle." time="0.000247292">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; label not found &gt; Should return error label if not found in either bundle." time="0.000540667">
+            <system-err>
+Missing label for key: notAKey
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; label not found &gt; Should return error label with args if not found in either bundle." time="0.000216833">
+            <system-err>
+Missing label for key: notAKey
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; label not found &gt; Should return error label if no delegate and no lable found." time="0.000191875">
+            <system-err>
+Missing label for key: notAKey
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; Should correctly populate args." time="0.000150291">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; Should ignore extra args." time="0.000168625">
+            <system-out>
+Arguments do not match for label &apos;e&apos;, got 5 but want 2
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; Should only partially populate if too few args are passed." time="0.000495542">
+            <system-out>
+Arguments do not match for label &apos;e&apos;, got 1 but want 2
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle %i (integer) format specifier." time="0.000213167">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle %d (decimal) format specifier." time="0.000131542">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle %f (float) format specifier." time="0.000082208">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle %j (JSON) format specifier." time="0.000081">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle mixed format specifiers." time="0.000073041">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle %% (literal percent) without consuming arguments." time="0.000110708">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle all format specifiers together." time="0.000130166">
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should count format specifiers correctly and ignore %%." time="0.000107792">
+            <system-out>
+Arguments do not match for label &apos;percentLiteralFormat&apos;, got 1 but want 0
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/i18n/message.test.ts" name="Message Unit Tests. &gt; passing arguments &gt; format specifiers &gt; Should handle partial population with mixed format specifiers." time="0.000098709">
+            <system-out>
+Arguments do not match for label &apos;multiTypeFormat&apos;, got 2 but want 4
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/nlsFactory.test.ts" timestamp="2026-09-24T04:33:14.067Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003015166">
+        <testcase classname="test/jest/nlsFactory.test.ts" name="createNls locale resolution &gt; serves JA when locale param is ja" time="0.001383709">
+        </testcase>
+        <testcase classname="test/jest/nlsFactory.test.ts" name="createNls locale resolution &gt; serves base when locale param is unsupported and no env" time="0.000325083">
+        </testcase>
+        <testcase classname="test/jest/nlsFactory.test.ts" name="createNls locale resolution &gt; serves base when no locale param and no env" time="0.000194">
+        </testcase>
+        <testcase classname="test/jest/nlsFactory.test.ts" name="createNls locale resolution &gt; resolves JA from VSCODE_NLS_CONFIG env when no param (node path)" time="0.000174584">
+        </testcase>
+        <testcase classname="test/jest/nlsFactory.test.ts" name="createNls locale resolution &gt; locale param wins over env" time="0.000118542">
+        </testcase>
+    </testsuite>
+</testsuites>

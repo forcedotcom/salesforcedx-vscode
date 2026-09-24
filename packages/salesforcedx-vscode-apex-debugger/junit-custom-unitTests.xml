@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="13" failures="0" errors="0" time="0.042800624">
+    <testsuite name="test/jest/activation.test.ts" timestamp="2026-09-24T04:31:33.969Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.018729041">
+        <testcase classname="test/jest/activation.test.ts" name="activateEffect &gt; registers the Effect-based commands" time="0.006720834">
+        </testcase>
+        <testcase classname="test/jest/activation.test.ts" name="activateEffect &gt; fails with UserCancellationError when exception selection is dismissed" time="0.006762625">
+            <system-out>
+timestamp=2026-09-24T04:31:33.953Z level=INFO fiber=#19 message=&quot;Retrieved exception breakpoint info from language server&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/activation.test.ts" name="activateEffect &gt; fails with UserCancellationError when break mode selection is dismissed" time="0.002702541">
+            <system-out>
+timestamp=2026-09-24T04:31:33.959Z level=INFO fiber=#35 message=&quot;Retrieved exception breakpoint info from language server&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/activation.test.ts" name="activateEffect &gt; updates the breakpoint for successful selections" time="0.001816583">
+            <system-out>
+timestamp=2026-09-24T04:31:33.961Z level=INFO fiber=#51 message=&quot;Retrieved exception breakpoint info from language server&quot;
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/debuggerStop.test.ts" timestamp="2026-09-24T04:31:33.970Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.02054725">
+        <testcase classname="test/jest/commands/debuggerStop.test.ts" name="debuggerStop &gt; shows &quot;none found&quot; and does NOT update when the query returns 0 records" time="0.008953084">
+        </testcase>
+        <testcase classname="test/jest/commands/debuggerStop.test.ts" name="debuggerStop &gt; detaches the session and shows the success toast when the query returns a record" time="0.003970875">
+        </testcase>
+        <testcase classname="test/jest/commands/debuggerStop.test.ts" name="debuggerStop &gt; surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects" time="0.003093167">
+        </testcase>
+        <testcase classname="test/jest/commands/debuggerStop.test.ts" name="debuggerStop &gt; builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org" time="0.001407167">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" timestamp="2026-09-24T04:31:33.970Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003524333">
+        <testcase classname="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" name="isvDebugBootstrap pure helpers &gt; parseOrgNamespaceQueryResultJson &gt; returns the NamespacePrefix from the first record" time="0.00143875">
+        </testcase>
+        <testcase classname="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" name="isvDebugBootstrap pure helpers &gt; parseOrgNamespaceQueryResultJson &gt; returns empty string when NamespacePrefix is null" time="0.000353375">
+        </testcase>
+        <testcase classname="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" name="isvDebugBootstrap pure helpers &gt; parseOrgNamespaceQueryResultJson &gt; returns empty string when there are no records" time="0.000124625">
+        </testcase>
+        <testcase classname="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" name="isvDebugBootstrap pure helpers &gt; parsePackageInstalledListJson &gt; maps subscriber-package fields into installed-package descriptors" time="0.000523458">
+        </testcase>
+        <testcase classname="test/jest/commands/isvdebugging/bootstrapCmd.test.ts" name="isvDebugBootstrap pure helpers &gt; parsePackageInstalledListJson &gt; returns an empty array when no packages are installed" time="0.000174458">
+        </testcase>
+    </testsuite>
+</testsuites>

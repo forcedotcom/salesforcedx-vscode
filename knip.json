@@ -5,7 +5,7 @@
     "packages/salesforcedx-aura-language-server/src/tern/**",
     "packages/salesforcedx-aura-language-server/src/tern-server/**",
     "packages/*/**/__tests__/fixtures/**",
-    "packages/salesforcedx-vscode-apex/test/jest/testUtils/recordingTracer.ts",
+    "packages/salesforcedx-vscode-apex/test/unit/testUtils/recordingTracer.ts",
     ".github/actions/*/lib/**",
     "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",

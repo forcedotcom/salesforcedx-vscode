@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="300" failures="0" errors="0" time="4.646416544">
+    <testsuite name="test/api/publicApi.test.ts" timestamp="2026-09-24T04:33:06.360Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002051208">
+        <testcase classname="test/api/publicApi.test.ts" name="@salesforce/apex-node public API &gt; exports the target major-version runtime symbols" time="0.001183416">
+        </testcase>
+        <testcase classname="test/api/publicApi.test.ts" name="@salesforce/apex-node public API &gt; restricts consumers to the target major-version package entry point" time="0.000229041">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/execute/executeService.test.ts" timestamp="2026-09-24T04:33:06.361Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.198454542">
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should execute and display successful result in correct format" time="0.032550084">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should execute and display successful result when no DebuggingInfo header" time="0.037817416">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should execute and display runtime issue in correct format" time="0.043634625">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should execute and display compile issue in correct format" time="0.013485834">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should handle access token session id error correctly" time="0.011347083">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should raise an error when the source file is not found" time="0.012248417">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should handle Buffer input correctly" time="0.007374334">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should throw an error if no option is specified" time="0.007285375">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should throw an error if user input fails" time="0.010361625">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should process user input correctly" time="0.013253667">
+        </testcase>
+        <testcase classname="test/execute/executeService.test.ts" name="Apex Execute Tests &gt; should throw error if user is idle" time="0.008034666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/execute/utils.test.ts" timestamp="2026-09-24T04:33:06.362Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.004198542">
+        <testcase classname="test/execute/utils.test.ts" name="encodeBody for execute request &gt; should correctly return encoded body given the parameters" time="0.002312209">
+        </testcase>
+        <testcase classname="test/execute/utils.test.ts" name="encodeBody for execute request &gt; should correctly return encoded body given parameters with characters that must be escaped" time="0.000436709">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/logs/logService.test.ts" timestamp="2026-09-24T04:33:06.362Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="10" failures="0" errors="0" skipped="0" time="0.217580917">
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should return correct number of logs" time="0.024450167">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should return correct log given log id" time="0.020011625">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should handle exceeding log limit" time="0.009053">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should handle invalid id" time="0.0126085">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should throw an error if 0 logs are requested" time="0.0223665">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should store logs in the directory" time="0.062559792">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should successfully create a .log file" time="0.024233708">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; should throw an error if numberOfLogs or logId are not given to getLogs" time="0.006980708">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; getLogRecords &gt; should return log records given a specific number of logs" time="0.015753417">
+        </testcase>
+        <testcase classname="test/logs/logService.test.ts" name="Apex Log Service Tests &gt; getLogRecords &gt; should return all log records" time="0.017906375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/coverageReporter.test.ts" timestamp="2026-09-24T04:33:06.363Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.065905125">
+        <testcase classname="test/reporters/coverageReporter.test.ts" name="coverageReports &gt; should produce coverage report" time="0.043516666">
+        </testcase>
+        <testcase classname="test/reporters/coverageReporter.test.ts" name="coverageReports &gt; should produce coverage report using default options" time="0.007163417">
+        </testcase>
+        <testcase classname="test/reporters/coverageReporter.test.ts" name="coverageReports &gt; should handle aggregate object with no coverage entries" time="0.004967334">
+        </testcase>
+        <testcase classname="test/reporters/coverageReporter.test.ts" name="coverageReports &gt; should handle non-existent sourceDir" time="0.008976708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/humanReporter.test.ts" timestamp="2026-09-24T04:33:06.363Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.071009625">
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results with failures" time="0.010142041">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format tests with 0 failures" time="0.000572792">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results with code coverage" time="0.000485792">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results with setup methods" time="0.000477959">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should not display test setup summary if class has no setup methods" time="0.000436833">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should not display test setup summary if concise is true" time="0.000247625">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results with detailed coverage specified" time="0.0004395">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results with failures with detailed coverage specified" time="0.000497625">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results and skip successful tests if concise is true" time="0.000809625">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should format test results and not display coverage results if concise is true" time="0.001245875">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should show category column when showCategory is true" time="0.000957291">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should not show category column when showCategory is false" time="0.000926375">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should show category column in detailed coverage when showCategory is true" time="0.00100575">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should not show category column in detailed coverage when showCategory is false" time="0.003280875">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should show category column with concise mode when showCategory is true" time="0.00061225">
+        </testcase>
+        <testcase classname="test/reporters/humanReporter.test.ts" name="Human Reporter Tests &gt; should show category column in detailed coverage with concise mode when showCategory is true" time="0.011606834">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/junitFormatTransformer.test.ts" timestamp="2026-09-24T04:33:06.364Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.020691834">
+        <testcase classname="test/reporters/junitFormatTransformer.test.ts" name="JUnitFormatTransformer &gt; should format test results with failures" time="0.015251792">
+        </testcase>
+        <testcase classname="test/reporters/junitFormatTransformer.test.ts" name="JUnitFormatTransformer &gt; should format tests with 0 failures" time="0.000802041">
+        </testcase>
+        <testcase classname="test/reporters/junitFormatTransformer.test.ts" name="JUnitFormatTransformer &gt; should format tests with setup methods" time="0.000788667">
+        </testcase>
+        <testcase classname="test/reporters/junitFormatTransformer.test.ts" name="JUnitFormatTransformer &gt; should format test results with undefined or empty values" time="0.001372375">
+        </testcase>
+        <testcase classname="test/reporters/junitFormatTransformer.test.ts" name="JUnitFormatTransformer &gt; should format test results with code coverage" time="0.00091725">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/junitReporter.test.ts" timestamp="2026-09-24T04:33:06.364Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.005935959">
+        <testcase classname="test/reporters/junitReporter.test.ts" name="JUnit Reporter Tests &gt; should format test results with failures" time="0.003993959">
+        </testcase>
+        <testcase classname="test/reporters/junitReporter.test.ts" name="JUnit Reporter Tests &gt; should format tests with 0 failures" time="0.00031975">
+        </testcase>
+        <testcase classname="test/reporters/junitReporter.test.ts" name="JUnit Reporter Tests &gt; should format tests with setup methods" time="0.000265667">
+        </testcase>
+        <testcase classname="test/reporters/junitReporter.test.ts" name="JUnit Reporter Tests &gt; should format test results with undefined or empty values" time="0.000272667">
+        </testcase>
+        <testcase classname="test/reporters/junitReporter.test.ts" name="JUnit Reporter Tests &gt; should format test results with code coverage" time="0.000319083">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/markdownTextFormatTransformer.test.ts" timestamp="2026-09-24T04:33:06.364Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="18" failures="0" errors="0" skipped="0" time="0.060557">
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; format differences &gt; should produce different output for markdown vs text formats" time="0.008332167">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; summary accuracy &gt; should accurately reflect test counts in summary" time="0.009462625">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; summary accuracy &gt; should format duration correctly" time="0.014113834">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; sorting behavior &gt; should sort by runtime (slowest first) when sortOrder is runtime" time="0.00274675">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; sorting behavior &gt; should sort by severity (failures first) when sortOrder is severity" time="0.000919125">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; threshold warnings &gt; should flag tests exceeding performance threshold with correct values" time="0.015966583">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; threshold warnings &gt; should flag tests below coverage threshold with correct percentage" time="0.000646167">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; threshold warnings &gt; should not flag tests that meet thresholds" time="0.000753208">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; failure formatting &gt; should format failure details with message and stack trace" time="0.000619208">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; failure formatting &gt; should handle failures without message or stack trace" time="0.000305083">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; code coverage display &gt; should not markdown-escape underscores in coverage table code cells" time="0.000303208">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; code coverage display &gt; should display coverage table with correct percentages" time="0.000399584">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; code coverage display &gt; should not display coverage when codeCoverage option is false" time="0.000221166">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; edge cases &gt; should handle empty test results" time="0.000244625">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; edge cases &gt; should handle missing optional fields gracefully" time="0.000190041">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; edge cases &gt; should use default options when none provided" time="0.00024625">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; timestamp formatting &gt; should use provided timestamp" time="0.000477833">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextFormatTransformer.test.ts" name="MarkdownTextFormatTransformer &gt; timestamp formatting &gt; should use current time when timestamp not provided" time="0.000296334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/markdownTextReporter.test.ts" timestamp="2026-09-24T04:33:06.366Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.005291417">
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should escape ampersands" time="0.001360625">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should escape angle brackets" time="0.002142083">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should escape double quotes" time="0.000162417">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should escape single quotes" time="0.000192083">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should escape a string with mixed html characters" time="0.000140125">
+        </testcase>
+        <testcase classname="test/reporters/markdownTextReporter.test.ts" name="Markdown text reporter utilities &gt; escapeHtml &gt; should leave strings without html characters unchanged" time="0.000062042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/tapFormatTransformer.test.ts" timestamp="2026-09-24T04:33:06.366Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.006786167">
+        <testcase classname="test/reporters/tapFormatTransformer.test.ts" name="TapFormatTransformer Tests &gt; should format test results" time="0.005177041">
+        </testcase>
+        <testcase classname="test/reporters/tapFormatTransformer.test.ts" name="TapFormatTransformer Tests &gt; should format test results and epilog" time="0.000979542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/reporters/tapReporter.test.ts" timestamp="2026-09-24T04:33:06.366Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.006226541">
+        <testcase classname="test/reporters/tapReporter.test.ts" name="TAP Reporter Tests &gt; should format test results" time="0.003605417">
+        </testcase>
+        <testcase classname="test/reporters/tapReporter.test.ts" name="TAP Reporter Tests &gt; should format test results and epilog" time="0.000458125">
+        </testcase>
+        <testcase classname="test/reporters/tapReporter.test.ts" name="TAP Reporter Tests &gt; should report the correct number of test points" time="0.000403125">
+        </testcase>
+        <testcase classname="test/reporters/tapReporter.test.ts" name="TAP Reporter Tests &gt; should report test outcome" time="0.000747917">
+        </testcase>
+        <testcase classname="test/reporters/tapReporter.test.ts" name="TAP Reporter Tests &gt; should report test diagnostics" time="0.000161042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/streaming/streamingClient.test.ts" timestamp="2026-09-24T04:33:06.366Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="22" failures="0" errors="0" skipped="1" time="0.41959525">
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should build a valid streaming url" time="0.029736667">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should initialize Faye Client" time="0.039798459">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should initialize Faye Client header" time="0.035501959">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should initialize Faye Client throws authentication error" time="0.014602208">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should force refresh the connection during init" time="0.01213825">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should disconnect when subscribe throws an error" time="0.022475709">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should disconnect when subscribe action throws an error" time="0.019159208">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should capture test run ID in subscribe" time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should throw error if handler can not find test records" time="0.026641334">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should not run a query if the subscribed test run id does not match the message test run id" time="0.053404875">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should return ApexTestQueueItem records from handler function" time="0.019964125">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should return no results when a ApexTestQueueItem record has a pending status" time="0.009031">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should report streamingTransportUp progress" time="0.012964708">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should report streamingTransportDown progress" time="0.006835666">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should report streamingProcessingTestRun progress" time="0.007450833">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should report test queue progress" time="0.009498416">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should handle 401::Authentication invalid error" time="0.013581792">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should handle handshake advice" time="0.007209667">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should handle other 403 errors" time="0.009122125">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should call query test queue items at an interval" time="0.010404458">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should return the run id, disconnect and clear interval on timeout" time="0.022179792">
+        </testcase>
+        <testcase classname="test/streaming/streamingClient.test.ts" name="Streaming API Client &gt; should return the results, disconnect and clear interval on test completion" time="0.02762125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/streaming/testResultStringifyStream.test.ts" timestamp="2026-09-24T04:33:06.368Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.012980792">
+        <testcase classname="test/streaming/testResultStringifyStream.test.ts" name="TestResultStringifyStream &gt; should transform TestResult into a JSON string with empty tests and no coverage" time="0.008537583">
+        </testcase>
+        <testcase classname="test/streaming/testResultStringifyStream.test.ts" name="TestResultStringifyStream &gt; should transform TestResult into a JSON string with tests and no coverage" time="0.001378042">
+        </testcase>
+        <testcase classname="test/streaming/testResultStringifyStream.test.ts" name="TestResultStringifyStream &gt; should transform TestResult into a JSON string with tests and coverage both present" time="0.002117291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/asyncTests.test.ts" timestamp="2026-09-24T04:33:06.368Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="42" failures="0" errors="0" skipped="0" time="1.612149166">
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should run a successful test" time="0.059665">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should throw an error on refresh token issue" time="0.020627833">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return flow test formatted test results" time="0.066690875">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return correct summary outcome for single skipped test" time="0.008601375">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return formatted test results" time="0.009375417">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should report progress when checking test summary for run" time="0.009654542">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return formatted test results with diagnostics" time="0.02624375">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return failed test results with missing error info" time="0.007281542">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return an error if no test results are found" time="0.008591083">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return an error if invalid test run id was provided" time="0.009738125">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return an error if invalid test run id prefix was provided" time="0.010172791">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should return formatted test results with code coverage" time="0.010763125">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; should report progress for aggregating code coverage" time="0.007452667">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should split into multiple queries if query is longer than char limit" time="0.009406875">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should make a single api call if query is under char limit" time="0.026723">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should format multiple queries correctly" time="0.04270625">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should format query at query limit correctly" time="0.019279166">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should split the queue into chunks of 500 records" time="0.020939542">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Check Query Limits &gt; should format single query correctly" time="0.038748">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Abort Test Runs &gt; should send requests to abort test run" time="0.047923792">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Abort Test Runs &gt; should abort test run on cancellation requested" time="1.036364833">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Format Test Errors &gt; should format test error when running asynchronous tests" time="0.008960125">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Format Test Errors &gt; should format test error when building asynchronous payload" time="0.008750084">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Report Test Run Status &gt; should subscribe to test run for run still in progress" time="0.009665375">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Report Test Run Status &gt; should query for test run results if run is complete" time="0.007303666">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Report Test Run Status &gt; should format results with retrieved test run summary" time="0.007629584">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Supports Test Setup Feature &gt; should verify org&apos;s api version supports test setup feature" time="0.006879459">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Supports Test Setup Feature &gt; should handle absence of TestSetupTime field and modify query accordingly" time="0.007116084">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Polling Client Timeout &gt; should return test run ID when polling client times out" time="0.019236084">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; Polling Client Timeout &gt; should handle PollingClientTimeout error gracefully" time="0.018439375">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Run Apex tests asynchronously &gt; run Apex and Flow tests in the same test run &gt; should query the correct test results objects depending on the category" time="0.007788">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="elapsedTime &gt; should log the entry and exit of the method" time="0.002170209">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="elapsedTime &gt; should throw the error if the method throws an error" time="0.001424667">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create test-run-id.txt if no result format nor fileInfos are specified" time="0.000860542">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should still create test-run-id.txt if result format is specified with TestRunId result" time="0.000428208">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should still create test-run-id.txt if code coverage is specified with TestRunId result" time="0.000302416">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create the json files if json result format is specified" time="0.002202">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create the junit result files if junit result format is specified" time="0.001294083">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create the tap result files if result format is specified" time="0.00102775">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should throw an error if unexpected type is specified for result format" time="0.000368584">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create code coverage files if set to true" time="0.000871792">
+        </testcase>
+        <testcase classname="test/tests/asyncTests.test.ts" name="Create Result Files &gt; should create any files provided in fileInfos" time="0.000685583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/buildClassPayload.test.ts" timestamp="2026-09-24T04:33:06.371Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.148228667">
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should build async payload for single class without namespace" time="0.019366875">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should build async payload for single class with org namespace" time="0.018389625">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should build async payload for single class with installed package namespace" time="0.024307291">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should build async payload for multiple classes with mixed namespaces" time="0.012817292">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should build async payload for class with namespace not in org" time="0.007431166">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildAsyncClassPayload with namespaces &gt; should only query namespaces once for multiple classes" time="0.01136625">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildSyncPayload with class namespaces &gt; should build sync payload for class with org namespace" time="0.014591458">
+        </testcase>
+        <testcase classname="test/tests/buildClassPayload.test.ts" name="buildSyncPayload with class namespaces &gt; should build sync payload for class with installed package namespace" time="0.038961">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/codeCoverage.test.ts" timestamp="2026-09-24T04:33:06.371Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.200209416">
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return org wide coverage result" time="0.037484334">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return 0% org wide coverage when no records are available" time="0.039606792">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return aggregate code coverage result and testRunCoverage" time="0.045536542">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return aggregate code coverage result with all records from AggregateCodeCoverage table" time="0.009849375">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return per class code coverage for multiple test classes" time="0.014370291">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return per class code coverage for test that covers multiple classes" time="0.014119958">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should return per class coverage for test that covers 0 classes" time="0.016585375">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should split the PerClassCodeCoverage queue into chunks of 500 records" time="0.011989625">
+        </testcase>
+        <testcase classname="test/tests/codeCoverage.test.ts" name="Get code coverage results &gt; should split the AggregateCodeCoverage queue into chunks of 500 records" time="0.009709709">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/diagnosticUtil.test.ts" timestamp="2026-09-24T04:33:06.372Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.003246292">
+        <testcase classname="test/tests/diagnosticUtil.test.ts" name="Format Test Errors &gt; should add formatted text to all invalid permissions errors" time="0.001151208">
+        </testcase>
+        <testcase classname="test/tests/diagnosticUtil.test.ts" name="Format Test Errors &gt; should return unchanged error if not of type invalid permissions" time="0.001334916">
+        </testcase>
+        <testcase classname="test/tests/diagnosticUtil.test.ts" name="Format Test Errors &gt; should preserve original name and stack values after formatting error" time="0.000141666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/elapsedTime.test.ts" timestamp="2026-09-24T04:33:06.372Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.030318167">
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should log the elapsed time of a method" time="0.007541916">
+        </testcase>
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should log the elapsed time of a method that returns a promise" time="0.016454708">
+        </testcase>
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should log elapsed time of a method when it throws an error" time="0.001597292">
+        </testcase>
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should log elapsed time of a method when a promise throws an error" time="0.00086625">
+        </testcase>
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should log elapsed time of a method when a promise is rejected" time="0.00112275">
+        </testcase>
+        <testcase classname="test/tests/elapsedTime.test.ts" name="elapsedTime &gt; should suppress logging if not the same logger level returns false" time="0.000716416">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/payloadUtil.test.ts" timestamp="2026-09-24T04:33:06.373Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="27" failures="0" errors="0" skipped="0" time="0.384783833">
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests without namespace" time="0.025219292">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for test with namespace when org returns 0 namespaces" time="0.014392875">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests with namespace" time="0.018316416">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests with namespace from installed package" time="0.011099167">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should only query for namespaces once when multiple tests are specified" time="0.009161875">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests with 3 parts" time="0.039744333">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests with only classname" time="0.020862209">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for tests with only classid" time="0.007578375">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for class with only classname" time="0.010355208">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for class specified by id" time="0.018022542">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for class specified by id with incorrect number of digits" time="0.006793459">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for class with namespace" time="0.007751458">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should build async payload for suite" time="0.009458917">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should include skipCodeCoverage in async payload when tests are provided" time="0.005793625">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should include skipCodeCoverage in async payload when classNames are provided" time="0.038405208">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should include skipCodeCoverage in async payload when suiteNames are provided" time="0.0228585">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should include skipCodeCoverage as false in async payload when skipCodeCoverage is false" time="0.007079792">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build async payload &gt; should include skipCodeCoverage in async payload when classNames with category are provided" time="0.006420708">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should build synchronous payload for tests without namespace" time="0.007919791">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should build synchronous payload for tests with namespace" time="0.012350167">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should build synchronous payload for class without namespace" time="0.008988458">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should build synchronous payload for class with namespace" time="0.009695708">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should throw an error if multiple classes are specified" time="0.017482459">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should throw an error if no tests or classes are specified" time="0.019439375">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should include skipCodeCoverage in sync payload when tests are provided" time="0.013725709">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should include skipCodeCoverage as false in sync payload when skipCodeCoverage is false" time="0.007710416">
+        </testcase>
+        <testcase classname="test/tests/payloadUtil.test.ts" name="Build sync payload &gt; should include skipCodeCoverage in sync payload when classnames with category are provided" time="0.006896291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/syncTests.test.ts" timestamp="2026-09-24T04:33:06.374Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.223561917">
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; should run a successful test" time="0.077097292">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; should run a test with failures" time="0.041621666">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; should run a test with code coverage" time="0.011252375">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Create Synchronous Result Files &gt; should create json result file without testRunId for sync runs" time="0.0307395">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Create Synchronous Result Files &gt; should create junit result file without testRunId for sync runs" time="0.019440958">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Format Test Errors &gt; should format test error when running synchronous tests" time="0.010790083">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Test Category Support in Sync Tests &gt; should assign Apex category to regular Apex tests" time="0.009966875">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Test Category Support in Sync Tests &gt; should assign Flow category to Flow tests" time="0.009170792">
+        </testcase>
+        <testcase classname="test/tests/syncTests.test.ts" name="Run Apex tests synchronously &gt; Test Category Support in Sync Tests &gt; should assign correct categories for namespaced tests" time="0.011823625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/testService.test.ts" timestamp="2026-09-24T04:33:06.375Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="24" failures="0" errors="0" skipped="0" time="0.344128833">
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve apex class id for non-namespaced class" time="0.048404833">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve apex class id for namespaced class (ns.ShortName)" time="0.022305084">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve apex class ids for multiple classes" time="0.012705209">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve 0 apex class ids when given 0 classes" time="0.010389625">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should throw an error if a given apex class does not exist" time="0.013683542">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should throw an error if suitename or suite id was not provided" time="0.017597166">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve associated suite id if suitename is provided and return tests in suite" time="0.032477834">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should return tests from suite when suite id is provided" time="0.012561042">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; should retrieve all suites associated with a given username" time="0.014672">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Suite &gt; should create test suite given a suitename that does not exist" time="0.022145792">
+            <system-out>
+Added Apex class testClassOne to your Apex test suite testSuite
+Added Apex class testClassTwo to your Apex test suite testSuite
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Suite &gt; should retrieve associated suite id for suitename that exists" time="0.006591667">
+            <system-out>
+Added Apex class testClassOne to your Apex test suite oldSuite
+Added Apex class testClassTwo to your Apex test suite oldSuite
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Suite &gt; should log message if a test class already exists in given suite" time="0.006904875">
+            <system-out>
+Apex test class testClassOne already exists in Apex test suite oldSuite
+Apex test class testClassTwo already exists in Apex test suite oldSuite
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Suite &gt; should add test class to suite if class does not exist" time="0.014574208">
+            <system-out>
+Added Apex class testClassOne to your Apex test suite oldSuite
+Added Apex class testClassTwo to your Apex test suite oldSuite
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Payload &gt; should add all the tests specified even when some belong to the same class" time="0.006966375">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Payload &gt; should correctly identify and separate Flow tests from Apex tests" time="0.006982083">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Payload &gt; should handle only Flow tests in test payload" time="0.004919042">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Build Test Payload &gt; should handle only Apex tests in test payload" time="0.008199625">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildSyncPayload &gt; should include category in sync payload when category is provided" time="0.007092542">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildSyncPayload &gt; should handle multiple categories in sync payload" time="0.009236208">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildSyncPayload &gt; should not include category in sync payload when category is not provided" time="0.010899584">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildSyncPayload &gt; should handle classnames with category for Flow tests in sync payload" time="0.006229083">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildAsyncPayload &gt; should include category in async payload when not provided" time="0.011131292">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; buildAsyncPayload &gt; should not include category in async payload when not provided" time="0.019184417">
+        </testcase>
+        <testcase classname="test/tests/testService.test.ts" name="Apex Test Suites &gt; Category Support in Test Payloads &gt; Private utility methods &gt; should correctly identify when category is provided (hasCategory)" time="0.01634075">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/utils.test.ts" timestamp="2026-09-24T04:33:06.376Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.044457917">
+        <testcase classname="test/tests/utils.test.ts" name="Query Namespaces &gt; should query for installed packages and namespaced orgs" time="0.024182167">
+        </testcase>
+        <testcase classname="test/tests/utils.test.ts" name="Query Namespaces &gt; should output set of namespaces from both queries" time="0.01796825">
+        </testcase>
+        <testcase classname="test/tests/utils.test.ts" name="getJsonIndent &gt; should return the integer value of the environment variable when it is set and is an integer" time="0.000224458">
+        </testcase>
+        <testcase classname="test/tests/utils.test.ts" name="getJsonIndent &gt; should return undefined when the environment variable is not set or is not an integer" time="0.000130666">
+        </testcase>
+        <testcase classname="test/tests/utils.test.ts" name="getBufferSize &gt; should return the integer value of the environment variable when it is set and is an integer" time="0.000204083">
+        </testcase>
+        <testcase classname="test/tests/utils.test.ts" name="getBufferSize &gt; should return 256 when the environment variable is not set or is not an integer" time="0.000079292">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/writeAsyncResultsToFile.snapshots.test.ts" timestamp="2026-09-24T04:33:06.377Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.046804584">
+        <testcase classname="test/tests/writeAsyncResultsToFile.snapshots.test.ts" name="writeAsyncResultsToFile - Snapshot Tests &gt; should produce consistent async results JSON output" time="0.01994975">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.snapshots.test.ts" name="writeAsyncResultsToFile - Snapshot Tests &gt; should produce consistent output with null values" time="0.005909583">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.snapshots.test.ts" name="writeAsyncResultsToFile - Snapshot Tests &gt; should produce consistent output with complex nested data" time="0.008953666">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.snapshots.test.ts" name="writeAsyncResultsToFile - Snapshot Tests &gt; should produce consistent output with empty test results" time="0.010702709">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/writeAsyncResultsToFile.test.ts" timestamp="2026-09-24T04:33:06.377Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.116513375">
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should create rawResults.json file in default temp directory" time="0.011576416">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should preserve all test result data accurately" time="0.003732667">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should create properly formatted JSON" time="0.005074541">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle empty test results" time="0.005748375">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle special characters in runId" time="0.004276334">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should create directory structure if it does not exist" time="0.0039615">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle large test results efficiently" time="0.042319459">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle concurrent writes to different runIds" time="0.018725625">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should maintain consistent output format across multiple writes" time="0.0101495">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle test results with null and undefined values" time="0.003141666">
+        </testcase>
+        <testcase classname="test/tests/writeAsyncResultsToFile.test.ts" name="writeAsyncResultsToFile &gt; should handle test results with complex nested data" time="0.005567333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/writeResultFiles.snapshots.test.ts" timestamp="2026-09-24T04:33:06.378Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.071768541">
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent JSON output" time="0.016839125">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent TAP output" time="0.003692166">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent JUnit output" time="0.01234375">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent markdown output" time="0.007581625">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent text output" time="0.007658625">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent code coverage output" time="0.004155459">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent fileInfos output" time="0.0059645">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.snapshots.test.ts" name="writeResultFiles - Snapshot Tests &gt; should produce consistent comprehensive output with all options" time="0.01254625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tests/writeResultFiles.test.ts" timestamp="2026-09-24T04:33:06.378Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.157607458">
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create test-run-id.txt file" time="0.01975525">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create JSON result file when format is specified" time="0.018021625">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create TAP result file when format is specified" time="0.004546333">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create JUnit result file when format is specified" time="0.01609">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create code coverage file when codeCoverage is true" time="0.004938042">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create custom files when fileInfos is provided" time="0.008372875">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should handle TestRunIdResult type" time="0.005967792">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should throw error for invalid result format" time="0.0012765">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should only write the test-run-id file for a TestRunIdResult with result formats" time="0.003304">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should only write the test-run-id file for a TestRunIdResult with code coverage" time="0.002036166">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create nested directories" time="0.0053025">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create markdown result file when format is specified" time="0.011359375">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create text result file when format is specified" time="0.008977833">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should create markdown file with code coverage when enabled" time="0.011462291">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should handle all result formats together" time="0.018396542">
+        </testcase>
+        <testcase classname="test/tests/writeResultFiles.test.ts" name="writeResultFiles &gt; should handle comprehensive scenario with all options" time="0.014265833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/utils/dateUtil.test.ts" timestamp="2026-09-24T04:33:06.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.015388375">
+        <testcase classname="test/utils/dateUtil.test.ts" name="Date Utils &gt; should format a date to locale by default" time="0.014088042">
+        </testcase>
+        <testcase classname="test/utils/dateUtil.test.ts" name="Date Utils &gt; should format a date to locale by param" time="0.000262208">
+        </testcase>
+        <testcase classname="test/utils/dateUtil.test.ts" name="Date Utils &gt; should format a date to ISO" time="0.000090958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/utils/table.test.ts" timestamp="2026-09-24T04:33:06.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.007861792">
+        <testcase classname="test/utils/table.test.ts" name="Table Utils &gt; Should create a string with the correct formatting and number of Rows and Columns" time="0.004840333">
+        </testcase>
+        <testcase classname="test/utils/table.test.ts" name="Table Utils &gt; Should set column width to length of the widest cell in that column" time="0.000424542">
+        </testcase>
+        <testcase classname="test/utils/table.test.ts" name="Table Utils &gt; Should correctly format a multiline cell" time="0.000280625">
+        </testcase>
+        <testcase classname="test/utils/table.test.ts" name="Table Utils &gt; Should correctly format another multiline cell" time="0.0010725">
+        </testcase>
+        <testcase classname="test/utils/table.test.ts" name="Table Utils &gt; Should throw an error if a row is missing the key of a given column" time="0.000292708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/utils/traceFlags.test.ts" timestamp="2026-09-24T04:33:06.379Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.142123292">
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should validate an existing trace flag" time="0.04108725">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should return false if updating the debug level fails" time="0.019530583">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should create a new trace flag" time="0.017738291">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should return false if creating trace flag fails" time="0.006769458">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should raise error for missing username" time="0.013985959">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should raise error for unknown user" time="0.006378166">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should raise error on failure to create debug level" time="0.02869275">
+        </testcase>
+        <testcase classname="test/utils/traceFlags.test.ts" name="Trace Flags &gt; should raise error on failure to find debug level" time="0.006121625">
+        </testcase>
+    </testsuite>
+</testsuites>

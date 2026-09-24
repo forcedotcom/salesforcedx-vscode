@@ -12,7 +12,7 @@ import globals from 'globals';
 import header from '@tony.ganchev/eslint-plugin-header';
 import eslintPluginImport from 'eslint-plugin-import-x';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
-import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
+import vitest from '@vitest/eslint-plugin';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
@@ -62,7 +62,6 @@ export default [
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
-      '**/jest.config.js',
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
@@ -83,7 +82,7 @@ export default [
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
-      'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/test/unit/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
@@ -122,11 +121,19 @@ export default [
     }
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.{ts,mts}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: [
+            'vitest.config.mts',
+            'vitest.*.config.mts',
+            'config/vitest.base.config.mts',
+            'packages/*/vitest*.config.mts'
+          ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 50
+        },
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
@@ -139,7 +146,6 @@ export default [
       header: header,
       import: eslintPluginImport,
       jsdoc: eslintPluginJsdoc,
-      'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
@@ -611,7 +617,6 @@ export default [
   },
   {
     files: [
-      'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/src/**/__tests__/**/*',
       'packages/salesforcedx**/src/**/*.spec.ts',
@@ -625,12 +630,13 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
-      'packages/playwright-vscode-ext/**/*.ts'
+      'packages/playwright-vscode-ext/**/*.ts',
+      'scripts/**/*.test.ts'
     ],
     ignores: ['**/locators.ts'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      jest: eslintPluginJest,
+      vitest,
       local: localPlugin
     },
     rules: {
@@ -655,21 +661,28 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
-      'jest/no-deprecated-functions': 'error',
-      'jest/no-focused-tests': 'error',
-      'jest/prefer-to-have-length': 'error',
-      'jest/no-standalone-expect': 'error',
-      'jest/valid-describe-callback': 'error',
-      'jest/prefer-to-be': 'error',
-      'jest/prefer-to-contain': 'error',
-      'jest/no-test-prefixes': 'error',
-      'jest/no-identical-title': 'error',
+      'vitest/unbound-method': 'error',
+      'vitest/no-focused-tests': 'error',
+      'vitest/prefer-to-have-length': 'error',
+      'vitest/no-standalone-expect': 'error',
+      'vitest/valid-describe-callback': 'error',
+      'vitest/prefer-to-be': 'error',
+      'vitest/prefer-to-contain': 'error',
+      'vitest/no-test-prefixes': 'error',
+      'vitest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    files: ['packages/**/test/integration/**/*.{ts,tsx}'],
+    plugins: { jest: eslintPluginJest },
+    rules: {
+      'jest/no-deprecated-functions': 'error',
+      'jest/no-focused-tests': 'error'
     }
   },
   {
@@ -1082,6 +1095,12 @@ export default [
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
     rules: {}
+  },
+  {
+    files: ['**/vitest*.config.mts'],
+    rules: {
+      'import/no-extraneous-dependencies': 'off'
+    }
   },
   eslintConfigPrettier
 ];

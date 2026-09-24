@@ -1,0 +1,319 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { Mock as VitestMock } from 'vitest';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
+import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
+
+const mockUpdateConfigAndStateAggregators = vi.fn<() => Promise<void>>();
+vi.mock('../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregators: () => mockUpdateConfigAndStateAggregators()
+}));
+
+const mockGather = vi.fn<() => Effect.Effect<{ orgs: OrgToDelete[] }, { _tag: 'UserCancellationError' }>>();
+vi.mock('../../../src/parameterGatherers/selectDeletableOrg', () => ({
+  gather: () => mockGather()
+}));
+
+const userCancellationError = { _tag: 'UserCancellationError', message: 'User cancelled' } as const;
+
+type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isSandbox?: boolean };
+
+// The default-delete command clears the reactive org ref after a successful delete so reactive consumers
+// (e.g. the source tracking status bar icons) reset instead of lingering on the now-deleted org (W-23950821).
+const mockClearDefaultOrgRef = vi.fn(() => Effect.void);
+
+const buildServices = (
+  orgInfo: OrgSnapshot,
+  confirm: boolean,
+  simpleExec: VitestMock,
+  onAppend: VitestMock = vi.fn(() => Effect.void)
+) => ({
+  PromptService: Effect.succeed({
+    confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
+      confirm ? Effect.void : Effect.fail(userCancellationError),
+    withCancellableProgress:
+      <A, E>(_message: string, _location?: unknown) =>
+      (effect: Effect.Effect<A, E>) =>
+        effect
+  }),
+  TerminalService: Effect.succeed({ simpleExec }),
+  ChannelService: Effect.succeed({
+    appendToChannel: (msg: string) => onAppend(msg),
+    showChannel: Effect.void
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  }),
+  TargetOrgRef: () => SubscriptionRef.make(orgInfo),
+  ClearDefaultOrgRef: mockClearDefaultOrgRef
+});
+
+const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: VitestMock, onAppend?: VitestMock) =>
+  Effect.runPromiseExit(
+    orgDeleteDefaultCommand().pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec, onAppend) })
+      } as unknown as ExtensionProviderService)
+    ) as Effect.Effect<void, unknown, never>
+  );
+
+describe('orgDeleteDefaultCommand', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
+    // resetMocks:true (vitest.base.config) clears implementations each test, so reset the return here
+    mockClearDefaultOrgRef.mockReturnValue(Effect.void);
+  });
+
+  it('runs `sf org delete scratch` for a scratch default org', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', isScratch: true }, true, simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith({
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--no-prompt'],
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
+    expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    // clears the reactive org ref so the source tracking status bar icons reset (W-23950821)
+    expect(mockClearDefaultOrgRef).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs `sf org delete sandbox` for a sandbox default org', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', isSandbox: true }, true, simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith({
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--no-prompt'],
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
+  });
+
+  it('passes --target-org so delete does not depend on the extension-host cwd', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', username: 'me@scratch.org', isScratch: true }, true, simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith({
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'me@scratch.org', '--no-prompt'],
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
+  });
+
+  it('fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', username: 'me@prod.org' }, true, simpleExec);
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgNotDeletableError');
+    expect(simpleExec).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+    // nothing was deleted, so the org ref must not be cleared
+    expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
+  });
+
+  it('appends a fallback success message when sf emits empty stdout', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed(''));
+    const onAppend = vi.fn(() => Effect.void);
+    const exit = await run({ username: 'me@scratch.org', isScratch: true }, true, simpleExec, onAppend);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(onAppend).toHaveBeenCalledWith('Successfully deleted org me@scratch.org.');
+  });
+
+  it('fails with UserCancellationError and does not exec when the user declines', async () => {
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', isScratch: true }, false, simpleExec);
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(simpleExec).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+    // user declined, so the org ref must not be cleared
+    expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
+  });
+});
+
+// Mirrors the real TerminalServiceError (terminalService.ts) so the partial-failure test exercises the
+// actual error shape the catchTag captures, not a hand-rolled stand-in.
+class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
+  message: Schema.String
+}) {}
+
+// Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
+// user clicks Cancel. Unlike a TerminalServiceError it must NOT be caught per-org; it aborts the whole loop.
+class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
+  message: Schema.String
+}) {}
+
+const appendToChannel = vi.fn<(_username: string) => Effect.Effect<void>>();
+
+// Mirrors the real withCancellableProgress (promptService.ts): a fiber interrupt (Cancel) is converted into a
+// typed UserCancellationError. Modeling it this way lets the cancellation test interrupt mid-loop the same way
+// clicking Cancel does, instead of faking a typed failure out of simpleExec.
+const buildUsernameServices = (simpleExec: VitestMock) => ({
+  PromptService: Effect.succeed({
+    withCancellableProgress:
+      <A, E>(_message: string, _location?: unknown) =>
+      (effect: Effect.Effect<A, E>) =>
+        effect.pipe(
+          Effect.catchAllCause(cause =>
+            Cause.isInterruptedOnly(cause)
+              ? Effect.fail<UserCancellationError | E>(
+                  new UserCancellationError({ message: 'User cancelled progress' })
+                )
+              : Effect.failCause<UserCancellationError | E>(cause)
+          )
+        )
+  }),
+  TerminalService: Effect.succeed({ simpleExec }),
+  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  })
+});
+
+const runUsername = (simpleExec: VitestMock) =>
+  Effect.runPromiseExit(
+    orgDeleteUsernameCommand().pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({ services: buildUsernameServices(simpleExec) })
+      } as unknown as ExtensionProviderService)
+    ) as Effect.Effect<void, unknown, never>
+  );
+
+const scratchOrg: OrgToDelete = { username: 'a@scratch.org', orgType: 'scratch' };
+const sandboxOrg: OrgToDelete = { username: 'b@sandbox.org', orgType: 'sandbox' };
+
+describe('orgDeleteUsernameCommand', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
+    // resetMocks:true (vitest.base.config) clears implementations each test, so reset them here
+    appendToChannel.mockReturnValue(Effect.void);
+  });
+
+  it('deletes each picked org with the right scratch/sandbox subcommand and --target-org', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+
+    const exit = await runUsername(simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenNthCalledWith(1, {
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'a@scratch.org', '--no-prompt'],
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
+    expect(simpleExec).toHaveBeenNthCalledWith(2, {
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--target-org', 'b@sandbox.org', '--no-prompt'],
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
+    expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+  });
+
+  it('continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
+    // org-1 fails the way the real service does: non-zero CLI exit → TerminalServiceError.
+    // A bare simpleExec loop would short-circuit here and never run org-2.
+    const simpleExec = vi.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org')
+        ? Effect.tryPromise({
+            try: () => Promise.reject(new Error('Command failed: non-zero exit')),
+            catch: e =>
+              new TerminalServiceError({
+                message: e instanceof Error ? e.message : 'exec failed'
+              })
+          })
+        : Effect.succeed('deleted')
+    );
+
+    const exit = await runUsername(simpleExec);
+
+    // loop did NOT abort: org-2 still ran
+    expect(simpleExec).toHaveBeenCalledTimes(2);
+    expect(simpleExec).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ args: expect.arrayContaining(['b@sandbox.org']) })
+    );
+    // failure line for org-1
+    expect(appendToChannel).toHaveBeenCalledWith(
+      'Failed to delete a@scratch.org (scratch org). Check the output above for details.'
+    );
+    // cache flush still runs after the loop despite partial failure
+    expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    // overall failure surfaces (reaches handleCause)
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgDeleteFailedError');
+  });
+
+  it('aborts the loop on cancellation (interrupt is not bucketed by partition)', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
+    // Cancelling mid-delete: clicking Cancel interrupts the loop fiber. Because withCancellableProgress wraps the
+    // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
+    // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
+    // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)
+    const simpleExec = vi.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
+    );
+
+    const exit = await runUsername(simpleExec);
+
+    // loop aborted: org-2 never ran
+    expect(simpleExec).toHaveBeenCalledTimes(1);
+    // no partial-failure summary; the cancellation propagates as-is
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+      expect(JSON.stringify(exit.cause)).not.toContain('OrgDeleteFailedError');
+    }
+    // cache flush does NOT run: the fiber short-circuited before reaching it
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+  });
+
+  it('appends a fallback success message per org when sf emits empty stdout', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg] }));
+    const simpleExec = vi.fn(() => Effect.succeed(''));
+
+    const exit = await runUsername(simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('Successfully deleted org a@scratch.org.');
+  });
+
+  it('does not delete or flush when the picker cancels', async () => {
+    mockGather.mockReturnValue(Effect.fail(userCancellationError));
+    const simpleExec = vi.fn(() => Effect.succeed('deleted'));
+
+    const exit = await runUsername(simpleExec);
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(simpleExec).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+  });
+});

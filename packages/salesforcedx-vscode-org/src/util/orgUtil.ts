@@ -33,6 +33,7 @@ export class AggregatorReloadError extends Schema.TaggedError<AggregatorReloadEr
 
 /**
  * Raised when `AuthInfo.create`/`getFields` rejects for a username (leaf Promise, no runtime re-entry).
+ * @ExportTaggedError
  */
 export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
   message: Schema.String,

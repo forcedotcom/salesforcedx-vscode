@@ -7,9 +7,9 @@
 import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
 import { ChildProcess } from 'node:child_process';
 import { fromEvent, interval, Observable, Subscription } from 'rxjs';
+import * as treeKill from 'tree-kill';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const treeKill = require('tree-kill');
+type TreeKillFunction = (processId: number, signal: string, callback: (error?: Error) => void) => void;
 
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
@@ -27,7 +27,12 @@ export class CliCommandExecution implements CommandExecution {
 
   private readonly childProcessPid: number;
 
-  constructor(command: Command, childProcess: ChildProcess, cancellationToken?: CancellationToken) {
+  constructor(
+    command: Command,
+    childProcess: ChildProcess,
+    cancellationToken?: CancellationToken,
+    private readonly treeKillFunction: TreeKillFunction = treeKill
+  ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
 
@@ -78,7 +83,7 @@ export class CliCommandExecution implements CommandExecution {
   }
 
   public async killExecution(signal = KILL_CODE) {
-    return killPromise(this.childProcessPid, signal);
+    return killPromise(this.childProcessPid, signal, this.treeKillFunction);
   }
 }
 
@@ -87,9 +92,9 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> =>
+const killPromise = (processId: number, signal: string, treeKillFunction: TreeKillFunction): Promise<void> =>
   new Promise<void>((resolve, reject) => {
-    treeKill(processId, signal, (err: Error | undefined) => {
+    treeKillFunction(processId, signal, (err: Error | undefined) => {
       if (err) {
         reject(err);
       }

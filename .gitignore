@@ -39,7 +39,7 @@ xunit-integrationTests.xml
 xunit-vscodeIntegrationTests.xml
 junit-aggregate
 junit-custom.xml
-junit-custom-unitTests.xml
+junit-custom-*-unitTests.xml
 junit-custom-integrationTests.xml
 junit-custom-vscodeIntegrationTests.xml
 ci-artifacts*/
@@ -160,6 +160,7 @@ graphify-out/
 # Claude Code worktrees
 .auto-build/
 .claude/worktrees/
+.cursor/worktrees/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
 .claude/backlog-grooming-*.md

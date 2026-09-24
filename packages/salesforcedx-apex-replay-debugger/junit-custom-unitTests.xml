@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="232" failures="0" errors="0" time="0.155124002">
+    <testsuite name="test/unit/adapter/apexReplayDebug.test.ts" timestamp="2026-09-24T04:32:52.735Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="27" failures="0" errors="0" skipped="0" time="0.0239925">
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when there are no log lines" time="0.007179834">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when log levels are incorrect" time="0.003452583">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should send response" time="0.000673125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should not apply heap dump results if no heap dumps are found in the logs" time="0.000341042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should apply heap dump results if heap dumps are found in the logs" time="0.000332791">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should report a wrap up error if any heap dump result carries an error" time="0.000596125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should send stopped event" time="0.000824708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should continue until next breakpoint" time="0.000390542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Disconnect &gt; Should disconnect" time="0.000670834">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Threads &gt; Should always return one thread" time="0.000610625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Stacktrace &gt; Should return stackframes" time="0.000294625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should terminate session" time="0.000372875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should hit breakpoint" time="0.000219833">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should not hit breakpoint" time="0.000197333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should handle errors during step execution" time="0.00031375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step over" time="0.000229583">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step in" time="0.000195042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step out" time="0.000179542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should stop for breakpoint" time="0.000274916">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not stop for breakpoint" time="0.000178709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when path argument is invalid" time="0.00028925">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when line argument is invalid" time="0.001725666">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0.000426333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should return breakpoints" time="0.000464167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle undefined args" time="0.000357041">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle empty line breakpoint info" time="0.000653834">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebug.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should save line number mapping" time="0.000517333">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" timestamp="2026-09-24T04:32:52.738Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="44" failures="0" errors="0" skipped="0" time="0.028222834">
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when there are no log lines" time="0.005675667">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when log levels are incorrect" time="0.00080375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should send response" time="0.000584125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should not apply heap dump results if no heap dumps are found in the logs" time="0.000317959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should apply heap dump results if heap dumps are found in the logs" time="0.000338458">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should report a wrap up error if any heap dump result carries an error" time="0.000559333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should send stopped event" time="0.000441042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should continue until next breakpoint" time="0.000269084">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Disconnect &gt; Should disconnect" time="0.000635458">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Threads &gt; Should always return one thread" time="0.000568417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Stacktrace &gt; Should return stackframes" time="0.0002835">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should terminate session" time="0.000348125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should hit breakpoint" time="0.000214583">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should not hit breakpoint" time="0.000197625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should handle errors during step execution" time="0.000303167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step over" time="0.000266125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step in" time="0.000295375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step out" time="0.000217291">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should stop for breakpoint" time="0.000311834">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not stop for breakpoint" time="0.000712458">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when path argument is invalid" time="0.001609166">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when line argument is invalid" time="0.000395083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0.000381583">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should return breakpoints" time="0.000450417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle undefined args" time="0.000345542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle empty line breakpoint info" time="0.000684875">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should save line number mapping" time="0.000504792">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Scopes request &gt; Should return no scopes for unknown frame" time="0.000261292">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Scopes request &gt; Should return local, static, and global scopes" time="0.000325792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Scopes request &gt; Should replace with heapdump variables" time="0.001861709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Variables request &gt; Should return no variables for unknown scope" time="0.00043475">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Variables request &gt; Should collect variables from scope container" time="0.000554292">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should not switch variables without a heapdump for current location" time="0.000494042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should not switch variables without a successful heapdump for current location" time="0.000262833">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should not create string refs if there are not any in the heapdump" time="0.000869625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should only create string refs if there are not any in the heapdump" time="0.000335625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should create string refs if there are any in the heapdump" time="0.000213708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should not follow reference chain when creating leaf variables except strings" time="0.000596417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should follow reference chain when creating instance variables from references" time="0.000816167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should update a non-reference variable" time="0.000236917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should update a non-reference static variable" time="0.000280792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; replaceVariablesWithHeapDump &gt; Should correctly deal with circular references and variable values" time="0.000303208">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; heapDumpTriggerContextVariables &gt; Should not create global trigger variables if not processing a trigger heapdump" time="0.000374708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexReplayDebugVariablesHandling.test.ts" name="Replay debugger adapter variable handling - unit &gt; Heapdump &gt; heapDumpTriggerContextVariables &gt; Should create trigger variables if processing a trigger heapdump" time="0.0005135">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/adapter/debugConsole.test.ts" timestamp="2026-09-24T04:32:52.740Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="37" failures="0" errors="0" skipped="0" time="0.026511583">
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when there are no log lines" time="0.009964334">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should return error when log levels are incorrect" time="0.000790375">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should send response" time="0.000583875">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should not apply heap dump results if no heap dumps are found in the logs" time="0.000320666">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should apply heap dump results if heap dumps are found in the logs" time="0.000323417">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch &gt; Should report a wrap up error if any heap dump result carries an error" time="0.000516875">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should send stopped event" time="0.00044275">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Configuration done &gt; Should continue until next breakpoint" time="0.000276125">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Disconnect &gt; Should disconnect" time="0.00064125">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Threads &gt; Should always return one thread" time="0.00057625">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Stacktrace &gt; Should return stackframes" time="0.000299542">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should terminate session" time="0.000366625">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should hit breakpoint" time="0.000231917">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should not hit breakpoint" time="0.000205958">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Continue/run &gt; Should handle errors during step execution" time="0.000300875">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step over" time="0.000227041">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step in" time="0.000211542">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Stepping &gt; Should send step out" time="0.000183917">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should stop for breakpoint" time="0.000277666">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not stop for breakpoint" time="0.00017825">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when path argument is invalid" time="0.000291167">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should not return breakpoints when line argument is invalid" time="0.000265875">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0.001328334">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Breakpoints &gt; Should return breakpoints" time="0.001330917">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle undefined args" time="0.000475791">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should handle empty line breakpoint info" time="0.000688083">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Replay debugger adapter - unit &gt; Launch request &gt; Line breakpoint info &gt; Should save line number mapping" time="0.000547583">
+            <system-err>
+attempt to send more than one response for command undefined
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Logger &gt; Should accept boolean true" time="0.000157916">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Logger &gt; Should accept boolean false" time="0.000103083">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Logger &gt; Should accept multiple trace categories" time="0.000104292">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Logger &gt; Should accept logfile category" time="0.000098084">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Print &gt; Should not print is message is empty" time="0.000121875">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Print &gt; Should send Output event" time="0.000216458">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Warn &gt; Should not warn is message is empty" time="0.000128416">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Warn &gt; Should send Output event" time="0.000123625">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Error &gt; Should not error is message is empty" time="0.000120125">
+        </testcase>
+        <testcase classname="test/unit/adapter/debugConsole.test.ts" name="Debug console &gt; Error &gt; Should send Output event" time="0.002097459">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/adapter/variableContainer.test.ts" timestamp="2026-09-24T04:32:52.742Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.009814417">
+        <testcase classname="test/unit/adapter/variableContainer.test.ts" name="ApexVariableContainer &gt; getAllVariables &gt; sorts variables with `this` first, then alphabetically, case-insensitively, with natural numeric ordering" time="0.00884275">
+        </testcase>
+        <testcase classname="test/unit/adapter/variableContainer.test.ts" name="ApexVariableContainer &gt; getAllVariables &gt; places `this` variable first regardless of alphabetical order" time="0.000288334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/breakpoints/breakpointUtil.test.ts" timestamp="2026-09-24T04:32:52.742Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.003034375">
+        <testcase classname="test/unit/breakpoints/breakpointUtil.test.ts" name="Breakpoint utilities &gt; Should not have line number mapping" time="0.001099958">
+        </testcase>
+        <testcase classname="test/unit/breakpoints/breakpointUtil.test.ts" name="Breakpoint utilities &gt; Should return line number mapping" time="0.000661916">
+        </testcase>
+        <testcase classname="test/unit/breakpoints/breakpointUtil.test.ts" name="Breakpoint utilities &gt; Should verify line breakpoint" time="0.000226958">
+        </testcase>
+        <testcase classname="test/unit/breakpoints/breakpointUtil.test.ts" name="Breakpoint utilities &gt; Should return top level typeRef for URI" time="0.000328209">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/core/logContext.test.ts" timestamp="2026-09-24T04:32:52.743Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="42" failures="0" errors="0" skipped="0" time="0.015367458">
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should return array of log lines" time="0.001847583">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should return log size" time="0.000406083">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should have log lines" time="0.000307">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should not have log lines" time="0.000315625">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should detect log level requirements" time="0.000302125">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should return log file name" time="0.000248583">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should return log file path" time="0.000205666">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should have starting log line position" time="0.000155125">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should start with empty array of stackframes" time="0.00055175">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should start with no state" time="0.000188166">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should handle undefined log event" time="0.002047417">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should continue handling until the end of log file" time="0.000427875">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should pause parsing the log" time="0.000402625">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should revert state if there is a heapdump" time="0.000278708">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should not revert state if there is no heapdump" time="0.000156375">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should detect and parse HEAP_DUMP log entries" time="0.00036775">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should not find heapdump with incorrect line" time="0.000192708">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should not find heapdump with incorrect class name" time="0.000162208">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should have heapdump for top frame" time="0.000288542">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Should not have heapdump for top frame" time="0.000220708">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; setHeapDumpResults &gt; Should apply a success result onto the matching heap dump by id" time="0.00024125">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; setHeapDumpResults &gt; Should apply results for every heap dump (multi-dump regression)" time="0.000261875">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; setHeapDumpResults &gt; Should send an error entry to the debug console" time="0.000410167">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect LogEntry as the first state" time="0.000198375">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect NoOp with empty log line" time="0.000179792">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect NoOp with unexpected number of fields" time="0.000161958">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect NoOp with unknown event" time="0.00015275">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect execute anonymous script line" time="0.000165833">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameEntry with CODE_UNIT_STARTED" time="0.000227541">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameEntry with CONSTRUCTOR_ENTRY" time="0.000158125">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameEntry with METHOD_ENTRY" time="0.000159208">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameEntry with VF_APEX_CALL_START" time="0.000217042">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameExit with CODE_UNIT_FINISHED" time="0.000266166">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameExit with CONSTRUCTOR_EXIT" time="0.000167167">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameExit with METHOD_EXIT" time="0.000149334">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect FrameExit with VF_APEX_CALL_END" time="0.00018925">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect StatementExecute with STATEMENT_EXECUTE" time="0.000197041">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Log event parser &gt; Should detect UserDebug with USER_DEBUG" time="0.000193833">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Signature-to-URI &gt; Should return debug log fs path for execute anonymous signature when no apex file path set" time="0.000204292">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Signature-to-URI &gt; Should return apex file path for execute anonymous signature when anonApexFilePath is set" time="0.000165792">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Signature-to-URI &gt; Should return URI for inner class" time="0.000171583">
+        </testcase>
+        <testcase classname="test/unit/core/logContext.test.ts" name="LogContext &gt; Signature-to-URI &gt; Should return URI for trigger" time="0.000164666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/core/logContextUtil.test.ts" timestamp="2026-09-24T04:32:52.746Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="10" failures="0" errors="0" skipped="0" time="0.004972709">
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should return empty array with empty contents" time="0.00187825">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should return array of log lines from contents" time="0.000276167">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should handle Windows line endings" time="0.000250334">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should trim whitespace" time="0.000243917">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should get file size from contents" time="0.000159458">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; Read log file from contents &gt; Should strip brackets" time="0.000083">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; extractAnonApexSource &gt; Should return undefined for a log with no Execute Anonymous headers" time="0.000100875">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; extractAnonApexSource &gt; Should extract source lines from Execute Anonymous headers" time="0.000072625">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; extractAnonApexSource &gt; Should handle Windows line endings in the log" time="0.000380792">
+        </testcase>
+        <testcase classname="test/unit/core/logContextUtil.test.ts" name="Log context utilities &gt; extractAnonApexSource &gt; Should stop collecting at the first non-header line after headers begin" time="0.000111417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/frameEntryState.test.ts" timestamp="2026-09-24T04:32:52.746Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.004884208">
+        <testcase classname="test/unit/states/frameEntryState.test.ts" name="Frame entry event &gt; Should add a frame" time="0.002459084">
+        </testcase>
+        <testcase classname="test/unit/states/frameEntryState.test.ts" name="Frame entry event &gt; Should preserve a Windows filesystem path" time="0.000544625">
+        </testcase>
+        <testcase classname="test/unit/states/frameEntryState.test.ts" name="Frame entry event &gt; Should parse the class name from method signature and add it to static variable map" time="0.000759708">
+        </testcase>
+        <testcase classname="test/unit/states/frameEntryState.test.ts" name="Frame entry event &gt; Should use existing static variables when the entry is for a class that was seen earlier" time="0.00033275">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/frameExitState.test.ts" timestamp="2026-09-24T04:32:52.747Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.0031745">
+        <testcase classname="test/unit/states/frameExitState.test.ts" name="Frame exit event &gt; Should not remove anything if there are no frames" time="0.001328916">
+        </testcase>
+        <testcase classname="test/unit/states/frameExitState.test.ts" name="Frame exit event &gt; Should not remove if signature does not match top frame" time="0.000566958">
+        </testcase>
+        <testcase classname="test/unit/states/frameExitState.test.ts" name="Frame exit event &gt; Should remove if signature matches top frame exactly" time="0.000344375">
+        </testcase>
+        <testcase classname="test/unit/states/frameExitState.test.ts" name="Frame exit event &gt; Should remove if signature matches top frame partially" time="0.00021575">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/frameStateUtil.test.ts" timestamp="2026-09-24T04:32:52.747Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="20" failures="0" errors="0" skipped="0" time="0.004317042">
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CODE_UNIT_STARTED only strips trigger prefix" time="0.001085208">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CODE_UNIT_FINISHED only strips trigger prefix" time="0.00014675">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CODE_UNIT_STARTED nothing parsed if non-trigger" time="0.000154959">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CODE_UNIT_FINISHED nothing parsed if non-trigger" time="0.000192667">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CONSTRUCTOR_ENTRY simple class" time="0.000163833">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CONSTRUCTOR_EXIT simple class" time="0.000087625">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CONSTRUCTOR_ENTRY inner class" time="0.000125541">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_CONSTRUCTOR_EXIT inner class" time="0.000078125">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_VF_APEX_CALL_START parse method name from invoke" time="0.000474542">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_VF_APEX_CALL_END parse method name from invoke" time="0.000152916">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_VF_APEX_CALL_START nothing parsed if not invoke" time="0.000141417">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify frame name generation &gt; EVENT_VF_APEX_CALL_END nothing parsed if not invoke" time="0.0000655">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Bare Minimum Get Match returns true" time="0.000099625">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Bare Minimum Set Match returns true" time="0.000080875">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Non-invoke Get should return true" time="0.00010525">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Non-invoke Set should return true" time="0.000069292">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Malformed set returns false" time="0.000053459">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Malformed get returns false" time="0.00005075">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Anything not Get/Set should return false" time="0.000064042">
+        </testcase>
+        <testcase classname="test/unit/states/frameStateUtil.test.ts" name="Frame state utilities &gt; Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines &gt; Non-Get/Set should return false" time="0.000051833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/logEntryState.test.ts" timestamp="2026-09-24T04:32:52.749Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.002173209">
+        <testcase classname="test/unit/states/logEntryState.test.ts" name="LogEntry event &gt; Should handle event" time="0.0015035">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/noOpState.test.ts" timestamp="2026-09-24T04:32:52.749Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.001777792">
+        <testcase classname="test/unit/states/noOpState.test.ts" name="NoOp event &gt; Should handle event" time="0.001173833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/statementExecuteState.test.ts" timestamp="2026-09-24T04:32:52.749Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003406708">
+        <testcase classname="test/unit/states/statementExecuteState.test.ts" name="Statement execute event &gt; Should not update frame without any frames" time="0.001668792">
+        </testcase>
+        <testcase classname="test/unit/states/statementExecuteState.test.ts" name="Statement execute event &gt; Should update top frame" time="0.000271416">
+        </testcase>
+        <testcase classname="test/unit/states/statementExecuteState.test.ts" name="Statement execute event &gt; Should update execute anonymous specific frame using log line position when no apex file path" time="0.000268125">
+        </testcase>
+        <testcase classname="test/unit/states/statementExecuteState.test.ts" name="Statement execute event &gt; Should update execute anonymous frame using script line directly when apex file path is set" time="0.00020925">
+        </testcase>
+        <testcase classname="test/unit/states/statementExecuteState.test.ts" name="Statement execute event &gt; Should offset execute anonymous frame line by anonApexLineOffset when set" time="0.000220041">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/userDebugState.test.ts" timestamp="2026-09-24T04:32:52.749Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.004833625">
+        <testcase classname="test/unit/states/userDebugState.test.ts" name="User debug event &gt; Should not print without any frames" time="0.002426916">
+        </testcase>
+        <testcase classname="test/unit/states/userDebugState.test.ts" name="User debug event &gt; Should link to anonymous specific frame" time="0.000878416">
+        </testcase>
+        <testcase classname="test/unit/states/userDebugState.test.ts" name="User debug event &gt; Should use line number in log line" time="0.000350083">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/variableAssignmentState.test.ts" timestamp="2026-09-24T04:32:52.750Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="25" failures="0" errors="0" skipped="0" time="0.014313584">
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Primitive assignment &gt; Should not stop the debugger when entering the frame" time="0.001783375">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Primitive assignment &gt; Should assign static variable for class" time="0.000903708">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Primitive assignment &gt; Should add local variable to frame" time="0.000377125">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should not stop the debugger when entering the frame" time="0.000216125">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should create a nested variable for an empty object" time="0.000793875">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should update variable to a nested variable if assigning to inner value" time="0.000500708">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should update variable to a nested variable if json assignment" time="0.000619542">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should update variable to a nested variable holding another nested variable if assigning json to inner value" time="0.0003505">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Local nested assignment &gt; Should not overwrite the this variable once assigned" time="0.000723375">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Static nested assignment &gt; Should not stop the debugger when entering the frame" time="0.002153917">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Static nested assignment &gt; Should create a nested variable for an empty object" time="0.000434541">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Static nested assignment &gt; Should update variable to a nested variable if json assignment" time="0.000360459">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Static nested assignment &gt; Should update variable if inner variable assigned" time="0.000222166">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Static nested assignment &gt; Should update variable if reassigned to newly created reference" time="0.000435542">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Find references in reference map &gt; Should not stop the debugger when entering the frame" time="0.000171792">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Find references in reference map &gt; Should be able to pull reference values from json in assignments" time="0.000216">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Find references in reference map &gt; Should be able to pull reference from assignment value" time="0.0001275">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Find references in reference map &gt; Should change both variable containers if they share a common reference" time="0.000193625">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Collections &gt; Should not stop the debugger when entering the frame" time="0.000109916">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Collections &gt; Should not created a nested ref for maps" time="0.000145416">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Collections &gt; Should not created a nested ref for lists" time="0.000118084">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Collections &gt; Should not created a nested ref for sets" time="0.000113375">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Nested related-object expansion &gt; Should expand a multi-level parent hierarchy without [object Object]" time="0.000224917">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Nested related-object expansion &gt; Should expand a child subquery records array keyed by index" time="0.001134">
+        </testcase>
+        <testcase classname="test/unit/states/variableAssignmentState.test.ts" name="Variable assignment event &gt; Nested related-object expansion &gt; Should not re-quote already-quoted inner strings (parse-once regression guard)" time="0.000125333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/states/variableBeginState.test.ts" timestamp="2026-09-24T04:32:52.752Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.004327458">
+        <testcase classname="test/unit/states/variableBeginState.test.ts" name="Variable begin scope event &gt; Should add static variable to frame" time="0.001640916">
+        </testcase>
+        <testcase classname="test/unit/states/variableBeginState.test.ts" name="Variable begin scope event &gt; Should add local variable to frame" time="0.001680416">
+        </testcase>
+        <testcase classname="test/unit/states/variableBeginState.test.ts" name="Variable begin scope event &gt; Should create class entry in static variable map when class has not been seen before" time="0.000314291">
+        </testcase>
+    </testsuite>
+</testsuites>

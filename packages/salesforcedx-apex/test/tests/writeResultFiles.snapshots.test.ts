@@ -29,10 +29,12 @@ describe('writeResultFiles - Snapshot Tests', () => {
     }
   });
 
-  // markdown/text reports embed `Run completed: <now>` when no timestamp is
-  // provided; normalize it so snapshots are deterministic.
-  const normalizeTimestamp = (content: string): string =>
-    content.replaceAll(/(Run completed:\*{0,2} ).+/g, '$1[TIMESTAMP]');
+  // Reports include the current time or locale-formatted times; normalize them
+  // so snapshots are deterministic across time zones.
+  const normalizeTimestamps = (content: string): string =>
+    content
+      .replaceAll(/(Run completed:\*{0,2} ).+/g, '$1[TIMESTAMP]')
+      .replaceAll(/(<property name="testStartTime" value=")[^"]+("\/>)/g, '$1[TIMESTAMP]$2');
 
   // Mock runPipeline function for testing
   const mockRunPipeline = async (readable: Readable, filePath: string): Promise<string> => {
@@ -186,7 +188,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
     const content = await readFile(junitFilePath, 'utf8');
 
     // Snapshot the JUnit XML output
-    expect(content).toMatchSnapshot();
+    expect(normalizeTimestamps(content)).toMatchSnapshot();
   });
 
   it('should produce consistent markdown output', async function () {
@@ -213,7 +215,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
     const content = await readFile(markdownFilePath, 'utf8');
 
     // Snapshot the markdown output
-    expect(normalizeTimestamp(content)).toMatchSnapshot();
+    expect(normalizeTimestamps(content)).toMatchSnapshot();
   });
 
   it('should produce consistent text output', async function () {
@@ -240,7 +242,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
     const content = await readFile(textFilePath, 'utf8');
 
     // Snapshot the text output
-    expect(normalizeTimestamp(content)).toMatchSnapshot();
+    expect(normalizeTimestamps(content)).toMatchSnapshot();
   });
 
   it('should produce consistent code coverage output', async function () {
@@ -356,7 +358,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         const parsedContent = JSON.parse(content);
         expect(parsedContent).toMatchSnapshot();
       } else {
-        expect(normalizeTimestamp(content)).toMatchSnapshot();
+        expect(normalizeTimestamps(content)).toMatchSnapshot();
       }
     }
   });
