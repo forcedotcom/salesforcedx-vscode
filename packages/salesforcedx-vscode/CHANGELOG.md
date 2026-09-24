@@ -1,28 +1,36 @@
-# 67.17.16 - September 18, 2026
+# 67.23.1 - September 25, 2026
+
+## Added
+
+#### docs
+
+- Tag promoted nightly release title with " - published" - W-24269682 ([PR #8241](https://github.com/forcedotcom/salesforcedx-vscode/pull/8241))
+
+- Auto-bump develop's nightly minor to next odd, rename publishAsPrerelease ([PR #8236](https://github.com/forcedotcom/salesforcedx-vscode/pull/8236))
+
+#### salesforcedx-vscode-core
+
+- Container spec scaffold + core spec parity - W-23898525 ([PR #8069](https://github.com/forcedotcom/salesforcedx-vscode/pull/8069))
 
 ## Fixed
 
 #### docs
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- Fall back past stale tracking tags in release auto-detect - W-24276485 ([PR #8242](https://github.com/forcedotcom/salesforcedx-vscode/pull/8242))
 
-#### salesforcedx-vscode-apex
+- Update release title and mark --latest on promotion to stable ([PR #8238](https://github.com/forcedotcom/salesforcedx-vscode/pull/8238))
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- 1 ADR: record pnpm cutover decisions - W-24093888 ([PR #8220](https://github.com/forcedotcom/salesforcedx-vscode/pull/8220))
 
-#### salesforcedx-vscode-apex-debugger
+- Document pre-release promotion, run name, and Slack link format ([PR #8226](https://github.com/forcedotcom/salesforcedx-vscode/pull/8226))
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- Drop WDIO from e2e-advocate ([PR #8214](https://github.com/forcedotcom/salesforcedx-vscode/pull/8214))
 
-#### salesforcedx-vscode-metadata
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-org
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
 
 #### salesforcedx-vscode-services
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
+
+- Hosted Web Console local OTEL ([PR #8212](https://github.com/forcedotcom/salesforcedx-vscode/pull/8212))
 
