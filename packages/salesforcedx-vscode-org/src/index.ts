@@ -10,7 +10,6 @@ import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vsco
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { getOrgChannelService, setOrgChannel } from './channels';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
@@ -44,17 +43,12 @@ const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
 });
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
+export const activate = (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
-
-  const api: SalesforceVSCodeOrgApi = {
-    channelService: getOrgChannelService()
-  };
-  return api;
+  return activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 };
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
@@ -62,9 +56,8 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
+  // Share the Effect layer's OutputChannel so only one 'Salesforce Org Management' channel exists.
   const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  setOrgChannel(orgChannel);
   extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.alias.list', aliasListCommand);
@@ -83,6 +76,14 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;
+
+  // show(true) preserves focus, matching utils-vscode ChannelService.showChannelOutput.
+  return {
+    channelService: {
+      appendLine: orgChannel.appendLine.bind(orgChannel),
+      showChannelOutput: () => orgChannel.show(true)
+    }
+  } satisfies SalesforceVSCodeOrgApi;
 });
 
 export const deactivate = async (): Promise<void> => {
