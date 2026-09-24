@@ -16,11 +16,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
-vi.mock('../../../src/channels', () => ({
-  getOrgChannelService: () => ({ appendLine: vi.fn(), showChannelOutput: vi.fn() }),
-  setOrgChannel: vi.fn()
-}));
-
 const mockUpdateConfigAndStateAggregators = vi.fn<() => Promise<void>>();
 vi.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => mockUpdateConfigAndStateAggregators()
