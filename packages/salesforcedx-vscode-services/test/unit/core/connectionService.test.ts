@@ -39,6 +39,28 @@ vi.mock('@salesforce/core', async () => ({
   Connection: { create: vi.fn() }
 }));
 
+// getCliId runs `sf telemetry --json` once per process. Under a full suite that
+// exceeds the 5s test timeout before the default-org ref is published.
+vi.mock('node:child_process', async () => {
+  const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  const stdout = JSON.stringify({
+    status: 0,
+    result: { cliId: '11111111-1111-4111-8111-111111111111' }
+  });
+  return {
+    ...actual,
+    exec: (
+      _command: string,
+      options: unknown,
+      callback?: (error: null, result: { stdout: string; stderr: string }) => void
+    ) => {
+      const done = typeof options === 'function' ? options : callback;
+      done?.(null, { stdout, stderr: '' });
+      return undefined as unknown as ReturnType<typeof actual.exec>;
+    }
+  };
+});
+
 const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
 
 const USERNAME = 'expired@test.com';
