@@ -52,7 +52,7 @@ export default defineConfig({
     name: 'soql-builder-ui',
     environment: 'jsdom',
     globals: true,
-    include: ['test/jest/soql-builder-ui/**/*.{spec,test}.{ts,js}'],
+    include: ['test/unit/soql-builder-ui/**/*.{spec,test}.{ts,js}'],
     setupFiles: [path.resolve(soqlBuilderUiRoot, 'testSetup/setupTests.ts')],
     reporters: ['verbose', ['junit', { outputFile: 'junit-custom-soqlBuilder-unitTests.xml' }]]
   }

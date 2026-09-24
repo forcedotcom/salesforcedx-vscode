@@ -200,7 +200,7 @@
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/vitest.config.mts",
         "src/soql-builder-ui/testSetup/**",
-        "test/jest/soql-builder-ui/**"
+        "test/unit/soql-builder-ui/**"
       ],
       "output": [
         "junit-custom-soqlBuilder-unitTests.xml"
@@ -211,7 +211,7 @@
       "files": [
         "src/soql-data-view/index.html",
         "src/soql-data-view/queryDataViewController.js",
-        "test/jest/queryDataView/queryDataViewController.test.ts",
+        "test/unit/queryDataView/queryDataViewController.test.ts",
         "vitest.queryResults.config.mts",
         "../../config/vitest.base.config.mts",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",
@@ -336,8 +336,7 @@
         "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage",
-        "junit-custom-unitTests.xml"
+        "coverage"
       ]
     },
     "lint": {

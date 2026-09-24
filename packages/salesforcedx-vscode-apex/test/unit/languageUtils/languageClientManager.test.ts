@@ -23,7 +23,7 @@ import type { RecordedSpan } from '../testUtils/recordingTracer';
 const restartFlag = languageClientManager as unknown as { isRestarting: boolean };
 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
-// Prefixed `mock*` so vi.mock's factory may reference it (jest hoists the factory above imports).
+// Prefixed `mock*` so vi.mock's factory may reference it (vi.mock hoists the factory above imports).
 const mockRecordedSpans: RecordedSpan[] = [];
 const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>

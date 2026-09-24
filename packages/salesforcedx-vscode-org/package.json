@@ -109,8 +109,7 @@
         "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage",
-        "junit-custom-unitTests.xml"
+        "coverage"
       ]
     },
     "check:circular-deps": {

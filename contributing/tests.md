@@ -7,7 +7,7 @@ describes them and gives pointers on how to run/debug them.
 
 The test types from most preferred to least preferred are:
 
-1. Unit Tests - Vitest: Found under the test/jest and test/unit directories.
+1. Unit Tests - Vitest: Found under the test/unit directory.
    - `npm run test`
 1. End to End Tests - Playwright: Found in each extension's test/playwright directory.
    - Run spec-by-spec via IDE or via `npm run playwright` in the extension package
@@ -29,11 +29,10 @@ Unit tests priorities are as follows:
 
 #### How to Write Vitest Unit Tests
 
-- Test files use the {fileUnderTestName}.test.ts format and should go under the same directory structure as the source in the test/jest folder.
-   - Existing directory names remain unchanged.
+- Test files use the {fileUnderTestName}.test.ts format and should go under the same directory structure as the source in the test/unit folder.
   - Example:
     - File under test: `src/commands/auth/authParamsGatherer.ts`
-    - Test File location and name: `test/jest/commands/auth/authParamsGatherer.test.ts`
+    - Test File location and name: `test/unit/commands/auth/authParamsGatherer.test.ts`
 - Tests can be executed from the IDE, command line, or via npm script.
   - IDE: use the Vitest extension's Run & Debug CodeLens in test files.
   - Command line: `npx vitest run` executes all unit tests in a package. Retained Jest integration tests use `npx jest -c jest.integration.config.js`.

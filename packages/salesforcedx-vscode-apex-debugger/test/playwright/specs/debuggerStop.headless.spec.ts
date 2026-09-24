@@ -14,7 +14,7 @@
  * Branch (b) — an active session detached via the tooling update — requires an ACTIVE ApexDebuggerSession
  * record, which only exists while an Apex Debugger session (an ISV-licensed / Debug-Only-licensed capability)
  * is live. Seeding one in CI is infeasible, so branch (b) is covered by the ConnectionService-seam unit test
- * (`test/jest/commands/debuggerStop.test.ts`, "detaches the session and shows the success toast when the
+ * (`test/unit/commands/debuggerStop.test.ts`, "detaches the session and shows the success toast when the
  * query returns a record") rather than here.
  */
 

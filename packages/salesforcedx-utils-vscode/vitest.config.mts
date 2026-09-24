@@ -11,6 +11,6 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['**/jest/**/*.{spec,test}.{ts,tsx}']
+    include: ['**/unit/**/*.{spec,test}.{ts,tsx}']
   }
 });

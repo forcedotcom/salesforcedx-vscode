@@ -194,7 +194,7 @@ vi.mock('node:os', () => ({
 }));
 
 // Mock node:fs module.
-// jest 30 resolves 'node:fs' and 'fs' to the same module registry entry, so this factory
+// Vitest resolves 'node:fs' and 'fs' to the same module registry entry, so this factory
 // also serves unrelated consumers that require('fs') (e.g. got). Spread the real module so
 // only the members below are replaced.
 vi.mock('node:fs', async () => ({

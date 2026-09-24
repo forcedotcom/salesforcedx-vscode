@@ -82,7 +82,7 @@ export default [
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
-      'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/test/unit/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
@@ -617,7 +617,6 @@ export default [
   },
   {
     files: [
-      'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/src/**/__tests__/**/*',
       'packages/salesforcedx**/src/**/*.spec.ts',

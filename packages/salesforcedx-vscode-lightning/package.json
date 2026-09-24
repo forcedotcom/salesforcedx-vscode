@@ -177,8 +177,7 @@
         "../../scripts/vscodeMock.ts"
       ],
       "output": [
-        "coverage",
-        "junit-custom-unitTests.xml"
+        "coverage"
       ]
     },
     "test:desktop": {

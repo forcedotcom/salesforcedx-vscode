@@ -1072,7 +1072,7 @@ describe('ApexTestController', () => {
     });
 
     // Diff internals (add/diff/remove class, invalidateTestResults, removeEmptyAncestors) moved into
-    // ApexTestTreeService; see test/jest/views/apexTestTreeService.test.ts "incrementalUpdate diff".
+    // ApexTestTreeService; see test/unit/views/apexTestTreeService.test.ts "incrementalUpdate diff".
   });
 });
 
@@ -1088,4 +1088,4 @@ describe('getTestController', () => {
 });
 
 // sortUrisByMtimeAscending moved into ApexTestTreeService; the mtime-ordering behavior is covered by
-// test/jest/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).
+// test/unit/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).

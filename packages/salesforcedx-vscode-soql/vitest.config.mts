@@ -13,8 +13,8 @@ export default defineConfig({
     ...baseConfig.test,
     exclude: [
       ...(baseConfig.test?.exclude ?? []),
-      'test/jest/soql-builder-ui/**',
-      'test/jest/queryDataView/queryDataViewController.test.ts'
+      'test/unit/soql-builder-ui/**',
+      'test/unit/queryDataView/queryDataViewController.test.ts'
     ]
   }
 });

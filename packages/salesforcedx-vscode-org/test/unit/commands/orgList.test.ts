@@ -57,7 +57,7 @@ vi.mock('@salesforce/effect-ext-utils', async () => {
 
 // Seed ExtensionProviderService with the mocked ConnectionService.listAllAuthorizations (an Effect),
 // a ConfigService whose default-org lookups resolve to undefined, and a ChannelService whose
-// appendToChannel/showChannel are jest mocks so we can assert channel output.
+// appendToChannel/showChannel are Vitest mocks so we can assert channel output.
 const buildServicesLayer = (listMock: VitestMock) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({

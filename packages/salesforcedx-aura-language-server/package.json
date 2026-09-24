@@ -74,9 +74,7 @@
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
-      "output": [
-        "junit-custom-unitTests.xml"
-      ]
+      "output": []
     }
   },
   "dependencies": {

@@ -44,9 +44,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    include: ['**/{unit,jest}/**/*.{spec,test}.{ts,tsx}'],
+    include: ['**/unit/**/*.{spec,test}.{ts,tsx}'],
     setupFiles: vitestSetupFiles,
-    reporters: ['default', ['junit', { outputFile: 'junit-custom-unitTests.xml' }]],
+    reporters: ['default'],
     deps: {
       optimizer: {
         ssr: {

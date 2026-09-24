@@ -73,7 +73,7 @@ import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelS
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { createMockOutputChannel } from 'salesforcedx-vscode-services/test/jest/testUtils';
+import { createMockOutputChannel } from 'salesforcedx-vscode-services/test/unit/testUtils';
 import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadataRetrieveService';
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';

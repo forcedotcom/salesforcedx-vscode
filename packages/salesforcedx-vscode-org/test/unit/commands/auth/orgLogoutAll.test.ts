@@ -15,11 +15,11 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { orgLogoutAllCommand } from '../../../../src/commands/auth/orgLogout';
 
-// The real UserCancellationError (from @salesforce/vscode-services) is not constructable under
-// ts-jest; a local Schema.TaggedError with the same _tag is interchangeable for catchTag matching.
+// Real UserCancellationError (@salesforce/vscode-services) not constructable under Vitest;
+// local Schema.TaggedError with same _tag works for catchTag matching.
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
-// orgList.ts uses toSorted which trips ts-jest; the command only needs the two helpers it imports.
+// orgList.ts uses toSorted which trips Vitest transform; command only needs the two helpers it imports.
 vi.mock('../../../../src/orgPicker/orgList', () => ({
   buildOrgQuickPickItems: (auths: Array<{ username: string }>) =>
     auths.map(a => ({ label: a.username, orgUsername: a.username })),

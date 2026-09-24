@@ -21,7 +21,7 @@ vi.mock('../../../../src/util/orgUtil', () => ({
 
 const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { username: 'me@org.com', orgId: '00Dxx' } });
 
-// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the jest
+// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the Vitest
 // vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
 const stubWithProgress = () => {
   (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(

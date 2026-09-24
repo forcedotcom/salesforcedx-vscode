@@ -51,7 +51,7 @@ const buildServices = (opts: Services) => ({
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
   ConfigService: { getTargetDevHub: () => Effect.succeed(opts.devHub) },
-  // forward to the vscode.workspace.findFiles jest mock so the existing `findFiles.mock*` setup drives it
+  // forward to the vscode.workspace.findFiles Vitest mock so the existing `findFiles.mock*` setup drives it
   FsService: {
     findFiles: (include: string) => Effect.promise(() => vscode.workspace.findFiles(include))
   },
@@ -63,7 +63,7 @@ const buildServices = (opts: Services) => ({
     // production: fails on undefined/empty-trimmed; here we only need undefined → cancel
     considerUndefinedAsCancellation: <T>(value: T | undefined) =>
       value === undefined ? Effect.fail(new UserCancellationError({})) : Effect.succeed(value),
-    // identity: run the wrapped effect directly (no real vscode progress in jest)
+    // identity: run the wrapped effect directly (no real vscode progress in Vitest)
     withCancellableProgress:
       () =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>

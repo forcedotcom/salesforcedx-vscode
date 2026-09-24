@@ -14,7 +14,7 @@ export type RecordedSpan = { name: string; attributes: Map<string, unknown>; end
 /**
  * Shared recording-tracer mock for `vi.mock('.../services/runtime')`. Pushes every started span
  * (name + attrs + ended flag) into the array returned by `getRecordedSpans` so span emission/rotation
- * can be asserted. `getRecordedSpans` is a thunk (not the array itself) because jest hoists imports
+ * can be asserted. `getRecordedSpans` is a thunk (not the array itself) because Vitest hoists imports
  * above the test's `const mockRecordedSpans`, so the array must be dereferenced lazily. Pass
  * `forkSync: true` when the test asserts synchronously right after the code under test forks (fireSpan
  * via runFork) — it runs the fork on the calling stack so the span is recorded before the assertion.
