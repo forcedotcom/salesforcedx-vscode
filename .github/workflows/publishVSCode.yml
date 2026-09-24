@@ -144,9 +144,29 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
+  validate-vsix:
+    needs: [prepare-release-metadata, verify-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Download VSIXs from release
+        env:
+          RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir ./extensions
+          gh release download "$RELEASE_TAG" -D ./extensions --pattern '*.vsix'
+      - name: Validate VSIX OPC Part URIs
+        uses: salesforcecli/github-workflows/.github/actions/validateVsix@main
+        with:
+          dir: ./extensions
+
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'gate-check']
-    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
+    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'gate-check', 'validate-vsix']
+    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && needs.validate-vsix.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}

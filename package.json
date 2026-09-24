@@ -91,7 +91,6 @@
     "jest-junit": "17.0.0",
     "jscpd": "^4.0.5",
     "jsonwebtoken-esm": "^2.0.1",
-    "jszip": "^3.10.1",
     "junit-report-merger": "9.0.3",
     "knip": "^6.29.0",
     "markdown-link-check": "^3.14.2",
