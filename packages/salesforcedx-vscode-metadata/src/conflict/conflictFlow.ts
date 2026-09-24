@@ -43,12 +43,13 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 
   const timestampOperationType = operationType === 'delete' ? 'deploy' : operationType;
-  const pairs =
-    orgInfo.tracksSource === true
-      ? yield* detectConflictsFromTracking(componentSet)
-      : getDetectConflictsForDeployAndRetrieve()
-        ? yield* detectConflictsFromTimestamps(componentSet, timestampOperationType)
-        : [];
+  const pairs = yield* orgInfo.tracksSource === true
+    ? detectConflictsFromTracking(componentSet)
+    : getDetectConflictsForDeployAndRetrieve().pipe(
+        Effect.flatMap(enabled =>
+          enabled ? detectConflictsFromTimestamps(componentSet, timestampOperationType) : Effect.succeed([])
+        )
+      );
 
   if (pairs.length > 0) return yield* new ConflictsDetectedError({ pairs, componentSet, operationType });
 });

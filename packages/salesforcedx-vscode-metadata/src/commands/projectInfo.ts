@@ -120,27 +120,37 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
   )
 );
 
-const getSettingEntry = (fullKey: string): readonly [string, unknown] => {
+const getSettingEntry = Effect.fn('getSettingEntry')(function* (fullKey: string) {
   const firstDot = fullKey.indexOf('.');
-  return [fullKey, vscode.workspace.getConfiguration(fullKey.slice(0, firstDot)).get(fullKey.slice(firstDot + 1))];
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const value = yield* (yield* api.services.SettingsService).getValue(
+    fullKey.slice(0, firstDot),
+    fullKey.slice(firstDot + 1)
+  );
+  return [fullKey, value] as const;
+});
 
-const gatherSettings = (): readonly (readonly [string, unknown])[] => [
-  getSettingEntry('salesforcedx-vscode-metadata.showSuccessNotification'),
-  getSettingEntry('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds'),
-  getSettingEntry('salesforcedx-vscode-core.push-or-deploy-on-save.enabled'),
-  getSettingEntry('salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush'),
-  getSettingEntry('salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve'),
-  getSettingEntry('salesforcedx-vscode-core.clearOutputTab'),
-  getSettingEntry('salesforcedx-vscode-core.show-cli-success-msg'),
-  getSettingEntry('salesforcedx-vscode-core.telemetry.enabled'),
-  getSettingEntry('salesforcedx-vscode-core.enable-sobject-refresh-on-startup'),
-  getSettingEntry('salesforcedx-vscode-core.telemetry-tag'),
-  getSettingEntry('salesforcedx-vscode-salesforcedx.enableLocalTraces'),
-  getSettingEntry('salesforcedx-vscode-salesforcedx.enableConsoleTraces'),
-  getSettingEntry('salesforcedx-vscode-salesforcedx.enableFileTraces'),
-  getSettingEntry('salesforcedx-vscode-apex.java.home')
-];
+const gatherSettings = () =>
+  Effect.forEach(
+    [
+      'salesforcedx-vscode-metadata.showSuccessNotification',
+      'salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds',
+      'salesforcedx-vscode-core.push-or-deploy-on-save.enabled',
+      'salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush',
+      'salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve',
+      'salesforcedx-vscode-core.clearOutputTab',
+      'salesforcedx-vscode-core.show-cli-success-msg',
+      'salesforcedx-vscode-core.telemetry.enabled',
+      'salesforcedx-vscode-core.enable-sobject-refresh-on-startup',
+      'salesforcedx-vscode-core.telemetry-tag',
+      'salesforcedx-vscode-salesforcedx.enableLocalTraces',
+      'salesforcedx-vscode-salesforcedx.enableConsoleTraces',
+      'salesforcedx-vscode-salesforcedx.enableFileTraces',
+      'salesforcedx-vscode-apex.java.home'
+    ],
+    getSettingEntry,
+    { concurrency: 'unbounded' }
+  );
 
 const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -283,7 +293,7 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
     [gatherMetadataInfo(), gatherOrgInfo(), gatherEnvironment()],
     { concurrency: 'unbounded' }
   );
-  const settings = gatherSettings();
+  const settings = yield* gatherSettings();
 
   const content = renderMarkdown({ metadataInfo, orgInfo, settings, envInfo });
 

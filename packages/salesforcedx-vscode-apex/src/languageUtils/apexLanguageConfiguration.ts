@@ -6,7 +6,7 @@
 import { IndentAction, languages } from 'vscode';
 
 // Exported for testing purposes
-export const wordPattern = /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>\/?\s]+)/g;
+export const wordPattern = /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
 
 export const configureApexLanguage = (): void => {
   languages.setLanguageConfiguration('apex', {

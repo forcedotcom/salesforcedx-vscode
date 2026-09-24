@@ -16,14 +16,30 @@ const mockRecordedSpans: RecordedSpan[] = [];
 
 const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name === 'apex.lsp.client');
 
-jest.mock('../../src/services/runtime', () =>
-  require('./testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans)
-);
+jest.mock('../../src/services/runtime', () => {
+  const { createRecordingRuntimeMock } = require('./testUtils/recordingTracer') as {
+    createRecordingRuntimeMock: (
+      getSpans: () => RecordedSpan[],
+      options: {
+        provideExtensionProvider: boolean;
+        settingsGetValue: (section: string, key: string, defaultValue?: unknown) => unknown;
+      }
+    ) => unknown;
+  };
+  const { succeed } = require('effect/Effect') as { succeed: (value: unknown) => unknown };
+  return createRecordingRuntimeMock(() => mockRecordedSpans, {
+    provideExtensionProvider: true,
+    settingsGetValue: (_section: string, _key: string, defaultValue?: unknown) => succeed(defaultValue)
+  });
+});
 
 // Stub the java/requirements resolution so createServer doesn't touch the filesystem/JDK.
-jest.mock('../../src/requirements', () => ({
-  resolveRequirements: jest.fn().mockResolvedValue({ java_home: '/mock/java', java_memory: 4096 })
-}));
+jest.mock('../../src/requirements', () => {
+  const { succeed } = require('effect/Effect') as { succeed: (value: unknown) => unknown };
+  return {
+    resolveRequirements: jest.fn(() => succeed({ java_home: '/mock/java', java_memory: 4096 }))
+  };
+});
 
 // No services extension → no scan config.
 jest.mock('../../src/languageServerScanConfig', () => ({
@@ -39,6 +55,7 @@ import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { resolveRequirements } from '../../src/requirements';
 import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { getRuntime } from '../../src/services/runtime';
 
 const runCreateLanguageServer = (context: vscode.ExtensionContext) =>
@@ -50,7 +67,7 @@ describe('languageServer client span', () => {
     mockRecordedSpans.length = 0;
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
-    (resolveRequirements as jest.Mock).mockResolvedValue({ java_home: '/mock/java', java_memory: 4096 });
+    (resolveRequirements as jest.Mock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
     (buildMetadataRegistryScanConfig as jest.Mock).mockResolvedValue(undefined);
     (ApexLanguageClient as unknown as jest.Mock).mockImplementation(() => ({
       onTelemetry: (cb: (data: TelemetryData) => void) => {
@@ -61,7 +78,18 @@ describe('languageServer client span', () => {
     (vscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
       get: (_key: string, def?: unknown) => def
     });
-    (vscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+    (vscode.extensions.getExtension as jest.Mock).mockImplementation((id: string) =>
+      id === 'salesforce.salesforcedx-vscode-services'
+        ? {
+            isActive: true,
+            exports: {
+              services: {
+                SettingsService
+              }
+            }
+          }
+        : undefined
+    );
   });
 
   const mockContext = {
@@ -93,7 +121,7 @@ describe('languageServer client span', () => {
   });
 
   it('fails createServer with a requirements-phase setup error', async () => {
-    (resolveRequirements as jest.Mock).mockRejectedValue({ error: 'no java found' });
+    (resolveRequirements as jest.Mock).mockReturnValue(Effect.fail({ error: 'no java found' }));
     const error = await getRuntime().runPromise(createLanguageServer(mockContext).pipe(Effect.flip));
     expect(error).toMatchObject({
       _tag: 'ApexLanguageClientSetupError',

@@ -4,52 +4,43 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-import { retrieveAAMethodAnnotations, retrieveEnableSyncInitJobs } from '../../src/settings';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { apexLanguageServerSettings, retrieveEnableSyncInitJobs } from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
-  const vscodeMocked = jest.mocked(vscode);
-  let getConfigurationMock: jest.SpyInstance;
-  let getFn: jest.Mock;
+  const getValue = jest.fn();
+  const settingsService = SettingsService.make({ getValue, getValueOrElse: getValue } as never);
+  const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | SettingsService>) =>
+    Effect.runPromise(
+      effect.pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: { SettingsService }
+          } as never)
+        }),
+        Effect.provideService(SettingsService, settingsService)
+      )
+    );
 
   beforeEach(() => {
-    getConfigurationMock = jest.spyOn(vscodeMocked.workspace, 'getConfiguration');
-    getFn = jest.fn();
+    getValue.mockReset();
   });
 
-  it('Should be able to get retrieveEnableSyncInitJobs setting.', () => {
-    getConfigurationMock.mockReturnValue({
-      get: getFn.mockReturnValue(true)
-    } as any);
+  it('Should be able to get retrieveEnableSyncInitJobs setting.', async () => {
+    getValue.mockReturnValue(Effect.succeed(true));
 
-    const result = retrieveEnableSyncInitJobs();
+    const result = await run(retrieveEnableSyncInitJobs());
     expect(result).toBe(true);
-    expect(getConfigurationMock).toHaveBeenCalledWith();
-    expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.wait-init-jobs', true);
+    expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'wait-init-jobs', true);
   });
 
-  it('Should be able to get retrieveAAMethodAnnotations setting.', () => {
-    getConfigurationMock.mockReturnValue({
-      get: getFn.mockReturnValue(['AuraEnabled', 'UserDefinedModifier', 'UserDefinedModifier'])
-    } as any);
+  it('joins apex language server method annotations.', async () => {
+    getValue.mockReturnValue(Effect.succeed(['AuraEnabled', 'UserDefinedModifier', 'UserDefinedModifier']));
 
-    const result = retrieveAAMethodAnnotations();
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(expect.arrayContaining(['AuraEnabled', 'UserDefinedModifier']));
-    expect(getConfigurationMock).toHaveBeenCalledWith();
-    expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
-  });
-
-  it('Should be able to get lspParityCapabilities setting.', () => {
-    getConfigurationMock.mockReturnValue({
-      get: getFn.mockReturnValue(true)
-    } as any);
-
-    const result = vscode.workspace
-      .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
-    expect(result).toBe(true);
-    expect(getConfigurationMock).toHaveBeenCalledWith();
-    expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+    const result = await run(apexLanguageServerSettings());
+    expect(result.apexActionMethodAnnotations.split(',').toSorted()).toEqual(['AuraEnabled', 'UserDefinedModifier']);
+    expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'apexoas.aa.method.annotations', []);
   });
 });

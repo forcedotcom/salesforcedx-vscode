@@ -123,7 +123,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    vscode.workspace.getConfiguration(CORE_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    yield* api.services.SettingsService.setValue(
+      CORE_CONFIG_SECTION,
+      DEPLOY_ON_SAVE_ENABLED,
+      true,
+      vscode.ConfigurationTarget.Workspace
+    );
   }
   setConflictViewContext(context);
 

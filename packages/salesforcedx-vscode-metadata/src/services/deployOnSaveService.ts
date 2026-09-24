@@ -65,7 +65,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
     { concurrency: 'unbounded' }
   );
 
-  const ignoreConflicts = getIgnoreConflicts();
+  const ignoreConflicts = yield* getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
   const componentSet = yield* componentSetService

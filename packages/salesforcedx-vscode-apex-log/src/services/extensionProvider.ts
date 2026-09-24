@@ -11,6 +11,7 @@ import * as HashSet from 'effect/HashSet';
 import * as Layer from 'effect/Layer';
 import * as Ref from 'effect/Ref';
 import type { ExtensionContext } from 'vscode';
+import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { TraceFlagsContentProviderService } from '../traceFlags/traceFlagsContentProvider';
 import {
   getOrCreateLogCollectorStateRef,
@@ -34,7 +35,7 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
         buildBaseServicesLayer(context, fallbackDisplayName),
         apexLogServicesLayer,
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-apex-log',
+          APEX_LOG_SETTINGS_SECTION,
           'sf-apex-log-notifications',
           'Salesforce: Apex Log Notifications'
         )

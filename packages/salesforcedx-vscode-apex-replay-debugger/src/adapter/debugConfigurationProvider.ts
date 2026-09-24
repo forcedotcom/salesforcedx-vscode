@@ -10,7 +10,7 @@ import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesfor
 import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
@@ -110,7 +110,8 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    config.logFile = config.logFile ?? LOG_FILE_PROMPT;
+    const logFile = isString(config.logFile) ? config.logFile : LOG_FILE_PROMPT;
+    config.logFile = logFile;
     if (isUndefined(config.stopOnEntry)) {
       config.stopOnEntry = true;
     }
@@ -127,36 +128,43 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     // Handle log file reading for web compatibility
-    if (config.logFile && config.logFile !== LOG_FILE_PROMPT) {
-      // Direct file path provided
-      try {
-        config.logFileContents = await getRuntime().runPromise(readLogFile(config.logFile));
-        config.logFilePath = config.logFile;
-        config.logFileName = getBasename(config.logFile);
+    const logFileContents = await (async (): Promise<string | undefined> => {
+      if (logFile && logFile !== LOG_FILE_PROMPT) {
+        // Direct file path provided
+        try {
+          const contents = await getRuntime().runPromise(readLogFile(logFile));
+          config.logFileContents = contents;
+          config.logFilePath = logFile;
+          config.logFileName = getBasename(logFile);
+          // Remove logFile since we're now using logFileContents
+          delete config.logFile;
+          return contents;
+        } catch (error) {
+          console.error('Failed to read log file:', error);
+          // errorToString keeps the single-line message; interpolating the runPromise rejection would
+          // paste Effect's multi-line pretty-printed cause (with stack) into the modal dialog.
+          throw new Error(`Failed to read log file: ${errorToString(error)}`);
+        }
+      }
+      if (selectedLogFile) {
+        config.logFileContents = selectedLogFile.contents;
+        config.logFilePath = selectedLogFile.path;
+        config.logFileName = selectedLogFile.name;
         // Remove logFile since we're now using logFileContents
         delete config.logFile;
-      } catch (error) {
-        console.error('Failed to read log file:', error);
-        // errorToString keeps the single-line message; interpolating the runPromise rejection would
-        // paste Effect's multi-line pretty-printed cause (with stack) into the modal dialog.
-        throw new Error(`Failed to read log file: ${errorToString(error)}`);
+        return selectedLogFile.contents;
       }
-    } else if (selectedLogFile) {
-      config.logFileContents = selectedLogFile.contents;
-      config.logFilePath = selectedLogFile.path;
-      config.logFileName = selectedLogFile.name;
-      // Remove logFile since we're now using logFileContents
-      delete config.logFile;
-    }
+      return isString(config.logFileContents) ? config.logFileContents : undefined;
+    })();
 
-    if (typeof config.logFileContents !== 'string') {
+    if (logFileContents === undefined) {
       return config;
     }
-    if (config.logFileContents.includes('|HEAP_DUMP|')) {
-      config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
+    if (logFileContents.includes('|HEAP_DUMP|')) {
+      config.heapDumpResults = await resolveHeapDumpResults(logFileContents);
     }
-    if (!config.anonApexFilePath) {
-      await resolveAnonApexFilePath(config);
+    if (!isString(config.anonApexFilePath)) {
+      await resolveAnonApexFilePath(config, logFileContents);
     }
 
     return config;
@@ -227,13 +235,16 @@ const getBasename = (filePath: string): string => {
 
 /** Populates config.anonApexFilePath (and lineOffset) from an Execute Anonymous log, matching it against
  * workspace source when possible and falling back to a synthetic .apex file written next to the log. */
-const resolveAnonApexFilePath = async (config: vscode.DebugConfiguration): Promise<void> => {
-  const anonSource = extractAnonApexSource(config.logFileContents);
+const resolveAnonApexFilePath = async (config: vscode.DebugConfiguration, logFileContents: string): Promise<void> => {
+  const anonSource = extractAnonApexSource(logFileContents);
   if (anonSource === undefined) {
     return;
   }
   const matched = await findMatchingSourceFile(anonSource);
   if (!matched) {
+    if (!isString(config.logFilePath)) {
+      return;
+    }
     const apexFilePath = config.logFilePath.replace(/\.log$/, '.apex');
     config.anonApexFilePath = await getRuntime().runPromise(writeAnonApexFile(apexFilePath, anonSource));
     return;

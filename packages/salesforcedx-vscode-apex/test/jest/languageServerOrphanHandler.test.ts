@@ -74,7 +74,7 @@ const makeSettingsStub = (opts: { getValueResult?: unknown; setValueFail?: boole
 });
 
 const makeSettingsService = (stub: SettingsStub) => ({
-  getValue: (section: string, key: string, defaultValue?: unknown) => {
+  getValueOrElse: (section: string, key: string, defaultValue?: unknown) => {
     stub.getValueCalls.push({ section, key, defaultValue });
     return Effect.succeed(stub.getValueResult);
   },

@@ -181,10 +181,10 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         return yield* noCoverage();
       }
 
-      return yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true).pipe(
+      return yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'restore-previous-results', true).pipe(
         Effect.map(restorePrevious => {
           const sortedEntries = sortByMtimeAscending(recentEntries);
-          return (restorePrevious ?? true) ? sortedEntries : sortedEntries.slice(-1);
+          return restorePrevious ? sortedEntries : sortedEntries.slice(-1);
         }),
         Effect.flatMap(
           Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
@@ -260,9 +260,11 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const settings = yield* api.services.SettingsService;
-      const disableWarning =
-        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'disable-warnings-for-missing-coverage', false)) ??
-        false;
+      const disableWarning = yield* settings.getValueOrElse(
+        APEX_TESTING_SECTION,
+        'disable-warnings-for-missing-coverage',
+        false
+      );
       if (disableWarning) {
         const svc = yield* api.services.ChannelService;
         yield* svc.appendToChannel(e.message);

@@ -11,10 +11,11 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
+import { EXTENSION_NAME } from '../constants';
 import { LLMCallFailed, LLMConnectionFailed, LLMRateLimited } from '../errors';
 import { nls } from '../messages/nls';
 
-const EXTENSION_ID = 'salesforcedx-vscode-apex-oas';
+const EXTENSION_ID = EXTENSION_NAME;
 
 /** The extension that most commonly provides the LLM service. We never require it by id on the success path
  * (the service provider decouples us), but when obtaining the service fails it is useful to look at which

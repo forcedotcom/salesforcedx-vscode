@@ -5,6 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SalesforceCoreSettings } from './salesforceCoreSettings';
-
-export const salesforceCoreSettings = SalesforceCoreSettings.getInstance();
+export const APEX_LOG_SETTINGS_SECTION = 'salesforcedx-vscode-apex-log';

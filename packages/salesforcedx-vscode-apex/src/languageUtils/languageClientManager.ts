@@ -26,7 +26,7 @@ import { createLanguageServer } from '../languageServer';
 import { nls } from '../messages';
 import { fireErrorSpan, fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
-import { retrieveEnableSyncInitJobs } from '../settings';
+import { getApexLanguageServerRestartBehavior, retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
   Unavailable,
@@ -185,17 +185,17 @@ export class LanguageClientManager {
     );
 
     if (selectedOption) {
-      await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
+      this.sendRestartTelemetry(selectedOption, source, restartBehavior);
       return selectedOption.label;
     }
     return undefined;
   }
 
-  private async sendRestartTelemetry(
+  private sendRestartTelemetry(
     selectedOption: RestartQuickPickItem,
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
-  ): Promise<void> {
+  ): void {
     fireSpan('apex.lsp.restart', {
       restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
       selectedOption: selectedOption.type,
@@ -205,8 +205,9 @@ export class LanguageClientManager {
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+    const restartBehavior = await getRuntime().runPromise(
+      getApexLanguageServerRestartBehavior().pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+    );
 
     // If launched from command palette, always show prompt with default option first
     if (source === 'commandPalette') {
@@ -229,14 +230,14 @@ export class LanguageClientManager {
     if (source === 'statusBar') {
       switch (restartBehavior) {
         case 'restart':
-          await this.sendRestartTelemetry(
+          this.sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             source,
             restartBehavior
           );
           return this.RESTART_OPTIONS.restartOnly;
         case 'reset':
-          await this.sendRestartTelemetry(
+          this.sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
             source,
             restartBehavior
@@ -405,8 +406,11 @@ export class LanguageClientManager {
         catch: cause => languageClientSetupError('start', cause)
       });
       fireSpan('apex.lsp.startup', { activationTime: globalThis.performance.now() - langClientStartTime });
-      yield* Effect.tryPromise({
-        try: () => this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem),
+      const enableSyncInitJobs = yield* retrieveEnableSyncInitJobs().pipe(
+        Effect.mapError(cause => languageClientSetupError('initialization', cause))
+      );
+      yield* Effect.try({
+        try: () => this.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem),
         catch: cause => languageClientSetupError('initialization', cause)
       });
       yield* Effect.try({
@@ -438,25 +442,22 @@ export class LanguageClientManager {
     });
   }
 
-  public async indexerDoneHandler(
+  public indexerDoneHandler(
     enableSyncInitJobs: boolean,
     languageClient: ApexLanguageClient,
     languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  ): void {
     if (!enableSyncInitJobs) {
       this.setStatus(ClientStatus.Indexing, '');
       languageClient.onNotification(API.doneIndexing, () => {
-        void this.setClientReady(languageClient, languageServerStatusBarItem);
+        this.setClientReady(languageClient, languageServerStatusBarItem);
       });
     } else {
-      await this.setClientReady(languageClient, languageServerStatusBarItem);
+      this.setClientReady(languageClient, languageServerStatusBarItem);
     }
   }
 
-  private async setClientReady(
-    languageClient: ApexLanguageClient,
-    languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  private setClientReady(languageClient: ApexLanguageClient, languageServerStatusBarItem: ApexLSPStatusBarItem): void {
     languageServerStatusBarItem.ready();
     this.setStatus(ClientStatus.Ready, '');
     languageClient?.errorHandler?.serviceHasStartedSuccessfully();

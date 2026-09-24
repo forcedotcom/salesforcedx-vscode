@@ -5,46 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { ALL_EXCEPTION_CATCHER_ENABLED, INTERNAL_DEVELOPMENT_FLAG, TELEMETRY_ENABLED } from '../constants';
-/**
- * A centralized location for interacting with sfdx-core settings.
- */
-export class SalesforceCoreSettings {
-  private static instance: SalesforceCoreSettings;
+import * as Effect from 'effect/Effect';
+import { ALL_EXCEPTION_CATCHER_ENABLED } from '../constants';
 
-  public static getInstance() {
-    if (!SalesforceCoreSettings.instance) {
-      SalesforceCoreSettings.instance = new SalesforceCoreSettings();
-    }
-    return SalesforceCoreSettings.instance;
-  }
-
-  /**
-   * Get the configuration for a sfdx-core
-   */
-  public getConfiguration(): vscode.WorkspaceConfiguration {
-    return vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
-  }
-
-  // checks for Microsoft's telemetry setting as well as Salesforce's telemetry setting.
-  public getTelemetryEnabled(): boolean {
-    return (
-      vscode.workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true) &&
-      this.getConfigValue<boolean>(TELEMETRY_ENABLED, true)
-    );
-  }
-
-  public getEnableAllExceptionCatcher(): boolean {
-    return this.getConfigValue<boolean>(ALL_EXCEPTION_CATCHER_ENABLED, false);
-  }
-
-  public getInternalDev(): boolean {
-    return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
-  }
-
-  private getConfigValue<T>(key: string, defaultValue: T): T {
-    return this.getConfiguration().get<T>(key, defaultValue);
-  }
-}
+export const getEnableAllExceptionCatcher = Effect.fn('getEnableAllExceptionCatcher')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    SFDX_CORE_CONFIGURATION_NAME,
+    ALL_EXCEPTION_CATCHER_ENABLED,
+    false
+  );
+});
