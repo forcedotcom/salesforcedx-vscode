@@ -135,7 +135,9 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   await test.step('run a single test method via Test Explorer tree-item action', async () => {
     // Expand the class row to reveal its test methods.
     const classRow = findTestExplorerItem(page, testClassName);
-    await classRow.locator('.monaco-tl-twistie').click({ force: true });
+    const twistie = classRow.locator('.monaco-tl-twistie');
+    await expect(twistie).toBeVisible({ timeout: 10_000 });
+    await twistie.click();
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 

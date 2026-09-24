@@ -14,6 +14,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusMonacoInput,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   removeAllDebugLevels,
@@ -117,7 +118,8 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
 
   await test.step('launch replay debugger with selected log file and pause at breakpoint', async () => {
     const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-    await logTab.click({ force: true });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await logTab.click();
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry first (debug toolbar appears)
     await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 30_000 });
@@ -144,7 +146,9 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
     const firstCollapsed = variablesView.locator('.monaco-list-row[aria-expanded="false"]').first();
     await expect(async () => {
       if (await firstCollapsed.isVisible()) {
-        await firstCollapsed.locator('.monaco-tl-twistie').click({ force: true });
+        const scopeTwistie = firstCollapsed.locator('.monaco-tl-twistie');
+        await expect(scopeTwistie).toBeVisible();
+        await scopeTwistie.click();
       }
       await expect(firstCollapsed).toBeHidden();
     }).toPass({ timeout: 30_000 });
@@ -171,7 +175,7 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
       .filter({ hasText: /LastName|Account/ })
       .first();
     await expect(async () => {
-      await nestedRow.click({ force: true });
+      await nestedRow.click();
       await page.keyboard.press('ArrowRight');
       await expect(childRow).toBeVisible({ timeout: 5000 });
     }).toPass({ timeout: 30_000 });
@@ -183,8 +187,8 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
 
   await test.step('continue and end debug session', async () => {
     const toolbar = page.locator('.debug-toolbar');
-    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
-    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
+    // Focus the editor input so a search-bar hover cannot take F5
+    await focusMonacoInput(page.locator(`${WORKBENCH} .editor-instance .monaco-editor`).first());
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
     await expect(toolbar).not.toBeVisible({ timeout: 45_000 });

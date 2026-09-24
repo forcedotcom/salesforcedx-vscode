@@ -214,11 +214,14 @@ test('LWC Run Tests: run single test case via Test Explorer sidebar', async ({ p
     // events on the test-case row. Force the clicks and retry the whole select → reveal → run sequence until it
     // sticks — same resilience pattern as the sibling debug spec (lwcDebugTests.desktop.spec.ts).
     await expect(async () => {
+      // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
       await testCase.click({ force: true });
+      // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
       await testCase.hover({ force: true });
       const runButton = testCase.getByRole('button', { name: /^Run Test/ });
       await runButton.waitFor({ state: 'visible', timeout: 3000 });
       runStartMs = Date.now();
+      // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
       await runButton.click({ force: true });
     }).toPass({ timeout: 30_000 });
     await saveScreenshot(page, 'single-case.after-click.png');

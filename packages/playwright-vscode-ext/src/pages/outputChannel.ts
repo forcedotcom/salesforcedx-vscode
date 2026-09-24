@@ -103,8 +103,8 @@ const waitForOutputChannelTextDesktopWorkaround = async (
   timeout: number
 ): Promise<void> => {
   const codeArea = outputPanelCodeArea(page);
-  // force: true — Output actions toolbar overlays the code area and intercepts pointer events
-  await codeArea.click({ force: true });
+  // Output actions toolbar overlays the code area. Focus it directly before keyboard paging.
+  await codeArea.focus();
 
   // Fewer steps needed when panel is maximized; 30 each direction covers very long output
   const PAGE_STEPS = 30;
@@ -175,9 +175,8 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   await openCommandPalette(page);
   const widget = activeQuickInputWidget(page);
   const input = activeQuickInputTextField(page);
-  await input.waitFor({ state: 'attached', timeout: 5000 });
-  await input.click({ force: true, timeout: 5000 });
-  await input.fill('>Output: Focus on Output View', { force: true });
+  await input.click({ timeout: 5000 });
+  await input.fill('>Output: Focus on Output View');
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
   await page.keyboard.press('Enter');
 
@@ -230,8 +229,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     // Wait for the option to be enabled before selecting (fixes macOS GHA timing issues)
     const targetOption = dropdown.locator(`option[value="${targetValue}"]`);
     await expect(targetOption).not.toHaveAttribute('disabled', '', { timeout: 5000 });
-    // Select the channel using the value attribute (more reliable than label)
-    await dropdown.selectOption({ value: targetValue }, { force: true });
+    // The native select is intentionally hidden behind VS Code's custom control.
+    // Update it directly and emit the same events as a user selection.
+    await expect(dropdown).toBeEnabled({ timeout: 5000 });
+    await dropdown.evaluate((element, value) => {
+      const select = element as HTMLSelectElement;
+      select.value = value;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }, targetValue);
     // Verify the selection took effect - wait a bit longer for the UI to update
     await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
   }).toPass({ timeout });

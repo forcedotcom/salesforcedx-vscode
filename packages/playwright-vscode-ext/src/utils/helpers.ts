@@ -118,15 +118,12 @@ export const waitForQuickInputFirstOption = async (
 
   await expect(async () => {
     // Prefer the text field: empty/stale `.quick-input-widget` shells can attach without `input.input`
-    await input.waitFor({ state: 'attached', timeout: quickInputVisibleTimeout });
+    await expect(input).toBeVisible({ timeout: quickInputVisibleTimeout });
     if ((await firstAriaOption.count()) > 0) {
-      await firstAriaOption.waitFor({ state: 'attached', timeout: optionVisibleTimeout });
+      await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
       return;
     }
-    await quickInput
-      .locator(QUICK_INPUT_LIST_ROW)
-      .first()
-      .waitFor({ state: 'attached', timeout: optionVisibleTimeout });
+    await expect(quickInput.locator(QUICK_INPUT_LIST_ROW).first()).toBeVisible({ timeout: optionVisibleTimeout });
   }).toPass({ timeout: options?.retryTimeout ?? 10_000 });
 };
 
@@ -199,9 +196,10 @@ export const selectFirstQuickInputOption = async (
 /**
  * Select a quick-pick option by its accessible name in the active quick input widget.
  *
- * Clicking the option (rather than pressing Enter) is more reliable across platforms: on
- * desktop-electron the Enter keystroke sometimes does not register on the active quick pick,
- * leaving the picker open and the command never executed.
+ * Commits via DOM `evaluate` click, same as {@link selectFirstQuickInputOption}. A Playwright
+ * pointer click waits for hit-testing; the quick-pick hover (`div.context-view`) for the row
+ * above overlaps the target and intercepts it (Apex "All Tests" under "All Local Tests").
+ * Enter is also unreliable: on desktop-electron the keystroke sometimes does not register.
  *
  * @param name Accessible name (string or RegExp) of the option to click, e.g. `/^REST API/`.
  * @param options.waitForVisible If true (default), waits for the quick input's first option before clicking.
@@ -228,8 +226,14 @@ export const selectQuickInputOption = async (
     });
   }
 
-  const option = activeQuickInputWidget(page).getByRole('option', { name });
-  await option.first().click({ force: true, timeout: options?.timeout ?? 10_000 });
+  const option = activeQuickInputWidget(page).getByRole('option', { name }).first();
+  const timeout = options?.timeout ?? 10_000;
+  await expect(option).toBeVisible({ timeout });
+  await expect(option).toBeEnabled({ timeout });
+  await option.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
 };
 
 /**
@@ -266,7 +270,8 @@ export const selectQuickInputOptionByTyping = async (
   await option.waitFor({ state: 'visible', timeout: options?.optionTimeout ?? 10_000 });
   if (options?.multiSelect) {
     await option.scrollIntoViewIfNeeded();
-    await option.click({ force: true });
+    await expect(option).toBeEnabled();
+    await option.click();
     return;
   }
   await option.evaluate(el => {
@@ -288,11 +293,11 @@ export const dismissSignInWalkthroughDialog = async (page: Page): Promise<void> 
 
   const continueWithoutSignIn = dialog.getByRole('button', { name: /Continue without Signing In/i });
   if (await continueWithoutSignIn.isVisible({ timeout: 500 }).catch(() => false)) {
-    await continueWithoutSignIn.click({ force: true }).catch(() => {});
+    await continueWithoutSignIn.click().catch(() => {});
   } else {
     const skip = dialog.getByRole('button', { name: /^Skip$/i });
     await ((await skip.isVisible({ timeout: 500 }).catch(() => false))
-      ? skip.click({ force: true }).catch(() => {})
+      ? skip.click().catch(() => {})
       : page.keyboard.press('Escape'));
   }
   await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
@@ -312,8 +317,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     // Dismiss any quick input widgets that might intercept clicks
     await dismissAllQuickInputWidgets(page);
 
-    // Ensure workbench is focused before interacting with tabs (overlay can block non-forced clicks)
-    await workbench.click({ timeout: 5000, force: true });
+    // Ensure workbench is focused before interacting with tabs.
+    await workbench.focus();
 
     const welcomeTabs = page.getByRole('tab', { name: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
@@ -325,7 +330,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     const welcomeTab = welcomeTabs.first();
 
     // Select the tab first to ensure it's active
-    await welcomeTab.click({ timeout: 5000, force: true });
+    await expect(welcomeTab).toBeVisible({ timeout: 5000 });
+    await welcomeTab.click({ timeout: 5000 });
     await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
 
     // Dismiss any quick input widgets that may have appeared after clicking
@@ -337,7 +343,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       if ((await page.locator(`${QUICK_INPUT_WIDGET} input.input`).count()) > 0) {
         await dismissAllQuickInputWidgets(page);
       }
-      await closeButton.click({ timeout: 5000, force: true });
+      await expect(closeButton).toBeEnabled({ timeout: 5000 });
+      await closeButton.click({ timeout: 5000 });
     } else {
       // Fall back to keyboard shortcut
       await page.keyboard.press('Control+w');
@@ -368,7 +375,7 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
     if (isDesktopTabVisible) {
       const closeButton = desktopSettingsTab.locator(TAB_CLOSE_BUTTON);
       if (await closeButton.isVisible({ timeout: 500 }).catch(() => false)) {
-        await closeButton.click({ force: true }).catch(() => {});
+        await closeButton.click().catch(() => {});
         await desktopSettingsTab.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
       }
       return;
@@ -378,7 +385,7 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
     if (isOverlayVisible) {
       // Focus the Settings editor before the keyboard close, otherwise Ctrl+W is routed
       // elsewhere (and in the worst case can close the wrong editor). Single-shot.
-      await desktopSettingsEditor.click({ position: { x: 5, y: 5 }, force: true }).catch(() => {});
+      await desktopSettingsEditor.focus().catch(() => {});
       await page.keyboard.press('ControlOrMeta+w').catch(() => {});
       await desktopSettingsEditor.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
     }
@@ -399,7 +406,7 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
   // Settings may open as a floating modal overlay (not a tab) — close button or Escape dismisses it.
   const modalCloseButton = page.getByRole('button', { name: /Close Modal Editor/i }).first();
   if (await modalCloseButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await modalCloseButton.click({ force: true }).catch(() => {});
+    await modalCloseButton.click().catch(() => {});
     return;
   }
   // Fallback: settings search input visible means overlay is open — press Escape to dismiss.
