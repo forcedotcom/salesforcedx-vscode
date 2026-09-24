@@ -13,6 +13,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
@@ -26,7 +27,7 @@ import {
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { UBER_JAR_NAME } from './constants';
+import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
@@ -36,22 +37,7 @@ import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import { resolveRequirements } from './requirements';
 import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
-import {
-  retrieveEnableApexLSErrorToTelemetry,
-  retrieveEnableSyncInitJobs,
-  retrieveAAClassDefModifiers,
-  retrieveAAClassAccessModifiers,
-  retrieveAAMethodDefModifiers,
-  retrieveAAMethodAccessModifiers,
-  retrieveAAPropDefModifiers,
-  retrieveAAPropAccessModifiers,
-  retrieveAAClassRestAnnotations,
-  retrieveAAMethodRestAnnotations,
-  retrieveAAMethodAnnotations,
-  retrieveGeneralClassAccessModifiers,
-  retrieveGeneralMethodAccessModifiers,
-  retrieveGeneralPropAccessModifiers
-} from './settings';
+import { apexLanguageServerSettings } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 
 const JDWP_DEBUG_PORT = 0;
@@ -71,7 +57,7 @@ const startedInDebugMode = (): boolean => {
   const args = process.execArgv;
   if (args) {
     return args.some(
-      (arg: any) =>
+      arg =>
         /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
     );
   }
@@ -82,25 +68,35 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = Effect.fn('apex.lsp.createServer')(
   function* (extensionContext: vscode.ExtensionContext) {
-    const requirementsData = yield* Effect.tryPromise({
-      try: resolveRequirements,
-      catch: cause => languageClientSetupError('requirements', cause)
-    });
+    const requirementsData = yield* resolveRequirements().pipe(
+      Effect.mapError(cause => languageClientSetupError('requirements', cause))
+    );
+
+    const { enableSemanticErrors, enableCompletionStatistics } =
+      yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+        Effect.flatMap(api =>
+          Effect.flatMap(api.services.SettingsService, settings =>
+            Effect.all({
+              enableSemanticErrors: settings.getValueOrElse(APEX_SETTINGS_SECTION, 'enable-semantic-errors', false),
+              enableCompletionStatistics: settings.getValueOrElse(
+                APEX_SETTINGS_SECTION,
+                'advanced.enable-completion-statistics',
+                false
+              )
+            })
+          )
+        ),
+        Effect.mapError(cause => languageClientSetupError('configuration', cause))
+      );
+
+    const { languageServerDir } = yield* Schema.decodeUnknown(Schema.Struct({ languageServerDir: Schema.String }))(
+      extensionContext.extension.packageJSON
+    ).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
 
     return yield* Effect.try({
       try: (): Executable => {
-        const uberJar = path.resolve(
-          extensionContext.extensionPath,
-          extensionContext.extension.packageJSON.languageServerDir,
-          UBER_JAR_NAME
-        );
+        const uberJar = path.resolve(extensionContext.extensionPath, languageServerDir, UBER_JAR_NAME);
         const jvmMaxHeap = requirementsData.java_memory;
-        const enableSemanticErrors = vscode.workspace
-          .getConfiguration()
-          .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
-        const enableCompletionStatistics = vscode.workspace
-          .getConfiguration()
-          .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
 
         const args: string[] = [
           '-cp',
@@ -203,30 +199,18 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
     catch: cause => languageClientSetupError('options', cause)
   });
 
+  const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
+    Effect.mapError(cause => languageClientSetupError('options', cause))
+  );
+
   return yield* Effect.try({
     try: (): ApexLanguageClientOptions => {
       const soqlExtensionInstalled = isNotUndefined(
         vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql')
       );
-      const lspParityCapabilities = vscode.workspace
-        .getConfiguration()
-        .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
       const initializationOptions = {
         enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-        enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
-        enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-        apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
-        apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
-        apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
-        apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
-        apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
-        apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
-        apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
-        apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
-        apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
-        apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
-        apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
-        apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
+        ...initializationSettings
       };
 
       // Create middleware that disables parity providers when setting is true

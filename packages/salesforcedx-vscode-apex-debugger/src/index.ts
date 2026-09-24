@@ -104,7 +104,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 const configureExceptionBreakpoint = Effect.fn('configureExceptionBreakpoint')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const salesforceApexExtension = yield* Effect.promise(() => getActiveApexExtension());
+  const salesforceApexExtension = yield* getActiveApexExtension();
   const exceptionBreakpointInfos = (yield* Effect.promise(() =>
     salesforceApexExtension.exports.getExceptionBreakpointInfo()
   )) as ExceptionBreakpointItem[];

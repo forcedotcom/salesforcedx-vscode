@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
+import { EXTENSION_NAME } from '../constants';
 import { ApexMetadataService } from './apexMetadataService';
 import { LLMService } from './llmService';
 
@@ -21,7 +22,7 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
         ApexMetadataService.Default,
         LLMService.Default,
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-apex-oas',
+          EXTENSION_NAME,
           'sf-apex-oas-notifications',
           'Salesforce: Apex OAS Notifications'
         )

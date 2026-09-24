@@ -28,7 +28,7 @@ import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport'
 import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
-import { salesforceCoreSettings } from './settings';
+import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
@@ -75,7 +75,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   void showTelemetryMessage(extensionContext);
 
   // Set internal dev context
-  const internalDev = salesforceCoreSettings.getInternalDev();
+  const internalDev = yield* servicesApi.services.SettingsService.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
@@ -106,9 +106,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   ) {
     // Refresh SObject definitions only for an open Salesforce project
     // when faux classes are missing (metadata extension registers the command).
-    const sobjectRefreshStartup: boolean = vscode.workspace
-      .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-      .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    const sobjectRefreshStartup = yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
+      SFDX_CORE_CONFIGURATION_NAME,
+      ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+      false
+    );
     yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
@@ -176,24 +178,31 @@ const handleTheUnhandled = (): void => {
       .flatMap(l => l.split(path.sep))
       .find(w => w.startsWith('salesforcedx-vscode'));
 
-    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
-    // Send detailed telemetry data for only dx extensions by default.
-    // If the exception catcher is enabled, send telemetry data for all extensions.
-    if (dxExtension || exceptionCatcher) {
-      collectedData.fromExtension = dxExtension;
-      getRuntime().runFork(
-        Effect.fail(reason).pipe(
-          Effect.withSpan('unhandledRejection', {
-            attributes: { message: JSON.stringify(collectedData) },
-            root: true
-          })
-        )
-      );
-      if (exceptionCatcher) {
-        console.log('Debug mode is enabled');
-        console.log('error data: %s', JSON.stringify(collectedData));
-      }
-    }
+    getRuntime().runFork(
+      getEnableAllExceptionCatcher().pipe(
+        Effect.flatMap(exceptionCatcher => {
+          // Send detailed telemetry data for only dx extensions by default.
+          // If the exception catcher is enabled, send telemetry data for all extensions.
+          if (!dxExtension && !exceptionCatcher) return Effect.void;
+
+          collectedData.fromExtension = dxExtension;
+          return (
+            exceptionCatcher
+              ? Effect.logDebug('Debug mode is enabled', { errorData: JSON.stringify(collectedData) })
+              : Effect.void
+          ).pipe(
+            Effect.andThen(
+              Effect.fail(reason).pipe(
+                Effect.withSpan('unhandledRejection', {
+                  attributes: { message: JSON.stringify(collectedData) },
+                  root: true
+                })
+              )
+            )
+          );
+        })
+      )
+    );
   });
 };
 
