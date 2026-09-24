@@ -121,9 +121,11 @@ test('Refresh SObject Definitions (Code Builder): refreshes custom sObjects from
       // boot minimal org has none, so a green result here proves the command re-targeted the switched org).
       const quickInput = activeQuickInputWidget(page);
       await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-      await quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: packageNls.sobject_refresh_custom }).click({
-        force: true
-      });
+      await quickInput
+        .locator(QUICK_INPUT_LIST_ROW)
+        .filter({ hasText: packageNls.sobject_refresh_custom })
+        // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
+        .click({ force: true });
       await saveScreenshot(page, 'refreshSObjectDefinitions.container.03-after-command.png');
 
       // "Processed N Custom sObjects" line confirms the refresh ran to completion against the default org.

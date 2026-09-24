@@ -30,11 +30,12 @@ describe('settings Unit Tests.', () => {
 
   it('Should be able to get retrieveAAMethodAnnotations setting.', () => {
     getConfigurationMock.mockReturnValue({
-      get: getFn.mockReturnValue(['UserDefinedModifier'])
+      get: getFn.mockReturnValue(['AuraEnabled', 'UserDefinedModifier', 'UserDefinedModifier'])
     } as any);
 
     const result = retrieveAAMethodAnnotations();
-    expect(result).toEqual(['AuraEnabled', 'UserDefinedModifier']);
+    expect(result).toHaveLength(2);
+    expect(result).toEqual(expect.arrayContaining(['AuraEnabled', 'UserDefinedModifier']));
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
   });

@@ -16,7 +16,9 @@ One test per file. Many steps allowed.
 
 - Never `waitForTimeout` - wait for specific page elements
 - `page.waitForSelector()` - elements appear
-- `expect(locator).toBeVisible()` - visibility
+- `expect(locator).toBeVisible()` - visibility (success signals / readiness that is not a `fill`/`click` target)
+- `locator.fill()` / `locator.click()` already wait visible (+ editable for fill) — skip pre-`toBeVisible`/`toBeEditable`
+- `waitForActiveQuickInputTextField` — only before `page.keyboard.type` / `locator.press` (e.g. `openFileByName`); not before `fill`/`click`
 - `page.waitForLoadState()` - page state changes
 - Don't use `page.waitForResponse()` - doesn't work in desktop/electron
 - Don't use `networkidle` - not available on desktop/electron
@@ -40,8 +42,8 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 - **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; works on both web (when workspace is mounted) and desktop, handles compact folders transparently and scrolls files into view before interaction.
 - `Control+Home`, `Control+s` - navigate and save
-- `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
-- Monaco editor selectors - interact with editor
+- `page.keyboard.type()` — `disableMonacoAutoClosing(page)` first (auto-bracket/quote duplication). Focus via `focusMonacoInput` ([editor selection](#commands-with-editor-selection))
+- Monaco editor selectors — interact with editor
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
@@ -89,15 +91,18 @@ await page.keyboard.press('Escape');
 
 Clicking a tree item (e.g. a Test Explorer node) raises a Monaco hover widget (`.hover-contents`, e.g. `lwc1 (Not yet run)`). On Windows it lingers and **intercepts pointer events** on adjacent rows/buttons, so the next `.click()` times out with `subtree intercepts pointer events`. `keyboard.press('Escape')` does not reliably dismiss it.
 
-Fix — force the clicks and retry the whole select → reveal → act sequence (the sanctioned exception to "avoid retries"):
+Fix — force the clicks and retry the whole select → reveal → act sequence (the sanctioned exception to "avoid retries"). Each forced action must use the exact narrow suppression and rationale shown below:
 
 ```typescript
 await testCase.scrollIntoViewIfNeeded();
 await expect(async () => {
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await testCase.click({ force: true });
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await testCase.hover({ force: true });
   const runButton = testCase.getByRole('button', { name: /^Run Test/ });
   await runButton.waitFor({ state: 'visible', timeout: 3000 });
+  // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await runButton.click({ force: true });
 }).toPass({ timeout: 30_000 });
 ```
@@ -129,19 +134,23 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 
 ## Commands with Editor Selection
 
-Selection-guarded commands (e.g., debug/execute from selection) require editor focus + selection. Preserve both with `preserveSelection: true`:
+Selection-guarded commands (debug/execute from selection) need the Monaco input focused and a selection. Keep both with `preserveSelection: true`.
+
+`focusMonacoInput` DOM-focuses `.native-edit-context` or `textarea.inputarea`. Focusing `.view-lines` or `.monaco-editor` does not; keys hit whichever editor already had focus.
 
 ```typescript
-// Setup selection first (ensure editor has focus)
+import { EDITOR_WITH_URI, focusMonacoInput } from '@salesforce/playwright-vscode-ext';
+
+const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="MyFile.apex"]`);
+await focusMonacoInput(editor);
 await page.keyboard.press('Control+a');
 
-// Open palette — preserve selection
 await executeCommandWithCommandPalette(page, commandTitle, undefined, {
   preserveSelection: true
 });
 ```
 
-Without it: palette open blurs editor, clears selection, hides selection-guarded commands.
+Without `preserveSelection`: palette open blurs the editor, clears the selection, hides selection-guarded commands.
 
 ## Clicking Code Lenses
 

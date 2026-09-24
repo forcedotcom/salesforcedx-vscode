@@ -1,4 +1,5 @@
 name: Publish in Open VSX Registry
+run-name: "Release ${{ inputs['release-tag'] || github.event.release.tag_name }}"
 on:
   release:
     # This limits the workflow to releases that are not pre-releases
@@ -16,7 +17,7 @@ on:
         type: boolean
         default: false
       isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-release.yml startFromRef, which have no other automated test gate.'
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
         required: false
         default: false
         type: boolean
@@ -43,7 +44,7 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
-  # Only needed for stable hotfixes (isHotfix=true): these are built via build-release.yml's
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.

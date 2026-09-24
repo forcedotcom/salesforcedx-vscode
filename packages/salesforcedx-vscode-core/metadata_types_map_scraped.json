@@ -550,7 +550,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process.",
+        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process. Keep the compressed JSON payload under 100 KB. Data 360 automatically compresses the payload before storage. but, compression results vary depending on the structure of the data. A payload that’s under 100 KB before compression can exceed the limit after compression. If the compressed payload exceeds 100 KB, reduce the payload size or split the component.",
         "Field Name": "entityPayload",
         "Field Type": "string"
       },
@@ -2489,6 +2489,16 @@
         "Field Type": "ActionableListMemberStatus[]"
       },
       {
+        "Description": "Specifies the type of actionable list. Available in API version 68.0 and later.",
+        "Field Name": "actionableListType",
+        "Field Type": "static enum"
+      },
+      {
+        "Description": "Indicates whether the actionable list definition is active (yes) or not (no). Available in API version 68.0 and later.",
+        "Field Name": "isactive",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The batch calculation job definition that's associated with the creation of an actionable list. This field is a relationship field.",
         "Field Name": "batchCalcJobDefinition",
         "Field Type": "string"
@@ -2497,6 +2507,11 @@
         "Description": "The name of the dataset that is associated with the actionable list.",
         "Field Name": "datasetName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The description of the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "description",
+        "Field Type": "text"
       },
       {
         "Description": "The edgemart dataset that's associated with the actionable list. Available in API version 58.0 and later.",
@@ -2517,6 +2532,16 @@
         "Description": "Required. The object for which the actionable list is created.Possible values are organized by the API version in which they were introduced. Values are available in all versions after introduction unless noted otherwise. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The name of the source object field associated with the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectFieldName",
+        "Field Type": "text"
+      },
+      {
+        "Description": "The source object name for which the actionable list is created. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectName",
+        "Field Type": "text"
       }
     ],
     "short_description": "Represents the data source definition details associated with an actionable list.",
@@ -2525,6 +2550,11 @@
   },
   "ActionableListDatasetColumn": {
     "fields": [
+      {
+        "Description": "The actionable list definition that's associated with the column. Available in API version 68.0 and later.",
+        "Field Name": "actionableListDefinition",
+        "Field Type": "master/detail"
+      },
       {
         "Description": "The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures",
         "Field Name": "dataDomain",
@@ -2556,12 +2586,17 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the dataset column belongs to source data model object or not. Available in API version 68.0 and later.",
+        "Field Name": "isSourceObjectField",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The name of the object that's associated with the dataset column. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
       },
       {
-        "Description": "The API name of the column in the source dataset.",
+        "Description": "The API name of the column in the source dataset. Available in API version 68.0 and later.",
         "Field Name": "sourceColumnApiName",
         "Field Type": "string"
       },
@@ -3548,7 +3583,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The unique identifier of the prediction definition that’s related to the use case model. This identifier can be an external ID. If you use Einstein Discovery to create models, the predictionDefinition field stores the developer name of the record.",
+        "Description": "The unique identifier of the prediction definition that’s related to the use case model. This identifier can be an external ID. If you use Einstein Discovery to create models, the predictionDefinition field stores the developer name of the record.",
         "Field Name": "predictionDefinition",
         "Field Type": "string"
       },
@@ -6262,9 +6297,19 @@
   "BatchCalcJobDefinition": {
     "fields": [
       {
+        "Description": "Collection of reusable activities, such as a data stream run or an activation trigger, that can be referenced across steps in a data processing engine definition.Available in API version 68.0 and later.",
+        "Field Name": "activities",
+        "Field Type": "BatchCalcJobActivity[]"
+      },
+      {
         "Description": "Collection of aggregate nodes in a data processing engine.",
         "Field Name": "aggregates",
         "Field Type": "BatchCalcJob​​​Aggregate[]"
+      },
+      {
+        "Description": "API version in which the data processing engine definition is created. For example, 68.0.Available in API version 68.0 and later.",
+        "Field Name": "apiVersion",
+        "Field Type": "string"
       },
       {
         "Description": "Collection of append nodes in a data processing engine.",
@@ -6300,6 +6345,11 @@
         "Description": "Specifies the execution mode in a data processing engine. Valid values are: Batch OnDemand",
         "Field Name": "definitionRunMode",
         "Field Type": "BatchCalcJobDefRunMode(enumeration of type string)"
+      },
+      {
+        "Description": "Type of data processing engine definition.Valid values are: Calcservice DataStudio Available in API version 68.0 and later.",
+        "Field Name": "definitionType",
+        "Field Type": "BatchCalcJobDefType (enumeration of type string)"
       },
       {
         "Description": "Description of a data processing engine definition.",
@@ -6357,7 +6407,7 @@
         "Field Type": "BatchCalcJobParameter[]"
       },
       {
-        "Description": "The process type of a data processing engine. These process types may be available to you depending on your industry solution and permission sets. Valid values are: AccountingPeriodClosure AccountingSubledger—This value is reserved for internal use. AccrualsAndPayoutEngine ActionableList AdvancedAccountForecast AutomotiveFoundation BenefitManagement BillingSchedulesforInvoiceGeneration CDPEnrichment ChannelInventoryManagement—Available in API version 63.0 and later. CollectionPlan—Available in API version 65.0 and later. ContextService—Available in API version 67.0 and later. CriteriaBsdSearchAndFilter DataProcessingEngine DecisionMatrixDataUpload Decisiontable Education EmployeeService—Available in API version 63.0 and later. EnergyUtilitiesSales FinancialSummaryRollup FlexibleHierarchy ForeignExchangeGainLossCalculations—Available in API version 65.0 and later. FSCHierarchyRollUp Fundraising—Available in API version 64.0 and later. FundraisingRollups—Available in API version 63.0 and later. GeneralLedgerAccountBalancesSummary—Available in API version 65.0 and later. InventoryBatchSearch—Available in API version 65.0 and later. InventorySearch—Available in API version 65.0 and later. InvoiceGeneration Loyalty LegalEntityAccountingPeriodClosureAdvanced—Available in API version 63.0 and later. LifeSciencbatchcalesCommercialTerritoryAlignment—Available in API version 63.0 and later. LifeSciencesCustomerEngagement—Available in API version 64.0 and later. LoyaltyPartnerManagement LoyaltyPointsAggregation MediaAdSales NextGenForecasting—Available in API version 64.0 and earlier. NetZero PatientServicesProgram—Available in API version 64.0 and later. PlanningAndForecasting PnmRosterFileUpload PriceProtection ProductCatalogManagement ProgramBasedBusiness ProviderSearch—This value is reserved for internal use. Rebates RebateAndAccrualManagementAdvanced Recruitment RevenueTransactionManagement—Available in API version 63.0 and later. SalesAgreement—Available in API version 63.0 and later. TestAtomicWritebackScale—Available in API version 64.0 and later. TestProcessType UsageManagement",
+        "Description": "The process type of a data processing engine. These process types may be available to you depending on your industry solution and permission sets. Valid values are: AccountingPeriodClosure AccountingSubledger—This value is reserved for internal use. AccrualsAndPayoutEngine ActionableList AdvancedAccountForecast AutomotiveFoundation BenefitManagement BillingSchedulesforInvoiceGeneration CDPEnrichment ChannelInventoryManagement—Available in API version 63.0 and later. CollectionPlan—Available in API version 65.0 and later. ContextService—Available in API version 67.0 and later. CriteriaBsdSearchAndFilter DataProcessingEngine DecisionMatrixDataUpload Decisiontable Education EmployeeService—Available in API version 63.0 and later. EnergyUtilitiesSales FinancialSummaryRollup FlexibleHierarchy ForeignExchangeGainLossCalculations—Available in API version 65.0 and later. FSCHierarchyRollUp Fundraising—Available in API version 64.0 and later. FundraisingRollups—Available in API version 63.0 and later. GeneralLedgerAccountBalancesSummary—Available in API version 65.0 and later. InventoryBatchSearch—Available in API version 65.0 and later. InventorySearch—Available in API version 65.0 and later. InvoiceGeneration Loyalty LegalEntityAccountingPeriodClosureAdvanced—Available in API version 63.0 and later. LifeSciencesCommercialTerritoryAlignment—Available in API version 63.0 and later. LifeSciencesCustomerEngagement—Available in API version 64.0 and later. LoyaltyPartnerManagement LoyaltyPointsAggregation MediaAdSales NextGenForecasting—Available in API version 64.0 and earlier. NetZero PatientServicesProgram—Available in API version 64.0 and later. PennyPerfectPricing—Available in API version 68.0 and later. PlanningAndForecasting PnmRosterFileUpload PriceProtection ProductCatalogManagement ProgramBasedBusiness ProviderSearch—This value is reserved for internal use. PublicSector—Available in API version 68.0 and later. Rebates RebateAndAccrualManagementAdvanced Recruitment RevenueTransactionManagement—Available in API version 63.0 and later. SalesAgreement—Available in API version 63.0 and later. TestAtomicWritebackScale—Available in API version 64.0 and later. TestProcessType UsageManagement",
         "Field Name": "processType",
         "Field Type": "BatchCalcProcessType (enumeration of type string)"
       },
@@ -6365,6 +6415,11 @@
         "Description": "Status of a data processing engine definition. Valid values are: Active Inactive",
         "Field Name": "status",
         "Field Type": "BatchJobDefinition​Status (enumeration of type string)"
+      },
+      {
+        "Description": "Collection of steps that group related activities in a data processing engine definition.Available in API version 68.0 and later.",
+        "Field Name": "steps",
+        "Field Type": "BatchCalcJobStep[]"
       },
       {
         "Description": "ISO code of the target currency for currency conversion in the data processing engine definition.Available in API version 67.0 and later.",
@@ -6382,44 +6437,34 @@
         "Field Type": "BatchCalcJobWriteback​Object[]"
       }
     ],
-    "short_description": "Represents a Data Processing Engine definition. Represents a collection of fields relating to an aggregate node in a data processing engine. Represents a collection of fields relating to an aggregation field in an aggregate node of a data processing engine.",
+    "short_description": "Represents a Data Processing Engine definition. Represents a reusable activity, such as a data stream run or an activation trigger, that can be referenced across steps in a data processing engine definition. Represents a stage in a data processing engine definition. A step groups related activities that must be completed before the definition advances to the next step.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "Fields": {
     "fields": [
       {
-        "Description": "Description of an aggregate node.",
-        "Field Name": "description",
+        "Description": "Required. Unique name that identifies the activity in a step.Available in API version 68.0 and later.",
+        "Field Name": "activityName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Collection of aggregation fields.",
-        "Field Name": "fields",
-        "Field Type": "BatchCalcJob​AggregateField[]"
+        "Description": "Required. Type of activity performed in a step. Valid values are: RefreshDataGraphActivity RefreshSegmentActivity RunCalculatedInsightsActivity RunDataStreamActivity RunDataTransformActivity RunIdentityResolutionActivity TriggerActivationActivity Available in API version 68.0 and later.",
+        "Field Name": "activityType",
+        "Field Type": "BatchCalcJobActivityType (enumeration of type string)"
       },
       {
-        "Description": "Required. Collections of fields used to group data in an aggregate node.",
-        "Field Name": "groupBy",
-        "Field Type": "string[]"
-      },
-      {
-        "Description": "Required. Label of an aggregate node.",
+        "Description": "User-defined name for the activity.Available in API version 68.0 and later.",
         "Field Name": "label",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Name of an aggregate node.",
+        "Description": "Required. Unique API name of the activity.Available in API version 68.0 and later.",
         "Field Name": "name",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Name of the source node.",
-        "Field Name": "sourceName",
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Available in API version 68.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
@@ -6573,9 +6618,27 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
+  "BatchCalcJobStepProcNode": {
+    "fields": [],
+    "short_description": "Represents the association between a step and an activity that runs in that step. The sequence number defines the execution order of activities in a step.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
   "BatchCalcJobOrderByField": {
     "fields": [],
     "short_description": "Represents a collection of fields that are used to sort the partitioned data.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​Activity": {
+    "fields": [],
+    "short_description": "Represents a reusable activity, such as a data stream run or an activation trigger, that can be referenced across steps in a data processing engine definition.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​Step": {
+    "fields": [],
+    "short_description": "Represents a stage in a data processing engine definition. A step groups related activities that must be completed before the definition advances to the next step.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
@@ -6819,6 +6882,11 @@
       {
         "Description": "Indicates whether to enable Dispute Management (true) or not (false). The default value is false. Available in API version 66.0 and later.",
         "Field Name": "enableBillingDisputeManagement",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether to enable billing forecasts (true) or not (false). The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "enableBillingForecast",
         "Field Type": "boolean"
       },
       {
@@ -9206,24 +9274,24 @@
   "ClauseCatgConfiguration": {
     "fields": [
       {
-        "Description": "The description about the clause category configuration.",
+        "Description": "configuration.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for ClauseCatgConfiguration, which is defined when the ClauseCatgConfiguration is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The usage type of the clause category configuration.Possible values are: ContractClauseCategory DisclosureCategory",
+        "Description": "Required. The usage type of the clause category configuration. Possible values are: ContractClauseCategory DisclosureCategory",
         "Field Name": "usageType",
-        "Field Type": "ClmCategoryUsageType"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the configuration about the clause category that can be used to categorize your disclosure and compliance reports from standardized disclosure templates in a response document.",
@@ -12952,47 +13020,47 @@
   "CustomObject": {
     "fields": [
       {
-        "Description": "A list of action overrides on the object.This field is available in API version 18.0 and later.",
+        "Description": "List of action overrides on the object.This field is available in API version 18.0 and later.",
         "Field Name": "actionOverrides",
         "Field Type": "ActionOverride[]"
       },
       {
-        "Description": "Indicates whether records of this custom object type can be added to Chatter groups.This field is available in API version 34.0 and later.",
+        "Description": "Indicates whether records of this custom object type can be added to Chatter groups (true) or not (false).This field is available in API version 34.0 and later.",
         "Field Name": "allowInChatterGroups",
         "Field Type": "boolean"
       },
       {
-        "Description": "A list of business processes associated with the object.This field is available in API version 17.0 and later.",
+        "Description": "List of business processes associated with the object.This field is available in API version 17.0 and later.",
         "Field Name": "businessProcesses",
         "Field Type": "BusinessProcess[]"
       },
       {
-        "Description": "The compact layout assigned to the object.This field is available in API version 29.0 and later. This field is available for external objects in API version 42.0 and later.",
+        "Description": "Compact layout assigned to the object.This field is available in API version 29.0 and later. This field is available for external objects in API version 42.0 and later.",
         "Field Name": "compactLayoutAssignment",
         "Field Type": "string"
       },
       {
-        "Description": "A list of compact layouts associated with the object.This field is available in API version 29.0 and later. This field is available for external objects in API version 42.0 and later.",
+        "Description": "List of compact layouts associated with the object.This field is available in API version 29.0 and later. This field is available for external objects in API version 42.0 and later.",
         "Field Name": "compactLayouts",
         "Field Type": "CompactLayout[]"
       },
       {
-        "Description": "The s-control that contains the help content if the object has customized help content. This field is available in API version 14.0 and later.",
+        "Description": "S-control that contains the help content if the object has customized help content. This field is available in API version 14.0 and later.",
         "Field Name": "customHelp",
         "Field Type": "string"
       },
       {
-        "Description": "The Visualforce page that contains the help content if the object has customized help content. This field is available in API version 16.0 and later.",
+        "Description": "Visualforce page that contains the help content if the object has customized help content. This field is available in API version 16.0 and later.",
         "Field Name": "customHelpPage",
         "Field Type": "string"
       },
       {
-        "Description": "When this field is present, this component isn’t a custom object, but a custom setting. This field returns the type of custom setting. The following string values are valid: List—static data stored in cache, accessed as part of your application, and available org-wide. Hierarchy—static data stored in cache, accessed as part of your application, and available based on a hierarchy of user, profile, or org. This value is the default. This field is available in API version 17.0 and later.",
+        "Description": "When this field is present, this component isn’t a custom object, but a custom setting. This field returns the type of custom setting. Valid values are: List—static data stored in cache, accessed as part of your app, and available org-wide. Hierarchy—static data stored in cache, accessed as part of your app, and available based on a hierarchy of user, profile, or org. This value is the default. This field is available in API version 17.0 and later.",
         "Field Name": "customSettingsType",
         "Field Type": "CustomSettingsType (enumeration of type string)"
       },
       {
-        "Description": "When this field is present, this component isn’t a custom object, but a custom setting. This field returns the visibility of the custom setting. The following string values are valid: Public—if the custom setting is packaged, it’s accessible to all subscribing orgs. Protected—if the custom setting is in a managed package, it’s accessible only to the developer org. Subscribing orgs can’t access it. This value is the default. This field is available in API versions 17.0 through 33.0. In versions 34.0 and later, use the visibility field instead of this field.",
+        "Description": "When this field is present, this component isn’t a custom object, but a custom setting. This field returns the visibility of the custom setting. Valid values are: Public—if the custom setting is packaged, it’s accessible to all subscribing orgs. Protected—if the custom setting is in a managed package, it’s accessible only to the developer org. Subscribing orgs can’t access it. This value is the default. This field is available in API versions 17.0 through 33.0. In versions 34.0 and later, use the visibility field instead of this field.",
         "Field Name": "customSettingsVisibility",
         "Field Type": "CustomSettingsVisibility (enumeration of type string)"
       },
@@ -13012,12 +13080,12 @@
         "Field Type": "DeploymentStatus (enumeration of type string)"
       },
       {
-        "Description": "Reserved for future use.",
+        "Description": "Reserved for future use. Indicates whether a developer deprecated a custom object in a package (true) or not (false).",
         "Field Name": "deprecated",
         "Field Type": "boolean"
       },
       {
-        "Description": "A description of the object. Maximum of 1000 characters.",
+        "Description": "Description of the object. Maximum length is 1000 characters.",
         "Field Name": "description",
         "Field Type": "string"
       },
@@ -13032,17 +13100,17 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the object is enabled for divisions (true) or not (false). See Division in the Salesforce Object Reference. .",
+        "Description": "Indicates whether the object is enabled for divisions (true) or not (false). For more information on this field, see Division.",
         "Field Name": "enableDivisions",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the object is enabled for enhanced lookups (true) or not (false). The custom object must be searchable for enableEnhancedLookup to work. Set enableSearch as true before setting enableEnhancedLookup as true. In API version 28.0 and later, this field can also be used for the Account, Contact, and User objects. Enhanced lookups provide an updated lookup dialog interface that lets users filter, sort, and page through search results and customize search result columns. For more information about enhanced lookups, see “Enable Enhanced Lookups” in Salesforce Help.",
+        "Description": "Indicates whether the object is enabled for enhanced lookups (true) or not (false). The custom object must be searchable for enableEnhancedLookup to work. Set enableSearch as true before setting enableEnhancedLookup as true. In API version 28.0 and later, this field can also be used for the Account, Contact, and User objects. Enhanced lookups provide an updated lookup dialog interface that lets users filter, sort, and page through search results and customize search result columns. For more information about enhanced lookups, see Enable Enhanced Lookups.",
         "Field Name": "enableEnhancedLookup",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the object is enabled for feed tracking (true) or not (false). For more information, see “Customize Chatter Feed Tracking” in Salesforce Help. This field is available in API version 18.0 and later.",
+        "Description": "Indicates whether the object is enabled for feed tracking (true) or not (false). For more information, see Customize Chatter Feed Tracking. This field is available in API version 18.0 and later.",
         "Field Name": "enableFeeds",
         "Field Type": "boolean"
       },
@@ -13062,67 +13130,67 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the object’s records can be found via SOSL and Salesforce searches. Corresponds to Allow Search in the user interface.By default, search is disabled for new custom objects. This field is available for custom objects in API version 35.0 and later. To enhance Einstein Search performance, searchability is disabled for custom objects that haven't been searched for more than 120 days. To enable object and field searchability, contact your admin. By default, search is disabled for new external objects. However, you can validate and sync an external data source to automatically create external objects. Syncing always enables search on the external object when search is enabled on the external data source, and vice versa.This field is available for external objects in API version 37.0 and later.",
+        "Description": "Indicates whether the object’s records can be found via Salesforce Object Search Language and Salesforce searches (true) or not (false). Corresponds to Allow Search in the user interface.By default, search is turned off for new custom objects. This field is available for custom objects in API version 35.0 and later. To enhance Einstein Search performance, searchability is turned off for custom objects that haven't been searched for more than 120 days. To enable object and field searchability, contact your admin. By default, search is turned off for new external objects. However, you can validate and sync an external data source to automatically create external objects. Syncing always enables search on the external object when search is enabled on the external data source, and vice versa. This field is available for external objects in API version 37.0 and later.",
         "Field Name": "enableSearch",
         "Field Type": "boolean"
       },
       {
-        "Description": "When enabled, the object is classified as an Enterprise Application object for usage tracking.When enabled, enableBulkApi and enableStreamingApi must also be enabled. This field is available in API version 31.0 and later.",
+        "Description": "Indicates whether the object is classified as an Enterprise Application object for usage tracking (true) or not (false).When enabled, enableBulkApi and enableStreamingApi must also be enabled. This field is available in API version 31.0 and later.",
         "Field Name": "enableSharing",
         "Field Type": "boolean"
       },
       {
-        "Description": "When enabled, the object is classified as an Enterprise Application object for usage tracking.When enabled, enableBulkApi and enableSharing must also be enabled. This field is available in API version 31.0 and later.",
+        "Description": "Indicates whether the object is classified as an Enterprise Application object for usage tracking (true) or not (false).When enabled, enableBulkApi and enableSharing must also be enabled. This field is available in API version 31.0 and later.",
         "Field Name": "enableStreamingApi",
         "Field Type": "boolean"
       },
       {
-        "Description": "This field applies only to platform events. Indicates the event type. The values are: HighVolume—For a high-volume platform event. StandardVolume—Deprecated. Creating a platform event with this event type is supported and returns an error. This field is available in API version 41.0 and later.",
+        "Description": "This field applies only to platform events. Type of event. Valid values are: HighVolume—For a high-volume platform event. StandardVolume—Deprecated. Creating a platform event with this event type is supported and returns an error. This field is available in API version 41.0 and later.",
         "Field Name": "eventType",
         "Field Type": "PlatformEventType (enumeration of type string)"
       },
       {
-        "Description": "Required and available for external objects only. The name of the external data source that stores the data for the external object. The data source is represented by the ExternalDataSource component.This field is available in API version 32.0 and later.",
+        "Description": "Required and available only for external objects. The name of the external data source that stores the data for the external object. The data source is represented by the ExternalDataSource component.This field is available in API version 32.0 and later.",
         "Field Name": "externalDataSource",
         "Field Type": "string"
       },
       {
-        "Description": "Required and available for external objects only. The name of the table in the external data source that contains the data for the external object.This field is available in API version 32.0 and later.",
+        "Description": "Required and available only for external objects. The name of the table in the external data source that contains the data for the external object.This field is available in API version 32.0 and later.",
         "Field Name": "externalName",
         "Field Type": "string"
       },
       {
-        "Description": "Available for Salesforce Connect external objects only. Corresponds to Display URL Reference Field in the user interface.The external object’s Display URL standard field values are automatically generated from the external system. For example, with the OData 2.0 adapter for Salesforce Connect, the value is based on the link href that’s defined on the OData producer. You can override the default values with the values of a custom field on the same external object. Select the field name, and make sure that the custom field’s values are valid URLs. This field is available in API version 32.0 and later.",
+        "Description": "Available only for Salesforce Connect external objects. Corresponds to the Display URL Reference Field in the user interface.The external object’s Display URL standard field values are automatically generated from the external system. For example, with the OData 2.0 adapter for Salesforce Connect, the value is based on the link href that’s defined on the OData producer. You can override the default values with the values of a custom field on the same external object. Select the field name, and ensure the custom field’s values are valid URLs. This field is available in API version 32.0 and later.",
         "Field Name": "externalRepository",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates the external org-wide defaults for the object, which determines the access level for external users. This field is available in API version 31.0 and later.",
+        "Description": "External org-wide defaults for the object, which determines the access level for external users. This field is available in API version 31.0 and later.",
         "Field Name": "externalSharingModel",
         "Field Type": "SharingModel (enumeration of type string)"
       },
       {
-        "Description": "Represents one or more fields in the object.",
+        "Description": "One or more field names in the object.",
         "Field Name": "fields",
         "Field Type": "CustomField[]"
       },
       {
-        "Description": "Defines the field set that exists on this object.",
+        "Description": "Field set that exists on the object.",
         "Field Name": "fieldSets",
         "Field Type": "FieldSet"
       },
       {
-        "Description": "Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.This value can't be null.",
+        "Description": "Full name of the object. It must be specified when creating, updating, or deleting the object. See createMetadata() to see an example of this field specified for a call.This value can't be null.",
         "Field Name": "fullName",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates the gender of the noun that represents the object. This is used for languages where words need different treatment depending on their gender.",
+        "Description": "Gender of the noun that represents the object. This is used for languages where words need different treatment depending on their gender.",
         "Field Name": "gender",
         "Field Type": "Gender"
       },
       {
-        "Description": "This field supports relationship groups, a feature available only with Salesforce for Wealth Management. For more information, see “Salesforce for Wealth Management” in Salesforce Help.",
+        "Description": "Support for relationship groups, a feature available only with Salesforce for Wealth Management.",
         "Field Name": "household",
         "Field Type": "boolean"
       },
@@ -13132,7 +13200,7 @@
         "Field Type": "HistoryRetentionPolicy"
       },
       {
-        "Description": "Defines the index for a custom big object.",
+        "Description": "Index for a custom big object.",
         "Field Name": "indexes",
         "Field Type": "Index[]"
       },
@@ -13142,7 +13210,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Represents one or more list views associated with the object.",
+        "Description": "One or more list views associated with the object.",
         "Field Name": "listViews",
         "Field Type": "ListView[]"
       },
@@ -13152,12 +13220,12 @@
         "Field Type": "NamedFilter[]"
       },
       {
-        "Description": "Required for custom objects. On external objects, the name field can instead be specified by setting isNameField to true in the CustomField component.The field that this object's name is stored in. Every custom object must have a name, usually a string or autonumber. Identifier for the custom object record. This name appears in page layouts, related lists, lookup dialogs, search results, and key lists on tab home pages. By default, this field is added to the custom object page layout as a required field.",
+        "Description": "Required for custom objects. On external objects, the name field can instead be specified by setting isNameField to true in the CustomField component.The field that this object's name is stored in. Every custom object must have a name, usually a string or auto number. Identifier for the custom object record. This name appears in page layouts, related lists, lookup dialogs, search results, and key lists on tab home pages. By default, this field is added to the custom object page layout as a required field.",
         "Field Name": "nameField",
         "Field Type": "CustomField"
       },
       {
-        "Description": "Plural version of the label value.Custom objects require a plural version of the label to ensure that object names are localizable.",
+        "Description": "Plural version of the label value.Custom objects require a plural version of the label to ensure object names are localizable.",
         "Field Name": "pluralLabel",
         "Field Type": "string"
       },
@@ -13172,12 +13240,12 @@
         "Field Type": "PlatformEventPublishBehavior (enumeration of type string)"
       },
       {
-        "Description": "An array of one or more record types defined for this object.",
+        "Description": "Array of one or more record types defined for this object.",
         "Field Name": "recordTypes",
         "Field Type": "RecordType[]"
       },
       {
-        "Description": "Indicates whether the record type is enabled for feed tracking (true) or not (false). To set this field to true, the enableFeeds field on the associated CustomObject must also be true. For more information, see “Customize Chatter Feed Tracking” in Salesforce Help.This field is available in API version 19.0 and later.",
+        "Description": "Indicates whether the record type is enabled for feed tracking (true) or not (false). To set this field to true, the enableFeeds field on the associated CustomObject must also be true. For more information, see Customize Chatter Feed Tracking. This field is available in API version 19.0 and later.",
         "Field Name": "recordTypeTrackFeedHistory",
         "Field Type": "boolean"
       },
@@ -13187,123 +13255,133 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The Search Layouts related list information for the object.",
+        "Description": "Search Layouts related list information for the object.",
         "Field Name": "searchLayouts",
         "Field Type": "SearchLayouts"
       },
       {
-        "Description": "Indicates the org-wide defaults for the object.Note: Using API version 29.0 and earlier, this field is read-only and can’t be set using the Metadata API; you must use the Salesforce user interface. Using API version 30.0 and later, you can set this field for internal users using the API and the Salesforce user interface.",
+        "Description": "Indicates the org-wide defaults for the object.Note: In API version 29.0 and earlier, this field is read only and can’t be set using the Metadata API; you must use the Salesforce user interface. In API version 30.0 and later, you can set this field for internal users using the API and the Salesforce user interface.",
         "Field Name": "sharingModel",
         "Field Type": "SharingModel(enumeration of type string)"
       },
       {
-        "Description": "The reasons why the object is being shared.",
+        "Description": "Reasons why the object is being shared.",
         "Field Name": "sharingReasons",
         "Field Type": "SharingReason[]"
       },
       {
-        "Description": "A list of custom sharing recalculations associated with the object.",
+        "Description": "List of custom sharing recalculations associated with the object.",
         "Field Name": "sharingRecalculations",
         "Field Type": "SharingRecalculation[]"
       },
       {
-        "Description": "Indicates whether the noun starts with a vowel, consonant, or is a special character. This is used for languages where words need different treatment depending on the first character. Valid values are listed in StartsWith.",
+        "Description": "Indicates whether the noun starts with a vowel, consonant, or is a special character (true) or not (false). This is used for languages where words need different treatment depending on the first character. Valid values are listed in StartsWith.",
         "Field Name": "startsWith",
         "Field Type": "StartsWith (enumeration of type string)"
       },
       {
-        "Description": "An array of one or more validation rules on the object.",
+        "Description": "Array of one or more validation rules on the object.",
         "Field Name": "validationRules",
         "Field Type": "ValidationRule[]"
       },
       {
-        "Description": "This field returns the visibility of the custom object, custom setting, or custom metadata type. The following values are valid. Public—If the custom object, custom setting, or custom metadata type is packaged, it’s accessible to all subscribing orgs. Protected—If the custom object, custom setting, or custom metadata type is in a managed package, it’s accessible only to the developer org. Subscribing orgs can’t access it. PackageProtected— (Custom metadata type only) If the custom metadata type is PackageProtected, it’s only accessible by the custom Apex code in the package. Use this value to secure secrets such as API access keys and security tokens. Available in API version 47.0 and later. The default value is Public. This field is available in API version 34.0 and later. For custom settings, this field replaces the customSettingsVisibility field.",
+        "Description": "Visibility of the custom object, custom setting, or custom metadata type. Valid values are: Public—If the custom object, custom setting, or custom metadata type is packaged, it’s accessible to all subscribing orgs. Protected—If the custom object, custom setting, or custom metadata type is in a managed package, it’s accessible only to the developer org. Subscribing orgs can’t access it. PackageProtected— (Custom metadata type only) It’s only accessible by the custom Apex code in the package. Use this value to secure secrets such as API access keys and security tokens. Available in API version 47.0 and later. The default value is Public. This field is available in API version 34.0 and later. For custom settings, this field replaces the customSettingsVisibility field.",
         "Field Name": "visibility",
         "Field Type": "SetupObjectVisibility (enumeration of type string)"
       },
       {
-        "Description": "An array of one or more weblinks defined for the object.",
+        "Description": "Array of one or more weblinks defined for the object.",
         "Field Name": "webLinks",
         "Field Type": "WebLink[]"
       }
     ],
-    "short_description": "Represents a custom object that stores data unique to your org or an external object that maps to data stored outside your org. Specify all relevant fields when you create or update a custom object. You can’t update a single field on the object. For more information about custom objects, see Store Information That’s Unique to Your Organization in Salesforce Help. You can also use this metadata type to work with customizations of standard objects, such as accounts. For an example, see the section on Standard Objects in Sample package.xml Manifest Files in the Metadata API Developer Guide",
+    "short_description": "Represents a custom object that stores data unique to your org or an external object that maps to data stored outside your org. Specify all relevant fields when you create or update a custom object. You can’t update a single field on the object. For more information about custom objects, see Store Information That’s Unique to Your Organization. You can also use this metadata type to work with customizations of standard objects, such as accounts. For an example, see the section on Standard Objects in Sample package.xml Manifest Files.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm",
     "parent": "Metadata"
   },
   "MktDataModelAttributes": {
     "fields": [
       {
-        "Description": "Indicates how this object is added.Valid values availble in API version 62.0 and later are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding Valid values available in API version 67.0 and later are: Ad_Audience_Insights Auxiliary Clean_Room Deletion_Records Problem_Records",
+        "Description": "Indicates how the object was added.In API version 62.0 and later, valid values are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding In API version 67.0 and later, additional valid values are: Auxiliary Clean_Room Deletion_Records",
         "Field Name": "creationType",
         "Field Type": "DefinitionCreationType enumeration"
       },
       {
-        "Description": "When the model is a Standard Data 360 model, a Reference to the Data Model from which this Object was started. Currently only supports the following strings: if the creationType is Standard, it must be Reference, if creationType is Custom, it must be View.",
+        "Description": "Reference to the data model on which the object is based. For a standard Data 360 model, the value must be Reference when creationType is Standard, or View when creationType is Custom.",
         "Field Name": "dataModelTaxonomy",
         "Field Type": "string"
       },
       {
-        "Description": "A description of the object. This field can contain a maximum of 521 characters. This field is available in API version 55.0 and later.",
+        "Description": "Description of the object. Maximum length is 521 characters. This field is available in API version 55.0 and later.",
         "Field Name": "description",
         "Field Type": "string"
       },
       {
-        "Description": "True indicates that the Data Model Object is enabled.",
+        "Description": "Indicates whether the DMO is enabled (true) or not (false).",
         "Field Name": "isEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "True indicates that the Data Model Object can be used as a target for segmentation.",
+        "Description": "Indicates whether you can use the DMO as a target for segmentation (true) or not (false).",
         "Field Name": "isSegmentable",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the Data Model Object is used for metrics (true) or not (false). This field is used to include additional attributes on the objects that are not present in the Data Model Object POJO. This field is available in API version 55.0 and later.",
+        "Description": "Indicates whether the DMO is used for metrics (true) or not (false). This field includes additional object attributes that aren't present in the DMO POJO. This field is available in API version 55.0 and later.",
         "Field Name": "isUsedForMetrics",
         "Field Type": "boolean"
       },
       {
-        "Description": "Reference to the Object Category. For modeling, the value is Profile, Engagement, or Other.",
+        "Description": "Custom label that overrides the object’s default display label in the data model. If unspecified, the default label is used. Maximum length is 255 characters. This field is available in API version 66.0 and later.",
+        "Field Name": "labelOverride",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Master label for this component. Maximum length is 40 characters. This field is available in API version 66.0 and later.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Object category used for modeling. Valid values are Engagement, Profile, and Other.",
         "Field Name": "objectCategory",
         "Field Type": "string"
       },
       {
-        "Description": "When this is a Standard Object, the Entity Group of the Object from the Reference Model.",
+        "Description": "Entity group of the object in the reference model. Applied to standard objects.",
         "Field Name": "referenceEntityGroup",
         "Field Type": "string"
       },
       {
-        "Description": "When this is a Standard Object, the Name of the Object from the Reference Model.",
+        "Description": "Name of the object in the reference model. Applies to standard objects.",
         "Field Name": "referenceEntityName",
         "Field Type": "string"
       },
       {
-        "Description": "When this is a Standard Object, the Subject Area of the Object from the Reference Model.",
+        "Description": "Subject area of the object in the reference model. Applies only to standard objects.",
         "Field Name": "referenceEntitySubjectArea",
         "Field Type": "string"
       }
     ],
-    "short_description": "This type is a Data 360 subtype of CustomObject.",
+    "short_description": "Represents the Data 360 data model object (DMO) attributes for a custom object. This is a Data 360 subtype of CustomObject.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm",
     "parent": "Metadata"
   },
   "Special Access Rules": {
     "fields": [
       {
-        "Description": "Values are: Activation_Audience Bridge Curated Custom Derived Ml_Prediction Segment_Membership Standard System Valid values availble in API version 62.0 and later are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding Available in API version 67.0 and later: Ad_Audience_Insights Auxiliary Clean_Room Deletion_Records Problem_Records",
+        "Description": "How this object was added. Valid values are: Activation_Audience Bridge Curated Custom Derived Ml_Prediction Segment_Membership Standard System In API version 62.0 and later, additional valid values are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding In API version 67.0 and later, additional valid values are: Ad_Audience_Insights Auxiliary Clean_Room Deletion_Records Problem_Records",
         "Field Name": "creationType",
-        "Field Type": ""
+        "Field Type": "DefinitionCreationType enumeration of type string"
       },
       {
-        "Description": "",
+        "Description": "Indicates whether the landing object is enabled (true) or not (false).",
         "Field Name": "isEnabled",
-        "Field Type": ""
+        "Field Type": "boolean"
       },
       {
-        "Description": "these would be Profile, Behavioral, Other.",
+        "Description": "Object category used for modeling. Valid values are Behavioral, Profile, and Other.",
         "Field Name": "objectCategory",
-        "Field Type": ""
+        "Field Type": "string"
       }
     ],
     "short_description": "You need an org with a Data Cloud license to access this object.",
@@ -13405,17 +13483,17 @@
   "CustomField": {
     "fields": [
       {
-        "Description": "Indicates the group associated with this field. The business owner group understands the importance of the field’s data to your company, and can be responsible for determining the minimum security classification. This field is available in API version 45.0 and later.",
+        "Description": "Group associated with this field. The business owner group understands the importance of the field’s data to your company, and can be responsible for determining the minimum security classification. This field is available in API version 45.0 and later.",
         "Field Name": "businessOwnerGroup",
         "Field Type": "reference"
       },
       {
-        "Description": "Indicates the person associated with this field. The business owner understands the importance of the field’s data to your company, and can be responsible for determining the minimum security classification. This field is available in API version 45.0 and later.",
+        "Description": "Person associated with this field. The business owner understands the importance of the field’s data to your company, and can be responsible for determining the minimum security classification. This field is available in API version 45.0 and later.",
         "Field Name": "businessOwnerUser",
         "Field Type": "reference"
       },
       {
-        "Description": "Indicates whether the field is in use. Valid values include: Active DeprecateCandidate Hidden This field is available in API version 45.0 and later",
+        "Description": "Indicates if the field is in use. Valid values are: Active DeprecateCandidate Hidden This field is available in API version 45.0 and later",
         "Field Name": "businessStatus",
         "Field Type": "picklist"
       },
@@ -13425,7 +13503,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates the compliance acts, definitions, or regulations related to the field’s data. Valid values include: CCPA COPPA GDPR HIPAA PCI PII This field is available in API version 47.0 and later.",
+        "Description": "Compliance acts, definitions, or regulations related to the field’s data. Valid values are: CCPA COPPA GDPR HIPAA PCI PII This field is available in API version 47.0 and later.",
         "Field Name": "complianceGroup",
         "Field Type": "multipicklist"
       },
@@ -13440,7 +13518,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Provides deletion options for lookup relationships. Valid values are: Cascade—Deletes the lookup record as well as associated lookup fields. Restrict—Prevents the record from being deleted if it's in a lookup relationship. SetNull—This value is the default. If the lookup record is deleted, the lookup field is cleared. For more information on lookup relationships, see \"Object Relationships\" in Salesforce Help.",
+        "Description": "Deletion options for lookup relationships. Valid values are: Cascade—Deletes the lookup record and associated lookup fields. Restrict—Prevents the record from being deleted if it's in a lookup relationship. SetNull—Default value. If the lookup record is deleted, the lookup field is cleared. For more information on lookup relationships, see Object Relationships Overview.",
         "Field Name": "deleteConstraint",
         "Field Type": "DeleteConstraint (enumeration of type string)"
       },
@@ -13455,12 +13533,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "The display format.",
+        "Description": "Display format of the field.",
         "Field Name": "displayFormat",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates how the geolocation values of a custom Location field appear in the user interface. If true, the geolocation values appear in decimal notation. If false, the geolocation values appear as degrees, minutes, and seconds.",
+        "Description": "Indicates how the geolocation values of a custom location field appear in the user interface. If true, the geolocation values appear in decimal notation. If false, the geolocation values appear as degrees, minutes, and seconds.",
         "Field Name": "displayLocationInDecimal",
         "Field Type": "boolean"
       },
@@ -13470,27 +13548,27 @@
         "Field Type": "ElementType (enumeration of type string)"
       },
       {
-        "Description": "This entry is about Shield Platform Encryption, not Classic Encryption. Indicates whether this field is encrypted (true) or not (false). This field is available in API version 34.0 through 43.0.",
+        "Description": "Indicates whether this field is encrypted (true) or not (false). This value pertains to Shield Platform Encryption, not Classic Encryption. This field is available in API version 34.0 through 43.0.",
         "Field Name": "encrypted",
         "Field Type": "boolean"
       },
       {
-        "Description": "This entry is about Shield Platform Encryption, not Classic Encryption. For encrypted fields, determines which encryption scheme a field takes. Valid values are CaseInsensitiveDeterministicEncryption CaseSensitiveDeterministicEncryption None ProbabilisticEncryption This field is available in API version 44.0 and later.",
+        "Description": "For encrypted fields, determines which encryption scheme a field takes. Valid values are: CaseInsensitiveDeterministicEncryption CaseSensitiveDeterministicEncryption None ProbabilisticEncryption This value pertains to Shield Platform Encryption, not Classic Encryption. This field is available in API version 44.0 and later.",
         "Field Name": "encryptionScheme",
         "Field Type": "EncryptionScheme (enumeration of type string)"
       },
       {
-        "Description": "Available only for external objects. Name of the table column on the external data source that maps to this custom field in Salesforce. Corresponds to External Column Name in the user interface. This field is available in API version 32.0 and later.",
+        "Description": "Available only for external objects. Name of the table column on the external data source that maps to this custom field in Salesforce. Corresponds to the External Column Name in the user interface. This field is available in API version 32.0 and later.",
         "Field Name": "externalDeveloperName",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the field is an external ID field (true) or not (false). This property is returned only if the custom field data type is AutoNumber, Email, Number, or Text.",
+        "Description": "Indicates whether the field is an external ID field (true) or not (false). This property is returned only if the custom field data type is auto number, email, number, or text.",
         "Field Name": "externalId",
         "Field Type": "boolean"
       },
       {
-        "Description": "Determines who can update the field after it’s released in a managed package. Valid values: Locked—The field can’t be updated. DeveloperControlled—The creator of the record can update the field with a package upgrade. SubscriberControlled—Anyone with proper permissions can update the field. The field can’t be updated with a package upgrade. Available only for fields on custom metadata types. If the field type is MetadataRelationship, and the manageability of the entity definition field is: Subscriber-controlled, then the Field Definition field must be subscriber-controlled. Upgradeable, then the Field Definition field must be either upgradeable or subscriber-controlled.",
+        "Description": "Determines who can update the field after it’s released in a managed package. Valid values are: Locked—The field can’t be updated. DeveloperControlled—The creator of the record can update the field with a package upgrade. SubscriberControlled—Anyone with proper permissions can update the field. The field can’t be updated with a package upgrade. Available only for fields on custom metadata types. If the field type is MetadataRelationship, and the manageability of the entity definition field is: Subscriber-controlled, then the Field Definition field must be subscriber-controlled. Upgradeable, then the Field Definition field must be either upgradeable or subscriber-controlled.",
         "Field Name": "fieldManageability",
         "Field Type": "FieldManageability (enumeration of type string)"
       },
@@ -13500,47 +13578,47 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates how to treat blanks in a formula. Valid values are: BlankAsBlank and BlankAsZero.",
+        "Description": "Indicates how to treat blanks in a formula. Valid values are BlankAsBlank and BlankAsZero.",
         "Field Name": "formulaTreatBlanksAs",
         "Field Type": "TreatBlanksAs (enumeration of type string)"
       },
       {
-        "Description": "Inherited from Metadata, this field is defined in the WSDL for this metadata type. It must be specified when creating, updating, or deleting. See createMetadata() to see an example of this field specified for a call.This value can't be null.",
+        "Description": "Full name of the object. It must be specified when creating, updating, or deleting the object. See createMetadata() to see an example of this field specified for a call.This value can't be null.",
         "Field Name": "fullName",
         "Field Type": "string"
       },
       {
-        "Description": "(This field is available in API version 37.0 only and removed from later versions.) If this custom field is a picklist that’s based on a global picklist, globalPicklist is the name of the global picklist whose value set this picklist inherits. A custom picklist that’s based on a global picklist is restricted. You can only add or remove values by editing the global picklist.",
+        "Description": "If this custom field is a picklist that’s based on a global picklist, globalPicklist is the name of the global picklist whose value set this picklist inherits. A custom picklist that’s based on a global picklist is restricted. You can only add or remove values by editing the global picklist. This field is available only in API version 37.0.",
         "Field Name": "globalPicklist",
         "Field Type": "string."
       },
       {
-        "Description": "Indicates if the field is indexed. If this field is unique or the externalId is set true, the isIndexed value is set to true. This field has been deprecated as of API version 14.0 and is only provided for backward compatibility.",
+        "Description": "Indicates whether the field is indexed (true) or not (false). If this field is unique or the externalId is set true, the isIndexed value is set to true. This field is available only in API version 14.0 and earlier.",
         "Field Name": "indexed",
         "Field Type": "boolean"
       },
       {
-        "Description": "Represents the content of field-level help. For more information, see \"Define Field-Level Help\" in Salesforce Help.",
+        "Description": "Content of field-level help. For more information, see Define Field-Level Help.",
         "Field Name": "inlineHelpText",
         "Field Type": "string"
       },
       {
-        "Description": "Available for Number type custom fields when you use Einstein Prediction Builder. Denotes whether the field can store and display Einstein prediction data on an object. Use Einstein Prediction Builder to determine the data for the target field. This field is available in API version 43.0 and later.",
+        "Description": "Available for number type custom fields when you use Einstein Prediction Builder. Indicates whether the field can store and display Einstein prediction data on an object (true) or not (false). Use Einstein Prediction Builder to determine the data for the target field. This field is available in API version 43.0 and later.",
         "Field Name": "isAIPredictionField",
         "Field Type": "boolean"
       },
       {
-        "Description": "Available only for external objects. Indicates whether the custom field is available in filters. This field is available in API version 32.0 and later.",
+        "Description": "Available only for external objects. Indicates whether the custom field is available in filters (true) or not (false). This field is available in API version 32.0 and later.",
         "Field Name": "isFilteringDisabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "Available only for external object fields of type text. For each external object, you can specify one field as the name field. If you set this value to true, make sure that the external table column identified by the externalDeveloperName attribute contains name values. This field is available in API version 32.0 and later.",
+        "Description": "Available only for external object fields of type text. Indicates whether the custom field is the name field (true) or not (false). For each external object, you can specify one field as the name field. If you set this value to true, ensure the external table column identified by the externalDeveloperName attribute contains name values. This field is available in API version 32.0 and later.",
         "Field Name": "isNameField",
         "Field Type": "boolean"
       },
       {
-        "Description": "Available only for external objects. Indicates whether the custom field is sortable. This field is available in API version 32.0 and later.",
+        "Description": "Available only for external objects. Indicates whether the custom field is sortable (true) or not (false). This field is available in API version 32.0 and later.",
         "Field Name": "isSortingDisabled",
         "Field Type": "boolean"
       },
@@ -13555,17 +13633,17 @@
         "Field Type": "int"
       },
       {
-        "Description": "Represents the metadata associated with a lookup filter. This metadata type is used to create, update, or delete lookup filter definitions. This component has been removed as of API version 30.0 and is only available in previous API versions. The metadata associated with a lookup filter is now represented by the lookupFilter field in the CustomField component. This field is available in API version 30.0 and later. LookupFilter isn't supported on the article type object.",
+        "Description": "Metadata associated with a lookup filter definition. This field is only available in API version 30.0 and earlier. The metadata associated with a lookup filter is now represented by the lookupFilter field in the CustomField component.LookupFilter isn't supported on the article type object.",
         "Field Name": "lookupFilter",
         "Field Type": "LookupFilter"
       },
       {
-        "Description": "This page is about Classic Encryption, not Shield Platform Encryption. For encrypted fields, specifies the character to be used as a mask. Valid values are: asterisk X For more information on encrypted fields, see Classic Encryption for Custom Fields in Salesforce Help.",
+        "Description": "For encrypted fields, specifies the character to be used as a mask. Valid values are: asterisk X This value pertains to Classic Encryption, not Shield Platform Encryption. For more information on encrypted fields, see Classic Encryption for Custom Fields in Salesforce Help.",
         "Field Name": "maskChar",
         "Field Type": "EncryptedFieldMaskChar (enumeration of type string)"
       },
       {
-        "Description": "This page is about Classic Encryption, not Shield Platform Encryption. For encrypted text fields, specifies the format of the masked and unmasked characters in the field. Valid values are: all—All characters in the field are hidden. This option is equivalent to the Mask All Characters option in Salesforce. creditCard—The first 12 characters are hidden and the last four display. This option is equivalent to the Credit Card Number option in Salesforce. lastFour—All characters are hidden but the last four display. This option is equivalent to the Last Four Characters Clear option in Salesforce. nino—All characters are hidden. Salesforce automatically inserts spaces after each pair of characters if the field contains nine characters. This option is equivalent to the National Insurance Number option in Salesforce. sin—All characters are hidden but the last four display. This option is equivalent to the Social Insurance Number option in Salesforce. ssn—The first five characters are hidden and the last four display. This option is equivalent to the Social Security Number option in Salesforce. For more information on encrypted fields, see \"Classic Encryption for Custom Fields\" in Salesforce Help.",
+        "Description": "For encrypted text fields, specifies the format of the masked and unmasked characters in the field. Valid values are: all—all characters in the field are hidden. This option is equivalent to the Mask All Characters option in Salesforce. creditCard—The first 12 characters are hidden and the last four appear. This option is equivalent to the Credit Card Number option in Salesforce. lastFour—all characters are hidden but the last four appear. This option is equivalent to the Last Four Characters Clear option in Salesforce. nino—all characters are hidden. Salesforce automatically inserts spaces after each pair of characters if the field contains nine characters. This option is equivalent to the National Insurance Number option in Salesforce. sin—all characters are hidden but the last four appear This option is equivalent to the Social Insurance Number option in Salesforce. ssn—The first five characters are hidden and the last four appear This option is equivalent to the Social Security Number option in Salesforce. This value pertains to Classic Encryption, not Shield Platform Encryption. For more information on encrypted fields, see Classic Encryption for Custom Fields in Salesforce Help.",
         "Field Name": "maskType",
         "Field Type": "EncryptedFieldMaskType (enumeration of type string)"
       },
@@ -13575,7 +13653,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "(Deprecated. Use this field in API version 37.0 and earlier only. In later versions, use valueSet instead.) If specified, the field is a picklist, and this field enumerates the picklist values and labels.",
+        "Description": "If specified, the field is a picklist, and this field counts the picklist values and labels. This field is available only in API version 37.0 and earlier. In later versions, use valueSet instead.",
         "Field Name": "picklist",
         "Field Type": "Picklist"
       },
@@ -13585,17 +13663,17 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The precision for number values. Precision is the number of digits in a number. For example, the number 256.99 has a precision value of 5.",
+        "Description": "Precision, or number of digits in a number value. For example, the number 256.99 has a precision value of 5.",
         "Field Name": "precision",
         "Field Type": "int"
       },
       {
-        "Description": "Available only for indirect lookup relationship fields on external objects. Specifies the custom field on the parent object to match against this indirect lookup relationship field, whose values come from an external data source. The specified custom field on the parent object must have both externalId and unique set to true. This field is available in API version 32.0 and later.",
+        "Description": "Specifies the custom field on the parent object to match against this indirect lookup relationship field, whose values come from an external data source. The specified custom field on the parent object must have both externalId and unique set to true. Available only for indirect lookup relationship fields on external objects. This field is available in API version 32.0 and later.",
         "Field Name": "referenceTargetField",
         "Field Type": "string"
       },
       {
-        "Description": "If specified, indicates a reference this field has to another object.",
+        "Description": "Reference this field has to another object.",
         "Field Name": "referenceTo",
         "Field Type": "string"
       },
@@ -13605,17 +13683,17 @@
         "Field Type": "string"
       },
       {
-        "Description": "If specified, indicates the value for one-to-many relationships. For example, in the object MyObject that had a relationship to YourObject, the relationship name can be YourObjects.",
+        "Description": "Value for one-to-many relationships. For example, if MyObject has a relationship to YourObject, the relationship name can be YourObjects.",
         "Field Name": "relationshipName",
         "Field Type": "string"
       },
       {
-        "Description": "This field is valid for all master-detail relationships, but the value is only non-zero for junction objects. A junction object has two master-detail relationships, and is analogous to an association table in a many-to-many relationship. Junction objects must define one parent object as primary (0), the other as secondary (1). The definition of primary or secondary affects delete behavior and inheritance of look and feel, and record ownership for junction objects. For more information, see Salesforce Help. 0 or 1 are the only valid values, and 0 is always the value for objects that aren't junction objects.",
+        "Description": "This field is valid for all master-detail relationships, but the value is only non-zero for junction objects. A junction object has two master-detail relationships, and is analogous to an association table in a many-to-many relationship. Junction objects must define one parent object as primary (0), the other as secondary (1). The definition of primary or secondary affects delete behavior and inheritance of look and feel, and record ownership for junction objects.0 or 1 are the only valid values, and 0 is always the value for objects that aren't junction objects.",
         "Field Name": "relationshipOrder",
         "Field Type": "int"
       },
       {
-        "Description": "Indicates whether the child records in a master-detail relationship on a custom object can be reparented to different parent records. The default value is false.This field is available in API version 25.0 and later.",
+        "Description": "Indicates whether the child records in a master-detail relationship on a custom object can be reparented to different parent records (true) or not (false). The default value is false.This field is available in API version 25.0 and later.",
         "Field Name": "reparentableMasterDetail",
         "Field Type": "boolean"
       },
@@ -13625,37 +13703,37 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The scale for the field. Scale is the number of digits to the right of the decimal point in a number. For example, the number 256.99 has a scale of 2.",
+        "Description": "Scale, or the number of digits to the right of the decimal point in a number. For example, the number 256.99 has a scale of 2.",
         "Field Name": "scale",
         "Field Type": "int"
       },
       {
-        "Description": "Indicates the sensitivity of the data contained in the field. Valid values include: Public Internal Confidential Restricted MissionCritical This field is available in API version 45.0 and later.",
+        "Description": "Sensitivity of the data contained in the field. Valid values are: Public Internal Confidential Restricted MissionCritical This field is available in API version 45.0 and later.",
         "Field Name": "securityClassification",
         "Field Type": "picklist"
       },
       {
-        "Description": "If specified, indicates the starting number for the field. When you create records, Starting Number’s value increments to store the number that will be assigned to the next auto-number field created. You can’t retrieve the starting number of an auto-number field through Metadata API. To specify a Starting Number while deploying, add a startingNumber tag for your field to your package.xml file. For example: <startingNumber>42</startingNumber> If you deploy without specifying a Starting Number value in your package.xml file, the default starting number for standard fields is 0. The default starting number for custom fields is 1.",
+        "Description": "Starting number for the field. When you create records, the Starting Number value increments to store the number that will be assigned to the next auto number field created. You can’t retrieve the starting number of an auto number field through the Metadata API. To specify a Starting Number while deploying, add a startingNumber tag for your field to your package.xml file. For example: <startingNumber>42</startingNumber> If you deploy without specifying a Starting Number value in your package.xml file, the default starting number for standard fields is 0. The default starting number for custom fields is 1.",
         "Field Name": "startingNumber",
         "Field Type": "int"
       },
       {
-        "Description": "Set to true to remove markup, or false to preserve markup. Used when converting a rich text area to a long text area.",
+        "Description": "Indicates whether to remove markup (true) or preserve it (false). Used when converting a rich text area to a long text area.",
         "Field Name": "stripMarkup",
         "Field Type": "boolean"
       },
       {
-        "Description": "Represents the field on the detail row that’s being summarized. This field can't be null unless the summaryOperation value is count.",
+        "Description": "Field on the detail row that’s being summarized. This field can't be null unless the summaryOperation value is count.",
         "Field Name": "summarizedField",
         "Field Type": "string"
       },
       {
-        "Description": "Represents the set of filter conditions for this field if it's a summary field. This field is summed on the child if the filter conditions are met.",
+        "Description": "Set of filter conditions for this field if it's a summary field. This field is summed in the child if the filter conditions are met.",
         "Field Name": "summaryFilterItems",
         "Field Type": "FilterItem[]"
       },
       {
-        "Description": "Represents the master-detail field on the child that defines the relationship between the parent and the child.",
+        "Description": "Master-detail field on the child that defines the relationship between the parent and the child.",
         "Field Name": "summaryForeignKey",
         "Field Type": "string"
       },
@@ -13665,27 +13743,27 @@
         "Field Type": "SummaryOperations (enumeration of type string)"
       },
       {
-        "Description": "Indicates whether the field is enabled for feed tracking (true) or not (false). To set this field to true, the enableFeeds field on the associated CustomObject must also be true. For more information, see \"Customize Chatter Feed Tracking\" in Salesforce Help.This field is available in API version 18.0 and later.",
+        "Description": "Indicates whether the field is enabled for feed tracking (true) or not (false). To set this field to true, the enableFeeds field on the associated CustomObject must also be true. For more information, see Customize Chatter Feed Tracking. This field is available in API version 18.0 and later.",
         "Field Name": "trackFeedHistory",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether history tracking is enabled for the field (true) or not (false). Also available for standard object fields (picklist and lookup fields only) in API version 30.0 and later.To set trackHistory to true, the enableHistory field on the associated standard or custom object must also be true. For more information, see \"Field History Tracking\" in Salesforce Help. Field history tracking isn’t available for external objects.",
+        "Description": "Indicates whether history tracking is enabled for the field (true) or not (false). Also available for standard object fields (picklist and lookup fields only) in API version 30.0 and later.To set trackHistory to true, the enableHistory field on the associated standard or custom object must also be true. Field history tracking isn’t available for external objects.",
         "Field Name": "trackHistory",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether historical trending data is captured for the field (true) or not (false). An object is enabled for historical trending if this attribute is true for at least one field. Available in API version 29.0 and later.For more information, see \"Report on Historical Changes\" in Salesforce Help.",
+        "Description": "Indicates whether historical trending data is captured for the field (true) or not (false). An object is enabled for historical trending if this attribute is true for at least one field. This field is available in API version 29.0 and later.For more information, see Report on Historical Changes.",
         "Field Name": "trackTrending",
         "Field Type": "boolean"
       },
       {
-        "Description": "Only relevant for a checkbox field. If set, true values are built into the index. This field has been deprecated as of API version 14.0 and is only provided for backward compatibility.",
+        "Description": "Relevant only for a checkbox field. If set, true values are built into the index. This field is available only in API version 14.0 and earlier.",
         "Field Name": "trueValueIndexed",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates the field type for the field. Valid values are enumerated in FieldType.For standard fields on standard objects, the type field is optional. This field is included for some standard field types, such as Picklist or Lookup, but not for others. The type field is included for custom fields.",
+        "Description": "Type of field. Optional for standard fields on standard objects. This field is included for some standard field types, such as picklist or lookup, but not for others. The type field is included for custom fields.",
         "Field Name": "type",
         "Field Type": "FieldType (enumeration of type string)"
       },
@@ -13695,111 +13773,126 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Represents the set of values that make up a picklist on a custom field. Each value is defined as a CustomValue. If this custom field is a picklist that uses a global value set, valueSet is the name of the global value set whose values this picklist inherits. A custom picklist that uses a global value set is restricted. You can only add or remove values by editing the global value set. A ValueSet component has either a valueSetDefinition or a valueName specified, but never both. This field is available in API version 38.0 and later.",
+        "Description": "Set of values that make up a picklist on a custom field. Each value is defined as a CustomValue. If this custom field is a picklist that uses a global value set, valueSet is the name of the global value set whose values this picklist inherits. A custom picklist that uses a global value set is restricted. You can only add or remove values by editing the global value set. A ValueSet component has either a valueSetDefinition or a valueName specified, but never both. This field is available in API version 38.0 and later.",
         "Field Name": "valueSet",
         "Field Type": "ValueSet"
       },
       {
-        "Description": "Indicates the number of lines displayed for the field.",
+        "Description": "Number of lines shown for the field.",
         "Field Name": "visibleLines",
         "Field Type": "int"
       },
       {
-        "Description": "Sets the minimum sharing access level required on the primary record to create, edit, or delete child records. This field applies only to master-detail or junction object custom field types. true—Allows users with Read access to the primary record permission to create, edit, or delete child records. This setting makes sharing less restrictive. false—Allows users with Read/Write access to the primary record permission to create, edit, or delete child records. This setting is more restrictive than true, and is the default value. For junction objects, the most restrictive access from the two parents is enforced. For example, if you set to true on both master-detail fields, but users have Read access to one primary record and Read/Write access to the other primary record, users aren't able to create, edit, or delete child records.",
+        "Description": "Minimum sharing access level required on the primary record to create, edit, or delete child records. This field applies only to master-detail or junction object custom field types. true—Allows users with Read access to the primary record permission to create, edit, or delete child records. This setting makes sharing less restrictive. false—Allows users with Read/Write access to the primary record permission to create, edit, or delete child records. This setting is more restrictive than true, and is the default value. For junction objects, the most restrictive access from the two parents is enforced. For example, if you set to true on both master-detail fields, but users have Read access to one primary record and Read/Write access to the other primary record, users aren't able to create, edit, or delete child records.",
         "Field Name": "writeRequiresMasterRead",
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the metadata associated with a field. Use this metadata type to create, update, or delete custom field definitions on standard, custom, and external objects or standard field definitions on standard objects. Only standard fields that you can customize are supported, that is, standard fields to which you can add help text or enable history tracking or Chatter feed tracking. Other standard fields aren't supported, including system fields (such as CreatedById or LastModifiedDate) and autonumber fields. Some standard picklist fields aren’t supported. See Unsupported Metadata Types. By default, a custom object doesn’t have any standard fields that are customizable. Specify the full name whenever you create or update a field. For example, a custom field on a custom object:",
+    "short_description": "Represents the metadata associated with a field. Use this metadata type to create, update, or delete custom field definitions on standard, custom, and external objects or standard field definitions on standard objects. Only standard fields that you can customize are supported, that is, standard fields to which you can add help text or turn on history tracking or Chatter feed tracking. Other standard fields aren't supported, including system fields (such as CreatedById or LastModifiedDate) and auto number fields. Some standard picklist fields aren’t supported. See Unsupported Metadata Types. By default, a custom object doesn’t have any standard fields that are customizable. Specify the full name whenever you create or update a field. For example, a custom field on a custom object:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm",
     "parent": "Metadata"
   },
   "MktDataModelFieldAttributes": {
     "fields": [
       {
-        "Description": "Indicates how this object was added. Valid values are: Bridge Custom Derived Standard System Valid values availble in API version 62.0 and later are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding Valid values available in API version 67.0 and later are: Ad_Audience_Insights Auxiliary Clean_Room Deletion_Records Problem_Records",
+        "Description": "How the object was added. Valid values are: Bridge Custom Derived Standard System In API version 62.0 and later, additional valid values are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding In API version 67.0 and later, additional valid values are: Ad_Audience_Insights Auxiliary Clean_Room Deletion_Records Problem_Records",
         "Field Name": "definitionCreationType",
         "Field Type": "DefinitionCreationType enumeration"
       },
       {
-        "Description": "If this field is used for merging data, indicates what the system should do when an invalid merge occurs.Valid values are: Drop Keep Override",
+        "Description": "Action to take when an invalid merge occurs for a field used to merge data. Valid values are: Drop Keep Override",
         "Field Name": "invalidMergeActionType",
         "Field Type": "InvalidMergeActionType (enumeration of type string)"
       },
       {
-        "Description": "When true, the existing data is queried for a unique set of values for this field.",
+        "Description": "Indicates whether existing data is queried for the field’s unique values (true) or not (false).",
         "Field Name": "isDynamicLookup",
         "Field Type": "boolean"
       },
       {
-        "Description": "If supplied, indicates that this field is part of the primary key. The number value (starting at 1) indicates the order of attributes if it’s a compound primary key.",
+        "Description": "Custom label that overrides the field’s default display label in the data model. If unspecified, the default label is used. Maximum length is 255 characters. This field is available in API version 65.0 and later.",
+        "Field Name": "labelOverride",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Type of alert shown when this field isn't mapped in the data model. This field is available in API version 65.0 and later. Valid values are: None—No alert is shown when the mapping is incomplete or invalid. Warning—A non-blocking warning is shown when the field mapping is incomplete or invalid. Error—A blocking error prevents saving when the mapping is invalid.",
+        "Field Name": "mappingAlertType",
+        "Field Type": "MappingAlertType (enumeration of type string)"
+      },
+      {
+        "Description": "Master label for the field. Maximum length is 40 characters. This field is available in API version 65.0 and later.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Position of the field in the primary key, starting at 1. If specified, the field is part of the primary key. For a compound primary key, the value specifies the field’s position in the key.",
         "Field Name": "primaryIndexOrder",
         "Field Type": "int"
       },
       {
-        "Description": "When this is a Standard Field, it’s the Name of the field from the Reference Model.",
+        "Description": "Developer name of the field in the reference model. Applies only to standard fields.",
         "Field Name": "refAttrDeveloperName",
         "Field Type": "string"
       },
       {
-        "Description": "String storing the developer name of MktDataLakeSrcKeyQualifier configured on the field",
+        "Description": "Developer name of the MktDataLakeSrcKeyQualifier configured in the field.",
         "Field Name": "mktDatalakeSrcKeyQualifier",
         "Field Type": "string"
       }
     ],
-    "short_description": "This is a subtype of CustomField.",
+    "short_description": "Represents the Data 360 data model field attributes for a custom field. This type is a subtype of CustomField.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm",
     "parent": "Metadata"
   },
   "MktDataLakeFieldAttributes": {
     "fields": [
       {
-        "Description": "Indicates how this object is added. Valid values are: Bridge Custom Derived Standard System Valid values available in API version 62.0 and later are: ADG Calculated_Insight CG_Audience Chunk Directory_Table External Semantic Vector_Embedding",
+        "Description": "How the object was added. Valid values are: Bridge Custom Derived Standard System In API version 62.0 and later, additional valid values are: ADG Calculated_Insight CG_Audience Chunk Directory_Table External Semantic Vector_Embedding",
         "Field Name": "definitionCreationType",
         "Field Type": "DefinitionCreationType (enumeration of type string)"
       },
       {
-        "Description": "Optional: The Date format of date, time, date/time fields in this Lake field. This field is deprecated in API version 55.0 and later.",
+        "Description": "Optional date format of date and time fields. This field is available only in API version 55.0 and earlier.",
         "Field Name": "dateFormat",
         "Field Type": "string"
       },
       {
-        "Description": "The external name of this field.",
+        "Description": "External name of this field.",
         "Field Name": "externalName",
         "Field Type": "string"
       },
       {
-        "Description": "When true, this field contains the event date for behavioral model area objects that are used to partition data.",
+        "Description": "Indicates whether this field contains the event date for behavioral model area objects that are used to partition data (true) or not (false).",
         "Field Name": "isEventDate",
         "Field Type": "boolean"
       },
       {
-        "Description": "If supplied, indicates that this field is part of the primary key. The number value (starting at 1) indicates the order of attributes if it’s a compound primary key.",
+        "Description": "Position of the field in the primary key, starting at 1. If specified, the field is part of the primary key. For a compound primary key, the value specifies the field’s position in the key.",
         "Field Name": "primaryIndexOrder",
         "Field Type": "int"
       },
       {
-        "Description": "When true, this field contains the value for internal organization. In this case, the value of the field is the name of the internal organization. Landing Objects don't have access to the Salesforce ID and thus are using the developer name.",
+        "Description": "Indicates whether this field contains the value for internal organization (true) or not (false). The value of the field is the name of the internal organization. Landing objects don't have access to the Salesforce ID and use the developer name instead.",
         "Field Name": "isInternalOrganization",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates the record modified field used to calibrate latest record version.",
+        "Description": "Indicates whether the field is the record modified field used to calibrate latest record version (true) or not (false).",
         "Field Name": "isRecordModified",
         "Field Type": "boolean"
       },
       {
-        "Description": "String storing the developer name of MktDataLakeSrcKeyQualifier configured on the field. Available in API version 55.0 and later.",
+        "Description": "Developer name of the MktDataLakeSrcKeyQualifier configured in the field. This field is available in API version 55.0 and later.",
         "Field Name": "mktDatalakeSrcKeyQualifier",
         "Field Type": "string"
       },
       {
-        "Description": "Contains the developer name of key qualifier field. Available in API version 55.0 and later.",
+        "Description": "Developer name of key qualifier field. This field is available in API version 55.0 and later.",
         "Field Name": "keyQualifierName",
         "Field Type": "string"
       }
     ],
-    "short_description": "This is a subtype of CustomField. MktDataLakeFieldAttributes is available in API version 50.0 or later.",
+    "short_description": "Represents the Data 360 data lake field attributes for a custom field. This type is a subtype of CustomField. Available in API version 50.0 or later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm",
     "parent": "Metadata"
   },
@@ -13811,27 +13904,27 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Specifies advanced filter conditions.",
+        "Description": "Advanced filter conditions.",
         "Field Name": "booleanFilter",
         "Field Type": "string"
       },
       {
-        "Description": "A description of what this filter does.",
+        "Description": "Description of what this filter does.",
         "Field Name": "description",
         "Field Type": "string"
       },
       {
-        "Description": "The error message that appears if the lookup filter fails.",
+        "Description": "Error message that appears if the lookup filter fails.",
         "Field Name": "errorMessage",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The set of filter conditions. You can have up to 10 FilterItems per lookup filter.",
+        "Description": "Required. Set of filter conditions. You can have up to 10 FilterItems per lookup filter.",
         "Field Name": "filterItems",
         "Field Type": "FilterItem[]"
       },
       {
-        "Description": "The information message displayed on the page. Use to describe things the user possibly doesn't understand, such as why certain items are excluded in the lookup filter.",
+        "Description": "Information message displayed on the page. Use this field describe things the user possibly doesn't understand, such as why certain items are excluded in the lookup filter.",
         "Field Name": "infoMessage",
         "Field Type": "string"
       },
@@ -13848,22 +13941,22 @@
   "FilterItem": {
     "fields": [
       {
-        "Description": "Represents the field specified in the filter.",
+        "Description": "Name of the field specified in the filter.",
         "Field Name": "field",
         "Field Type": "string"
       },
       {
-        "Description": "Represents the filter operation for this filter item. Valid values are: equals notEqual lessThan greaterThan lessOrEqual greaterOrEqual contains notContain startsWith includes excludes within (DISTANCE criteria only)",
+        "Description": "Filter operation for this filter item. Valid values are: equals notEqual lessThan greaterThan lessOrEqual greaterOrEqual contains notContain startsWith includes excludes within (DISTANCE criteria only)",
         "Field Name": "operation",
         "Field Type": "FilterOperation (enumeration of type string)"
       },
       {
-        "Description": "Represents the value of the filter item being operated upon, for example, if the filter is my_number_field__c > 1, the value of value is 1.",
+        "Description": "Value of the filter item being operated on, for example, if the filter is my_number_field__c > 1, the value of value is 1.",
         "Field Name": "value",
         "Field Type": "string"
       },
       {
-        "Description": "Specifies if the final column in the filter contains a field or a field value.Approval processes don’t support valueField entries in filter criteria.",
+        "Description": "Final column in the filter contains a field or a field value. Approval processes don’t support valueField entries in filter criteria.",
         "Field Name": "valueField",
         "Field Type": "string"
       }
@@ -17241,24 +17334,24 @@
   "DisclosureDefinition": {
     "fields": [
       {
-        "Description": "The description about the disclosure definition.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure type associated with this definition.",
         "Field Name": "disclosureType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinition, which is defined when the DisclosureDefinition is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information that defines a disclosure type, such as details of the publisher or vendor who created or implemented the report.",
@@ -17270,62 +17363,62 @@
       {
         "Description": "Specifies the authoring mode used to launch the disclosure authoring experience. Possible values are: Microsoft 365 Word Omniscript and Microsoft 365 Word Omniscript Form",
         "Field Name": "authoring​Mode",
-        "Field Type": "AuthoringMode (enumeration of type string)"
+        "Field Type": ""
       },
       {
-        "Description": "The description about the disclosure definition version.",
+        "Description": "version.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "For internal use only.",
+        "Description": "",
         "Field Name": "disclosureDef​CurrVer",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure definition associated with this version.",
         "Field Name": "disclosureDefinition",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The document template global key associated with the DOCX template for the disclosure definition version.",
+        "Description": "DOCX template for the disclosure definition version.",
         "Field Name": "documentTemplate​GlobalKey",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the disclosure definition version is an active version (true) or not (false). The default value is false.",
+        "Description": "an active version (true) or not (false). The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether this is the current version of the disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
+        "Description": "disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
         "Field Name": "isCurrentVersion",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinitionVersion, which is defined when the DisclosureDefinitionVersion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The API name of the Omniscript configuration that's associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
+        "Description": "definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
         "Field Name": "omniScriptCnfgApiName",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
+        "Description": "The ID of the Omniscript configuration record. Note: The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
         "Field Name": "omniScriptConfiguration",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The version of the disclosure definition published by the author.",
         "Field Name": "versionNumber",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the version information about the disclosure definition.",
@@ -17335,34 +17428,34 @@
   "DisclosureType": {
     "fields": [
       {
-        "Description": "The description about the disclosure type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The logo ID of the standard body to which an individual or a company is making a disclosure.",
+        "Description": "or a company is making a disclosure.",
         "Field Name": "disclosureBodyLogo",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The URL of the disclosure standard body.",
+        "Description": "",
         "Field Name": "disclosureBodyUrl",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The name of the clause category that's used for disclosure.",
         "Field Name": "disclosureCategory",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureType, which is defined when the DisclosureType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the types of disclosures that are done by an individual or an organization and the associated metadata.",
@@ -22655,7 +22748,7 @@
         "Field Type": "FlexiPageTemplateInstance"
       },
       {
-        "Description": "Required. The type of a page. In API versions 32.0 through 36.0, this field can only have a value of AppPage.Valid values are: CdpRecordPage—A Lightning page that is used to override a CDPNearCoreObject record page in Lightning Experience. This value is available in API version 54.0 and later for orgs that have Data 360 enabled. AppPage—A Lightning page that is used as the home page for a custom app. CommAppPage—A Lightning page that is used to represent a custom page, as created in the Experience Builder. This value is available in API version 37.0 and later. CommContractDetailViewPage—This value is available in API version 64.0 and later. CommCheckoutPage—A Lightning page that is used to create a B2B Commerce checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommFlowPage A Lightning page used to override a flow page, as created in the Experience Builder. This value is available in API version 45.0 and later. CommForgotPasswordPage—A Lightning page that’s used to override a forgot-password page, as created in Experience Builder. This value is available in API version 39.0 and later. CommFlowPage—An out-of-the-box flow page, as created in Experience Builder. This value is available in API version 45.0 and later. CommGlobalSearchResultPage A Lightning page used to override the global search result page, as created in Experience Builder. This value is available in API version 41.0 and later. CommLoginPage—A Lightning page that’s used to override the login page, as created in Experience Builder. This value is available in API version 39.0 and later. CommNoSearchResultsPage—An Experience Builder site page for B2B searches that return no results. The URL for this page is no-results/:term. The page starts out empty. You can add any component to it that accepts parameters to achieve the desired “no results” experience. For example, you can place an HTML Editor component or CMS components for recommendations, banners, help, and support. This value is available in API version 48.0 and later. CommObjectPage—A Lightning page used to override an object page, as created in Experience Builder. This value is available in API version 38.0 and later. CommOrderComfirmationPage—A Lightning page that is used to create a B2B Commerce order confirmation page in checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommQuickActionCreatePage—A Lightning page used to override the create record page, as created in Experience Builder. This value is available in API version 38.0 and later. CommRecordPage—A Lightning page used to override a record page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommRelatedListPage—A Lightning page used to override a related list page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommSearchResultPage—A Lightning page used to override the search result page, as created in Experience Builder. This value is available in API version 38.0 and later. CommSelfRegisterPage—A Lightning page used to override the self-registration page, as created in Experience Builder. This value is available in API version 39.0 and later. CommThemeLayoutPage—A Lightning page used to override a theme layout page, as created in the Experience Builder. This value is available in API version 38.0 and later. EmbeddedServicePage This value is available in API version 45.0 and later. EmailContentPage — A page that contains the builder markup for your email content. When you edit email content in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailContentPage. EmailTemplatePage — A page that contains the builder markup for your email template. When you edit an email template in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailTemplatePage or EmailContentPage. ForecastingPage —A Lightning page that is used to override the default forecasts page in Lightning Experience. This value is available in API version 57.0 and later. HomePage—A Lightning page that is used to override the Home page in Lightning Experience. This value is available in API version 37.0 and later. MailAppAppPage—An email application pane used to override the default layout in the Outlook and Gmail integrations. This value is available in API version 38.0 and later. OmniSupervisorPageType—A Lightning page used to customize the user interface on the Omni-Channel Supervisor page. This value is available in API version 60.0 and later. RecordPage—A Lightning page used to override an object record page in Lightning Experience. This value is available in API version 37.0 and later. RecordPreview A Lightning page used to override standard lookup previews when hovering over previewable records in Lightning Experience.This value is available in API version 45.0 and later. UtilityBar—A Lightning page used as the utility bar in Lightning Experience apps. This value is available in API version 38.0 and later. VoiceExtension—A Lightning page used to customize user interfaces and agent actions in the Omni-Channel widget for Service Cloud Voice. This value is available in API version 57.0 and later. This field is available in API version 32.0 and later.",
+        "Description": "Required. The type of a page. In API versions 32.0 through 36.0, this field can only have a value of AppPage.Valid values are: CdpRecordPage—A Lightning page that is used to override a CDPNearCoreObject record page in Lightning Experience. This value is available in API version 54.0 and later for orgs that have Data 360 enabled. AppPage—A Lightning page that is used as the home page for a custom app. CommAppPage—A Lightning page that is used to represent a custom page, as created in the Experience Builder. This value is available in API version 37.0 and later. CommContractDetailViewPage—This value is available in API version 64.0 and later. CommCheckoutPage—A Lightning page that is used to create a B2B Commerce checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommFlowPage A Lightning page used to override a flow page, as created in the Experience Builder. This value is available in API version 45.0 and later. CommForgotPasswordPage—A Lightning page that’s used to override a forgot-password page, as created in Experience Builder. This value is available in API version 39.0 and later. CommFlowPage—An out-of-the-box flow page, as created in Experience Builder. This value is available in API version 45.0 and later. CommGlobalSearchResultPage A Lightning page used to override the global search result page, as created in Experience Builder. This value is available in API version 41.0 and later. CommLoginPage—A Lightning page that’s used to override the login page, as created in Experience Builder. This value is available in API version 39.0 and later. CommNoSearchResultsPage—An Experience Builder site page for B2B searches that return no results. The URL for this page is no-results/:term. The page starts out empty. You can add any component to it that accepts parameters to achieve the desired “no results” experience. For example, you can place an HTML Editor component or CMS components for recommendations, banners, help, and support. This value is available in API version 48.0 and later. CommObjectPage—A Lightning page used to override an object page, as created in Experience Builder. This value is available in API version 38.0 and later. CommOrderComfirmationPage—A Lightning page that is used to create a B2B Commerce order confirmation page in checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommQuickActionCreatePage—A Lightning page used to override the create record page, as created in Experience Builder. This value is available in API version 38.0 and later. CommRecordPage—A Lightning page used to override a record page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommRelatedListPage—A Lightning page used to override a related list page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommSearchResultPage—A Lightning page used to override the search result page, as created in Experience Builder. This value is available in API version 38.0 and later. CommSelfRegisterPage—A Lightning page used to override the self-registration page, as created in Experience Builder. This value is available in API version 39.0 and later. CommThemeLayoutPage—A Lightning page used to override a theme layout page, as created in the Experience Builder. This value is available in API version 38.0 and later. EmbeddedServicePage This value is available in API version 45.0 and later. EmailContentPage — A page that contains the builder markup for your email content. When you edit email content in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailContentPage. EmailTemplatePage — A page that contains the builder markup for your email template. When you edit an email template in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailTemplatePage or EmailContentPage. ForecastingPage —A Lightning page that is used to override the default forecasts page in Lightning Experience. This value is available in API version 57.0 and later. HomePage—A Lightning page that is used to override the Home page in Lightning Experience. This value is available in API version 37.0 and later. MailAppAppPage—An email application pane used to override the default layout in the Outlook and Gmail integrations. This value is available in API version 38.0 and later. OmniSupervisorPageType—A Lightning page used to customize the user interface on the Omni-Channel Supervisor page. This value is available in API version 60.0 and later. QuickAction—A Lightning page used to customize the fields and layout for a quick action. This value is available as a Beta in API version 68.0 and later. RecordPage—A Lightning page used to override an object record page in Lightning Experience. This value is available in API version 37.0 and later. RecordPreview—A Lightning page used to override standard lookup previews when hovering over previewable records in Lightning Experience. This value is available in API version 45.0 and later. UtilityBar—A Lightning page used as the utility bar in Lightning Experience apps. This value is available in API version 38.0 and later. VoiceExtension—A Lightning page used to customize user interfaces and agent actions in the Omni-Channel widget for Service Cloud Voice. This value is available in API version 57.0 and later. This field is available in API version 32.0 and later.",
         "Field Name": "type",
         "Field Type": "FlexiPageType (enumeration of type string)"
       }
@@ -23797,7 +23890,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Comparison operators in conditions for flow elements and resources. Valid values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In— This value is available in API version 56.0 and later. IsBlank—A text value with zero characters or with only whitespace. Use to determine whether a text field or variable is blank. For other data type values, use to determine whether a field or variable is null. This value is available in API version 61.0 and later. IsChanged— This value is available in API version 52.0 and later. IsEmpty—An empty collection. This value is available in API version 61.0 and later. IsNull—A value that is either not set or references no value. Use to determine whether a field or variable value is set to no value. LessThan LessThanOrEqualTo None— Save a flow with an incomplete condition, so you can finish building the flow later. This value is available in API version 58.0 and later. NotEqualTo NotIn— This value is available in API version 56.0 and later. StartsWith WasSelected— Requires a choice on the left side. WasSet— This value is available in API version 30.0 and later. WasVisited— Requires a node on the left side. See Flow Operators.",
+        "Description": "Required. Comparison operators in conditions for flow elements and resources. The date comparison operators, such as IsAfter, IsBefore, and IsOn, apply to Date fields only, not DateTime fields. Valid values are: Contains EndsWith EqualTo GreaterThan GreaterThanLastNumberOfDays—Returns true if the date value is more than N days before today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. HasNoValue—Returns true if the date value has no value. This value is available in API version 67.0 and later. HasValue—Returns true if the date value has a value. This value is available in API version 67.0 and later. In— This value is available in API version 56.0 and later. IsAfter—Returns true if the date value is after the specified date. This value is available in API version 67.0 and later. IsAnniversaryOfToday—Returns true if the month and day of the date value match today's month and day. This value is available in API version 67.0 and later. IsBefore—Returns true if the date value is before the specified date. This value is available in API version 67.0 and later. IsBlank—A text value with zero characters or with only whitespace. Use to determine whether a text field or variable is blank. For other data type values, use to determine whether a field or variable is null. This value is available in API version 61.0 and later. IsChanged— This value is available in API version 52.0 and later. IsEmpty—An empty collection. This value is available in API version 61.0 and later. IsLastMonth—Returns true if the date value falls within the previous calendar month. This value is available in API version 67.0 and later. IsNextMonth—Returns true if the date value falls within the next calendar month. This value is available in API version 67.0 and later. IsNotAnniversaryOfToday—Returns true if the month and day of the date value don't match today's month and day. This value is available in API version 67.0 and later. IsNull—A value that is either not set or references no value. Use to determine whether a field or variable value is set to no value. IsOn—Returns true if the date value is the same as the specified date. This value is available in API version 67.0 and later. IsThisMonth—Returns true if the date value falls within the current calendar month. This value is available in API version 67.0 and later. IsToday—Returns true if the date value is today's date. This value is available in API version 67.0 and later. IsTomorrow—Returns true if the date value is tomorrow's date. This value is available in API version 67.0 and later. IsYesterday—Returns true if the date value is yesterday's date. This value is available in API version 67.0 and later. LastNumberOfDays—Returns true if the date value falls within the last N days, including today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastNumberOfMonths—Returns true if the date value falls within the last N calendar months, excluding the current month. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastNumberOfYears—Returns true if the date value falls within the last N calendar years, excluding the current year. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastYear—Returns true if the date value falls within the previous calendar year. This value is available in API version 67.0 and later. LessThan LessThanOrEqualTo NextNumberOfDays—Returns true if the date value falls within the next N days, including today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. NextNumberOfMonths—Returns true if the date value falls within the next N calendar months, excluding the current month. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. NextYear—Returns true if the date value falls within the next calendar year. This value is available in API version 67.0 and later. None— Save a flow with an incomplete condition, so you can finish building the flow later. This value is available in API version 58.0 and later. NotEqualTo NotIn— This value is available in API version 56.0 and later. StartsWith ThisYear—Returns true if the date value falls within the current calendar year. This value is available in API version 67.0 and later. WasSelected— Requires a choice on the left side. WasSet— This value is available in API version 30.0 and later. WasVisited— Requires a node on the left side. See Flow Operators.",
         "Field Name": "operator",
         "Field Type": "FlowComparisonOperator (enumeration of type string)"
       },
@@ -26575,7 +26668,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The flow test uses this value to evaluate the resource reference in the leftValueReference field.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In—This value is available in API version 56.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsNull LessThan LessThanOrEqualTo NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith WasSelected WasSet WasVisited",
+        "Description": "Required. The flow test uses this value to evaluate the resource reference in the leftValueReference field. The date comparison operators, such as IsAfter, IsBefore, and IsOn, apply to Date fields only, not DateTime fields.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanLastNumberOfDays—Returns true if the date value is more than N days before today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. HasNoValue—Returns true if the date value has no value. This value is available in API version 67.0 and later. HasValue—Returns true if the date value has a value. This value is available in API version 67.0 and later. In—This value is available in API version 56.0 and later. IsAfter—Returns true if the date value is after the specified date. This value is available in API version 67.0 and later. IsAnniversaryOfToday—Returns true if the month and day of the date value match today's month and day. This value is available in API version 67.0 and later. IsBefore—Returns true if the date value is before the specified date. This value is available in API version 67.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsLastMonth—Returns true if the date value falls within the previous calendar month. This value is available in API version 67.0 and later. IsNextMonth—Returns true if the date value falls within the next calendar month. This value is available in API version 67.0 and later. IsNotAnniversaryOfToday—Returns true if the month and day of the date value don't match today's month and day. This value is available in API version 67.0 and later. IsNull IsOn—Returns true if the date value is the same as the specified date. This value is available in API version 67.0 and later. IsThisMonth—Returns true if the date value falls within the current calendar month. This value is available in API version 67.0 and later. IsToday—Returns true if the date value is today's date. This value is available in API version 67.0 and later. IsTomorrow—Returns true if the date value is tomorrow's date. This value is available in API version 67.0 and later. IsYesterday—Returns true if the date value is yesterday's date. This value is available in API version 67.0 and later. LastNumberOfDays—Returns true if the date value falls within the last N days, including today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastNumberOfMonths—Returns true if the date value falls within the last N calendar months, excluding the current month. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastNumberOfYears—Returns true if the date value falls within the last N calendar years, excluding the current year. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. LastYear—Returns true if the date value falls within the previous calendar year. This value is available in API version 67.0 and later. LessThan LessThanOrEqualTo NextNumberOfDays—Returns true if the date value falls within the next N days, including today. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. NextNumberOfMonths—Returns true if the date value falls within the next N calendar months, excluding the current month. If N is a decimal, only the integer portion is used. This value is available in API version 67.0 and later. NextYear—Returns true if the date value falls within the next calendar year. This value is available in API version 67.0 and later. NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith ThisYear—Returns true if the date value falls within the current calendar year. This value is available in API version 67.0 and later. WasSelected WasSet WasVisited",
         "Field Name": "operator",
         "Field Type": "FlowComparisonOperator (enumeration of type string)"
       },
@@ -27132,34 +27225,34 @@
   "FuelType": {
     "fields": [
       {
-        "Description": "Description about the fuel type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is active (true) or not (false). The default value is false.",
+        "Description": "The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the fuel type is used in stationary assets (true) or not (false). The default value is false.",
         "Field Name": "isStationaryAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is used in a vehicle asset (true) or not (false). The default value is false.",
+        "Description": "asset (true) or not (false). The default value is false.",
         "Field Name": "isVehicleAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for FuelType, which is defined when the FuelType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a custom fuel type in an org.",
@@ -27171,22 +27264,22 @@
       {
         "Description": "Required. The name of the fuel type that’s mapped to the unit of measure. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for FuelTypeSustnUom, which is defined when the FuelTypeSustnUom is created.",
+        "Description": "is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The unit of measure that’s mapped to the fuel type.Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
+        "Description": "Required. The unit of measure that’s mapped to the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "unitOfMeasure",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a mapping between the custom fuel types and their corresponding unit of measure (UOM) values defined by a customer in an org.",
@@ -37923,6 +38016,11 @@
   "QuickAction": {
     "fields": [
       {
+        "Description": "The subtype of the action.The valid values are: Action—This value is available only for actions of type LightningWebComponent. Create—The Quick Action Page defines the field layout of the record creation form. This value is available only for actions of type Flexipage. (This value is available as a Beta in API version 68.0 and later) ScreenAction—This value is available only for actions of type LightningWebComponent. Update—The Quick Action Page defines the field layout of the record update form. This value is available only for actions of type Flexipage. (This value is available as a Beta in API version 68.0 and later) This field is available in API version 50.0 and later.",
+        "Field Name": "actionSubtype",
+        "Field Type": "ActionSybtype (enumeration of type string)"
+      },
+      {
         "Description": "If the custom action invokes a Canvas app, the app name. Returns the fully qualified name of the Canvas app in the format <namespace>__<dev_name>, if the quick action type is Canvas; otherwise, returns null. This field is available in API version 29.0 and later.",
         "Field Name": "canvas",
         "Field Type": "string"
@@ -37936,6 +38034,11 @@
         "Description": "The specific field that can be overridden within a QuickAction.",
         "Field Name": "fieldOverrides",
         "Field Type": "FieldOverride[]"
+      },
+      {
+        "Description": "The API name of the Quick Action Page that contains the fields and layout for the action. This field applies only when the quick action type is Flexipage. This field is available as a Beta in API version 68.0 and later.",
+        "Field Name": "flexiPage",
+        "Field Type": "string"
       },
       {
         "Description": "If the custom action invokes a flow, this field represents the API name of the flow. Otherwise, this field is null.",
@@ -38013,7 +38116,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of quick action. Valid values are: Canvas Create Flow (This value is available as a Beta in API version 41.0 and later) LightningComponent (This value is available in API version 38.0 and later.) LogACall Post SendEmail (This value is available in API version 31.0 and later.) SocialPost Update VisualforcePage",
+        "Description": "Required. The type of quick action. Valid values are: Canvas Create Flexipage (This value is available as a Beta in API version 68.0 and later) Flow (This value is available as a Beta in API version 41.0 and later) LightningComponent (This value is available in API version 38.0 and later.) LightningWebComponent LogACall Post SendEmail (This value is available in API version 31.0 and later.) SocialPost Update VisualforcePage",
         "Field Name": "type",
         "Field Type": "QuickActionType (enumeration of type string)"
       },
@@ -39209,7 +39312,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 68.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -41674,12 +41777,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "The ISO-standard code populates this field when you issue a retrieve() call. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The ISO-standard code populates this field when you issue a retrieve() call.",
         "Field Name": "isoCode",
         "Field Type": "string"
       },
       {
-        "Description": "The label is what users see in picklists in Salesforce. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The label is what users see in picklists in Salesforce.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -42402,6 +42505,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the Use elastic limits for asynchronous Apex jobs (Beta) setting is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableAsyncApexElasticExecutions",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Authenticated Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlAuthUserAccessCheckPref",
         "Field Type": "boolean"
@@ -42409,6 +42517,11 @@
       {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Guest and Portal Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlGuestUserAccessCheckPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Block Apex Anonymous Code Execution from Managed Packages release update is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableBlockPackagedApexExecAnon",
         "Field Type": "boolean"
       },
       {
@@ -45698,6 +45811,18 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
     "parent": "Metadata"
   },
+  "HelpSettings": {
+    "fields": [
+      {
+        "Description": "The alternative URL that opens when users access Salesforce Help. The URL can contain up to 255 characters and must be a valid URL. If validation fails, deployment returns an INVALID_OPERATION error. If the element is omitted from a deployment, the existing URL doesn’t change. To clear the alternative URL, leave the field blank.",
+        "Field Name": "alternativeUrl",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the org setting that changes the destination of help.salesforce.com to an alternative URL. Use this setting to deploy and retrieve the alternative Help URL.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_helpsettings.htm",
+    "parent": "Metadata"
+  },
   "HighVelocitySalesSettings": {
     "fields": [
       {
@@ -46666,7 +46791,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable the foundational components of the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable the foundational components of the Life Sciences Customer Engagement.",
         "Field Name": "enableLifeSciencesCustomerEngagementBase",
         "Field Type": "boolean"
       },
@@ -46686,37 +46811,37 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable Document Management for the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable Document Management for the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CEDocumentManagement",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable email and template management features for the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable email and template management features for the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CEEmailAndTemplate",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable Key Account Management functionality within the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable Key Account Management functionality within the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CEKeyAccountManagement",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable Medical Insights functionality in the Life Sciences Customer Engagement (LS C4CE) platform to provide insights to medical teams.",
+        "Description": "Indicates whether to enable Medical Insights functionality in the Life Sciences Customer Engagement platform to provide insights to medical teams.",
         "Field Name": "enableLSC4CEMedInsights",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable the core package for the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable the core package for the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CEPackage",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable features for remote engagement with customers within the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable features for remote engagement with customers within the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CERemoteEngagement",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable the Visits feature to manage and track customer visits within the Life Sciences Customer Engagement (LS C4CE).",
+        "Description": "Indicates whether to enable the Visits feature to manage and track customer visits within the Life Sciences Customer Engagement.",
         "Field Name": "enableLSC4CEVisits",
         "Field Type": "boolean"
       },
@@ -46788,6 +46913,76 @@
       {
         "Description": "Indicates whether to enable preferences for Waitlist Management.",
         "Field Name": "enableWaitlistManagementPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether eDetailing for Life Sciences Customer Engagement is enabled (true) or not (false). This feature lets sales representatives deliver digital, interactive presentations to healthcare professionals. The default value is false. Available in API version 63.0 and later.",
+        "Field Name": "enableLSC4CEEDetailing",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Life Sciences fields are exposed on Event Management objects (true) or not (false). The default value is false. Available in API version 65.0 and later.",
+        "Field Name": "enableLifeSciFieldEvents",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Institutional Doctor account record type is enabled (true) or not (false). This record type lets users track sales representatives' interactions with healthcare professionals and the healthcare organizations that the professionals are affiliated with. The default value is false. Available in API version 66.0 and later.",
+        "Field Name": "enableInsDocRelationship",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Life Sciences Customer Engagement Admin Console permissions are enforced for your org (true) or not (false). These permissions control which parts of the Admin Console different users can access. The default value is false. Available in API version 66.0 and later.",
+        "Field Name": "enableLSCAdminConsolePerms",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Briefings is enabled for your org (true) or not (false). This feature lets users consume insights in multi-modal narrative formats. The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableStories",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether access to Subject Assignment records through managed event-based derived sharing is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableMngEventBasedSharing",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Type and Role display as picklist fields on the Managed Event Participant record (true) or not (false). When enabled, users can specify a participant's type and role directly instead of selecting the related Event Management Participant Type Role Mapping record. The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableEvtPtcpTypeRoleSelection",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Managed Event Type field on Managed Event records is automatically populated based on the Managed Event record type-to-event type mapping (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableMngEvtTypeAutoPopulation",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether records of all sharing types are included in Life Sciences workflows (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableMngNonLSCShareRowCause",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Store Check is enabled for your org (true) or not (false). This feature lets users conduct store checks for their organization. The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "enableStoreCheck",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether users are routed to different experiences based on the record type that they want to create or edit (true) or not (false). The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "enableLifeSciRecTypeRoutgPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether access to Order Capture is enabled (true) or not (false). This feature lets users capture and manage draft orders. The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "enableLSDraftOrderCapture",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Visit Agent is enabled in the Life Sciences Cloud mobile app (true) or not (false). The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "enableLSVisitAgent",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether selective trigger handler execution using JSON execution-condition expressions on LifeScienceTriggerHandler setup records is enabled (true) or not (false). The default value is false. Available in API version 68.0 and later.",
+        "Field Name": "noninterchangeable",
         "Field Type": "boolean"
       }
     ],
@@ -47733,7 +47928,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the Enable Secure Static Resources for Lightning Components release update is enforced (true) or not (false). To improve security, this update serves all static resources from the visualforce domain instead of the lightning domain. This change prevents a script included in a static resource from accessing the document in the lightning domain due to the same-origin security policy. This field is available in API version 50.0 and later.",
+        "Description": "Removed in API version 68.0 and later because the Enable Secure Static Resources for Lightning Components release update was cancelled. In Summer ’26 and later, all static resources are served automatically from the lightning domain, regardless of the API version.",
         "Field Name": "enableAuraSecStaticResCRUCPref",
         "Field Type": "boolean"
       },
@@ -48000,6 +48195,33 @@
     ],
     "short_description": "Represents the settings to enable Salesforce Meetings and the integration with Zoom video conferencing.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_meetingssettings.htm",
+    "parent": "Metadata"
+  },
+  "MCETransformationsSettings": {
+    "fields": [
+      {
+        "Description": "Enables Flow Builder access to Marketing Cloud Engagement (MCE) sending capabilities for the org. This field must be enabled before the other MCETransformationsSettings fields take effect.",
+        "Field Name": "enableMceTransformations",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Allows flows to override the ContactKey field when sending a contact to a Marketing Cloud Journey via the Send to Journey action. Requires enableMceTransformations to be enabled.",
+        "Field Name": "enableMcetContactKeyOverride",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Allows flows to send contacts to Marketing Cloud Emails via the Send to MCE Email action. Requires enableMceTransformations to be enabled.",
+        "Field Name": "enableMcetSendToEmail",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Allows flows to send contacts to Marketing Cloud Journeys via the Send to Journey action. Requires enableMceTransformations to be enabled.",
+        "Field Name": "enableMcetTriggerJourney",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Controls Flow Builder's integration with Marketing Cloud Engagement (MCE), including sending contacts to MCE emails and journeys. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mcetransformationssettings.htm",
     "parent": "Metadata"
   },
   "MobileSettings": {
@@ -52589,44 +52811,44 @@
   "SustainabilityUom": {
     "fields": [
       {
-        "Description": "The description of the unit of measure.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is for a product that the company has procured in its supply chain operations (true) or not (false). The default value is false.",
         "Field Name": "isProductUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is used in the stationary asset calculations (true) or (false). The default value is false.",
         "Field Name": "isStationaryAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the vehicle asset calculations (true) or (false). The default value is false.",
+        "Description": "(true) or (false). The default value is false.",
         "Field Name": "isVehicleAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
+        "Description": "generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
         "Field Name": "isWasteUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. The label assigned to this object.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
+        "Description": "(enumeration of type string) Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
         "Field Name": "unitType",
-        "Field Type": "UnitType (enumeration of type string)"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the unit of measure (UOM) values for custom fuel types in an org. Track fuel consumption and emission results with the flexibility to add custom fuel types and UOM values.",
@@ -52638,37 +52860,37 @@
       {
         "Description": "Required. The conversion factor that's used to convert values from one unit of measure to another for the fuel type.",
         "Field Name": "conversionFactor",
-        "Field Type": "double"
+        "Field Type": ""
       },
       {
-        "Description": "The name of the fuel type.Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
+        "Description": "The name of the fuel type. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for SustnUomConversion, which is defined when the SustnUomConversion is created.",
+        "Description": "SustnUomConversion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The source unit of measure for the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "sourceUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The target unit of measure for the fuel type.",
         "Field Name": "targetUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The key associated with a unit of measure for the fuel type.",
+        "Description": "",
         "Field Name": "uomsKey",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information about the unit of measure (UOM) conversion for the custom fuel types defined by a customer in an org.",

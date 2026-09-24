@@ -59,7 +59,7 @@ Run manual QA tests. See [docs/release-testing-guide.md](../../../docs/release-t
 
 ### 6. Publish to marketplace
 
-If tests pass, dispatch both workflows for full coverage (VS Code Marketplace + Open VSX):
+If tests pass, dispatch **both** workflows for full coverage (VS Code Marketplace + Open VSX) — dispatching one does **not** trigger the other, there is no cascade between them. Set `isHotfix=true` on **each** so its own gate-check tests the exact patch commit directly (this build never went through develop's branch protection or any nightly pipeline):
 
 ```sh
 gh workflow run publishVSCode.yml -f version="v67.12.1" -f isHotfix=true --repo forcedotcom/salesforcedx-vscode
@@ -100,23 +100,25 @@ Reuse the same `release-base/v67.12.x` branch for multiple patches:
 
 For **immediate** marketplace hotfix as pre-release (bypasses stable testing):
 
+**The hotfix commit itself must bump `package.json` versions.** `build-github-release.yml` never bumps versions in pre-release mode — it packages and tags whatever's already on the source ref as-is. The calculated/provided `releaseVersion` only names the git tag and release title; it has no effect on the version actually baked into the VSIX. If the source ref's `package.json` still has an old version, that's what gets published — potentially a version *lower* than what's already live, which registries will silently ignore as "latest." Bump the version as part of the hotfix commit itself (`node scripts/update-release-versions.js <version>`), same as any other release-affecting change to `package.json`.
+
 ### Step 1: Build emergency pre-release VSIXs
 
 ```sh
 # From hotfix branch
-gh workflow run build-release.yml \
-  -f publishAsPrerelease=true \
+gh workflow run build-github-release.yml \
+  -f emergencyPrerelease=true \
   -f startFromRef="hotfix/security-fix" \
   --repo forcedotcom/salesforcedx-vscode
 
 # From specific commit
-gh workflow run build-release.yml \
-  -f publishAsPrerelease=true \
+gh workflow run build-github-release.yml \
+  -f emergencyPrerelease=true \
   -f startFromRef="abc123def456" \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Creates GitHub pre-release with VSIXs. Uses version from source's package.json files (must be unique, not already published to marketplace). No automated version bump — tags source ref with nightly format tag.
+Creates GitHub pre-release with VSIXs. Auto-calculates the git tag/release title as max(Marketplace, Open VSX) + 1 patch, or supply `-f releaseVersion=X.Y.Z` to override — this only names the tag, it does not change what's inside the VSIX (see version-bump note above).
 
 **Validation:** Unit tests (compile + test) run at the authoritative gate: promote-to-prerelease.yml tests exact hotfix commit being promoted when isHotfix=true. E2E & full PR review skipped; ensure ref carefully reviewed before use.
 
@@ -139,13 +141,13 @@ For time-critical fixes requiring proper version tracking (not nightly format):
 
 ```sh
 # Build from hotfix branch with version bump
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f startFromRef="hotfix/security-fix" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode
 
 # Build from specific commit with version bump
-gh workflow run build-release.yml \
+gh workflow run build-github-release.yml \
   -f startFromRef="abc123def456" \
   -f releaseVersion="67.12.1" \
   --repo forcedotcom/salesforcedx-vscode

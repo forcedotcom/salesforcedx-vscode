@@ -158,7 +158,7 @@ const path = yield * api.services.FsService.uriToPath(uri);
 
 ### HashableUri
 
-`vscode-uri` `URI` lacks value equality → same-file URIs = distinct HashSet/HashMap keys. `FsService.HashableUri` wraps `URI` w/ Effect `Hash`/`Equal` (structural; `Equal.equals` compares normalized `.toString()`). Use for dedupe/compare instead of hand-rolled `uri.toString() === other.toString()`.
+`vscode-uri` `URI` lacks value equality → same-file URIs = distinct HashSet/HashMap keys. `FsService.HashableUri` wraps `URI` w/ Effect `Hash`/`Equal` (structural; identity is `comparisonKey` of URI fields, not `.toString()`). Use for dedupe/compare instead of hand-rolled `uri.toString()`. Windows file-drive Equal/Hash casing: `packages/salesforcedx-vscode-services/CONTEXT.md` HashableUri (`comparisonPath`).
 
 Value namespace on the service, not an Effect-returning method. 2 ways to reach:
 
@@ -175,7 +175,7 @@ const filter = HashSet.fromIterable(uris.map(HashableUri.fromUri));
 Compare via `Equal.equals` (`effect/Equal`):
 
 ```typescript
-Equal.equals(fsService.HashableUri.fromUri(uri1), fsService.HashableUri.fromUri(uri2)); // true if same normalized string
+Equal.equals(fsService.HashableUri.fromUri(uri1), fsService.HashableUri.fromUri(uri2)); // true if same comparisonKey
 ```
 
 Underlying `URI` via `.uri`. Never deep-import from `salesforcedx-vscode-services/src/...` — bare index import pulls observability SDK side effect, breaks jest.

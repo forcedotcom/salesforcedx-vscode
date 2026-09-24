@@ -180,6 +180,6 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
       );
     });
 
-    return { getRootUri, getSnapshotUri, load, save };
+    return { getSnapshotUri, load, save };
   })
 }) {}

@@ -149,6 +149,7 @@ test('Apex Replay Debugger (Code Builder): trace flag, exec anon, replay from lo
     // reads activeTextEditor and only sets LAST_OPENED_LOG_KEY when the active file is a .log — the
     // key the next "launch from last log file" step relies on.
     const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    // eslint-disable-next-line playwright/no-force-option -- browser-served (code-server) workbench tab intercepts pointer events; the desktop twin clicks this same tab without force
     await logTab.click({ force: true });
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     await continueDebugSession(page);

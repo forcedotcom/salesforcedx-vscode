@@ -120,6 +120,7 @@ import {
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { isNotNull } from 'effect/Predicate';
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
@@ -638,7 +639,7 @@ describe('lwcServerNode', () => {
         // Note: hover might be null if test_component isn't found or doesn't have the expected structure
         // This test expects info and icon-name from test_component, but it might not be indexed correctly
         // For now, we'll skip the assertion if hover is null (known issue with test_component)
-        if (hover !== null) {
+        if (isNotNull(hover)) {
           const contents = hover.contents as MarkupContent;
           expect(contents.value).toContain('**info**');
           expect(contents.value).toContain('**icon-name**');

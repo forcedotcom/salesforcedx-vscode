@@ -35,11 +35,11 @@ flowchart TD
 
 Every span passes through `RedactingSpanProcessor` (`redactingSpanProcessor.ts`) before any exporter sees it. The processor is registered first and unconditionally in the `spanProcessor` array of both `spansNode.ts` and `spansWeb.ts`, and it does all of its work in the experimental `onEnding` hook. That hook placement is what makes one processor sufficient: the OpenTelemetry SDK wraps the array in a `MultiSpanProcessor`, which calls `onEnding` on **every** registered processor before it calls `onEnd` on any of them. A single in-place rewrite therefore covers every sink — console, App Insights, O11y, local OTLP over http, and the OTLP JSONL files — including processors that were registered before the redactor.
 
-What gets rewritten: every descendant string value in span attributes, status, events, link attributes, and resource attributes, plus the span name. `jsonpath-plus` supplies the recursive string-leaf traversal over those controlled JSON-like surfaces; it does not traverse `SpanImpl` itself. Attribute keys and structural telemetry fields — trace/span IDs, link contexts, timing, kind, instrumentation scope, resource schema, and processor/exporter internals — are intentionally excluded. The event case is particularly important. `@effect/opentelemetry` sets `status.message` to `Cause.pretty(cause)` and calls `span.recordException` with a stack that is also `Cause.pretty` output, so third-party error text from jsforce or `@salesforce/core` — including access tokens — arrives as `exception.message` and `exception.stacktrace` on the default Node path.
+What gets rewritten: string and string[] values in span attributes, status.message, event names and attributes, link attributes, and resource attributes, plus the span name. Traversal stays on those OTEL surfaces; it does not recurse into nested objects and does not traverse `SpanImpl` itself. Attribute keys and structural telemetry fields — trace/span IDs, link contexts, timing, kind, instrumentation scope, resource schema, and processor/exporter internals — are intentionally excluded. The event case is particularly important. `@effect/opentelemetry` sets `status.message` to `Cause.pretty(cause)` and calls `span.recordException` with a stack that is also `Cause.pretty` output, so third-party error text from jsforce or `@salesforce/core` — including access tokens — arrives as `exception.message` and `exception.stacktrace` on the default Node path.
 
 Secret and username-or-email patterns share the fixed-value recognition stage in `redactSensitiveData.ts`. Three secret patterns (SFDX auth URL, JWT, opaque access token) are copied from `@salesforce/core`'s `util/sfdc`, which cannot be imported because that package's `exports` map does not expose it; the access-token tail is deliberately wider than core's so that `-`, `=` and `+` bytes are consumed instead of left in the log. The other three secret patterns (`Bearer …`, `sid=…`, and key-shaped refresh tokens) exist because core's own filters only match JSON-shaped `"key": "value"` text and cannot see a secret embedded in a prose stack trace. A cheap `String.includes` hint check short-circuits before the combined regex runs, because `onEnding` executes synchronously on every span end in every session.
 
-Org aliases, usernames, query text, paths, and other command inputs do not all have intrinsic sensitive-data shapes. `TerminalService.simpleExec` therefore keeps the raw shell command only at the execution boundary: it does not attach the command to its span or copy it into `TerminalServiceError`. Node's `exec` error message and `cmd` property are also excluded because both contain the complete invocation. The service records only command-independent execution metadata such as timeout, whether a working directory was supplied, exit code, output sizes, signal, and error category. This supports arbitrary shell commands without maintaining a command catalog or attempting to parse shell syntax. The span processor's recognizable secret/email and target-org safeguards remain as defense in depth for strings originating outside TerminalService, including error output recorded on spans.
+Org aliases, usernames, query text, paths, and other command inputs do not all have intrinsic sensitive-data shapes. `TerminalService.simpleExec` therefore keeps the executable and argv only at the spawn boundary: it does not attach them to its span or copy them into `TerminalServiceError`. The service records only command-independent execution metadata. On desktop that is timeout, whether a working directory was supplied, exit code, output sizes, and error category. On web there is no spawn, so the span records only the error category (`unsupported_platform`). The span processor's recognizable secret/email and target-org safeguards remain as defense in depth for strings originating outside TerminalService, including error output recorded on spans.
 
 Telemetry identity attributes survive by construction: the access-token pattern requires the `!` separator, so a bare 18-character `00D…` org ID, a `005…` user ID, a hashed `webUserId`, and `devHubOrgId` all pass through untouched (ADR-0019).
 
@@ -216,6 +216,8 @@ Two helpers, different targets:
 
 Rule of thumb: if the consumer is local debugging, use `Effect.annotateCurrentSpan`. If the consumer is production telemetry (org IDs, feature flags, user-meaningful identifiers), use `annotateRootSpan`.
 
+Prefer scalars and counts over nested objects, file-path arrays, or auth payloads (`RetrieveResult`, `zipFile`, `ComponentSet`, `fileResponses`, `listMetadata` result, IndexedDB `entries`, command `args`, `authInfo.getFields()`). Use status and size fields such as `fileResponseCount`, `resultCount`, `entryCount`, `argCount`, `retrieveStatus`, and `zipFileLength`.
+
 ```typescript
 import { annotateRootSpan } from '@salesforce/effect-ext-utils';
 
@@ -343,6 +345,49 @@ This starts Grafana's OpenTelemetry LGTM stack on:
 - Port 3000: Grafana UI (view traces at <http://localhost:3000>)
 - Port 4317: OTLP gRPC endpoint
 - Port 4318: OTLP HTTP endpoint
+
+##### Web Console
+
+Hosted Web Console (`https://cdn.web-ide.platform.salesforce.com`) posts OTLP to `http://localhost:4318/v1/traces` when this setting is on. That is a public HTTPS origin talking to loopback, so two extra steps are required. A CORS browser extension will not fix them; Web Console often has no toolbar, and Chrome blocks the request before CORS headers are evaluated.
+
+1. **Chrome Local Network Access.** Chrome 142+ [gates public-to-loopback fetches](https://developer.chrome.com/blog/local-network-access) behind a permission. The console error is `Permission was denied for this request to access the loopback address space`. Open a normal Chrome tab in the same profile, set `chrome://flags/#local-network-access-check` to **Disabled**, relaunch Chrome, and reload Web Console. Site-settings Allow often fails because Web Console iframes the CDN origin without `allow="loopback-network"`.
+
+2. **Collector CORS for HTTPS.** `grafana/otel-lgtm` allowlists `http://*` only ([default collector config](https://raw.githubusercontent.com/grafana/docker-otel-lgtm/v0.33.0/docker/otelcol-config.yaml)), so the Salesforce HTTPS origin is rejected. Mount an overlay and pass it as a second collector config ([image config paths](https://github.com/grafana/docker-otel-lgtm/blob/v0.33.0/README.md)):
+
+   ```yaml
+   # ~/.otel-lgtm/otelcol-cors.yaml
+   receivers:
+     otlp:
+       protocols:
+         http:
+           cors:
+             allowed_origins:
+               - http://*
+               - https://cdn.web-ide.platform.salesforce.com
+             allowed_headers:
+               - "*"
+   ```
+
+   ```bash
+   docker run -d --rm --name otel-lgtm \
+     -p 3000:3000 -p 4317:4317 -p 4318:4318 \
+     -v "$HOME/.otel-lgtm/otelcol-cors.yaml:/otel-lgtm/otelcol-cors.yaml:ro" \
+     -e OTELCOL_EXTRA_ARGS='--config=file:/otel-lgtm/otelcol-cors.yaml' \
+     docker.io/grafana/otel-lgtm
+   ```
+
+   Confirm with:
+
+   ```bash
+   curl -si -X OPTIONS http://localhost:4318/v1/traces \
+     -H 'Origin: https://cdn.web-ide.platform.salesforce.com' \
+     -H 'Access-Control-Request-Method: POST' \
+     -H 'Access-Control-Request-Headers: content-type'
+   ```
+
+   The response must include `access-control-allow-origin: https://cdn.web-ide.platform.salesforce.com`. Then enable `enableLocalTraces` in Web Console Settings and reload.
+
+Agent procedure: `.claude/skills/web-console-local-traces/SKILL.md`.
 
 #### `salesforcedx-vscode-salesforcedx.enableConsoleTraces`
 

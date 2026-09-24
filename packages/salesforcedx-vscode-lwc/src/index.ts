@@ -31,7 +31,6 @@ import { nls } from './messages';
 import { activateMetaSupport } from './metasupport/metaSupport';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { telemetryService } from './telemetry';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
 
 class LwcLanguageServerError extends Schema.TaggedError<LwcLanguageServerError>()('LwcLanguageServerError', {
@@ -50,10 +49,10 @@ let initializationOptions: { workspaceType: WorkspaceType; sfdxTypingsDir: strin
 const createLanguageClientEffect = (
   extUri: URI,
   initOptions: { workspaceType: WorkspaceType; sfdxTypingsDir: string },
-  packageDirs?: string[]
+  packageDirectoryUris?: URI[]
 ) =>
   Effect.tryPromise({
-    try: () => createLanguageClient(extUri, initOptions, packageDirs),
+    try: () => createLanguageClient(extUri, initOptions, packageDirectoryUris),
     catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
   });
 
@@ -113,8 +112,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   ).toString();
 
   // Get package directories from sfdx-project.json to scope file watchers (performance optimization)
-  const packageDirectories = yield* api.services.ProjectService.getSfProject().pipe(
-    Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
+  const packageDirectoryUris = yield* api.services.ProjectService.getSfProject().pipe(
+    Effect.flatMap(project =>
+      Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
+    ),
     Effect.orElseSucceed(() => undefined)
   );
 
@@ -122,7 +123,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   extensionUri = extensionContext.extensionUri;
   initializationOptions = { workspaceType, sfdxTypingsDir };
 
-  const client = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectories).pipe(
+  const client = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris).pipe(
     Effect.tapError(error =>
       channelSvc.appendToChannel(
         nls.localize('lwc_language_server_start_failed', isError(error) ? error.message : String(error))
@@ -214,8 +215,10 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         yield* channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server'));
 
         // Fetch updated package directories
-        const packageDirectories: string[] | undefined = yield* projectService.getSfProject().pipe(
-          Effect.map(project => project.getPackageDirectories().map(dir => dir.path)),
+        const packageDirectoryUris: URI[] | undefined = yield* projectService.getSfProject().pipe(
+          Effect.flatMap(project =>
+            Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
+          ),
           Effect.orElseSucceed(() => undefined)
         );
 
@@ -226,7 +229,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         });
 
         // Create and start a new client with updated package directories
-        const newClient = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectories);
+        const newClient = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris);
 
         // Register workspace read file handler before start
         registerWorkspaceReadFileHandler(newClient, channelAdapter);
@@ -253,7 +256,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
 
 export const deactivate = () => {
   log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendEventData('extensionDeactivated');
+  getRuntime().runFork(Effect.void.pipe(Effect.withSpan('extensionDeactivated')));
 };
 
 const getActivationMode = (): string => {

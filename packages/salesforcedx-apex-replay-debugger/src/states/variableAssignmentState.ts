@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotNull } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
+import { removeQuotesFromBlob, surroundBlobsWithQuotes } from '../core/logContextUtil';
 import { DebugLogState } from './debugLogState';
 
 export class VariableAssignmentState implements DebugLogState {
@@ -124,7 +126,7 @@ export class VariableAssignmentState implements DebugLogState {
 
   private parseJSONAndPopulate(value: string, container: ApexVariableContainer, logContext: LogContext) {
     try {
-      const modifiedValue = logContext.getUtil().surroundBlobsWithQuotes(value);
+      const modifiedValue = surroundBlobsWithQuotes(value);
       const obj = JSON.parse(modifiedValue);
       // Recurse on the already-parsed object so inner string values aren't re-quoted/re-stringified.
       this.populateFromParsed(obj, container, logContext);
@@ -146,7 +148,7 @@ export class VariableAssignmentState implements DebugLogState {
       if (refContainer) {
         const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
         container.variables.set(key, tmpContainer);
-      } else if (rawValue !== null && typeof rawValue === 'object') {
+      } else if (isNotNull(rawValue) && typeof rawValue === 'object') {
         // Nested object/array (parent SObject rel, multi-level hierarchy, or child subquery
         // records). Build an expandable child container and recurse. type='' is acceptable:
         // VARIABLE_ASSIGNMENT JSON carries no nested SObject type metadata (only field
@@ -156,8 +158,7 @@ export class VariableAssignmentState implements DebugLogState {
         nested.variablesRef = logContext.getVariableHandler().create(nested);
         this.populateFromParsed(rawValue, nested, logContext);
       } else {
-        const varValue =
-          typeof rawValue === 'string' ? logContext.getUtil().removeQuotesFromBlob(`'${rawValue}'`) : `${rawValue}`;
+        const varValue = typeof rawValue === 'string' ? removeQuotesFromBlob(`'${rawValue}'`) : `${rawValue}`;
         container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
       }
     });

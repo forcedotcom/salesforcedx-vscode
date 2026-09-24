@@ -280,7 +280,7 @@ export const getClassMemberLocation = (
 // Utility function to get tag description
 export const getTagDescription = (tag: Tag): string => {
   const docs: string[] = [getTagDocumentation(tag), getAttributeDocs(tag) ?? '', getMethodDocs(tag) ?? ''];
-  return docs.filter(item => item !== null && item !== '').join('\n');
+  return docs.filter(item => item !== '').join('\n');
 };
 
 // Utility function to get tag documentation

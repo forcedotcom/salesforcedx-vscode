@@ -155,7 +155,8 @@ test('Apex Replay Debugger Variables (Code Builder): nested related-object VARIA
   });
 
   await test.step('continue and end debug session', async () => {
-    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
+    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5.
+    // eslint-disable-next-line playwright/no-force-option -- clicking through the covering hover is the point
     await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');

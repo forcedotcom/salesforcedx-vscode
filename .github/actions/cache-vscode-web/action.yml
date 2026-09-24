@@ -7,7 +7,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v6
       id: restore
       with:
         path: .vscode-test-web
@@ -17,7 +17,7 @@ runs:
       run: |
         dir=$(ls .vscode-test-web 2>/dev/null | grep -E '^vscode-web-stable-' | head -1)
         [ -n "$dir" ] && echo "PLAYWRIGHT_WEB_VSCODE_COMMIT=${dir#vscode-web-stable-}" >> "$GITHUB_ENV"
-    - uses: actions/cache/save@v4
+    - uses: actions/cache/save@v6
       if: always() && steps.restore.outputs.cache-hit != 'true'
       with:
         path: .vscode-test-web

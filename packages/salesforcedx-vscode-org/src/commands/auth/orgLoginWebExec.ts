@@ -24,14 +24,14 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * Both run the same CLI (the dev-hub variant only swaps `--instance-url/--set-default` for
  * `--set-default-dev-hub`), so they share: the Code Builder verification-code fork, the cancellable
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
- * their own params and pass the built command + progress label + notification command key.
+ * their own params and pass args + progress label + notification command key.
  *
  * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
- * and aborts the child via the threaded AbortSignal. Port-conflict failures get a custom notification +
- * Show Output action; all other TerminalServiceError failures rethrow to the generic ErrorHandlerService.
+ * and kills the child. Port-conflict failures get a custom notification + Show Output action; all other
+ * TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */
 export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (params: {
-  readonly command: string;
+  readonly args: readonly string[];
   readonly progressMessage: string;
   readonly notificationCommand: ProgressOnlyCommandKey;
 }) {
@@ -71,7 +71,7 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
   const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
 
   yield* (yield* api.services.TerminalService)
-    .simpleExec({ command: params.command, parse: identity, timeout: LOGIN_TIMEOUT })
+    .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
       (yield* api.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
       Effect.flatMap(handleSuccess),

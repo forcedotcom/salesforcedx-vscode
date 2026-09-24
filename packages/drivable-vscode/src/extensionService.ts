@@ -15,8 +15,12 @@ import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
 import { causeMessage, DrivableVscodeExtensionError } from './errors';
 
-const ExtensionPackage = Schema.Struct({ name: Schema.String, publisher: Schema.String, version: Schema.String });
-const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(ExtensionPackage));
+const RequiredExtensionPackageJsonSchema = Schema.Struct({
+  name: Schema.String,
+  publisher: Schema.String,
+  version: Schema.String
+});
+const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(RequiredExtensionPackageJsonSchema));
 
 export class ExtensionService extends Effect.Service<ExtensionService>()('DrivableVscode/ExtensionService', {
   accessors: true,

@@ -8,6 +8,7 @@
 import type { SObjectArtifactIdentity } from './artifactIdentity';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isNull } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import type { URI } from 'vscode-uri';
 import { SObjectSemanticModelSchema, type SObjectSemanticField, type SObjectSemanticModel } from './artifactProjection';
@@ -15,35 +16,33 @@ import { SObjectSchema, type SObject, type SObjectField } from './schemas/sObjec
 
 type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 
-/** Re-exported raw jsforce describe result for consumer type safety */
 export type DescribeSObjectResult = RawDescribeSObjectResult;
 
-export type RestSObjectDescribeTransmogrifierInput = {
+type RestSObjectDescribeTransmogrifierInput = {
   readonly source: 'rest-sobject-describe';
   readonly identity: SObjectArtifactIdentity;
   readonly value: DescribeSObjectResult;
 };
 
-export type WorkspaceSObjectMetadataDocument = {
+type WorkspaceSObjectMetadataDocument = {
   readonly fullName: string;
   readonly metadata: Readonly<Record<string, unknown>>;
   readonly definitionUri: URI;
 };
 
 /** Structured metadata parsed by SDR. Raw XML is never interpreted by the Transmogrifier. */
-export type WorkspaceSObjectMetadata = {
+type WorkspaceSObjectMetadata = {
   readonly object: WorkspaceSObjectMetadataDocument;
   readonly fields: readonly WorkspaceSObjectMetadataDocument[];
 };
 
-export type WorkspaceSObjectMetadataTransmogrifierInput = {
+type WorkspaceSObjectMetadataTransmogrifierInput = {
   readonly source: 'workspace-sobject-metadata';
   readonly identity: SObjectArtifactIdentity;
   readonly value: WorkspaceSObjectMetadata;
 };
 
-/** Provider-native SObject inputs accepted by the canonical transformation boundary. */
-export type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
+type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
   source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata'),
@@ -252,17 +251,17 @@ const mapRestFieldToSemanticField = (field: SObjectField): SObjectSemanticField 
   type: field.type,
   custom: field.custom,
   defaultValue: field.defaultValue,
-  ...(field.inlineHelpText === null ? {} : { inlineHelpText: field.inlineHelpText }),
+  ...(isNull(field.inlineHelpText) ? {} : { inlineHelpText: field.inlineHelpText }),
   ...(field.length === undefined ? {} : { length: field.length }),
   ...(field.precision === undefined ? {} : { precision: field.precision }),
   ...(field.scale === undefined ? {} : { scale: field.scale }),
   referenceTo: field.referenceTo.toSorted(),
-  ...(field.relationshipName === null ? {} : { relationshipName: field.relationshipName }),
+  ...(isNull(field.relationshipName) ? {} : { relationshipName: field.relationshipName }),
   picklistValues: field.picklistValues
     .map(value => ({
       value: value.value,
       active: value.active,
-      ...(value.label === null ? {} : { label: value.label })
+      ...(isNull(value.label) ? {} : { label: value.label })
     }))
     .toSorted((left, right) => left.value.localeCompare(right.value)),
   runtimeCapabilities: {
@@ -291,7 +290,7 @@ const mapRestDescribeToSemanticModel = (
         .map(relationship => ({
           childSObject: relationship.childSObject,
           field: relationship.field,
-          ...(relationship.relationshipName === null ? {} : { relationshipName: relationship.relationshipName })
+          ...(isNull(relationship.relationshipName) ? {} : { relationshipName: relationship.relationshipName })
         }))
         .toSorted((left, right) =>
           left.childSObject === right.childSObject

@@ -39,6 +39,7 @@ const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
   const input = page.locator(EXPLORER_INLINE_INPUT);
   await input.waitFor({ state: 'visible', timeout: 10_000 });
+  // eslint-disable-next-line playwright/no-force-option -- fill atomically so the name lands regardless of tree→input focus handoff timing
   await input.fill(`${name}.page`, { force: true });
   await page.keyboard.press('Enter');
 

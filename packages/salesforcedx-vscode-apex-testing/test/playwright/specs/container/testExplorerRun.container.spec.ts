@@ -126,6 +126,7 @@ test('Apex Test Explorer (Code Builder): run via tree-item action + verify Test 
   await test.step('verify the passed decoration on the test-method tree item', async () => {
     // Expand the class to reveal its method; the leaf carries the durable "(Passed)" aria-label.
     const classRow = findTestExplorerItem(page, TEST_CLASS);
+    // eslint-disable-next-line playwright/no-force-option -- twistie glyph is a zero-size pseudo-element; the row intercepts pointer events at its coordinates
     await classRow.locator('.monaco-tl-twistie').click({ force: true });
     const methodRow = findTestExplorerItem(page, TEST_METHOD);
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });

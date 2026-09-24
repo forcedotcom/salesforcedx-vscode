@@ -21,7 +21,7 @@
 
 - **redaction** here = string scrubbing of span payload values by `redactSensitiveData` (`observability/redactSensitiveData.ts`), replacing secret and PII shapes with `<REDACTED …>` labels
 - pattern-based and lossy: no way back to the original value, no wrapper type
-- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); not used anywhere in this repo today
+- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); `SettingsService.getAccessToken` returns `Redacted.Redacted<string>`, unwrapped only for the connection cache key and Salesforce Core auth
 - _Avoid_: calling `redactSensitiveData` output "a Redacted" — different mechanism, different guarantees
 
 ### Effect boundary
@@ -35,7 +35,7 @@
 
 - structural wrapper around `vscode-uri` `URI` adding Effect `Hash`/`Equal` symbols
 - shape: `{ readonly uri: URI; [Hash.symbol](); [Equal.symbol](that) }`
-- Equal/Hash are structural — compare/hash `uri.toString()` so cross-bundle works (cross-bundle: each ext bundles own copy; `instanceof` fails)
+- Equal/Hash: `comparisonKey` of URI fields (`scheme`, `authority`, `path`, `query`, `fragment`), not `uri.toString()` (cross-bundle; each ext bundles own copy; `instanceof` fails). `comparisonPath` (`uriComparison.ts`) lowercases path only for `file` + Windows drive (`/^\/[a-z]:/i`); `.uri` keeps segment casing. Containment + `pathSuffixWithin` use same helper; containment strips trailing slashes itself
 - structural Equal also requires `Equal.symbol` on the candidate — rejects plain `{uri}` literals so the Equal contract stays symmetric with `Hash`
 - access underlying URI via `.uri` (no `.path`/`.scheme`/`.toUri()` etc. on wrapper)
 - construct via `HashableUri.fromUri(uri)`; `HashableUri.with(self, change)` (or curried `HashableUri.with(change)(self)`) returns new wrapper
@@ -47,8 +47,27 @@
 ### Org metadata catalog
 
 - `OrgMetadataCatalog` is the services-owned read model for active-org metadata inventory, workspace presence, and lazily resolved source.
+- Facade: `getChildren`, `getEntries`, `resolveComponents`. See [ADR 0021](../../docs/adr/0021-org-metadata-catalog.md).
+- Package types: `OrgMetadataCatalog`, `OrgMetadataCatalogError` (type-only), `OrgMetadataCatalogComponentEntry`, `OrgMetadataCatalogEntry`, `OrgMetadataCatalogFieldEntry`, `OrgMetadataCatalogFolderEntry`, `OrgMetadataFieldDetails`, `OrgMetadataComponentReference`, `OrgMetadataCatalogChange`.
 - Consumers own projections such as Test Explorer and Org Browser; they do not write catalog state.
 - Ephemeral source is exposed through the read-only `sf-org-metadata:` `TextDocumentContentProvider`.
 - The scheme is a document integration point, not a filesystem: there is no `FileSystemProvider`, public write API, or consumer registration.
 - Services owns cache invalidation on workspace/default-org changes and closes documents belonging to an inactive org.
 - Rationale and rejected alternatives: [ADR 0001](./docs/adr/0001-org-catalog-over-shared-vfs.md).
+
+### Transmogrifier
+
+- `TransmogrifierService` maps REST describes / workspace SObject metadata onto canonical `SObject` / semantic model (`toMinimalSObject`, `decodeSObject`, `toSemanticModel`).
+- Package types: `TransmogrifierService`, `TransmogrifierError` (both type-only).
+
+### FileChangePubSub vs HostFileWatcher
+
+- **FileChangePubSub**: workspace FS events (`**/*`) from `FileWatcherLayer`. Project `.sf/config.json`, `sfdx-project.json`, test results, etc.
+- **HostFileWatcher**: host-FS files outside the workspace via `@salesforce/core/fs` (`fs.promises.watch`; node desktop, memfs web). `watchConfigFiles` → `~/.sf/config.json`; `watchAliasFile` → `~/.sfdx/alias.json`.
+- project `.sf/config.json`: `Utils.basename`/`dirname` on `event.uri` (not `fsPath`)
+- global config path: `join(Global.SF_DIR, configFileName)` (host-FS; `node:path` ok)
+- missing file/dir → ENOENT → `HostFileNotFoundError`, retried 250ms via `Schedule.whileInput(isTagged('HostFileNotFoundError'))`; other fs errors → `HostFileWatchError` (not retried)
+- Span `HostFileWatcher.watch` attributes include `path`
+- `watchConfigFiles` isolates `HostFileWatchError` on the global stream so project `.sf/config.json` watching continues
+- HostFileWatcher is internal (`globalLayers`); not on the public `services` API
+- _Avoid_: `FileChangePubSub` / `FileWatcherService` for global `~/.sf/config.json` or `~/.sfdx/alias.json`

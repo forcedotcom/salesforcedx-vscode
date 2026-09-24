@@ -192,6 +192,7 @@ test('Checkpoints (Code Builder): Toggle Checkpoint, Update Checkpoints in Org, 
     await clearOutputChannel(page);
 
     const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    // eslint-disable-next-line playwright/no-force-option -- browser-served (code-server) workbench tab intercepts pointer events; the desktop twin clicks this same tab without force
     await logTab.click({ force: true });
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry first (debug toolbar appears), then continue through the heap-dump line.

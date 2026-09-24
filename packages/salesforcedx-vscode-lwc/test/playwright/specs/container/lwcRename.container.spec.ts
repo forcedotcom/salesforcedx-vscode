@@ -51,6 +51,7 @@ test('LWC Rename (Code Builder): renames an existing bundle via explorer context
     const quickInput = activeQuickInputWidget(page);
     await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
+    // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
     await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
     await activeQuickInputWidget(page)
       .getByText(/Enter Lightning Web Component name/i)
@@ -58,6 +59,7 @@ test('LWC Rename (Code Builder): renames an existing bundle via explorer context
     await page.keyboard.type(oldName);
     await page.keyboard.press('Enter');
     await waitForQuickInputFirstOption(page);
+    // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
     await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
     await page
       .locator('[role="tab"]')
@@ -74,6 +76,7 @@ test('LWC Rename (Code Builder): renames an existing bundle via explorer context
     await saveScreenshot(page, 'lwcRename.container.03-context-menu-fired.png');
 
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
+    // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
     await activeQuickInputTextField(page).fill(newName, { force: true });
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'lwcRename.container.04-entered-new-name.png');
@@ -100,6 +103,8 @@ test('LWC Rename (Code Builder): renames an existing bundle via explorer context
   await test.step('rename again via editor context menu', async () => {
     await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+    // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
+    // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
     await activeQuickInputTextField(page).fill(finalName, { force: true });
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'lwcRename.container.06-editor-menu-fired.png');

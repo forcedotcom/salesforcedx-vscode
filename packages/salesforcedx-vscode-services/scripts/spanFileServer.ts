@@ -7,6 +7,7 @@
 /* eslint-disable no-restricted-imports -- standalone Node script, not extension code */
 /* eslint-disable functional/no-try-statements -- sync request handling */
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- JSON.parse result */
+import * as Predicate from 'effect/Predicate';
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import * as http from 'node:http';
@@ -123,7 +124,7 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
 
       mkdirSync(SPANS_DIR, { recursive: true });
       const filePath = getFilePath(extensionName);
-      const lines = spans.filter((s): s is string => typeof s === 'string').join('\n') + (spans.length > 0 ? '\n' : '');
+      const lines = spans.filter(Predicate.isString).join('\n') + (spans.length > 0 ? '\n' : '');
       if (lines) appendFileSync(filePath, lines);
 
       send(res, 200, JSON.stringify({ success: true }));
@@ -143,7 +144,7 @@ const handleOtlpSpans = (body: string, res: http.ServerResponse): void => {
   }
 
   mkdirSync(SPANS_DIR, { recursive: true });
-  const content = lines.filter((l): l is string => typeof l === 'string').join('\n') + (lines.length > 0 ? '\n' : '');
+  const content = lines.filter(Predicate.isString).join('\n') + (lines.length > 0 ? '\n' : '');
   if (content) appendFileSync(getOtlpFilePath(), content);
   send(res, 200, JSON.stringify({ success: true }));
 };

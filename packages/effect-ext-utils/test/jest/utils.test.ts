@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URI } from 'vscode-uri';
-import { code2ProtocolConverter, extractJson, stripAnsiInJson } from '../../src/utils';
+import { code2ProtocolConverter, extractJson } from '../../src/utils';
 
 const setPlatform = (platform: NodeJS.Platform) => Object.defineProperty(process, 'platform', { value: platform });
 
@@ -75,49 +75,6 @@ describe('utils tests', () => {
     it('Should throw error if JSON is invalid', () => {
       const invalidJson = '{invalid}';
       expect(() => extractJson(invalidJson)).toThrow("Expected property name or '}' in JSON at position 1");
-    });
-  });
-  describe('stripAnsiInJson', () => {
-    it('should return the original string if hasJson is false', () => {
-      const input = 'some string';
-      const result = stripAnsiInJson(input, false);
-      expect(result).toBe(input);
-    });
-
-    it('should return the stripped string if hasJson is true', () => {
-      const input = '\u001b[4msome string\u001b[0m';
-      const result = stripAnsiInJson(input, true);
-      expect(result).toBe('some string');
-    });
-
-    it('should return the original string even when it contains ANSI if hasJson is false', () => {
-      const input = '\u001b[4msome string\u001b[0m';
-      const result = stripAnsiInJson(input, false);
-      expect(result).toBe('\u001b[4msome string\u001b[0m');
-    });
-
-    it('should return the original string if hasJson is true and the string does not contain ANSI', () => {
-      const input = 'some string';
-      const result = stripAnsiInJson(input, true);
-      expect(result).toBe(input);
-    });
-
-    it('should return the original JSON string if hasJson is false', () => {
-      const input = '{"key": "value"}';
-      const result = stripAnsiInJson(input, false);
-      expect(result).toBe(input);
-    });
-
-    it('should return the stripped JSON string if hasJson is true', () => {
-      const input = '{"key": "\u001b[4mvalue\u001b[0m"}';
-      const result = stripAnsiInJson(input, true);
-      expect(result).toBe('{"key": "value"}');
-    });
-
-    it('should handle complex JSON with ANSI codes', () => {
-      const input = '{"key1": "\u001b[31mvalue1\u001b[0m", "key2": "\u001b[32mvalue2\u001b[0m"}';
-      const result = stripAnsiInJson(input, true);
-      expect(result).toBe('{"key1": "value1", "key2": "value2"}');
     });
   });
 });

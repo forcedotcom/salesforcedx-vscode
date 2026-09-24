@@ -860,6 +860,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-visualforce (inline to avoid no-duplicate-imports; W-23371049)
+    files: ['packages/salesforcedx-vscode-visualforce/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
@@ -1020,6 +1030,7 @@ export default [
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
       'local/package-json-no-default-true': 'error',
+      'local/package-json-no-services-dependency': 'error',
       'local/package-json-require-root-install': 'error',
       'local/package-json-view-refs': 'error',
       'local/package-json-salesforce-dep-versions': 'error'
@@ -1065,12 +1076,13 @@ export default [
     }
   },
   {
-    // Register eslint-plugin-playwright for the e2e specs but enable NO rules yet.
-    // Individual playwright/* rules are turned on (and their violations fixed) in
-    // separate follow-up WIs, one rule at a time.
+    // Register eslint-plugin-playwright for the e2e specs. Individual playwright/*
+    // rules are turned on (and their violations fixed) one rule at a time.
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
-    rules: {}
+    rules: {
+      'playwright/no-force-option': 'error'
+    }
   },
   eslintConfigPrettier
 ];

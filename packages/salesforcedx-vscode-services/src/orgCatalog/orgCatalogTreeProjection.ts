@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TypeInventory } from './orgCatalogInternalTypes';
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { TransmogrifierService } from '../core/transmogrifierService';
@@ -21,6 +25,15 @@ import {
   OrgMetadataReferenceService,
   type OrgMetadataReference
 } from './orgMetadataReference';
+
+const emptyCustomFieldInventory: TypeInventory = {
+  observedAt: '1970-01-01T00:00:00.000Z',
+  complete: false,
+  components: HashMap.empty(),
+  componentIdentityOrder: [],
+  folders: HashMap.empty(),
+  folderFullNameOrder: []
+};
 
 export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProjection>()('OrgCatalogTreeProjection', {
   accessors: true,
@@ -49,7 +62,13 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       const objectApiName = objectEntry.namespacePrefix
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
-      const fieldInventory = yield* inventories.loadType(orgId, 'CustomField');
+      const fieldInventory = yield* inventories
+        .loadType(orgId, 'CustomField')
+        .pipe(
+          Effect.catchTag('ListMetadataError', error =>
+            Effect.logWarning('Failed to list CustomField inventory', error).pipe(Effect.as(emptyCustomFieldInventory))
+          )
+        );
       yield* state.ensureHydrated(orgId);
       const acquireDescription = metadataDescribeService.describeCustomObject(objectApiName, orgId).pipe(
         Effect.flatMap(transmogrifier.toMinimalSObject),
@@ -64,7 +83,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         .getSObjectDescription(orgId, objectApiName)
         .pipe(Effect.flatMap(description => (description ? Effect.succeed(description) : acquireDescription)));
       const describedObject =
-        Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
+        fieldInventory.complete && Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
           ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
               Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
               Effect.flatMap(transmogrifier.toMinimalSObject),
@@ -82,19 +101,23 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
             )
           : cachedDescription;
       const parentNames = new Set([objectEntry.reference.fullName, objectApiName]);
-      const inventoryFields = [...fieldInventory.components.values()].filter(entry => {
+      const inventoryFields = HashMap.toValues(fieldInventory.components).filter(entry => {
         if (!isOrgMetadataComponentReference(entry.reference)) return false;
         const separator = entry.reference.fullName.lastIndexOf('.');
         return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
       });
       const describedFields = describedObject.fields.filter(field => field.custom);
-      const describedByName = new Map<string, (typeof describedFields)[number]>();
-      describedFields.forEach(field => {
-        describedByName.set(field.name, field);
-        if (objectEntry.namespacePrefix) {
-          describedByName.set(field.name.replace(`${objectEntry.namespacePrefix}__`, ''), field);
-        }
-      });
+      const describedByName = describedFields.reduce(
+        (byName, field) =>
+          objectEntry.namespacePrefix
+            ? pipe(
+                byName,
+                HashMap.set(field.name, field),
+                HashMap.set(field.name.replace(`${objectEntry.namespacePrefix}__`, ''), field)
+              )
+            : HashMap.set(byName, field.name, field),
+        HashMap.empty<string, (typeof describedFields)[number]>()
+      );
       const toFieldDetails = (field: (typeof describedFields)[number], name: string) => ({
         name,
         type: field.type,
@@ -109,7 +132,10 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         const unqualifiedName = objectEntry.namespacePrefix
           ? fieldName.replace(`${objectEntry.namespacePrefix}__`, '')
           : fieldName;
-        const described = describedByName.get(fieldName) ?? describedByName.get(unqualifiedName);
+        const described = HashMap.get(describedByName, fieldName).pipe(
+          Option.orElse(() => HashMap.get(describedByName, unqualifiedName)),
+          Option.getOrUndefined
+        );
         return {
           ...entry,
           name: unqualifiedName,
@@ -208,12 +234,13 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       const children = yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
         Effect.provideService(OrgMetadataReferenceService, references)
       );
-      if (children.length === 0 && reference.fullName && !inventory.folders.has(reference.fullName)) {
-        return yield* Effect.fail(
-          vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
-        );
-      }
-      return children;
+      return yield* Effect.succeed(children).pipe(
+        Effect.filterOrFail(
+          projectedChildren =>
+            projectedChildren.length > 0 || !reference.fullName || HashMap.has(inventory.folders, reference.fullName),
+          () => vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
+        )
+      );
     });
 
     const getChildrenCached = Effect.fn('OrgCatalogTreeProjection.getChildrenCached')(function* (
@@ -229,6 +256,6 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         : undefined;
     });
 
-    return { getChildren, getChildrenCached, getCustomFieldChildren } as const;
+    return { getChildren, getChildrenCached } as const;
   })
 }) {}

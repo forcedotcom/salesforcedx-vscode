@@ -22,19 +22,6 @@ import {
 import { settleIdbTransaction } from './idbTransaction';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
-const SALESFORCE_DOMAIN_SUFFIXES = [
-  '.my.salesforce.com',
-  '.my.salesforce.mil',
-  '.my-salesforce.com',
-  '.my.sfcrmproducts.cn'
-] as const;
-
-export const parseMyDomain = (instanceUrl: string): string => {
-  const { hostname } = new URL(instanceUrl);
-  const suffix = SALESFORCE_DOMAIN_SUFFIXES.find(s => hostname.endsWith(s));
-  return suffix ? hostname.slice(0, -suffix.length) : hostname;
-};
-
 const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
@@ -116,7 +103,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
             });
           })
         ),
-        Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
+        Effect.tap(entries => Effect.annotateCurrentSpan(vfsSpanAttributes(entries))),
         Effect.withSpan('loadState')
       );
 
@@ -214,6 +201,16 @@ const writeFileWithOrWithoutDir = Effect.fn('IndexedDBStorageService.writeFileWi
       })
   });
 });
+
+const vfsSpanAttributes = (entries: SerializedEntryWithPath[]) => {
+  const files = entries.filter(isSerializedFileWithPath);
+  return {
+    entryCount: entries.length,
+    fileCount: files.length,
+    directoryCount: entries.filter(isSerializedDirectoryWithPath).length,
+    fileByteCount: files.map(file => file.size).reduce((n, size) => n + size, 0)
+  };
+};
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {
   const stats = fs.statSync(path);

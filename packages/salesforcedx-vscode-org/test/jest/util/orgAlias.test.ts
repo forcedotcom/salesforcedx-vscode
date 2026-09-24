@@ -15,8 +15,7 @@ describe('isValidOrgAlias', () => {
     }
   );
 
-  // 'rm -rf' is intentionally NOT rejected here: hyphens are allowed, and it's alphanumerics + spaces +
-  // hyphens with no shell metachars, so it's a valid (if odd) alias — safe inside the double-quoted CLI arg.
+  // 'rm -rf' is not rejected here: hyphens are allowed, so it's a valid (if odd) alias.
   it.each(['my;org', 'a|b', 'x&y', 'cost$', '`x`', '"q"', '$(x)', '', ' leading'])('rejects %p', value => {
     expect(isValidOrgAlias(value)).toBe(false);
   });

@@ -6,6 +6,7 @@
  */
 
 import { StackFrame } from '@vscode/debugadapter';
+import { isNotNull } from 'effect/Predicate';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { HeapDumpResult, LaunchRequestArguments } from '../adapter/types';
@@ -45,12 +46,11 @@ import {
 import { extractHeapDumpIdsFromLog } from './extractHeapDumpIds';
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
-import { LogContextUtil } from './logContextUtil';
+import { getFileSizeFromContents, readLogFileFromContents, stripBrackets } from './logContextUtil';
 
 const HEAP_DUMP_MARKER = /\|HEAP_DUMP\|/;
 
 export class LogContext {
-  private readonly util = new LogContextUtil();
   private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
@@ -75,12 +75,8 @@ export class LogContext {
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
     this.session = session;
-    this.logLines = this.util.readLogFileFromContents(launchArgs.logFileContents);
-    this.logSize = this.util.getFileSizeFromContents(launchArgs.logFileContents);
-  }
-
-  public getUtil(): LogContextUtil {
-    return this.util;
+    this.logLines = readLogFileFromContents(launchArgs.logFileContents);
+    this.logSize = getFileSizeFromContents(launchArgs.logFileContents);
   }
 
   public getLaunchArgs(): LaunchRequestArguments {
@@ -107,11 +103,13 @@ export class LogContext {
     return (
       this.logLines &&
       this.logLines.length > 0 &&
-      this.logLines[0].match(
-        // Matches logs with APEX_CODE,FINEST and VISUALFORCE at FINER or FINEST level.
-        // The optional semicolons (;?) handle cases where Visualforce is the last category.
-        /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;?.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;?.*)/
-      ) !== null
+      isNotNull(
+        this.logLines[0].match(
+          // Matches logs with APEX_CODE,FINEST and VISUALFORCE at FINER or FINEST level.
+          // The optional semicolons (;?) handle cases where Visualforce is the last category.
+          /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;?.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;?.*)/
+        )
+      )
     );
   }
 
@@ -374,13 +372,13 @@ export class LogContext {
             : new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new StatementExecuteState(fields);
           }
           break;
         case EVENT_USER_DEBUG:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]\|.*\|.*/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new UserDebugState(fields);
           }
           break;

@@ -114,6 +114,7 @@ test('Debug Anonymous Apex (Code Builder): Debug code lens, Launch with Selected
 
     // Select the entire file contents — keep editor focus so editorHasSelection is true.
     const editorArea = page.locator('.editor-instance .view-lines').first();
+    // eslint-disable-next-line playwright/no-force-option -- a lingering hover/tooltip from the prior step can cover the editor; click through it to focus
     await editorArea.click({ force: true });
     await page.keyboard.press('Control+a');
 

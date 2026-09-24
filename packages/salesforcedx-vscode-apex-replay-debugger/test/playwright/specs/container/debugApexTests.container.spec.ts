@@ -49,10 +49,13 @@ const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> =>
   const item = page.getByRole('treeitem', { name });
   await item.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(async () => {
+    // eslint-disable-next-line playwright/no-force-option -- retry/force-click tolerates stale refs from the tree re-render (see docstring above)
     await item.click({ force: true });
+    // eslint-disable-next-line playwright/no-force-option -- retry/force-click tolerates stale refs from the tree re-render (see docstring above)
     await item.hover({ force: true });
     const debugButton = item.getByRole('button', { name: /^Debug Test/ });
     await debugButton.waitFor({ state: 'visible', timeout: 3000 });
+    // eslint-disable-next-line playwright/no-force-option -- retry/force-click tolerates stale refs from the tree re-render (see docstring above)
     await debugButton.click({ force: true });
   }).toPass({ timeout: 30_000 });
 };
@@ -70,6 +73,7 @@ const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const twistie = row.locator('.monaco-tl-twistie');
   const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
   if (!collapsed) return;
+  // eslint-disable-next-line playwright/no-force-option -- twistie glyph is a zero-size pseudo-element; the row intercepts pointer events at its coordinates
   await twistie.click({ force: true });
   await page.waitForTimeout(400);
 };

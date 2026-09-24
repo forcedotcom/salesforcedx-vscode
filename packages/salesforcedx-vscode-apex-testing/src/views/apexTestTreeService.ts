@@ -8,7 +8,7 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
-import * as Array from 'effect/Array';
+import * as Arr from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -35,7 +35,6 @@ import {
   isMethod,
   isSuite
 } from '../utils/testItemUtils';
-import { getMethodLocationsFromSymbols } from '../utils/testUtils';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
@@ -45,6 +44,7 @@ import {
   getNamespaceDisplayLabel,
   getPackageKeysOrdered,
   getPackageLabelAndId,
+  getToolingTestMethodPosition,
   isNonEmptyClassEntriesList,
   sortNamespaceKeys
 } from './orgTestItems';
@@ -467,7 +467,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
       const classIdToPackage = yield* PackageResolutionService.resolve(
-        Array.getSomes(apexClasses.map(cls => cls.id)),
+        Arr.getSomes(apexClasses.map(cls => cls.id)),
         buildClassIdToNamespace(apexClasses)
       ).pipe(Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) })));
 
@@ -573,7 +573,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           )
         )
       );
-      const recentResults = scanned.filter(Option.isSome).map(o => o.value);
+      const recentResults = Arr.getSomes(scanned);
 
       if (recentResults.length === 0) {
         return;
@@ -879,27 +879,11 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const uri = resolution?.uri ?? classItem.uri;
       const isOrgOnly = !resolution?.inWorkspace;
 
-      // Use LSP for positions (accurate after deploy), fall back to Tooling API positions
-      const methodPositions = new Map<string, { line: number; column: number }>();
-      if (localUri) {
-        const symbolLocations = yield* Effect.promise(() =>
-          getMethodLocationsFromSymbols(localUri, [...discoveredMethodNames])
-        );
-        symbolLocations.forEach((location, name) => {
-          methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
-        });
-      }
+      const methodPositions = new Map(
+        (discoveredClass.testMethods ?? []).map(method => [method.name, getToolingTestMethodPosition(method)] as const)
+      );
       const currentMethodItems = yield* Ref.get(methodItems);
       yield* Effect.sync(() => {
-        (discoveredClass.testMethods ?? []).forEach(method => {
-          if (!methodPositions.has(method.name)) {
-            methodPositions.set(method.name, {
-              line: Math.max(0, (method.line ?? 1) - 1),
-              column: Math.max(0, (method.column ?? 1) - 1)
-            });
-          }
-        });
-
         const existingMethodsByName = new Map<string, vscode.TestItem>(
           [...classItem.children].flatMap(([, child]) => (isMethod(child.id) ? [[child.label, child] as const] : []))
         );
@@ -925,14 +909,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           if (existing) {
             const existingPos = methodPositions.get(methodName);
             if (existingPos) {
-              const existingPosition = new vscode.Position(existingPos.line, existingPos.column);
-              existing.range = new vscode.Range(existingPosition, existingPosition);
+              existing.range = new vscode.Range(existingPos, existingPos);
             }
             return existing;
           }
           const methodId = createMethodId(fullClassName, methodName);
-          const pos = methodPositions.get(methodName) ?? { line: 0, column: 0 };
-          const position = new vscode.Position(pos.line, pos.column);
+          const position = methodPositions.get(methodName) ?? new vscode.Position(0, 0);
           const range = new vscode.Range(position, position);
           const methodItem = ctx.controller.createTestItem(methodId, methodName, uri);
           methodItem.range = range;

@@ -73,6 +73,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       - name: Try E2E tests
         id: try-run

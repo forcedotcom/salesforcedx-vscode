@@ -49,8 +49,8 @@ Services owns an `OrgMetadataCatalog` for the active org. The catalog:
   `sf-org-metadata:` URI;
 - fetches org-only source lazily when VS Code requests document content;
 - owns caching and invalidation for workspace and default-org changes; and
-- exposes query, read, refresh, and explicit download operations, but no general content
-  write API or consumer registration API.
+- exposes `getChildren`, batch `getEntries`, and batch `resolveComponents`, but no general
+  content write API or consumer registration API.
 
 Services registers `sf-org-metadata:` with a read-only
 `TextDocumentContentProvider`. It does not register a `FileSystemProvider` for org

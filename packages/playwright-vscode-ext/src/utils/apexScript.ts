@@ -7,8 +7,9 @@
 import type { Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { openFileByName } from './fileHelpers';
+import { focusMonacoInput } from './focusMonacoInput';
 import { waitForQuickInputFirstOption } from './helpers';
-import { QUICK_INPUT_WIDGET } from './locators';
+import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from './locators';
 
 /**
  * Creates a named .apex script file via the command palette and returns with the file open.
@@ -38,9 +39,9 @@ export const createAndOpenApexScript = async (
   await openFileByName(page, `${opts.name}.apex`);
 
   if (opts.content) {
-    // Populate the .apex file with content
-    const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.click({ force: true });
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${opts.name}.apex"]`);
+    await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    await focusMonacoInput(editor);
     await page.keyboard.press('Control+a');
     await page.keyboard.type(opts.content);
     await page.keyboard.press('Control+s');

@@ -148,6 +148,7 @@ test('Org-only Apex class (Code Builder): retrieve via code lens opens the on-di
     // Expand the class to reveal its leaf method, then double-click it — only a leaf with a range
     // triggers VS Code's "go to test" navigation, which opens the sf-org-metadata virtual doc (the
     // one place the retrieve code lens renders).
+    // eslint-disable-next-line playwright/no-force-option -- twistie glyph is a zero-size pseudo-element; the row intercepts pointer events at its coordinates
     await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
     const methodItem = findTestExplorerItem(page, methodName);
     await methodItem.waitFor({ state: 'visible', timeout: 60_000 });

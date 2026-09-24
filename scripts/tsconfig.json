@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "noEmit": true,
+    "isolatedModules": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,

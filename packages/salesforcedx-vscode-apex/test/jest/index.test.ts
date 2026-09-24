@@ -31,7 +31,7 @@ import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
-import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
+import { languageClientManager } from '../../src/languageUtils';
 import { ClientStatus } from '../../src/languageUtils/languageClientManager';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 
@@ -59,7 +59,7 @@ describe('index tests', () => {
     });
 
     it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
-      await indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
 
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
@@ -74,7 +74,7 @@ describe('index tests', () => {
     });
 
     it('should call setClientReady when enableSyncInitJobs is true', async () => {
-      await indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
 
       expect(setStatusSpy).not.toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).not.toHaveBeenCalled();
@@ -271,13 +271,13 @@ describe('index tests', () => {
 
       const unexpectedStart = new Error('unexpected Apex language server start');
 
-      const createLanguageClientSpy = jest
-        .spyOn(languageClientManager, 'createLanguageClient')
-        .mockRejectedValue(unexpectedStart);
+      const activateLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'activateLanguageClient')
+        .mockReturnValue(Effect.die(unexpectedStart));
 
       await runActivateEffect(false);
 
-      expect(createLanguageClientSpy).not.toHaveBeenCalled();
+      expect(activateLanguageClientSpy).not.toHaveBeenCalled();
     });
 
     it('should start the Apex language server in a Salesforce workspace', async () => {
@@ -294,13 +294,13 @@ describe('index tests', () => {
 
       const expectedStart = new Error('expected Apex language server start');
 
-      const createLanguageClientSpy = jest
-        .spyOn(languageClientManager, 'createLanguageClient')
-        .mockRejectedValue(expectedStart);
+      const activateLanguageClientSpy = jest
+        .spyOn(languageClientManager, 'activateLanguageClient')
+        .mockReturnValue(Effect.die(expectedStart));
 
       await expect(runActivateEffect(true)).rejects.toThrow('expected Apex language server start');
 
-      expect(createLanguageClientSpy).toHaveBeenCalledTimes(1);
+      expect(activateLanguageClientSpy).toHaveBeenCalledTimes(1);
     });
   });
 

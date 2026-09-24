@@ -56,6 +56,7 @@ test('LWC Generate Component (Code Builder): creates a new LWC via command palet
     // Step 1: component type (JavaScript/TypeScript). Click the option rather than Enter — 1.116+
     // occasionally drops Enter on quick picks (PR #7193).
     await waitForQuickInputFirstOption(page);
+    // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
     await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
 
     // Step 2: component name.
@@ -67,6 +68,7 @@ test('LWC Generate Component (Code Builder): creates a new LWC via command palet
 
     // Step 3: output directory (default force-app/main/default/lwc).
     await waitForQuickInputFirstOption(page);
+    // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
     await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
 
     // Step 4: the new component's .js opens.

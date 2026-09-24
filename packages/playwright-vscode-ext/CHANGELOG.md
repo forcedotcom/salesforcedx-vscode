@@ -1,3 +1,12 @@
+# [1.7.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.6.1...playwright-vscode-ext-v1.7.0) (2026-09-18)
+
+
+### Features
+
+* **codebuilder-e2e:** container spec scaffold + core spec parity - W-23898525 ([#8069](https://github.com/forcedotcom/salesforcedx-vscode/issues/8069)) ([d00425b](https://github.com/forcedotcom/salesforcedx-vscode/commit/d00425b5d2ee6d827d213ba8a59fb0f0fae2efec))
+
+
+
 ## [1.6.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.6.0...playwright-vscode-ext-v1.6.1) (2026-09-04)
 
 

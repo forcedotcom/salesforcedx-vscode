@@ -49,13 +49,6 @@ jest.mock('../../../src/testDiscovery/packageResolution', () => {
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 let mockClassNameToUri = new Map<string, URI>();
-jest.mock('../../../src/utils/testUtils', () => {
-  const actual = jest.requireActual('../../../src/utils/testUtils');
-  return {
-    ...actual,
-    getMethodLocationsFromSymbols: () => Promise.resolve(new Map())
-  };
-});
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
@@ -526,26 +519,45 @@ describe('ApexTestTreeService', () => {
       );
     });
 
-    it('diffs a changed class (invalidates results, replaces method children)', async () => {
+    it('diffs a changed class using discovery positions', async () => {
       withTooling();
       const { ctx, invalidateTestResults } = makeMutationContext();
-      // Seed an existing class item with one method; discovery returns a different method set.
+      // Seed an existing class with one retained and one removed method.
       const existingClass = richTestItem('class:MyClass', 'MyClass');
+      const retainedMethod = richTestItem('method:MyClass.retained', 'retained');
+      existingClass.children.add(retainedMethod);
       existingClass.children.add(richTestItem('method:MyClass.old', 'old'));
-      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('MyClass', ['fresh'])] }));
+      mockDiscoverTests.mockReturnValue(
+        Effect.succeed({
+          classes: [
+            {
+              id: Option.some('01p_MyClass'),
+              name: 'MyClass',
+              namespacePrefix: Option.none(),
+              testMethods: [
+                { name: 'fresh', line: 20, column: 6 },
+                { name: 'retained', line: 10, column: 3 }
+              ]
+            }
+          ]
+        })
+      );
 
       await run(
         Effect.gen(function* () {
           const classItems = yield* ApexTestTreeService.getClassItems();
           classItems.set('MyClass', existingClass);
           const methodItems = yield* ApexTestTreeService.getMethodItems();
+          methodItems.set('method:MyClass.retained', retainedMethod);
           methodItems.set('method:MyClass.old', richTestItem('method:MyClass.old', 'old'));
 
           yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['MyClass', 'changed']]), false);
 
-          // Stale 'old' method removed from the map, fresh method added.
           expect(methodItems.has('method:MyClass.old')).toBe(false);
           expect(methodItems.has('method:MyClass.fresh')).toBe(true);
+          expect(retainedMethod.range?.start).toEqual(new vscode.Position(9, 2));
+          expect(methodItems.get('method:MyClass.fresh')?.range?.start).toEqual(new vscode.Position(19, 5));
+          expect([...existingClass.children].map(([, item]) => item.label)).toEqual(['retained', 'fresh']);
         })
       );
       expect(invalidateTestResults).toHaveBeenCalledWith(existingClass);

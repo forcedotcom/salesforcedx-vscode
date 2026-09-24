@@ -29,8 +29,9 @@ import {
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
+import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
-import { basename } from 'node:path';
+import { URI, Utils } from 'vscode-uri';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
@@ -74,9 +75,10 @@ import {
   StreamingService
 } from '../core';
 import { extractJsonObject } from '../extractJsonObject';
-import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
+import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../vscodeDebuggerMessage';
+import { WorkspaceSettings } from '../workspaceSettings';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -169,7 +171,7 @@ export class ApexVariable extends Variable {
       return value.nameForMessages;
     }
 
-    if (value.value === undefined || value.value === null) {
+    if (value.value === undefined || isNull(value.value)) {
       // We want to explicitly display null for null values (no type info for strings).
       return 'null';
     }
@@ -949,7 +951,8 @@ export class ApexDebug extends LoggingDebugSession {
       if (this.hasStackFrames(stateRespObj)) {
         const serverFrames = stateRespObj.stateResponse.state.stack.stackFrame;
         for (let i = 0; i < serverFrames.length; i++) {
-          const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(serverFrames[i].typeRef);
+          const sourceUriString = this.myBreakpointService.getSourcePathFromTyperef(serverFrames[i].typeRef);
+          const sourceUri = sourceUriString ? URI.parse(sourceUriString) : undefined;
           const frameInfo = new ApexDebugStackFrameInfo(requestId, serverFrames[i].frameNumber);
           const frameId = this.stackFrameInfos.create(frameInfo);
           if (i === 0 && stateRespObj.stateResponse.state) {
@@ -971,7 +974,7 @@ export class ApexDebug extends LoggingDebugSession {
             new StackFrame(
               frameId,
               serverFrames[i].fullName,
-              sourcePath ? new Source(basename(sourcePath), this.convertDebuggerPathToClient(sourcePath)) : undefined,
+              sourceUri ? new Source(Utils.basename(sourceUri), sourceUri.fsPath) : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
             )
@@ -1403,12 +1406,10 @@ export class ApexDebug extends LoggingDebugSession {
       if (matches?.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
-        const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
-        if (possibleSourcePath) {
-          eventDescriptionSourceFile = new Source(
-            basename(possibleSourcePath),
-            this.convertDebuggerPathToClient(possibleSourcePath)
-          );
+        const possibleSourceUriString = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
+        if (possibleSourceUriString) {
+          const possibleSourceUri = URI.parse(possibleSourceUriString);
+          eventDescriptionSourceFile = new Source(Utils.basename(possibleSourceUri), possibleSourceUri.fsPath);
           eventDescriptionSourceLine = this.convertDebuggerLineToClient(possibleClassLine);
         }
       }

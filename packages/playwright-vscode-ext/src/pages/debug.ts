@@ -23,7 +23,7 @@ import { executeCommandWithCommandPalette } from './commands';
 export const activateEditorTab = async (page: Page, fileName: string, timeout = 15_000): Promise<void> => {
   const tab = page.getByRole('tab', { name: new RegExp(escapeRegExp(fileName)) }).first();
   await tab.waitFor({ state: 'visible', timeout });
-  await tab.click({ force: true });
+  await tab.click();
   await page
     .locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`)
     .first()
@@ -87,6 +87,7 @@ export const expandAllVariableScopes = async (variablesView: Locator, timeout = 
       attempted.add(label);
       await row
         .locator('.monaco-tl-twistie')
+        // eslint-disable-next-line playwright/no-force-option -- twistie glyph is a zero-size pseudo-element; the row intercepts pointer events at its coordinates
         .click({ force: true })
         .catch(() => {});
       clickedOne = true;
@@ -123,7 +124,7 @@ export const expandNestedVariable = async (
 ): Promise<Locator> => {
   const childRow = variablesView.locator('.monaco-list-row').filter({ hasText: childMatcher }).first();
   await expect(async () => {
-    await parentRow.click({ force: true });
+    await parentRow.click();
     await page.keyboard.press('ArrowRight');
     await expect(childRow).toBeVisible({ timeout: 5000 });
   }).toPass({ timeout });
@@ -135,7 +136,8 @@ export const continueDebugSession = async (page: Page, maxContinues = 2): Promis
   const toolbar = page.locator(DEBUG_TOOLBAR);
   for (let i = 0; i < maxContinues; i++) {
     await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
-    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
+    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5.
+    // eslint-disable-next-line playwright/no-force-option -- clicking through the covering hover is the point
     await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');

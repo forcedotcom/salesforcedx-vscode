@@ -73,6 +73,7 @@ test.describe('Aura Rename (Code Builder)', () => {
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'auraRename.container.03-menu-fired.png');
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
+      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
       await activeQuickInputTextField(page).fill(newName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.container.04-entered-new-name.png');
@@ -99,6 +100,7 @@ test.describe('Aura Rename (Code Builder)', () => {
       await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
+      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
       await activeQuickInputTextField(page).fill(finalName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.container.05-editor-menu-fired.png');

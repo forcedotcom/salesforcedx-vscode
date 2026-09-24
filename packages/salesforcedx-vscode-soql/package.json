@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.17.10",
+  "version": "67.25.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -331,7 +331,7 @@
       ]
     },
     "lint": {
-      "command": "../../node_modules/.bin/eslint --color .",
+      "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
         "check:circular-deps",

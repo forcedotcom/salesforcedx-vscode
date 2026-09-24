@@ -6,7 +6,8 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Redacted from 'effect/Redacted';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
 import {
@@ -29,15 +30,17 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 }) {}
 
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
-  isUndefined(value) || value.length === 0
-    ? Effect.fail(
+  Effect.succeed(value).pipe(
+    Effect.filterOrFail(
+      S.is(S.NonEmptyString),
+      () =>
         new SettingsError({
           cause: new Error(`Value for ${key} is empty`),
           key,
           message: `Value for ${key} is empty`
         })
-      )
-    : Effect.succeed(value);
+    )
+  );
 
 /** Static service for reading and writing VS Code settings */
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
@@ -116,7 +119,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
             message: `Failed to get access token: ${cause.message ?? String(cause)}`
           });
         }
-      }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)));
+      }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY)), Effect.map(Redacted.make));
     });
 
     const getApiVersion = Effect.fn('SettingsService.getApiVersion')(function* () {
@@ -221,7 +224,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       setValue,
       /** Get the Salesforce instance URL from settings */
       getInstanceUrl,
-      /** Get the Salesforce access token from settings */
+      /** Get the Salesforce access token from settings as a redacted value */
       getAccessToken,
       /** Get the Salesforce API version from settings. In the form of '67.0' */
       getApiVersion,
