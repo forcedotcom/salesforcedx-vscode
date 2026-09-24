@@ -119,7 +119,6 @@ export const waitForQuickInputFirstOption = async (
   await expect(async () => {
     // Prefer the text field: empty/stale `.quick-input-widget` shells can attach without `input.input`
     await expect(input).toBeVisible({ timeout: quickInputVisibleTimeout });
-    await expect(input).toBeEditable({ timeout: optionVisibleTimeout });
     if ((await firstAriaOption.count()) > 0) {
       await expect(firstAriaOption).toBeVisible({ timeout: optionVisibleTimeout });
       return;

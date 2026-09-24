@@ -62,10 +62,7 @@ test.describe('Aura Rename (Desktop Only)', () => {
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'auraRename.menu-fired.png');
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-      const input = activeQuickInputTextField(page);
-      await expect(input).toBeVisible({ timeout: 10_000 });
-      await expect(input).toBeEditable({ timeout: 10_000 });
-      await input.fill(newName);
+      await activeQuickInputTextField(page).fill(newName);
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.entered-new-name.png');
     });
@@ -91,10 +88,7 @@ test.describe('Aura Rename (Desktop Only)', () => {
       await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-      const input = activeQuickInputTextField(page);
-      await expect(input).toBeVisible({ timeout: 10_000 });
-      await expect(input).toBeEditable({ timeout: 10_000 });
-      await input.fill(finalName);
+      await activeQuickInputTextField(page).fill(finalName);
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.editor-menu-fired.png');
     });

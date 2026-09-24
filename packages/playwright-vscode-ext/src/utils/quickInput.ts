@@ -18,7 +18,8 @@ import { QUICK_INPUT_WIDGET } from './locators';
  * input keeps its value. Filter to visible widgets first so dismissed (`display: none`) ones are excluded; `.last()`
  * then disambiguates if more than one is genuinely open.
  *
- * Callers should wait for the target input or option to be visible and editable/actionable before interacting.
+ * `locator.fill()` and `locator.click()` already wait for visibility, and `fill()` also waits until the field is
+ * editable. `waitForActiveQuickInputTextField` is for `page.keyboard.type` and `locator.press()`, which do not.
  * The `:visible` filter re-evaluates until the live widget settles after its opening animation.
  */
 export const activeQuickInputWidget = (page: Page): Locator =>
@@ -27,7 +28,10 @@ export const activeQuickInputWidget = (page: Page): Locator =>
 /** Text field of the active quick input. */
 export const activeQuickInputTextField = (page: Page) => activeQuickInputWidget(page).locator('input.input');
 
-/** Wait for and return the active quick input text field. */
+/**
+ * Wait until the active quick input can take keyboard input.
+ * `fill()` and `click()` already perform this wait.
+ */
 export const waitForActiveQuickInputTextField = async (page: Page, timeout = 5000): Promise<Locator> => {
   const input = activeQuickInputTextField(page);
   await expect(input).toBeVisible({ timeout });

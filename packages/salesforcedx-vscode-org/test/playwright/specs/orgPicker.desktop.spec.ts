@@ -100,7 +100,6 @@ test('org picker: set default org, create scratch org, switch default org', asyn
       /.+/,
       { timeout: 30_000 }
     );
-    await expect(input).toBeEditable({ timeout: 30_000 });
     await input.fill(scratchAlias);
     await page.keyboard.press('Enter');
     // Prompt 3: expiration days input box, pre-filled with the DEFAULT_EXPIRATION_DAYS default.
@@ -108,7 +107,6 @@ test('org picker: set default org, create scratch org, switch default org', asyn
       input,
       'expiration-days input box should show the pre-filled default after the alias commits'
     ).toHaveValue(/.+/, { timeout: 30_000 });
-    await expect(input).toBeEditable({ timeout: 30_000 });
     await input.fill('1');
     await page.keyboard.press('Enter');
   });

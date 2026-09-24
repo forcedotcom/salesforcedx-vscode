@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
   executeCommandWithCommandPalette,
@@ -50,8 +50,6 @@ export const createLocalApexTestSuiteFile = async (
 ): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
   const input = page.locator(EXPLORER_INLINE_INPUT);
-  await input.waitFor({ state: 'visible', timeout: 10_000 });
-  await expect(input).toBeEditable({ timeout: 10_000 });
   await input.fill(`main/default/testSuites/${testSuiteName}.testSuite-meta.xml`);
   await page.keyboard.press('Enter');
 

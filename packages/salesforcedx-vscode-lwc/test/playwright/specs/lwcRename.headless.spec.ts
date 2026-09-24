@@ -70,10 +70,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await saveScreenshot(page, 'rename.context-menu-fired.png');
 
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-    const input = activeQuickInputTextField(page);
-    await expect(input).toBeVisible({ timeout: 10_000 });
-    await expect(input).toBeEditable({ timeout: 10_000 });
-    await input.fill(newName);
+    await activeQuickInputTextField(page).fill(newName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.entered-new-name.png');
   });
@@ -99,10 +96,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
   await test.step('rename again via editor context menu', async () => {
     await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
-    const input = activeQuickInputTextField(page);
-    await expect(input).toBeVisible({ timeout: 10_000 });
-    await expect(input).toBeEditable({ timeout: 10_000 });
-    await input.fill(finalName);
+    await activeQuickInputTextField(page).fill(finalName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.editor-menu-fired.png');
   });

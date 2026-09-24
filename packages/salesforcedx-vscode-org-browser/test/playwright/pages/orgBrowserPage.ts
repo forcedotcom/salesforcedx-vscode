@@ -112,8 +112,6 @@ export class OrgBrowserPage {
         await filterButton.click();
       }
 
-      await expect(input).toBeVisible({ timeout: 5000 });
-      await expect(input).toBeEditable({ timeout: 5000 });
       await input.fill(value);
       await expect(input).toHaveValue(value, { timeout: 5000 });
     }).toPass({ timeout: 30_000, intervals: [250, 500, 1000] });

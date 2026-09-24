@@ -39,8 +39,6 @@ const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   // `page.keyboard.type` would race the tree→input focus handoff and drop/truncate keystrokes, so
   // no `.page` editor opens (30s waitFor timeout). fill() also avoids pressSequentially CI timeouts.
   const input = page.locator(EXPLORER_INLINE_INPUT);
-  await input.waitFor({ state: 'visible', timeout: 10_000 });
-  await expect(input).toBeEditable({ timeout: 10_000 });
   await input.fill(`${name}.page`);
   await page.keyboard.press('Enter');
 

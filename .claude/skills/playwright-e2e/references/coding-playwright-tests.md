@@ -16,7 +16,9 @@ One test per file. Many steps allowed.
 
 - Never `waitForTimeout` - wait for specific page elements
 - `page.waitForSelector()` - elements appear
-- `expect(locator).toBeVisible()` - visibility
+- `expect(locator).toBeVisible()` - visibility (success signals / readiness that is not a `fill`/`click` target)
+- `locator.fill()` / `locator.click()` already wait visible (+ editable for fill) — skip pre-`toBeVisible`/`toBeEditable`
+- `waitForActiveQuickInputTextField` — only before `page.keyboard.type` / `locator.press` (e.g. `openFileByName`); not before `fill`/`click`
 - `page.waitForLoadState()` - page state changes
 - Don't use `page.waitForResponse()` - doesn't work in desktop/electron
 - Don't use `networkidle` - not available on desktop/electron

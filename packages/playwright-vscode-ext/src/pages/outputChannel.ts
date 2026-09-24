@@ -9,7 +9,7 @@ import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
-import { activeQuickInputWidget, waitForActiveQuickInputTextField } from '../utils/quickInput';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 import { openCommandPalette } from './commands';
 import { clearOutput } from './nativeCommands';
 
@@ -174,7 +174,7 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   // Use F1 command palette - most reliable across all platforms per coding rules
   await openCommandPalette(page);
   const widget = activeQuickInputWidget(page);
-  const input = await waitForActiveQuickInputTextField(page);
+  const input = activeQuickInputTextField(page);
   await input.click({ timeout: 5000 });
   await input.fill('>Output: Focus on Output View');
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });

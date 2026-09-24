@@ -14,7 +14,7 @@ import {
   waitForQuickInputFirstOption
 } from '../utils/helpers';
 import { WORKBENCH } from '../utils/locators';
-import { activeQuickInputWidget, waitForActiveQuickInputTextField } from '../utils/quickInput';
+import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 
 export type OpenCommandPaletteOptions = {
   /**
@@ -64,13 +64,12 @@ export const openCommandPalette = async (page: Page, options?: OpenCommandPalett
     // Press F1 to open command palette
     await page.keyboard.press('F1');
 
-    // VS Code 1.116+: `.quick-input-widget` and `input.input` often fail `toBeVisible()` while still usable
-    const input = await waitForActiveQuickInputTextField(page, 15_000);
+    const input = activeQuickInputTextField(page);
     // Clicking the palette input is fine for focus; it does not alter the underlying editor
     // selection (the palette is a separate widget). Skip it when preserving selection out of
     // caution — on web, any mouse event can trigger blur-driven selection resets.
     if (!options?.preserveSelection) {
-      await input.click({ timeout: 5000 });
+      await input.click({ timeout: 15_000 });
     }
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   }).toPass({ timeout: 30_000 });
@@ -83,7 +82,7 @@ const executeCommand = async (
   paletteOptions?: OpenCommandPaletteOptions
 ): Promise<void> => {
   const widget = activeQuickInputWidget(page);
-  const input = await waitForActiveQuickInputTextField(page);
+  const input = activeQuickInputTextField(page);
   // Skip the extra palette-input click when preserving selection. On web, any mouse event can
   // trigger a blur on the monaco editor that collapses/clears its selection, which re-evaluates
   // `editorHasSelection` to false and drops the selection-guarded command from the palette list.
@@ -224,7 +223,7 @@ const retryCommandPaletteSearch = async (
     await dismissAllQuickInputWidgets(page);
     await openCommandPalette(page);
 
-    const input = await waitForActiveQuickInputTextField(page);
+    const input = activeQuickInputTextField(page);
     await input.click({ timeout: 5000 });
     await input.fill(`>${commandText}`);
 
