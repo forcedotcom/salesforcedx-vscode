@@ -197,9 +197,10 @@ export const selectFirstQuickInputOption = async (
 /**
  * Select a quick-pick option by its accessible name in the active quick input widget.
  *
- * Clicking the option (rather than pressing Enter) is more reliable across platforms: on
- * desktop-electron the Enter keystroke sometimes does not register on the active quick pick,
- * leaving the picker open and the command never executed.
+ * Commits via DOM `evaluate` click, same as {@link selectFirstQuickInputOption}. A Playwright
+ * pointer click waits for hit-testing; the quick-pick hover (`div.context-view`) for the row
+ * above overlaps the target and intercepts it (Apex "All Tests" under "All Local Tests").
+ * Enter is also unreliable: on desktop-electron the keystroke sometimes does not register.
  *
  * @param name Accessible name (string or RegExp) of the option to click, e.g. `/^REST API/`.
  * @param options.waitForVisible If true (default), waits for the quick input's first option before clicking.
@@ -226,10 +227,14 @@ export const selectQuickInputOption = async (
     });
   }
 
-  const option = activeQuickInputWidget(page).getByRole('option', { name });
-  await expect(option.first()).toBeVisible({ timeout: options?.timeout ?? 10_000 });
-  await expect(option.first()).toBeEnabled({ timeout: options?.timeout ?? 10_000 });
-  await option.first().click({ timeout: options?.timeout ?? 10_000 });
+  const option = activeQuickInputWidget(page).getByRole('option', { name }).first();
+  const timeout = options?.timeout ?? 10_000;
+  await expect(option).toBeVisible({ timeout });
+  await expect(option).toBeEnabled({ timeout });
+  await option.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
 };
 
 /**
