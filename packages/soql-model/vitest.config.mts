@@ -15,7 +15,6 @@ export default defineConfig({
       deps: {
         external: [/\/soql-common\/src\/soql-parser\.lib\//, /\/node_modules\/antlr4ts\//]
       }
-    },
-    passWithNoTests: true
+    }
   }
 });

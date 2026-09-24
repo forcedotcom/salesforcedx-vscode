@@ -11,7 +11,6 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    name: 'salesforcedx-vscode-apex-testing',
     mockReset: false
   }
 });

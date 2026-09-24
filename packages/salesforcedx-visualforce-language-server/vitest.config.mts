@@ -10,7 +10,6 @@ import baseConfig from '../../config/vitest.base.config.mts';
 export default defineConfig({
   ...baseConfig,
   test: {
-    ...baseConfig.test,
-    resolveSnapshotPath: undefined
+    ...baseConfig.test
   }
 });
