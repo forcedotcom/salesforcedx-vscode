@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { focusMonacoInput } from '../utils/focusMonacoInput';
 import { EDITOR } from '../utils/locators';
 
 /** The Testing view container. */
@@ -17,12 +18,12 @@ export const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
 /**
  * Types `text` into the Test Explorer filter box, replacing whatever is there.
  *
- * The filter is a Monaco editor (`data-uri="testing:filter"`) backed by a hidden `<textarea>`
- * when that editor is present; otherwise a plain input. Focusing the `.monaco-editor` wrapper
- * does not move DOM focus to the textarea, so keystrokes land in whichever editor was already
- * focused (often the Output panel) and the filter stays empty. Focus the textarea, then drive
- * keys via `page.keyboard`. On macOS Ctrl+A is bound to "cursor home" in Monaco, not select-all,
- * so clear with Home → Shift+End → Delete.
+ * The filter is a Monaco editor (`data-uri="testing:filter"`) when that editor is present;
+ * otherwise a plain input. Focusing the `.monaco-editor` wrapper does not move DOM focus to
+ * the Monaco input, so keystrokes land in whichever editor was already focused (often the
+ * Output panel) and the filter stays empty. Focus it, then drive keys via `page.keyboard`.
+ * On macOS Ctrl+A is bound to "cursor home" in Monaco, not select-all, so clear with
+ * Home → Shift+End → Delete.
  *
  * Pass an empty string to clear the filter (or use {@link clearFilter}).
  */
@@ -30,12 +31,7 @@ export const focusAndTypeInFilter = async (page: Page, text: string): Promise<vo
   const monacoFilter = page.locator(`${EDITOR}[data-uri="testing:filter"]`);
   const inputFilter = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
   if (await monacoFilter.isVisible().catch(() => false)) {
-    const textarea = monacoFilter.locator('textarea.inputarea');
-    // DOM focus, not locator.focus(): the textarea is not pointer-actionable (view-lines sit on top).
-    await textarea.evaluate(el => {
-      el.focus();
-    });
-    await expect(textarea).toBeFocused();
+    await focusMonacoInput(monacoFilter);
     await page.keyboard.press('Home');
     await page.keyboard.press('Shift+End');
     await page.keyboard.press('Delete');

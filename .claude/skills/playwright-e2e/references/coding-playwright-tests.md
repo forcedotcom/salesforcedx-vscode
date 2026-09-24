@@ -40,8 +40,8 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 - **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; works on both web (when workspace is mounted) and desktop, handles compact folders transparently and scrolls files into view before interaction.
 - `Control+Home`, `Control+s` - navigate and save
-- `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
-- Monaco editor selectors - interact with editor
+- `page.keyboard.type()` — `disableMonacoAutoClosing(page)` first (auto-bracket/quote duplication). Focus via `focusMonacoInput` ([editor selection](#commands-with-editor-selection))
+- Monaco editor selectors — interact with editor
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
@@ -132,19 +132,23 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 
 ## Commands with Editor Selection
 
-Selection-guarded commands (e.g., debug/execute from selection) require editor focus + selection. Preserve both with `preserveSelection: true`:
+Selection-guarded commands (debug/execute from selection) need the Monaco input focused and a selection. Keep both with `preserveSelection: true`.
+
+`focusMonacoInput` DOM-focuses `.native-edit-context` or `textarea.inputarea`. Focusing `.view-lines` or `.monaco-editor` does not; keys hit whichever editor already had focus.
 
 ```typescript
-// Setup selection first (ensure editor has focus)
+import { EDITOR_WITH_URI, focusMonacoInput } from '@salesforce/playwright-vscode-ext';
+
+const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="MyFile.apex"]`);
+await focusMonacoInput(editor);
 await page.keyboard.press('Control+a');
 
-// Open palette — preserve selection
 await executeCommandWithCommandPalette(page, commandTitle, undefined, {
   preserveSelection: true
 });
 ```
 
-Without it: palette open blurs editor, clears selection, hides selection-guarded commands.
+Without `preserveSelection`: palette open blurs the editor, clears the selection, hides selection-guarded commands.
 
 ## Clicking Code Lenses
 

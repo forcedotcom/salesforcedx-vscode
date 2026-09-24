@@ -14,6 +14,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusMonacoInput,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   removeAllDebugLevels,
@@ -186,8 +187,8 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
 
   await test.step('continue and end debug session', async () => {
     const toolbar = page.locator('.debug-toolbar');
-    // Focus editor area to dismiss search-bar hover that can cover debug toolbar and block F5
-    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().focus();
+    // Focus the editor input so a search-bar hover cannot take F5
+    await focusMonacoInput(page.locator(`${WORKBENCH} .editor-instance .monaco-editor`).first());
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
     await expect(toolbar).not.toBeVisible({ timeout: 45_000 });

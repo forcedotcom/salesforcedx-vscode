@@ -25,6 +25,7 @@ import {
 } from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
+import { focusMonacoInput } from './focusMonacoInput';
 import {
   closeSettingsTab,
   closeWelcomeTabs,
@@ -128,17 +129,11 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await ensureSecondarySideBarHidden(page);
     await disableMonacoAutoClosing(page);
 
-    // Click activates the editor group. Focus the hidden textarea so Select All targets this
-    // file, not another Monaco editor (Output, Test Explorer filter).
+    // Click activates this editor group so Select All hits this file, not Output or the Test Explorer filter.
+    // Do not focus again after Select All — a second focus collapses the selection.
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
-    const textarea = editor.locator('textarea.inputarea');
-    // DOM focus, not locator.focus(): the textarea is not pointer-actionable (view-lines sit on top).
-    // Do not focus again after Select All — a second focus collapses the selection.
-    await textarea.evaluate(el => {
-      el.focus();
-    });
-    await expect(textarea).toBeFocused();
+    await focusMonacoInput(editor);
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
     await selectAll(page);

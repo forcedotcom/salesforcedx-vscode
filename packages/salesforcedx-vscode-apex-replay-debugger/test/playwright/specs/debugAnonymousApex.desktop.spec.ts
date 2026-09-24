@@ -7,9 +7,11 @@
 import {
   clickCodeLens,
   createAndOpenApexScript,
+  EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusMonacoInput,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -66,8 +68,8 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
     await openFileByName(page, `${ANON_APEX_SCRIPT_NAME}.apex`);
 
     // Select the entire file contents — keep editor focus so editorHasSelection is true
-    const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.focus();
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${ANON_APEX_SCRIPT_NAME}.apex"]`);
+    await focusMonacoInput(editor);
     await page.keyboard.press('Control+a');
 
     await executeCommandWithCommandPalette(page, packageNls.apex_debug_document_text as string, undefined, {
