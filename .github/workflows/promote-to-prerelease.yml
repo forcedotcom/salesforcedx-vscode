@@ -98,16 +98,83 @@ jobs:
           npm run compile
           npm run test
 
-  # Step 3: Generate this week's changelog delta (commits since last week's promoted
-  # prerelease), bake it into the pack's prerelease VSIX asset so the Marketplace/Open VSX
-  # Changelog tab shows only this week's changes, and commit the same delta to develop so
-  # root CHANGELOG.md keeps the full cumulative history. Must complete before `promote`,
-  # since the reusable promote workflow re-downloads this exact release asset.
-  changelog:
+  # Step 3a: Find this week's changelog range -- (fromRef, toRef] -- so the polished body
+  # (Step 3b) and the raw commit facts it reads from cover exactly the same commits.
+  # Runs even in dry-run so changelog-body below can still be previewed in the Actions log --
+  # only Step 3c (the actual file write/commit/VSIX injection) is skipped for dry-run.
+  compute-changelog-range:
     needs: [find-nightly, gate-check]
-    # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate,
-    # so gate-check's success must be checked explicitly here too -- same as `promote` below.
-    if: always() && needs.gate-check.result == 'success' && inputs.dry-run != true
+    if: always() && needs.gate-check.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      NIGHTLY_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
+    outputs:
+      from-ref: ${{ steps.range.outputs.from-ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine previous prerelease baseline
+        # Newest marketplace-prerelease-* tracking tag (set by last week's promote run) if
+        # present, else the last stable release tag -- the correct fallback before any
+        # tracking tag exists, since it covers everything since what actually shipped.
+        #
+        # Emits an empty from-ref (rather than passing an identical from/to pair downstream)
+        # when this baseline is the exact commit being promoted -- e.g. a manual re-run or an
+        # isHotfix releaseTag that happens to equal the last tracking tag. changelogBody.mts
+        # treats identical refs as a hard error, not "nothing new"; skipping changelog-body
+        # here keeps that a graceful no-op instead of a spurious failed job.
+        id: range
+        run: |
+          FROM_REF=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
+          if [ -z "$FROM_REF" ]; then
+            FROM_REF=$(git tag -l 'v[0-9]*' --sort=-version:refname | grep -v -- '-nightly\.' | head -1)
+          fi
+          if [ -z "$FROM_REF" ]; then
+            echo "::error::Could not auto-detect a previous prerelease baseline."
+            exit 1
+          fi
+
+          FROM_SHA=$(git rev-parse --verify "${FROM_REF}^{commit}")
+          if [ "$FROM_SHA" = "$NIGHTLY_SHA" ]; then
+            echo "Baseline $FROM_REF is the exact commit being promoted -- nothing new for the changelog."
+            echo "from-ref=" >> "$GITHUB_OUTPUT"
+          else
+            echo "from-ref=$FROM_REF" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Step 3b: Ask the Cursor-backed changelog body action (.github/workflows/changelog-body.yml)
+  # to turn this week's commits into a polished, customer-facing markdown body -- no GUS refs,
+  # package dedupe and Under-the-Hood consolidation already applied -- before it ever reaches
+  # develop or a marketplace VSIX.
+  changelog-body:
+    needs: [find-nightly, compute-changelog-range]
+    # Empty from-ref means compute-changelog-range found nothing new to compare (see its
+    # "Determine previous prerelease baseline" step) -- skip rather than calling
+    # changelogBody.mts with identical from/to refs, which it treats as a hard error.
+    if: always() && needs.compute-changelog-range.result == 'success' && needs.compute-changelog-range.outputs.from-ref != ''
+    uses: ./.github/workflows/changelog-body.yml
+    with:
+      from: ${{ needs.compute-changelog-range.outputs.from-ref }}
+      to: ${{ needs.find-nightly.outputs.commit-sha }}
+    secrets: inherit
+
+  # Step 3c: Write the polished body under this week's version header, bake it into the pack's
+  # prerelease VSIX asset so the Marketplace/Open VSX Changelog tab shows only this week's
+  # changes, and commit the same delta to develop so root CHANGELOG.md keeps the full cumulative
+  # history. Must complete before `promote`, since the reusable promote workflow re-downloads
+  # this exact release asset.
+  changelog:
+    needs: [find-nightly, gate-check, changelog-body]
+    # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate, so
+    # gate-check's success must be checked explicitly here too -- same as `promote` below.
+    # changelog-body itself still runs in dry-run (so its polished body can be previewed in
+    # the Actions log), but this job's own `inputs.dry-run != true` skips the actual file
+    # write/commit/VSIX injection. changelog-body is allowed through when skipped too, since
+    # that happens whenever gate-check/compute-changelog-range failed upstream.
+    if: always() && needs.gate-check.result == 'success' && (needs.changelog-body.result == 'success' || needs.changelog-body.result == 'skipped') && inputs.dry-run != true
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
@@ -130,8 +197,6 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
       - name: Determine prerelease version
         id: version
         run: |
@@ -142,11 +207,26 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Generate this week's changelog delta
+      - name: Write this week's polished changelog delta
+        # Header format (bare "X.Y.Z - Month D, YYYY") must match what
+        # scripts/prepend-release-changelog.js expects to extract a version from.
         id: delta
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
-        run: npm run changelog:delta -- "$PRERELEASE_VERSION" "$NIGHTLY_SHA"
+          BODY: ${{ needs.changelog-body.outputs.body }}
+        run: |
+          if [ -z "$BODY" ]; then
+            echo "No qualifying commits in this week's range. Skipping changelog generation."
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          else
+            RELEASE_DATE=$(date -d '+2 days' '+%B %-d, %Y')
+            {
+              echo "# $PRERELEASE_VERSION - $RELEASE_DATE"
+              echo
+              echo "$BODY"
+            } > packages/salesforcedx-vscode/CHANGELOG.md
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Inject changelog into the prerelease VSIX
         # Skip when nothing new was generated (e.g. only chore/ci commits this week) --

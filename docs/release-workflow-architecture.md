@@ -37,6 +37,11 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
 │  │ ✓ Finds most recent nightly (min-tag-age: 0 days)            │
 │  │ ✓ Gate-checks: nightly build/release success                 │
 │  │   (not unit-tests; those ran on PR before merge to develop)  │
+│  │ ✓ Computes changelog range (prev prerelease tag or latest v*) │
+│  │ ✓ Generates polished changelog via AI (removes GUS refs,     │
+│  │   rewrites sentences, dedupes packages, consolidates Under-  │
+│  │   the-Hood) using .github/workflows/changelog-body.yml       │
+│  │ ✓ Writes polished changelog to CHANGELOG.md + root           │
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
