@@ -6,13 +6,13 @@
  *
  */
 @import 'querybuilder/cssCommon';
-.all-rows-label {
+.all-rows {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.all-rows-label input[type='checkbox'] {
+.all-rows__checkbox {
   width: 1rem;
   height: 1rem;
   margin: 0;
