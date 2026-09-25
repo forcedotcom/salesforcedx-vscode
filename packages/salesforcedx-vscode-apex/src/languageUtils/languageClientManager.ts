@@ -428,7 +428,7 @@ export class LanguageClientManager {
   private reportLanguageClientSetupError(
     message: string,
     languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Effect.Effect<void> {
+  ) {
     return Effect.sync(() => {
       let errorMessage = message;
       if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {

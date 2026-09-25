@@ -883,20 +883,17 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
       'local/no-successive-annotate-current-span': 'error'
-    }
-  },
-  {
-    // class-methods-use-this only (W-24183843). Not the soql block: that block also sets
-    // local/no-explicit-effect-return-type and related Effect rules.
-    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
-    rules: {
-      'class-methods-use-this': 'error'
     }
   },
   {
