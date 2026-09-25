@@ -12,8 +12,8 @@ import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
 jest.mock('vscode');
-const mockGetRestartBehavior = jest.fn(
-  (_section: string, _key: string, defaultValue?: unknown): Effect.Effect<unknown> => Effect.succeed(defaultValue)
+const mockGetRestartBehavior = jest.fn((_section: string, _key: string, defaultValue?: unknown) =>
+  Effect.succeed(defaultValue)
 );
 jest.mock('../../../src/services/runtime', () => {
   const effect = require('effect/Effect') as typeof import('effect/Effect');
