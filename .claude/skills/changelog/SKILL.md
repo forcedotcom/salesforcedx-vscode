@@ -149,7 +149,7 @@ Use these `chore:` subjects for polish commits on `develop`:
 
 ### Compute → Polish (AI) → Commit → Review (human)
 
-1. **compute-changelog-range** (promote-to-prerelease.yml): Mirrors `detectPreviousPrereleaseRef()` from prior `scripts/generate-release-delta-changelog.ts`. Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists).
+1. **compute-changelog-range** (promote-to-prerelease.yml): Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists). Empty `fromRef` (identical to this week's nightly commit — a manual re-run or hotfix) skips changelog-body instead of feeding it an identical range.
 2. **changelog-body** (reusable workflow `.github/workflows/changelog-body.yml`): Calls Cursor-backed AI (guided by `.cursor/skills/changelog-judgment/SKILL.md`) to produce polished, customer-facing markdown body from commits in range `(fromRef, toRef]`. Already removes GUS refs, rewrites sentences ("We added/fixed/improved..."), dedupes multi-package PRs, consolidates Under-the-Hood. Returns `body` output.
 3. **changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Immediately runs `scripts/prepend-release-changelog.js` to copy same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed directly to `develop`.
 4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** because prepend already ran in step 3, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit.
@@ -161,8 +161,8 @@ Use these `chore:` subjects for polish commits on `develop`:
 ### Commit details
 
 - Commit: `chore: changelog for prerelease vXX.YY.ZZ [skip ci]`
-- Range: previous week's promoted prerelease to nightly SHA (disjoint by construction — nothing to dedupe against)
-- Skipped if no releasable commits (all `chore`/`ci` etc.)
+- Range: previous week's promoted prerelease to nightly SHA (disjoint by construction — changelog-body doesn't read the existing file, so there's nothing to dedupe against)
+- Skipped if changelog-body returns an empty body (no `feat`/`fix`/`perf` commits in range)
 
 ### Format
 
@@ -180,10 +180,16 @@ Use these `chore:` subjects for polish commits on `develop`:
 #### <package-name>
 
 - <message> ([PR #<num>](...))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #<num>](...), [PR #<num>](...))
 ```
 
-- Top header: `# <version> - <release date>`; date is `+2 days` from branch-cut (Mon cut → Wed release)
-- Type sections: only `## Added` (from `feat`) and `## Fixed` (from `fix`). Ignored commit types: `chore`, `style`, `refactor`, `test`, `build`, `ci`, `revert`
+- Top header: `# <version> - <release date>`; date is `+2 days` from branch-cut (Mon cut → Wed release), written by the `changelog` job, not changelog-body
+- Sections, in order: `Added`, `Fixed`, `Changed`, `Under the Hood`. Section is an AI judgment call per `.cursor/skills/changelog-judgment/SKILL.md` (`Added` = new capability, `Fixed` = bugfix, `Changed` = behavior change, `Under the Hood` = invisible to users), not a fixed commit-type mapping — see `scripts/changelogBody/changelogBody.mts`
+- Kept commit types: `feat`, `fix`, `perf` (everything else, e.g. `chore`/`refactor`/`test`/`ci`, is dropped before the AI step ever sees it)
+- `Under the Hood` entries are consolidated into one bullet with all their PR links, no package sub-header
 - Package sections: `#### <package-name>`, alphabetical within a type
 - Bullet entries: `- <message> ([PR #N](url))`; PR url format `https://github.com/forcedotcom/salesforcedx-vscode/pull/<num>`
 - Multiple PRs for one entry: comma-separate `([PR #A](...), [PR #B](...), [ISSUE #C](...), [DISCUSSION #D](...))`
@@ -192,13 +198,15 @@ Use these `chore:` subjects for polish commits on `develop`:
 ### Package filtering (auto)
 
 - If `salesforcedx-vscode-core` is touched, all other touched packages (except `docs`) are dropped for that commit
-- Only packages starting with `salesforce` or `docs` count; `/images/` and `/test/` paths ignored
+- If `salesforcedx-vscode-services` is touched alongside exactly one other (non-`docs`) package, `salesforcedx-vscode-services` is dropped and the other package keeps the entry
+- Only packages starting with `salesforce` or `docs` count; path segments named `images` or `test` are ignored when detecting touched packages
+- A commit whose surviving paths touch no qualifying package has an empty package set and goes to `Under the Hood`
 
 ### Commit parsing (auto)
 
-- Requires conventional `type(scope): message` + trailing `(#PR)` to appear in changelog
-- Strips `[W-XXXXXXXX]` GUS refs; uppercases first char
-- The legacy `npm run changelog` generator skips entries whose PR# already exists in the file (rerun-safe); `npm run changelog:delta` does not, since its range is disjoint by construction (see Generation rules above)
+- Requires conventional `type(scope): message` + trailing `(#PR)` to appear in the commit subject
+- Strips `[W-XXXXXXXX]` GUS refs from the subject before it reaches the AI step
+- No dedupe against the existing changelog file — the range is disjoint by construction (see Commit details above)
 
 ### Dedupe / merge rules (post-generation)
 
