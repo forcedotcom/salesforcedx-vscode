@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, type WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError, isString, isUndefined } from 'effect/Predicate';

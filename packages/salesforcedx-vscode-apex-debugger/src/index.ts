@@ -20,9 +20,9 @@ import {
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_EVENT,
-  SetExceptionBreakpointsArguments,
+  type SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
-  VscodeDebuggerMessage,
+  type VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import type { DebugProtocol } from '@vscode/debugprotocol';
