@@ -122,7 +122,7 @@ export default [
     }
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -1002,7 +1002,7 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts'],
     rules: {
       'no-restricted-imports': 'off'
     }
