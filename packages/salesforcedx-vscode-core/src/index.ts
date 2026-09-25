@@ -11,7 +11,6 @@ import {
   getServicesApi
 } from '@salesforce/effect-ext-utils';
 import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
@@ -50,7 +49,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     telemetryService,
     workspaceContextUtils,
     services: {
-      RegistryAccess,
       ChannelService,
       TelemetryService,
       WorkspaceContext,
@@ -211,7 +209,6 @@ export type SalesforceVSCodeCoreApi = {
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
-    RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
     TelemetryService: typeof TelemetryService;
     WorkspaceContext: typeof WorkspaceContext;
