@@ -28,25 +28,26 @@ describe('Query Namespaces', () => {
   });
 
   it('should query for installed packages and namespaced orgs', async () => {
-    const queryStub = $$.SANDBOX.stub(mockConnection, 'query')
-      //@ts-ignore
-      .resolves({ records: [{ NamespacePrefix: 'myNamespace' }] });
+    const queryStub = $$.SANDBOX.stub().resolves({
+      totalSize: 1,
+      records: [{ NamespacePrefix: 'myNamespace' }]
+    });
+    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
     await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);
   });
 
   it('should output set of namespaces from both queries', async () => {
-    const queryStub = $$.SANDBOX.stub(mockConnection, 'query');
-    queryStub
-      .onFirstCall()
-      //@ts-ignore
-      .resolves({
-        records: [{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]
-      });
-    //@ts-ignore
+    const queryStub = $$.SANDBOX.stub();
+    queryStub.onFirstCall().resolves({
+      totalSize: 2,
+      records: [{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]
+    });
     queryStub.onSecondCall().resolves({
+      totalSize: 1,
       records: [{ NamespacePrefix: 'otherNamespace' }]
     });
+    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
 
     const namespaces = await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);

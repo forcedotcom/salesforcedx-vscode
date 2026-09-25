@@ -5,12 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
+import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { nls } from '../i18n';
 import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
 import { escapeXml } from './authUtil';
 import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { elapsedTime } from './elapsedTime';
+import { queryConnection } from './queryConnection';
 import { IdRecord, DataRecordResult, QueryRecords, TraceFlagRecord } from './types';
+
+const IdRecordSchema = Schema.Struct({ Id: Schema.String });
 
 export class TraceFlags {
   private connection: Connection;
@@ -145,12 +150,13 @@ export class TraceFlags {
   private async getUserIdOrThrow(username: string): Promise<IdRecord> {
     const escapedUsername = escapeXml(username);
     const userQuery = `SELECT Id FROM User WHERE username='${escapedUsername}'`;
-    const userResult = await this.connection.query<IdRecord>(userQuery);
+    const userResult = await queryConnection(this.connection, userQuery, IdRecordSchema);
+    const record = userResult.records?.[0];
 
-    if (userResult.totalSize === 0) {
+    if (userResult.totalSize === 0 || isUndefined(record)) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return userResult.records[0];
+    return record;
   }
 
   @elapsedTime()

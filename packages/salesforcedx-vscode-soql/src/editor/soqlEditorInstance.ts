@@ -122,7 +122,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
         location: progressLocation,
         title: nls.localize('progress_running_query')
       },
-      () => runQuery(conn)(queryText, { maxRows })
+      () => getSoqlRuntime().runPromise(runQuery(conn, queryText, { maxRows }))
     )
   );
   yield* Effect.promise(() => openQueryDataView(queryData));
