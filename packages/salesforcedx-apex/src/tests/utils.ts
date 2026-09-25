@@ -9,8 +9,10 @@ import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { Connection, Logger } from '@salesforce/core';
 import { isNotNull } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { Progress } from '../common';
 import { nls } from '../i18n';
+import { queryConnection } from '../utils/queryConnection';
 import {
   ApexTestProgressValue,
   ApexTestResultData,
@@ -42,19 +44,33 @@ export function calculatePercentage(dividend: number, divisor: number): string {
   return percentage;
 }
 
-type NsPrefixRecord = { NamespacePrefix: string };
-type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
+const NsPrefixRecordSchema = Schema.Struct({ NamespacePrefix: Schema.String });
+const InstalledSubscriberSchema = Schema.Struct({
+  SubscriberPackage: Schema.Struct({ NamespacePrefix: Schema.String })
+});
 
-const resolveInstalledNsRecords = async (connection: Connection): Promise<NsPrefixRecord[]> => {
+type NsPrefixRecord = Schema.Schema.Type<typeof NsPrefixRecordSchema>;
+
+const runQuery = <A, I>(connection: Connection, soql: string, schema: Schema.Schema<A, I, never>, tooling?: boolean) =>
+  queryConnection(connection, soql, schema, tooling === true);
+
+const resolveInstalledNsRecords = async (connection: Connection): Promise<readonly NsPrefixRecord[]> => {
   try {
-    return (await connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).records;
+    return (
+      (await runQuery(connection, 'SELECT NamespacePrefix FROM PackageLicense', NsPrefixRecordSchema)).records ?? []
+    );
   } catch {
     try {
       return (
-        await connection.tooling.query<InstalledSubscriberRecord>(
-          'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
-        )
-      ).records.map(rec => ({
+        (
+          await runQuery(
+            connection,
+            'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage',
+            InstalledSubscriberSchema,
+            true
+          )
+        ).records ?? []
+      ).map(rec => ({
         NamespacePrefix: rec.SubscriberPackage.NamespacePrefix
       }));
     } catch {
@@ -73,12 +89,13 @@ const toNamespaceInfo =
 export const queryNamespaces = async (connection: Connection): Promise<NamespaceInfo[]> => {
   const [installedResult, orgResult] = await Promise.allSettled([
     resolveInstalledNsRecords(connection),
-    connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')
+    runQuery(connection, 'SELECT NamespacePrefix FROM Organization', NsPrefixRecordSchema)
   ]);
 
   const installedNamespaces =
     installedResult.status === 'fulfilled' ? installedResult.value.map(toNamespaceInfo(true)) : [];
-  const orgNamespaces = orgResult.status === 'fulfilled' ? orgResult.value.records.map(toNamespaceInfo(false)) : [];
+  const orgNamespaces =
+    orgResult.status === 'fulfilled' ? (orgResult.value.records ?? []).map(toNamespaceInfo(false)) : [];
 
   return [...orgNamespaces, ...installedNamespaces];
 };

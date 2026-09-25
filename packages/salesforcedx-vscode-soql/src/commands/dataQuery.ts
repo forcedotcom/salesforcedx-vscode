@@ -16,6 +16,7 @@ import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
+import { SoqlRecord } from '../soqlRecord';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
@@ -47,11 +48,15 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
   const { soql, scanAll } = stripAllRows(query);
   const promptService = yield* api.services.PromptService;
   const notificationMode = yield* api.services.NotificationModeService;
-  return yield* Effect.promise(() =>
-    useTooling
-      ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
-      : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
-  ).pipe(
+  return yield* api.services.QueryService.pipe(
+    Effect.flatMap(queryService =>
+      queryService.query(connection, { soql, tooling: useTooling, scanAll, maxFetch }, SoqlRecord)
+    ),
+    Effect.map(result => ({
+      done: true,
+      totalSize: result.totalSize,
+      records: [...(result.records ?? [])]
+    })),
     promptService.withProgress(
       nls.localize('progress_running_query'),
       yield* notificationMode.getProgressLocation(COMMAND)

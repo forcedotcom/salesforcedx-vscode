@@ -35,6 +35,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { QueryService } from './core/queryService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
@@ -93,6 +94,7 @@ type PrebuiltServicesDependencies =
   | LightningComponentService
   | ConfigService
   | ConnectionService
+  | QueryService
   | EditorService
   | ErrorHandlerService
   | ExecuteAnonymousService
@@ -136,6 +138,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
+    QueryService: typeof QueryService;
     preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
@@ -553,6 +556,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        QueryService,
         preventOrgChanges,
         ExecuteAnonymousService,
         registerCommandWithRuntime,
@@ -620,6 +624,8 @@ export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
+export { type QueryService } from './core/queryService';
+export type { QueryError } from './errors/queryErrors';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
 export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
