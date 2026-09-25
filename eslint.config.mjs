@@ -177,6 +177,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
