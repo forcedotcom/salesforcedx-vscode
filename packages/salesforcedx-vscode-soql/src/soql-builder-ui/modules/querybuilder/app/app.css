@@ -6,6 +6,19 @@
  *
  */
 @import 'querybuilder/cssCommon';
+.all-rows-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.all-rows-label input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  flex: none;
+}
+
 main {
   min-width: var(--soql-main-min-width);
   max-width: var(--soql-main-max-width);

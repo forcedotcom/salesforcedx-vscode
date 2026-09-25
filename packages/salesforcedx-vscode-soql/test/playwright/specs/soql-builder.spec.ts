@@ -72,6 +72,17 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await saveScreenshot(page, 'step1.soql-tab-visible.png');
 
     soqlFrame = page.frameLocator('iframe.webview.ready').frameLocator('#active-frame');
+    const allRowsCheckbox = soqlFrame.locator('[data-el-all-rows]');
+    const allRowsLabel = soqlFrame.locator('label[for="query-all-rows"]');
+    const checkboxBox = await allRowsCheckbox.boundingBox();
+    const labelBox = await allRowsLabel.boundingBox();
+    expect(checkboxBox, 'ALL ROWS checkbox should be visible').not.toBeNull();
+    expect(labelBox, 'ALL ROWS label should be visible').not.toBeNull();
+    const verticalCenterDifference =
+      checkboxBox && labelBox
+        ? Math.abs(checkboxBox.y + checkboxBox.height / 2 - (labelBox.y + labelBox.height / 2))
+        : Number.POSITIVE_INFINITY;
+    expect(verticalCenterDifference, 'checkbox and label should share a vertical center').toBeLessThanOrEqual(1);
   });
 
   await test.step('build a query using the SOQL Builder dropdowns', async () => {
