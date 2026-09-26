@@ -14,8 +14,9 @@ const playwrightFile = path.join(
   'packages/playwright-vscode-ext/test/playwright/specs/commandPalette.headless.spec.ts'
 );
 const ruleId = 'playwright/no-force-option';
+const expectExpectRuleId = 'playwright/expect-expect';
 
-const lintPlaywright = (code: string): number => {
+const lintPlaywright = (code: string, id: string): number => {
   const eslint = spawnSync(
     process.execPath,
     [
@@ -30,36 +31,69 @@ const lintPlaywright = (code: string): number => {
   );
   if (eslint.error) throw eslint.error;
   const [result] = JSON.parse(eslint.stdout) as Array<{ messages: Array<{ ruleId: string | null }> }>;
-  return result.messages.filter(message => message.ruleId === ruleId).length;
+  return result.messages.filter(message => message.ruleId === id).length;
 };
 
 describe('Playwright ESLint configuration', () => {
   it('reports an ordinary forced Playwright action', () => {
     expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+      lintPlaywright(
+        `import { test } from '@playwright/test';
 test('click', async ({ page }) => {
   await page.getByRole('button').click({ force: true });
-});`)
+});`,
+        ruleId
+      )
     ).toBe(1);
   });
 
   it('allows the documented Windows Test Explorer tooltip workaround', () => {
     expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+      lintPlaywright(
+        `import { test } from '@playwright/test';
 test('click', async ({ page }) => {
   // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await page.getByRole('button').click({ force: true });
-});`)
+});`,
+        ruleId
+      )
     ).toBe(0);
   });
 
   it('does not report Node filesystem force options', () => {
     expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+      lintPlaywright(
+        `import { test } from '@playwright/test';
 import * as fs from 'node:fs/promises';
 test('remove', async () => {
   await fs.rm('tmp', { force: true });
-});`)
+});`,
+        ruleId
+      )
+    ).toBe(0);
+  });
+
+  it('reports a test with no expect and no configured helper', () => {
+    expect(
+      lintPlaywright(
+        `import { test } from '@playwright/test';
+test('click', async ({ page }) => {
+  await page.getByRole('button').click();
+});`,
+        expectExpectRuleId
+      )
+    ).toBe(1);
+  });
+
+  it('allows verifyCommandExists as the only assertion', () => {
+    expect(
+      lintPlaywright(
+        `import { test } from '@playwright/test';
+test('click', async () => {
+  await verifyCommandExists();
+});`,
+        expectExpectRuleId
+      )
     ).toBe(0);
   });
 });
