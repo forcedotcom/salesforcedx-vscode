@@ -183,7 +183,7 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 
 ### `npm run check:actions`
 
-Validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`.
+Schema-validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`. Also fails when `validatePR.yml`, `testCommitExceptMain.yml`, or an E2E workflow's `on.push` / `on.pull_request` `paths-ignore` ≠ `docOnlyAutoMerge.yml` `on.pull_request.paths`.
 
 ### `npm run check:peer-deps`
 

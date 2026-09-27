@@ -106,7 +106,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
     .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
-  const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
+  const checkParent = (processInfo: ProcessDetail) =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
       : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(

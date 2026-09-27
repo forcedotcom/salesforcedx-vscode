@@ -122,7 +122,7 @@ export default [
     }
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -893,7 +893,12 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -997,7 +1002,7 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts'],
     rules: {
       'no-restricted-imports': 'off'
     }
@@ -1092,7 +1097,28 @@ export default [
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
     rules: {
-      'playwright/no-force-option': 'error'
+      'playwright/no-force-option': 'error',
+      // Helpers that assert or throw outside test() and do not match the prefix pattern.
+      'playwright/expect-expect': [
+        'error',
+        {
+          assertFunctionPatterns: ['^(assert|expect|verify)'],
+          assertFunctionNames: [
+            'continueDebugSession',
+            'createAuraTemplate',
+            'createVisualforceTemplate',
+            'runRefreshAndVerify',
+            'upsertSettings',
+            'waitForEsrFile',
+            'waitForItem',
+            'waitForJestResults',
+            'waitForLwcLspReady',
+            'waitForNotification',
+            'waitForOutputChannelText',
+            'waitForTab'
+          ]
+        }
+      ]
     }
   },
   eslintConfigPrettier

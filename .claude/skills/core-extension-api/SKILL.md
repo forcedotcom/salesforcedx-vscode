@@ -46,7 +46,7 @@ telemetryService, workspaceContextUtils
 ### `services` (class constructors with static methods)
 
 ```
-RegistryAccess, ChannelService (.getInstance(name)),
+ChannelService (.getInstance(name)),
 TelemetryService (.getInstance(name)),
 WorkspaceContext (.getInstance()), CommandEventDispatcher (.getInstance())
 ```
