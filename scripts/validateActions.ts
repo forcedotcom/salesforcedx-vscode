@@ -7,7 +7,11 @@
 
 import { type ValidationError, type ValidationState, validateAction, validateWorkflow } from '@action-validator/core';
 import { Console, Effect, Stream } from 'effect';
+import * as Equivalence from 'effect/Equivalence';
+import { isError, isRecord } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { globSync, readFileSync } from 'node:fs';
+import { parse as parseYaml } from 'yaml';
 
 // The bundled @action-validator/core schema predates schemastore's parallel-steps keys
 // (background/wait/wait-all, schemastore PR #5845). Those keys are valid GitHub Actions YAML,
@@ -63,6 +67,96 @@ const filterErrors = (errors: ValidationError[], waitStepPaths: readonly string[
 const filterState = (result: ValidationState): ValidationError[] =>
   filterErrors(result.errors, collectWaitStepPaths(result.errors));
 
+const isStringList = Schema.is(Schema.Array(Schema.String));
+
+const asStringList = (value: unknown): readonly string[] | undefined => (isStringList(value) ? value : undefined);
+
+const sameStrings = Equivalence.array(Equivalence.string);
+
+const DOC_ONLY_AUTO_MERGE = '.github/workflows/docOnlyAutoMerge.yml';
+
+// `on.push` / `on.pull_request` paths-ignore must equal docOnlyAutoMerge.yml `on.pull_request.paths`.
+const PATHS_IGNORE_WORKFLOWS = [
+  '.github/workflows/validatePR.yml',
+  '.github/workflows/testCommitExceptMain.yml',
+  '.github/workflows/visualforceE2E.yml',
+  '.github/workflows/soqlE2E.yml',
+  '.github/workflows/servicesE2E.yml',
+  '.github/workflows/playwrightVscodeExtE2E.yml',
+  '.github/workflows/orgE2E.yml',
+  '.github/workflows/orgBrowserE2E.yml',
+  '.github/workflows/metadataE2E.yml',
+  '.github/workflows/lwcPlaywrightE2E.yml',
+  '.github/workflows/coreE2E.yml',
+  '.github/workflows/auraE2E.yml',
+  '.github/workflows/apexTestingE2E.yml',
+  '.github/workflows/apexReplayDebuggerE2E.yml',
+  '.github/workflows/apexOasE2E.yml',
+  '.github/workflows/apexLspE2E.yml',
+  '.github/workflows/apexLogE2E.yml',
+  '.github/workflows/apexDebuggerE2E.yml'
+] as const;
+
+const TRIGGER_KEYS = ['push', 'pull_request'] as const;
+
+const onMap = (workflow: unknown): Readonly<Record<string, unknown>> | undefined =>
+  isRecord(workflow) && isRecord(workflow.on) ? workflow.on : undefined;
+
+const docOnlyTriggerPaths = (workflow: unknown): readonly string[] | undefined => {
+  const pullRequest = onMap(workflow)?.pull_request;
+  return isRecord(pullRequest) ? asStringList(pullRequest.paths) : undefined;
+};
+
+const pathsIgnoreLists = (workflow: unknown): readonly (readonly string[] | undefined)[] => {
+  const on = onMap(workflow);
+  return on === undefined
+    ? []
+    : TRIGGER_KEYS.flatMap(key => {
+        const trigger = on[key];
+        return isRecord(trigger) && Object.hasOwn(trigger, 'paths-ignore')
+          ? [asStringList(trigger['paths-ignore'])]
+          : [];
+      });
+};
+
+const readWorkflowYaml = (file: string) =>
+  Effect.try({
+    try: (): unknown => parseYaml(readFileSync(file, 'utf8')),
+    catch: (cause: unknown) => `${file}: ${isError(cause) ? cause.message : String(cause)}`
+  });
+
+const pathsIgnoreDrift = (file: string, expected: readonly string[]) =>
+  readWorkflowYaml(file).pipe(
+    Effect.match({
+      onFailure: message => [message],
+      onSuccess: workflow => {
+        const lists = pathsIgnoreLists(workflow);
+        return lists.length === 0
+          ? [`${file}: missing on.push / on.pull_request paths-ignore`]
+          : lists.flatMap(list =>
+              list === undefined
+                ? [`${file}: paths-ignore is not a string list`]
+                : sameStrings(list, expected)
+                  ? []
+                  : [
+                      `${file}: paths-ignore ${JSON.stringify(list)} != ${DOC_ONLY_AUTO_MERGE} on.pull_request.paths ${JSON.stringify(expected)}`
+                    ]
+            );
+      }
+    })
+  );
+
+const docOnlyPathsIgnoreErrors = readWorkflowYaml(DOC_ONLY_AUTO_MERGE).pipe(
+  Effect.flatMap(workflow => {
+    const expected = docOnlyTriggerPaths(workflow);
+    return expected === undefined
+      ? Effect.succeed([`${DOC_ONLY_AUTO_MERGE}: on.pull_request.paths is not a string list`])
+      : Effect.all(PATHS_IGNORE_WORKFLOWS.map(file => pathsIgnoreDrift(file, expected))).pipe(
+          Effect.map(groups => groups.flat())
+        );
+  })
+);
+
 const collectLeafErrors = (errors: ValidationError[]): string[] =>
   errors.flatMap(error => {
     if ('states' in error && error.states?.length) {
@@ -103,6 +197,16 @@ const program = Stream.concat(
   Stream.filter(({ errors }) => errors.length > 0),
   Stream.tap(({ file, messages }) => Console.error(`\n${file}:\n${messages.join('\n')}`)),
   Stream.runCount,
+  Effect.flatMap(schemaFailures =>
+    docOnlyPathsIgnoreErrors.pipe(
+      Effect.match({
+        onFailure: message => ({ schemaFailures, drift: [message] }),
+        onSuccess: drift => ({ schemaFailures, drift })
+      })
+    )
+  ),
+  Effect.tap(({ drift }) => (drift.length === 0 ? Effect.void : Console.error(`\n${drift.join('\n')}`))),
+  Effect.map(({ schemaFailures, drift }) => schemaFailures + drift.length),
   Effect.tap(failureCount => Console.log(`${failureCount} failed.`))
 );
 
