@@ -12,7 +12,7 @@ import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isError, isString } from 'effect/Predicate';
+import { isString } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -45,7 +45,7 @@ const MEMBER_COLUMNS = 'Id, SubjectId, SubjectKeyPrefix, SubscriberPackageId';
  */
 const UNPACKAGED_STATES = new Set(['', 'unmanaged']);
 
-/** Org lacks Package2/Package2Member (e.g. subscriber org) — the `isPackage2UnavailableError` heuristic matched. */
+/** Org lacks Package2/Package2Member. Query failed with Salesforce `INVALID_TYPE`. */
 class Package2UnavailableError extends Schema.TaggedError<Package2UnavailableError>()('Package2UnavailableError', {
   message: Schema.String
 }) {}
@@ -63,19 +63,13 @@ type ResolutionState = {
   readonly unavailable: HashSet.HashSet<string>;
 };
 
-/** Returns true if the error indicates Package2Member (or Package2) is not available in this org. */
-const isPackage2UnavailableError = (error: unknown): boolean => {
-  const lower = (isError(error) ? error.message : String(error)).toLowerCase();
-  return (
-    lower.includes('package2member') ||
-    lower.includes('package2') ||
-    lower.includes('is not supported') ||
-    lower.includes('invalid type') ||
-    lower.includes('sobject type') ||
-    lower.includes('unknown error') ||
-    lower.includes('no such column')
-  );
-};
+/** Tooling `QueryError` whose `errorCode` is `INVALID_TYPE` (sObject not supported in this org). */
+const InvalidSObjectQueryError = Schema.Struct({
+  _tag: Schema.Literal('QueryError'),
+  errorCode: Schema.Literal('INVALID_TYPE')
+});
+
+const isPackage2UnavailableError = Schema.is(InvalidSObjectQueryError);
 
 /** Normalize Salesforce Id to 15-char form so 15-char (e.g. discovery) and 18-char (e.g. Tooling query) match. */
 const normalizeId = (id: string): string => (id.length >= 15 ? id.substring(0, 15) : id);
@@ -114,18 +108,14 @@ const getOrgKey = getServicesApi.pipe(
 
 /**
  * Run a Tooling SOQL query and decode each row against `schema`, dropping rows that don't decode
- * (filterMap) rather than failing the whole query. Query rejections classify into the unavailable
- * heuristic vs a generic query error so the caller can mark the org and/or fall back.
+ * (filterMap) rather than failing the whole query. `INVALID_TYPE` marks Package2 unavailable; any other
+ * query or connection failure is a generic query error so the caller can mark the org and/or fall back.
  */
 const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, soql: string) =>
-  Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api =>
-      api.services.QueryService.pipe(
-        Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, Schema.Unknown)),
-        Effect.map(result => result.records),
-        Effect.map(rows => Array.filterMap(rows, row => Schema.decodeUnknownOption(schema)(row)))
-      )
-    ),
+  getServicesApi.pipe(
+    Effect.flatMap(api => api.services.QueryService),
+    Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, Schema.Unknown)),
+    Effect.map(result => Array.filterMap(result.records, row => Schema.decodeUnknownOption(schema)(row))),
     Effect.mapError(error =>
       isPackage2UnavailableError(error)
         ? new Package2UnavailableError({ message: getMessageFromError(error) })
@@ -319,7 +309,7 @@ export class PackageResolutionService extends Effect.Service<PackageResolutionSe
     const markUnavailable = (orgKey: string) =>
       Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
 
-    // Only the "org lacks Package2" heuristic marks the org unavailable; generic query errors don't.
+    // Only Package2UnavailableError (INVALID_TYPE) marks the org unavailable; generic query errors don't.
     const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
       Match.value(error).pipe(
         Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),

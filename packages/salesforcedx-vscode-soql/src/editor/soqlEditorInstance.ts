@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonMap } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';

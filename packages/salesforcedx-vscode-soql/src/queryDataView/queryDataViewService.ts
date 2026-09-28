@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonMap } from '../json';
 import type { QueryResult } from '../types';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';

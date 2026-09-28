@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { JsonMap } from '../json';
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
@@ -49,13 +49,11 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     promptService: api.services.PromptService,
     progressLocation: api.services.NotificationModeService.pipe(
       Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
-    )
+    ),
+    queryService: api.services.QueryService
   }).pipe(
-    Effect.flatMap(({ maxFetch, promptService, progressLocation }) =>
-      api.services.QueryService.pipe(
-        Effect.flatMap(queryService =>
-          queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, SoqlRecord)
-        ),
+    Effect.flatMap(({ maxFetch, promptService, progressLocation, queryService }) =>
+      queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, SoqlRecord).pipe(
         Effect.map(result => ({
           done: true,
           totalSize: result.totalSize,

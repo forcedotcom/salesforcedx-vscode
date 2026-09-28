@@ -24,7 +24,7 @@ import {
   splitMultiInputValues,
   UiOperatorValue
 } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/types';
+import type { JsonMap } from '../../../../json';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { fieldMap, getNillable, getPicklistValues, getType, type FieldMap } from '../services/sobjectUtils';
 import {

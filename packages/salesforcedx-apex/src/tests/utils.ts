@@ -51,11 +51,14 @@ const queryNsRecords = <A>(query: () => PromiseLike<{ records: readonly A[] }>) 
 const installedNsRecords = (connection: Connection) =>
   queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).pipe(
     Effect.orElse(() =>
-      queryNsRecords(() =>
-        connection.tooling.query<InstalledSubscriberRecord>(
-          'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
-        )
-      ).pipe(Effect.map(records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))))
+      Effect.map(
+        queryNsRecords(() =>
+          connection.tooling.query<InstalledSubscriberRecord>(
+            'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
+          )
+        ),
+        records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))
+      )
     ),
     Effect.orElseSucceed(() => emptyNsRecords)
   );

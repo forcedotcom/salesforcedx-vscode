@@ -1069,7 +1069,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                   },
                   Schema.Struct({
                     Name: Schema.String,
-                    NamespacePrefix: Schema.String.pipe(Schema.NullOr, Schema.optional)
+                    NamespacePrefix: Schema.optionalWith(Schema.String, { nullable: true })
                   })
                 )
               ),

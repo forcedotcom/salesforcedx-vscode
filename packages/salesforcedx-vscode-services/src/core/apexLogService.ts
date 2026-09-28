@@ -13,28 +13,19 @@ import { ConnectionService } from './connectionService';
 import { QueryService } from './queryService';
 import { unknownToErrorCause } from './shared';
 
-/** Tooling sends null for absent optional fields; decoded type is `T | undefined`. */
-const nullishToUndefined = <S extends Schema.Schema.Any>(schema: S) =>
-  Schema.NullishOr(schema).pipe(
-    Schema.transform(Schema.UndefinedOr(schema), {
-      decode: value => value ?? undefined,
-      encode: value => value
-    })
-  );
-
-const NullishString = nullishToUndefined(Schema.String);
-const NullishNumber = nullishToUndefined(Schema.Number);
-const LogUser = Schema.Struct({ Name: NullishString });
+const LogUser = Schema.Struct({
+  Name: Schema.optionalWith(Schema.String, { nullable: true })
+});
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference) */
 export const ApexLogListItem = Schema.Struct({
   Id: Schema.String,
-  Application: NullishString,
-  DurationMilliseconds: NullishNumber,
+  Application: Schema.optionalWith(Schema.String, { nullable: true }),
+  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
   LogLength: Schema.Number,
-  LogUserId: NullishString,
-  LogUser: nullishToUndefined(LogUser),
-  Operation: NullishString,
+  LogUserId: Schema.optionalWith(Schema.String, { nullable: true }),
+  LogUser: Schema.optionalWith(LogUser, { nullable: true }),
+  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
   StartTime: Schema.String,
   Status: Schema.String
 });

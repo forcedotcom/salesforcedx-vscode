@@ -1,4 +1,4 @@
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '../../../../json';
 import { ToolingModelJson } from './model';
 
 export type TelemetryModelJson = JsonMap & {

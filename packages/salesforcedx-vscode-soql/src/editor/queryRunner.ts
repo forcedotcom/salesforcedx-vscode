@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonMap } from '../json';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
@@ -21,30 +21,27 @@ export const runQuery = Effect.fn('runQuery')(function* (
   options?: { readonly showErrors?: boolean; readonly maxRows?: number }
 ) {
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api =>
-      api.services.QueryService.pipe(
-        Effect.flatMap(queryService =>
-          queryService.query(
-            {
-              ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText),
-              maxFetch: options?.maxRows ?? 50_000
-            },
-            SoqlRecord
-          )
-        ),
-        Effect.map(
-          (raw): QueryResult<JsonMap> => ({
-            done: true,
-            totalSize: raw.totalSize,
-            records: flattenQueryRecords(raw.records)
-          })
-        ),
-        Effect.tapError(error =>
-          isUndefined(options) || options.showErrors === true
-            ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
-            : Effect.void
-        )
+    Effect.flatMap(api => api.services.QueryService),
+    Effect.flatMap(queryService =>
+      queryService.query(
+        {
+          ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText),
+          maxFetch: options?.maxRows ?? 50_000
+        },
+        SoqlRecord
       )
+    ),
+    Effect.map(
+      (raw): QueryResult<JsonMap> => ({
+        done: true,
+        totalSize: raw.totalSize,
+        records: flattenQueryRecords(raw.records)
+      })
+    ),
+    Effect.tapErrorTag('QueryError', error =>
+      isUndefined(options) || options.showErrors === true
+        ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
+        : Effect.void
     )
   );
 });

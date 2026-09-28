@@ -172,7 +172,11 @@ describe('PackageResolutionService', () => {
   it('resolves from InstalledSubscriberPackage when Package2Member is unavailable and namespace map is provided', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'QueryError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -198,7 +202,11 @@ describe('PackageResolutionService', () => {
   it('resolves no-namespace classes to the single no-namespace package (Skyline resolveNoNamespaceInstalledItem)', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'QueryError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -225,7 +233,11 @@ describe('PackageResolutionService', () => {
     const installedId = '01p000000000001AAA';
     const unpackagedId = '01p000000000002AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'QueryError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -254,7 +266,11 @@ describe('PackageResolutionService', () => {
   it('serves cached resolution and does not re-query once the org is marked unavailable', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'QueryError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {

@@ -70,43 +70,45 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
       })
     : api.services.ConnectionService.getConnection();
 
-  yield* notificationMode.getProgressLocation(COMMAND).pipe(
-    Effect.flatMap(progressLocation =>
-      api.services.PromptService.pipe(
-        Effect.flatMap(promptService =>
-          api.services.QueryService.pipe(
-            // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-            Effect.flatMap(queryService =>
-              queryService.query(
-                {
-                  soql: "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1",
-                  tooling: true,
-                  ...(isvSid && isvUrl ? { connection: conn } : {})
-                },
-                Schema.Struct({ Id: Schema.String })
-              )
-            ),
-            Effect.flatMap(({ records }) =>
-              Option.match(Array.head(records), {
-                onNone: () => Effect.succeed(false as const),
-                onSome: ({ Id }) =>
+  yield* Effect.all({
+    progressLocation: notificationMode.getProgressLocation(COMMAND),
+    promptService: api.services.PromptService,
+    queryService: api.services.QueryService
+  }).pipe(
+    Effect.flatMap(({ progressLocation, promptService, queryService }) =>
+      queryService
+        .query(
+          {
+            soql: "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1",
+            tooling: true,
+            ...(isvSid && isvUrl ? { connection: conn } : {})
+          },
+          Schema.Struct({ Id: Schema.String })
+        )
+        .pipe(
+          // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
+          Effect.flatMap(({ records }) =>
+            Option.match(Array.head(records), {
+              onNone: () => Effect.succeed(false as const),
+              onSome: ({ Id }) =>
+                Effect.as(
                   Effect.tryPromise({
                     try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
                     catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-                  }).pipe(Effect.as(true as const))
-              })
-            ),
-            Effect.tap(stopped =>
-              notificationMode.showSuccessNotification(
-                COMMAND,
-                nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
-                false
-              )
-            ),
-            promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
-          )
+                  }),
+                  true as const
+                )
+            })
+          ),
+          Effect.tap(stopped =>
+            notificationMode.showSuccessNotification(
+              COMMAND,
+              nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
+              false
+            )
+          ),
+          promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
         )
-      )
     )
   );
 });

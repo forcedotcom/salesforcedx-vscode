@@ -31,11 +31,12 @@ export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
     ),
     Effect.flatMap(selectLog),
     Effect.flatMap(selected =>
-      api.services.ApexLogService.pipe(
-        Effect.flatMap(logService => logService.getLogBody(selected.id)),
-        Effect.flatMap(body => saveAndOpenLog(selected.id, body))
-      )
-    )
+      Effect.all({
+        id: Effect.succeed(selected.id),
+        body: Effect.flatMap(api.services.ApexLogService, logService => logService.getLogBody(selected.id))
+      })
+    ),
+    Effect.flatMap(({ id, body }) => saveAndOpenLog(id, body))
   );
 });
 
@@ -44,17 +45,20 @@ const selectLog = Effect.fn('ApexLog.selectLog')(function* (logs: readonly ApexL
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
     Effect.flatMap(api => api.services.PromptService),
     Effect.flatMap(promptService =>
-      Effect.promise(() =>
-        vscode.window.showQuickPick(
-          logs.map(log => ({
-            label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
-            description: formatLogSize(log.LogLength),
-            detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
-            id: log.Id
-          })),
-          { placeHolder: nls.localize('log_get_pick_log') }
-        )
-      ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
+      Effect.flatMap(
+        Effect.promise(() =>
+          vscode.window.showQuickPick(
+            logs.map(log => ({
+              label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
+              description: formatLogSize(log.LogLength),
+              detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
+              id: log.Id
+            })),
+            { placeHolder: nls.localize('log_get_pick_log') }
+          )
+        ),
+        promptService.considerUndefinedAsCancellation
+      )
     )
   );
 });

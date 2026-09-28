@@ -7,7 +7,7 @@
  */
 
 import { LightningElement, api, track } from 'lwc';
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '../../../../json';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { messages } from 'querybuilder/messages';

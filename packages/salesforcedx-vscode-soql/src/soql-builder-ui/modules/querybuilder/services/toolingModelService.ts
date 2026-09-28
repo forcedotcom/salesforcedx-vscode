@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { AndOr } from '@salesforce/soql-model';
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '../../../../json';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { MessageService } from './message/iMessageService';
 import { MessageType, type HostToUiSoqlEditorEvent } from './message/soqlEditorEvent';

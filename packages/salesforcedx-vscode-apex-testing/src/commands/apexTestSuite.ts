@@ -31,17 +31,14 @@ const MembershipRow = Schema.Struct({ Id: Schema.String, ApexClassId: Schema.Str
 const ClassIdRow = Schema.Struct({
   Id: Schema.String,
   Name: Schema.String,
-  NamespacePrefix: Schema.String.pipe(Schema.NullOr, Schema.optional)
+  NamespacePrefix: Schema.optionalWith(Schema.String, { nullable: true })
 });
 
 const toolingRecords = <A, I>(soql: string, schema: Schema.Schema<A, I, never>) =>
   Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api =>
-      api.services.QueryService.pipe(
-        Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, schema)),
-        Effect.map(result => result.records)
-      )
-    )
+    Effect.flatMap(api => api.services.QueryService),
+    Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, schema)),
+    Effect.map(result => result.records)
   );
 
 class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDeleteError>()(
@@ -130,9 +127,12 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
     suitename: Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
       Effect.flatMap(api => api.services.PromptService),
       Effect.flatMap(promptService =>
-        Effect.promise(() =>
-          vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
-        ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)))
+        Effect.flatMap(
+          Effect.promise(() =>
+            vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
+          ),
+          value => promptService.considerUndefinedAsCancellation(value)
+        )
       )
     ),
     tests: selectApexClasses(messages.apex_test_suite_create_text)
@@ -175,20 +175,18 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.flatMap(({ membershipByClassId, classes }) =>
-      toolingRecords(
-        `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Name IN (${classes
-          .map(cls => `'${cls.label.replaceAll("'", "''")}'`)
-          .join(',')})`,
-        ClassIdRow
-      ).pipe(
-        Effect.map(
-          classRows =>
-            new Map(
-              classRows.map(row => [row.NamespacePrefix ? `${row.NamespacePrefix}.${row.Name}` : row.Name, row.Id])
-            )
+      Effect.map(
+        toolingRecords(
+          `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Name IN (${classes
+            .map(cls => `'${cls.label.replaceAll("'", "''")}'`)
+            .join(',')})`,
+          ClassIdRow
         ),
-        Effect.map(classIdByQualifiedName =>
-          classes.map((cls): EditableSuiteClassItem => {
+        classRows => {
+          const classIdByQualifiedName = new Map(
+            classRows.map(row => [row.NamespacePrefix ? `${row.NamespacePrefix}.${row.Name}` : row.Name, row.Id])
+          );
+          return classes.map((cls): EditableSuiteClassItem => {
             const classId = classIdByQualifiedName.get(cls.fullClassName ?? cls.label);
             const membershipId = classId ? membershipByClassId.get(classId) : undefined;
             return {
@@ -196,8 +194,8 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
               membershipId,
               picked: !!membershipId
             };
-          })
-        )
+          });
+        }
       )
     )
   );
@@ -292,22 +290,20 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
             ? Effect.promise(() => new TestService(connection).buildSuite(suitename, toAdd))
             : Effect.void,
           toRemove.length > 0
-            ? Effect.tryPromise(() =>
-                Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
-              ).pipe(
-                Effect.flatMap(results =>
-                  pipe(
-                    results.filter(result => !result.success),
-                    failures =>
-                      failures.length > 0
-                        ? Effect.fail(
-                            new SuiteMembershipDeleteError({
-                              message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
-                            })
-                          )
-                        : Effect.succeed(results)
-                  )
-                )
+            ? Effect.flatMap(
+                Effect.tryPromise(() =>
+                  Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
+                ),
+                results => {
+                  const failures = results.filter(result => !result.success);
+                  return failures.length > 0
+                    ? Effect.fail(
+                        new SuiteMembershipDeleteError({
+                          message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
+                        })
+                      )
+                    : Effect.succeed(results);
+                }
               )
             : Effect.void
         ],
@@ -351,14 +347,14 @@ export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* ()
 export const apexTestSuiteRun = Effect.fn('apexTestSuiteRun')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();
-  yield* api.services.PromptService.pipe(
-    Effect.flatMap(promptService =>
-      listApexTestSuiteItems().pipe(
-        Effect.flatMap(quickPickItems =>
-          Effect.promise(() => vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)).pipe(
-            Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value))
-          )
-        )
+  yield* Effect.all({
+    promptService: api.services.PromptService,
+    quickPickItems: listApexTestSuiteItems()
+  }).pipe(
+    Effect.flatMap(({ promptService, quickPickItems }) =>
+      Effect.flatMap(
+        Effect.promise(() => vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)),
+        value => promptService.considerUndefinedAsCancellation(value)
       )
     ),
     Effect.flatMap(selection => runSelectedTests(selection))

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '../../json';
 import { convertToCSV } from '../../commands/dataQuery';
 import { DATA_CSV_EXT } from '../../constants';
 import { DataProvider } from './iDataProvider';

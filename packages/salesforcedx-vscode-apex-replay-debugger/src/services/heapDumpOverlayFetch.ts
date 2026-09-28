@@ -32,29 +32,26 @@ const OverlayRow = S.Unknown.pipe(
 /** Tooling query for a chunk of heap-dump ids, mapped to a HeapDumpResult per id (missing id → error). */
 const runOverlayQuery = Effect.fn('heapDumpOverlayFetch.runOverlayQuery')(function* (ids: string[]) {
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api =>
-      api.services.QueryService.pipe(
-        Effect.flatMap(queryService =>
-          queryService.query(
-            {
-              soql: `SELECT Id, HeapDump, ApexResult, SOQLResult, Line, Iteration, ClassName, Namespace, IsDumpingHeap, OverlayResultLength FROM ApexExecutionOverlayResult WHERE Id IN (${ids
-                .map(id => `'${id}'`)
-                .join(',')})`,
-              tooling: true
-            },
-            OverlayRow
-          )
-        ),
-        Effect.map(({ records }) => new Map(records.map(record => [record.Id, record]))),
-        Effect.map(byId =>
-          ids.map((id): HeapDumpResult => {
-            const record = byId.get(id);
-            return record
-              ? { heapDumpId: id, success: record }
-              : { heapDumpId: id, error: `No overlay result found for ${id}` };
-          })
-        )
+    Effect.flatMap(api => api.services.QueryService),
+    Effect.flatMap(queryService =>
+      queryService.query(
+        {
+          soql: `SELECT Id, HeapDump, ApexResult, SOQLResult, Line, Iteration, ClassName, Namespace, IsDumpingHeap, OverlayResultLength FROM ApexExecutionOverlayResult WHERE Id IN (${ids
+            .map(id => `'${id}'`)
+            .join(',')})`,
+          tooling: true
+        },
+        OverlayRow
       )
+    ),
+    Effect.map(({ records }) => new Map(records.map(record => [record.Id, record]))),
+    Effect.map(byId =>
+      ids.map((id): HeapDumpResult => {
+        const record = byId.get(id);
+        return record
+          ? { heapDumpId: id, success: record }
+          : { heapDumpId: id, error: `No overlay result found for ${id}` };
+      })
     )
   );
 });

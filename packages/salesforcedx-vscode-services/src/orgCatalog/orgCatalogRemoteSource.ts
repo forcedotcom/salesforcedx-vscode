@@ -72,8 +72,8 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
               connection
             },
             Schema.Struct({
-              Body: Schema.String.pipe(Schema.NullOr, Schema.optional),
-              LastModifiedDate: Schema.String.pipe(Schema.NullOr, Schema.optional)
+              Body: Schema.optionalWith(Schema.String, { nullable: true }),
+              LastModifiedDate: Schema.optionalWith(Schema.String, { nullable: true })
             })
           )
         ),
