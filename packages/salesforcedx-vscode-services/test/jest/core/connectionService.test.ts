@@ -92,9 +92,11 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME, org
   ({
     getAuthInfo: () => ({ isAccessTokenFlow: () => isAccessTokenFlow }),
     getUsername: () => username,
+    getApiVersion: () => '66.0',
     getAuthInfoFields: () => ({ username, orgId }),
     instanceUrl: INSTANCE_URL,
-    identity: identity ?? jest.fn().mockResolvedValue({ user_id: '005' })
+    identity: identity ?? jest.fn().mockResolvedValue({ user_id: '005' }),
+    request: async () => ({ totalSize: 0, done: true, records: [] as { Id: string; Username: string }[] })
   }) as unknown as Connection;
 
 describe('ConnectionService.getConnectionForOrg', () => {
@@ -371,6 +373,8 @@ const makeDesktopConn = (
 ): Connection =>
   ({
     getUsername: () => username,
+    instanceUrl: 'https://example.my.salesforce.com',
+    getApiVersion: () => '66.0',
     getAuthInfoFields: () => ({
       username,
       orgId,
@@ -381,7 +385,11 @@ const makeDesktopConn = (
     }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-    query
+    query,
+    request: async () => {
+      const result = await query('');
+      return { totalSize: result.totalSize, done: true, records: result.records };
+    }
   }) as unknown as Connection;
 
 const MockConfigServiceLayer = Layer.succeed(
@@ -619,20 +627,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
     const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
     const query = jest.fn().mockReturnValue(gate.promise);
-    connectionCreateMock.mockResolvedValue({
-      getUsername: () => USERNAME,
-      getAuthInfoFields: () => ({
-        username: USERNAME,
-        orgId: '00D000000000005',
-        instanceName: 'USA9S',
-        tracksSource: false,
-        isScratch: false,
-        isSandbox: false
-      }),
-      getFields: () => ({ username: USERNAME }),
-      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-      query
-    } as unknown as Connection);
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME, { query }));
 
     const running = run(
       Effect.all([ConnectionService.getConnection(), ConnectionService.getConnection()], {
