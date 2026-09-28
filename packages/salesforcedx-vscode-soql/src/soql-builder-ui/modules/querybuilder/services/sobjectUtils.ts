@@ -7,62 +7,45 @@
  */
 
 import { SObjectFieldType } from '@salesforce/soql-model';
-import { SObjectMetadata } from './message/soqlEditorEvent';
+import type { SObjectMetadata } from './message/soqlEditorEvent';
+
+type MetadataField = SObjectMetadata['fields'][number];
 
 type NormalizedField = {
-  name: string;
   type: SObjectFieldType;
   picklistValues: string[];
-  nillable: boolean;
-}
+  nillable: MetadataField['nillable'];
+};
 
-export class SObjectTypeUtils {
-  protected fieldMap: { [key: string]: NormalizedField };
-  protected typeMap: { [key: string]: SObjectFieldType };
-  public constructor(protected sobjectMetadata: SObjectMetadata | undefined) {
-    this.fieldMap = {};
-    if (sobjectMetadata?.fields) {
-      sobjectMetadata.fields.forEach(field => {
-        this.fieldMap[field.name.toLowerCase()] = {
-          name: field.name,
-          type: field.type as SObjectFieldType,
-          picklistValues:
-            field.picklistValues && Array.isArray(field.picklistValues)
-              ? (field.picklistValues as Array<{ value: string }>).map(pv => pv.value)
-              : [],
-          nillable: field.nillable
-        };
-      });
-    }
-    this.typeMap = {};
-    Object.keys(SObjectFieldType).forEach((key) => {
-      this.typeMap[SObjectFieldType[key].toLowerCase()] =
-        SObjectFieldType[key];
-    });
-  }
+export type FieldMap = Record<string, NormalizedField>;
 
-  public getType(fieldName: string): SObjectFieldType {
-    let type = SObjectFieldType.AnyType;
-    const field = this.fieldMap[fieldName.toLowerCase()];
-    if (field) {
-      const fieldType = this.typeMap[field.type.toLowerCase()];
-      if (fieldType) {
-        type = fieldType;
+const typeMap: Record<string, SObjectFieldType> = Object.fromEntries(
+  (Object.values(SObjectFieldType) as SObjectFieldType[]).map(fieldType => [fieldType.toLowerCase(), fieldType])
+);
+
+const picklistValueStrings = (picklistValues: MetadataField['picklistValues'] | undefined): string[] =>
+  Array.isArray(picklistValues) ? picklistValues.map(picklistValue => picklistValue.value) : [];
+
+const fieldFor = (fields: FieldMap | undefined, fieldName: string): NormalizedField | undefined =>
+  fields?.[fieldName.toLowerCase()];
+
+export const fieldMap = (sobjectMetadata: SObjectMetadata | undefined): FieldMap =>
+  Object.fromEntries(
+    (sobjectMetadata?.fields ?? []).map(field => [
+      field.name.toLowerCase(),
+      {
+        type: typeMap[field.type.toLowerCase()] ?? SObjectFieldType.AnyType,
+        picklistValues: picklistValueStrings(field.picklistValues),
+        nillable: field.nillable
       }
-    }
-    return type;
-  }
+    ])
+  );
 
-  public getPicklistValues(fieldName: string): string[] {
-    const field = this.fieldMap[fieldName.toLowerCase()];
-    return field ? field.picklistValues : [];
-  }
+export const getType = (fields: FieldMap | undefined, fieldName: string): SObjectFieldType =>
+  fieldFor(fields, fieldName)?.type ?? SObjectFieldType.AnyType;
 
-  public getNillable(fieldName: string): boolean {
-    const field = this.fieldMap[fieldName.toLowerCase()];
-    if (field) {
-      return field.nillable;
-    }
-    return undefined;
-  }
-}
+export const getPicklistValues = (fields: FieldMap | undefined, fieldName: string): string[] =>
+  fieldFor(fields, fieldName)?.picklistValues ?? [];
+
+export const getNillable = (fields: FieldMap | undefined, fieldName: string): boolean | undefined =>
+  fieldFor(fields, fieldName)?.nillable;
