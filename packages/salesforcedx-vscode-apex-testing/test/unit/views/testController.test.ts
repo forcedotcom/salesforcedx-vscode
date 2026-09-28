@@ -1068,8 +1068,8 @@ describe('ApexTestController', () => {
 
       await controller.incrementalUpdate(changes, true);
 
-      // Suite parent deleted from controller and suiteItems Ref cleared (populateSuiteItems re-adds nothing
-      // because retrieveAllSuites returns [] from the mock).
+      // Suite parent deleted from controller and suiteItems Ref cleared (retrieveAllSuites returns []
+      // from the mock, so the parent is not re-added).
       expect(mockTestController.items.delete).toHaveBeenCalledWith('apex-test-suites-parent');
     });
 

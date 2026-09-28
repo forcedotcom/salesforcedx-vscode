@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// populateSuiteItems now builds `new TestService(connection)` in-body (connection from
+// retrieveSuites builds `new TestService(connection)` in-body (connection from
 // ConnectionService.getConnection). Mock the constructor to return a controllable instance (default: no
-// suites). retrieveAllSuites failures are recovered inside populateSuiteItems.
+// suites). retrieveAllSuites failures are recovered inside retrieveSuites.
 let activeTestService: unknown = { retrieveAllSuites: () => Promise.resolve([]) };
 vi.mock('@salesforce/apex-node', async () => ({
   ...(await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')),
@@ -294,6 +294,65 @@ describe('ApexTestTreeService', () => {
       expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     });
 
+    it('writes the suite parent before discoverTests resolves and keeps it when discovery fails', async () => {
+      const suitesStarted = await Effect.runPromise(Deferred.make<void>());
+      const discoveryStarted = await Effect.runPromise(Deferred.make<void>());
+      const releaseSuites = await Effect.runPromise(Deferred.make<void>());
+      const releaseDiscovery = await Effect.runPromise(Deferred.make<void>());
+      const parentAdded = Promise.withResolvers<void>();
+      const topItems = new Map<string, vscode.TestItem>();
+      const clearTree = jest.fn();
+      const ctx = makeContext({
+        clearTree,
+        controller: {
+          items: {
+            add: (item: vscode.TestItem) => {
+              topItems.set(item.id, item);
+              parentAdded.resolve();
+            },
+            replace: jest.fn()
+          },
+          createTestItem: (id: string, label: string) => richTestItem(id, label),
+          invalidateTestResults: jest.fn()
+        } as unknown as vscode.TestController
+      });
+      activeTestService = {
+        retrieveAllSuites: () =>
+          Effect.runPromise(
+            Deferred.succeed(suitesStarted, undefined).pipe(
+              Effect.zipRight(Deferred.await(discoveryStarted)),
+              Effect.zipRight(Deferred.await(releaseSuites)),
+              Effect.as([{ id: '1', TestSuiteName: 'MySuite' }])
+            )
+          )
+      };
+      mockDiscoverTests.mockReturnValue(
+        Deferred.succeed(discoveryStarted, undefined).pipe(
+          Effect.zipRight(Deferred.await(suitesStarted)),
+          Effect.zipRight(Deferred.await(releaseDiscovery)),
+          Effect.flatMap(() => Effect.fail(new Error('discovery failed')))
+        )
+      );
+
+      await run(
+        Effect.gen(function* () {
+          const discovery = yield* Effect.fork(ApexTestTreeService.discover(ctx));
+          yield* Effect.yieldNow();
+          yield* Deferred.await(suitesStarted);
+          yield* Deferred.await(discoveryStarted);
+          expect(clearTree).toHaveBeenCalledTimes(1);
+          yield* Deferred.succeed(releaseSuites, undefined);
+          yield* Effect.promise(() => parentAdded.promise);
+          expect(topItems.has('apex-test-suites-parent')).toBe(true);
+          yield* Deferred.succeed(releaseDiscovery, undefined);
+          yield* discovery.await;
+        })
+      );
+
+      expect(topItems.has('apex-test-suites-parent')).toBe(true);
+      expect(vscode.window.showErrorMessage).toHaveBeenCalled();
+    });
+
     it('shows a warning (not error) when discovery fails with the partial-discovery message', async () => {
       // toUserFriendlyApexTestError maps a 431 message to apex_test_discovery_partial_warning.
       getConnectionImpl = () => Effect.fail(new Error('431 Request Header Fields Too Large'));
@@ -424,6 +483,8 @@ describe('ApexTestTreeService', () => {
 
     it('adds a newly-created class under its namespace/package node', async () => {
       withTooling();
+      const retrieveAllSuites = jest.fn(() => Promise.resolve([]));
+      activeTestService = { retrieveAllSuites };
       const { ctx, topItems } = makeMutationContext();
       mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('NewClass', ['t1'])] }));
 
@@ -436,6 +497,7 @@ describe('ApexTestTreeService', () => {
       );
       // A namespace node was created under controller.items for the added class.
       expect(topItems.size).toBeGreaterThan(0);
+      expect(retrieveAllSuites).not.toHaveBeenCalled();
     });
 
     it('replaces an org-only class when download creates its local source', async () => {
@@ -610,7 +672,7 @@ describe('ApexTestTreeService', () => {
     });
 
     it('removes the suite parent and clears state when includesSuiteChange is true', async () => {
-      // Default activeTestService returns no suites, so populateSuiteItems re-adds nothing.
+      // Default activeTestService returns no suites, so the suite parent is not re-added.
       const { ctx, topItems } = makeMutationContext();
       const suiteParent = richTestItem('apex-test-suites-parent', 'Apex Test Suites');
       const suiteItem = richTestItem('suite:MySuite', 'MySuite');
@@ -629,6 +691,77 @@ describe('ApexTestTreeService', () => {
           expect(updatedSuiteItems.size).toBe(0);
         })
       );
+      expect(mockDiscoverTests).not.toHaveBeenCalled();
+    });
+
+    it('overlaps retrieveAllSuites and discoverTests when a class change and a suite change are both present', async () => {
+      withTooling();
+      const suitesStarted = await Effect.runPromise(Deferred.make<void>());
+      const discoveryStarted = await Effect.runPromise(Deferred.make<void>());
+      const releaseSuites = await Effect.runPromise(Deferred.make<void>());
+      const releaseDiscovery = await Effect.runPromise(Deferred.make<void>());
+      const { ctx, topItems } = makeMutationContext();
+      const added: string[] = [];
+      const add = ctx.controller.items.add.bind(ctx.controller.items);
+      ctx.controller.items.add = (item: vscode.TestItem) => {
+        added.push(item.id);
+        add(item);
+      };
+      activeTestService = {
+        retrieveAllSuites: () =>
+          Effect.runPromise(
+            Deferred.succeed(suitesStarted, undefined).pipe(
+              Effect.zipRight(Deferred.await(discoveryStarted)),
+              Effect.zipRight(Deferred.await(releaseSuites)),
+              Effect.as([{ id: '1', TestSuiteName: 'MySuite' }])
+            )
+          )
+      };
+      mockDiscoverTests.mockReturnValue(
+        Deferred.succeed(discoveryStarted, undefined).pipe(
+          Effect.zipRight(Deferred.await(suitesStarted)),
+          Effect.zipRight(Deferred.await(releaseDiscovery)),
+          Effect.as({ classes: [toolingClass('NewClass', ['t1'])] })
+        )
+      );
+
+      await run(
+        Effect.gen(function* () {
+          const update = yield* Effect.fork(
+            ApexTestTreeService.incrementalUpdate(ctx, new Map([['NewClass', 'created']]), true)
+          );
+          yield* Effect.yieldNow();
+          yield* Deferred.await(suitesStarted);
+          yield* Deferred.await(discoveryStarted);
+          yield* Deferred.succeed(releaseSuites, undefined);
+          yield* Deferred.succeed(releaseDiscovery, undefined);
+          yield* update.await;
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          expect(classItems.has('NewClass')).toBe(true);
+        })
+      );
+
+      const suiteIndex = added.indexOf('apex-test-suites-parent');
+      expect(suiteIndex).toBeGreaterThan(0);
+      expect(topItems.has('apex-test-suites-parent')).toBe(true);
+    });
+
+    it('keeps the suite parent when discoverTests fails and a suite change is included', async () => {
+      const { ctx, topItems } = makeMutationContext();
+      const suiteParent = richTestItem('apex-test-suites-parent', 'Apex Test Suites');
+      topItems.set('apex-test-suites-parent', suiteParent);
+      mockDiscoverTests.mockReturnValue(Effect.fail(new Error('discovery failed')));
+      activeTestService = {
+        retrieveAllSuites: () => Promise.resolve([{ id: '1', TestSuiteName: 'MySuite' }])
+      };
+
+      await run(
+        Effect.gen(function* () {
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['NewClass', 'created']]), true);
+        })
+      );
+
+      expect(topItems.get('apex-test-suites-parent')).toBe(suiteParent);
     });
   });
 
