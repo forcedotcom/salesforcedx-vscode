@@ -81,6 +81,7 @@ const mockGetValue = vi.fn((_section: string, key: string, defaultValue: unknown
 );
 const mockSettingsService = {
   getValue: mockGetValue,
+  getValueOrElse: mockGetValue,
   setValue: vi.fn(() => Effect.void)
 };
 

@@ -10,7 +10,6 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
@@ -26,7 +25,6 @@ describe('Telemetry', () => {
 
   beforeEach(() => {
     mShowInformation = vi.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
-    vi.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     vi.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
     vi.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
       cliId: 'cli',

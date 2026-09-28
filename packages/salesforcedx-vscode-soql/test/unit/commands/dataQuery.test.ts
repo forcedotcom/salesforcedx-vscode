@@ -30,6 +30,7 @@ import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/chan
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
 import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
+import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
@@ -54,6 +55,11 @@ const notificationMode = {
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
+
+const settingsService = SettingsService.make({
+  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
+  getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
+} as never);
 
 describe('DataQuery Pure Functions', () => {
   describe('formatFieldValueForDisplay', () => {
@@ -745,7 +751,8 @@ describe('DataQuery Pure Functions', () => {
             ConnectionService: { getConnection: () => Effect.succeed(connection) },
             ChannelService: Effect.succeed(mockChannel),
             PromptService: Effect.succeed(mockPromptService),
-            NotificationModeService
+            NotificationModeService,
+            SettingsService
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
@@ -765,7 +772,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provideService(NotificationModeService, notificationMode)
+          Effect.provideService(NotificationModeService, notificationMode),
+          Effect.provideService(SettingsService, settingsService)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: true }));
@@ -779,7 +787,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provideService(NotificationModeService, notificationMode)
+          Effect.provideService(NotificationModeService, notificationMode),
+          Effect.provideService(SettingsService, settingsService)
         )
       );
       expect(toolingQuery).toHaveBeenCalledWith('SELECT Id FROM ApexClass', expect.objectContaining({ scanAll: true }));
@@ -793,7 +802,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provideService(NotificationModeService, notificationMode)
+          Effect.provideService(NotificationModeService, notificationMode),
+          Effect.provideService(SettingsService, settingsService)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: false }));
@@ -944,7 +954,7 @@ describe('DataQuery Pure Functions', () => {
 
   describe('Edge Cases and Error Handling', () => {
     it('should handle circular references in objects', () => {
-      const obj: any = { Name: 'Test' };
+      const obj: { Name: string; circular?: unknown } = { Name: 'Test' };
       obj.circular = obj; // Create circular reference
 
       // Should not crash, should convert to string representation
@@ -1007,7 +1017,9 @@ describe('DataQuery Pure Functions', () => {
         appendToChannel,
         clearChannel: Effect.void,
         getChannel: Effect.succeed({ show }),
-        showChannel: Effect.sync(() => show())
+        showChannel: Effect.sync(() => {
+          show();
+        })
       };
       const provider = {
         getServicesApi: Effect.succeed({
@@ -1017,7 +1029,8 @@ describe('DataQuery Pure Functions', () => {
             WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
             FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
             PromptService: Effect.succeed(noopPromptService),
-            NotificationModeService
+            NotificationModeService,
+            SettingsService
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
@@ -1034,7 +1047,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(FsService, {} as unknown as FsService),
           Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
           Effect.provideService(PromptService, noopPromptService),
-          Effect.provideService(NotificationModeService, notificationMode)
+          Effect.provideService(NotificationModeService, notificationMode),
+          Effect.provideService(SettingsService, settingsService)
         )
       ).then(() => ({ show, appendToChannel }));
     };

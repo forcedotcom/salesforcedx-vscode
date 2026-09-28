@@ -121,7 +121,7 @@ export default [
     }
   },
   {
-    files: ['**/*.{ts,mts}'],
+    files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -183,6 +183,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
@@ -883,6 +884,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
+    files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
@@ -895,7 +906,12 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -999,7 +1015,7 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts'],
     rules: {
       'no-restricted-imports': 'off'
     }
@@ -1089,12 +1105,34 @@ export default [
     }
   },
   {
-    // Register eslint-plugin-playwright for the e2e specs but enable NO rules yet.
-    // Individual playwright/* rules are turned on (and their violations fixed) in
-    // separate follow-up WIs, one rule at a time.
+    // Register eslint-plugin-playwright for the e2e specs. Individual playwright/*
+    // rules are turned on (and their violations fixed) one rule at a time.
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
-    rules: {}
+    rules: {
+      'playwright/no-force-option': 'error',
+      // Helpers that assert or throw outside test() and do not match the prefix pattern.
+      'playwright/expect-expect': [
+        'error',
+        {
+          assertFunctionPatterns: ['^(assert|expect|verify)'],
+          assertFunctionNames: [
+            'continueDebugSession',
+            'createAuraTemplate',
+            'createVisualforceTemplate',
+            'runRefreshAndVerify',
+            'upsertSettings',
+            'waitForEsrFile',
+            'waitForItem',
+            'waitForJestResults',
+            'waitForLwcLspReady',
+            'waitForNotification',
+            'waitForOutputChannelText',
+            'waitForTab'
+          ]
+        }
+      ]
+    }
   },
   {
     files: ['**/vitest*.config.mts'],

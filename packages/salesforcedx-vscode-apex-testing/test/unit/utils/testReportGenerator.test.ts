@@ -63,6 +63,10 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       // Default thresholds: testPerformanceThresholdMs=5000, testCoverageThresholdPercent=75.
       Effect.succeed(
         key === 'testPerformanceThresholdMs' ? 5000 : key === 'testCoverageThresholdPercent' ? 75 : defaultValue
+      ),
+    getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
+      Effect.succeed(
+        key === 'testPerformanceThresholdMs' ? 5000 : key === 'testCoverageThresholdPercent' ? 75 : defaultValue
       )
   };
 

@@ -99,7 +99,7 @@ Playwright desktop tests live in `packages/salesforcedx-vscode-apex-oas/test/pla
 
 Set content directly instead:
 
-- type via `page.keyboard.type(text)` (after Select All + Delete), or
+- type via `page.keyboard.type(text)` after `focusMonacoInput` + Select All + Delete ([editor selection](references/coding-playwright-tests.md#commands-with-editor-selection)), or
 - write the file on disk (desktop fs / web memfs), or
 - set the editor model value through a VS Code command.
 

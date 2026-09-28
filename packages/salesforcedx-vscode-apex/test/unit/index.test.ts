@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MockInstance as VitestMockInstance } from 'vitest';
+import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -28,7 +28,10 @@ vi.mock('../../src/services/extensionProvider', () => ({
 }));
 
 vi.mock('../../src/services/runtime', () => ({
-  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) }),
+  getRuntime: () => ({
+    runPromise: (eff: import('effect/Effect').Effect<unknown, unknown, never>) =>
+      (require('effect/Effect') as typeof import('effect/Effect')).runPromise(eff)
+  }),
   disposeRuntime: () => Promise.resolve()
 }));
 
@@ -43,19 +46,20 @@ import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 describe('index tests', () => {
   describe('indexDoneHandler', () => {
     let setStatusSpy: VitestMockInstance;
-    let onNotificationSpy: VitestMockInstance;
-    let mockLanguageClient: any;
+    let mockLanguageClient: {
+      onNotification: VitestMock<(method: string, callback: () => void) => void>;
+      errorHandler: { serviceHasStartedSuccessfully: VitestMock };
+    };
     let languageServerStatusBarItem: ApexLSPStatusBarItem;
 
     beforeEach(() => {
       setStatusSpy = vi.spyOn(languageClientManager, 'setStatus');
       mockLanguageClient = {
-        onNotification: vi.fn(),
+        onNotification: vi.fn<(method: string, callback: () => void) => void>(),
         errorHandler: {
           serviceHasStartedSuccessfully: vi.fn()
         }
       };
-      onNotificationSpy = vi.spyOn(mockLanguageClient, 'onNotification');
       languageServerStatusBarItem = new ApexLSPStatusBarItem();
     });
 
@@ -64,14 +68,18 @@ describe('index tests', () => {
     });
 
     it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
-      await languageClientManager.indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(
+        false,
+        mockLanguageClient as unknown as ApexLanguageClient,
+        languageServerStatusBarItem
+      );
 
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Indexing, '');
-      expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
+      expect(mockLanguageClient.onNotification).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
 
       // Simulate the notification callback
-      const mockCallback = onNotificationSpy.mock.calls[0][1];
-      await mockCallback();
+      const mockCallback = mockLanguageClient.onNotification.mock.calls[0]?.[1];
+      await mockCallback?.();
 
       expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
@@ -79,10 +87,14 @@ describe('index tests', () => {
     });
 
     it('should call setClientReady when enableSyncInitJobs is true', async () => {
-      await languageClientManager.indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
+      await languageClientManager.indexerDoneHandler(
+        true,
+        mockLanguageClient as unknown as ApexLanguageClient,
+        languageServerStatusBarItem
+      );
 
       expect(setStatusSpy).not.toHaveBeenCalledWith(ClientStatus.Indexing, '');
-      expect(onNotificationSpy).not.toHaveBeenCalled();
+      expect(mockLanguageClient.onNotification).not.toHaveBeenCalled();
       expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
       expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();

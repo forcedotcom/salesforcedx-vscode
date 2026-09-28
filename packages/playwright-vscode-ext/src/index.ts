@@ -51,6 +51,8 @@ export {
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
+export { focusMonacoInput } from './utils/focusMonacoInput';
+
 export { readJsonlFiles, parseJsonlLines } from './utils/jsonl';
 
 export {

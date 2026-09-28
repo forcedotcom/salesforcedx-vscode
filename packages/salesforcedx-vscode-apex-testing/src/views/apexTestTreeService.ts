@@ -521,8 +521,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     const restoreResultsBody = Effect.fn('ApexTestTreeService.restoreResultsBody')(function* (ctx: DiscoveryContext) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const settings = yield* api.services.SettingsService;
-      const restorePrevious =
-        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true)) ?? true;
+      const restorePrevious = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'restore-previous-results', true);
       if (!restorePrevious) {
         return;
       }

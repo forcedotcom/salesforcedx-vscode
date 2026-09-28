@@ -31,7 +31,9 @@ export const clickOrgPickerStatusBar = async (
   opts?: { timeout?: number }
 ): Promise<void> => {
   const item = orgPickerStatusBarItem(page, currentText);
-  await item.click({ force: true, timeout: opts?.timeout ?? 10_000 });
+  await expect(item).toBeVisible({ timeout: opts?.timeout ?? 10_000 });
+  await expect(item).toBeEnabled({ timeout: opts?.timeout ?? 10_000 });
+  await item.click({ timeout: opts?.timeout ?? 10_000 });
 };
 
 /**

@@ -8,6 +8,7 @@
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
@@ -16,6 +17,7 @@ import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
+import { getRuntime } from '../../../src/services/runtime';
 import { retrieveEnableSyncInitJobs } from '../../../src/settings';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
 
@@ -29,6 +31,7 @@ const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
     value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
 };
+const mockGetSetting = vi.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
 
 const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   const hit = mockRecordedSpans.find(s => s.name === name);
@@ -39,7 +42,10 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 // on the calling stack (runSync) rather than detaching a fiber.
 vi.mock('../../../src/services/runtime', async () => {
   const { createRecordingRuntimeMock } = await import('../testUtils/recordingTracer.js');
-  return createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true });
+  return createRecordingRuntimeMock(() => mockRecordedSpans, {
+    forkSync: true,
+    settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
+  });
 });
 
 // Mock ApexLSPStatusBarItem class
@@ -57,7 +63,8 @@ vi.mock('../../../src/languageServer', () => ({
   createLanguageServer: vi.fn()
 }));
 
-vi.mock('../../../src/settings', () => ({
+vi.mock('../../../src/settings', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../../src/settings')>()),
   retrieveEnableSyncInitJobs: vi.fn()
 }));
 
@@ -165,6 +172,7 @@ describe('Language Client Manager', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       mockRecordedSpans.length = 0;
+      mockGetSetting.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
       const errorHandler = {
         addListener: vi.fn(),
         serviceHasStartedSuccessfully: vi.fn()
@@ -180,7 +188,7 @@ describe('Language Client Manager', () => {
         error: vi.fn()
       } as unknown as ApexLSPStatusBarItem;
       (createLanguageServer as unknown as VitestMock).mockReturnValue(Effect.succeed(mockClient));
-      (retrieveEnableSyncInitJobs as VitestMock).mockReturnValue(true);
+      (retrieveEnableSyncInitJobs as VitestMock).mockReturnValue(Effect.succeed(true));
       languageClientManager.setClientInstance(undefined);
       languageClientManager.setStatus(ClientStatus.Unavailable, '');
     });
@@ -200,7 +208,7 @@ describe('Language Client Manager', () => {
     it('reports a typed client start failure through existing status UI', async () => {
       (mockClient.start as VitestMock).mockRejectedValue(new Error('start failed'));
 
-      await Effect.runPromise(languageClientManager.activateLanguageClient(mockContext, mockStatusBar));
+      await getRuntime().runPromise(languageClientManager.activateLanguageClient(mockContext, mockStatusBar));
 
       expect(languageClientManager.getStatus().failedToInitialize()).toBe(true);
       expect(languageClientManager.getStatus().getStatusMessage()).toBe('start failed');
@@ -225,6 +233,7 @@ describe('Language Client Manager', () => {
       vi.clearAllMocks();
       vi.clearAllTimers();
       mockRecordedSpans.length = 0;
+      mockGetSetting.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
 
       // Setup setTimeout spy
       setTimeoutSpy = vi.spyOn(global, 'setTimeout');
@@ -254,6 +263,7 @@ describe('Language Client Manager', () => {
         exports: {
           services: {
             PromptService: Effect.succeed(promptService),
+            SettingsService,
             WorkspaceService: {
               getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
             }
@@ -348,6 +358,7 @@ describe('Language Client Manager', () => {
         exports: {
           services: {
             PromptService: Effect.succeed(promptService),
+            SettingsService,
             WorkspaceService: {
               getWorkspaceInfo: () =>
                 Effect.succeed({
@@ -387,7 +398,7 @@ describe('Language Client Manager', () => {
 
       // Only the NNN tools dirs are deleted (behavior preserved).
       expect(safeDelete).toHaveBeenCalledTimes(2);
-      const deletedPaths = safeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
+      const deletedPaths = safeDelete.mock.calls.map(([uri]: [URI]) => uri.path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
       // Fast-forward timers and wait for promises to resolve
@@ -406,11 +417,17 @@ describe('Language Client Manager', () => {
       });
 
       // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
+      const settingsApi = {
+        isActive: true,
+        exports: { services: { SettingsService } }
+      };
+      const promptApi = {
+        isActive: true,
+        exports: { services: { PromptService: Effect.succeed(promptService) } }
+      };
       (vscode.extensions.getExtension as VitestMock)
-        .mockReturnValueOnce({
-          isActive: true,
-          exports: { services: { PromptService: Effect.succeed(promptService) } }
-        })
+        .mockReturnValueOnce(settingsApi)
+        .mockReturnValueOnce(promptApi)
         .mockReturnValue(undefined);
 
       // Mock createLanguageClient to resolve immediately
@@ -506,11 +523,7 @@ describe('Language Client Manager', () => {
       });
 
       it('should use restart behavior when configured', async () => {
-        // Mock getConfiguration to return 'restart' behavior
-        const mockGetConfiguration = vi.fn().mockReturnValue({
-          get: vi.fn().mockReturnValue('restart')
-        });
-        (vscode.workspace.getConfiguration as VitestMock) = mockGetConfiguration;
+        mockGetSetting.mockReturnValue(Effect.succeed('restart'));
 
         // Mock createLanguageClient to resolve immediately
         vi.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
@@ -531,11 +544,7 @@ describe('Language Client Manager', () => {
       });
 
       it('should use reset behavior when configured', async () => {
-        // Mock getConfiguration to return 'reset' behavior
-        const mockGetConfiguration = vi.fn().mockReturnValue({
-          get: vi.fn().mockReturnValue('reset')
-        });
-        (vscode.workspace.getConfiguration as VitestMock) = mockGetConfiguration;
+        mockGetSetting.mockReturnValue(Effect.succeed('reset'));
 
         // Mock showQuickPick to return the reset option
         (vscode.window.showQuickPick as VitestMock).mockResolvedValueOnce({

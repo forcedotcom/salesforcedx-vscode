@@ -15,6 +15,7 @@ import * as Either from 'effect/Either';
 import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
 import * as Hash from 'effect/Hash';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
@@ -487,13 +488,18 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const orgIdChanged = previousOrgId !== orgId;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
-      orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId)
-        ? orgId
-          ? getUserFromUserSobject(orgId, conn).pipe(
-              Effect.map(identity => identity ?? { username: undefined, userId: undefined })
-            )
-          : Effect.succeed({ username: undefined, userId: undefined })
-        : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
+      Match.value({
+        refresh: orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId),
+        orgId
+      }).pipe(
+        Match.when({ refresh: true, orgId: Match.defined }, ({ orgId: id }) =>
+          getUserFromUserSobject(id, conn).pipe(
+            Effect.map(identity => identity ?? { username: undefined, userId: undefined })
+          )
+        ),
+        Match.when({ refresh: true }, () => Effect.succeed({ username: undefined, userId: undefined })),
+        Match.orElse(() => Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }))
+      ),
       existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
       existingOrgInfo.cliId
         ? Effect.succeed(existingOrgInfo.cliId)
