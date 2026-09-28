@@ -12,6 +12,7 @@ import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
+import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
@@ -59,6 +60,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-runtime-vscode-import': noRuntimeVscodeImport,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
+    'no-effect-service-promise-return': noEffectServicePromiseReturn,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
     'no-nested-effect-ternary': noNestedEffectTernary,

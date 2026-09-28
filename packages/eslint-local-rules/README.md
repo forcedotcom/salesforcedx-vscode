@@ -101,6 +101,38 @@ const effect = Match.value(kind).pipe(
 
 This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
 
+### no-effect-service-promise-return
+
+Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.
+
+The rule is type-aware. It reports when a method on that returned object has a call signature whose return type is `Promise` (including a union or intersection that contains `Promise`).
+
+**Bad:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = async (id: string): Promise<string> => id;
+    return { findById };
+  })
+}) {}
+```
+
+**Good:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = Effect.fn('UserService.findById')(function* (id: string) {
+      return id;
+    });
+    return { findById };
+  })
+}) {}
+```
+
+This monorepo enables the rule as `error` in `eslint.config.mjs`, in the same two blocks as `local/no-effect-service-accessor-calls`: the Effect-services files list, and the apex / soql / soql-common / soql-model files list.
+
 ### notification-slot-matches-package-json
 
 Enforces that `SuccessOnlyCommandKey` and `ProgressOnlyCommandKey` type alias literals in notificationMode.ts files match their slot's enum shape defined in package.json commandLevelNotifications. The rule validates that:
