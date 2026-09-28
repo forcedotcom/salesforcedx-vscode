@@ -24,7 +24,7 @@ import {
   splitMultiInputValues,
   UiOperatorValue
 } from '@salesforce/soql-model';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { fieldMap, getNillable, getPicklistValues, getType, type FieldMap } from '../services/sobjectUtils';
 import {
@@ -55,7 +55,7 @@ export default class WhereModifierGroup extends LightningElement {
   public selectPlaceHolderText = messages.placeholder_search_fields;
   public _allModifiersHaveValue = false;
   public _sobjectMetadata: any;
-  public _condition: JsonMap;
+  public _condition: JsonObject;
   public _currentOperatorValue: UiOperatorValue | undefined;
   public handleSelectionEvent: () => void;
 
@@ -77,12 +77,12 @@ export default class WhereModifierGroup extends LightningElement {
   }
 
   @api
-  public get condition(): JsonMap {
+  public get condition(): JsonObject {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this._condition;
   }
 
-  public set condition(condition: JsonMap) {
+  public set condition(condition: JsonObject) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this._condition = condition;
     this._criteriaDisplayValue = '';

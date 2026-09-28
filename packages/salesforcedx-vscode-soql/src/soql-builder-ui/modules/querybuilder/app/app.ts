@@ -7,7 +7,7 @@
  */
 
 import { LightningElement, api, track } from 'lwc';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { messages } from 'querybuilder/messages';
@@ -242,7 +242,7 @@ export default class App extends LightningElement {
   }
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access*/
-  public inspectUnsupported(unsupported: JsonMap[]): any {
+  public inspectUnsupported(unsupported: JsonObject[]): any {
     const filteredUnsupported = unsupported
       // this reason is often associated with a parse error, so snuffing it out instead of double notifications
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -21,4 +21,4 @@ const Json: Schema.Schema<Json> = Schema.suspend(() =>
 );
 
 /** Index includes `undefined` so it accepts the streaming client's message object. */
-export type JsonMap = { readonly [key: string]: Schema.Schema.Type<typeof Json> | undefined };
+export type JsonObject = { readonly [key: string]: Schema.Schema.Type<typeof Json> | undefined };

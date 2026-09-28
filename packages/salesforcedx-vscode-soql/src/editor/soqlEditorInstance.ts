@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '../json';
+import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
@@ -99,7 +99,7 @@ type SoqlEditorEvent =
 const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* (
   document: vscode.TextDocument,
   maxRows: number | undefined,
-  openQueryDataView: (data: QueryResult<JsonMap>) => Promise<void>,
+  openQueryDataView: (data: QueryResult<JsonObject>) => Promise<void>,
   runQueryDone: () => Effect.Effect<void>
 ) {
   const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
@@ -270,7 +270,7 @@ export class SOQLEditorInstance {
       }
 
       case 'run_query': {
-        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
+        const openQueryDataView = (data: QueryResult<JsonObject>) => this.openQueryDataView(data);
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
         return Effect.promise(() =>
@@ -344,7 +344,7 @@ export class SOQLEditorInstance {
     ).pipe(Effect.asVoid);
   }
 
-  protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {
+  protected async openQueryDataView(queryData: QueryResult<JsonObject>): Promise<void> {
     const webview = new QueryDataView(this.subscriptions, queryData, this.document);
     await webview.createOrShowWebView();
   }

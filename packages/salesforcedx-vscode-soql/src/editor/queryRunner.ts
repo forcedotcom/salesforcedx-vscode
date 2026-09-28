@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '../json';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { JsonObject } from '../json';
 import { nls } from '../messages';
-import { SoqlRecord } from '../soqlRecord';
 import { stripAllRows } from './allRows';
 
 export const runQuery = Effect.fn('runQuery')(function* (
@@ -28,11 +27,11 @@ export const runQuery = Effect.fn('runQuery')(function* (
           ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText),
           maxFetch: options?.maxRows ?? 50_000
         },
-        SoqlRecord
+        JsonObject
       )
     ),
     Effect.map(
-      (raw): QueryResult<JsonMap> => ({
+      (raw): QueryResult<JsonObject> => ({
         done: true,
         totalSize: raw.totalSize,
         records: flattenQueryRecords(raw.records)
@@ -50,6 +49,6 @@ export const runQuery = Effect.fn('runQuery')(function* (
   we will need to flatten the results of nested values
   in order to be parsed and displayed correctly
  */
-const flattenQueryRecords = (rawQueryRecords: readonly JsonMap[]) =>
+const flattenQueryRecords = (rawQueryRecords: readonly JsonObject[]) =>
   // filter out the attributes key
   rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);

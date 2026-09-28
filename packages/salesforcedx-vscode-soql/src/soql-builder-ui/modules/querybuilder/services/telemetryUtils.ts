@@ -1,7 +1,7 @@
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { ToolingModelJson } from './model';
 
-export type TelemetryModelJson = JsonMap & {
+export type TelemetryModelJson = JsonObject & {
   sObject: string;
   fields: number;
   orderBy: number;

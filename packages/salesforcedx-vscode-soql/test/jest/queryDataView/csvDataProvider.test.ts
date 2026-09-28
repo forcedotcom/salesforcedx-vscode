@@ -6,12 +6,12 @@
  */
 import { convertToCSV } from '../../../src/commands/dataQuery';
 import { CsvDataProvider } from '../../../src/queryDataView/dataProviders/csvDataProvider';
-import type { JsonMap } from '../../../src/json';
+import type { JsonObject } from '../../../src/json';
 
 describe('CsvDataProvider', () => {
   it('delegates CSV export to convertToCSV', () => {
     const provider = new CsvDataProvider('q');
-    const csv = provider.getFileContent('SELECT Name FROM X', [{ Name: 'A' }, { Name: 'B' }] satisfies JsonMap[]);
+    const csv = provider.getFileContent('SELECT Name FROM X', [{ Name: 'A' }, { Name: 'B' }] satisfies JsonObject[]);
     expect(csv).toBe('Name\nA\nB');
   });
 });

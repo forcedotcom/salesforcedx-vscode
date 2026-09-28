@@ -7,12 +7,12 @@
  */
 
 import { api, LightningElement, track } from 'lwc';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { messages } from 'querybuilder/messages';
 import { AndOr } from '@salesforce/soql-model';
 
 type ConditionTemplate = {
-  condition: JsonMap;
+  condition: JsonObject;
   index: number;
 }
 
@@ -25,7 +25,7 @@ export default class Where extends LightningElement {
   @api public whereFields: string[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @api public sobjectMetadata: any;
-  @track public _conditionsStore: JsonMap[] = [];
+  @track public _conditionsStore: JsonObject[] = [];
   public _andOr: AndOr = AndOr.And;
   public conditionTemplate: ConditionTemplate = {
     condition: {
@@ -35,11 +35,11 @@ export default class Where extends LightningElement {
   };
   public lastModifierGroupIsComplete = false;
 
-  @api public get whereExpr(): JsonMap {
+  @api public get whereExpr(): JsonObject {
     return { conditions: this._conditionsStore, andOr: this._andOr };
   }
 
-  public set whereExpr(where: JsonMap) {
+  public set whereExpr(where: JsonObject) {
     if (where.conditions && where.conditions.length) {
       this._conditionsStore = where.conditions;
     } else {

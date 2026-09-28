@@ -6,7 +6,7 @@
  *
  */
 import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
 export enum ModelProps {
@@ -21,16 +21,16 @@ export enum ModelProps {
 export const SELECT_COUNT = 'COUNT()';
 
 // Public interface for accessing modelService.query
-export type ToolingModelJson = JsonMap & {
+export type ToolingModelJson = JsonObject & {
   headerComments?: string;
   allRows: boolean;
   sObject: string;
   fields: string[];
-  orderBy: JsonMap[];
+  orderBy: JsonObject[];
   limit: string;
-  where: { conditions: JsonMap[]; andOr: AndOr | undefined };
-  errors: JsonMap[];
-  unsupported: JsonMap[];
+  where: { conditions: JsonObject[]; andOr: AndOr | undefined };
+  errors: JsonObject[];
+  unsupported: JsonObject[];
   originalSoqlStatement: string;
 }
 
@@ -38,7 +38,7 @@ export type OperatorOption = {
   value: UiOperatorValue;
   displayValue: string;
   modelValue: ConditionOperator;
-  predicate: (condition: JsonMap) => boolean;
+  predicate: (condition: JsonObject) => boolean;
 }
 
 export const operatorOptions: OperatorOption[] = [
@@ -46,67 +46,67 @@ export const operatorOptions: OperatorOption[] = [
     value: 'EQ',
     displayValue: '=',
     modelValue: ConditionOperator.Equals,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Equals
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.Equals
   },
   {
     value: 'NOT_EQ',
     displayValue: '≠',
     modelValue: ConditionOperator.NotEquals,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.NotEquals
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.NotEquals
   },
   {
     value: 'LT',
     displayValue: '<',
     modelValue: ConditionOperator.LessThan,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.LessThan
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.LessThan
   },
   {
     value: 'LT_EQ',
     displayValue: '≤',
     modelValue: ConditionOperator.LessThanOrEqual,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.LessThanOrEqual
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.LessThanOrEqual
   },
   {
     value: 'GT',
     displayValue: '>',
     modelValue: ConditionOperator.GreaterThan,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.GreaterThan
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.GreaterThan
   },
   {
     value: 'GT_EQ',
     displayValue: '≥',
     modelValue: ConditionOperator.GreaterThanOrEqual,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.GreaterThanOrEqual
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.GreaterThanOrEqual
   },
   {
     value: 'IN',
     displayValue: 'in',
     modelValue: ConditionOperator.In,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.In
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.In
   },
   {
     value: 'NOT_IN',
     displayValue: 'not in',
     modelValue: ConditionOperator.NotIn,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.NotIn
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.NotIn
   },
   {
     value: 'INCLUDES',
     displayValue: 'includes',
     modelValue: ConditionOperator.Includes,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Includes
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.Includes
   },
   {
     value: 'EXCLUDES',
     displayValue: 'excludes',
     modelValue: ConditionOperator.Excludes,
-    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Excludes
+    predicate: (condition: JsonObject): boolean => condition.operator === ConditionOperator.Excludes
   },
   {
     value: 'LIKE',
     displayValue: 'like',
     modelValue: ConditionOperator.Like,
-    predicate: (condition: JsonMap): boolean => {
+    predicate: (condition: JsonObject): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const value = (condition.compareValue as any)?.value;
       return (
@@ -119,7 +119,7 @@ export const operatorOptions: OperatorOption[] = [
     value: 'LIKE_START',
     displayValue: 'starts with',
     modelValue: ConditionOperator.Like,
-    predicate: (condition: JsonMap): boolean => {
+    predicate: (condition: JsonObject): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeStart(value);
@@ -129,7 +129,7 @@ export const operatorOptions: OperatorOption[] = [
     value: 'LIKE_END',
     displayValue: 'ends with',
     modelValue: ConditionOperator.Like,
-    predicate: (condition: JsonMap): boolean => {
+    predicate: (condition: JsonObject): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeEnds(value);
@@ -139,7 +139,7 @@ export const operatorOptions: OperatorOption[] = [
     value: 'LIKE_CONTAINS',
     displayValue: 'contains',
     modelValue: ConditionOperator.Like,
-    predicate: (condition: JsonMap): boolean => {
+    predicate: (condition: JsonObject): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const value = (condition.compareValue as any)?.value;
       return condition.operator === ConditionOperator.Like && isLikeContains(value);

@@ -7,12 +7,12 @@
  */
 
 import { LightningElement, api } from 'lwc';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { messages } from 'querybuilder/messages';
 
 export default class OrderBy extends LightningElement {
   @api public orderByFields: string[];
-  @api public selectedOrderByFields: JsonMap[] = [];
+  @api public selectedOrderByFields: JsonObject[] = [];
   @api public hasError = false; // currently not used, no specific order by errors
   @api public isLoading = false;
   public selectPlaceHolderText = messages.placeholder_search_fields;

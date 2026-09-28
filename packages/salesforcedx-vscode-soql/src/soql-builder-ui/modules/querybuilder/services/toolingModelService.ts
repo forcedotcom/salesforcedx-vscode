@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { AndOr } from '@salesforce/soql-model';
-import type { JsonMap } from '../../../../json';
+import type { JsonObject } from '../../../../json';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { MessageService } from './message/iMessageService';
 import { MessageType, type HostToUiSoqlEditorEvent } from './message/soqlEditorEvent';
@@ -105,9 +105,9 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
     /* ---- ORDER BY ---- */
 
     const hasOrderByField = (field: string): number =>
-      getModel().orderBy.findIndex(item => (item as JsonMap).field === field);
+      getModel().orderBy.findIndex(item => (item as JsonObject).field === field);
 
-    const addUpdateOrderByField = (orderByObj: JsonMap): void => {
+    const addUpdateOrderByField = (orderByObj: JsonObject): void => {
       const current = getModel().orderBy;
       const existingIndex = hasOrderByField(orderByObj.field as string);
       const updatedOrderBy = existingIndex > -1
@@ -117,25 +117,25 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
     };
 
     const removeOrderByField = (field: string): void => {
-      const filteredOrderBy = getModel().orderBy.filter(item => (item as JsonMap).field !== field);
+      const filteredOrderBy = getModel().orderBy.filter(item => (item as JsonObject).field !== field);
       changeModel({ ...getModel(), [ModelProps.ORDER_BY]: filteredOrderBy });
     };
 
     /* ---- WHERE ---- */
 
-    const getWhereConditions = (): JsonMap[] => getModel().where.conditions as JsonMap[];
+    const getWhereConditions = (): JsonObject[] => getModel().where.conditions as JsonObject[];
 
     const setAndOr = (andOr: AndOr): void => {
       changeModel({ ...getModel(), where: { ...getModel().where, [ModelProps.WHERE_AND_OR]: andOr } });
     };
 
-    const upsertWhereFieldExpr = (whereObj: JsonMap): void => {
+    const upsertWhereFieldExpr = (whereObj: JsonObject): void => {
       const { fieldCompareExpr, andOr } = whereObj;
       const conditions = getWhereConditions();
-      const existingIndex = conditions.findIndex(item => item.index === (fieldCompareExpr as JsonMap).index);
+      const existingIndex = conditions.findIndex(item => item.index === (fieldCompareExpr as JsonObject).index);
       const updatedConditions = existingIndex > -1
-        ? conditions.map((item, i) => i === existingIndex ? fieldCompareExpr as JsonMap : item)
-        : [...conditions, fieldCompareExpr as JsonMap];
+        ? conditions.map((item, i) => i === existingIndex ? fieldCompareExpr as JsonObject : item)
+        : [...conditions, fieldCompareExpr as JsonObject];
       changeModel({
         ...getModel(),
         where: {
@@ -145,7 +145,7 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       });
     };
 
-    const removeWhereFieldCondition = (fieldCompareExpr: JsonMap): void => {
+    const removeWhereFieldCondition = (fieldCompareExpr: JsonObject): void => {
       const filteredConditions = getWhereConditions().filter(
         item => item.index !== fieldCompareExpr.index
       );

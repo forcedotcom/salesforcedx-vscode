@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { JsonMap } from '../json';
+import type { JsonObject } from '../json';
 import { Connection, Logger, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
 import * as path from 'node:path';
@@ -125,7 +125,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  private streamingCallback(rawMessage: JsonMap): StatusResult {
+  private streamingCallback(rawMessage: JsonObject): StatusResult {
     const message = rawMessage as unknown as StreamingLogMessage;
     if (message.errorName === LISTENER_ABORTED_ERROR_NAME) {
       return { completed: true };

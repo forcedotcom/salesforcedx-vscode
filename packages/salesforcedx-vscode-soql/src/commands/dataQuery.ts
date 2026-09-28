@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { JsonMap } from '../json';
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
@@ -13,10 +12,10 @@ import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
 import { stripAllRows } from '../editor/allRows';
+import { JsonObject } from '../json';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { SoqlRecord } from '../soqlRecord';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
@@ -53,7 +52,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     queryService: api.services.QueryService
   }).pipe(
     Effect.flatMap(({ maxFetch, promptService, progressLocation, queryService }) =>
-      queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, SoqlRecord).pipe(
+      queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, JsonObject).pipe(
         Effect.map(result => ({
           done: true,
           totalSize: result.totalSize,
@@ -65,7 +64,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
   );
 });
 
-const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
+const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonObject>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
@@ -145,7 +144,7 @@ export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* (
 
 /** Shared flatten pipeline for output channel table, CSV, and Query Data View. */
 const buildFlattenedGridModel = (
-  records: QueryResult<JsonMap>['records']
+  records: QueryResult<JsonObject>['records']
 ): { flattenedFields: string[]; rows: Record<string, unknown>[] } | null => {
   const recs = records?.filter(isRecord) ?? [];
   if (recs.length === 0) {
@@ -161,7 +160,7 @@ const buildFlattenedGridModel = (
 
 /** Pre-flattened grid for SOQL Builder webview (string cells for Tabulator). */
 export const getFlattenedSoqlGridPayload = (
-  records: QueryResult<JsonMap>['records']
+  records: QueryResult<JsonObject>['records']
 ): { fields: string[]; rowData: Record<string, string>[] } | null => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
@@ -175,7 +174,7 @@ export const getFlattenedSoqlGridPayload = (
 };
 
 /** Generates table output from query records */
-export const generateTableOutput = (records: QueryResult<JsonMap>['records'], title: string): string => {
+export const generateTableOutput = (records: QueryResult<JsonObject>['records'], title: string): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -511,7 +510,7 @@ const fillParentColumnsForCsvChunk = (
 };
 
 /** Converts query records to CSV format (same row/column model as generateTableOutput). */
-export const convertToCSV = (records: QueryResult<JsonMap>['records']): string => {
+export const convertToCSV = (records: QueryResult<JsonObject>['records']): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -588,7 +587,7 @@ export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISP
 };
 
 /** Displays query results in table format */
-export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonMap>) {
+export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonObject>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -602,5 +601,5 @@ export const displayTableResults = Effect.fn('displayTableResults')(function* (q
 });
 
 /** Converts query result to CSV string */
-export const convertQueryResultToCSV = (queryResult: QueryResult<JsonMap>): string =>
+export const convertQueryResultToCSV = (queryResult: QueryResult<JsonObject>): string =>
   queryResult.records?.length ? convertToCSV(queryResult.records) : nls.localize('data_query_no_records');
