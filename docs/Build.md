@@ -117,7 +117,7 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 
 **vscode:package**
 
-**Good:** `vsce package --allow-package-all-secrets`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
+**Good:** `vsce package --allow-package-all-secrets --no-dependencies`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
 
 - downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 
