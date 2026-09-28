@@ -3,8 +3,8 @@ name: Doc-Only Auto-Merge
 # Squash-merges PRs that touch ONLY doc-glossary files to develop, no human review.
 # Doc-only globs: CONTEXT.md, CONTEXT-MAP.md, **/CONTEXT.md, docs/**/*.md,
 # **/docs/**/*.md, .claude/**/*.md (markdown only — NOT .claude/**/*.js).
-# Restricted to forcedotcom/ide-foundations members. Merges via svc-idee-bot
-# (IDEE_GH_TOKEN, repo admin). --admin bypasses branch protection: required
+# Authors: active forcedotcom/ide-foundations members, or svc-idee-bot.
+# Merges via svc-idee-bot (IDEE_GH_TOKEN, repo admin). --admin bypasses branch protection: required
 # workflows paths-ignore exactly the globs in `on.pull_request.paths` below, so
 # pr-validation, build-and-test, and code-quality do not run on an allowlist-only PR.
 
@@ -73,11 +73,16 @@ jobs:
           fi
           echo "match=true" >>"$GITHUB_OUTPUT"
 
-      - name: Gate — author in ide-foundations
+      - name: Gate — author in ide-foundations or svc-idee-bot
         id: author
         if: steps.doconly.outputs.match == 'true'
         run: |
           set -euo pipefail
+          if [ "$AUTHOR" = "svc-idee-bot" ]; then
+            echo "author ${AUTHOR} is the allowed bot — allow"
+            echo "ok=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
           state=$(gh api "orgs/forcedotcom/teams/ide-foundations/memberships/${AUTHOR}" -q '.state' 2>/dev/null || true)
           if [ "$state" != "active" ]; then
             echo "author ${AUTHOR} not an active ide-foundations member (state='${state}') — skip"
