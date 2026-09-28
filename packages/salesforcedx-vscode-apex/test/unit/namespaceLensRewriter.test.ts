@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { rewriteNamespaceLens } from '../../src/namespaceLensRewriter';
 
-jest.mock('../../src/services/runtime', () => ({
+vi.mock('../../src/services/runtime', () => ({
   getRuntime: () => ({ runFork: () => undefined })
 }));
 

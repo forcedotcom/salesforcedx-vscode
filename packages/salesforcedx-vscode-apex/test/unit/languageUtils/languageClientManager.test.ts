@@ -398,7 +398,7 @@ describe('Language Client Manager', () => {
 
       // Only the NNN tools dirs are deleted (behavior preserved).
       expect(safeDelete).toHaveBeenCalledTimes(2);
-      const deletedPaths = safeDelete.mock.calls.map(([uri]: [URI]) => uri.path).toSorted();
+      const deletedPaths = safeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
       // Fast-forward timers and wait for promises to resolve

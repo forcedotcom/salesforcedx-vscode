@@ -54,15 +54,15 @@ describe('SettingsService.getApiVersion', () => {
 });
 
 describe('SettingsService.getValue / getValueOrElse', () => {
-  const mockGet = jest.fn();
+  const mockGet = vi.fn();
   const provide = <A, E>(effect: Effect.Effect<A, E, SettingsService>) =>
     Effect.runPromise(effect.pipe(Effect.provide(SettingsService.Default)));
 
   beforeEach(() => {
     mockGet.mockReset();
-    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
       get: mockGet,
-      update: jest.fn()
+      update: vi.fn()
     } as unknown as vscode.WorkspaceConfiguration);
   });
 

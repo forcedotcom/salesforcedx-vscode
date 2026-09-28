@@ -7,6 +7,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
@@ -17,7 +18,6 @@ const { mockGetRestartBehavior } = vi.hoisted(() => ({ mockGetRestartBehavior: v
 vi.mock('../../../src/services/runtime', async () => {
   const effect = await import('effect/Effect');
   const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
-  const { SettingsService } = await import('salesforcedx-vscode-services/src/vscode/settingsService');
   const settingsService = {
     getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args),
     getValueOrElse: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
