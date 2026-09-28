@@ -420,9 +420,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       return Ref.get(suiteItems).pipe(
         Effect.flatMap(currentSuiteItems =>
           Effect.sync(() => {
-            const suiteParentId = 'apex-test-suites-parent';
             const suiteParentItem = ctx.controller.createTestItem(
-              suiteParentId,
+              'apex-test-suites-parent',
               nls.localize('apex_test_suites_parent_text'),
               undefined
             );
@@ -445,16 +444,18 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
     });
 
-    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(
-      (ctx: { controller: vscode.TestController; suiteTag: vscode.TestTag | undefined }) =>
-        retrieveSuites().pipe(Effect.flatMap(suites => writeSuiteItems(ctx, suites)))
-    );
-
     const clearSuiteParent = Effect.fn('ApexTestTreeService.clearSuiteParent')(
       (ctx: { controller: vscode.TestController }) =>
-        Effect.sync(() => {
-          ctx.controller.items.delete('apex-test-suites-parent');
-        }).pipe(Effect.zipRight(Ref.set(suiteItems, new Map())), Effect.zipRight(Ref.set(suiteToClasses, new Map())))
+        Effect.all(
+          [
+            Effect.sync(() => {
+              ctx.controller.items.delete('apex-test-suites-parent');
+            }),
+            Ref.set(suiteItems, new Map()),
+            Ref.set(suiteToClasses, new Map())
+          ],
+          { concurrency: 1, discard: true }
+        )
     );
 
     const resolveApexClasses = Effect.fn('ApexTestTreeService.resolveApexClasses')(function* (
@@ -736,9 +737,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         ],
         { concurrency: 'unbounded', mode: 'either' }
       ).pipe(
-        Effect.map(([suiteResult, discoveryResult]) => Either.flatMap(suiteResult, () => discoveryResult)),
-        Effect.flatMap(joined =>
-          Match.value(joined).pipe(
+        Effect.flatMap(([suiteResult, discoveryResult]) =>
+          Match.value(Either.flatMap(suiteResult, () => discoveryResult)).pipe(
             Match.tag('Left', ({ left }) => Effect.fail(left)),
             Match.tag('Right', ({ right }) =>
               right.classes.length > 0 ? populateTestItemsFromOrg(ctx, right.classes) : Effect.void
@@ -1147,7 +1147,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * Used when incrementalUpdate has a suite change and no non-delete class change.
      */
     const refreshSuiteItems = Effect.fn('ApexTestTreeService.refreshSuiteItems')((ctx: TreeMutationContext) =>
-      clearSuiteParent(ctx).pipe(Effect.zipRight(populateSuiteItems(ctx)))
+      clearSuiteParent(ctx).pipe(
+        Effect.zipRight(retrieveSuites()),
+        Effect.flatMap(suites => writeSuiteItems(ctx, suites))
+      )
     );
 
     /** Clear every suite item's children so they re-query from the org on next expand. */
@@ -1160,7 +1163,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     return {
       // isRestoringResults is exposed only as a test seam for the test-and-set guard; the other Refs
-      // and the discovery sub-steps (populateSuiteItems/populateTestItemsFromOrg) stay private so callers
+      // and the discovery sub-steps (retrieveSuites/writeSuiteItems/populateTestItemsFromOrg) stay private so callers
       // cannot bypass discover()'s single-shot dedup or mutate tree state directly.
       isRestoringResults,
       getMethodItems,
