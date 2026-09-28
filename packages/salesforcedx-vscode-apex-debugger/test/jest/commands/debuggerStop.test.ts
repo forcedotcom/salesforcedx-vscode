@@ -41,8 +41,10 @@ const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
     })
 });
 
+type ToolingQueryConn = { tooling: { query: (soql: string) => Promise<QueryResult> } };
+
 // Provide the real effectExtUtils.ExtensionProviderService tag with a mock services api.
-const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
+const providerLayer = (conn: ToolingQueryConn, isvSid?: string, isvUrl?: string) =>
   Layer.mergeAll(
     Layer.succeed(effectExtUtils.ExtensionProviderService, {
       getServicesApi: Effect.succeed({
@@ -59,10 +61,7 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
           }),
           NotificationModeService,
           QueryService: Effect.succeed({
-            query: (options: {
-              soql: string;
-              connection?: { tooling: { query: (soql: string) => Promise<QueryResult> } };
-            }) =>
+            query: (options: { soql: string; connection?: ToolingQueryConn }) =>
               Effect.tryPromise({
                 try: () => (options.connection ?? conn).tooling.query(options.soql),
                 catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
@@ -76,12 +75,12 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
 
 // providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
 // them to the effect's R channel; cast R away since the layer fully provides them.
-const run = (conn: unknown, isvSid?: string, isvUrl?: string) =>
+const run = (conn: ToolingQueryConn, isvSid?: string, isvUrl?: string) =>
   Effect.runPromise(
     debuggerStop().pipe(Effect.provide(providerLayer(conn, isvSid, isvUrl))) as Effect.Effect<void, unknown, never>
   );
 
-const runFlipped = (conn: unknown) =>
+const runFlipped = (conn: ToolingQueryConn) =>
   Effect.runPromise(
     debuggerStop().pipe(Effect.provide(providerLayer(conn)), Effect.flip) as Effect.Effect<unknown, never, never>
   );
