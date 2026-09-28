@@ -11,7 +11,9 @@ import { ExtensionProviderService, getMessageFromError } from '@salesforce/effec
 import * as Arr from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import * as HashSet from 'effect/HashSet';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -115,6 +117,8 @@ export type DiscoveryContext = {
 };
 
 const BATCH_SIZE = 50;
+
+type RetrievedSuites = Awaited<ReturnType<TestService['retrieveAllSuites']>>;
 
 const STALE = 'stale';
 const isStale = (item: vscode.TestItem): boolean => !!item.tags?.some(t => t.id === STALE);
@@ -381,53 +385,77 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     /**
-     * Populate the "Apex Test Suites" parent node and its suite children from the org (Tooling API).
-     * retrieveAllSuites failure is logged and recovered to "no suites" (the legacy behavior: log + return
-     * early), so a suites outage never fails the whole discovery run.
+     * Fetch Apex test suites from the org. retrieveAllSuites failure is logged and recovered to no
+     * suites, so a suites outage never fails the run. Connection failure stays a DiscoveryError.
      */
-    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: {
-      controller: vscode.TestController;
-      suiteTag: vscode.TestTag | undefined;
-    }) {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection().pipe(
-        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
-      );
-
-      const suites = yield* Effect.tryPromise(() => new TestService(connection).retrieveAllSuites()).pipe(
-        Effect.catchTag('UnknownException', e =>
-          Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
+    const retrieveSuites = Effect.fn('ApexTestTreeService.retrieveSuites')(() =>
+      ExtensionProviderService.pipe(
+        Effect.flatMap(provider => provider.getServicesApi),
+        Effect.flatMap(api =>
+          api.services.ConnectionService.getConnection().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          )
+        ),
+        Effect.flatMap(connection =>
+          Effect.tryPromise(() => new TestService(connection).retrieveAllSuites()).pipe(
+            Effect.catchTag('UnknownException', e =>
+              Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
+            )
+          )
         )
-      );
+      )
+    );
 
+    const writeSuiteItems = Effect.fn('ApexTestTreeService.writeSuiteItems')((
+      ctx: {
+        controller: vscode.TestController;
+        suiteTag: vscode.TestTag | undefined;
+      },
+      suites: RetrievedSuites
+    ) => {
       if (suites.length === 0) {
-        return;
+        return Effect.void;
       }
 
-      const currentSuiteItems = yield* Ref.get(suiteItems);
-      yield* Effect.sync(() => {
-        const suiteParentId = 'apex-test-suites-parent';
-        const suiteParentItem = ctx.controller.createTestItem(
-          suiteParentId,
-          nls.localize('apex_test_suites_parent_text'),
-          undefined
-        );
-        if (ctx.suiteTag) {
-          suiteParentItem.tags = [ctx.suiteTag];
-        }
-        suites.forEach(suite => {
-          const suiteId = createSuiteId(suite.TestSuiteName);
-          const suiteItem = ctx.controller.createTestItem(suiteId, suite.TestSuiteName, undefined);
-          suiteItem.canResolveChildren = true;
-          if (ctx.suiteTag) {
-            suiteItem.tags = [ctx.suiteTag];
-          }
-          currentSuiteItems.set(suite.TestSuiteName, suiteItem);
-          suiteParentItem.children.add(suiteItem);
-        });
-        ctx.controller.items.add(suiteParentItem);
-      });
+      return Ref.get(suiteItems).pipe(
+        Effect.flatMap(currentSuiteItems =>
+          Effect.sync(() => {
+            const suiteParentId = 'apex-test-suites-parent';
+            const suiteParentItem = ctx.controller.createTestItem(
+              suiteParentId,
+              nls.localize('apex_test_suites_parent_text'),
+              undefined
+            );
+            if (ctx.suiteTag) {
+              suiteParentItem.tags = [ctx.suiteTag];
+            }
+            suites.forEach(suite => {
+              const suiteId = createSuiteId(suite.TestSuiteName);
+              const suiteItem = ctx.controller.createTestItem(suiteId, suite.TestSuiteName, undefined);
+              suiteItem.canResolveChildren = true;
+              if (ctx.suiteTag) {
+                suiteItem.tags = [ctx.suiteTag];
+              }
+              currentSuiteItems.set(suite.TestSuiteName, suiteItem);
+              suiteParentItem.children.add(suiteItem);
+            });
+            ctx.controller.items.add(suiteParentItem);
+          })
+        )
+      );
     });
+
+    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(
+      (ctx: { controller: vscode.TestController; suiteTag: vscode.TestTag | undefined }) =>
+        retrieveSuites().pipe(Effect.flatMap(suites => writeSuiteItems(ctx, suites)))
+    );
+
+    const clearSuiteParent = Effect.fn('ApexTestTreeService.clearSuiteParent')(
+      (ctx: { controller: vscode.TestController }) =>
+        Effect.sync(() => {
+          ctx.controller.items.delete('apex-test-suites-parent');
+        }).pipe(Effect.zipRight(Ref.set(suiteItems, new Map())), Effect.zipRight(Ref.set(suiteToClasses, new Map())))
+    );
 
     const resolveApexClasses = Effect.fn('ApexTestTreeService.resolveApexClasses')(function* (
       classes: readonly ToolingTestClass[]
@@ -685,30 +713,40 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     /**
-     * Discovery pipeline body: ensure init, populate suites, run discovery, persist, build the org tree,
-     * and restore results once per session. Each tryPromise boundary fails with a declared tagged error
-     * (no UnknownException bucket). doDiscover catches the union and notifies.
+     * Fetch suites and discovery together (`mode: "either"`), then build the org tree and restore results once.
+     * Suite parent is written on suite success even if discovery fails; class items follow. doDiscover notifies.
      */
     const discoverBody = Effect.fn('ApexTestTreeService.discoverBody')(function* (ctx: DiscoveryContext) {
-      // Acquire the connection up front (fail-fast, replacing the legacy ensureInitialized); the cached
-      // ConnectionService reuses it for the populate* steps below.
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      yield* api.services.ConnectionService.getConnection().pipe(
-        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      // Fail fast on connection before clearTree. ConnectionService caches it for the fetches below.
+      yield* ExtensionProviderService.pipe(
+        Effect.flatMap(provider => provider.getServicesApi),
+        Effect.flatMap(api =>
+          api.services.ConnectionService.getConnection().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          )
+        )
       );
 
-      // Replicates the legacy clearTestItems the discovery body ran before populating.
       yield* Effect.sync(() => ctx.clearTree());
 
-      yield* populateSuiteItems(ctx);
-
-      const discoveryResult = yield* discoverTests().pipe(
-        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      yield* Effect.all(
+        [
+          retrieveSuites().pipe(Effect.tap(suites => writeSuiteItems(ctx, suites))),
+          discoverTests().pipe(Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })))
+        ],
+        { concurrency: 'unbounded', mode: 'either' }
+      ).pipe(
+        Effect.map(([suiteResult, discoveryResult]) => Either.flatMap(suiteResult, () => discoveryResult)),
+        Effect.flatMap(joined =>
+          Match.value(joined).pipe(
+            Match.tag('Left', ({ left }) => Effect.fail(left)),
+            Match.tag('Right', ({ right }) =>
+              right.classes.length > 0 ? populateTestItemsFromOrg(ctx, right.classes) : Effect.void
+            ),
+            Match.exhaustive
+          )
+        )
       );
-
-      if (discoveryResult.classes.length > 0) {
-        yield* populateTestItemsFromOrg(ctx, discoveryResult.classes);
-      }
 
       const alreadyRestored = yield* Ref.getAndSet(hasRestoredResults, true);
       if (!alreadyRestored) {
@@ -718,9 +756,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     /**
      * Run the discovery body and surface any declared failure to the user (warning vs error).
-     * Only DiscoveryError and PackageResolutionError reach here: the retrieveAllSuites failure is recovered
-     * inside populateSuiteItems (log + no suites) and RestoreResultsError inside restorePreviousResults
-     * (logWarning), preserving the legacy non-fatal behavior of those two paths.
+     * Only DiscoveryError and PackageResolutionError reach here: retrieveAllSuites failure is recovered
+     * inside retrieveSuites (log + no suites) and RestoreResultsError inside restorePreviousResults
+     * (logWarning).
      */
     const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
       yield* discoverBody(ctx).pipe(
@@ -991,32 +1029,44 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     /**
      * Incrementally update the tree from deployed metadata changes, preserving results for unchanged classes.
      * Non-fatal: any failure is logged and swallowed (the existing tree stays valid). Deletions apply
-     * immediately; created/changed entries trigger a fresh discovery + diff.
+     * immediately. Suite and class fetches join only when both apply; otherwise only that path runs.
      */
-    const incrementalUpdate = Effect.fn('ApexTestTreeService.incrementalUpdate')(function* (
+    const incrementalUpdate = Effect.fn('ApexTestTreeService.incrementalUpdate')((
       ctx: TreeMutationContext,
       changes: Map<string, string>,
       includesSuiteChange: boolean
-    ) {
-      yield* Effect.gen(function* () {
-        // Handle deletions immediately (no API call needed)
-        yield* Effect.forEach(
-          [...changes].filter(([, changeType]) => changeType === 'deleted'),
-          ([fullName]) => removeClassFromTree(ctx, fullName),
-          { concurrency: 1, discard: true }
-        );
-
-        // If any created/changed entries remain, call discovery API and apply diff
-        const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
-        if (nonDeleteChanges.size > 0) {
-          const discoveryResult = yield* discoverTests();
-          yield* applyIncrementalDiff(ctx, discoveryResult.classes, nonDeleteChanges);
-        }
-
-        if (includesSuiteChange) {
-          yield* refreshSuiteItems(ctx);
-        }
-      }).pipe(
+    ) => {
+      const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
+      // Handle deletions immediately (no API call needed)
+      return Effect.forEach(
+        [...changes].filter(([, changeType]) => changeType === 'deleted'),
+        ([fullName]) => removeClassFromTree(ctx, fullName),
+        { concurrency: 1, discard: true }
+      ).pipe(
+        Effect.zipRight(
+          Match.value({
+            discover: nonDeleteChanges.size > 0,
+            suites: includesSuiteChange
+          }).pipe(
+            Match.when({ discover: true, suites: true }, () =>
+              // Discovery failure fails this join before either write, so the suite parent is not deleted.
+              Effect.all([retrieveSuites(), discoverTests()], { concurrency: 'unbounded' }).pipe(
+                Effect.tap(([, discoveryResult]) =>
+                  applyIncrementalDiff(ctx, discoveryResult.classes, nonDeleteChanges)
+                ),
+                Effect.tap(() => clearSuiteParent(ctx)),
+                Effect.flatMap(([suites]) => writeSuiteItems(ctx, suites))
+              )
+            ),
+            Match.when({ discover: true, suites: false }, () =>
+              discoverTests().pipe(
+                Effect.flatMap(discoveryResult => applyIncrementalDiff(ctx, discoveryResult.classes, nonDeleteChanges))
+              )
+            ),
+            Match.when({ discover: false, suites: true }, () => refreshSuiteItems(ctx)),
+            Match.orElse(() => Effect.void)
+          )
+        ),
         // Broad by design: the inner pipeline mixes error types (discoverTests fails with a plain `Error`,
         // addClassToTree with PackageResolutionError), and incremental update is a non-fatal optimization —
         // any failure logs and leaves the existing tree valid, so there's no need to switch per tag.
@@ -1093,17 +1143,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     /**
-     * Full suite refresh: delete the suite parent from the controller, reset state Refs, then re-query
-     * the org to repopulate. Called from incrementalUpdate when a test suite is created/changed/deleted.
+     * Suite-only refresh: clear the suite parent and Refs, then re-query the org.
+     * Used when incrementalUpdate has a suite change and no non-delete class change.
      */
-    const refreshSuiteItems = Effect.fn('ApexTestTreeService.refreshSuiteItems')(function* (ctx: TreeMutationContext) {
-      yield* Effect.sync(() => {
-        ctx.controller.items.delete('apex-test-suites-parent');
-      });
-      yield* Ref.set(suiteItems, new Map());
-      yield* Ref.set(suiteToClasses, new Map());
-      yield* populateSuiteItems(ctx);
-    });
+    const refreshSuiteItems = Effect.fn('ApexTestTreeService.refreshSuiteItems')((ctx: TreeMutationContext) =>
+      clearSuiteParent(ctx).pipe(Effect.zipRight(populateSuiteItems(ctx)))
+    );
 
     /** Clear every suite item's children so they re-query from the org on next expand. */
     const clearAllSuiteChildren = Effect.fn('ApexTestTreeService.clearAllSuiteChildren')(function* () {
