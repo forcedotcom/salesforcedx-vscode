@@ -120,7 +120,6 @@
     "postinstall": "wireit",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
-    "changelog:delta": "ts-node ./scripts/generate-release-delta-changelog.ts",
     "clean": "npm run clean -ws --if-present && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
