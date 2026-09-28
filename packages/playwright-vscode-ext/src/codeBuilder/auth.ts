@@ -21,7 +21,24 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { defaultRunner, type CommandRunner } from './runner';
+import { execFileSync } from 'node:child_process';
+import { runnerTimeoutMs, withTimeoutRetry, type CommandRunner } from './runner';
+
+/*
+ * Default runner for the boot-env resolver. Mirrors `defaultRunner` (arg-array exec, timeout + retry)
+ * but forces NO_COLOR=1 / FORCE_COLOR=0 in the child env, exactly as `orgs/shared.ts` does for its own
+ * `sf` invocations. Without this a color-enabled terminal can make `sf --json` emit ANSI escapes,
+ * which then break the `JSON.parse` in `runSfJson` below. Kept local to auth.ts (not folded into
+ * `defaultRunner`) so only the JSON-consuming boot-env path changes.
+ */
+const noColorRunner: CommandRunner = (file, args) =>
+  withTimeoutRetry(() =>
+    execFileSync(file, args as string[], {
+      encoding: 'utf-8',
+      timeout: runnerTimeoutMs(),
+      env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
+    })
+  );
 
 /*
  * Schemas for the `sf --json` shapes we consume, validated at the boundary (TS standards / precedent
@@ -57,7 +74,7 @@ export type ResolveOrgBootEnvOptions = {
  * `org auth show-access-token`.
  */
 export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOptions = {}): BootEnv => {
-  const runner = options.runner ?? defaultRunner;
+  const runner = options.runner ?? noColorRunner;
 
   /*
    * Parse `sf --json` stdout, but attach context on failure: if `sf` ever prints an update notice /

@@ -7,6 +7,32 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Build the `grep` value from CB_GREP. A malformed regex would otherwise throw at config load and break
+ * the whole run, so an invalid pattern falls back to "no filter" (run everything) with a warning.
+ */
+const parseGrep = (value: string | undefined): RegExp | undefined => {
+  if (!value) return undefined;
+  try {
+    return new RegExp(value);
+  } catch {
+    console.warn(`[createContainerConfig] ignoring invalid CB_GREP regex: ${value}`);
+    return undefined;
+  }
+};
+
+/**
+ * Resolve `maxFailures` from CB_MAX_FAILURES (0 = no cap). A non-numeric value would coerce to NaN
+ * (undefined Playwright behavior), so anything unparseable falls back to the CI default.
+ */
+const parseMaxFailures = (value: string | undefined): number => {
+  if (value !== undefined) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return process.env.CI ? 3 : 0;
+};
+
 type ContainerConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs/container') */
   testDir: string;
@@ -31,6 +57,11 @@ type ContainerConfigOptions = {
 export const createContainerConfig = (options: ContainerConfigOptions) =>
   defineConfig({
     testDir: options.testDir,
+    // CB_GREP filters specs by title regex. Passed as an env var (not a `--grep` CLI arg) because the
+    // orchestrator forwards it through `npm run … -w <pkg>` → wireit, which does NOT shell-quote
+    // forwarded args — a value with spaces or a `|` alternation (e.g. two spec titles) would be split
+    // and mis-parsed. An env var travels intact through spawnSync's `env`, so any title regex works.
+    grep: parseGrep(process.env.CB_GREP),
     fullyParallel: options.fullyParallel ?? false,
     forbidOnly: !!process.env.CI,
     workers: options.workers ?? 1,
@@ -56,7 +87,10 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
       }
     },
     timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? 360 * 1000),
-    maxFailures: process.env.CI ? 3 : 0,
+    // Cap failures in CI so a broadly-broken run stops fast — EXCEPT when CB_MAX_FAILURES is set
+    // (0 = no cap), which the sharded per-package workflow uses to get a true pass/fail count for the
+    // whole package instead of aborting at the 3rd failure and marking the rest "did not run".
+    maxFailures: parseMaxFailures(process.env.CB_MAX_FAILURES),
     projects: [
       {
         name: 'chromium',

@@ -50,7 +50,39 @@ concurrency:
 
 jobs:
   code-builder-e2e:
+    # Sharded per-package (plan §10.3 revisited): one serial container running all ~75 specs blew the
+    # 60-min job cap, so each package's suite runs in its own job (own image pull, own scratch org,
+    # own container — fully isolated, so parallel jobs can't collide on the shared workbench/org that
+    # forced serial execution before). fail-fast: false so one red package doesn't cancel the rest
+    # (we want the full pass/fail picture); max-parallel bounds concurrent scratch orgs against the
+    # dev hub. Grouping packages into fewer jobs later is a one-line matrix edit — the orchestrator's
+    # --only already accepts a comma-separated list.
+    name: code-builder-e2e (${{ matrix.package }})
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        package:
+          - salesforcedx-vscode-core
+          - salesforcedx-vscode-apex
+          - salesforcedx-vscode-apex-debugger
+          - salesforcedx-vscode-apex-log
+          - salesforcedx-vscode-apex-oas
+          - salesforcedx-vscode-apex-replay-debugger
+          - salesforcedx-vscode-apex-testing
+          - salesforcedx-vscode-lightning
+          - salesforcedx-vscode-lwc
+          - salesforcedx-vscode-metadata
+          - salesforcedx-vscode-org
+          - salesforcedx-vscode-org-browser
+          - salesforcedx-vscode-services
+          - salesforcedx-vscode-soql
+          - salesforcedx-vscode-visualforce
     runs-on: ubuntu-latest
+    # Multi-shape packages run several full container cycles in one job (apex-log = 4 phases:
+    # dx-project + no-project + multi-package + no-org; metadata = 3; apex-testing = 2), each a
+    # re-seed + restart + verify-gate + suite. Give headroom over the single-phase original so a
+    # heavy package can't hit the wall mid-run (with CB_MAX_FAILURES=0 there's no fast-fail cap).
     timeout-minutes: 60
     permissions:
       contents: read
@@ -78,6 +110,11 @@ jobs:
       # Rolling tag by default. A trusted dispatch/call input; kept in env (never inlined into a
       # run: command) to avoid script injection.
       IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+      # The package this shard runs (from the matrix); via env, not inlined, per the same rule.
+      PACKAGE: ${{ matrix.package }}
+      # Sharded jobs are small (one package), so don't abort at the 3rd failure — run every spec so
+      # the report shows the package's true pass/fail count (0 = no Playwright maxFailures cap).
+      CB_MAX_FAILURES: '0'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -129,26 +166,79 @@ jobs:
           command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, create the
-      # scratch org, run + seed + swap + restart + verify gate, then run the container specs and tear
-      # the container down. Same pipeline a developer runs locally.
-      - name: Run Code Builder E2E (orchestrator)
-        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG"
+      # Create the minimal scratch org here (like coreE2E and the other e2e workflows) rather than in
+      # the orchestrator: the orchestrator delegates org setup to the toolkit's createMinimalOrg, whose
+      # requireOrgInCI intentionally refuses to CREATE in CI and only REUSES a pre-existing org. So the
+      # org is created up front under $MINIMAL_ORG_ALIAS and the orchestrator reuses it. (Locally there
+      # is no such step; createMinimalOrg creates the org itself since CI is unset.) rm -rf keeps the
+      # generate idempotent if the retry wrapper re-runs after a transient failure.
+      - name: Create minimal scratch org
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-org-project && sf project generate -n cb-e2e-org-project && cd cb-e2e-org-project && sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
 
+      # Multi-org specs (org picker/switch) need a SECOND org beyond the boot org. Create a non-tracking
+      # scratch org — only for the package(s) that use it (keeps scratch-org spend + time down). The
+      # orchestrator auths it into the container via CB_EXTRA_ORG_ALIASES (below). No -d: the boot org
+      # ($MINIMAL_ORG_ALIAS) stays the default; multi-org specs switch to this alias with save/restore.
+      - name: Create non-tracking scratch org (multi-org specs)
+        if: contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core"]'), matrix.package)
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-nt-project && sf project generate -n cb-e2e-nt-project && cd cb-e2e-nt-project && sf org create scratch -y 1 -f config/project-scratch-def.json -a nonTrackingTestOrg --no-track-source --json --wait 30'
+
+      # Some specs (org-browser custom object/tab/report; metadata sObject refresh) need an org that has
+      # real custom metadata a bare scratch org lacks. Provision a Dreamhouse org (clone + create + deploy
+      # + permset) — only for those package(s). No -d: the boot org stays default; those specs switch to
+      # this alias with save/restore. Dreamhouse deploy is slow, hence the tight package gate.
+      - name: Create Dreamhouse scratch org (custom-metadata specs)
+        if: contains(fromJSON('["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]'), matrix.package)
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: bash -c 'rm -rf cb-e2e-dh && git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc cb-e2e-dh && cd cb-e2e-dh && sf org create scratch -y 1 -f config/project-scratch-def.json -a orgBrowserDreamhouseTestOrg --json --wait 30 && sf project deploy start -o orgBrowserDreamhouseTestOrg && sf org assign permset -n dreamhouse -o orgBrowserDreamhouseTestOrg'
+
+      # Resolve which extra orgs the orchestrator auths into the container for THIS package (comma-sep).
+      # org/core switch to a non-tracking org; org-browser browses a Dreamhouse org; metadata uses both.
+      - name: Resolve extra org aliases (per package)
+        run: |
+          case "$PACKAGE" in
+            salesforcedx-vscode-metadata) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg,orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-org-browser) echo "CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-org | salesforcedx-vscode-core) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg" >> "$GITHUB_ENV" ;;
+            *) echo "CB_EXTRA_ORG_ALIASES=" >> "$GITHUB_ENV" ;;
+          esac
+
+      # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
+      # org created above (via createMinimalOrg), auth any CB_EXTRA_ORG_ALIASES into the container, run +
+      # seed + swap + restart + verify gate, then run the container specs and tear the container down.
+      # Same pipeline a developer runs locally. CB_EXTRA_ORG_ALIASES (set above) is empty for packages
+      # whose specs need no extra org (the orchestrator no-ops).
+      - name: Run Code Builder E2E (orchestrator)
+        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+
+      # This shard runs one package (--only), so only that package's report/results dir exists; the
+      # glob matches just it. Name the artifact per-package — upload-artifact@v4 rejects duplicate
+      # names across matrix jobs.
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-codebuilder
-          path: packages/salesforcedx-vscode-core/playwright-report
+          name: playwright-report-codebuilder-${{ matrix.package }}
+          path: packages/*/playwright-report
           if-no-files-found: ignore
 
       - name: Upload Playwright Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-codebuilder
-          path: packages/salesforcedx-vscode-core/test-results
+          name: playwright-test-results-codebuilder-${{ matrix.package }}
+          path: packages/*/test-results
           if-no-files-found: ignore
 
       # The orchestrator tears the container down itself; this is a belt-and-suspenders cleanup for
@@ -164,3 +254,15 @@ jobs:
         if: always()
         continue-on-error: true
         run: sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+
+      # Same for the extra multi-org scratch org, when this shard created one.
+      - name: Cleanup non-tracking scratch org
+        if: always() && contains(fromJSON('["salesforcedx-vscode-org", "salesforcedx-vscode-metadata", "salesforcedx-vscode-core"]'), matrix.package)
+        continue-on-error: true
+        run: sf org delete scratch -o nonTrackingTestOrg --no-prompt || true
+
+      # And the Dreamhouse org, when this shard created one.
+      - name: Cleanup Dreamhouse scratch org
+        if: always() && contains(fromJSON('["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]'), matrix.package)
+        continue-on-error: true
+        run: sf org delete scratch -o orgBrowserDreamhouseTestOrg --no-prompt || true
