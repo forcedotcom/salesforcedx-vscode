@@ -308,9 +308,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             type: 'CustomObject',
             fullName: el.componentName!
           });
-          return fields.flatMap(entry =>
-            entry.kind === 'component' && entry.field ? [createCustomFieldNode({ ...entry, field: entry.field })] : []
-          );
+          return fields.flatMap(entry => (entry.kind === 'component' ? [createCustomFieldNode(entry)] : []));
         })
       ),
       Match.when(isFolderListingNode, el =>

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import {
   CORE_CONFIG_SECTION,
   DEPLOY_ON_SAVE_ENABLED,
@@ -16,18 +16,30 @@ import {
 
 /** Check if deploy on save is enabled */
 export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(function* () {
-  const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  return config.get<boolean>(DEPLOY_ON_SAVE_ENABLED, false);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    CORE_CONFIG_SECTION,
+    DEPLOY_ON_SAVE_ENABLED,
+    false
+  );
 });
 
 /** Check if conflicts should be ignored during deploy on save */
-export const getIgnoreConflicts = (): boolean => {
-  const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  return config.get<boolean>(DEPLOY_ON_SAVE_IGNORE_CONFLICTS, false);
-};
+export const getIgnoreConflicts = Effect.fn('getIgnoreConflicts')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    CORE_CONFIG_SECTION,
+    DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
+    false
+  );
+});
 
 /** Check if conflict detection is enabled for deploy/retrieve on non-tracking orgs (reads from core for backward compat). Tracking orgs always check. */
-export const getDetectConflictsForDeployAndRetrieve = (): boolean => {
-  const config = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  return config.get<boolean>(DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE, false);
-};
+export const getDetectConflictsForDeployAndRetrieve = Effect.fn('getDetectConflictsForDeployAndRetrieve')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    CORE_CONFIG_SECTION,
+    DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE,
+    false
+  );
+});

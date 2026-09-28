@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.14",
+  "version": "67.25.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,7 +31,6 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
-    "salesforcedx-vscode-services": "*",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -39,7 +38,8 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/salesforcedx-visualforce-language-server": "*"
+    "@salesforce/salesforcedx-visualforce-language-server": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -231,7 +231,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -249,7 +249,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

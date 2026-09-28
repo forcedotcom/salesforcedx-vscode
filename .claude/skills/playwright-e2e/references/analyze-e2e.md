@@ -64,7 +64,7 @@ Download command:
 gh run download <run-id> -D .e2e-artifacts/<branch-name>/<run-id>-<workflow-name>
 ```
 
-Platform artifacts are distinguished by name suffix (`windows-latest`, `macos-latest`, `web`) — no extra platform subdirectory needed.
+Platform artifacts are distinguished by name suffix (`windows-latest`, `macos-latest`, `web`) — no extra platform subdirectory needed. Apex Testing E2E also suffixes the lane (`org-wide` | `class-scoped` | `ride-along`).
 
 ## Span files from CI artifacts
 

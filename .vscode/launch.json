@@ -60,8 +60,7 @@
       ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
       },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -110,8 +109,7 @@
       ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
       },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -161,7 +159,6 @@
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318"
       },
       "sourceMapPathOverrides": {
@@ -212,7 +209,6 @@
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318"
       },
       "sourceMapPathOverrides": {
@@ -247,8 +243,7 @@
       ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
       },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",

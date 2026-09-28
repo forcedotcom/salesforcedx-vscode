@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.14",
+  "version": "67.25.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,6 @@
     "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
-    "salesforcedx-vscode-services": "*",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vscode-html-languageservice": "^5.5.1",
@@ -44,6 +43,7 @@
     "@salesforce/core": "^9.1.9",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
+    "salesforcedx-vscode-services": "*",
     "@types/which": "^1.3.1"
   },
   "extensionDependencies": [
@@ -286,7 +286,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -305,7 +305,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

@@ -3,8 +3,8 @@ name: Promote to Pre-release
 on:
   schedule:
     # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
-    # Creates tracking tag for NEXT week's build-release.yml (which runs at 7 AM)
-    # IMPORTANT: Runs AFTER build-release (7 AM) so that stable builds use last week's
+    # Creates tracking tag for NEXT week's build-github-release.yml (which runs at 7 AM)
+    # IMPORTANT: Runs AFTER build-github-release (7 AM) so that stable builds use last week's
     # tested prerelease (7+ days on marketplace), not today's newly promoted one
     - cron: '0 8 * * 3'
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
         required: false
         type: string
       isHotfix:
-        description: 'Skip nightly-pipeline gate-check for tags built via build-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
+        description: 'Skip nightly-pipeline gate-check for tags built via build-github-release.yml startFromRef, and instead test the exact commit here directly (see "Checkout hotfix commit" below). Do not use for regular nightly tags.'
         required: false
         default: false
         type: boolean
@@ -59,7 +59,7 @@ jobs:
         # The meaningful, available signals here are that the nightly compiled/packaged the
         # VSIXs and published the GitHub release cleanly.
         #
-        # Skipped for isHotfix: tags built via build-release.yml's startFromRef never go
+        # Skipped for isHotfix: tags built via build-github-release.yml's startFromRef never go
         # through this repo's nightly pipeline, so these check-run names never exist on that
         # commit regardless of outcome. See "Test hotfix commit directly" below instead.
         if: ${{ !inputs.isHotfix }}
@@ -174,6 +174,30 @@ jobs:
           zip -X "$VSIX" extension/changelog.md
 
           gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
+
+          # --clobber deletes and recreates the asset (new asset ID); the release's
+          # asset-listing API isn't guaranteed to reflect that within seconds, so the
+          # promote job's download (which starts right after this job) can 404 on the
+          # stale asset. Poll until the listed digest matches what we just uploaded
+          # before letting this job report success, so promote's `needs: changelog`
+          # dependency actually means the new asset is visible.
+          LOCAL_DIGEST="sha256:$(sha256sum "$VSIX" | cut -d' ' -f1)"
+          for attempt in 1 2 3 4 5; do
+            REMOTE_DIGEST=$(gh release view "$NIGHTLY_TAG" --json assets --jq ".assets[] | select(.name == \"$VSIX\") | .digest")
+            if [ "$REMOTE_DIGEST" = "$LOCAL_DIGEST" ]; then
+              echo "✅ Asset $VSIX visible with matching digest after $attempt attempt(s)"
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Asset $VSIX did not converge to the re-uploaded digest after 5 attempts"
+              echo "::error::Expected: $LOCAL_DIGEST"
+              echo "::error::Got: $REMOTE_DIGEST"
+              exit 1
+            fi
+            echo "⏳ Asset $VSIX not yet visible with new digest (attempt $attempt/5) -- retrying in 5s"
+            sleep 5
+          done
+
           rm -rf extension "$VSIX"
 
       - name: Prepend delta to root CHANGELOG (full history)
@@ -201,3 +225,25 @@ jobs:
       extension-name: 'salesforcedx-vscode'
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
+
+  # Step 5: Mark the nightly release as published. The reusable promote workflow only
+  # publishes VSIXs to the marketplaces -- it never touches the nightly release itself --
+  # so tag the title here to make it obvious at a glance on the Releases page which
+  # nightly has already gone out as this week's marketplace pre-release.
+  mark-release-published:
+    needs: [find-nightly, promote]
+    if: always() && needs.promote.result == 'success' && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+    steps:
+      - name: Append "- published" to release title
+        run: |
+          CURRENT_TITLE=$(gh release view "$NIGHTLY_TAG" --repo "${{ github.repository }}" --json name --jq .name)
+          if [[ "$CURRENT_TITLE" == *" - published" ]]; then
+            echo "⏭️ Release already marked published — skipping (idempotent rerun)"
+          else
+            gh release edit "$NIGHTLY_TAG" --repo "${{ github.repository }}" --title "$CURRENT_TITLE - published"
+            echo "Renamed release title to: $CURRENT_TITLE - published"
+          fi

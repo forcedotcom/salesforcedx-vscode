@@ -24,12 +24,12 @@
     "faye": "1.4.1",
     "request-light": "^0.8.0",
     "rxjs": "^7.8.2",
-    "tree-kill": "^1.1.0"
+    "tree-kill": "^1.1.0",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@types/async-lock": "1.4.2",
-    "@vscode/debugadapter-testsupport": "1.68.0",
-    "vscode-uri": "^3.1.0"
+    "@vscode/debugadapter-testsupport": "1.68.0"
   },
   "scripts": {
     "bundle:debugger": "wireit",

@@ -22,7 +22,7 @@ jobs:
       - name: Setup node
         uses: ./.github/actions/setup-pnpm
         with:
-          node-version: 'lts/*'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - name: Install dependencies

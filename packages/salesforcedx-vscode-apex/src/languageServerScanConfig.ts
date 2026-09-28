@@ -8,7 +8,9 @@
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
+import * as String from 'effect/String';
 
 type MetadataRegistry = {
   strictDirectoryNames?: Record<string, string>;
@@ -32,20 +34,18 @@ type ApexLspScanConfig = {
 const DEFAULT_APEX_TYPE_NAMES = ['ApexClass', 'ApexTrigger'];
 
 const toNormalizedFolderName = (value: string): string => value.trim().toLowerCase();
-const sortFolders = (values: string[]): string[] =>
-  // We avoid mutating the source array and keep compatibility with test transpilation.
-  // eslint-disable-next-line unicorn/no-array-sort
-  [...values].sort((a, b) => a.localeCompare(b));
+const localeAwareStringOrder = Order.make<string>((left, right) => String.localeCompare(right)(left));
+const folderNameOrder = Order.mapInput(localeAwareStringOrder, toNormalizedFolderName);
 
 export const deriveExcludedMetadataFolders = (
   registry: MetadataRegistry,
   apexFolderNames: ReadonlySet<string>
 ): string[] => {
   const strictDirectoryNames = registry.strictDirectoryNames ?? {};
-  const folders = Object.keys(strictDirectoryNames)
+  return Object.keys(strictDirectoryNames)
     .map(toNormalizedFolderName)
-    .filter(folderName => folderName.length > 0 && !apexFolderNames.has(folderName));
-  return sortFolders(folders);
+    .filter(folderName => folderName.length > 0 && !apexFolderNames.has(folderName))
+    .toSorted(folderNameOrder);
 };
 
 const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => {

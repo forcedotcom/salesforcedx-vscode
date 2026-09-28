@@ -85,7 +85,7 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 
 | Repo | Visibility | Notes |
 |------|-----------|-------|
-| [ui-preview](https://github.com/forcedotcom/salesforcedx-vscode-ui-preview) | **Private** | Activation ordering only. Uses bundled `WorkspaceContextUtil` from utils-vscode. |
+| [ui-preview](https://github.com/forcedotcom/salesforcedx-vscode-ui-preview) | **Private** | Core `extensionDependency` only. Vendors a **diverged** `packages/salesforcedx-utils-vscode` workspace copy — not this repo's published package. App imports from that fork: `notificationService`, `WorkspaceContextUtil`, `OrgUserInfo`, `TelemetryService`, `ChannelService`, `ConfigUtil.{getTargetOrgOrAlias,getUsernameFor,getAllAliasesFor}`. Fork still has APIs this repo dropped. Deleting them here does not break shipping ui-preview. |
 
 ## No current core dependency
 
@@ -107,7 +107,6 @@ Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensi
 |---------|-------|------------------|
 | apex-debugger | `coreExtensionUtils.ts`, `index.ts` | `.telemetryService` |
 | apex-replay-debugger | `index.ts`, `checkpointService.ts`, `quickLaunch.ts`, `debugConfigurationProvider.ts` | `.services.WorkspaceContext`, `.getUserId` |
-| utils-vscode | `workspaceContextUtil.ts`, `telemetryUtils.ts` | `.getSharedTelemetryUserId` (phantom — not on API type) |
 
 ## Keeping current
 

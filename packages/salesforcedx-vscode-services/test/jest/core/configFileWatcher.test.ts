@@ -9,6 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { URI } from 'vscode-uri';
@@ -16,6 +17,7 @@ import { ConfigService } from '../../../src/core/configService';
 import { watchConfigFiles } from '../../../src/core/configFileWatcher';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { HostFileNotFoundError, HostFileWatchError, HostFileWatcher } from '../../../src/core/hostFileWatcher';
 import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
@@ -66,7 +68,12 @@ describe('watchConfigFiles', () => {
   beforeEach(async () => {
     await Effect.runPromise(
       getDefaultOrgRef().pipe(
-        Effect.flatMap(ref => SubscriptionRef.set(ref, { username: 'current@example.com', orgId: '00D-current' }))
+        Effect.flatMap(ref =>
+          SubscriptionRef.set(ref, {
+            username: 'current@example.com',
+            orgId: Schema.decodeSync(OrgId)('00D000000000001')
+          })
+        )
       )
     );
   });

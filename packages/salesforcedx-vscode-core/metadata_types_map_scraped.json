@@ -550,7 +550,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process.",
+        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process. Keep the compressed JSON payload under 100 KB. Data 360 automatically compresses the payload before storage. but, compression results vary depending on the structure of the data. A payload that’s under 100 KB before compression can exceed the limit after compression. If the compressed payload exceeds 100 KB, reduce the payload size or split the component.",
         "Field Name": "entityPayload",
         "Field Type": "string"
       },
@@ -2489,6 +2489,16 @@
         "Field Type": "ActionableListMemberStatus[]"
       },
       {
+        "Description": "Specifies the type of actionable list. Available in API version 68.0 and later.",
+        "Field Name": "actionableListType",
+        "Field Type": "static enum"
+      },
+      {
+        "Description": "Indicates whether the actionable list definition is active (yes) or not (no). Available in API version 68.0 and later.",
+        "Field Name": "isactive",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The batch calculation job definition that's associated with the creation of an actionable list. This field is a relationship field.",
         "Field Name": "batchCalcJobDefinition",
         "Field Type": "string"
@@ -2497,6 +2507,11 @@
         "Description": "The name of the dataset that is associated with the actionable list.",
         "Field Name": "datasetName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The description of the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "description",
+        "Field Type": "text"
       },
       {
         "Description": "The edgemart dataset that's associated with the actionable list. Available in API version 58.0 and later.",
@@ -2517,6 +2532,16 @@
         "Description": "Required. The object for which the actionable list is created.Possible values are organized by the API version in which they were introduced. Values are available in all versions after introduction unless noted otherwise. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
+      },
+      {
+        "Description": "The name of the source object field associated with the actionable list definition. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectFieldName",
+        "Field Type": "text"
+      },
+      {
+        "Description": "The source object name for which the actionable list is created. Available in API version 68.0 and later.",
+        "Field Name": "sourceObjectName",
+        "Field Type": "text"
       }
     ],
     "short_description": "Represents the data source definition details associated with an actionable list.",
@@ -2525,6 +2550,11 @@
   },
   "ActionableListDatasetColumn": {
     "fields": [
+      {
+        "Description": "The actionable list definition that's associated with the column. Available in API version 68.0 and later.",
+        "Field Name": "actionableListDefinition",
+        "Field Type": "master/detail"
+      },
       {
         "Description": "The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures",
         "Field Name": "dataDomain",
@@ -2556,12 +2586,17 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the dataset column belongs to source data model object or not. Available in API version 68.0 and later.",
+        "Field Name": "isSourceObjectField",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The name of the object that's associated with the dataset column. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
         "Field Name": "objectName",
         "Field Type": "string"
       },
       {
-        "Description": "The API name of the column in the source dataset.",
+        "Description": "The API name of the column in the source dataset. Available in API version 68.0 and later.",
         "Field Name": "sourceColumnApiName",
         "Field Type": "string"
       },
@@ -2887,64 +2922,8 @@
     "parent": "Metadata"
   },
   "AffinityScoreDefinition": {
-    "fields": [
-      {
-        "Description": "Description of the affinity score definition.",
-        "Field Name": "affinityScoreDefinitionDesc",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the affinity score definition.",
-        "Field Name": "affinityScoreDefinitionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Type of the affinity score that's defined. Valid values are CAP—Capacity, Ability, Propensity (CAP), or RFM—Recency, Frequency, Monetary (RFM). The default value is RFM.",
-        "Field Name": "affinityScoreType",
-        "Field Type": "AffinityScoreType (enumeration of type string)"
-      },
-      {
-        "Description": "Label for this affinity score definition value. This display value is the internal label that doesn't get translated.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Number of months to analyze the records for calculating the affinity score.",
-        "Field Name": "numberOfMonths",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Number of ranges to use in the calculation, ranging from 0 to 9. Provide the corresponding range list values in the scoreRangeList field.",
-        "Field Name": "numberOfRanges",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Ranges that are referenced in the affinity score calculation. This field is used with scoreRangeList. For example, to calculate RFM with numberOfRanges value as 3, provide the values for the scoreRangeList field.",
-        "Field Name": "scoreRangeList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. API names of the source fields that are referenced in the score calculation.",
-        "Field Name": "sourceFieldApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "API names of the source objects that are referenced in the score calculation.",
-        "Field Name": "sourceObjectApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. API names of the target fields where the calculated scores are added.",
-        "Field Name": "targetFieldApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "API name of the target object where the calculated scores are added.",
-        "Field Name": "targetObjectApiName",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents the affinity information used in calculations to analyze and categorize contacts for marketing purposes.",
+    "fields": [],
+    "short_description": "AffinityScoreDefinition components have the suffix .affinityScoreDefinition and are stored in the affinityScoreDefinitions folder.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/fundraising_affinityscoredefinition_metadata_api.htm",
     "parent": "Metadata"
   },
@@ -6860,7 +6839,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false.Available in API version 66.0 and later with Revenue Cloud Billing.",
+        "Description": "Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false. Available in API version 66.0 and later with Revenue Cloud Billing.",
         "Field Name": "enableCreditMemoSequenceService",
         "Field Type": "boolean"
       },
@@ -6910,12 +6889,12 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to create Transaction Journal records based on the defined general ledger account assignment rules for the billing entities when billing transaction records are created or updated (true) or not (false). The default value is false. Available in API version 63.0 and later with Revenue Cloud Billing. Billing transaction records include these transaction types. Invoice Invoice Line Invoice Line Tax Credit Memo Credit Memo Line Credit Memo Line Tax Payment Refund Payment Line Invoice Payment Line Invoice Line Credit Memo Inv Application Credit Memo Line Invoice Line",
+        "Description": "Indicates whether to create Transaction Journal records based on the defined general ledger account assignment rules for the billing entities when billing transaction records are created or updated ( true ) or not ( false ). The default value is false. Available in API version 63.0 and later with Revenue Cloud Billing. Billing transaction records include these transaction types.",
         "Field Name": "enableTransactionJournalCreation",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether to enable Credit Application Level setting (true) or not (false). The default value is false.",
+        "Description": "Indicates whether to enable Credit Application Level setting (true) or not (false). The default value is false. Revenue Cloud Advanced: This setting applies balances of credit memos to invoices or balances of credit memo lines to invoice lines. For the latter, amounts and balances on the invoices are rolled-up from the related invoice lines. Revenue Cloud Billing: This setting applies balances of credit memos and payments to invoices or balances of credit memo lines and payments lines to invoice lines. For the latter, amounts and balances on the invoices are rolled-up from the related invoice lines.",
         "Field Name": "enableTransactionsApplicationToInvoices",
         "Field Type": "boolean"
       },
@@ -9239,24 +9218,24 @@
   "ClauseCatgConfiguration": {
     "fields": [
       {
-        "Description": "The description about the clause category configuration.",
+        "Description": "configuration.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for ClauseCatgConfiguration, which is defined when the ClauseCatgConfiguration is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The usage type of the clause category configuration.Possible values are: ContractClauseCategory DisclosureCategory",
+        "Description": "Required. The usage type of the clause category configuration. Possible values are: ContractClauseCategory DisclosureCategory",
         "Field Name": "usageType",
-        "Field Type": "ClmCategoryUsageType"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the configuration about the clause category that can be used to categorize your disclosure and compliance reports from standardized disclosure templates in a response document.",
@@ -16537,6 +16516,45 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datacategorygroup.htm",
     "parent": "Metadata"
   },
+  "DataMaskPolicy": {
+    "fields": [
+      {
+        "Description": "Optional. A description of the masking policy.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The master label for the masking policy.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Optional. The frequency at which the masking job runs. Valid values are: once, daily, weekly, and monthly. If a value is omitted, the policy has no scheduled run frequency and must be triggered manually from Setup or the Connect API.",
+        "Field Name": "runFrequency",
+        "Field Type": "enum"
+      },
+      {
+        "Description": "Optional. Indicates whether the masking policy runs automatically when a sandbox is either created or refreshed (true) or doesn't run automatically (false). The default value is false.",
+        "Field Name": "runOnRefresh",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Represents a masking policy for use with Data Mask & Seed. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datamaskpolicy.htm",
+    "parent": "Metadata"
+  },
+  "DataMaskSettings": {
+    "fields": [
+      {
+        "Description": "Optional. Indicates whether the ability to use the Einstein tool to generate values for Data Mask & Seed custom libraries is turned on (true) or turned off (false) for the admin/developer. The default value is false. To turn on the user's ability to use the Einstein tool, set this field to true.",
+        "Field Name": "enableDataMaskGPTEnabled",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Represents org-level setup (features and preferences) for use with Data Mask & Seed. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all the settings metadata types for the org are accessed using the \"Settings\" name. See Settings for more details.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datamasksettings.htm",
+    "parent": "Metadata"
+  },
   "DataObjectSearchIndexConf": {
     "fields": [
       {
@@ -17299,24 +17317,24 @@
   "DisclosureDefinition": {
     "fields": [
       {
-        "Description": "The description about the disclosure definition.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure type associated with this definition.",
         "Field Name": "disclosureType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinition, which is defined when the DisclosureDefinition is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information that defines a disclosure type, such as details of the publisher or vendor who created or implemented the report.",
@@ -17328,62 +17346,62 @@
       {
         "Description": "Specifies the authoring mode used to launch the disclosure authoring experience. Possible values are: Microsoft 365 Word Omniscript and Microsoft 365 Word Omniscript Form",
         "Field Name": "authoring​Mode",
-        "Field Type": "AuthoringMode (enumeration of type string)"
+        "Field Type": ""
       },
       {
-        "Description": "The description about the disclosure definition version.",
+        "Description": "version.",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "For internal use only.",
+        "Description": "",
         "Field Name": "disclosureDef​CurrVer",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The API name of the disclosure definition associated with this version.",
         "Field Name": "disclosureDefinition",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The document template global key associated with the DOCX template for the disclosure definition version.",
+        "Description": "DOCX template for the disclosure definition version.",
         "Field Name": "documentTemplate​GlobalKey",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the disclosure definition version is an active version (true) or not (false). The default value is false.",
+        "Description": "an active version (true) or not (false). The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether this is the current version of the disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
+        "Description": "disclosure definition specified in the disclosureDefinition field (true) or not (false). The default value is false.",
         "Field Name": "isCurrentVersion",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureDefinitionVersion, which is defined when the DisclosureDefinitionVersion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The API name of the Omniscript configuration that's associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
+        "Description": "definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
         "Field Name": "omniScriptCnfgApiName",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
+        "Description": "The ID of the Omniscript configuration record. Note: The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
         "Field Name": "omniScriptConfiguration",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The version of the disclosure definition published by the author.",
         "Field Name": "versionNumber",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the version information about the disclosure definition.",
@@ -17393,34 +17411,34 @@
   "DisclosureType": {
     "fields": [
       {
-        "Description": "The description about the disclosure type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The logo ID of the standard body to which an individual or a company is making a disclosure.",
+        "Description": "or a company is making a disclosure.",
         "Field Name": "disclosureBodyLogo",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The URL of the disclosure standard body.",
+        "Description": "",
         "Field Name": "disclosureBodyUrl",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The name of the clause category that's used for disclosure.",
         "Field Name": "disclosureCategory",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default is false.",
+        "Description": "of the metadata type. The default is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for DisclosureType, which is defined when the DisclosureType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the types of disclosures that are done by an individual or an organization and the associated metadata.",
@@ -22562,44 +22580,8 @@
     "parent": "Metadata"
   },
   "FieldMappingConfig": {
-    "fields": [
-      {
-        "Description": "The description of the field mapping configuration.",
-        "Field Name": "Description",
-        "Field Type": "textarea"
-      },
-      {
-        "Description": "The unqiue name for FieldMappingConfig.",
-        "Field Name": "DeveloperName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The language of the FieldMappingConfig. Possible values are: da—Danish de—German en_US—English es—Spanish es_MX—Spanish (Mexico) fi—Finnish fr—French it—Italian ja—Japanese ko—Korean nl_NL—Dutch no—Norwegian pt_BR—Portuguese (Brazil) ru—Russian sv—Swedish th—Thai zh_CN—Chinese (Simplified) zh_TW—Chinese (Traditional)",
-        "Field Name": "Language",
-        "Field Type": "picklist"
-      },
-      {
-        "Description": "Label for the FieldMappingConfig.",
-        "Field Name": "MasterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The namespace prefix associated with this object. Each Developer Edition organization that creates a managed package has a unique namespace prefix. Limit: 15 characters. You can refer to a component in a managed package by using the namespacePrefix__componentName notation. The namespace prefix can have one of the following values: In Developer Edition organizations, the namespace prefix is set to the namespace prefix of the organization for all objects that support it. There is an exception if an object is in an installed managed package. In that case, the object has the namespace prefix of the installed managed package. This field’s value is the namespace prefix of the Developer Edition organization of the package developer. In organizations that are not Developer Edition organizations, NamespacePrefix is only set for objects that are part of an installed managed package. There is no namespace prefix for all other objects.",
-        "Field Name": "NamespacePrefix",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Specifies the type of process that the field mapping configuration supports. Possible values are: ChangeRequest GiftEntry Incident Problem The default value is GiftEntry.",
-        "Field Name": "ProcessType",
-        "Field Type": "picklist"
-      },
-      {
-        "Description": "The ID of the source object for all of the fields mapped in the configuration. Possible values are: GiftEntry",
-        "Field Name": "SourceObjectId",
-        "Field Type": "picklist"
-      }
-    ],
-    "short_description": "Represents the configuration for fields mapped between a source object and one or more destination objects and fields. This object is available in API version 63.0 and later.",
+    "fields": [],
+    "short_description": "create(), delete(), describeSObjects(), query(), retrieve(), update(), upsert()",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/npc_fundraising_api_objects_fieldmappingconfig.htm",
     "parent": "Metadata"
   },
@@ -27190,34 +27172,34 @@
   "FuelType": {
     "fields": [
       {
-        "Description": "Description about the fuel type.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is active (true) or not (false). The default value is false.",
+        "Description": "The default value is false.",
         "Field Name": "isActive",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the fuel type is used in stationary assets (true) or not (false). The default value is false.",
         "Field Name": "isStationaryAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the fuel type is used in a vehicle asset (true) or not (false). The default value is false.",
+        "Description": "asset (true) or not (false). The default value is false.",
         "Field Name": "isVehicleAssetFuel",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. A user-friendly name for FuelType, which is defined when the FuelType is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a custom fuel type in an org.",
@@ -27229,22 +27211,22 @@
       {
         "Description": "Required. The name of the fuel type that’s mapped to the unit of measure. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for FuelTypeSustnUom, which is defined when the FuelTypeSustnUom is created.",
+        "Description": "is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The unit of measure that’s mapped to the fuel type.Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
+        "Description": "Required. The unit of measure that’s mapped to the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "unitOfMeasure",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents a mapping between the custom fuel types and their corresponding unit of measure (UOM) values defined by a customer in an org.",
@@ -30333,8 +30315,8 @@
         "Field Type": "LightningDesignSystemVersion (enumeration of type string)"
       },
       {
-        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
-        "Field Name": "isDarkModeEnabled (beta)",
+        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.",
+        "Field Name": "isDarkModeEnabled",
         "Field Type": "boolean"
       },
       {
@@ -31470,7 +31452,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The execution state that the ManagedSubscribe RPC call consumes. If state is set to RUN, the subscription starts when the ManagedSubscribe RPC call is made. Otherwise, the subscription doesn't start. If an administrator later changes state from RUN to STOP, the system notifies the Pub/Sub API client of the new state value and the subscription disconnects. Also, the stored Replay ID value that was committed previously is deleted. The next time the ManagedSubscribe RPC call is made after state is changed from STOP to RUN, the subscription starts from the defaultReplay value. The possible values for state are: RUN—(Default) The subscription is running and delivering new events to the Pub/Sub API client. STOP—The subscription is stopped. No events are delivered to the Pub/Sub API client during this state and the previously committed Replay ID is deleted. PAUSE—Reserved for internal use.",
+        "Description": "The execution state that the ManagedSubscribe RPC call consumes. If state is set to RUN, the subscription starts when the ManagedSubscribe RPC call is made. Otherwise, the subscription doesn't start. If an administrator later changes state from RUN to STOP, the system notifies the Pub/Sub API client of the new state value and the subscription disconnects. Also, the stored Replay ID value that was committed previously is deleted. The next time the ManagedSubscribe RPC call is made after state is changed from STOP to RUN, the subscription starts from the defaultReplay value. You must wait at least 5 minutes after changing the state to STOP before changing it back to RUN. The possible values for state are: RUN—(Default) The subscription is running and delivering new events to the Pub/Sub API client. STOP—The subscription is stopped. No events are delivered to the Pub/Sub API client during this state and the previously committed Replay ID is deleted. PAUSE—Reserved for internal use.",
         "Field Name": "state",
         "Field Type": "EventSubscriptionAdminState (enumeration of type string)"
       },
@@ -34893,7 +34875,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Type of orchestration plan that this context mapping applies to. Valid values are: Billing Fulfillment Generic IntegrationOrchestrator InsuranceRuleAction OrderFulfillment StageManagement",
+        "Description": "Required. Type of orchestration plan that this context mapping applies to. Valid values are Billing, Fulfillment, Generic, IntegrationOrchestrator, InsuranceRuleAction, OrderFulfillment, or StageManagement.",
         "Field Name": "orchestration​Type",
         "Field Type": "PlanUsageType (enumeration of type string)"
       }
@@ -36567,7 +36549,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Name of the object that's associated with the pricing action. Valid values are: Case Contract Opportunity Order Quote SalesAgreement WorkOrder",
+        "Description": "Name of the object that's associated with the pricing action. Valid values are Case, Contract, Opportunity, Order, Quote, SalesAgreement, or WorkOrder.",
         "Field Name": "objectName",
         "Field Type": "string"
       },
@@ -36604,12 +36586,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the pricing recipe is active (true) or not (false).The default value is false",
+        "Description": "Indicates whether the pricing recipe is active (true) or not (false). The default value is false.",
         "Field Name": "isActive",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the price recipe record is created internally by the Salesforce platform (true) or not (false).The default value is false",
+        "Description": "Indicates whether the price recipe record is created internally by the Salesforce platform (true) or not (false). The default value is false.",
         "Field Name": "isInternal",
         "Field Type": "boolean"
       },
@@ -36631,14 +36613,14 @@
   "PricingRecipeTableMapping": {
     "fields": [
       {
-        "Description": "Indicates whether the price recipe field mapping record is created internally by the platform (true) or not (false).The default value is false.",
+        "Description": "Indicates whether the price recipe field mapping record is created internally by the platform (true) or not (false). The default value is false.",
         "Field Name": "isInternal",
         "Field Type": "boolean"
       },
       {
         "Description": "Lookup table that's associated with either a decision matrix or decision table.",
         "Field Name": "lookupTable",
-        "Field Type": "DecisionTable"
+        "Field Type": "DecisionTable or DecisionMatrixDefinition"
       },
       {
         "Description": "For internal use only.",
@@ -36646,7 +36628,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Pricing component field data that the decision table is built on. Valid values are: AttributeDiscount BundleDiscount DerivedPricing ListPrice PriceAdjustmentMatrix PromotionsDiscount VolumeDiscount VolumeTierDiscount DiscountDistributionService. This value is available in API version 60.0 and later. MinimumPrice. Available in API version 62.0 and later.",
+        "Description": "Pricing component field data that the decision table is built on. Valid values are AttributeDiscount; BundleDiscount; DerivedPricing; ListPrice; PriceAdjustmentMatrix; PromotionsDiscount; VolumeDiscount; VolumeTierDiscount; DiscountDistributionService. This value is available in API version 60.0 and later; or MinimumPrice. Available in API version 62.0 and later.",
         "Field Name": "pricingComponentType",
         "Field Type": "string"
       },
@@ -36688,12 +36670,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "Output type that's generated from a pricing element. Valid values are: AdjustmentType AdjustmentValue CustomOutput HashOutput UnitPrice",
+        "Description": "Output type that's generated from a pricing element. Valid values are AdjustmentType, AdjustmentValue, CustomOutput, HashOutput, or UnitPrice.",
         "Field Name": "outputType",
         "Field Type": "string"
       },
       {
-        "Description": "Type of pricing element, which is a derived field from PricingRecipeTableMapping.PricingComponentType.Valid values are: AssetDiscovery AttributeDiscount BundleDiscount DerivedPricing DiscountDistributionService ListPrice MinimumPrice PriceAdjustmentMatrix PriceRevision PromotionsDiscount RuleFetch VolumeDiscount VolumeTierDiscount",
+        "Description": "Type of pricing element, which is a derived field from PricingRecipeTableMapping.PricingComponentType. Valid values are AssetDiscovery, AttributeDiscount, BundleDiscount, DerivedPricing, DiscountDistributionService, ListPrice, MinimumPrice, PriceAdjustmentMatrix, PriceRevision, PromotionsDiscount, RuleFetch, VolumeDiscount, or VolumeTierDiscount.",
         "Field Name": "pricingElementType",
         "Field Type": "PricingElementType (enumeration of type string)"
       }
@@ -38838,150 +38820,8 @@
     "parent": "Metadata"
   },
   "RecordAggregationDefinition": {
-    "fields": [
-      {
-        "Description": "Required. API name of the object from which data is aggregated.",
-        "Field Name": "aggregateFromObject",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. API name of the object to which data is aggregated.",
-        "Field Name": "aggregateToObject",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Type of the data aggregation. Valid value is: Record",
-        "Field Name": "aggregationType",
-        "Field Type": "RecordAggregationDefinitionAggregationType (enumeration of type string)"
-      },
-      {
-        "Description": "Data Processing Engine definition that aggregates data from one record to another.",
-        "Field Name": "batchProcessingDefinition",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Description for this record aggregation definition.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Name of the record aggregation definition that's displayed in the record page.",
-        "Field Name": "displayName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Data Processing Engine definition that aggregates data from one record to another on demand. Available in API version 63.0 and later.",
-        "Field Name": "onDemandProcDefinition",
-        "Field Type": "string"
-      },
-      {
-        "Description": "List of record aggregation objects in the record aggregation join sequence.",
-        "Field Name": "recordAggregationObject",
-        "Field Type": "RecordAggregationObject[]"
-      },
-      {
-        "Description": "Required. Status of this record aggregation definition. Values are: Active Draft Inactive",
-        "Field Name": "status",
-        "Field Type": "RecordAggregationDefinitionStatus (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents a data aggregation from one object to another object to which it is connected by other objects in the data model.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm",
-    "parent": "Metadata"
-  },
-  "RecordAggregationObject": {
-    "fields": [
-      {
-        "Description": "Required. API name of the object associated with this record aggregation object.",
-        "Field Name": "associatedObject",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Developer name of the record aggregation object. May contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
-        "Field Name": "developerName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Logical sequence in which the record aggregation object filters associated with this record aggregation object are applied to the associated object's records. If you define two or more record aggregation object filters, but don’t specify the sequence in which to apply the filters, the filters are applied by using a logical AND expression. Available in API version 60.0 and later.",
-        "Field Name": "filterLogic",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A user-friendly name for RecordAggregationDefinition, which is defined when the RecordAggregationDefinition is created.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "List of join conditions that apply to this record aggregation object.",
-        "Field Name": "recordAggregationJoinCondition",
-        "Field Type": "RecordAggregationJoinCondition[]"
-      },
-      {
-        "Description": "List of filters that are applied to the records of this record aggregation object. Available in API version 60.0 and later.",
-        "Field Name": "recordAggregationObjectFilter",
-        "Field Type": "RecordAggregationObjectFilter[]"
-      }
-    ],
-    "short_description": "Represents an object in the record aggregation join sequence.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm",
-    "parent": "Metadata"
-  },
-  "RecordAggregationJoinCondition": {
-    "fields": [
-      {
-        "Description": "Required. API name of the field on the record aggregation object's associated object that is used in the join condition.",
-        "Field Name": "joinField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Sequence number corresponding to this join in the join sequence from the object to which the data is aggregated to the object that contains the data being aggregated.",
-        "Field Name": "navigationSequenceNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. API name of the field on the related record aggregation object's associated object that is used in the join condition.",
-        "Field Name": "relatedJoinField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Second record aggregation object in the join condition.",
-        "Field Name": "relatedRecordAggregationObject",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Type of this record aggregation join in the join path from the object to which the data is aggregated to the object that contains the data being aggregated. Valid values are: AggregateFrom AggregateTo Intermediate",
-        "Field Name": "type",
-        "Field Type": "RecordAggregationJoinConditionType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents a condition in a join between two record aggregation objects.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm",
-    "parent": "Metadata"
-  },
-  "RecordAggregationObjectFilter": {
-    "fields": [
-      {
-        "Description": "Required. API name of the associated object's field whose value is used to filter the object's records. The associated object is specified in the record aggregation object.",
-        "Field Name": "associatedObjectField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Operator used in the filter expression. Values are: Contains Equals GreaterThan GreaterThanOrEquals In LessThan LessThanOrEquals NotEquals NotIn",
-        "Field Name": "operator",
-        "Field Type": "RecordAggregationObjectFilterOperator (enumeration of type string)"
-      },
-      {
-        "Description": "Required. Sequence number of this record aggregation object filter.",
-        "Field Name": "sequenceNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Reference value with which the designated field's values are compared when the filter is applied on the associated object's records.",
-        "Field Name": "value",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a filter that is applied to the records of an object in the record aggregation join sequence. Available in API version 60.0 and later.",
+    "fields": [],
+    "short_description": "RecordAggregationDefinition components have the suffix .RecordAggregationDefinition and are stored in the RecordAggregationDefinitions folder.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm",
     "parent": "Metadata"
   },
@@ -39277,7 +39117,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 68.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -40775,6 +40615,48 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_schedulingrule.htm",
     "parent": "Metadata"
   },
+  "ScndTelephPrvdOtbdDtl": {
+    "fields": [
+      {
+        "Description": "Specifies the custom SIP headers for outbound calls.",
+        "Field Name": "customHeader",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The unique name of the ScndTelephPrvdOtbdDtl component. Inherited from the Metadata metadata type.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies key-value pair of IP address and port, up to 5 per record.",
+        "Field Name": "hostConfig",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the ID of the outbound detail for a secondary telephony provider.",
+        "Field Name": "id",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The master label for the ScndTelephPrvdOtbdDtl.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Indicates whether outbound authentication is enabled (true) or not (false).",
+        "Field Name": "outboundAuthEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Specifies the associated secondary telephony provider for the outbound detail.",
+        "Field Name": "secondaryTelephonyProvider",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the outbound SIP routing configuration for a secondary telephony provider in Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_scndtelephprvdotbddtl.htm",
+    "parent": "Metadata"
+  },
   "Scontrol": {
     "fields": [
       {
@@ -40994,6 +40876,43 @@
     ],
     "short_description": "Represents the configuration in the search index for a field in an object.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_searchorgwideobjectconfig.htm",
+    "parent": "Metadata"
+  },
+  "SecondaryTelephonyProvider": {
+    "fields": [
+      {
+        "Description": "Required. The unique name of the SecondaryTelephonyProvider component. Inherited from the Metadata metadata type.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the ID of the secondary telephony provider.",
+        "Field Name": "id",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Indicates whether inbound authentication is enabled for the secondary telephony provider (true) or not (false).",
+        "Field Name": "inboundAuthEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Specifies the inbound IP allowlist of the secondary telephony provider.",
+        "Field Name": "inboundIpAllowlist",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The master label for the SecondaryTelephonyProvider.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the associated telephony provider for the secondary telephony provider.",
+        "Field Name": "telephonyProvider",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the SIP configuration for secondary telephony providers in Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_secondarytelephonyprovider.htm",
     "parent": "Metadata"
   },
   "ServiceAISetupDefinition": {
@@ -41742,12 +41661,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "The ISO-standard code populates this field when you issue a retrieve() call. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The ISO-standard code populates this field when you issue a retrieve() call.",
         "Field Name": "isoCode",
         "Field Type": "string"
       },
       {
-        "Description": "The label is what users see in picklists in Salesforce. This field is read only in the API but you can edit the label in Setup.",
+        "Description": "The label is what users see in picklists in Salesforce.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -41918,6 +41837,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether AI sentiment analysis is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Ai​Sentiment​In​Dcr​Pref",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Amazon Redshift Output connector is enabled in Salesforce (true) or not (false). Available in API version 58.0 and later.",
         "Field Name": "enable​Amazon​Redshift​Output​Connector",
         "Field Type": "boolean"
@@ -41930,6 +41854,11 @@
       {
         "Description": "Indicates whether the Analytics sharing is enabled in Salesforce (true) or not (false). Available in API version 48.0 and later.",
         "Field Name": "enable​Analytics​Sharing​Enable",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Analyze in Tableau Next feature is enabled in Data 360 reports (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "enable​Analyze​In​Tableau​Next",
         "Field Type": "boolean"
       },
       {
@@ -41953,6 +41882,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether beta Data 360 connectors are enabled for Tableau Next (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Cdp​Beta​Connectors",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether CIO history reporting is enabled for Data 360 reports (true) or not (false). Available in API version 67.0 or later.",
         "Field Name": "enable​Cio​History​Reporting​Pref",
         "Field Type": "boolean"
@@ -41970,6 +41904,11 @@
       {
         "Description": "Indicates whether CRM Analtyics subscriptions are available in Experience Cloud (true) or not (false). Available in API version 67.0 and later.",
         "Field Name": "enable​Crma​Subs​For​Exp​Cloud",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether cross-cloud calculated insights (CSI) are enabled for Data 360 reports and Tableau Next (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Cross​Cloud​Csi",
         "Field Type": "boolean"
       },
       {
@@ -42028,8 +41967,18 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the Easy Setup AI experience is enabled for Tableau Next (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Easy​Setup​AI",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether this org allows Classic reports and dashboards to be sent to Portal Users (true) or not (false). Available in API version 47.0 and later.",
         "Field Name": "enable​Email​Reports​To​Portal​Users",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Explore in Tableau feature is enabled for Salesforce analytics features (true) or not (false). Available in API version 60.0 and later.",
+        "Field Name": "enable​Explore​In​Tableau",
         "Field Type": "boolean"
       },
       {
@@ -42040,6 +41989,11 @@
       {
         "Description": "Indicates whether report results display floating headers when scrolling (true) or not (false). Available in API version 47.0 and later.",
         "Field Name": "enable​Floating​Report​Headers",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the terms of service for the Analytics headless browser service are available in Salesforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Headless​Browser​Service​TOS",
         "Field Type": "boolean"
       },
       {
@@ -42068,8 +42022,18 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether Lightning Web Runtime (LWR) is enabled for Lightning Experience dashboards (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Lightning​Dashboard​LWR​Pref",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Lightning Report Builder feature can be enabled or disabled on the Setup page in Salesforce (true) or not (false). Available in API version 47.0 and later.",
         "Field Name": "enable​Lightning​Report​Builder",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Lightning Web Runtime (LWR) is enabled for Lightning Experience reports (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Lightning​Report​LWR​Pref",
         "Field Type": "boolean"
       },
       {
@@ -42083,8 +42047,18 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the metadata warehouse (MDW) is enabled for semantic authoring in Salesforce Analytics (true) or not (false). Available in API version 64.0 and later.",
+        "Field Name": "enable​MDW",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Report Builder is available in Salesforce (true), overriding profile level settings, or not (false). Available in API version 47.0 and later.",
         "Field Name": "enable​Mass​Enable​Report​Builder",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether native Tableau Lightning Web Components are enabled in Salesforce (true) or not (false). Available in API version 64.0 and later.",
+        "Field Name": "enable​Native​Tableau​LWC",
         "Field Type": "boolean"
       },
       {
@@ -42114,12 +42088,22 @@
       },
       {
         "Description": "Indicates whether admins can enable mobile offline access in Salesforce (true) or not (false). Available in API version 51.0 and later.",
-        "Field Name": "enable​Org​Ha​Mobile​Offline​Enabled",
+        "Field Name": "enable​Org​Has​Mobile​Offline​Enabled",
         "Field Type": "boolean"
       },
       {
         "Description": "Indicates whether admins can turn on watchlists for assets in Salesforce (true) or not (false). Available in API version 50.0 and later.",
         "Field Name": "enable​Org​Has​Watchlist​Enabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the org hierarchy feature is enabled for Tableau Next (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "enable​Org​Hierarchy",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether org hierarchy is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Org​Hierarchy​In​Dcr​Pref",
         "Field Type": "boolean"
       },
       {
@@ -42130,6 +42114,11 @@
       {
         "Description": "Indicates whether admins can turn on Power Insights for this org (true) or not (false). Removed in API version 51.0.",
         "Field Name": "enable​Power​Insights",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the creating Predict Caluculated Fields is enabled for semantic authoring in Salesforce Analytics (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "enable​Predict​Function",
         "Field Type": "boolean"
       },
       {
@@ -42145,6 +42134,11 @@
       {
         "Description": "Indicates whether recommended report types for Lightning Reports are available in Salesforce (true) or not (false). Available in API version 54.0 to 56.0. Removed in API version 57.0.",
         "Field Name": "enable​Recommended​Report​Type​Pref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether remote home org operations are enabled for the App Template Framework in Salesforce (true) or not (false). Available in API version 65.0 and later.",
+        "Field Name": "enable​Remote​Home​Org​Ops",
         "Field Type": "boolean"
       },
       {
@@ -42203,6 +42197,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the report record preview feature is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Report​Record​Preview​Org​Pref",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the unique org email for Lightning Experience Report subscriptions is enabled (true) or not (false). Available in API version 61.0 and later.",
         "Field Name": "enable​Report​Sub​Org​Email​Pref",
         "Field Type": "boolean"
@@ -42210,6 +42209,16 @@
       {
         "Description": "Indicates whether the unique row count aggregate feature in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 47.0. Removed in API version 48.0.",
         "Field Name": "enable​Report​Unique​Row​Count​Pref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether report type search is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Report​Type​Search​Pref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether reporting on Data 360 semantic models (SDM) is enabled (true) or not (false). Available in API version 63.0 and later.",
+        "Field Name": "enable​Reporting​On​SDM​Pref",
         "Field Type": "boolean"
       },
       {
@@ -42248,6 +42257,16 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether semantic authoring AI is enabled for Salesforce Analytics (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Semantic​Authoring​AI",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether high-contrast charts are enabled for Tableau Next dashboards (true) or not (false). Available in API version 63.0 and later.",
+        "Field Name": "enable​Show​High​Contrast​Chart",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Snowflake output data connector is available in Salesforce (true) or not (false). Available in API version 49.0 and later.",
         "Field Name": "enable​Snowflake​Output​Connector",
         "Field Type": "boolean"
@@ -42268,8 +42287,188 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether Tableau Next templated apps can be auto-installed in Salesforce (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "enable​TN​App​Auto​Install",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next templated apps are automatically updated in Salesforce (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "enable​TN​App​Auto​Update",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Admin Adoption Insights is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Adoption​Insights",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the standard Tableau Agent Data Analysis topic and Analyze Data action are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Analyze​Data",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Agent Beacon, which generates analytical insights that surface relevant business findings and recommendations proactively, is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Beacon",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the standard Tableau Agent Data Alert Management topic and Create Data Alert action are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Create​Alert",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Agent Data Connection and Analytics Creation are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Data​Exploration",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the standard Tableau Agent Semantic Model Curation topic and Create Calculated Field actions are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Data​Pro",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent Description Generation action is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agent​Description​Generation",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent agentic transforms are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Agentic​Transforms",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent analytics feedback streaming is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Analytics​Feedback​Streaming",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent analytics interactions testing center is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Analytics​Interactions",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau annotations are enabled for Slack (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Annotations",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau asset comparison API uses LLM-powered comparison (true) or the deterministic engine (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Asset​Compare​Use​Llm",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next asset thumbnails are enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Asset​Thumbnail",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next auditing is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Audit",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next client monitor is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Client​Monitor",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next Concierge V2 is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Concierge​V2",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether beta features for Tableau Next visualization authoring are enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Enhanced​Visualization​Authoring",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next external data exploration is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​External​Data​Exploration",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next following feature is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Following",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Agent generate visualization feature is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Generate​Visualization",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Tableau hyper output data connector is available in Salesforce (true) or not (false). Available in API version 51.0 and later.",
         "Field Name": "enable​Tableau​Hyper​Output​Connector",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next metrics insights (MI) summary is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​MI​Summary",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next maps are enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Maps",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next personal orgs are enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Personal​Org",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Salesforce support login as SysAmdin is enabled for Tableau Next personal orgs (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Personal​Org​Sf​Support",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next platform is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Platform",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next marketplace is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Private​Marketplace​Consume​Flow",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next marketplace metric templates are enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Private​Marketplace​Metric​Consume​Flow",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next marketplace template builder is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Private​Marketplace​Template​Builder​Flow",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau semantic model (SDM) AI optimization is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Sdm​Ai​Optimization",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Tableau Next configuration for token-based authentication is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Seamless​Auth",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next Slack app is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Slack​App",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next integration for Slack is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Slack​Collab",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Tableau Next template builder is enabled (true) or not (false). Available in API version 68.0 and later.",
+        "Field Name": "enable​Tableau​Template​Bldr",
         "Field Type": "boolean"
       },
       {
@@ -42288,6 +42487,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether using legacy iframe embedding instead of LWC for CRM Analytics dashboards is enabled (true) or not (false). Available in API version 57.0 and later.",
+        "Field Name": "enable​Wave​Iframe​Dashboard",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether multivalve dimension indexing is enabled in Salesforce (true) or not (false). Available in API version 50.0 and later.",
         "Field Name": "enable​Wave​Index​MV​Dim",
         "Field Type": "boolean"
@@ -42299,7 +42503,7 @@
       },
       {
         "Description": "Indicates whether CRM Analytics multiple currencies is enabled (true) or not (false). Available in API version 56.0 and later. (Beta)",
-        "Field Name": "enable​Wave​Multicurrency",
+        "Field Name": "enable​Wave​Multi​Currency",
         "Field Type": "boolean"
       },
       {
@@ -42353,7 +42557,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.",
+        "Description": "Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0. Removed in API version 68.0.",
         "Field Name": "incremental​Upsert​Enabled",
         "Field Type": "boolean"
       },
@@ -42400,6 +42604,11 @@
       {
         "Description": "Indicates whether the option to disable Data Prep recipe pre-step caching is available (true) or not (false). Available in API version 53.0 and later.",
         "Field Name": "recipe​Pre​Caching​Opt​Out",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether exporting schedules for CRM Analytics recipes is enabled (true) or not (false). Available in API version 67.0 and later.",
+        "Field Name": "recipe​Schedule​Export​Pref",
         "Field Type": "boolean"
       },
       {
@@ -42470,6 +42679,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether the Use elastic limits for asynchronous Apex jobs (Beta) setting is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableAsyncApexElasticExecutions",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Authenticated Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlAuthUserAccessCheckPref",
         "Field Type": "boolean"
@@ -42477,6 +42691,11 @@
       {
         "Description": "Indicates whether the Restrict Access to @AuraEnabled Apex Methods for Guest and Portal Users Based on User Profile critical update is activated (true) or not (false). For more details, see the Winter ’20 Release Notes.",
         "Field Name": "enableAuraApexCtrlGuestUserAccessCheckPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Block Apex Anonymous Code Execution from Managed Packages release update is enabled (true) or not (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "enableBlockPackagedApexExecAnon",
         "Field Type": "boolean"
       },
       {
@@ -46155,7 +46374,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the capability that allows: Loyalty program process rules to process transaction journals only when the loyalty program member is part of a Data Cloud segment associated with the rule's promotion is enabled (true) or disabled (false) for your org. The Promotion Eligibility component on Loyalty Program Member record page to categorize promotions based on whether the member belongs to the promotion’s campaign or Data Cloud segment is enabled (true) or disabled (false) for your org. The default value is false. This field is available in API version 55.0 or later.",
+        "Description": "The default value is false. This field is available in API version 55.0 or later.",
         "Field Name": "enableLoyaltyRulesVerifyCdpMemberSegment",
         "Field Type": "boolean"
       },
@@ -48460,14 +48679,8 @@
     "parent": "Metadata"
   },
   "MfgServiceConsoleSettings": {
-    "fields": [
-      {
-        "Description": "Indicates whether Service Console for Manufacturing is enabled in your org (true) or not false).By default, Service Console for Manufacturing is disabled.",
-        "Field Name": "enableMfgServiceConsole",
-        "Field Type": "boolean"
-      }
-    ],
-    "short_description": "Represents the settings to access the Service Console for Manufacturing. This type extends the Metadata metadata type and inherits its fullName field.",
+    "fields": [],
+    "short_description": "This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm",
     "parent": "Metadata"
   },
@@ -48553,69 +48766,8 @@
     "parent": "Metadata"
   },
   "ObjectHierarchyRelationship": {
-    "fields": [
-      {
-        "Description": "Set of inputObject, mappingFields, and outputObject entries. For example, fields from the input object of OpportunityLineItem maps to fields of the output object of SalesAgreementProduct.",
-        "Field Name": "childObjectMapping",
-        "Field Type": "ObjectMapping"
-      },
-      {
-        "Description": "The ID of the child object mapping record. This field is available in API version 56.0 and later.",
-        "Field Name": "childObjectMappingId",
-        "Field Type": "String"
-      },
-      {
-        "Description": "The field name in the input object used to group the records. This field is available in API version 55.0 and later.",
-        "Field Name": "inputObjRecordsGrpFieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Specifies the type of relationship between two objects. This field is available in API version 55.0 and later.Valid values are: ChildToChild ParentToChild ParentToParent Support",
-        "Field Name": "mappingType",
-        "Field Type": "ObjHierarchyMappingType (enumeration of type string)"
-      },
-      {
-        "Description": "Label name of the mapping definition.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The field name that defines the relationship between a parent and child for the output object. This field is available in API version 55.0 and later.",
-        "Field Name": "outputPntRelationshipFieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Set of inputObject, mappingFields, and outputObject entries. For example, fields from the input object of Opportunity maps to fields of the output object of SalesAgreement.",
-        "Field Name": "parentObjectMapping",
-        "Field Type": "ObjectMapping"
-      },
-      {
-        "Description": "The ID of the parent object mapping record. This field is available in API version 56.0 and later.",
-        "Field Name": "parentObjectMappingId",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The parent record for this object hierarchy relationship. This field is available in API version 55.0 and later.",
-        "Field Name": "parentRecord",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the field that defines the relationship between the parent and child.",
-        "Field Name": "parentRelationshipFieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The field name in an object that's used to define the relationship between a source and reference object. This field is available in API version 56.0 and later.",
-        "Field Name": "sourceReferenceRelaFieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Name of the usage type of an object hierarchy relationship.Valid value is: ConvertToSalesAgreement CLMFieldMapping EligibleProgramRebateType MapJournalToMemberAggregate TransformationMapping",
-        "Field Name": "usageType",
-        "Field Type": "MappingUsageType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents an organization’s custom field mappings for sales agreement conversion. Fields can be mapped from Opportunity and Quotes to SalesAgreement and SalesAgreementProduct. Represents a set of inputObject, mappingFields, and outputObject entries. Represents a set of inputField and outputField entries.",
+    "fields": [],
+    "short_description": "ObjectHierarchyRelationship components have the suffix ObjectHierarchyRelationship.settings and are stored in the ObjectHierarchyRelationship folder.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_objecthierarchyrelationshipsettings_metadata_api.htm",
     "parent": "Metadata"
   },
@@ -49406,64 +49558,8 @@
     "parent": "Metadata"
   },
   "SalesAgreementSettings": {
-    "fields": [
-      {
-        "Description": "Required. Source from which the actual ordered quantity of a product in a sales agreement is calculated. Valid values are: DataProcessingEngine—Available in API version 63.0 and later. Manual: Default Orders OrdersThroughContracts",
-        "Field Name": "actualsCalculationMode",
-        "Field Type": "ActualsCalculationMode(enumeration of type string)"
-      },
-      {
-        "Description": "Indicates whether predefined status validations are overridden (true) or not (false) when the Override Predefined Status Validations feature is enabled. The default value is false. Available in API version 65.0 and later.",
-        "Field Name": "arePredfndStatusValOveride",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. Number of decimal places applied to values in sales agreements. Available in API version 62.0 and later.",
-        "Field Name": "decimalScale",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Represents information about the groups for the advanced account forecast set measures or dimensions. Available in API version 56.0 and later.",
-        "Field Name": "displayGroups",
-        "Field Type": "AdvAcctFrcstDisplayGroup"
-      },
-      {
-        "Description": "Required. Metrics that are selected for display in the sales agreement terms in the specified sequence. There can be a maximum of 10 comma-separated metric names in this list.",
-        "Field Name": "displayedAgreementTermsMetrics",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Number of future schedules to include in actuals calculations in the sales agreement. Available in API version 63.0 and later.",
-        "Field Name": "futureActCalcSchedules",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Represents information about the measures to be displayed in the advanced account forecasts grid for the forecast set. Available in API version 56.0 and later.",
-        "Field Name": "measureDefinitions",
-        "Field Type": "AdvAcctForecastMeasureDef"
-      },
-      {
-        "Description": "Foreign key to ObjectMapping that maps fields from the input object of SalesAgreementSettings to fields in the output object of SalesAgreementSettings.",
-        "Field Name": "objectMapping",
-        "Field Type": "ObjectMapping"
-      },
-      {
-        "Description": "The email address to which notifications are sent.",
-        "Field Name": "primaryNotifEmailAddress",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The number of days before the end date of a sales agreement from when the agreement can be renewed. Available in API version 50.0 and later.",
-        "Field Name": "renewalPeriodDayCount",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The second email address to which notifications are sent.",
-        "Field Name": "secondaryNotifEmailAddress",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents settings that control the display of agreement terms metrics in sales agreements and the calculation of the actual quantity of products in sales agreements. These settings also control the approval of sales agreements. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
+    "fields": [],
+    "short_description": "In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm",
     "parent": "Metadata"
   },
@@ -50952,8 +51048,8 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available for SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
-        "Field Name": "enableSldsV2DarkModeInCosmos (beta)",
+        "Description": "Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available for SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.",
+        "Field Name": "enableSldsV2DarkModeInCosmos",
         "Field Type": "boolean"
       },
       {
@@ -52766,44 +52862,44 @@
   "SustainabilityUom": {
     "fields": [
       {
-        "Description": "The description of the unit of measure.",
+        "Description": "",
         "Field Name": "description",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is for a product that the company has procured in its supply chain operations (true) or not (false). The default value is false.",
         "Field Name": "isProductUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether the unit of measure is used in the stationary asset calculations (true) or (false). The default value is false.",
         "Field Name": "isStationaryAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the vehicle asset calculations (true) or (false). The default value is false.",
+        "Description": "(true) or (false). The default value is false.",
         "Field Name": "isVehicleAssetUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "Indicates whether the unit of measure is used in the generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
+        "Description": "generated material waste calculations (true) or (false). The default value is false. This field is available in API version 65.0 and later.",
         "Field Name": "isWasteUom",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
         "Description": "Required. The label assigned to this object.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
+        "Description": "(enumeration of type string) Required. The type of unit used for conversions or calculations. Values are: Energy Other Volume Weight",
         "Field Name": "unitType",
-        "Field Type": "UnitType (enumeration of type string)"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents the unit of measure (UOM) values for custom fuel types in an org. Track fuel consumption and emission results with the flexibility to add custom fuel types and UOM values.",
@@ -52815,37 +52911,37 @@
       {
         "Description": "Required. The conversion factor that's used to convert values from one unit of measure to another for the fuel type.",
         "Field Name": "conversionFactor",
-        "Field Type": "double"
+        "Field Type": ""
       },
       {
-        "Description": "The name of the fuel type.Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
+        "Description": "The name of the fuel type. Possible values are: AutogasLPG Biodiesel Biomass CityGas CompressedNaturalGasCNG Cooling Diesel Electricity Ethanol FuelOil Gasoline Heat HeavyOil ITElectricity JetFuel Kerosene LightOil LiquidNaturalGasLNG MobileDiesel NaturalGas Propane Refrigerant Steam",
         "Field Name": "fuelType",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "An auto-generated value that doesn’t impact the behavior of the metadata type. The default value is false.",
+        "Description": "of the metadata type. The default value is false.",
         "Field Name": "isProtected",
-        "Field Type": "boolean"
+        "Field Type": ""
       },
       {
-        "Description": "A user-friendly name for SustnUomConversion, which is defined when the SustnUomConversion is created.",
+        "Description": "SustnUomConversion is created.",
         "Field Name": "masterLabel",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The source unit of measure for the fuel type. Possible values are: 1000m3 GJ GWh Kiloliters Liters MJ MMBtu MWh Therms Tonnes UkGallons UsGallons ccf kG kWh kcal lbs longTons m3 shortTons",
         "Field Name": "sourceUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
         "Description": "Required. The target unit of measure for the fuel type.",
         "Field Name": "targetUom",
-        "Field Type": "string"
+        "Field Type": ""
       },
       {
-        "Description": "The key associated with a unit of measure for the fuel type.",
+        "Description": "",
         "Field Name": "uomsKey",
-        "Field Type": "string"
+        "Field Type": ""
       }
     ],
     "short_description": "Represents information about the unit of measure (UOM) conversion for the custom fuel types defined by a customer in an org.",
@@ -53333,6 +53429,48 @@
     ],
     "short_description": "Represents a category that groups related Tag records. A TagSet defines the classification category, and its associated Tag records represent the individual values within that category. For example, a TagSet named DataDomain might group Tags such as Financial, Operational, or Legal. TagSets can be organized into a hierarchy, where a parent TagSet contains one or more child TagSets. This hierarchy allows you to make progressively granular classifications. Use the listMetadata() call to discover custom Tags and TagSets in your org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tagset.htm",
+    "parent": "Metadata"
+  },
+  "TelephonyProvider": {
+    "fields": [
+      {
+        "Description": "Required. Specifies the country of the telephony provider.",
+        "Field Name": "country",
+        "Field Type": "ByocCountryCode( enumeration of type string)"
+      },
+      {
+        "Description": "Specifies the ID of the telephony provider.",
+        "Field Name": "externalIdentifier",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The unique name of the TelephonyProvider component. Inherited from the Metadata metadata type.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the ID of the TelephonyProvider record.",
+        "Field Name": "id",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the label for the telephony provider.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the name of the telephony provider.",
+        "Field Name": "providerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the trunk type of the telephony provider. Valid values are: Trusted Secondary",
+        "Field Name": "trunkType",
+        "Field Type": "TrunkType( enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents a telephony provider configuration that an org uses with Bring Your Own Carrier (BYOC). This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_telephonyprovider.htm",
     "parent": "Metadata"
   },
   "Territory": {
@@ -55140,6 +55278,38 @@
     "fields": [],
     "short_description": "A two-character language code identifies each language. For example, en. A five-character code is used for languages that differ depending on location. For example, en_AU.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "TrustedTelephonyProvider": {
+    "fields": [
+      {
+        "Description": "Required. The unique name of the TrustedTelephonyProvider component. Inherited from the Metadata metadata type.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the ID of the trusted telephony provider.",
+        "Field Name": "id",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the master label of the trusted telephony provider.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the aggregator type associated with trusted telephony provider. Valid value: Bandwidth",
+        "Field Name": "providerCarrier",
+        "Field Type": "ByocTrustedAggregator( enumeration of type string)"
+      },
+      {
+        "Description": "Specifies the associated telephony provider for the trusted telephony provider.",
+        "Field Name": "telephonyProvider",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the trusted telephony carrier configuration for Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_trustedtelephonyprovider.htm",
     "parent": "Metadata"
   },
   "UIBundle": {

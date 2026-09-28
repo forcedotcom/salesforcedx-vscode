@@ -13,11 +13,11 @@ import {
   ColorPresentation,
   type ExtensionContext,
   languages,
-  Position,
-  Range,
-  TextDocument
+  type Position,
+  type Range,
+  type TextDocument
 } from 'vscode';
-import { RequestType, TextDocumentPositionParams } from 'vscode-languageclient';
+import { RequestType, type TextDocumentPositionParams } from 'vscode-languageclient';
 import {
   type ColorPresentationParams,
   ColorPresentationRequest,

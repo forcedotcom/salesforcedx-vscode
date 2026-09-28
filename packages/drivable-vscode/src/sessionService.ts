@@ -41,6 +41,7 @@ import {
   DrivableVscodeObservation,
   DrivableVscodeRendererConsoleEntry,
   type DrivableVscodeAction,
+  type Within,
   type DrivableVscodeExtension,
   type DrivableVscodeFinding,
   type DrivableVscodeLaunchOptions
@@ -264,17 +265,27 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
   );
 });
 
+const roleLocator = (
+  page: Page,
+  role: string,
+  name: string,
+  exact: boolean | undefined,
+  within: Option.Option<Within>
+) =>
+  Option.match(within, {
+    onNone: () => page,
+    onSome: scope => page.getByRole(decodeRole(scope.role) satisfies AriaRole, { name: scope.name })
+  }).getByRole(decodeRole(role) satisfies AriaRole, { name, exact });
+
 const executeAction = (page: Page, action: DrivableVscodeAction) =>
   Effect.tryPromise({
     try: () =>
       Match.value(action).pipe(
         Match.when({ kind: 'click' }, value =>
-          page.getByRole(decodeRole(value.role) satisfies AriaRole, { name: value.name, exact: value.exact }).click()
+          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).click()
         ),
         Match.when({ kind: 'fill' }, value =>
-          page
-            .getByRole(decodeRole(value.role) satisfies AriaRole, { name: value.name, exact: value.exact })
-            .fill(value.value)
+          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).fill(value.value)
         ),
         Match.when({ kind: 'type' }, value => page.keyboard.type(value.text)),
         Match.when({ kind: 'press' }, value => page.keyboard.press(value.key)),

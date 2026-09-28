@@ -20,20 +20,12 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-apexLspE2E
@@ -69,6 +61,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. On wireit cache hit, the command is skipped — we never need Playwright browsers.
       # E2E_NO_RETRIES=1 disables Playwright retries in config so failures are fast on a cache miss.

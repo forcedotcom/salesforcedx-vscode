@@ -14,7 +14,7 @@ Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHA
 
 - User invokes `/changelog` or asks to prepare/review the changelog
 - On `develop`, after a `chore: changelog for prerelease vX.Y.Z` commit lands
-- **Timing matters**: polish it *before* `build-release.yml`'s next scheduled run (Wednesdays, 7 AM UTC). That job reads develop's current `packages/salesforcedx-vscode/CHANGELOG.md`, relabels the header to the stable version, and bakes it into the stable VSIX. Once that's run, the content is frozen inside the built artifact — fixing it afterward means manually re-injecting into the release's VSIX asset, not editing this file.
+- **Timing matters**: polish it *before* `build-github-release.yml`'s next scheduled run (Wednesdays, 7 AM UTC). That job reads develop's current `packages/salesforcedx-vscode/CHANGELOG.md`, relabels the header to the stable version, and bakes it into the stable VSIX. Once that's run, the content is frozen inside the built artifact — fixing it afterward means manually re-injecting into the release's VSIX asset, not editing this file.
 
 ## File location
 
@@ -150,8 +150,8 @@ These describe the pipeline behavior in `promote-to-prerelease.yml`, `scripts/ge
 ### Generate → Prepend → Polish → Relabel
 
 1. **Generation + Prepend** (`promote-to-prerelease.yml`'s `changelog` job, weekly on `develop`): `npm run changelog:delta` writes this week's delta to `packages/salesforcedx-vscode/CHANGELOG.md`, then `scripts/prepend-release-changelog.js` immediately copies that same content into root `CHANGELOG.md`. Both are labeled with the **prerelease** version (e.g. `67.17.9`).
-2. **Polish** (`develop`, this skill): Human edits `packages/salesforcedx-vscode/CHANGELOG.md` any time before the next `build-release.yml` run. **Note:** because prepend already ran in step 1, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit — see the open question below if this matters for your case.
-3. **Relabel to stable** (`build-release.yml`, next Wednesday 7 AM UTC): pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 2), relabels the header from the prerelease version to the stable version, and bakes it into the stable VSIX.
+2. **Polish** (`develop`, this skill): Human edits `packages/salesforcedx-vscode/CHANGELOG.md` any time before the next `build-github-release.yml` run. **Note:** because prepend already ran in step 1, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit — see the open question below if this matters for your case.
+3. **Relabel to stable** (`build-github-release.yml`, next Wednesday 7 AM UTC): pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 2), relabels the header from the prerelease version to the stable version, and bakes it into the stable VSIX.
 4. **Relabel history** (`publishVSCode.yml`, on final stable publish): relabels the same header in develop's `CHANGELOG.md` and `packages/salesforcedx-vscode/CHANGELOG.md` from prerelease → stable version, so the committed history matches what shipped.
 
 `prepend-release-changelog.js` validates structure (version format, file existence, non-empty content), runs idempotently (skips if version already in root), and reports specific errors (ENOSPC, EACCES, missing files).

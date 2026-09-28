@@ -87,7 +87,7 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-pnpm
         with:
-          node-version: '22.22.3'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - uses: google/wireit@setup-github-actions-caching/v2

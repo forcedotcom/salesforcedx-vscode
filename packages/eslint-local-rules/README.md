@@ -32,7 +32,7 @@ The rule allows template literals that contain `nls.localize()` calls.
 
 ### no-inline-esbuild-platform
 
-Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the strip and leaks node-only code into the web bundle.
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and the dead *call* folds ([ADR 0013](../../docs/adr/0013-dual-target-bundle-time-split.md)); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the fold and leaves the node call live in the web bundle.
 
 **Bad:**
 
@@ -75,6 +75,31 @@ const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
 ```
 
 Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
+
+### no-nested-effect-ternary
+
+Disallows nested ternaries (three or more branches) whose type is Effect's `Effect`. Use `Match.value`, `Match.when`, and `Match.orElse` instead. A single Effect ternary stays allowed, and so do nested ternaries that do not produce an `Effect`. For a no-op branch, use `Match.orElse(() => Effect.void)`.
+
+The rule is type-aware. It reports only when the conditional expression's type is `Effect` (including a union or intersection that is entirely `Effect`).
+
+**Bad:**
+
+```typescript
+const effect =
+  kind === 'a' ? doA : kind === 'b' ? doB : Effect.void;
+```
+
+**Good:**
+
+```typescript
+const effect = Match.value(kind).pipe(
+  Match.when('a', () => doA),
+  Match.when('b', () => doB),
+  Match.orElse(() => Effect.void)
+);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
 
 ### notification-slot-matches-package-json
 

@@ -28,6 +28,11 @@ import { URI } from 'vscode-uri';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
+type SoqlBlock = { queryText: string; location: { startIndex: number } };
+
+const isSoqlLocation = (data: unknown): data is SoqlBlock['location'] =>
+  typeof data === 'object' && data !== null && 'startIndex' in data && typeof data.startIndex === 'number';
+
 const virtualDocumentContents = new Map<string, string>();
 
 workspace.registerTextDocumentContentProvider('embedded-soql', {
@@ -58,9 +63,10 @@ export const soqlMiddleware: Middleware = {
   }
 };
 
-const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): { queryText: string; location: any } | undefined => {
+const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): SoqlBlock | undefined => {
   const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-  return soqlItem ? { queryText: soqlItem.detail as string, location: soqlItem.data } : undefined;
+  const data = soqlItem?.data as unknown;
+  return soqlItem && isSoqlLocation(data) ? { queryText: soqlItem.detail as string, location: data } : undefined;
 };
 
 const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, position: Position): boolean => {
@@ -72,11 +78,7 @@ const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, 
   return !!wordAtCursor && wordAtCursor.startsWith(':');
 };
 
-const getSOQLVirtualContent = (
-  document: TextDocument,
-  position: Position,
-  soqlBlock: { queryText: string; location: any }
-): string => {
+const getSOQLVirtualContent = (document: TextDocument, position: Position, soqlBlock: SoqlBlock): string => {
   const eol = eolForDocument(document);
   const blankedContent = document
     .getText()
@@ -95,7 +97,7 @@ const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
   context: CompletionContext,
-  soqlBlock: { queryText: string; location: any }
+  soqlBlock: SoqlBlock
 ): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));

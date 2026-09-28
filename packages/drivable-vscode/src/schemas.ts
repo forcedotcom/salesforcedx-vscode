@@ -11,6 +11,15 @@ const NonEmptyString = Schema.String.pipe(Schema.minLength(1));
 const OptionalObservationSequence = {
   observationSequence: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.positive()))
 };
+export const Within = Schema.Struct({ role: NonEmptyString, name: NonEmptyString });
+export type Within = Schema.Schema.Type<typeof Within>;
+const RoleTargetFields = {
+  role: NonEmptyString,
+  name: NonEmptyString,
+  exact: Schema.optional(Schema.Boolean),
+  within: Schema.optional(Within),
+  ...OptionalObservationSequence
+};
 
 const ExtensionMode = Schema.Literal('dev', 'vsix');
 
@@ -55,18 +64,12 @@ export type DrivableVscodeObservation = Schema.Schema.Type<typeof DrivableVscode
 export const DrivableVscodeAction = Schema.Union(
   Schema.Struct({
     kind: Schema.Literal('click'),
-    role: NonEmptyString,
-    name: NonEmptyString,
-    exact: Schema.optional(Schema.Boolean),
-    ...OptionalObservationSequence
+    ...RoleTargetFields
   }),
   Schema.Struct({
     kind: Schema.Literal('fill'),
-    role: NonEmptyString,
-    name: NonEmptyString,
     value: Schema.String,
-    exact: Schema.optional(Schema.Boolean),
-    ...OptionalObservationSequence
+    ...RoleTargetFields
   }),
   Schema.Struct({ kind: Schema.Literal('type'), text: Schema.String, ...OptionalObservationSequence }),
   Schema.Struct({ kind: Schema.Literal('press'), key: NonEmptyString, ...OptionalObservationSequence }),

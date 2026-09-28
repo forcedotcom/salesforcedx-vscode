@@ -137,6 +137,17 @@ describe('languageServerScanConfig', () => {
       expect(result).toEqual(['objects']);
     });
 
+    it('sorts folder names with locale-aware comparison', () => {
+      const folderNames = ['z', 'ä'];
+      const registry = {
+        strictDirectoryNames: Object.fromEntries(folderNames.map(folderName => [folderName, 'metadata']))
+      };
+
+      expect(deriveExcludedMetadataFolders(registry, new Set())).toEqual(
+        folderNames.toSorted((left, right) => left.localeCompare(right))
+      );
+    });
+
     it('returns empty list when strictDirectoryNames is missing', () => {
       expect(deriveExcludedMetadataFolders({}, new Set(['classes', 'triggers']))).toEqual([]);
     });

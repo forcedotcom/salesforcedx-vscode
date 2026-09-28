@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.17.14",
+  "version": "67.25.5",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -39,13 +39,13 @@
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
-    "salesforcedx-vscode-services": "*",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*"
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",

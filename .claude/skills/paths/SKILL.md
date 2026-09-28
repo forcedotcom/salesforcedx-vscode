@@ -15,5 +15,6 @@ Scope: .ts files in /src
   - `Utils.resolvePath(baseUri, 'rel')` — path.resolve
 - URI↔path via FsService: `toUri(filePath)` / `uriToPath(uri)` (Effect; extensions with salesforcedx-vscode-services)
 - raw path→URI: `URI.file(path)`, or `toUri` for memfs in web
+- Windows file-drive compare: `comparisonPath` / `pathSuffixWithin` (`uriComparison.ts`), `isUriEqualOrWithin` (`uriContainment.ts`) — don't hand-roll `path.toLowerCase()`
 - FsService setup: [services-extension-consumption](../services-extension-consumption/SKILL.md)
 - exit hatch: build scripts, esbuild configs, tests, desktop-only extension, host-FS-only tooling → node:path ok

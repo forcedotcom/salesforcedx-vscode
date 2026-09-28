@@ -6,7 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -30,31 +29,26 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 }) {}
 
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
-  isUndefined(value) || value.length === 0
-    ? Effect.fail(
+  Effect.succeed(value).pipe(
+    Effect.filterOrFail(
+      S.is(S.NonEmptyString),
+      () =>
         new SettingsError({
           cause: new Error(`Value for ${key} is empty`),
           key,
           message: `Value for ${key} is empty`
         })
-      )
-    : Effect.succeed(value);
+    )
+  );
 
 /** Static service for reading and writing VS Code settings */
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
   accessors: true,
   dependencies: [],
   effect: Effect.gen(function* () {
-    const getValue = Effect.fn('SettingsService.getValue')(function* <T>(
-      section: string,
-      key: string,
-      defaultValue?: T
-    ) {
-      return yield* Effect.try({
-        try: () => {
-          const config = vscode.workspace.getConfiguration(section);
-          return isNotUndefined(defaultValue) ? config.get<T>(key, defaultValue) : config.get<T>(key);
-        },
+    const readValue = <T>(section: string, key: string) =>
+      Effect.try({
+        try: () => vscode.workspace.getConfiguration(section).get<T>(key),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new SettingsError({
@@ -65,6 +59,17 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           });
         }
       });
+
+    const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
+      return yield* readValue<T>(section, key);
+    });
+
+    const getValueOrElse = Effect.fn('SettingsService.getValueOrElse')(function* <T>(
+      section: string,
+      key: string,
+      defaultValue: T
+    ) {
+      return (yield* readValue<T>(section, key)) ?? defaultValue;
     });
 
     const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
@@ -212,12 +217,14 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     });
 
     const getInternalDev = Effect.fn('SettingsService.getInternalDev')(function* () {
-      return (yield* getValue<boolean>(SFDX_CORE_SECTION, 'internal-development', false)) ?? false;
+      return yield* getValueOrElse(SFDX_CORE_SECTION, 'internal-development', false);
     });
 
     return {
-      /** Get a value from settings. @param section The settings section @param key The settings key @param defaultValue Optional default value */
+      /** Setting value, or `undefined` when unset. */
       getValue,
+      /** Setting value, or `defaultValue` when stored value is `undefined` or `null`. */
+      getValueOrElse,
       /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set @param target Configuration target (defaults to Global) */
       setValue,
       /** Get the Salesforce instance URL from settings */
