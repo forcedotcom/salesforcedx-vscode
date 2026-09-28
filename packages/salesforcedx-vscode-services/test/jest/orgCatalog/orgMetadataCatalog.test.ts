@@ -33,6 +33,7 @@ import {
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
+import { QueryService } from '../../../src/core/queryService';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
@@ -246,7 +247,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
         return artifact;
       })
   );
-  const toolingQuery = jest.fn(async () => ({
+  const toolingQuery = jest.fn(async (_soql: string) => ({
     records: [{ Body: 'public class RemoteTest {}', LastModifiedDate: 'tooling-revision' }]
   }));
   const buildComponentSetFromSource = jest.fn(() =>
@@ -291,6 +292,15 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getConnection,
       getConnectionForOrg
     } as unknown as InstanceType<typeof ConnectionService>),
+    Layer.succeed(QueryService, {
+      query: (queryOptions: { soql: string }) =>
+        Effect.promise(() => toolingQuery(queryOptions.soql)).pipe(
+          Effect.map(result => ({
+            totalSize: result.records.length,
+            records: result.records
+          }))
+        )
+    } as unknown as InstanceType<typeof QueryService>),
     Layer.succeed(FsService, {
       readFile: (uri: URI) => Effect.succeed(shadowFiles.get(uri.toString()) ?? ''),
       readDirectoryWithTypes,
