@@ -166,7 +166,7 @@ jobs:
   # changes, and commit the same delta to develop so root CHANGELOG.md keeps the full cumulative
   # history. Must complete before `promote`, since the reusable promote workflow re-downloads
   # this exact release asset.
-  changelog:
+  write-changelog:
     needs: [find-nightly, gate-check, changelog-body]
     # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate, so
     # gate-check's success must be checked explicitly here too -- same as `promote` below.
@@ -219,7 +219,7 @@ jobs:
             echo "No qualifying commits in this week's range. Skipping changelog generation."
             echo "generated=false" >> "$GITHUB_OUTPUT"
           else
-            RELEASE_DATE=$(date -d '+2 days' '+%B %-d, %Y')
+            RELEASE_DATE=$(date -d '+7 days' '+%B %-d, %Y')
             {
               echo "# $PRERELEASE_VERSION - $RELEASE_DATE"
               echo
@@ -254,7 +254,7 @@ jobs:
           # asset-listing API isn't guaranteed to reflect that within seconds, so the
           # promote job's download (which starts right after this job) can 404 on the
           # stale asset. Poll until the listed digest matches what we just uploaded
-          # before letting this job report success, so promote's `needs: changelog`
+          # before letting this job report success, so promote's `needs: write-changelog`
           # dependency actually means the new asset is visible.
           LOCAL_DIGEST="sha256:$(sha256sum "$VSIX" | cut -d' ' -f1)"
           for attempt in 1 2 3 4 5; do
@@ -287,11 +287,11 @@ jobs:
           message: "chore: changelog for prerelease v${{ steps.version.outputs.version }} [skip ci]"
 
   # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).
-  # `changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well as
-  # success -- otherwise dry-run would never reach the reusable workflow's own dry-run path.
+  # `write-changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well
+  # as success -- otherwise dry-run would never reach the reusable workflow's own dry-run path.
   promote:
-    needs: [find-nightly, gate-check, changelog]
-    if: always() && needs.gate-check.result == 'success' && (needs.changelog.result == 'success' || needs.changelog.result == 'skipped')
+    needs: [find-nightly, gate-check, write-changelog]
+    if: always() && needs.gate-check.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped')
     uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}

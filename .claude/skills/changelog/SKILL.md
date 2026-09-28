@@ -151,7 +151,7 @@ Use these `chore:` subjects for polish commits on `develop`:
 
 1. **compute-changelog-range** (promote-to-prerelease.yml): Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists). Empty `fromRef` (identical to this week's nightly commit — a manual re-run or hotfix) skips changelog-body instead of feeding it an identical range.
 2. **changelog-body** (reusable workflow `.github/workflows/changelog-body.yml`): Calls Cursor-backed AI (guided by `.cursor/skills/changelog-judgment/SKILL.md`) to produce polished, customer-facing markdown body from commits in range `(fromRef, toRef]`. Already removes GUS refs, rewrites sentences ("We added/fixed/improved..."), dedupes multi-package PRs, consolidates Under-the-Hood. Returns `body` output.
-3. **changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Immediately runs `scripts/prepend-release-changelog.js` to copy same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed directly to `develop`.
+3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Immediately runs `scripts/prepend-release-changelog.js` to copy same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed directly to `develop`.
 4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** because prepend already ran in step 3, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit.
 5. **Relabel to stable** (`build-github-release.yml`, next Wednesday 7 AM UTC): Pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 4), relabels header from prerelease → stable version, bakes into stable VSIX.
 6. **Relabel history** (`publishVSCode.yml`, on final stable publish): Relabels same header in both changelogs from prerelease → stable, so history matches what shipped.
@@ -186,7 +186,7 @@ Use these `chore:` subjects for polish commits on `develop`:
 - We made some under the hood changes. ([PR #<num>](...), [PR #<num>](...))
 ```
 
-- Top header: `# <version> - <release date>`; date is `+2 days` from branch-cut (Mon cut → Wed release), written by the `changelog` job, not changelog-body
+- Top header: `# <version> - <release date>`; date is `+7 days` from this Wednesday's prerelease (next Wednesday's stable release), written by the `write-changelog` job, not changelog-body
 - Sections, in order: `Added`, `Fixed`, `Changed`, `Under the Hood`. Section is an AI judgment call per `.cursor/skills/changelog-judgment/SKILL.md` (`Added` = new capability, `Fixed` = bugfix, `Changed` = behavior change, `Under the Hood` = invisible to users), not a fixed commit-type mapping — see `scripts/changelogBody/changelogBody.mts`
 - Kept commit types: `feat`, `fix`, `perf` (everything else, e.g. `chore`/`refactor`/`test`/`ci`, is dropped before the AI step ever sees it)
 - `Under the Hood` entries are consolidated into one bullet with all their PR links, no package sub-header
