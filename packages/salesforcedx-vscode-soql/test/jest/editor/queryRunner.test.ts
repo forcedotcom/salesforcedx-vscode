@@ -21,7 +21,7 @@ describe('runQuery ALL ROWS handling', () => {
           } as never)
         }),
         Effect.provide(QueryService.Default)
-      )
+      ) as Effect.Effect<unknown, unknown, never>
     ).then(() => query);
   };
 
