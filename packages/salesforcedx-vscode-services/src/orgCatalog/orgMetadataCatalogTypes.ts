@@ -10,7 +10,7 @@ import type { SObject } from '../core/schemas/sObject';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 
-const UriSchema = Schema.declare((value): value is URI => value instanceof URI, {
+const UriSchema = Schema.declare((value): value is URI => URI.isUri(value), {
   identifier: 'URI',
   description: 'vscode-uri URI'
 });

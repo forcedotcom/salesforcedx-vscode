@@ -18,8 +18,8 @@ import { MetadataChangeType } from './sdrGuards';
 
 const WORKSPACE_CORRELATION_WINDOW = Duration.seconds(2);
 
-// URI has a protected constructor so Schema.instanceOf doesn't apply; use Schema.declare with instanceof predicate
-const UriSchema = Schema.declare((u): u is URI => u instanceof URI, {
+// URI has a protected constructor so Schema.instanceOf doesn't apply; use Schema.declare with URI.isUri
+const UriSchema = Schema.declare((u): u is URI => URI.isUri(u), {
   identifier: 'URI',
   description: 'vscode-uri URI'
 });
