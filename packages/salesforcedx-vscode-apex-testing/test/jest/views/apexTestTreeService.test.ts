@@ -667,7 +667,7 @@ describe('ApexTestTreeService', () => {
     });
 
     it('removes the suite parent and clears state when includesSuiteChange is true', async () => {
-      // Default activeTestService returns no suites, so populateSuiteItems re-adds nothing.
+      // Default activeTestService returns no suites, so the suite parent is not re-added.
       const { ctx, topItems } = makeMutationContext();
       const suiteParent = richTestItem('apex-test-suites-parent', 'Apex Test Suites');
       const suiteItem = richTestItem('suite:MySuite', 'MySuite');
