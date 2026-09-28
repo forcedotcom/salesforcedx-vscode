@@ -778,7 +778,6 @@ describe('DataQuery Pure Functions', () => {
         )
       );
       expect(query).toHaveBeenCalledWith(
-        {},
         expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true, maxFetch: 50_000, tooling: false }),
         expect.anything()
       );
@@ -798,7 +797,6 @@ describe('DataQuery Pure Functions', () => {
         )
       );
       expect(query).toHaveBeenCalledWith(
-        {},
         expect.objectContaining({ soql: 'SELECT Id FROM ApexClass', scanAll: true, tooling: true }),
         expect.anything()
       );
@@ -818,7 +816,6 @@ describe('DataQuery Pure Functions', () => {
         )
       );
       expect(query).toHaveBeenCalledWith(
-        {},
         expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: false }),
         expect.anything()
       );
