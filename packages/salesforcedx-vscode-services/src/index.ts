@@ -313,7 +313,7 @@ export {
 } from './core/schemas/sObject';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
+export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
   DebugLevelDeleteError,

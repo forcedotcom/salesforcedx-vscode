@@ -33,33 +33,36 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text
  */
 export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
-  const channelService = yield* api.services.ChannelService;
 
-  yield* channelService.appendToChannel(
-    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+  yield* api.services.ChannelService.pipe(
+    Effect.flatMap(channelService =>
+      channelService.appendToChannel(
+        nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+      )
+    )
   );
 
-  const maxFetch = yield* (yield* api.services.SettingsService).getValueOrElse(
-    SOQL_CONFIGURATION_NAME,
-    'maxQueryLimit',
-    50_000
-  );
-  const { soql, scanAll } = stripAllRows(query);
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
-  return yield* api.services.QueryService.pipe(
-    Effect.flatMap(queryService =>
-      queryService.query(connection, { soql, tooling: useTooling, scanAll, maxFetch }, SoqlRecord)
+  return yield* Effect.all({
+    maxFetch: api.services.SettingsService.pipe(
+      Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
     ),
-    Effect.map(result => ({
-      done: true,
-      totalSize: result.totalSize,
-      records: [...(result.records ?? [])]
-    })),
-    promptService.withProgress(
-      nls.localize('progress_running_query'),
-      yield* notificationMode.getProgressLocation(COMMAND)
+    promptService: api.services.PromptService,
+    progressLocation: api.services.NotificationModeService.pipe(
+      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
+    )
+  }).pipe(
+    Effect.flatMap(({ maxFetch, promptService, progressLocation }) =>
+      api.services.QueryService.pipe(
+        Effect.flatMap(queryService =>
+          queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, SoqlRecord)
+        ),
+        Effect.map(result => ({
+          done: true,
+          totalSize: result.totalSize,
+          records: [...result.records]
+        })),
+        promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
+      )
     )
   );
 });

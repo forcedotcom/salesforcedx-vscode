@@ -22,7 +22,7 @@ import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { getConnection, isDefaultOrgSet } from '../services/org';
+import { isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
@@ -111,7 +111,6 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
     return;
   }
   const queryText = document.getText();
-  const conn = yield* Effect.promise(() => getConnection());
   const api = yield* getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
@@ -122,7 +121,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
         location: progressLocation,
         title: nls.localize('progress_running_query')
       },
-      () => getSoqlRuntime().runPromise(runQuery(conn, queryText, { maxRows }))
+      () => getSoqlRuntime().runPromise(runQuery(queryText, { maxRows }))
     )
   );
   yield* Effect.promise(() => openQueryDataView(queryData));

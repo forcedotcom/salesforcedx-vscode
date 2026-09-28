@@ -31,6 +31,7 @@ import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
 import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { executeQuery } from './queryExecute';
 import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { OrgId } from './schemas/salesforceId';
@@ -249,10 +250,12 @@ const identityCache = Effect.runSync(
       onFailure: () => Duration.zero
     }),
     lookup: ({ orgId, username, conn }: IdentityCacheKey) =>
-      Effect.tryPromise(() =>
-        conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
+      executeQuery(
+        conn,
+        { soql: `SELECT Id, Username FROM User WHERE Username = '${username}'` },
+        Schema.Struct({ Id: Schema.String, Username: Schema.String })
       ).pipe(
-        Effect.map(r => r.records),
+        Effect.map(result => result.records),
         Effect.map(Arr.head),
         Effect.map(Option.map(record => ({ username: record.Username, userId: record.Id }))),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),

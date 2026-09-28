@@ -38,7 +38,7 @@ const queryEffect = <A, I>(
   schema: Schema.Schema<A, I, never>
 ) =>
   QueryService.pipe(
-    Effect.flatMap(queryService => queryService.query(connection, options, schema)),
+    Effect.flatMap(queryService => queryService.query({ ...options, connection }, schema)),
     Effect.provide(QueryService.Default)
   );
 
@@ -57,7 +57,7 @@ const fail = <A, I>(
 const Account = Schema.Struct({ Id: Schema.String, Name: Schema.String });
 
 describe('QueryService.query', () => {
-  it('returns the first page only when maxFetch is omitted', async () => {
+  it('paginates until done when maxFetch is omitted', async () => {
     const first = urlFor(SOQL);
     const { connection, request } = connectionWith({
       [first]: {
@@ -65,13 +65,21 @@ describe('QueryService.query', () => {
         done: false,
         nextRecordsUrl: PAGE_2,
         records: [{ Id: '001', Name: 'One', attributes: { type: 'Account' } }]
+      },
+      [PAGE_2]: {
+        totalSize: 3,
+        done: true,
+        records: [{ Id: '002', Name: 'Two', attributes: { type: 'Account' } }]
       }
     });
     const result = await run(connection, { soql: SOQL }, Schema.Unknown);
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledTimes(2);
     expect(result).toEqual({
       totalSize: 3,
-      records: [{ Id: '001', Name: 'One', attributes: { type: 'Account' } }]
+      records: [
+        { Id: '001', Name: 'One', attributes: { type: 'Account' } },
+        { Id: '002', Name: 'Two', attributes: { type: 'Account' } }
+      ]
     });
   });
 
@@ -156,18 +164,17 @@ describe('QueryService.query', () => {
     expect(stripped.records).toEqual([{ Id: '001', Name: 'One' }]);
   });
 
-  it('returns a totals-only envelope when records is absent', async () => {
+  it('returns an empty records array when the envelope has no records', async () => {
     const first = urlFor('SELECT COUNT() FROM Account');
     const { connection, request } = connectionWith({
       [first]: { totalSize: 14, done: true }
     });
     const result = await run(connection, { soql: 'SELECT COUNT() FROM Account' }, Schema.Unknown);
     expect(request).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ totalSize: 14 });
-    expect(result).not.toHaveProperty('records');
+    expect(result).toEqual({ totalSize: 14, records: [] });
   });
 
-  it('follows child nextRecordsUrl when maxFetch is set', async () => {
+  it('follows a nested nextRecordsUrl when maxFetch is set', async () => {
     const first = urlFor(SOQL);
     const childUrl = '/services/data/v62.0/query/child-1';
     const { connection, request } = connectionWith({

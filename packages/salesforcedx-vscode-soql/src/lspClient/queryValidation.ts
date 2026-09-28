@@ -47,11 +47,8 @@ const handleRunQuery = Effect.fn('queryValidation.handleRunQuery')(function* (qu
   );
 
   return enabled
-    ? yield* (yield* api.services.ConnectionService).getConnection().pipe(
+    ? yield* runQuery(queryText, { showErrors: false }).pipe(
         Effect.mapError(soqlQueryRequestError),
-        Effect.flatMap(conn =>
-          runQuery(conn, queryText, { showErrors: false }).pipe(Effect.mapError(soqlQueryRequestError))
-        ),
         Effect.match({
           // NOTE: The return value must be serializable, for JSON-RPC.
           // Thus we cannot include the exception object as-is

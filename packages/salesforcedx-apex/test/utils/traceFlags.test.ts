@@ -38,8 +38,7 @@ describe('Trace Flags', () => {
   it('should validate an existing trace flag', async () => {
     const currDate = Date.now();
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingUpdateStub = $$.SANDBOX.stub(mockConnection.tooling, 'update');
@@ -89,8 +88,7 @@ describe('Trace Flags', () => {
 
   it('should return false if updating the debug level fails', async () => {
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingUpdateStub = $$.SANDBOX.stub(mockConnection.tooling, 'update');
 
@@ -119,8 +117,7 @@ describe('Trace Flags', () => {
   it('should create a new trace flag', async () => {
     const currDate = Date.now();
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingUpdateStub = $$.SANDBOX.stub(mockConnection.tooling, 'update');
@@ -163,8 +160,7 @@ describe('Trace Flags', () => {
 
   it('should return false if creating trace flag fails', async () => {
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
 
@@ -200,8 +196,7 @@ describe('Trace Flags', () => {
 
   it('should raise error for unknown user', async () => {
     flags = new TraceFlags(mockConnection);
-    const queryStub = $$.SANDBOX.stub().onFirstCall().resolves({ done: true, totalSize: 0, records: [] });
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    $$.SANDBOX.stub(mockConnection, 'query').onFirstCall().resolves({ done: true, totalSize: 0, records: [] });
 
     try {
       await flags.ensureTraceFlags();
@@ -213,8 +208,7 @@ describe('Trace Flags', () => {
 
   it('should raise error on failure to create debug level', async () => {
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
 
@@ -236,8 +230,7 @@ describe('Trace Flags', () => {
 
   it('should raise error on failure to find debug level', async () => {
     flags = new TraceFlags(mockConnection);
-    queryStub = $$.SANDBOX.stub();
-    $$.fakeConnectionRequest = (request, options) => queryStub(request, options);
+    queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     const debugLevelName = "'" + 'SFDC_Test';
 

@@ -7,12 +7,12 @@
 
 import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
-import { Connection, Logger } from '@salesforce/core';
-import { isNotNull } from 'effect/Predicate';
+import { Connection } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { Progress } from '../common';
 import { nls } from '../i18n';
-import { queryConnection } from '../utils/queryConnection';
 import {
   ApexTestProgressValue,
   ApexTestResultData,
@@ -24,17 +24,6 @@ import {
   TestResultRaw
 } from './types';
 
-const DEFAULT_BUFFER_SIZE = 256;
-const MIN_BUFFER_SIZE = 256;
-const MAX_BUFFER_SIZE = 32_768;
-
-const DEFAULT_JSON_INDENT: number | undefined = undefined;
-const MIN_JSON_INDENT = 0;
-const MAX_JSON_INDENT = 8;
-
-let jsonIndent: number | null | undefined = null;
-let bufferSize: number | null = null;
-
 export function calculatePercentage(dividend: number, divisor: number): string {
   let percentage = '0%';
   if (dividend > 0) {
@@ -44,40 +33,37 @@ export function calculatePercentage(dividend: number, divisor: number): string {
   return percentage;
 }
 
-const NsPrefixRecordSchema = Schema.Struct({ NamespacePrefix: Schema.String });
-const InstalledSubscriberSchema = Schema.Struct({
-  SubscriberPackage: Schema.Struct({ NamespacePrefix: Schema.String })
-});
+type NsPrefixRecord = { NamespacePrefix: string };
+type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
 
-type NsPrefixRecord = Schema.Schema.Type<typeof NsPrefixRecordSchema>;
+class NamespaceQueryError extends Schema.TaggedError<NamespaceQueryError>()('NamespaceQueryError', {
+  message: Schema.String
+}) {}
 
-const runQuery = <A, I>(connection: Connection, soql: string, schema: Schema.Schema<A, I, never>, tooling?: boolean) =>
-  queryConnection(connection, soql, schema, tooling === true);
+const emptyNsRecords: readonly NsPrefixRecord[] = [];
 
-const resolveInstalledNsRecords = async (connection: Connection): Promise<readonly NsPrefixRecord[]> => {
-  try {
-    return (
-      (await runQuery(connection, 'SELECT NamespacePrefix FROM PackageLicense', NsPrefixRecordSchema)).records ?? []
-    );
-  } catch {
-    try {
-      return (
-        (
-          await runQuery(
-            connection,
-            'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage',
-            InstalledSubscriberSchema,
-            true
-          )
-        ).records ?? []
-      ).map(rec => ({
-        NamespacePrefix: rec.SubscriberPackage.NamespacePrefix
-      }));
-    } catch {
-      return [];
-    }
-  }
-};
+const queryNsRecords = <A>(query: () => PromiseLike<{ records: readonly A[] }>) =>
+  Effect.tryPromise({
+    try: () => Promise.resolve(query()),
+    catch: error => new NamespaceQueryError({ message: isError(error) ? error.message : String(error) })
+  }).pipe(Effect.map(result => result.records));
+
+const installedNsRecords = (connection: Connection) =>
+  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).pipe(
+    Effect.orElse(() =>
+      queryNsRecords(() =>
+        connection.tooling.query<InstalledSubscriberRecord>(
+          'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
+        )
+      ).pipe(Effect.map(records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))))
+    ),
+    Effect.orElseSucceed(() => emptyNsRecords)
+  );
+
+const orgNsRecords = (connection: Connection) =>
+  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')).pipe(
+    Effect.orElseSucceed(() => emptyNsRecords)
+  );
 
 const toNamespaceInfo =
   (installedNs: boolean) =>
@@ -86,19 +72,14 @@ const toNamespaceInfo =
     namespace: record.NamespacePrefix
   });
 
-export const queryNamespaces = async (connection: Connection): Promise<NamespaceInfo[]> => {
-  const [installedResult, orgResult] = await Promise.allSettled([
-    resolveInstalledNsRecords(connection),
-    runQuery(connection, 'SELECT NamespacePrefix FROM Organization', NsPrefixRecordSchema)
-  ]);
-
-  const installedNamespaces =
-    installedResult.status === 'fulfilled' ? installedResult.value.map(toNamespaceInfo(true)) : [];
-  const orgNamespaces =
-    orgResult.status === 'fulfilled' ? (orgResult.value.records ?? []).map(toNamespaceInfo(false)) : [];
-
-  return [...orgNamespaces, ...installedNamespaces];
-};
+export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
+  Effect.all([installedNsRecords(connection), orgNsRecords(connection)], { concurrency: 'unbounded' }).pipe(
+    Effect.map(([installedRecords, orgRecords]) => [
+      ...orgRecords.map(toNamespaceInfo(false)),
+      ...installedRecords.map(toNamespaceInfo(true))
+    ]),
+    Effect.runPromise
+  );
 
 export const queryAll = async <R extends JsforceRecord>(
   connection: Connection,
@@ -119,61 +100,6 @@ export const queryAll = async <R extends JsforceRecord>(
     totalSize: allRecords.length,
     records: allRecords
   };
-};
-
-export const getJsonIndent = (): number | undefined => {
-  if (isNotNull(jsonIndent)) {
-    return jsonIndent;
-  }
-
-  let jsonIndentNum: number | undefined = DEFAULT_JSON_INDENT;
-  const envJsonIndent = process.env.SF_APEX_RESULTS_JSON_INDENT;
-
-  if (envJsonIndent && Number.isInteger(Number(envJsonIndent))) {
-    jsonIndentNum = Number(envJsonIndent);
-  }
-
-  if (jsonIndentNum !== undefined && (jsonIndentNum < MIN_JSON_INDENT || jsonIndentNum > MAX_JSON_INDENT)) {
-    const logger: Logger = Logger.childFromRoot('utils');
-    logger.warn(
-      `Json indent ${jsonIndentNum} is outside of the valid range (${MIN_JSON_INDENT}-${MAX_JSON_INDENT}). Using default json indent of ${DEFAULT_JSON_INDENT}.`
-    );
-    jsonIndentNum = DEFAULT_JSON_INDENT;
-  }
-
-  jsonIndent = jsonIndentNum;
-  return jsonIndent;
-};
-
-export const getBufferSize = (): number => {
-  if (isNotNull(bufferSize)) {
-    return bufferSize;
-  }
-
-  let bufferSizeNum = DEFAULT_BUFFER_SIZE;
-  const jsonBufferSize = process.env.SF_APEX_JSON_BUFFER_SIZE;
-
-  if (jsonBufferSize && Number.isInteger(Number(jsonBufferSize))) {
-    bufferSizeNum = Number(jsonBufferSize);
-  }
-
-  if (bufferSizeNum < MIN_BUFFER_SIZE || bufferSizeNum > MAX_BUFFER_SIZE) {
-    const logger: Logger = Logger.childFromRoot('utils');
-    logger.warn(
-      `Buffer size ${bufferSizeNum} is outside of the valid range (${MIN_BUFFER_SIZE}-${MAX_BUFFER_SIZE}). Using default buffer size of ${DEFAULT_BUFFER_SIZE}.`
-    );
-    bufferSizeNum = DEFAULT_BUFFER_SIZE;
-  }
-
-  bufferSize = bufferSizeNum;
-  JSON.stringify(bufferSize);
-  return bufferSize;
-};
-
-// exported for testing
-export const resetLimitsForTesting = (): void => {
-  bufferSize = null;
-  jsonIndent = null;
 };
 
 export const transformTestResult = (rawResult: TestResultRaw): TestResult => {

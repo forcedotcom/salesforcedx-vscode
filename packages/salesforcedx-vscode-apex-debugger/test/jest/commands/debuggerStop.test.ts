@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
-import { debuggerStop, DebuggerSessionQueryError } from '../../../src/commands/debuggerStop';
+import { debuggerStop } from '../../../src/commands/debuggerStop';
 
 jest.mock('@salesforce/core', () => ({
   AuthInfo: { create: jest.fn() },
@@ -57,7 +57,17 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
               <A, E, R>(self: Effect.Effect<A, E, R>) =>
                 self
           }),
-          NotificationModeService
+          NotificationModeService,
+          QueryService: Effect.succeed({
+            query: (options: {
+              soql: string;
+              connection?: { tooling: { query: (soql: string) => Promise<QueryResult> } };
+            }) =>
+              Effect.tryPromise({
+                try: () => (options.connection ?? conn).tooling.query(options.soql),
+                catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
+              }).pipe(Effect.map(result => ({ totalSize: result.records.length, records: result.records })))
+          })
         }
       })
     } as unknown as effectExtUtils.ExtensionProviderService),
@@ -108,10 +118,11 @@ describe('debuggerStop', () => {
     expect(vscode.window.showInformationMessage).not.toHaveBeenCalledWith('Apex Debugger session stopped.');
   });
 
-  it('surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects', async () => {
+  it('surfaces the query rejection (not swallowed) when the query rejects', async () => {
     const { conn, update } = makeConnection(() => Promise.reject(new Error('boom')));
     const error = await runFlipped(conn);
-    expect(error).toBeInstanceOf(DebuggerSessionQueryError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe('boom');
     expect(update).not.toHaveBeenCalled();
   });
 

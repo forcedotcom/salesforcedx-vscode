@@ -26,7 +26,7 @@ const ToolingTraceFlagDebugLevel = Schema.Struct({
 const NullableToolingTraceFlagDebugLevel = Schema.NullOr(ToolingTraceFlagDebugLevel);
 
 /** Tooling API record shape from TraceFlag query. TracedEntityName is injected by getTraceFlags when resolving entity names. */
-const ToolingTraceFlagRecordSchema = Schema.Struct({
+export const ToolingTraceFlagRecordSchema = Schema.Struct({
   Id: Schema.String,
   LogType: TraceFlagLogType,
   StartDate: Schema.optional(NullableString),
@@ -36,8 +36,6 @@ const ToolingTraceFlagRecordSchema = Schema.Struct({
   TracedEntityId: Schema.optional(NullableString),
   TracedEntityName: Schema.optional(NullableString)
 });
-
-export type ToolingTraceFlagRecord = Schema.Schema.Type<typeof ToolingTraceFlagRecordSchema>;
 
 /** Client-facing TraceFlagItem shape. Shared with consuming extensions via services API. */
 export const TraceFlagItemStruct = Schema.Struct({
@@ -125,8 +123,6 @@ export const ToolingDebugLevelStruct = Schema.Struct({
     Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' })
   )
 });
-
-export type ToolingDebugLevelRecord = Schema.Schema.Type<typeof ToolingDebugLevelStruct>;
 
 /** DebugLevel create payload — ToolingDebugLevelStruct without the server-assigned Id or Language. */
 export const CreateDebugLevelStruct = ToolingDebugLevelStruct.pipe(Schema.omit('Id', 'Language'));

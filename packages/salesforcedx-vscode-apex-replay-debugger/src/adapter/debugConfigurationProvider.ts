@@ -209,14 +209,14 @@ const readLogFile = Effect.fn('ApexReplayDebugger.readLogFile')(function* (fileP
  * matching prior behavior where a failed fetch still launches the session.
  */
 const resolveHeapDumpResults = (logFileContents: string): Promise<HeapDumpResult[]> => {
-  // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
-  // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
+  // Org/connection resolution failures keep the localized org-info label; a QueryError
+  // is the tooling query failure, so it surfaces its own message rather than being mislabeled as org-info.
   const orgInfoError = (error: unknown): Effect.Effect<HeapDumpResult[]> =>
     Effect.succeed([
       { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
     ]);
   return fetchHeapDumpOverlayResults(logFileContents).pipe(
-    Effect.catchTag('HeapDumpOverlayFetchError', error =>
+    Effect.catchTag('QueryError', error =>
       Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
     ),
     // Everything else (org/connection resolution failures) keeps the localized org-info label.

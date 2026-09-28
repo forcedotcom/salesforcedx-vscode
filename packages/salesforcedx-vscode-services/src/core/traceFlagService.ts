@@ -28,13 +28,14 @@ import {
 import { getExtensionScope } from '../vscode/extensionScope';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { QueryService } from './queryService';
+import { SalesforceId } from './schemas/salesforceId';
 import {
   DebugLevelItemSchema,
   TraceFlagItemSchema,
   ToolingDebugLevelStruct,
+  ToolingTraceFlagRecordSchema,
   type CreateDebugLevelPayload,
-  type ToolingDebugLevelRecord,
-  type ToolingTraceFlagRecord,
   type TraceFlagItem,
   type TraceFlagLogType
 } from './schemas/traceFlagSchemas';
@@ -84,9 +85,17 @@ const getUserIdOrFail = Effect.gen(function* () {
   return userId ? userId : yield* new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' });
 });
 
+const IdRow = Schema.Struct({ Id: SalesforceId });
+
+const queryRows = <A, I>(soql: string, schema: Schema.Schema<A, I, never>, tooling = true) =>
+  QueryService.pipe(
+    Effect.flatMap(queryService => queryService.query({ soql, tooling }, schema)),
+    Effect.map(result => result.records)
+  );
+
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
   accessors: true,
-  dependencies: [ConnectionService.Default],
+  dependencies: [ConnectionService.Default, QueryService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
     const traceFlagsChanged = yield* PubSub.sliding<TraceFlagItem[]>(1);
@@ -113,16 +122,11 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     );
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
-      const conn = yield* connectionService.getConnection();
-      const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
-        FROM TraceFlag`;
-      const traceFlagRecords = (yield* Effect.tryPromise({
-        try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagNotFoundError({ message: `Failed to query trace flags: ${cause.message}` });
-        }
-      })).records;
+      const traceFlagRecords = yield* queryRows(
+        `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
+        FROM TraceFlag`,
+        ToolingTraceFlagRecordSchema
+      );
       const entitiesToResolve = Arr.dedupe(traceFlagRecords.map(r => r.TracedEntityId).filter(isString));
 
       if (entitiesToResolve.length === 0) {
@@ -130,46 +134,40 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           concurrency: 'unbounded'
         });
       }
-      const queryIdName = (soql: string, tooling: boolean) =>
-        Effect.tryPromise(() =>
-          tooling
-            ? conn.tooling.query<{ Id: string; Name: string }>(soql)
-            : conn.query<{ Id: string; Name: string }>(soql)
-        ).pipe(Effect.map(r => r.records));
+      const queryIdName = (soql: string, tooling: boolean) => queryRows(soql, Schema.Unknown, tooling);
 
-      // Identify cache misses; group by prefix for batched SOQL.
-      const missesByPrefix = Arr.groupBy(
-        (yield* Effect.all(
-          entitiesToResolve.map(id => idNameCache.contains(id).pipe(Effect.map(hit => [id, hit] as const))),
-          { concurrency: 'unbounded' }
-        )).flatMap(([id, hit]) => (hit ? [] : [id])),
-        id => id.slice(0, 3)
-      );
-
-      // Query only the misses, per prefix; populate cache as rows arrive.
-      yield* Stream.fromIterable(Object.entries(missesByPrefix)).pipe(
-        Stream.mapConcatEffect(([prefix, ids]) =>
-          Match.value(prefix).pipe(
-            Match.when('005', () =>
-              queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
+      // Misses only, grouped by id prefix, then one SOQL batch per prefix. Rows fill the cache as they arrive.
+      yield* Effect.filter(entitiesToResolve, id => idNameCache.contains(id), {
+        concurrency: 'unbounded',
+        negate: true
+      }).pipe(
+        Effect.map(misses => Object.entries(Arr.groupBy(misses, id => id.slice(0, 3)))),
+        Effect.flatMap(groups =>
+          Stream.fromIterable(groups).pipe(
+            Stream.mapConcatEffect(([prefix, ids]) =>
+              Match.value(prefix).pipe(
+                Match.when('005', () =>
+                  queryIdName(`SELECT Id, Name FROM User WHERE Id IN (${idListToInClause(ids)})`, false)
+                ),
+                Match.when('01p', () =>
+                  queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
+                ),
+                Match.when('01q', () =>
+                  queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
+                ),
+                Match.orElse(() => Effect.succeed([]))
+              )
             ),
-            Match.when('01p', () =>
-              queryIdName(`SELECT Id, Name FROM ApexClass WHERE Id IN (${idListToInClause(ids)})`, true)
+            Stream.mapConcatEffect(result =>
+              Schema.decodeUnknown(Schema.Struct({ Id: Schema.String, Name: Schema.String }))(result).pipe(
+                Effect.tapError(e => Effect.logWarning('traceFlagService: skipping undecodable query result', e)),
+                Effect.map(row => [row]),
+                Effect.orElseSucceed(() => [])
+              )
             ),
-            Match.when('01q', () =>
-              queryIdName(`SELECT Id, Name FROM ApexTrigger WHERE Id IN (${idListToInClause(ids)})`, true)
-            ),
-            Match.orElse(() => Effect.succeed([]))
+            Stream.runForEach(row => idNameCache.set(row.Id, row.Name))
           )
-        ),
-        Stream.mapEffect(result =>
-          Schema.decodeUnknown(Schema.Struct({ Id: Schema.String, Name: Schema.String }))(result).pipe(
-            Effect.tapError(e => Effect.logWarning('traceFlagService: skipping undecodable query result', e)),
-            Effect.option
-          )
-        ),
-        Stream.filterMap(o => o),
-        Stream.runForEach(row => idNameCache.set(row.Id, row.Name))
+        )
       );
 
       // Cache is the single source of truth — read each record's name directly. Misses stay undefined.
@@ -187,37 +185,30 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     });
 
     const getDebugLevels = Effect.fn('TraceFlagService.getDebugLevels')(function* () {
-      const conn = yield* connectionService.getConnection();
-      const query = `SELECT ${Object.keys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`;
-      const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.query<ToolingDebugLevelRecord>(query),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagNotFoundError({ message: `Failed to query debug levels: ${cause.message}` });
-        }
-      });
-      return yield* Effect.all(result.records.map(decodeOrFail(DebugLevelItemSchema, 'debug level records')), {
-        concurrency: 'unbounded'
-      });
+      return yield* queryRows(
+        `SELECT ${Object.keys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`,
+        ToolingDebugLevelStruct
+      ).pipe(
+        Effect.flatMap(debugLevelRecords =>
+          Effect.all(debugLevelRecords.map(decodeOrFail(DebugLevelItemSchema, 'debug level records')), {
+            concurrency: 'unbounded'
+          })
+        )
+      );
     });
 
     const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
       userId: string,
       logType: TraceFlagLogType = 'DEVELOPER_LOG'
     ) {
-      const conn = yield* connectionService.getConnection();
-      const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
+      return yield* queryRows(
+        `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
         FROM TraceFlag
         WHERE LogType='${logType}' AND TracedEntityId='${userId}'
-        ORDER BY ExpirationDate DESC LIMIT 1`;
-      return yield* Effect.tryPromise({
-        try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagNotFoundError({ message: `Failed to query trace flag: ${cause.message}` });
-        }
-      }).pipe(
-        Effect.map(result => Arr.head(result.records)),
+        ORDER BY ExpirationDate DESC LIMIT 1`,
+        ToolingTraceFlagRecordSchema
+      ).pipe(
+        Effect.map(Arr.head),
         Effect.flatMap(Effect.transposeMapOption(decodeOrFail(TraceFlagItemSchema, 'trace flag')))
       );
     });
@@ -239,19 +230,12 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     });
 
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
-      const conn = yield* connectionService.getConnection();
-      return yield* Effect.tryPromise({
-        try: () =>
-          conn.tooling.query<{ Id: string }>(
-            `SELECT Id FROM DebugLevel WHERE DeveloperName = '${REPLAY_DEBUGGER_LEVELS}' LIMIT 1`
-          ),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new DebugLevelCreateError({ message: `Failed to query debug level: ${cause.message}` });
-        }
-      }).pipe(
+      return yield* queryRows(
+        `SELECT Id FROM DebugLevel WHERE DeveloperName = '${REPLAY_DEBUGGER_LEVELS}' LIMIT 1`,
+        IdRow
+      ).pipe(
         Effect.map(existing =>
-          Arr.head(existing.records).pipe(
+          Arr.head(existing).pipe(
             Option.flatMap(record => Option.fromNullable(record.Id)),
             Option.filter(id => id.length > 0)
           )

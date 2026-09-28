@@ -16,7 +16,7 @@ import { PackageResolutionService } from '../../../src/testDiscovery/packageReso
 
 // PackageResolutionService.resolve resolves the connection via ConnectionService.getConnection() and the
 // org key via TargetOrgRef, both reached ambiently through ExtensionProviderService. The tests drive the
-// service through a stub ExtensionProviderService layer; connection.tooling.query is the controllable seam.
+// service through a stub ExtensionProviderService layer; QueryService.query is the controllable seam.
 // buildLayer() constructs a fresh service instance (fresh Ref state) per run, so cache/unavailable state
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
@@ -35,6 +35,18 @@ describe('PackageResolutionService', () => {
     const mockApi = {
       services: {
         ConnectionService: { getConnection: () => Effect.succeed(mockConnection as Connection) },
+        QueryService: Effect.succeed({
+          query: (options: { soql: string }) =>
+            Effect.tryPromise({
+              try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
+              catch: (error: unknown) => error
+            }).pipe(
+              Effect.map(result => ({
+                totalSize: result.totalSize ?? result.records?.length ?? 0,
+                records: result.records
+              }))
+            )
+        }),
         TargetOrgRef: () => SubscriptionRef.make(orgInfo)
       }
     };

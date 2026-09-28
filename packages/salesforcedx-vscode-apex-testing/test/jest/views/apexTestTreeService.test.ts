@@ -83,6 +83,8 @@ const mockSettingsService = {
 // `new TestService(conn)`, which the module mock below intercepts.
 let getConnectionImpl: () => Effect.Effect<unknown, unknown> = () => Effect.succeed({});
 const mockConnectionService = { getConnection: () => getConnectionImpl() };
+let queryImpl = () =>
+  Effect.succeed({ totalSize: 0, records: [] as { Name: string; NamespacePrefix: string | null }[] });
 
 // Minimal ambient services: discovery reaches getServicesApi; the no-classes path never touches FsService.
 // SettingsService is yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
@@ -93,6 +95,7 @@ const mockServicesApi = {
   services: {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
+    QueryService: Effect.succeed({ query: () => queryImpl() }),
     OrgMetadataCatalog: Effect.succeed({
       resolveComponents: (references: readonly { type: string; fullName: string }[]) => {
         if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
@@ -217,6 +220,7 @@ describe('ApexTestTreeService', () => {
     mockDiscoverTests.mockReturnValue(undefined);
     restorePreviousResultsValue = false;
     getConnectionImpl = () => Effect.succeed({});
+    queryImpl = () => Effect.succeed({ totalSize: 0, records: [] });
     activeTestService = { retrieveAllSuites: () => Promise.resolve([]) };
     mockOrgInfo = { orgId: 'org123', username: 'user@example.com' };
     mockClassNameToUri = new Map<string, URI>();
@@ -633,10 +637,7 @@ describe('ApexTestTreeService', () => {
         retrieveAllSuites: () => Promise.resolve([]),
         getTestsInSuite: () => Promise.resolve([{ ApexClassId: '01pAAA' }])
       };
-      getConnectionImpl = () =>
-        Effect.succeed({
-          tooling: { query: () => Promise.resolve({ records: [{ Name: 'Member', NamespacePrefix: null }] }) }
-        });
+      queryImpl = () => Effect.succeed({ totalSize: 1, records: [{ Name: 'Member', NamespacePrefix: null }] });
       const { ctx } = makeMutationContext();
       const suiteItem = richTestItem('suite:MySuite', 'MySuite');
 
