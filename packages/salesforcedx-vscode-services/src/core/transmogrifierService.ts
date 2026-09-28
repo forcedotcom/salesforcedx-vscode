@@ -13,7 +13,9 @@ import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as ParseResult from 'effect/ParseResult';
-import { isBoolean, isNull, isNullable, isNumber, isString, isUndefined } from 'effect/Predicate';
+import * as Predicate from 'effect/Predicate';
+import { isBoolean, isNotUndefined, isNull, isNullable, isNumber, isString, isUndefined } from 'effect/Predicate';
+import * as Record from 'effect/Record';
 import * as S from 'effect/Schema';
 import type * as AST from 'effect/SchemaAST';
 import { URI } from 'vscode-uri';
@@ -82,11 +84,7 @@ const decodeOnly = (actual: unknown, ast: AST.AST) =>
 
 const customApiName = (name: string): boolean => /__(?:c|mdt|e|b|x)$/i.test(name);
 
-const metadataRecord = S.declare(
-  (value): value is Readonly<Record<string, unknown>> =>
-    typeof value === 'object' && value !== null && !Array.isArray(value),
-  { identifier: 'MetadataRecord' }
-);
+const metadataRecord = S.declare(Predicate.isRecord, { identifier: 'MetadataRecord' });
 
 const unwrapMetadata = (metadataType: 'CustomObject' | 'CustomField') =>
   S.transform(metadataRecord, metadataRecord, {
@@ -98,7 +96,7 @@ const unwrapMetadata = (metadataType: 'CustomObject' | 'CustomField') =>
     encode: metadata => metadata
   });
 
-const UriSchema = S.declare((value): value is URI => value instanceof URI, {
+const UriSchema = S.declare((value): value is URI => URI.isUri(value), {
   identifier: 'URI',
   description: 'vscode-uri URI'
 });
@@ -116,15 +114,25 @@ const unknownArray = S.transform(S.Unknown, S.Array(S.Unknown), {
   encode: value => value
 });
 
-const decodeUnknownArray = S.decodeUnknownSync(unknownArray);
-
-const optionalTrimmedString = S.transform(S.Unknown, S.UndefinedOr(S.String), {
-  strict: true,
-  decode: value => (isString(value) && value.trim().length > 0 ? value.trim() : undefined),
-  encode: value => value
-});
-
-const decodeTrimmed = S.decodeUnknownSync(optionalTrimmedString);
+const optionalTrimmedString = pipe(
+  S.transform(S.Unknown, S.String.pipe(S.UndefinedOr), {
+    strict: true,
+    decode: value => (isString(value) ? value : undefined),
+    encode: value => value
+  }),
+  S.compose(S.OptionFromNonEmptyTrimmedString.pipe(S.UndefinedOr)),
+  S.compose(
+    S.transform(
+      S.NonEmptyTrimmedString.pipe(S.OptionFromSelf, S.UndefinedOr),
+      S.NonEmptyTrimmedString.pipe(S.UndefinedOr),
+      {
+        strict: true,
+        decode: value => (isUndefined(value) ? undefined : Option.getOrUndefined(value)),
+        encode: value => (isUndefined(value) ? undefined : Option.some(value))
+      }
+    )
+  )
+);
 
 const optionalFiniteNumber = S.transform(S.Unknown, S.UndefinedOr(S.Number), {
   strict: true,
@@ -139,15 +147,11 @@ const optionalFiniteNumber = S.transform(S.Unknown, S.UndefinedOr(S.Number), {
   encode: value => value
 });
 
-const decodeFiniteNumber = S.decodeUnknownSync(optionalFiniteNumber);
-
 const optionalBoolean = S.transform(S.Unknown, S.UndefinedOr(S.Boolean), {
   strict: true,
   decode: value => (isBoolean(value) ? value : value === 'true' ? true : value === 'false' ? false : undefined),
   encode: value => value
 });
-
-const decodeBoolean = S.decodeUnknownSync(optionalBoolean);
 
 const workspaceFieldTypeByMetadata: Readonly<Record<string, string>> = {
   autonumber: 'string',
@@ -166,32 +170,35 @@ const workspaceFieldTypeByMetadata: Readonly<Record<string, string>> = {
   text: 'string'
 };
 
-const workspaceFieldType = S.transform(S.Unknown, S.UndefinedOr(S.String), {
-  strict: true,
-  decode: value => {
-    const metadataType = decodeTrimmed(value)?.toLowerCase();
-    return isUndefined(metadataType) ? undefined : (workspaceFieldTypeByMetadata[metadataType] ?? metadataType);
-  },
-  encode: value => value
+const workspaceFieldType = pipe(
+  optionalTrimmedString,
+  S.compose(
+    S.transform(S.NonEmptyTrimmedString.pipe(S.UndefinedOr), S.String.pipe(S.UndefinedOr), {
+      strict: true,
+      decode: value =>
+        isUndefined(value) ? undefined : (workspaceFieldTypeByMetadata[value.toLowerCase()] ?? value.toLowerCase()),
+      encode: value => value
+    })
+  )
+);
+
+const workspaceReferenceTo = pipe(
+  unknownArray,
+  S.compose(S.Array(optionalTrimmedString)),
+  S.compose(
+    S.transform(S.Array(S.NonEmptyTrimmedString.pipe(S.UndefinedOr)), S.Array(S.String), {
+      strict: true,
+      decode: items => pipe(items, Arr.filter(isNotUndefined), Arr.sort(Order.string)),
+      encode: value => value
+    })
+  )
+);
+
+const WorkspacePicklistEntrySchema = S.Struct({
+  fullName: S.optional(optionalTrimmedString),
+  label: S.optional(optionalTrimmedString),
+  isActive: S.optional(optionalBoolean)
 });
-
-const decodeFieldType = S.decodeUnknownSync(workspaceFieldType);
-
-const workspaceReferenceTo = S.transform(S.Unknown, S.Array(S.String), {
-  strict: true,
-  decode: value =>
-    pipe(
-      decodeUnknownArray(value),
-      Arr.flatMap(item => {
-        const name = decodeTrimmed(item);
-        return isUndefined(name) ? [] : [name];
-      }),
-      Arr.sort(Order.string)
-    ),
-  encode: value => value
-});
-
-const decodeReferenceTo = S.decodeUnknownSync(workspaceReferenceTo);
 
 const workspacePicklistValues = S.transform(S.Unknown, S.Array(SObjectPicklistValueSchema), {
   strict: true,
@@ -202,21 +209,11 @@ const workspacePicklistValues = S.transform(S.Unknown, S.Array(SObjectPicklistVa
         ? undefined
         : valueSetRecord.valueSetDefinition;
     return pipe(
-      decodeUnknownArray(isUndefined(definition) ? undefined : definition.value),
+      S.decodeUnknownSync(unknownArray)(isUndefined(definition) ? undefined : definition.value),
       Arr.flatMap(item => {
-        const record = S.is(metadataRecord)(item) ? item : undefined;
-        const name = isUndefined(record) ? undefined : decodeTrimmed(record.fullName);
-        const label = isUndefined(record) ? undefined : decodeTrimmed(record.label);
-        const active = isUndefined(record) ? undefined : decodeBoolean(record.isActive);
-        return isUndefined(name)
-          ? []
-          : [
-              {
-                value: name,
-                ...(isUndefined(label) ? {} : { label }),
-                ...(isUndefined(active) ? {} : { active })
-              }
-            ];
+        if (!S.is(metadataRecord)(item)) return [];
+        const { fullName: name, label, isActive: active } = S.decodeUnknownSync(WorkspacePicklistEntrySchema)(item);
+        return isUndefined(name) ? [] : [{ value: name, ...Record.filter({ label, active }, isNotUndefined) }];
       }),
       Arr.sort(byPicklistValue)
     );
@@ -224,21 +221,35 @@ const workspacePicklistValues = S.transform(S.Unknown, S.Array(SObjectPicklistVa
   encode: value => value
 });
 
-const decodePicklistValues = S.decodeUnknownSync(workspacePicklistValues);
+const WorkspaceFieldMetadataSchema = S.Struct({
+  fullName: S.optional(optionalTrimmedString),
+  label: S.optional(optionalTrimmedString),
+  type: S.optional(workspaceFieldType),
+  inlineHelpText: S.optional(optionalTrimmedString),
+  length: S.optional(optionalFiniteNumber),
+  precision: S.optional(optionalFiniteNumber),
+  scale: S.optional(optionalFiniteNumber),
+  relationshipName: S.optional(optionalTrimmedString),
+  referenceTo: S.optionalWith(workspaceReferenceTo, { default: () => [] }),
+  valueSet: S.optionalWith(workspacePicklistValues, { default: () => [] }),
+  defaultValue: S.optional(S.Unknown)
+});
 
-const NullOrString = S.NullOr(S.String);
-const nullableString = () => S.optionalWith(NullOrString, { default: () => null });
-const NullOrNumber = S.NullOr(S.Number);
-const optionalNullOrNumber = S.optional(NullOrNumber);
+const WorkspaceObjectMetadataSchema = S.Struct({
+  label: S.optional(optionalTrimmedString),
+  pluralLabel: S.optional(optionalTrimmedString),
+  nameField: S.optional(S.Unknown),
+  fields: S.optionalWith(unknownArray, { default: () => [] })
+});
+
+const nullableString = () => S.optionalWith(S.NullOr(S.String), { default: () => null });
+const optionalNullOrNumber = S.Number.pipe(S.NullOr, S.optional);
 
 const RestPicklistValueSchema = S.Struct({
   active: S.Boolean,
   label: nullableString(),
   value: S.String
 });
-
-const RestPicklistValueArray = S.Array(RestPicklistValueSchema);
-const RestStringArray = S.Array(S.String);
 
 const RestFieldSchema = S.Struct({
   aggregatable: S.Boolean,
@@ -252,9 +263,9 @@ const RestFieldSchema = S.Struct({
   length: optionalNullOrNumber,
   name: S.String,
   nillable: S.Boolean,
-  picklistValues: S.optionalWith(RestPicklistValueArray, { default: () => [], nullable: true }),
+  picklistValues: S.optionalWith(S.Array(RestPicklistValueSchema), { default: () => [], nullable: true }),
   precision: optionalNullOrNumber,
-  referenceTo: S.optionalWith(RestStringArray, { default: () => [], nullable: true }),
+  referenceTo: S.optionalWith(S.Array(S.String), { default: () => [], nullable: true }),
   relationshipName: nullableString(),
   scale: optionalNullOrNumber,
   sortable: S.Boolean,
@@ -267,16 +278,13 @@ const RestChildRelationshipSchema = S.Struct({
   relationshipName: nullableString()
 });
 
-const RestFieldArray = S.Array(RestFieldSchema);
-const RestChildRelationshipArray = S.Array(RestChildRelationshipSchema);
-
 const RestDescribeSchema = S.Struct({
   name: S.String,
   label: S.String,
   custom: S.Boolean,
   queryable: S.Boolean,
-  fields: S.optionalWith(RestFieldArray, { default: () => [], nullable: true }),
-  childRelationships: S.optionalWith(RestChildRelationshipArray, { default: () => [], nullable: true })
+  fields: S.optionalWith(S.Array(RestFieldSchema), { default: () => [], nullable: true }),
+  childRelationships: S.optionalWith(S.Array(RestChildRelationshipSchema), { default: () => [], nullable: true })
 });
 
 const RestDescribeToSObject = S.transformOrFail(RestDescribeSchema, SObjectSchema, {
@@ -399,32 +407,41 @@ const workspaceSemanticField = (
   definitionUri: URI,
   field: Readonly<Record<string, unknown>>
 ) => {
-  const fullName = decodeTrimmed(field.fullName) ?? decodeTrimmed(documentFullName);
+  const decoded = S.decodeUnknownSync(WorkspaceFieldMetadataSchema)(field);
+  const fullName = decoded.fullName ?? S.decodeUnknownSync(optionalTrimmedString)(documentFullName);
   if (isUndefined(fullName)) return Option.none();
   const name = simpleFieldName(objectName, fullName);
-  const label = decodeTrimmed(field.label);
-  const type = decodeFieldType(field.type);
-  const inlineHelpText = decodeTrimmed(field.inlineHelpText);
-  const length = decodeFiniteNumber(field.length);
-  const precision = decodeFiniteNumber(field.precision);
-  const scale = decodeFiniteNumber(field.scale);
-  const relationshipName = decodeTrimmed(field.relationshipName);
-  const referenceTo = decodeReferenceTo(field.referenceTo);
-  const picklistValues = decodePicklistValues(field.valueSet);
+  const {
+    label,
+    type,
+    inlineHelpText,
+    length,
+    precision,
+    scale,
+    relationshipName,
+    referenceTo,
+    valueSet: picklistValues,
+    defaultValue
+  } = decoded;
   return Option.some({
     name,
-    ...(isUndefined(label) ? {} : { label }),
-    ...(isUndefined(type) ? {} : { type }),
     custom: customApiName(name),
-    ...(isUndefined(field.defaultValue) ? {} : { defaultValue: field.defaultValue }),
-    ...(isUndefined(inlineHelpText) ? {} : { inlineHelpText }),
-    ...(isUndefined(length) ? {} : { length }),
-    ...(isUndefined(precision) ? {} : { precision }),
-    ...(isUndefined(scale) ? {} : { scale }),
-    ...(referenceTo.length === 0 ? {} : { referenceTo }),
-    ...(isUndefined(relationshipName) ? {} : { relationshipName }),
-    ...(picklistValues.length === 0 ? {} : { picklistValues }),
-    definitionUri
+    definitionUri,
+    ...Record.filter(
+      {
+        label,
+        type,
+        defaultValue,
+        inlineHelpText,
+        length,
+        precision,
+        scale,
+        relationshipName,
+        referenceTo: referenceTo.length === 0 ? undefined : referenceTo,
+        picklistValues: picklistValues.length === 0 ? undefined : picklistValues
+      },
+      isNotUndefined
+    )
   });
 };
 
@@ -448,15 +465,16 @@ const WorkspaceSemanticInput = S.Struct({
 const workspaceSemanticEncoded = (input: S.Schema.Type<typeof WorkspaceSemanticInput>) => {
   const objectName = input.identity.name;
   const objectUri = input.value.object.definitionUri;
-  const objectMetadata = input.value.object.metadata;
-  const label = decodeTrimmed(objectMetadata.label);
-  const pluralLabel = decodeTrimmed(objectMetadata.pluralLabel);
-  const nameField = S.is(metadataRecord)(objectMetadata.nameField)
-    ? { ...objectMetadata.nameField, fullName: 'Name' }
-    : undefined;
+  const {
+    label,
+    pluralLabel,
+    nameField: rawNameField,
+    fields: objectFields
+  } = S.decodeUnknownSync(WorkspaceObjectMetadataSchema)(input.value.object.metadata);
+  const nameField = S.is(metadataRecord)(rawNameField) ? { ...rawNameField, fullName: 'Name' } : undefined;
   const sources = [
     ...pipe(
-      decodeUnknownArray(objectMetadata.fields),
+      objectFields,
       Arr.flatMap(item => (S.is(metadataRecord)(item) ? [item] : []))
     ).map(field => ({
       documentFullName: input.value.object.fullName,
@@ -476,15 +494,14 @@ const workspaceSemanticEncoded = (input: S.Schema.Type<typeof WorkspaceSemanticI
     kind: 'sobject',
     value: {
       identity: input.identity,
-      ...(isUndefined(label) ? {} : { label }),
-      ...(isUndefined(pluralLabel) ? {} : { pluralLabel }),
       custom: customApiName(objectName),
       fields: byLowerName(
         Arr.filterMap(sources, source =>
           workspaceSemanticField(objectName, source.documentFullName, source.definitionUri, source.field)
         )
       ),
-      definitionUri: objectUri
+      definitionUri: objectUri,
+      ...Record.filter({ label, pluralLabel }, isNotUndefined)
     }
   };
 };
