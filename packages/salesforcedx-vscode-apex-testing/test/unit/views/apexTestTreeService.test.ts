@@ -301,7 +301,7 @@ describe('ApexTestTreeService', () => {
       const releaseDiscovery = await Effect.runPromise(Deferred.make<void>());
       const parentAdded = Promise.withResolvers<void>();
       const topItems = new Map<string, vscode.TestItem>();
-      const clearTree = jest.fn();
+      const clearTree = vi.fn();
       const ctx = makeContext({
         clearTree,
         controller: {
@@ -310,10 +310,10 @@ describe('ApexTestTreeService', () => {
               topItems.set(item.id, item);
               parentAdded.resolve();
             },
-            replace: jest.fn()
+            replace: vi.fn()
           },
           createTestItem: (id: string, label: string) => richTestItem(id, label),
-          invalidateTestResults: jest.fn()
+          invalidateTestResults: vi.fn()
         } as unknown as vscode.TestController
       });
       activeTestService = {
@@ -483,7 +483,7 @@ describe('ApexTestTreeService', () => {
 
     it('adds a newly-created class under its namespace/package node', async () => {
       withTooling();
-      const retrieveAllSuites = jest.fn(() => Promise.resolve([]));
+      const retrieveAllSuites = vi.fn(() => Promise.resolve([]));
       activeTestService = { retrieveAllSuites };
       const { ctx, topItems } = makeMutationContext();
       mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('NewClass', ['t1'])] }));
