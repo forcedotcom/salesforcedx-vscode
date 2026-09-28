@@ -310,7 +310,8 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
   yield* ExtensionProviderService.pipe(
     Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.SettingsService.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
       ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),

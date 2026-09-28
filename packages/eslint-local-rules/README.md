@@ -101,7 +101,8 @@ const persist = Effect.fn('Example.persist')(function* () {
 const persist = Effect.fn('Example.persist')(function* () {
   yield* ExtensionProviderService.pipe(
     Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.SettingsService.setValue('section', 'key', true)),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue('section', 'key', true)),
     Effect.catchTags({
       MissingSettingsError: error => Effect.logWarning(error.message)
     })

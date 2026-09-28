@@ -11,7 +11,7 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | `effectSucceedWithVoid` | `Effect.succeed(undefined)` | `Effect.void` |
 | `unnecessaryFailYieldableError` | `yield* Effect.fail(err)` where `err` is already yieldable | `yield* err` |
 | `effectFnIife` | immediately-invoked `Effect.fn` | `Effect.gen` + piped `Effect.withSpan` |
-| `unnecessaryEffectGen` | `Effect.gen` whose whole body is one `yield* X` | `X`; `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void. `Effect.fn` never matches — keep its span. Misses 2+ yields + trailing recovery — nested-gen recovery in `composition-style.md`. `catchTags` on nested `Effect.gen` inside `Effect.fn`: ESLint `local/no-nested-effect-gen-catch-tags` |
+| `unnecessaryEffectGen` | `Effect.gen` whose whole body is one `yield* X` | `X`; `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void. `Effect.fn` never matches — keep its span. Misses 2+ yields + trailing recovery — nested-gen recovery in `composition-style.md`. |
 | `unnecessaryPipeChain` | a pipe whose subject is itself a pipe, anywhere incl. inside a callback: `x.pipe(a).pipe(b)` or `pipe(pipe(x, a), b)` | 1 `pipe` with sibling steps: `x.pipe(a, b)`; drop steps the merge makes dead |
 | `returnEffectInGen` | generator `return`s an Effect without `yield*` → `Effect<Effect<…>>` | `return yield* X` |
 | `effectFnOpportunity` | `Effect.gen` where a named `Effect.fn` fits | `Effect.fn('Span')(function* …)` |
