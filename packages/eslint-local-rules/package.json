@@ -71,6 +71,7 @@
       ],
       "files": [
         "test/**/*.ts",
+        "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",

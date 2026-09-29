@@ -183,6 +183,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-duplicate-i18n-values': 'error',
@@ -787,6 +788,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error',
 
       // Effect code should always handle promises properly
@@ -904,6 +906,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
     files: [
@@ -916,6 +928,7 @@ export default [
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error'
     }
   },
