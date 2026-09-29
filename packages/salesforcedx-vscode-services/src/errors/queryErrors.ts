@@ -7,8 +7,19 @@
 
 import * as Schema from 'effect/Schema';
 
-export class QueryError extends Schema.TaggedError<QueryError>()('QueryError', {
+/** Org rejected the SOQL statement (`MALFORMED_QUERY`, `INVALID_TYPE`, …). */
+export class SoqlError extends Schema.TaggedError<SoqlError>()('SoqlError', {
+  soql: Schema.String,
+  errorCode: Schema.String,
+  statusCode: Schema.Number,
+  message: Schema.String
+}) {}
+
+/** Field-level SOQL failure (`INVALID_FIELD`, …) with named `fields` and `soql`. */
+export class FieldError extends Schema.TaggedError<FieldError>()('FieldError', {
+  soql: Schema.String,
+  errorCode: Schema.String,
+  statusCode: Schema.Number,
   message: Schema.String,
-  cause: Schema.optional(Schema.Unknown),
-  errorCode: Schema.optional(Schema.Unknown)
+  fields: Schema.Array(Schema.String)
 }) {}

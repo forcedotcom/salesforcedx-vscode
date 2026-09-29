@@ -8,6 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
@@ -61,15 +62,19 @@ const providerLayer = (conn: ToolingQueryConn | undefined, isvSid?: string, isvU
           }),
           NotificationModeService,
           QueryService: Effect.succeed({
-            query: (options: { soql: string; connection?: ToolingQueryConn }) =>
+            query: (_options: { soql: string }) =>
               Effect.tryPromise({
                 try: () => {
-                  const target = options.connection ?? conn;
-                  if (!target) return Promise.reject(new Error('missing connection'));
-                  return target.tooling.query(options.soql);
+                  if (!conn) return Promise.reject(new Error('missing connection'));
+                  return conn.tooling.query(_options.soql);
                 },
                 catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
-              }).pipe(Effect.map(result => ({ totalSize: result.records.length, records: result.records })))
+              }).pipe(
+                Effect.map(result => ({
+                  totalSize: result.records.length,
+                  records: Stream.fromIterable(result.records)
+                }))
+              )
           })
         }
       })

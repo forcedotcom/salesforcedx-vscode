@@ -9,6 +9,7 @@ import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -43,7 +44,7 @@ describe('PackageResolutionService', () => {
             }).pipe(
               Effect.map(result => ({
                 totalSize: result.totalSize ?? result.records?.length ?? 0,
-                records: result.records
+                records: Stream.fromIterable(result.records ?? [])
               }))
             )
         }),
@@ -173,7 +174,7 @@ describe('PackageResolutionService', () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
-        _tag: 'QueryError',
+        _tag: 'SoqlError',
         message: "sObject type 'Package2Member' is not supported.",
         errorCode: 'INVALID_TYPE'
       })
@@ -203,7 +204,7 @@ describe('PackageResolutionService', () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
-        _tag: 'QueryError',
+        _tag: 'SoqlError',
         message: "sObject type 'Package2Member' is not supported.",
         errorCode: 'INVALID_TYPE'
       })
@@ -234,7 +235,7 @@ describe('PackageResolutionService', () => {
     const unpackagedId = '01p000000000002AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
-        _tag: 'QueryError',
+        _tag: 'SoqlError',
         message: "sObject type 'Package2Member' is not supported.",
         errorCode: 'INVALID_TYPE'
       })
@@ -267,7 +268,7 @@ describe('PackageResolutionService', () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
-        _tag: 'QueryError',
+        _tag: 'SoqlError',
         message: "sObject type 'Package2Member' is not supported.",
         errorCode: 'INVALID_TYPE'
       })

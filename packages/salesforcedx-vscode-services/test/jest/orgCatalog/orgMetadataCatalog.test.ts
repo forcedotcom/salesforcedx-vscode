@@ -297,7 +297,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
         Effect.promise(() => toolingQuery(queryOptions.soql)).pipe(
           Effect.map(result => ({
             totalSize: result.records.length,
-            records: result.records
+            records: Stream.fromIterable(result.records)
           }))
         )
     } as unknown as InstanceType<typeof QueryService>),

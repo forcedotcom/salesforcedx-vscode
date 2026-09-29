@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import { ApexLogBodyFetchError } from '../errors/apexLogErrors';
 import { ConnectionService } from './connectionService';
 import { QueryService } from './queryService';
@@ -69,11 +71,11 @@ export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogSer
     const connectionService = yield* ConnectionService;
 
     const listLogs = Effect.fn('ApexLogService.listLogs')(function* (limit: number = 25, options?: ListLogsOptions) {
-      return yield* QueryService.pipe(
-        Effect.flatMap(queryService =>
-          queryService.query({ soql: buildListLogsQuery(limit, options), tooling: true }, ApexLogListItem)
-        ),
-        Effect.map(result => result.records)
+      return yield* Effect.flatMap(QueryService, queryService =>
+        queryService.query({ soql: buildListLogsQuery(limit, options), tooling: true }, ApexLogListItem).pipe(
+          Effect.flatMap(({ records }) => Stream.runCollect(records)),
+          Effect.map(Chunk.toReadonlyArray)
+        )
       );
     });
 

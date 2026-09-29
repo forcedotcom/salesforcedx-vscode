@@ -8,8 +8,10 @@
 import type { QueryResult } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { JsonObject } from '../json';
 import { nls } from '../messages';
@@ -19,25 +21,35 @@ export const runQuery = Effect.fn('runQuery')(function* (
   queryText: string,
   options?: { readonly showErrors?: boolean; readonly maxRows?: number }
 ) {
+  const maxRows = options?.maxRows ?? 50_000;
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
     Effect.flatMap(api => api.services.QueryService),
     Effect.flatMap(queryService =>
       queryService.query(
         {
-          ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText),
-          maxFetch: options?.maxRows ?? 50_000
+          ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText)
         },
         JsonObject
       )
     ),
-    Effect.map(
-      (raw): QueryResult<JsonObject> => ({
-        done: true,
-        totalSize: raw.totalSize,
-        records: flattenQueryRecords(raw.records)
-      })
+    Effect.flatMap(({ totalSize, records }) =>
+      Stream.take(records, maxRows).pipe(
+        Stream.runCollect,
+        Effect.map(
+          (chunk): QueryResult<JsonObject> => ({
+            done: true,
+            totalSize,
+            records: flattenQueryRecords(chunk.pipe(Chunk.toReadonlyArray))
+          })
+        )
+      )
     ),
-    Effect.tapErrorTag('QueryError', error =>
+    Effect.tapErrorTag('SoqlError', error =>
+      isUndefined(options) || options.showErrors === true
+        ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
+        : Effect.void
+    ),
+    Effect.tapErrorTag('FieldError', error =>
       isUndefined(options) || options.showErrors === true
         ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
         : Effect.void

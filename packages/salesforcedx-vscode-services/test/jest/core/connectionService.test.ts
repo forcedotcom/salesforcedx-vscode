@@ -365,10 +365,12 @@ const makeDesktopConn = (
   username: string,
   {
     orgId = '00D000000000005',
-    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0 })
+    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0, done: true })
   }: {
     orgId?: string;
-    query?: (soql: string) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number }>;
+    query?: (
+      soql: string
+    ) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number; done: boolean }>;
   } = {}
 ): Connection =>
   ({
@@ -443,7 +445,11 @@ const defaultOrgWhen = (pred: (info: typeof DefaultOrgInfoSchema.Type) => boolea
     Effect.timeout(Duration.seconds(2))
   );
 
-const userRecord = (id: string, username: string) => ({ records: [{ Id: id, Username: username }], totalSize: 1 });
+const userRecord = (id: string, username: string) => ({
+  records: [{ Id: id, Username: username }],
+  totalSize: 1,
+  done: true
+});
 
 describe('updateDefaultOrgIdentity', () => {
   it('does not publish when the org identity is unchanged', async () => {
@@ -536,7 +542,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
       getAuthInfoFields: getAuthInfoFieldsSpy,
       getFields: () => ({ username: 'given@example.com' }),
       getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-      query: async () => ({ records: [], totalSize: 0 })
+      query: async () => ({ records: [], totalSize: 0, done: true })
     } as unknown as Connection);
 
     await run(ConnectionService.getConnection('given@example.com'));
@@ -625,7 +631,11 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
   it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
-    const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const gate = Promise.withResolvers<{
+      records: { Id: string; Username: string }[];
+      totalSize: number;
+      done: boolean;
+    }>();
     const query = jest.fn().mockReturnValue(gate.promise);
     connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME, { query }));
 
@@ -646,7 +656,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     await Duration.millis(50).pipe(Effect.sleep, Effect.runPromise);
     expect(query).toHaveBeenCalledTimes(1);
 
-    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1 });
+    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1, done: true });
     await running;
   });
 

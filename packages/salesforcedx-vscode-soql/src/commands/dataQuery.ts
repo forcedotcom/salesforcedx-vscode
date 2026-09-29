@@ -7,8 +7,10 @@
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
 import { stripAllRows } from '../editor/allRows';
@@ -42,7 +44,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
   );
 
   return yield* Effect.all({
-    maxFetch: api.services.SettingsService.pipe(
+    maxRows: api.services.SettingsService.pipe(
       Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
     ),
     promptService: api.services.PromptService,
@@ -51,13 +53,18 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     ),
     queryService: api.services.QueryService
   }).pipe(
-    Effect.flatMap(({ maxFetch, promptService, progressLocation, queryService }) =>
-      queryService.query({ ...stripAllRows(query), tooling: useTooling, maxFetch }, JsonObject).pipe(
-        Effect.map(result => ({
-          done: true,
-          totalSize: result.totalSize,
-          records: [...result.records]
-        })),
+    Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
+      queryService.query({ ...stripAllRows(query), tooling: useTooling }, JsonObject).pipe(
+        Effect.flatMap(({ totalSize, records }) =>
+          Stream.take(records, maxRows).pipe(
+            Stream.runCollect,
+            Effect.map(chunk => ({
+              done: true as const,
+              totalSize,
+              records: [...Chunk.toReadonlyArray(chunk)]
+            }))
+          )
+        ),
         promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
       )
     )

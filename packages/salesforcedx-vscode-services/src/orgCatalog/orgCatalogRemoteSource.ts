@@ -7,10 +7,12 @@
 
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
@@ -36,16 +38,14 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [connectionService, queryService, fsService, inventories, remoteRetrieve, references, shadowStore] =
-      yield* Effect.all([
-        ConnectionService,
-        QueryService,
-        FsService,
-        OrgCatalogInventory,
-        OrgCatalogRemoteRetrieve,
-        OrgMetadataReferenceService,
-        OrgMetadataShadowStore
-      ]);
+    const [queryService, fsService, inventories, remoteRetrieve, references, shadowStore] = yield* Effect.all([
+      QueryService,
+      FsService,
+      OrgCatalogInventory,
+      OrgCatalogRemoteRetrieve,
+      OrgMetadataReferenceService,
+      OrgMetadataShadowStore
+    ]);
 
     const getEntryInOrg = (orgId: string, reference: OrgMetadataComponentReference) =>
       inventories.getEntry(orgId, reference).pipe(
@@ -61,36 +61,37 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       reference: OrgMetadataComponentReference
     ) {
       const nameParts = reference.fullName.split('.');
-      const record = yield* connectionService.getConnectionForOrg(orgId).pipe(
-        Effect.flatMap(connection =>
-          queryService.query(
-            {
-              soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(nameParts.at(-1) ?? reference.fullName)}'${
-                nameParts.length > 1 ? ` AND NamespacePrefix = '${escapeSoql(nameParts.slice(0, -1).join('.'))}'` : ''
-              } LIMIT 1`,
-              tooling: true,
-              connection
-            },
-            Schema.Struct({
-              Body: Schema.optionalWith(Schema.String, { nullable: true }),
-              LastModifiedDate: Schema.optionalWith(Schema.String, { nullable: true })
-            })
-          )
-        ),
-        Effect.flatMap(result =>
-          Option.match(Arr.head(result.records), {
-            onNone: () =>
-              Effect.fail(
-                new OrgMetadataCatalogError({
-                  cause: new Error('Apex class was not returned'),
-                  message: `Apex class '${reference.fullName}' has no readable source body`,
-                  reference
-                })
-              ),
-            onSome: Effect.succeed
+      const record = yield* queryService
+        .query(
+          {
+            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(nameParts.at(-1) ?? reference.fullName)}'${
+              nameParts.length > 1 ? ` AND NamespacePrefix = '${escapeSoql(nameParts.slice(0, -1).join('.'))}'` : ''
+            } LIMIT 1`,
+            tooling: true,
+            orgId
+          },
+          Schema.Struct({
+            Body: Schema.optionalWith(Schema.String, { nullable: true }),
+            LastModifiedDate: Schema.optionalWith(Schema.String, { nullable: true })
           })
         )
-      );
+        .pipe(
+          Effect.flatMap(({ records }) => Stream.runCollect(records)),
+          Effect.map(Chunk.toReadonlyArray),
+          Effect.flatMap(rows =>
+            Option.match(Arr.head(rows), {
+              onNone: () =>
+                Effect.fail(
+                  new OrgMetadataCatalogError({
+                    cause: new Error('Apex class was not returned'),
+                    message: `Apex class '${reference.fullName}' has no readable source body`,
+                    reference
+                  })
+                ),
+              onSome: Effect.succeed
+            })
+          )
+        );
       const body = yield* Effect.succeed(record.Body).pipe(
         Effect.filterOrFail(
           Schema.is(Schema.NonEmptyString),

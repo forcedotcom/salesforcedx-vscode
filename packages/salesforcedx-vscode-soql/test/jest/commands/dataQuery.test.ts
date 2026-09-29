@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 
 const mockChannel = {
   appendToChannel: (msg: string) => Effect.void,
@@ -27,12 +28,12 @@ jest.mock(
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
+import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
 import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
 import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -737,7 +738,7 @@ describe('DataQuery Pure Functions', () => {
   describe('runSoqlQuery ALL ROWS handling', () => {
     const makeApiMock = () => {
       const connection = {};
-      const query = jest.fn(() => Effect.succeed({ records: [], totalSize: 0 }));
+      const query = jest.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
       const mockPromptService = {
         withProgress:
           () =>
@@ -774,11 +775,13 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provide(QueryService.Default)
+          Effect.provideService(QueryService, {
+            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
+          } as never)
         )
       );
       expect(query).toHaveBeenCalledWith(
-        expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true, maxFetch: 50_000, tooling: false }),
+        expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true, tooling: false }),
         expect.anything()
       );
     });
@@ -793,7 +796,9 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provide(QueryService.Default)
+          Effect.provideService(QueryService, {
+            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
+          } as never)
         )
       );
       expect(query).toHaveBeenCalledWith(
@@ -812,7 +817,9 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provide(QueryService.Default)
+          Effect.provideService(QueryService, {
+            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
+          } as never)
         )
       );
       expect(query).toHaveBeenCalledWith(
@@ -1062,7 +1069,9 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(PromptService, noopPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provide(QueryService.Default)
+          Effect.provideService(QueryService, {
+            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
+          } as never)
         )
       ).then(() => ({ show, appendToChannel }));
     };
@@ -1075,7 +1084,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('appends completion message and shows channel once on success', async () => {
-      const query = jest.fn(() => Effect.succeed({ records: [{ Id: '001' }], totalSize: 1 }));
+      const query = jest.fn(() => Effect.succeed({ records: Stream.make({ Id: '001' }), totalSize: 1 }));
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_complete', 1));
       expect(show).toHaveBeenCalledTimes(1);

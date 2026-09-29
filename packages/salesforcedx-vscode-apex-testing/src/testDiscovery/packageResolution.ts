@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
@@ -15,6 +16,7 @@ import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
   ApexClassManageableStateRow,
@@ -63,9 +65,9 @@ type ResolutionState = {
   readonly unavailable: HashSet.HashSet<string>;
 };
 
-/** Tooling `QueryError` whose `errorCode` is `INVALID_TYPE` (sObject not supported in this org). */
+/** Tooling `SoqlError` whose `errorCode` is `INVALID_TYPE` (sObject not supported in this org). */
 const InvalidSObjectQueryError = Schema.Struct({
-  _tag: Schema.Literal('QueryError'),
+  _tag: Schema.Literal('SoqlError'),
   errorCode: Schema.Literal('INVALID_TYPE')
 });
 
@@ -115,7 +117,8 @@ const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, soql: string) =>
   getServicesApi.pipe(
     Effect.flatMap(api => api.services.QueryService),
     Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, Schema.Unknown)),
-    Effect.map(result => Array.filterMap(result.records, row => Schema.decodeUnknownOption(schema)(row))),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
+    Effect.map(chunk => Array.filterMap(Chunk.toReadonlyArray(chunk), row => Schema.decodeUnknownOption(schema)(row))),
     Effect.mapError(error =>
       isPackage2UnavailableError(error)
         ? new Package2UnavailableError({ message: getMessageFromError(error) })

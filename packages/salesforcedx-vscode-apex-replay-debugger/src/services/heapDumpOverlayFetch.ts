@@ -44,7 +44,8 @@ const runOverlayQuery = Effect.fn('heapDumpOverlayFetch.runOverlayQuery')(functi
         OverlayRow
       )
     ),
-    Effect.map(({ records }) => new Map(records.map(record => [record.Id, record]))),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
+    Effect.map(chunk => new Map(Chunk.toReadonlyArray(chunk).map(record => [record.Id, record]))),
     Effect.map(byId =>
       ids.map((id): HeapDumpResult => {
         const record = byId.get(id);

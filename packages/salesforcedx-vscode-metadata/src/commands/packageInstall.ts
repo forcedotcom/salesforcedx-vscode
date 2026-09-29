@@ -8,12 +8,14 @@
 import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError, isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as Str from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -86,8 +88,9 @@ const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable'
         Schema.Struct({ Id: Schema.String })
       )
     ),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
     Effect.filterOrFail(
-      result => result.records.length > 0,
+      chunk => Chunk.size(chunk) > 0,
       () => new PackageInstallFailedError({ message: nls.localize('package_install_not_found', packageId) })
     ),
     Effect.as(packageId)
@@ -135,7 +138,8 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
         Schema.Unknown.pipe(Schema.filter((value): value is PackageInstallRequest => isRecord(value)))
       )
     ),
-    Effect.map(result => result.records),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
+    Effect.map(Chunk.toReadonlyArray),
     Effect.retry({
       schedule: Schedule.exponential(Duration.seconds(1), 2.0).pipe(
         Schedule.either(Schedule.spaced(Duration.seconds(30)))

@@ -625,7 +625,8 @@ export { type ChannelService, type ChannelServiceLayer } from './vscode/channelS
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
 export { type QueryService } from './core/queryService';
-export type { QueryError } from './errors/queryErrors';
+export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
+export { FieldError, SoqlError } from './errors/queryErrors';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
 export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';

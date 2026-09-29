@@ -6,43 +6,32 @@
  */
 
 /**
- * SOQL over a jsforce `Connection`. Omit `connection` to use `ConnectionService.getConnection()`.
- * Pass `connection` to query a specific org. First page keeps `totalSize`. `records` is a stream of
- * that page plus every `nextRecordsUrl` page, collected before return. `maxFetch` stops the stream.
- * Totals-only envelopes (`SELECT COUNT()`) yield `records: []`.
+ * SOQL over `ConnectionService`. `records` is a lazy `Stream` that follows
+ * `nextRecordsUrl`. Caps are `Stream.take` at the caller. Pass `orgId` to query a
+ * specific org; otherwise the default org connection is used.
  */
 
-import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { QueryError } from '../errors/queryErrors';
 import { ConnectionService } from './connectionService';
-import { executeQuery, type QueryOptions, type QueryServiceResult } from './queryExecute';
-
-type DefaultConnectionError = Effect.Effect.Error<ReturnType<ConnectionService['getConnection']>>;
-
-// Overloads: passing `connection` keeps R = never. An arrow cannot be assigned to that
-// overload type without an assertion, which consistent-type-assertions forbids.
-/* eslint-disable prefer-arrow/prefer-arrow-functions */
-function query<A, I>(
-  options: QueryOptions & { readonly connection: Connection },
-  recordSchema: Schema.Schema<A, I, never>
-): Effect.Effect<QueryServiceResult<A>, QueryError>;
-function query<A, I>(
-  options: QueryOptions,
-  recordSchema: Schema.Schema<A, I, never>
-): Effect.Effect<QueryServiceResult<A>, QueryError | DefaultConnectionError, ConnectionService>;
-function query<A, I>(options: QueryOptions, recordSchema: Schema.Schema<A, I, never>) {
-  return (
-    isUndefined(options.connection)
-      ? ConnectionService.pipe(Effect.flatMap(service => service.getConnection()))
-      : Effect.succeed(options.connection)
-  ).pipe(Effect.flatMap(connection => executeQuery(connection, options, recordSchema)));
-}
-/* eslint-enable prefer-arrow/prefer-arrow-functions */
+import { executeQuery, type QueryOptions } from './queryExecute';
 
 export class QueryService extends Effect.Service<QueryService>()('QueryService', {
-  accessors: false,
-  effect: Effect.succeed({ query })
+  accessors: true,
+  dependencies: [ConnectionService.Default],
+  effect: Effect.gen(function* () {
+    const connectionService = yield* ConnectionService;
+
+    const query = <A, I>(options: QueryOptions, recordSchema: Schema.Schema<A, I, never>) =>
+      (isUndefined(options.orgId)
+        ? connectionService.getConnection()
+        : connectionService.getConnectionForOrg(options.orgId)
+      ).pipe(
+        Effect.flatMap(connection => executeQuery(connection, options, recordSchema)),
+        Effect.withSpan('QueryService.query')
+      );
+
+    return { query };
+  })
 }) {}

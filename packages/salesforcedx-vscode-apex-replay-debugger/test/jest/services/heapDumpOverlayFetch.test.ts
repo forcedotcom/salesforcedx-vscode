@@ -9,6 +9,7 @@ import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@sal
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import { fetchHeapDumpOverlayResults } from '../../../src/services/heapDumpOverlayFetch';
 
 const heapDumpLine = (id: string) => `<TimeInfo>|HEAP_DUMP|[11]|${id}|ClassName1|ns1|11`;
@@ -42,7 +43,7 @@ const provideQuery = (query: jest.Mock) =>
             }).pipe(
               Effect.map(result => ({
                 totalSize: result.records.length,
-                records: result.records
+                records: Stream.fromIterable(result.records)
               }))
             )
         })

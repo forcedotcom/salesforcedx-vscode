@@ -7,6 +7,7 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
@@ -51,7 +52,7 @@ const queryServiceFromSpies = (toolingSpy: QuerySpy, restSpy: QuerySpy) =>
         Effect.tryPromise({
           try: () => (options.tooling === false ? restSpy : toolingSpy)(options.soql),
           catch: (error: unknown) => error
-        }).pipe(Effect.map(result => ({ totalSize: result.totalSize, records: result.records })))
+        }).pipe(Effect.map(result => ({ totalSize: result.totalSize, records: Stream.fromIterable(result.records) })))
     } as never)
   );
 

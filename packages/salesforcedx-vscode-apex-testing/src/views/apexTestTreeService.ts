@@ -9,12 +9,14 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
@@ -1073,8 +1075,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                   })
                 )
               ),
-              Effect.map(result =>
-                result.records.map(record =>
+              Effect.flatMap(({ records }) => Stream.runCollect(records)),
+              Effect.map(chunk =>
+                Chunk.toReadonlyArray(chunk).map(record =>
                   record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
                 )
               ),

@@ -9,12 +9,14 @@ import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import { isUndefined, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages, MessageKey } from '../messages/i18n';
@@ -38,7 +40,8 @@ const toolingRecords = <A, I>(soql: string, schema: Schema.Schema<A, I, never>) 
   Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
     Effect.flatMap(api => api.services.QueryService),
     Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, schema)),
-    Effect.map(result => result.records)
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
+    Effect.map(Chunk.toReadonlyArray)
   );
 
 class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDeleteError>()(

@@ -7,20 +7,19 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
+import * as Stream from 'effect/Stream';
 import { runQuery } from '../../../src/editor/queryRunner';
 
 describe('runQuery ALL ROWS handling', () => {
   const run = (queryText: string) => {
-    const query = jest.fn(() => Effect.succeed({ records: [], totalSize: 0 }));
+    const query = jest.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
     return Effect.runPromise(
       runQuery(queryText, { showErrors: false }).pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
             services: { QueryService: Effect.succeed({ query }) }
           } as never)
-        }),
-        Effect.provide(QueryService.Default)
+        })
       ) as Effect.Effect<unknown, unknown, never>
     ).then(() => query);
   };
@@ -28,7 +27,7 @@ describe('runQuery ALL ROWS handling', () => {
   it('strips trailing ALL ROWS and passes scanAll true', async () => {
     const query = await run('SELECT Id FROM Account ALL ROWS');
     expect(query).toHaveBeenCalledWith(
-      expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true, maxFetch: 50_000 }),
+      expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true }),
       expect.anything()
     );
   });

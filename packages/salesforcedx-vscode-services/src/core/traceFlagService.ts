@@ -7,6 +7,7 @@
 
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -88,9 +89,11 @@ const getUserIdOrFail = Effect.gen(function* () {
 const IdRow = Schema.Struct({ Id: SalesforceId });
 
 const queryRows = <A, I>(soql: string, schema: Schema.Schema<A, I, never>, tooling = true) =>
-  QueryService.pipe(
-    Effect.flatMap(queryService => queryService.query({ soql, tooling }, schema)),
-    Effect.map(result => result.records)
+  Effect.flatMap(QueryService, queryService =>
+    queryService.query({ soql, tooling }, schema).pipe(
+      Effect.flatMap(({ records }) => Stream.runCollect(records)),
+      Effect.map(Chunk.toReadonlyArray)
+    )
   );
 
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
