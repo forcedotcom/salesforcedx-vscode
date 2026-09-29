@@ -76,6 +76,42 @@ const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
 
 Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
 
+### no-nested-effect-gen-catch-tags
+
+Inside an `Effect.fn` generator, do not wrap a span in `Effect.gen` just so `.pipe` can attach `Effect.catchTags`. Pipe from that span's first Effect and keep `catchTags` on that pipe. `catchTags` after other `.pipe` steps is the same shape. An `Effect.gen` service body, an `Effect.gen` inside `Effect.fn` with no `catchTags`, and `Effect.catchTags` on a non-`Effect.gen` receiver stay allowed. The rule is AST-only: it matches an `Effect` identifier, the same way `no-effect-fn-wrapper` does.
+
+**Bad:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* (yield* api.services.SettingsService).setValue('section', 'key', true);
+  }).pipe(
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+**Good:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue('section', 'key', true)),
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
+
 ### no-nested-effect-ternary
 
 Disallows nested ternaries (three or more branches) whose type is Effect's `Effect`. Use `Match.value`, `Match.when`, and `Match.orElse` instead. A single Effect ternary stays allowed, and so do nested ternaries that do not produce an `Effect`. For a no-op branch, use `Match.orElse(() => Effect.void)`.
