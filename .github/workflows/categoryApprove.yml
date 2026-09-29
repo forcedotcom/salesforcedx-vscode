@@ -1,0 +1,43 @@
+name: Category Approve
+
+# svc-idee-bot approves an eligible PR once the check rollup on the head is settled
+# and `agent -p --model grok-4.7-xhigh` returns a category union from the diff.
+# The author merges. IDEE_GH_TOKEN is stripped from the agent process.
+
+on:
+  check_run:
+    types: [completed]
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: category-approve-${{ github.event.check_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  category-approve:
+    # Our own completed run must not start another run. Fork PRs have no IDEE_GH_TOKEN.
+    if: github.event.check_run.name != 'category-approve' && (github.event.check_run.pull_requests[0].head.repo.full_name == github.repository || github.event.check_run.pull_requests[0] == null)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.check_run.head_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Install Cursor CLI
+        run: curl https://cursor.com/install -fsS | bash
+      - name: Decide and approve
+        env:
+          IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/category-approve-cli.mjs
