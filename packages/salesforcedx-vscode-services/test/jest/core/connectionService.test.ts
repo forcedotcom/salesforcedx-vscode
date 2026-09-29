@@ -13,6 +13,8 @@ import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -26,6 +28,7 @@ import {
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
@@ -35,12 +38,14 @@ jest.mock('@salesforce/core', () => ({
   Connection: { create: jest.fn() }
 }));
 
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
+
 const USERNAME = 'expired@test.com';
 const ALIAS = 'ExpiredOrg';
 const INSTANCE_URL = 'https://expired.my.salesforce.com';
 const LOGIN_BUTTON = 'Login';
 
-const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<ConfigService> =>
+const mockConfigService = (targetOrg: string | undefined = ALIAS) =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -57,10 +62,9 @@ const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<C
     })
   );
 
-const mockSettingsService = (): Layer.Layer<SettingsService> =>
-  Layer.succeed(SettingsService, SettingsService.make({} as never));
+const mockSettingsService = () => Layer.succeed(SettingsService, SettingsService.make({} as never));
 
-const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
+const mockAliasService = (aliases: string[]) =>
   Layer.succeed(
     AliasService,
     AliasService.make({
@@ -99,30 +103,30 @@ describe('ConnectionService.getConnectionForOrg', () => {
   });
 
   it('returns a connection whose org ID matches the captured operation org', async () => {
-    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-expected' });
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000001' });
     jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     jest.mocked(Connection.create).mockResolvedValue(connection);
 
     await expect(
-      Effect.runPromise(ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer())))
+      Effect.runPromise(ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer())))
     ).resolves.toBe(connection);
   });
 
   it('fails with the captured and observed org IDs when the target org changed', async () => {
-    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D-observed' });
+    const connection = makeConn({ isAccessTokenFlow: false, orgId: '00D000000000002' });
     jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     jest.mocked(Connection.create).mockResolvedValue(connection);
 
     const exit = await Effect.runPromiseExit(
-      ConnectionService.getConnectionForOrg('00D-expected').pipe(Effect.provide(buildLayer()))
+      ConnectionService.getConnectionForOrg('00D000000000001').pipe(Effect.provide(buildLayer()))
     );
 
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-expected' was in progress.",
-          expectedOrgId: '00D-expected',
-          observedOrgId: '00D-observed'
+          message: "The active org changed while an operation for '00D000000000001' was in progress.",
+          expectedOrgId: '00D000000000001',
+          observedOrgId: '00D000000000002'
         })
       )
     );
@@ -138,7 +142,7 @@ describe('preventOrgChanges', () => {
   };
 
   it('runs the command when the target org does not change', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
     await expect(
       Effect.runPromise(preventOrgChanges(Effect.succeed('complete')).pipe(Effect.provide(buildLayer())))
@@ -146,39 +150,37 @@ describe('preventOrgChanges', () => {
   });
 
   it('keeps an observed target-org change cancelled after switching back', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
-    const exit = await Effect.runPromiseExit(
-      preventOrgChanges(
-        Effect.gen(function* () {
-          const ref = yield* getDefaultOrgRef();
-          yield* SubscriptionRef.set(ref, { orgId: '00D-replacement' });
-          yield* SubscriptionRef.set(ref, { orgId: '00D-original' });
-          yield* Effect.sleep(Duration.millis(1));
-        })
-      ).pipe(Effect.provide(buildLayer()))
-    );
+    const exit = await preventOrgChanges(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        yield* SubscriptionRef.set(ref, { orgId: brandedOrgId('00D000000000004') });
+        yield* SubscriptionRef.set(ref, { orgId: brandedOrgId('00D000000000003') });
+        yield* Effect.sleep(Duration.millis(1));
+      })
+    ).pipe(Effect.provide(buildLayer()), Effect.runPromiseExit);
 
     expect(exit).toEqual(
       Exit.fail(
         new InactiveOrgOperationError({
-          message: "The active org changed while an operation for '00D-original' was in progress.",
-          expectedOrgId: '00D-original',
-          observedOrgId: '00D-replacement'
+          message: "The active org changed while an operation for '00D000000000003' was in progress.",
+          expectedOrgId: '00D000000000003',
+          observedOrgId: '00D000000000004'
         })
       )
     );
   });
 
   it('ignores target-org updates that retain the same org ID', async () => {
-    await prepareConnection('00D-original');
+    await prepareConnection('00D000000000003');
 
     await expect(
       Effect.runPromise(
         preventOrgChanges(
           Effect.gen(function* () {
             yield* SubscriptionRef.set(yield* getDefaultOrgRef(), {
-              orgId: '00D-original',
+              orgId: brandedOrgId('00D000000000003'),
               username: 'replacement@example.com'
             });
             yield* Effect.sleep(Duration.millis(1));
@@ -192,8 +194,9 @@ describe('preventOrgChanges', () => {
   it('fails before the command when the connection has no org ID', async () => {
     await prepareConnection(undefined);
 
-    const exit = await Effect.runPromiseExit(
-      preventOrgChanges(Effect.succeed('not run')).pipe(Effect.provide(buildLayer()))
+    const exit = await preventOrgChanges(Effect.succeed('not run')).pipe(
+      Effect.provide(buildLayer()),
+      Effect.runPromiseExit
     );
 
     expect(exit).toEqual(Exit.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' })));
@@ -356,12 +359,21 @@ const getUsernameFromAliasMock = jest.fn();
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
 // tracksSource is present so the ref-update path skips the Org.create-backed getTracksSourceFromOrg fallback.
-const makeDesktopConn = (username: string): Connection =>
+const makeDesktopConn = (
+  username: string,
+  {
+    orgId = '00D000000000005',
+    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0 })
+  }: {
+    orgId?: string;
+    query?: (soql: string) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number }>;
+  } = {}
+): Connection =>
   ({
     getUsername: () => username,
     getAuthInfoFields: () => ({
       username,
-      orgId: '00Dxx',
+      orgId,
       instanceName: 'USA9S',
       tracksSource: false,
       isScratch: false,
@@ -369,7 +381,7 @@ const makeDesktopConn = (username: string): Connection =>
     }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-    query: async () => ({ records: [], totalSize: 0 })
+    query
   }) as unknown as Connection;
 
 const MockConfigServiceLayer = Layer.succeed(
@@ -407,34 +419,56 @@ const serviceLayer = ConnectionService.DefaultWithoutDependencies.pipe(
 const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
   Effect.runPromise(prog.pipe(Effect.provide(serviceLayer)));
 
+const waitUntil = (pred: () => boolean) =>
+  Effect.runPromise(
+    Effect.void.pipe(
+      Effect.repeat({
+        while: () => !pred(),
+        schedule: Schedule.intersect(Schedule.spaced(Duration.millis(10)), Schedule.recurs(200))
+      })
+    )
+  );
+
+const defaultOrgWhen = (pred: (info: typeof DefaultOrgInfoSchema.Type) => boolean) =>
+  getDefaultOrgRef().pipe(
+    Effect.flatMap(ref => ref.changes.pipe(Stream.filter(pred), Stream.runHead, Effect.map(Option.getOrThrow))),
+    Effect.timeout(Duration.seconds(2))
+  );
+
+const userRecord = (id: string, username: string) => ({ records: [{ Id: id, Username: username }], totalSize: 1 });
+
 describe('updateDefaultOrgIdentity', () => {
   it('does not publish when the org identity is unchanged', async () => {
     const initial: typeof DefaultOrgInfoSchema.Type = {
-      orgId: '00Dxx',
+      orgId: brandedOrgId('00D000000000005'),
       instanceName: 'USA9S',
       username: 'user@example.com'
     };
     const ref = Effect.runSync(SubscriptionRef.make(initial));
 
-    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dxx', 'USA9S'));
+    const previousOrgId = await Effect.runPromise(
+      updateDefaultOrgIdentity(ref, brandedOrgId('00D000000000005'), 'USA9S')
+    );
 
-    expect(previousOrgId).toBe('00Dxx');
+    expect(previousOrgId).toBe('00D000000000005');
     expect(await Effect.runPromise(SubscriptionRef.get(ref))).toBe(initial);
   });
 
   it('publishes when the org identity changes', async () => {
     const initial: typeof DefaultOrgInfoSchema.Type = {
-      orgId: '00Dold',
+      orgId: brandedOrgId('00D000000000006'),
       instanceName: 'USA1',
       username: 'user@example.com'
     };
     const ref = Effect.runSync(SubscriptionRef.make(initial));
 
-    const previousOrgId = await Effect.runPromise(updateDefaultOrgIdentity(ref, '00Dnew', 'USA9S'));
+    const previousOrgId = await Effect.runPromise(
+      updateDefaultOrgIdentity(ref, brandedOrgId('00D000000000007'), 'USA9S')
+    );
 
-    expect(previousOrgId).toBe('00Dold');
+    expect(previousOrgId).toBe('00D000000000006');
     expect(await Effect.runPromise(SubscriptionRef.get(ref))).toEqual({
-      orgId: '00Dnew',
+      orgId: '00D000000000007',
       instanceName: 'USA9S',
       username: 'user@example.com'
     });
@@ -484,7 +518,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     // spying on it lets us assert the fork body never ran, deterministically (no setTimeout race).
     const getAuthInfoFieldsSpy = jest.fn(() => ({
       username: 'given@example.com',
-      orgId: '00Dxx',
+      orgId: '00D000000000005',
       tracksSource: false,
       isScratch: false,
       isSandbox: false
@@ -527,19 +561,21 @@ describe('ConnectionService.getConnection (desktop)', () => {
         const ref = yield* getDefaultOrgRef();
         yield* ConnectionService.getConnection();
         return yield* ref.changes.pipe(
-          Stream.filter(info => info.orgId === '00Dxx' && info.alias === ALIAS),
+          Stream.filter(info => info.orgId === '00D000000000005' && info.alias === ALIAS),
           Stream.runHead,
           Effect.map(Option.getOrThrow)
         );
       })
     );
-    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
+    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00D000000000005' });
   });
 
   it('clears a cached alias when target-org is configured as the username', async () => {
     await Effect.runPromise(
       getDefaultOrgRef().pipe(
-        Effect.flatMap(ref => SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: '00Dxx' }))
+        Effect.flatMap(ref =>
+          SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: brandedOrgId('00D000000000005') })
+        )
       )
     );
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
@@ -551,7 +587,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
         const ref = yield* getDefaultOrgRef();
         yield* ConnectionService.getConnection();
         return yield* ref.changes.pipe(
-          Stream.filter(info => info.orgId === '00Dxx' && isUndefined(info.alias)),
+          Stream.filter(info => info.orgId === '00D000000000005' && isUndefined(info.alias)),
           Stream.runHead,
           Effect.map(Option.getOrThrow)
         );
@@ -566,7 +602,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     await run(ConnectionService.getConnection());
     expect(await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)))).toMatchObject({
-      orgId: '00Dxx',
+      orgId: '00D000000000005',
       instanceName: 'USA9S'
     });
   });
@@ -577,5 +613,201 @@ describe('ConnectionService.getConnection (desktop)', () => {
     const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
+  });
+
+  it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const query = jest.fn().mockReturnValue(gate.promise);
+    connectionCreateMock.mockResolvedValue({
+      getUsername: () => USERNAME,
+      getAuthInfoFields: () => ({
+        username: USERNAME,
+        orgId: '00D000000000005',
+        instanceName: 'USA9S',
+        tracksSource: false,
+        isScratch: false,
+        isSandbox: false
+      }),
+      getFields: () => ({ username: USERNAME }),
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      query
+    } as unknown as Connection);
+
+    const running = run(
+      Effect.all([ConnectionService.getConnection(), ConnectionService.getConnection()], {
+        concurrency: 'unbounded'
+      })
+    );
+
+    await Effect.runPromise(
+      Effect.void.pipe(
+        Effect.repeat({
+          while: () => query.mock.calls.length === 0,
+          schedule: Schedule.intersect(Schedule.spaced(Duration.millis(10)), Schedule.recurs(200))
+        })
+      )
+    );
+    await Duration.millis(50).pipe(Effect.sleep, Effect.runPromise);
+    expect(query).toHaveBeenCalledTimes(1);
+
+    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1 });
+    await running;
+  });
+
+  it('loads the new User id when default-org username changes on the same orgId', async () => {
+    const orgId = '00D0000000000AA';
+    const userA = 'a@identity.test';
+    const userB = 'b@identity.test';
+    const userIdA = '00500000000000AAA';
+    const userIdB = '00500000000000BAA';
+    const queryA = jest.fn().mockResolvedValue(userRecord(userIdA, userA));
+    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
+
+    const first = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdA);
+      })
+    );
+    expect(first).toMatchObject({ username: userA, userId: userIdA });
+
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userB : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userB, { orgId, query: queryB }));
+
+    const second = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdB);
+      })
+    );
+    expect(second).toMatchObject({ username: userB, userId: userIdB });
+  });
+
+  it('reuses cached User id after connection invalidate for the same username and orgId', async () => {
+    const orgId = '00D0000000000CC';
+    const username = 'c@identity.test';
+    const cachedUserId = '00500000000000CAA';
+    const queryFromDisk = jest.fn().mockResolvedValue(userRecord('00500000000000CZZ', username));
+    const queryCached = jest.fn().mockResolvedValue(userRecord(cachedUserId, username));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? username : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(username, { orgId, query: queryCached }));
+
+    const first = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === cachedUserId);
+      })
+    );
+    expect(first.userId).toBe(cachedUserId);
+
+    await run(ConnectionService.invalidateCachedConnections());
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(username, { orgId, query: queryFromDisk }));
+
+    const second = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId !== undefined);
+      })
+    );
+    expect(second).toMatchObject({ username, userId: cachedUserId });
+    expect(queryFromDisk).not.toHaveBeenCalled();
+  });
+
+  it('does not apply an in-flight User lookup to a different username on the same orgId', async () => {
+    const orgId = '00D0000000000EE';
+    const userA = 'd@identity.test';
+    const userB = 'e@identity.test';
+    const userIdA = '00500000000000DAA';
+    const userIdB = '00500000000000EAA';
+    const gateA = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const queryA = jest.fn().mockReturnValue(gateA.promise);
+    const queryB = jest.fn().mockResolvedValue(userRecord(userIdB, userB));
+
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userA : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userA, { orgId, query: queryA }));
+
+    const runningA = run(ConnectionService.getConnection());
+    await waitUntil(() => queryA.mock.calls.length > 0);
+
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, {}))));
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? userB : undefined));
+    connectionCreateMock.mockResolvedValueOnce(makeDesktopConn(userB, { orgId, query: queryB }));
+
+    const orgB = await run(
+      Effect.gen(function* () {
+        yield* ConnectionService.getConnection();
+        return yield* defaultOrgWhen(info => info.userId === userIdB);
+      })
+    );
+    expect(orgB).toMatchObject({ username: userB, userId: userIdB });
+
+    gateA.resolve(userRecord(userIdA, userA));
+    await runningA;
+  });
+});
+
+describe('ConnectionService.getConnection (Web Console)', () => {
+  const originalPlatform = process.env.ESBUILD_PLATFORM;
+
+  afterAll(() => {
+    if (isUndefined(originalPlatform)) delete process.env.ESBUILD_PLATFORM;
+    else process.env.ESBUILD_PLATFORM = originalPlatform;
+  });
+
+  it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+    process.env.ESBUILD_PLATFORM = 'web';
+    jest.resetModules();
+
+    await jest.isolateModulesAsync(async () => {
+      const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
+        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
+      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
+      const { AliasService: WebAliasService } =
+        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<
+        typeof import('../../../src/core/configService.js')
+      >('../../../src/core/configService');
+      const { ConnectionService: WebConnectionService } = jest.requireActual<
+        typeof import('../../../src/core/connectionService.js')
+      >('../../../src/core/connectionService');
+      const { SettingsService: WebSettingsService } = jest.requireActual<
+        typeof import('../../../src/vscode/settingsService.js')
+      >('../../../src/vscode/settingsService');
+      const accessToken = 'web-console-token';
+      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
+      const connection = makeConn({ isAccessTokenFlow: false });
+      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
+      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      const dependencies = WebLayer.mergeAll(
+        WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
+        WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
+        WebLayer.succeed(
+          WebSettingsService,
+          WebSettingsService.make({
+            getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
+            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+            getApiVersion: () => WebEffect.succeed('67.0')
+          } as never)
+        )
+      );
+      const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
+
+      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+
+      expect(WebAuthInfo.create).toHaveBeenCalledWith({
+        accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
+      });
+      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+    });
   });
 });

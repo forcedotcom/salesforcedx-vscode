@@ -28,9 +28,9 @@ const api = yield * (yield * ExtensionProviderService).getServicesApi;
 
 ## Prebuilt vs Per-Extension Services
 
-`api.services.prebuiltServicesLayer` — shared service instances plus runtime configuration, including the redacting logger. Provide or merge this layer directly.
+`api.services.prebuiltServicesLayer` — shared service instances plus redacting-logger FiberRef. Not the OTEL tracer. Provide or merge this layer directly.
 
-`api.services.prebuiltServicesDependencies` — deprecated context-only compatibility field. It omits FiberRef runtime configuration; new consumers must use `prebuiltServicesLayer`.
+`api.services.prebuiltServicesDependencies` — deprecated context-only field. Omits FiberRefs; use `prebuiltServicesLayer`.
 
 Shares singleton instances (caches, watchers) across extensions; avoids re-building stateful services.
 
@@ -212,32 +212,35 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ConnectionService](references/connection-service.md) - Org connections
 - [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
-- [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (value-based URI equality for HashSet/HashMap keys)
+- [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (`comparisonKey` of URI fields, not `.toString()`)
+- `OrgMetadataCatalog` - inventory/presence; `getChildren` / `getEntries` / `resolveComponents`. Types: catalog + entries, `OrgMetadataCatalogError` (type-only), `OrgMetadataComponentReference`, `OrgMetadataCatalogChange`. [ADR 0021](../../../docs/adr/0021-org-metadata-catalog.md)
+- `TransmogrifierService` - REST/workspace SObject describe → canonical `SObject`. Types: `TransmogrifierService`, `TransmogrifierError` (type-only)
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
-- [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
+- [TerminalService](references/terminal-service.md) - Run argv commands (desktop-only)
 - [NotificationModeService](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
 
 ### File Watching
 
-FileWatcherService exposes a PubSub of all workspace file changes (`**/*`). Subscribe and filter:
+`FileChangePubSub` — workspace FS (`**/*`), including project `.sf/config.json`. Filter `event.uri` / `uri.path` / `Utils.*`, not `uri.fsPath`.
+
+Global `~/.sf/config.json` and `~/.sfdx/alias.json`: `HostFileWatcher` (internal, `@salesforce/core/fs`). Not on the public API; services already watch them. See [FileChangePubSub vs HostFileWatcher](../../../packages/salesforcedx-vscode-services/CONTEXT.md#filechangepubsub-vs-hostfilewatcher).
 
 ```typescript
-import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 
-const fileWatcher = yield * api.services.FileWatcherService;
+const pubsub = yield* api.services.FileChangePubSub;
 
-yield* Stream.fromPubSub(fileWatcher.pubsub).pipe(
-    Stream.filter(event => /* match event.uri to your pattern */),
-    Stream.runForEach(event =>
-      Effect.sync(() => {
-        // Handle event: { type: 'create'|'change'|'delete', uri }
-      })
-    )
-  );
+yield* Stream.fromPubSub(pubsub).pipe(
+  Stream.filter(event => /* event.uri / uri.path / Utils.*; not uri.fsPath */),
+  Stream.runForEach(event =>
+    Effect.sync(() => {
+      // { type: 'create'|'change'|'delete', uri }
+    })
+  )
+);
 ```
 
 ### Config Watching
@@ -294,9 +297,9 @@ yield *
 
 Ref behavior (concise):
 
-- Default-org update: username from User SOQL when present; else AuthInfo login username on the connection.
-- `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org.
-- `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
+- Default-org update: username from User SOQL when present; else `conn.getUsername()` / AuthInfo login username.
+- Username-less snapshot = no target org.
+- `TargetOrgRef` (`DefaultOrgInfoSchema`) value is always an object (never `undefined`); `orgId`/`devHubOrgId` are optional branded `OrgId` (`Schema.optional(OrgId)`, like `cliId`).
 
 ### Clearing the Default Org
 

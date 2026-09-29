@@ -6,16 +6,16 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getTargetDevHubOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { ORG_LOGIN_WEB_DEV_HUB } from '../constants';
 import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
 import { isValidOrgAlias } from '../util/orgAlias';
@@ -42,6 +42,11 @@ const CREATE_TIMEOUT = Duration.minutes(15);
 export class OrgCreateParseError extends Schema.TaggedError<OrgCreateParseError>()('OrgCreateParseError', {
   message: Schema.String
 }) {}
+
+class AuthorizeDevHubCommandError extends Schema.TaggedError<AuthorizeDevHubCommandError>()(
+  'AuthorizeDevHubCommandError',
+  { message: Schema.String }
+) {}
 
 const OrgCreateSuccess = Schema.TaggedStruct('OrgCreateSuccess', {
   status: Schema.Literal(0),
@@ -98,7 +103,6 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
   // absolute fsPath, NOT a workspace-relative path: simpleExec runs the sf child with no cwd (it inherits the
   // extension-host process.cwd(), not the workspace root), so a relative --definition-file would not resolve.
-  // double-quote it (at the call site) so paths containing spaces survive shell word-splitting.
   const defFilePath = selection.description;
 
   // alias default = sanitized workspace folder name (or DEFAULT_ALIAS), pre-filled as the input `value`
@@ -146,9 +150,32 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     [api.services.ProjectService.getSfProject(), api.services.ConfigService.getTargetDevHub()],
     { concurrency: 'unbounded' }
   );
-  // no devhub → show the same "no dev hub" warning and cancel.
+  // no devhub → offer authorization, then cancel this create attempt.
   if (isUndefined(devHub)) {
-    yield* Effect.promise(() => getTargetDevHubOrAlias(true)).pipe(Effect.ignore);
+    const authorizeDevHub = nls.localize('notification_make_default_dev');
+    const selection = yield* Effect.promise(() =>
+      vscode.window.showInformationMessage(nls.localize('error_no_target_dev_hub'), authorizeDevHub)
+    );
+    if (selection === authorizeDevHub) {
+      yield* Effect.forkDaemon(
+        Effect.tryPromise({
+          try: () => vscode.commands.executeCommand(ORG_LOGIN_WEB_DEV_HUB),
+          catch: cause =>
+            new AuthorizeDevHubCommandError({
+              message: nls.localize(
+                'org_create_authorize_dev_hub_failed',
+                isError(cause) ? cause.message : String(cause)
+              )
+            })
+        }).pipe(
+          Effect.catchTag('AuthorizeDevHubCommandError', error =>
+            Effect.sync(() => {
+              void vscode.window.showErrorMessage(error.message);
+            })
+          )
+        )
+      );
+    }
     return yield* new api.services.UserCancellationError({});
   }
 
@@ -158,12 +185,26 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const terminalService = yield* api.services.TerminalService;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
-  // quote alias: validateInput (isValidOrgAlias) permits embedded spaces, and childProcess.exec runs
-  // via /bin/sh -c, so an unquoted `--alias my org` would word-split. Validated days contain no shell metachars.
-  const command = `sf org create scratch --definition-file "${defFilePath}" --alias "${alias}" --duration-days ${days} --set-default --json`;
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the sf child.
   const stdout = yield* terminalService
-    .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
+    .simpleExec({
+      executable: 'sf',
+      args: [
+        'org',
+        'create',
+        'scratch',
+        '--definition-file',
+        defFilePath,
+        '--alias',
+        alias,
+        '--duration-days',
+        days,
+        '--set-default',
+        '--json'
+      ],
+      parse: identity,
+      timeout: CREATE_TIMEOUT
+    })
     .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress'), progressLocation));
 
   const response = yield* decodeOrgCreateResponse(stdout);
@@ -184,10 +225,6 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
-  // NOTE: the old executor sent telemetryService.sendException('org_create', message) here and
-  // 'org_create_scratch' on parse errors. Both are intentionally dropped: migrated Effect org commands
-  // (orgOpen, orgDeleteDefaultCommand) emit no failure-exception telemetry; OrgCreateParseError flows to
-  // ErrorHandlerService for user-facing rendering instead.
   const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
     const channel = yield* api.services.ChannelService;
     yield* channel.appendToChannel(message);

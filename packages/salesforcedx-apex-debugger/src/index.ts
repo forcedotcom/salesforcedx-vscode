@@ -21,23 +21,9 @@ export {
   SF_CONFIG_ISV_DEBUGGER_URL
 } from './constants';
 export type { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
-export enum VscodeDebuggerMessageType {
-  Info,
-  Warning,
-  Error
-}
-
-export type VscodeDebuggerMessage = {
-  type: VscodeDebuggerMessageType;
-  message: string;
-};
-
-export type WorkspaceSettings = {
-  proxyUrl: string;
-  proxyStrictSSL: boolean;
-  proxyAuth: string;
-  connectionTimeoutMs: number;
-};
+export { VscodeDebuggerMessageType } from './vscodeDebuggerMessage';
+export type { VscodeDebuggerMessage } from './vscodeDebuggerMessage';
+export type { WorkspaceSettings } from './workspaceSettings';
 
 // Define the metric payload sent to the debugger extension.
 type Metric = {

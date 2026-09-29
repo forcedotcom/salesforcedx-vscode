@@ -1,4 +1,5 @@
 name: Publish Release to Marketplace
+run-name: "Release ${{ inputs.version || github.event.release.tag_name }}"
 
 # Publishes releases to VS Code Marketplace and Open VSX Registry.
 # Auto-triggers for stable releases. Manual dispatch supports both stable and prerelease tags.
@@ -23,7 +24,7 @@ on:
         default: false
         type: boolean
       isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-release.yml startFromRef, which have no other automated test gate.'
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
         required: false
         default: false
         type: boolean
@@ -92,6 +93,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           if ! gh release view "$RELEASE_TAG" &> /dev/null; then
             echo "::error::Release $RELEASE_TAG does not exist. Cannot proceed with publish."
@@ -100,7 +103,7 @@ jobs:
           fi
           echo "✅ Release $RELEASE_TAG exists"
 
-  # Only needed for stable hotfixes (isHotfix=true): these are built via build-release.yml's
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.
@@ -141,9 +144,29 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
+  validate-vsix:
+    needs: [prepare-release-metadata, verify-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Download VSIXs from release
+        env:
+          RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir ./extensions
+          gh release download "$RELEASE_TAG" -D ./extensions --pattern '*.vsix'
+      - name: Validate VSIX OPC Part URIs
+        uses: salesforcecli/github-workflows/.github/actions/validateVsix@main
+        with:
+          dir: ./extensions
+
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'gate-check']
-    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
+    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'gate-check', 'validate-vsix']
+    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && needs.validate-vsix.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
@@ -152,7 +175,7 @@ jobs:
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
+    if: always() && needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
@@ -167,13 +190,73 @@ jobs:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
 
+  # promote-to-prerelease.yml committed this week's changelog delta to develop
+  # labeled with the prerelease version. Now that it has shipped stable, relabel that same
+  # develop history entry (root CHANGELOG.md + the pack's CHANGELOG.md) to the stable version.
+  relabel-changelog:
+    needs: [prepare-release-metadata, publish]
+    if: always() && needs.publish.result == 'success' && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+      RELEASE_VERSION: ${{ needs.prepare-release-metadata.outputs.CBW_RELEASE_VERSION }}
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+
+      - name: Determine prerelease version to relabel
+        id: relabel-version
+        run: |
+          # build-github-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
+          # even when the source was startFromRef rather than an actual nightly tag -- the
+          # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
+          NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
+          if [ -z "$NIGHTLY_TAG" ]; then
+            echo "No 'Built from nightly' reference found in release $RELEASE_TAG (likely a hotfix/startFromRef build) - skipping relabel."
+            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PRERELEASE_VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+          if [ -z "$PRERELEASE_VERSION" ] || [ "$PRERELEASE_VERSION" = "$RELEASE_VERSION" ]; then
+            echo "Nothing to relabel (no prerelease version found, or already matches stable version)."
+            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "prerelease_version=$PRERELEASE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Relabel develop's changelog history to the stable version
+        if: steps.relabel-version.outputs.prerelease_version != ''
+        env:
+          PRERELEASE_VERSION: ${{ steps.relabel-version.outputs.prerelease_version }}
+        run: |
+          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" CHANGELOG.md
+          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
+
+      - name: Commit relabeled changelog to develop
+        if: steps.relabel-version.outputs.prerelease_version != ''
+        uses: ./.github/actions/commitAndPushToDevelop
+        with:
+          files: CHANGELOG.md packages/salesforcedx-vscode/CHANGELOG.md
+          message: "chore: relabel changelog v${{ steps.relabel-version.outputs.prerelease_version }} to v${{ env.RELEASE_VERSION }} [skip ci]"
+
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
   # Default (unset): dispatch after publish. Use when publishing without CBW promotion.
   # Uses repository_dispatch (not workflow_call) because GitHub Actions blocks
   # public repos from calling reusable workflows in private repos.
   trigger-cbw-release:
     needs: [publish, prepare-release-metadata]
-    if: needs.publish.result == 'success' && !inputs.dry-run && vars.CBW_TRIGGER_ENABLED != 'false'
+    if: always() && needs.publish.result == 'success' && inputs.dry-run != true && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
@@ -182,6 +265,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No checkout in this job, so give the gh CLI its repo context.
+          GH_REPO: ${{ github.repository }}
         run: |
           # Get VSIX filenames from release assets
           VSIX_FILES=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name | endswith(".vsix")) | .name')
@@ -190,7 +275,7 @@ jobs:
           if [ -z "$VSIX_FILES" ]; then
             echo "::error::No VSIX files found in release $RELEASE_TAG"
             echo "::error::Release exists but contains no .vsix assets"
-            echo "::error::This may indicate build-release.yml failed to upload VSIXs"
+            echo "::error::This may indicate build-github-release.yml failed to upload VSIXs"
             exit 1
           fi
 

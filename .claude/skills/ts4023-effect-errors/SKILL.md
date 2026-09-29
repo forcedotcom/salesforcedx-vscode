@@ -1,64 +1,46 @@
 ---
 name: ts4023-effect-errors
-description: Fix TS4023 errors when exporting Effect-based functions. Use when TypeScript reports "has or is using name 'X' from external module but cannot be named" for Effect error types, or when knip flags error type exports as unused.
+description: Fix TS4023 when an exported Effect's error channel names a TaggedError from another module. Use when tsc reports "has or is using name 'X' from external module but cannot be named".
 review: never
 ---
 
 # TS4023 with Effect Error Types
 
-## Problem
+TS4023 = exported Effect `.d.ts` names an error from **another module** that did not export it. Typical: a services method error leaks into a consumer command.
 
-Exporting function returning `Effect` → TypeScript generates `.d.ts` → error types in Effect's error channel not exported from source package → TS4023.
+Export only that class. Same-file, `catchTag`'d, or absent from an **exported** signature → leave unexported (`OrgNotDeletableError`, `ToastActionError`).
 
-**TS4023 message is misleading**: mentions internal Effect types (`Channel`, `Sink`, `Stream` from `effect/Cause`), not actual missing errors.
+**TS4023 message is misleading**: cites Effect internals (`Channel`, `Sink`, `Stream` from `effect/Cause`), not the missing error.
 
-## Solution
+## Fix (defining module → consumer)
 
-Export ALL error types that appear in any Effect's error channel - including non-exported `class` definitions.
-
-### 1. Find ALL TaggedError classes (not just exported ones)
+1. Find unexported TaggedErrors in the defining package (usually services):
 
 ```bash
-# Find Data.TaggedError and Schema.TaggedError (both used in codebase)
 rg "class \w+Error extends (Data|Schema)\.TaggedError" packages/salesforcedx-vscode-services/src
 ```
 
-**Critical**: Include classes WITHOUT `export` keyword. Example:
+2. `export` the class that appears in the failing Effect's error channel:
 
 ```typescript
-// This ALSO needs to be exported if used in any Effect's error channel
-class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
-```
-
-### 2. For non-exported errors, add export to source file first
-
-```typescript
-// Before
-class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
-
-// After
 export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {...}) {}
 ```
 
-### 3. Then export from index.ts
+3. Services public API — re-export from `index.ts`:
 
 ```typescript
 export type { EmptyComponentSetError } from './core/componentSetService';
 ```
 
-### 4. Verify
+4. Compile the **consumer** that failed:
 
 ```bash
 npm run compile -w packages/salesforcedx-vscode-metadata
 ```
 
-## Why non-exported errors matter
+## Knip after a required same-package export
 
-If a service method like `ensureNonEmptyComponentSet` can fail with `EmptyComponentSetError`, that error type appears in the Effect's error channel. Any exported function calling that method inherits the error in its type signature. TypeScript needs to name it in `.d.ts`.
-
-## Knip false positives
-
-Knip flags these as "unused exports" when the error class is defined and used within the same file but exported for TS4023 reasons. Fix by adding `/** @ExportTaggedError */` JSDoc to the export:
+TS4023 required `export` in a non-services package, knip flags it unused → tag:
 
 ```typescript
 /** @ExportTaggedError */
@@ -67,12 +49,14 @@ export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedEr
 }) {}
 ```
 
-**Do NOT add `@ExportTaggedError` to errors exported from `salesforcedx-vscode-services`** — those are consumed by other packages and knip correctly sees them as used.
+Knip unused on a TaggedError with no TS4023 → unexport; do not tag.
+
+Services errors are imported by other packages; knip already sees them used. No `@ExportTaggedError` there (`no-export-tagged-error-in-services`).
 
 ## Checklist
 
-- [ ] `rg "class.*TaggedError"` - find ALL errors (with AND without `export`)
-- [ ] Add `export` to any non-exported error classes used in Effect chains
-- [ ] Add `export type { ErrorName }` to services `index.ts`
-- [ ] `npm run compile -w <package>` passes
-- [ ] Add `/** @ExportTaggedError */` JSDoc to suppress knip false positives (for errors that are only used within the same package, not consumed by other packages)
+- [ ] TS4023 actually reported
+- [ ] Export only the class in the exported Effect's error channel
+- [ ] Services: `export type { ErrorName }` from `index.ts`
+- [ ] Consumer compile passes
+- [ ] `@ExportTaggedError` only if knip flags that export unused (never in services)

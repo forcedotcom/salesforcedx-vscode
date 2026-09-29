@@ -102,8 +102,6 @@ export const extractJson = <T = unknown>(str: string): T => {
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
-
 export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: unknown): string => {

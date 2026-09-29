@@ -76,7 +76,7 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
                           └──────────┬──────────┘
                                      ▼
                           ┌─────────────────────┐
-                          │   Ensure daemons    │  start gha-rerun if not running
+                          │   Ensure daemons    │  push E2E reruns: Rerun Push E2E
                           └──────────┬──────────┘
                                      ▼
                           ┌─────────────────────┐
@@ -92,7 +92,7 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
        ┌──────────┬───────┬──────────┼───────────┬────────────┐
        ▼          ▼       ▼          ▼           ▼            ▼
    merged      green/  running/    no-pr/      failed +     failed +
-              finalize  closed/    restart    gha retries   exhausted
+              finalize  closed/    restart    attempt < 4   exhausted
                          wait
        │          │       │          │       remaining        │
        ▼          │       │          │           │            ▼
@@ -104,9 +104,9 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
    set WI         │       │          │           │       │ Fix CI  │ DM | e2e fix | code fix
    Closed,        │       │          │           │       └─────────┘
    rm worktree    ▼       │          ▼           ▼
-                  │       │     (re-enter      (let
-                  │       │      builder)     gha-rerun
-                  │       │                   work)
+                  │       │     (re-enter      (let Rerun
+                  │       │      builder)      Push E2E
+                  │       │                    work)
                   └───┬───┘
                       ▼
         ┌────────────────────┐
@@ -193,11 +193,11 @@ The owner gets GitHub's native approval notification — no Slack DM (it would l
 
 **Resolve identity.** First step every tick. Reads cache; falls back to gus-cli skill resolution if cache miss/mismatch.
 
-**Ensure daemons.** Launches the [gha-rerun daemon](../skills/gha-rerun/SKILL.md) if it's not already running. The daemon owns CI rerun budget — without it, transient CI failures escalate to triage immediately.
+**Ensure daemons.** Push E2E reruns are [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml). Do not start a local rerun daemon. Retry budget is GitHub `run_attempt` < 4; at 4, triage.
 
 **Reap stranded worktrees.** Runs before monitoring (single haiku agent). Lists `git worktree list`, and for any worktree on an `<ownerPrefix>/W-` branch whose PR is already `MERGED`/`CLOSED` (e.g. user merged manually, so the WI dropped out of the in-flight query), removes the worktree and deletes the local branch. Skips the main worktree, workflow-isolation worktrees under `.claude/worktrees/`, and branches with no PR (still building). Never errors — partial progress is fine.
 
-**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. `Details__c` carries exactly one `<strong>PR:</strong>` marker: when a rebuild opens a new PR after an abandoned attempt, the write sites REPLACE the old marker rather than append a second, so the sole marker is always the live PR. Pipeline stage 1 reads PR state; stage 2 decides close/finalize/wait/restart/triage. Only `merged` closes the WI; `closed`-not-merged → wait. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check the `gha-rerun` daemon's retry budget (3 attempts via GitHub `run_attempt`) and only triage once exhausted — otherwise the daemon handles it.
+**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. `Details__c` carries exactly one `<strong>PR:</strong>` marker: when a rebuild opens a new PR after an abandoned attempt, the write sites REPLACE the old marker rather than append a second, so the sole marker is always the live PR. Pipeline stage 1 reads PR state; stage 2 decides close/finalize/wait/restart/triage. Only `merged` closes the WI; `closed`-not-merged → wait. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check GitHub `run_attempt` (`Rerun Push E2E` reruns while it is < 4) and only triage once that budget is exhausted.
 
 **Close merged WIs.** For WIs whose live PR came back `merged` (only — `closed`-not-merged waits), runs one haiku agent each (parallel, idempotent): sets `Status__c='Closed'`, removes the worktree, deletes the local branch.
 
@@ -240,7 +240,7 @@ Verdicts: `confirmed` (kept at claimed severity) / `downgraded` (premise holds, 
 
 **Fix review findings.** Consumes the _pre-verified_ findings (premise confirmed, severity corrected, false/redundant/no-consumer ones already gone). Auto-applies all critical and high (including every effect-advocate `must`/`should`). Cheap mediums applied; the rest — plus any `prBodyNote` passthroughs — surface in PR `Reviewer notes`. Then merges `origin/develop` — uses [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; aborts and returns to caller if unresolvable.
 
-**Draft PR.** Pushes the branch, opens a draft PR per [pr-draft skill](../skills/pr-draft/SKILL.md), appends `PR: <url>` back to `Details__c` (read-modify-write — never replaces existing content), ensures the `gha-rerun` daemon is running. Test plan excludes items covered by new/modified e2e files on the branch.
+**Draft PR.** Pushes the branch, opens a draft PR per [pr-draft skill](../skills/pr-draft/SKILL.md), appends `PR: <url>` back to `Details__c` (read-modify-write — never replaces existing content). Test plan excludes items covered by new/modified e2e files on the branch.
 
 ### Worktrees
 
@@ -277,5 +277,5 @@ Edit at the top of the script:
 
 - [/auto-build-wi command](../skills/auto-build-wi/) — user-facing entry that invokes this workflow
 - [/loop command](https://docs.claude.com/) — schedules recurring runs
-- [gha-rerun daemon](../skills/gha-rerun/SKILL.md) — handles transient CI failures before triage kicks in
+- [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml) — reruns failed push E2E jobs while `run_attempt` < 4
 - [gus-cli skill](../skills/gus-cli/SKILL.md) — Team members table is the source of truth for runner identity

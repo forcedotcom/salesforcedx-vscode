@@ -123,7 +123,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new TraceFlagNotFoundError({ message: `Failed to query trace flags: ${cause.message}` });
         }
       })).records;
-      const entitiesToResolve = [...new Set(traceFlagRecords.map(r => r.TracedEntityId).filter(isString))];
+      const entitiesToResolve = Arr.dedupe(traceFlagRecords.map(r => r.TracedEntityId).filter(isString));
 
       if (entitiesToResolve.length === 0) {
         return yield* Effect.all(traceFlagRecords.map(decodeOrFail(TraceFlagItemSchema, 'trace flag records')), {

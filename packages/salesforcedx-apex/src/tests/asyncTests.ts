@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import { isNotNull, isNull } from 'effect/Predicate';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -608,7 +609,7 @@ export class AsyncTests {
       const testRunApexIdResults = await this.connection.tooling.query<ApexTestQueueItemRecord>(
         `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
       );
-      return testRunApexIdResults.records.some(record => record.ApexClassId === null);
+      return testRunApexIdResults.records.some(record => isNull(record.ApexClassId));
     } catch {
       return false;
     }
@@ -661,8 +662,8 @@ export class AsyncTests {
       return { apexTestIds: [], flowTestIds: [] };
     }
     return {
-      apexTestIds: records.filter(r => r.ApexClassId !== null).map(r => r.Id),
-      flowTestIds: records.filter(r => r.ApexClassId === null).map(r => r.Id)
+      apexTestIds: records.filter(r => isNotNull(r.ApexClassId)).map(r => r.Id),
+      flowTestIds: records.filter(r => isNull(r.ApexClassId)).map(r => r.Id)
     };
   }
 

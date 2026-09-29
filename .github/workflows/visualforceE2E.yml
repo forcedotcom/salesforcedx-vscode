@@ -20,20 +20,12 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-visualforceE2E
@@ -57,6 +49,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
@@ -70,6 +64,10 @@ jobs:
           E2E_NO_RETRIES: 1
         run: |
           npm run test:web -w salesforcedx-vscode-visualforce
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
 
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
@@ -155,6 +153,8 @@ jobs:
 
       - name: Setup E2E
         uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
       # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config

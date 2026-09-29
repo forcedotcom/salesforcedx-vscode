@@ -38,10 +38,6 @@ xunit-unitTests.xml
 xunit-integrationTests.xml
 xunit-vscodeIntegrationTests.xml
 junit-aggregate
-junit-custom.xml
-junit-custom-unitTests.xml
-junit-custom-integrationTests.xml
-junit-custom-vscodeIntegrationTests.xml
 ci-artifacts*/
 trace/
 data/
@@ -158,6 +154,7 @@ npm-packages-offline-cache/
 graphify-out/
 
 # Claude Code worktrees
+.auto-build/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock

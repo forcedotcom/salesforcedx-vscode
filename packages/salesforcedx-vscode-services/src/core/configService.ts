@@ -105,10 +105,8 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       return agg.getPropertyValue<string>(prop) ?? undefined;
     });
 
-    /** Returns true when the CLI is configured to opt out of telemetry (`sf config set disable-telemetry`).
-     * Duplicated by necessity: vscode-services cannot depend on utils-vscode, so keep this in sync with
-     * utils-vscode/src/config/configUtil.ts `ConfigUtil.isTelemetryDisabled`, which reads the same key off its
-     * own (separately cached) aggregator. */
+    /** True when CLI opted out (`sf config set disable-telemetry`). Same key as utils-vscode `isCLITelemetryAllowed`
+     * (inverted return); vscode-services cannot depend on utils-vscode; separately cached aggregators. */
     const isCliTelemetryDisabled = Effect.fn('ConfigService.isCliTelemetryDisabled')(function* () {
       const value = yield* readConfigString(SfConfigProperties.DISABLE_TELEMETRY);
       // the CLI writes disable-telemetry as the string 'true', but the aggregator hands back whatever is on

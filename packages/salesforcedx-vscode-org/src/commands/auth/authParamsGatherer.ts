@@ -49,7 +49,7 @@ const inputAlias = async (): Promise<string | undefined> =>
 export const promptForAlias = Effect.fn('AuthParamsGatherer.promptForAlias')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const value = yield* Effect.promise(inputAlias).pipe(
-    Effect.flatMap(v => (isUndefined(v) ? new api.services.UserCancellationError({}) : Effect.succeed(v)))
+    Effect.filterOrFail(isNotUndefined, () => new api.services.UserCancellationError({}))
   );
   return value || DEFAULT_ALIAS;
 });

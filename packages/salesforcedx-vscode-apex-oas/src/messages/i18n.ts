@@ -23,7 +23,6 @@ export const messages = {
   apex_class_no_eligible_methods:
     'The Apex Class %s has no methods eligible for OpenAPI document generation. Ineligible methods: %s. Ensure the methods are public or global and carry the required annotations.',
   apex_lsp_not_ready: 'The Apex Language Server is still starting up. Wait for indexing to finish, then try again.',
-  artifact_failed: 'Failed to save the artifact: %s',
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   cannot_get_apexoaseligibility_response: 'Failed to get response through apexoas/isEligible from Apex Language Server',
   check_openapi_doc_succeeded: 'Validated OpenAPI Document %s successfully',

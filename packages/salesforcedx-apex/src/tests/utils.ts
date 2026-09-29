@@ -8,6 +8,7 @@
 import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { Connection, Logger } from '@salesforce/core';
+import { isNotNull } from 'effect/Predicate';
 import { Progress } from '../common';
 import { nls } from '../i18n';
 import {
@@ -104,7 +105,7 @@ export const queryAll = async <R extends JsforceRecord>(
 };
 
 export const getJsonIndent = (): number | undefined => {
-  if (jsonIndent !== null) {
+  if (isNotNull(jsonIndent)) {
     return jsonIndent;
   }
 
@@ -128,7 +129,7 @@ export const getJsonIndent = (): number | undefined => {
 };
 
 export const getBufferSize = (): number => {
-  if (bufferSize !== null) {
+  if (isNotNull(bufferSize)) {
     return bufferSize;
   }
 

@@ -1,31 +1,36 @@
-# 67.17.2 - September 4, 2026
+# 67.23.1 - September 25, 2026
 
 ## Added
 
-#### salesforcedx-vscode
+#### docs
 
-- We added the **Metadata Visualizer** (salesforce.salesforcedx-metadata-visualizer-vscode) to the standard extension pack, so it's now included by default. ([PR #8049](https://github.com/forcedotcom/salesforcedx-vscode/pull/8049))
+- Tag promoted nightly release title with " - published" - W-24269682 ([PR #8241](https://github.com/forcedotcom/salesforcedx-vscode/pull/8241))
+
+- Auto-bump develop's nightly minor to next odd, rename publishAsPrerelease ([PR #8236](https://github.com/forcedotcom/salesforcedx-vscode/pull/8236))
 
 #### salesforcedx-vscode-core
 
-- We added a configurable notifications system so you can control whether progress and success notifications for a command appear as a toast, in the status bar, or (for success notifications) not at all. You can set this at the system, extension, or command level. ([PR #8073](https://github.com/forcedotcom/salesforcedx-vscode/pull/8073))
+- Container spec scaffold + core spec parity - W-23898525 ([PR #8069](https://github.com/forcedotcom/salesforcedx-vscode/pull/8069))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-testing
+#### docs
 
-- We fixed a bug where selecting a mix of individual Apex tests and Apex test suites in the **Testing** sidebar silently skipped the test suites instead of running them; you now get an error notification instead. ([PR #8048](https://github.com/forcedotcom/salesforcedx-vscode/pull/8048))
+- Fall back past stale tracking tags in release auto-detect - W-24276485 ([PR #8242](https://github.com/forcedotcom/salesforcedx-vscode/pull/8242))
 
-#### salesforcedx-vscode-metadata
+- Update release title and mark --latest on promotion to stable ([PR #8238](https://github.com/forcedotcom/salesforcedx-vscode/pull/8238))
 
-- We fixed a bug where generated sObject faux classes and TypeScript typings didn't sort fields alphabetically by name. ([PR #8071](https://github.com/forcedotcom/salesforcedx-vscode/pull/8071))
+- 1 ADR: record pnpm cutover decisions - W-24093888 ([PR #8220](https://github.com/forcedotcom/salesforcedx-vscode/pull/8220))
+
+- Document pre-release promotion, run name, and Slack link format ([PR #8226](https://github.com/forcedotcom/salesforcedx-vscode/pull/8226))
+
+- Drop WDIO from e2e-advocate ([PR #8214](https://github.com/forcedotcom/salesforcedx-vscode/pull/8214))
+
+- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
 
 #### salesforcedx-vscode-services
 
-- We fixed a bug in web-based VS Code where files created, deployed, or retrieved after your first change appeared in the Explorer but disappeared after a reload. ([PR #8088](https://github.com/forcedotcom/salesforcedx-vscode/pull/8088))
+- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
 
-- We fixed a bug that prevented Salesforce project creation commands from running in an empty VS Code window. ([PR #8065](https://github.com/forcedotcom/salesforcedx-vscode/pull/8065))
+- Hosted Web Console local OTEL ([PR #8212](https://github.com/forcedotcom/salesforcedx-vscode/pull/8212))
 
-## Under the Hood
-
-- We made some under the hood changes. ([PR #8033](https://github.com/forcedotcom/salesforcedx-vscode/pull/8033), [PR #8034](https://github.com/forcedotcom/salesforcedx-vscode/pull/8034), [PR #8035](https://github.com/forcedotcom/salesforcedx-vscode/pull/8035), [PR #8026](https://github.com/forcedotcom/salesforcedx-vscode/pull/8026), [PR #8053](https://github.com/forcedotcom/salesforcedx-vscode/pull/8053), [PR #8042](https://github.com/forcedotcom/salesforcedx-vscode/pull/8042), [PR #8078](https://github.com/forcedotcom/salesforcedx-vscode/pull/8078), [PR #8072](https://github.com/forcedotcom/salesforcedx-vscode/pull/8072))

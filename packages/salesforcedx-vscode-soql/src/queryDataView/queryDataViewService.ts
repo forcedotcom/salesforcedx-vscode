@@ -135,7 +135,7 @@ export class QueryDataViewService {
         // switching away and back does not destroy and re-render the Tabulator
         // instance. The alternative (letting VS Code tear the webview down on
         // hide) forces a full script reload + a destroy()/new Tabulator() cycle
-        // with `virtualDom: false` on every tab switch, which was measurably
+        // with `renderVertical: 'basic'` on every tab switch, which was measurably
         // ~1s for modestly-sized result sets.
         retainContextWhenHidden: true
       }

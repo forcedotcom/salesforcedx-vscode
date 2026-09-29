@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
-  "version": "65.13.0",
+  "version": "65.13.1",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
   "author": "Salesforce",
@@ -71,6 +71,7 @@
       ],
       "files": [
         "test/**/*.ts",
+        "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "jest.config.js",
         "../../config/jest.base.config.js"
       ],

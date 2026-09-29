@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isError } from 'effect/Predicate';
-import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
@@ -19,29 +18,6 @@ export const readFile = async (filePath: string): Promise<string> => {
   }
 };
 
-/**
- * Writes content to a file
- * @param filePath The path to the file
- * @param content The content to write
- */
-export const writeFile = async (filePath: string, content: string): Promise<void> => {
-  try {
-    const dirPath = dirname(filePath);
-    await createDirectory(dirPath);
-
-    const encoder = new TextEncoder();
-    const uint8Array = encoder.encode(content);
-    await vscode.workspace.fs.writeFile(URI.file(filePath), uint8Array);
-  } catch (error) {
-    throw new Error(`Failed to write file ${filePath}: ${isError(error) ? error.message : String(error)}`);
-  }
-};
-
-/**
- * Checks if a file exists
- * @param filePath The path to the file
- * @returns True if the file exists, false otherwise
- */
 export const fileOrFolderExists = async (filePath: string): Promise<boolean> => {
   try {
     const uri = URI.file(filePath);
@@ -49,31 +25,5 @@ export const fileOrFolderExists = async (filePath: string): Promise<boolean> => 
     return true;
   } catch {
     return false;
-  }
-};
-
-/**
- * Creates a directory recursively.  Will not throw if the directory already exists.
- * @param dirPath The path to the directory
- */
-export const createDirectory = async (dirPath: string): Promise<void> => {
-  try {
-    const uri = URI.file(dirPath);
-    await vscode.workspace.fs.createDirectory(uri);
-  } catch (error) {
-    throw new Error(`Failed to create directory ${dirPath}: ${isError(error) ? error.message : String(error)}`);
-  }
-};
-
-export const safeDelete = async (
-  filePath: string,
-  options?: { recursive?: boolean; useTrash?: boolean }
-): Promise<void> => {
-  try {
-    const uri = URI.file(filePath);
-    await vscode.workspace.fs.stat(uri);
-    await vscode.workspace.fs.delete(uri, options);
-  } catch {
-    // File doesn't exist or can't be accessed, do nothing
   }
 };

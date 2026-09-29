@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotNull } from 'effect/Predicate';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -95,6 +96,6 @@ export class FrameStateUtil {
   public static isExtraneousVFGetterOrSetterLogLine(logLine: string): boolean {
     const getMatch = ' get\\((.*)\\)';
     const setMatch = ' set\\((.*)\\)';
-    return logLine.match(getMatch) !== null || logLine.match(setMatch) !== null;
+    return isNotNull(logLine.match(getMatch)) || isNotNull(logLine.match(setMatch));
   }
 }

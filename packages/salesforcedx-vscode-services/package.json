@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.9",
+  "version": "67.25.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,6 +31,7 @@
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@effect/opentelemetry": "0.63.0",
     "@effect/platform": "^0.96.1",
+    "@effect/platform-node-shared": "0.59.0",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
@@ -45,12 +46,12 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
-    "@salesforce/templates": "^66.13.9",
+    "@salesforce/templates": "^66.16.0",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
+    "cross-spawn": "7.0.6",
     "effect": "^3.21.2",
     "jsforce": "^3.10.24",
-    "jsonpath-plus": "10.4.0",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
@@ -209,7 +210,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -287,7 +288,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

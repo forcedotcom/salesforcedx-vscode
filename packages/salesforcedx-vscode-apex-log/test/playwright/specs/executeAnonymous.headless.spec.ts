@@ -47,21 +47,33 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await ensureSecondarySideBarHidden(page);
   });
 
-  await test.step('create anonymous apex script via command palette', async () => {
+  await test.step('cancel anonymous Apex script creation', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.createAnonymousApexScript'], 30_000);
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
+    await page.keyboard.press('Escape');
+    await expect(quickInput).not.toBeVisible({ timeout: 5000 });
+    await expect(page.locator(TAB).filter({ hasText: new RegExp(`${scriptName}\\.apex$`) })).not.toBeVisible();
+  });
+
+  await test.step('create anonymous apex script via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.createAnonymousApexScript']);
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
     await quickInput.getByText(/Enter script name/i).waitFor({ state: 'visible', timeout: 5000 });
     const quickInputText = quickInput.locator('input.input').first();
     await quickInputText.waitFor({ state: 'visible', timeout: 5000 });
-    await quickInputText.fill(scriptName);
+    await quickInputText.fill(`  ${scriptName}  `);
     await page.keyboard.press('Enter');
     await waitForQuickInputFirstOption(page);
     await page.keyboard.press('Enter');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    await expect(page.locator(TAB).filter({ hasText: /\.apex$/ })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator(TAB).filter({ hasText: new RegExp(`${scriptName}\\.apex$`) })).toBeVisible({
+      timeout: 5000
+    });
     await saveScreenshot(page, 'create-script.apex-opened.png');
   });
 

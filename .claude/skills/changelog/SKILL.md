@@ -1,28 +1,29 @@
 ---
 name: changelog
-description: Polish the automated CHANGELOG for a release branch. Removes GUS refs, categorizes under-the-cover changes, improves customer-facing descriptions. Use when preparing/reviewing the changelog on a release branch, or when user mentions changelog quality.
+description: Polish the automated CHANGELOG on develop before the next stable build. Removes GUS refs, categorizes under-the-cover changes, improves customer-facing descriptions. Use when preparing/reviewing the changelog after a weekly prerelease promotion, or when user mentions changelog quality.
 review: never
 ---
 
 # Changelog Polish
 
-Improve the automated changelog generated on release branches (`release/vM.m.P`).
+Improve the automated changelog delta committed to `develop` by `promote-to-prerelease.yml`.
 
-Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` contains full historical changelog (automatically updated by `scripts/prepend-release-changelog.js` on merge) — do not edit manually. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
+Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` contains full historical changelog (automatically prepended by `scripts/prepend-release-changelog.js`, run as part of the same promote job) — do not edit manually. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
 
 ## When to use
 
 - User invokes `/changelog` or asks to prepare/review the changelog
-- On a release branch with a `chore: generated CHANGELOG` commit
+- On `develop`, after a `chore: changelog for prerelease vX.Y.Z` commit lands
+- **Timing matters**: polish it *before* `build-github-release.yml`'s next scheduled run (Wednesdays, 7 AM UTC). That job reads develop's current `packages/salesforcedx-vscode/CHANGELOG.md`, relabels the header to the stable version, and bakes it into the stable VSIX. Once that's run, the content is frozen inside the built artifact — fixing it afterward means manually re-injecting into the release's VSIX asset, not editing this file.
 
 ## File location
 
-`packages/salesforcedx-vscode/CHANGELOG.md`
+`packages/salesforcedx-vscode/CHANGELOG.md` on `develop`
 
 ## Workflow
 
-1. **Read** the current changelog file
-2. **Identify** the automated commit: `git log --oneline -- packages/salesforcedx-vscode/CHANGELOG.md | grep "generated CHANGELOG"`
+1. **Checkout/pull `develop`** and **read** the current changelog file
+2. **Identify** the automated commit: `git log --oneline -- packages/salesforcedx-vscode/CHANGELOG.md | grep "changelog for prerelease"`
 3. **For each entry**, fetch PR context: `gh pr view <number> --json title,body,commits,labels`. In the body, look for a **"What issues does this PR fix or reference?"** section and extract any issue or discussion numbers linked there.
 4. **Apply** the rules below to produce a polished draft
 5. **Present** the revised changelog to the user for approval before writing
@@ -122,14 +123,15 @@ The automation lists the same PR under every package it touched. Consolidate to 
 
 After user approves the polished changelog:
 
-1. Stage **only** the changelog file: `git add packages/salesforcedx-vscode/CHANGELOG.md`
-2. Verify no other files are staged: `git diff --cached --name-only` must show only `packages/salesforcedx-vscode/CHANGELOG.md`. If other files appear, unstage them before committing.
-3. Commit: `git commit -m "chore: update CHANGELOG.md [skip ci]"`
-4. Push: `git push`
+1. Make sure you're on `develop` and up to date: `git checkout develop && git pull`
+2. Stage **only** the changelog file: `git add packages/salesforcedx-vscode/CHANGELOG.md`
+3. Verify no other files are staged: `git diff --cached --name-only` must show only `packages/salesforcedx-vscode/CHANGELOG.md`. If other files appear, unstage them before committing.
+4. Commit: `git commit -m "chore: polish changelog [skip ci]"`
+5. Push: `git push origin develop`
 
 Never include other file changes in this commit.
 
-Use these `chore:` subjects for polish commits on the release branch:
+Use these `chore:` subjects for polish commits on `develop`:
 
 - `chore: polish changelog`
 - `chore: write into sentences`
@@ -143,25 +145,24 @@ Use these `chore:` subjects for polish commits on the release branch:
 
 ## Reference: changelog lifecycle
 
-These rules describe the auto-generator behavior in `scripts/create-release-notes.ts` + `scripts/change-log-generator-utils.ts`. Background context for understanding auto-generated commits; typically not interacted with during polish.
+`promote-to-prerelease.yml` runs 3-stage pipeline to generate & polish changelog before commit to `develop`. Background context; typically not interacted with during manual polish.
 
-### Polish → Merge → Prepend
+### Compute → Polish (AI) → Commit → Review (human)
 
-1. **Generation** (release branch): `scripts/create-release-notes.ts` writes to `packages/salesforcedx-vscode/CHANGELOG.md`
-2. **Polish** (release branch, this skill): Human edits `packages/salesforcedx-vscode/CHANGELOG.md`
-3. **Merge** (GHA workflow): Release branch → main → develop
-4. **Prepend** (GHA workflow): `scripts/prepend-release-changelog.js` copies package CHANGELOG to root `CHANGELOG.md`
+1. **compute-changelog-range** (promote-to-prerelease.yml): Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists). Empty `fromRef` (identical to this week's nightly commit — a manual re-run or hotfix) skips changelog-body instead of feeding it an identical range.
+2. **changelog-body** (reusable workflow `.github/workflows/changelog-body.yml`): Calls Cursor-backed AI (guided by `.cursor/skills/changelog-judgment/SKILL.md`) to produce polished, customer-facing markdown body from commits in range `(fromRef, toRef]`. Already removes GUS refs, rewrites sentences ("We added/fixed/improved..."), dedupes multi-package PRs, consolidates Under-the-Hood. Returns `body` output.
+3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Immediately runs `scripts/prepend-release-changelog.js` to copy same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed directly to `develop`.
+4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** because prepend already ran in step 3, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit.
+5. **Relabel to stable** (`build-github-release.yml`, next Wednesday 7 AM UTC): Pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 4), relabels header from prerelease → stable version, bakes into stable VSIX.
+6. **Relabel history** (`publishVSCode.yml`, on final stable publish): Relabels same header in both changelogs from prerelease → stable, so history matches what shipped.
 
-The script validates structure (version format, file existence, non-empty content), runs idempotently (skips if version already in root), and reports specific errors (ENOSPC, EACCES, missing files).
+`prepend-release-changelog.js` validates structure (version format, file existence, non-empty), runs idempotent (skips if already in root), reports errors (ENOSPC, EACCES, missing files).
 
-### Generation rules
+### Commit details
 
-These describe the auto-generator behavior in `scripts/create-release-notes.ts` + `scripts/change-log-generator-utils.ts`. Background context for what arrives in the auto-generated commit; you don't interact with them during polish.
-
-- Auto-generated by `Create Release Branch` GHA via `npm run changelog`
-- Commit: `chore: generated CHANGELOG for release/vXX.YY.ZZ`
-- Human-edited afterward on release branch before publish (this skill)
-- If nothing releasable (all `chore`/`ci` etc.), script exits, no entry added
+- Commit: `chore: changelog for prerelease vXX.YY.ZZ [skip ci]`
+- Range: previous week's promoted prerelease to nightly SHA (disjoint by construction — changelog-body doesn't read the existing file, so there's nothing to dedupe against)
+- Skipped if changelog-body returns an empty body (no `feat`/`fix`/`perf` commits in range)
 
 ### Format
 
@@ -179,10 +180,16 @@ These describe the auto-generator behavior in `scripts/create-release-notes.ts` 
 #### <package-name>
 
 - <message> ([PR #<num>](...))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #<num>](...), [PR #<num>](...))
 ```
 
-- Top header: `# <version> - <release date>`; date is `+2 days` from branch-cut (Mon cut → Wed release)
-- Type sections: only `## Added` (from `feat`) and `## Fixed` (from `fix`). Ignored commit types: `chore`, `style`, `refactor`, `test`, `build`, `ci`, `revert`
+- Top header: `# <version> - <release date>`; date is `+7 days` from this Wednesday's prerelease (next Wednesday's stable release), written by the `write-changelog` job, not changelog-body
+- Sections, in order: `Added`, `Fixed`, `Changed`, `Under the Hood`. Section is an AI judgment call per `.cursor/skills/changelog-judgment/SKILL.md` (`Added` = new capability, `Fixed` = bugfix, `Changed` = behavior change, `Under the Hood` = invisible to users), not a fixed commit-type mapping — see `scripts/changelogBody/changelogBody.mts`
+- Kept commit types: `feat`, `fix`, `perf` (everything else, e.g. `chore`/`refactor`/`test`/`ci`, is dropped before the AI step ever sees it)
+- `Under the Hood` entries are consolidated into one bullet with all their PR links, no package sub-header
 - Package sections: `#### <package-name>`, alphabetical within a type
 - Bullet entries: `- <message> ([PR #N](url))`; PR url format `https://github.com/forcedotcom/salesforcedx-vscode/pull/<num>`
 - Multiple PRs for one entry: comma-separate `([PR #A](...), [PR #B](...), [ISSUE #C](...), [DISCUSSION #D](...))`
@@ -191,13 +198,15 @@ These describe the auto-generator behavior in `scripts/create-release-notes.ts` 
 ### Package filtering (auto)
 
 - If `salesforcedx-vscode-core` is touched, all other touched packages (except `docs`) are dropped for that commit
-- Only packages starting with `salesforce` or `docs` count; `/images/` and `/test/` paths ignored
+- If `salesforcedx-vscode-services` is touched alongside exactly one other (non-`docs`) package, `salesforcedx-vscode-services` is dropped and the other package keeps the entry
+- Only packages starting with `salesforce` or `docs` count; path segments named `images` or `test` are ignored when detecting touched packages
+- A commit whose surviving paths touch no qualifying package has an empty package set and goes to `Under the Hood`
 
 ### Commit parsing (auto)
 
-- Requires conventional `type(scope): message` + trailing `(#PR)` to appear in changelog
-- Strips `[W-XXXXXXXX]` GUS refs; uppercases first char
-- Skips entries whose PR# already exists in file (rerun-safe)
+- Requires conventional `type(scope): message` + trailing `(#PR)` to appear in the commit subject
+- Strips `[W-XXXXXXXX]` GUS refs from the subject before it reaches the AI step
+- No dedupe against the existing changelog file — the range is disjoint by construction (see Commit details above)
 
 ### Dedupe / merge rules (post-generation)
 

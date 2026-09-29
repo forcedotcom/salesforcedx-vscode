@@ -44,7 +44,7 @@ describe('orgLoginAccessTokenCommand', () => {
     mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
   });
 
-  it('execs the CLI with instance-url, quoted alias, set-default, no-prompt; token rides env not argv', async () => {
+  it('execs the CLI with instance-url, alias, set-default, no-prompt; token rides env not argv', async () => {
     mockGather.mockReturnValue(
       Effect.succeed({ instanceUrl: 'https://my.salesforce.com', alias: 'MyOrg', accessToken: 'sid-secret-123' })
     );
@@ -54,12 +54,22 @@ describe('orgLoginAccessTokenCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command:
-        'sf org login access-token --instance-url "https://my.salesforce.com" --alias "MyOrg" --set-default --no-prompt',
+      executable: 'sf',
+      args: [
+        'org',
+        'login',
+        'access-token',
+        '--instance-url',
+        'https://my.salesforce.com',
+        '--alias',
+        'MyOrg',
+        '--set-default',
+        '--no-prompt'
+      ],
       parse: expect.any(Function),
       env: { SF_ACCESS_TOKEN: 'sid-secret-123' }
     });
-    // exact-match above proves the token is absent from the command string (only present under env)
+    // exact-match above proves the token is absent from argv (only present under env)
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
   });
 

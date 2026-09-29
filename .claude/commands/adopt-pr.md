@@ -71,7 +71,7 @@ Diff size: `git diff --shortstat origin/develop...HEAD`.
 Skills:
 
 - Always: `typescript, concise, paths`
-- Diff > 20 lines: add `ls .claude/skills/` minus denylist `changelog feature-branch grill-me gus-cli merge-conflicts pr-draft release shipped-issues query-app-insights span-file-export`
+- Diff > 20 lines: add `ls .claude/skills/` minus denylist `changelog feature-branch grill-me gus-cli merge-conflicts pr-draft release shipped-issues query-app-insights span-file-export web-console-local-traces`
 
 Parallel `Agent` calls — one per skill + thermo + effect-advocate. Single message.
 

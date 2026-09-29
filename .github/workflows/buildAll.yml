@@ -28,7 +28,9 @@ jobs:
       - run: npm run compile
       - run: npm run vscode:package
       - name: Validate VSIX OPC Part URIs
-        run: node scripts/validate-vsix-opc.mjs ./packages
+        uses: salesforcecli/github-workflows/.github/actions/validateVsix@main
+        with:
+          dir: ./packages
       - name: Stage Artifacts
         run: |
           mkdir extensions

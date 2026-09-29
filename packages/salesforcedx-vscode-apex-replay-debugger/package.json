@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.9",
+  "version": "67.25.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -164,7 +164,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -210,7 +210,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

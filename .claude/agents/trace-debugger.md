@@ -16,6 +16,8 @@ Before analyzing, verify capture is active. If no recent files exist, guide the 
 
 Check: `ls -lt ~/.sf/vscode-spans/ | head -1` — if empty or stale (>5 min old), prompt user to verify settings.
 
+Hosted Web Console cannot write this dir — skill `web-console-local-traces` (OTLP `:4318`).
+
 ## Data Location
 
 `~/.sf/vscode-spans/` — JSONL files named `{ISO-timestamp}.jsonl` with interleaved spans and logs.

@@ -47,32 +47,64 @@ test('denies git --no-verify', () => {
 
 test('denies branches from remote bases without --no-track', () => {
   ['origin/develop', 'origin/main'].forEach(remoteBase => {
-    assert.equal(
-      commandDenial({ command: `git worktree add -b feature ../feature ${remoteBase}`, cwd: '/tmp' }),
-      TRACKED_BASE_BRANCH_REASON
-    );
-    assert.equal(
-      commandDenial({ command: `git checkout -b feature ${remoteBase}`, cwd: '/tmp' }),
-      TRACKED_BASE_BRANCH_REASON
-    );
+    [
+      `git worktree add -b feature ../feature ${remoteBase}`,
+      `git checkout -b feature ${remoteBase}`,
+      `git checkout --track ${remoteBase}`,
+      `git checkout -t ${remoteBase}`,
+      `git checkout --no-track --track ${remoteBase}`,
+      `git switch -c feature ${remoteBase}`,
+      `git switch -C feature ${remoteBase}`,
+      `git switch --create feature ${remoteBase}`,
+      `git switch --force-create feature ${remoteBase}`,
+      `git switch --track ${remoteBase}`,
+      `git switch -t ${remoteBase}`,
+      `git switch --no-track --track ${remoteBase}`,
+      `git switch --create=feature ${remoteBase}`,
+      `git switch --force-create=feature ${remoteBase}`,
+      `git branch feature ${remoteBase}`,
+      `git checkout -B feature ${remoteBase}`,
+      `git checkout -qb feature ${remoteBase}`,
+      `git checkout -qB feature ${remoteBase}`
+    ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), TRACKED_BASE_BRANCH_REASON, command));
   });
 });
 
 test('allows non-tracking and unrelated branch commands', () => {
   ['origin/develop', 'origin/main'].forEach(remoteBase => {
-    assert.equal(
-      commandDenial({ command: `git worktree add --no-track -b feature ../feature ${remoteBase}`, cwd: '/tmp' }),
-      undefined
-    );
-    assert.equal(
-      commandDenial({ command: `git checkout --no-track -b feature ${remoteBase}`, cwd: '/tmp' }),
-      undefined
-    );
+    [
+      `git worktree add --no-track -b feature ../feature ${remoteBase}`,
+      `git checkout --no-track -b feature ${remoteBase}`,
+      `git checkout --track --no-track ${remoteBase}`,
+      `git switch --no-track -c feature ${remoteBase}`,
+      `git switch --no-track -C feature ${remoteBase}`,
+      `git switch --no-track --create feature ${remoteBase}`,
+      `git switch --no-track --force-create feature ${remoteBase}`,
+      `git switch --track --no-track ${remoteBase}`,
+      `git switch --no-track --create=feature ${remoteBase}`,
+      `git switch --no-track --force-create=feature ${remoteBase}`,
+      `git branch --no-track feature ${remoteBase}`,
+      `git checkout --no-track -B feature ${remoteBase}`,
+      `git checkout --no-track -qb feature ${remoteBase}`,
+      `git checkout --no-track -qB feature ${remoteBase}`
+    ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), undefined, command));
   });
   [
     'git worktree add -b feature ../feature develop',
     'git checkout -b feature origin/release',
     'git checkout origin/develop',
+    'git switch origin/main',
+    'git branch --contains origin/develop',
+    'git branch --contains feature origin/develop',
+    'git branch --contains HEAD --contains origin/develop',
+    'git branch --merged feature origin/main',
+    'git branch --points-at feature origin/develop',
+    'git branch --list feature origin/main',
+    'git branch -l feature origin/develop',
+    'git branch -m feature origin/develop',
+    'git branch -c feature origin/main',
+    'git branch -d feature origin/develop',
+    'git checkout -- -b origin/develop',
     'echo git checkout -b feature origin/main'
   ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), undefined));
 });
