@@ -277,5 +277,5 @@ Edit at the top of the script:
 
 - [/auto-build-wi command](../skills/auto-build-wi/) — user-facing entry that invokes this workflow
 - [/loop command](https://docs.claude.com/) — schedules recurring runs
-- [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml) — reruns failed push E2E jobs while `run_attempt` < 4
+- [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml) — `failure`/`timed_out`: `gh run rerun --failed`. Timeout cancel (60m; LWC `e2e-desktop-run-tests` 90m): one `gh run rerun --job` per completed event; a later event with `run_attempt` < 4 takes a remaining id. Fast concurrency cancels skip.
 - [gus-cli skill](../skills/gus-cli/SKILL.md) — Team members table is the source of truth for runner identity
