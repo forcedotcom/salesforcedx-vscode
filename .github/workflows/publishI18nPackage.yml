@@ -67,7 +67,6 @@ jobs:
           skip-on-empty: ${{ github.event_name == 'push' }}
           skip-tag: false
           pre-changelog-generation: packages/salesforcedx-vscode-i18n/scripts/vscode-i18n-version-hook.js
-          pre-commit: packages/salesforcedx-vscode-i18n/scripts/vscode-i18n-version-hook.js
 
       - name: Create Github Release
         if: steps.changelog.outputs.skipped == 'false'
@@ -101,9 +100,9 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
-      packageManager: npm
-      # npmPublish.yml defaults cacheDependencyPath to yarn.lock; this repo uses npm, so override it or setup-node's cache step fails.
-      cacheDependencyPath: package-lock.json
+      packageManager: pnpm
+      packageManagerVersion: 12.0.0
+      cacheDependencyPath: pnpm-lock.yaml
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/salesforcedx-vscode-i18n
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}

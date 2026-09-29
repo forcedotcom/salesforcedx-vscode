@@ -10,7 +10,7 @@ description: Running the complete E2E test suite locally
 
 1. **Sequential execution ONLY** — Never run multiple packages or web/desktop in parallel. Each test command must complete before starting the next.
 2. **Web-first** — For packages with both configs, always run web tests before desktop tests (avoids electron pop-ups on failure).
-3. **Run from repo root** — Always use `npm run test:web -w packages/<name>` (not `cd packages/<name> && npm run test:web`).
+3. **Run from repo root** — Always use `pnpm --filter ./packages/<name> test:web` (not `cd packages/<name> && pnpm test:web`).
 4. **Trust wireit** — Don't pre-build or set WIREIT_CACHE=none for full suite. Let wireit manage dependencies.
 5. **Keep retries** — Use default 2 retries (handles flaky tests). Don't add `--retries 0` for full suite.
 
@@ -51,7 +51,7 @@ For each package:
 2. **If web config exists**, run web tests:
 
    ```bash
-   npm run test:web -w packages/<name>
+   pnpm --filter ./packages/<name> test:web
    ```
 
    Wait for completion. If failure, invoke Failure Analysis Protocol (below).
@@ -59,14 +59,14 @@ For each package:
 3. **Check for desktop config**: `ls packages/<name>/playwright.config.desktop.ts`
 4. **If desktop config exists**, run desktop tests:
    ```bash
-   npm run test:desktop -w packages/<name>
+   pnpm --filter ./packages/<name> test:desktop
    ```
    Wait for completion. If failure, invoke Failure Analysis Protocol (below).
 
 **Check for `test:web:conflicts` script** in `package.json`. If present, run it after web:
 
 ```bash
-npm run test:web:conflicts -w packages/<name>
+pnpm --filter ./packages/<name> test:web:conflicts
 ```
 
 This runs the `conflicts` project in `playwright.config.web.ts` scoped to `specs-conflicts/tracking/`. Sequential workers, requires tracking scratch org.
@@ -74,7 +74,7 @@ This runs the `conflicts` project in `playwright.config.web.ts` scoped to `specs
 6. **Check for `test:desktop:conflicts` script** in `package.json`. If present, run it after desktop:
 
    ```bash
-   npm run test:desktop:conflicts -w packages/<name>
+   pnpm --filter ./packages/<name> test:desktop:conflicts
    ```
 
    This runs a separate playwright project (`conflicts`) scoped to `specs-conflicts/`. Sequential workers, 120s timeout.
@@ -92,7 +92,7 @@ When a test fails:
 - Run `git log --since="7 days ago" -- <source-directory>` to see if tested code changed recently
 - **If no recent changes**: Retry the specific failed test once:
   ```bash
-  WIREIT_CACHE=none npm run test:web -w <package> -- --retries 0 test/playwright/specs/<failed-test>.spec.ts
+  WIREIT_CACHE=none pnpm --filter <package> test:web -- --retries 0 test/playwright/specs/<failed-test>.spec.ts
   ```
   (WIREIT_CACHE=none is REQUIRED for individual test runs - see `references/iterating-playwright-tests.md`)
 
@@ -169,18 +169,18 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 
 ```bash
 # Package 1: playwright-vscode-ext
-npm run test:web -w packages/playwright-vscode-ext
-npm run test:desktop -w packages/playwright-vscode-ext
+pnpm --filter ./packages/playwright-vscode-ext test:web
+pnpm --filter ./packages/playwright-vscode-ext test:desktop
 
 # Package 2: services
-npm run test:web -w packages/salesforcedx-vscode-services
-npm run test:desktop -w packages/salesforcedx-vscode-services
+pnpm --filter ./packages/salesforcedx-vscode-services test:web
+pnpm --filter ./packages/salesforcedx-vscode-services test:desktop
 
 # Package 3: metadata (has web + desktop conflicts projects)
-npm run test:web -w packages/salesforcedx-vscode-metadata
-npm run test:web:conflicts -w packages/salesforcedx-vscode-metadata
-npm run test:desktop -w packages/salesforcedx-vscode-metadata
-npm run test:desktop:conflicts -w packages/salesforcedx-vscode-metadata
+pnpm --filter ./packages/salesforcedx-vscode-metadata test:web
+pnpm --filter ./packages/salesforcedx-vscode-metadata test:web:conflicts
+pnpm --filter ./packages/salesforcedx-vscode-metadata test:desktop
+pnpm --filter ./packages/salesforcedx-vscode-metadata test:desktop:conflicts
 
 # ... continue through all 9 packages
 ```

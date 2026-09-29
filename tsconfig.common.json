@@ -17,6 +17,9 @@
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
+    "paths": {
+      "salesforcedx-vscode-services": ["./packages/salesforcedx-vscode-services/out/src/index.d.ts"]
+    },
     "noImplicitAny": true,
     // TODO: cleanup unknown usage in catch blocks and remove below setting
     "useUnknownInCatchVariables": false,

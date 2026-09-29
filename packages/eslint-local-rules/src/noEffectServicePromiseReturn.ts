@@ -48,7 +48,8 @@ const isEffectServiceCall = (node: TSESTree.CallExpression): boolean => {
 const effectCalleeName = (node: TSESTree.CallExpression): string | undefined => {
   const callee = node.callee.type === AST_NODE_TYPES.CallExpression ? node.callee.callee : node.callee;
   if (callee.type !== AST_NODE_TYPES.MemberExpression) return undefined;
-  if (!isIdentifierNamed(callee.object, 'Effect') || callee.property.type !== AST_NODE_TYPES.Identifier) return undefined;
+  if (!isIdentifierNamed(callee.object, 'Effect') || callee.property.type !== AST_NODE_TYPES.Identifier)
+    return undefined;
   return callee.property.name;
 };
 
@@ -137,9 +138,11 @@ const declaredInTypeScriptLib = (symbol: ts.Symbol): boolean => {
 
 const namedPromise = (symbol: ts.Symbol | undefined): boolean =>
   symbol?.getName() === 'Promise' &&
-  (symbol.getDeclarations()?.some(declaration =>
-    declaration.getSourceFile().fileName.replaceAll('\\', '/').includes('/typescript/lib/lib.')
-  ) ??
+  (symbol
+    .getDeclarations()
+    ?.some(declaration =>
+      declaration.getSourceFile().fileName.replaceAll('\\', '/').includes('/typescript/lib/lib.')
+    ) ??
     false);
 
 const isPromiseType = (type: ts.Type, checker: ts.TypeChecker): boolean => {
@@ -157,11 +160,13 @@ const returnsPromise = (type: ts.Type, checker: ts.TypeChecker): boolean =>
 const methodsFromType = (node: TSESTree.Node, types: TypeInfo): PromiseMethod[] => {
   const type = types.getTypeAtLocation(node);
   if (isPromiseType(type, types.checker)) return [];
-  return type.getProperties().flatMap(symbol =>
-    declaredInTypeScriptLib(symbol) || !returnsPromise(types.getTypeOfSymbolAtLocation(symbol, node), types.checker)
-      ? []
-      : [{ methodName: symbol.getName(), node }]
-  );
+  return type
+    .getProperties()
+    .flatMap(symbol =>
+      declaredInTypeScriptLib(symbol) || !returnsPromise(types.getTypeOfSymbolAtLocation(symbol, node), types.checker)
+        ? []
+        : [{ methodName: symbol.getName(), node }]
+    );
 };
 
 const promiseMethods = (expression: TSESTree.Expression, types: TypeInfo): PromiseMethod[] => {

@@ -222,7 +222,7 @@ Style revisions apply first; advocate revisions (effect `must`, e2e `must`, adve
 
 If the plan determines the WI is unimplementable (can't name files or definition of done), it returns `{verdict: 'blocked'}` and the workflow bounces the WI to `Waiting` with questions DM'd to the runner.
 
-**Build.** One commit per plan phase. Repo hooks (compile/lint/dead-code/LSP/effect) run on tool calls and drive correctness — the agent does not run its own retry loop. `npm install` re-runs if `package-lock.json` changes.
+**Build.** One commit per plan phase. Repo hooks (compile/lint/dead-code/LSP/effect) run on tool calls and drive correctness — the agent does not run its own retry loop. `pnpm install` re-runs if `pnpm-lock.yaml` changes.
 
 **Review.** Three parallel reads:
 

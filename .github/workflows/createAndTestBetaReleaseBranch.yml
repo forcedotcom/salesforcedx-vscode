@@ -21,10 +21,11 @@ jobs:
           ref: 'main'
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
@@ -35,7 +36,9 @@ jobs:
         run: |
           node bundle-publish-scripts/scripts/update-references-in-vsce.js
           node bundle-publish-scripts/scripts/update-bundle-configs-in-vsce.js
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - run: rm -rf ./bundle-publish-scripts
       - name: Create and Push the Release Branch
         id: create_step

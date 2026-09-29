@@ -8,26 +8,26 @@ This extension includes comprehensive Playwright tests for both web and desktop 
 
 #### Quick Test Commands
 
-Run from project level (salesforcedx-vscode directory) using `-w` flag:
+Run from project level (salesforcedx-vscode directory) using `--filter`:
 
 ```bash
 # Install dependencies (includes Playwright)
-npm install
+pnpm install
 
 # Compile the extension
-npm run compile -w salesforcedx-vscode-org-browser
+pnpm --filter salesforcedx-vscode-org-browser compile
 
 # Run web tests (headless by default)
-npm run test:web -w salesforcedx-vscode-org-browser
+pnpm --filter salesforcedx-vscode-org-browser test:web
 
 # Run desktop tests (Electron UI always visible)
-npm run test:desktop -w salesforcedx-vscode-org-browser
+pnpm --filter salesforcedx-vscode-org-browser test:desktop
 
 # Run all e2e tests (web + desktop)
-npm run test:e2e -w salesforcedx-vscode-org-browser
+pnpm --filter salesforcedx-vscode-org-browser test:e2e
 
 # Run web tests with headed browser for debugging
-npm run test:web:ui -w salesforcedx-vscode-org-browser
+pnpm --filter salesforcedx-vscode-org-browser test:web:ui
 ```
 
 #### Environment Setup
@@ -47,7 +47,7 @@ In CI, the org is created automatically. For local development, reuse an existin
 #### Manual Testing for Debugging
 
 ```bash
-npm run run:web
+ppnpm run run:web
 ```
 
 Opens VS Code web in Chrome with DevTools. For org credentials and settings injection, see [docs/QA.md](../../docs/QA.md).
@@ -103,7 +103,7 @@ playwright.config.desktop.ts   # Desktop test configuration
 
 #### Troubleshooting
 
-**"No tests found":** `npm run test:web -- --list` or `--grep "should verify org browser"`
+**"No tests found":** `pnpm --filter salesforcedx-vscode-org-browser test:web -- --list` or `--grep "should verify org browser"`
 
 **Extension not activating:** Check Services extension activated first; verify bundle compiled.
 

@@ -34,7 +34,7 @@ Find who pulls the vulnerable package in, working outward to a `package.json`.
 Try in order; **stop at the first that works**:
 
 1. **Bump the consumer in `package.json`.** A newer version of the consumer resolves `<vuln-pkg>` to a patched version (consumer already shipped the fix). Edit the version in whichever `package.json` declares it. *Best — preferred.*
-2. **`npm update <consumer>`.** Consumer's existing semver range already allows a patched `<vuln-pkg>`, but the lockfile is stale. No `package.json` change. *Second best.*
+2. **`pnpm update <consumer>`.** Consumer's existing semver range already allows a patched `<vuln-pkg>`, but the lockfile is stale. No `package.json` change. *Second best.*
 3. **Unfixable** — consumer's latest still pins the vulnerable version. **Skip this path silently. No WI.**
 
 Pick the **lowest** consumer version that resolves `<vuln-pkg>` to a patched version, never `latest` — fewer majors crossed, fewer breaking changes to vet.
@@ -85,8 +85,8 @@ Each WI:
 **`Details__c`** = the fix recipe so auto-build-wi can execute blind:
 
 - GHSA/CVE id, vulnerable package + affected range.
-- The fix: which `package.json`, which consumer, target version (case 1) **or** `npm update <consumer>` (case 2).
-- **Verification:** the exact version that should land in `package-lock.json` after the build.
+- The fix: which `package.json`, which consumer, target version (case 1) **or** `pnpm update <consumer>` (case 2).
+- **Verification:** the exact version that should land in `pnpm-lock.yaml` after the build.
 - When an alert is split across consumers: `1 of N for <GHSA>` (each PR stands alone; Dependabot closes the alert once all land).
 
 Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md) for create mechanics (fields, confirmation, temp-Subject + flags-dir flow) and runner identity. Show the draft and **wait for confirmation** before any `sf data create record`.

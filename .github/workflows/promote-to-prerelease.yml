@@ -71,9 +71,10 @@ jobs:
 
       - name: Setup Node.js
         if: ${{ inputs.isHotfix }}
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Checkout hotfix commit
         # No nightly-pipeline check-runs exist for a hotfix commit (it never went through
@@ -87,16 +88,17 @@ jobs:
 
       - name: Install dependencies for hotfix commit
         if: ${{ inputs.isHotfix }}
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Run tests for hotfix commit
         if: ${{ inputs.isHotfix }}
         env:
           NODE_OPTIONS: --max-old-space-size=8192
           WIREIT_PARALLEL: 1
         run: |
-          npm run compile
-          npm run test
+          pnpm compile
+          pnpm test
 
   # Step 3a: Find this week's changelog range -- (fromRef, toRef] -- so the polished body
   # (Step 3b) and the raw commit facts it reads from cover exactly the same commits.
@@ -189,9 +191,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - uses: ./.github/actions/gitConfig
         with:
