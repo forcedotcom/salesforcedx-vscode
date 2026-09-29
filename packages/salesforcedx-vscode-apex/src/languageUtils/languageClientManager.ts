@@ -263,9 +263,6 @@ export class LanguageClientManager {
           return showRestartQuickPick(promptItems, source, restartBehavior);
       }
     }
-
-    // This case should never be reached as source is now required
-    throw new Error('Invalid source parameter');
   }
 
   public async restartLanguageServerAndClient(
@@ -425,10 +422,7 @@ export class LanguageClientManager {
       )
   );
 
-  private reportLanguageClientSetupError(
-    message: string,
-    languageServerStatusBarItem: ApexLSPStatusBarItem
-  ) {
+  private reportLanguageClientSetupError(message: string, languageServerStatusBarItem: ApexLSPStatusBarItem) {
     return Effect.sync(() => {
       let errorMessage = message;
       if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {

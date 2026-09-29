@@ -291,7 +291,7 @@ yield* Effect.gen(function* () {
 }).pipe(Effect.orElseSucceed(() => 'query failed'))
 ```
 
-`unnecessaryEffectGen` does **not** catch this — it matches a gen whose whole body is one `yield* X`. Two+ yields plus a trailing recovery pipe still need this rewrite.
+`unnecessaryEffectGen` misses this (1 `yield* X` only). 2+ yields + trailing recovery still need this rewrite. `orElseSucceed` / `catchAllCause` stay judgment.
 
 Keep recovery on the recovered subject. A nested pipe over a *different* subject is load-bearing when the inner chain has its own recovery. Hoisting `catchAllCause` / `orElseSucceed` onto an outer lookup pipe changes which failures recover.
 
@@ -343,5 +343,5 @@ getServicesApi.pipe(
 | Single-use inner pipe / payload | inline it in the one pipe (goal: one large pipe, no intermediate vars) | extract a single-use `const`/helper just to shorten the pipe |
 | Nested pipe that only sequences steps | flatten to sibling steps | leave nesting that adds no branching |
 | Nested pipe with real branching or its own `Stream`/sub-chain | keep nested — it's genuine composition | flatten mechanically and lose the structure |
-| Recovery around a subsequence of an outer gen | pipe from the first Effect of that span; recovery as a sibling | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchAllCause)` |
+| Recovery around a subsequence of an outer gen | pipe from first Effect; recovery as sibling. `catchTags` inside `Effect.fn`: `local/no-nested-effect-gen-catch-tags` | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchAllCause / catchTags)` |
 | Inner chain has its own recovery | keep the nested pipe on that subject | hoist `catchAllCause` / `orElseSucceed` onto an outer lookup pipe |

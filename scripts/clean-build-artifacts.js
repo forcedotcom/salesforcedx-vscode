@@ -2,7 +2,7 @@
 /**
  * Removes compiled outputs and Wireit caches across the repo without deleting
  * node_modules, without `git clean`, and without unlinking npm-linked packages.
- * For full reset (including deps), use `npm run clean`.
+ * For full reset (including deps), use `pnpm clean`.
  */
 
 const fs = require('fs');

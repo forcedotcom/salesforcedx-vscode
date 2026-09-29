@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -46,7 +47,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
-import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
+import { redactingConsoleLoggerLayer, runOnServicesRuntime } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
@@ -532,13 +533,11 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
     setServicesRuntime(runtime);
 
-    await runtime.runPromise(
-      activationEffect(context).pipe(
-        Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
-      )
+    await activationEffect(context).pipe(
+      Effect.tapError(error => Effect.logError('❌ [Services] Activation failed:', Cause.fail(error))),
+      Effect.tap(() => Effect.log('Salesforce Services extension is now active!')),
+      runtime.runPromise
     );
-
-    console.log('Salesforce Services extension is now active!');
 
     // Return API for other extensions to consume
     return {
@@ -607,10 +606,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
   await Effect.runPromise(deactivateEffect);
-  console.log('Salesforce Services extension is now deactivated!');
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  yield* Effect.log('Salesforce Services extension is now deactivated!').pipe(runOnServicesRuntime);
   // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
   // those fibers touch, so nothing runs against a torn-down service.
   yield* disposeServicesRuntime();

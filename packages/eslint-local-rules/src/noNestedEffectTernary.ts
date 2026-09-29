@@ -34,8 +34,7 @@ const isEffectType = (type: ts.Type): boolean =>
 const isDirectBranch = (node: TSESTree.ConditionalExpression): boolean => {
   const parent = node.parent;
   return (
-    parent.type === AST_NODE_TYPES.ConditionalExpression &&
-    (parent.consequent === node || parent.alternate === node)
+    parent.type === AST_NODE_TYPES.ConditionalExpression && (parent.consequent === node || parent.alternate === node)
   );
 };
 
@@ -61,9 +60,7 @@ export const noNestedEffectTernary = RuleCreator.withoutDocs({
       leafCount(node) >= 3 && isEffectType(services.getTypeAtLocation(node));
 
     const coveredByEffectParent = (node: TSESTree.ConditionalExpression): boolean =>
-      isDirectBranch(node) &&
-      node.parent.type === AST_NODE_TYPES.ConditionalExpression &&
-      effectDispatch(node.parent);
+      isDirectBranch(node) && node.parent.type === AST_NODE_TYPES.ConditionalExpression && effectDispatch(node.parent);
 
     return {
       ConditionalExpression: (node: TSESTree.ConditionalExpression): void => {
