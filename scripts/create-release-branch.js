@@ -98,12 +98,11 @@ updatePackageVersions(nextVersion);
 // Add all package.json version update changes
 execSync(`git add "**/package.json"`);
 
-// Execute an npm install so that we update the package-lock.json file with the new version
-// found in the packages for each submodule.
-execSync(`npm install --ignore-scripts --package-lock-only --no-audit`);
+// Update workspace package versions in the pnpm lockfile.
+execSync(`pnpm install --ignore-scripts --lockfile-only`);
 
 // Add change to package lockfile that includes version bump
-execSync('git add package-lock.json');
+execSync('git add pnpm-lock.yaml');
 
 // If it is a beta release, add all files
 if (isBetaRelease()) {
