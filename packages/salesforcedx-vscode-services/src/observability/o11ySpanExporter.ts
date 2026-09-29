@@ -8,11 +8,13 @@ import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
+import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
@@ -103,59 +105,62 @@ export class O11ySpanExporter implements SpanExporter {
       void this.exportLocal(spans, resultCallback);
       return;
     }
-    void Effect.runPromise(
-      Effect.tryPromise({
-        try: async () => {
-          await this.ensureInitialized();
-          const pdpEventSchema = await getPdpEventSchema();
-          spans.filter(isSpanValidForProductionTelemetry).forEach(span => {
-            const identity = getSpanCreationIdentity(span);
-            const { success, properties: props, measurements } = toO11yEvent(span, identity);
+    void Effect.tryPromise({
+      try: async () => {
+        await this.ensureInitialized();
+        const pdpEventSchema = await getPdpEventSchema();
+        spans.filter(isSpanValidForProductionTelemetry).forEach(span => {
+          const identity = getSpanCreationIdentity(span);
+          const { success, properties: props, measurements } = toO11yEvent(span, identity);
 
-            if (success) {
-              this.o11yService.logEvent({
-                name: span.name,
-                properties: props,
-                measurements
-              });
-            } else {
-              const error = new Error(span.status.message ?? 'Span failed');
-              error.name = span.name;
-              this.o11yService.logEvent({
-                exception: error,
-                properties: props,
-                measurements
-              });
-            }
-
-            // PFT for new extensions
-            if (this.productFeatureId && isString(span.attributes['command'])) {
-              this.o11yService.logEventWithSchema(
-                {
-                  eventName: 'vscodeExtension.executed',
-                  productFeatureId: this.productFeatureId,
-                  contextName: 'orgId::devhubId',
-                  contextValue: `${identity.orgId}::${identity.devHubOrgId}`,
-                  componentId: `${props['common.extname']}.${span.attributes['command']}`
-                },
-                pdpEventSchema
-              );
-            }
-          });
-          resultCallback({ code: ExportResultCode.SUCCESS });
-        },
-        catch: err => unknownToErrorCause(err)
-      }).pipe(
-        Effect.catchAll(err => {
-          console.error('O11ySpanExporter export failed:', err.cause);
-          return Effect.sync(() => {
-            resultCallback({
-              code: ExportResultCode.FAILED,
-              error: err.cause
+          if (success) {
+            this.o11yService.logEvent({
+              name: span.name,
+              properties: props,
+              measurements
             });
-          });
-        })
-      )
+          } else {
+            const error = new Error(span.status.message ?? 'Span failed');
+            error.name = span.name;
+            this.o11yService.logEvent({
+              exception: error,
+              properties: props,
+              measurements
+            });
+          }
+
+          // PFT for new extensions
+          if (this.productFeatureId && isString(span.attributes['command'])) {
+            this.o11yService.logEventWithSchema(
+              {
+                eventName: 'vscodeExtension.executed',
+                productFeatureId: this.productFeatureId,
+                contextName: 'orgId::devhubId',
+                contextValue: `${identity.orgId}::${identity.devHubOrgId}`,
+                componentId: `${props['common.extname']}.${span.attributes['command']}`
+              },
+              pdpEventSchema
+            );
+          }
+        });
+        resultCallback({ code: ExportResultCode.SUCCESS });
+      },
+      catch: err => unknownToErrorCause(err)
+    }).pipe(
+      Effect.catchAll(err =>
+        Effect.logError('O11ySpanExporter export failed:', Cause.fail(err.cause)).pipe(
+          Effect.andThen(
+            Effect.sync(() => {
+              resultCallback({
+                code: ExportResultCode.FAILED,
+                error: err.cause
+              });
+            })
+          )
+        )
+      ),
+      runOnServicesRuntime,
+      Effect.runPromise
     );
   }
 
@@ -180,7 +185,10 @@ export class O11ySpanExporter implements SpanExporter {
           : { code: ExportResultCode.FAILED, error: new Error(`local /o11y responded ${res.status}`) }
       );
     } catch (error) {
-      console.error('O11ySpanExporter local divert failed:', error);
+      await Effect.logError('O11ySpanExporter local divert failed:', Cause.fail(error)).pipe(
+        runOnServicesRuntime,
+        Effect.runPromise
+      );
       resultCallback({
         code: ExportResultCode.FAILED,
         error: isError(error) ? error : new Error(String(error))

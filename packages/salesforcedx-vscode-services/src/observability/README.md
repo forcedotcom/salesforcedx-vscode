@@ -45,7 +45,9 @@ Telemetry identity attributes survive by construction: the access-token pattern 
 
 Local sinks are redacted too, and that is deliberate. A token you planted on purpose is not recoverable from `~/.sf/vscode-spans/*.jsonl`; the alternative — redacting only the egress exporters — would need the same logic per exporter and would silently drift.
 
-Not yet redacted: the Effect **logger** path. `Logger.minimumLogLevel` with `OtlpLogger.layer` and `OtlpFileLogExporterNode` (both wired in `spansNode.ts`) carry log **records**, not spans, so no `SpanProcessor` ever sees them. Redacting log records is tracked separately as W-23597360.
+Console output from `Effect.log`, `Effect.logWarning`, and `Effect.logError` is redacted. `redactingConsoleLoggerLayer` replaces the default logger with a string logger that runs each line through `redactSensitiveData` before it reaches the console. The services runtime includes that layer. `runOnServicesRuntime` (`redactingConsoleLogger.ts`) runs an effect on the published runtime, or provides `redactingConsoleLoggerLayer` when the runtime is not published yet. Imperative call sites pipe that effect into `Effect.runPromise`. `deactivate` yields it.
+
+Not yet redacted: OTLP **log records**. `Logger.minimumLogLevel` with `OtlpLogger.layer` and `OtlpFileLogExporterNode` (both wired in `spansNode.ts`) carry log records, not spans, so no `SpanProcessor` sees them. `OtlpLogger.layer` is added beside the console logger, so the console string map does not apply to those records. Redacting log records is tracked separately as W-23597360.
 
 ### App Insights Export Pipeline
 
@@ -245,7 +247,7 @@ yield * Effect.annotateCurrentSpan({ telemetryIgnore: true });
 
 When `enableConsoleTraces` is enabled, spans are exported to the console (browser console or Node.js console). This is useful for debugging and seeing what spans are being created.
 
-Log records are a separate pipeline from spans (`logRecordProcessor` in `spansNode.ts`, plus `OtlpLogger.layer` when local traces are enabled), and they do **not** pass through `RedactingSpanProcessor` — see [Sensitive Data Redaction](#sensitive-data-redaction). Assume anything you log can reach a log sink verbatim until W-23597360 lands.
+`Effect.log*` lines that run on the services runtime are redacted before they reach the console — see [Sensitive Data Redaction](#sensitive-data-redaction). Log records are a separate pipeline from spans (`logRecordProcessor` in `spansNode.ts`, plus `OtlpLogger.layer` when local traces are enabled), and they do **not** pass through `RedactingSpanProcessor`. An OTLP or file log record can still contain a secret verbatim until W-23597360 lands.
 
 ### Putting an SDK in Your Layer
 

@@ -6,6 +6,8 @@
  */
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import * as Effect from 'effect/Effect';
+import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { serializeSpanOtlp } from './spanUtils';
 
 const OTLP_SPAN_FILE_SERVER_URL = 'http://localhost:3003/otlp-spans';
@@ -33,10 +35,12 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
           ? resultCallback({ code: ExportResultCode.SUCCESS })
           : resultCallback({ code: ExportResultCode.FAILED, error: new Error(`HTTP ${res.status}`) })
       )
-      .catch(error => {
+      .catch(async error => {
         if (!serverUnreachable.logged) {
-          console.warn('Span file server unreachable at localhost:3003 — enableFileTraces needs spans:server running');
           serverUnreachable.logged = true;
+          await Effect.logWarning(
+            'Span file server unreachable at localhost:3003 — enableFileTraces needs spans:server running'
+          ).pipe(runOnServicesRuntime, Effect.runPromise);
         }
         resultCallback({ code: ExportResultCode.FAILED, error });
       });
