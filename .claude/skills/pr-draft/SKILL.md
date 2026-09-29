@@ -57,9 +57,13 @@ Before finalizing body, fetch and analyze:
 - Write content per [concise/SKILL.md](../concise/SKILL.md)
 - Include `@W-XXXXX@` in "What issues does this PR fix or reference?" per [.github/PULL_REQUEST_TEMPLATE.md](../../../.github/PULL_REQUEST_TEMPLATE.md):
 - Delete before/after section if empty
+- `### Manual test plan`: manual checks. Exclude items covered by new/modified e2e files on the branch
 - **User declined WI:** If user explicitly declines WI but wants PR, include `[skip-validate-pr]` in body (e.g. at end)
 
 ```
 ### What issues does this PR fix or reference?
 #<GitHub Issue>, @W-XXXXX@
+
+### Manual test plan
+- <manual check>
 ```
