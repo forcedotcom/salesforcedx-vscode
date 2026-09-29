@@ -26,6 +26,8 @@ on:
       - 'docs/**.md'
       - '**/docs/**.md'
       - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-orgE2E

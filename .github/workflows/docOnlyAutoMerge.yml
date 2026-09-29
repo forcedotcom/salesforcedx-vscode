@@ -2,7 +2,8 @@ name: Doc-Only Auto-Merge
 
 # Squash-merges PRs that touch ONLY doc-glossary files to develop, no human review.
 # Doc-only globs: CONTEXT.md, CONTEXT-MAP.md, **/CONTEXT.md, docs/**/*.md,
-# **/docs/**/*.md, .claude/**/*.md (markdown only — NOT .claude/**/*.js).
+# **/docs/**/*.md, .claude/**/*.md, plans/**.md, .cursor/**.md
+# (markdown only — NOT .claude/**/*.js).
 # Authors: active forcedotcom/ide-foundations members, or svc-idee-bot.
 # Merges via svc-idee-bot (IDEE_GH_TOKEN, repo admin). --admin bypasses branch protection: required
 # workflows paths-ignore exactly the globs in `on.pull_request.paths` below, so
@@ -23,6 +24,8 @@ on:
       - 'docs/**.md'
       - '**/docs/**.md'
       - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 # Same-repo branch (team members push to origin, not forks) → org secrets available.
 # NOT pull_request_target — avoids running untrusted head with secrets.
@@ -65,7 +68,9 @@ jobs:
           #  ^CONTEXT-MAP\.md$   root only
           #  (^|/)docs/.*\.md$   root docs/ + packages/*/docs/, .md only
           #  ^\.claude/.*\.md$   .claude markdown only (NOT .js workflows)
-          allow='(^|/)CONTEXT\.md$|^CONTEXT-MAP\.md$|(^|/)docs/.*\.md$|^\.claude/.*\.md$'
+          #  ^plans/.*\.md$      plans/ markdown
+          #  ^\.cursor/.*\.md$   .cursor markdown
+          allow='(^|/)CONTEXT\.md$|^CONTEXT-MAP\.md$|(^|/)docs/.*\.md$|^\.claude/.*\.md$|^plans/.*\.md$|^\.cursor/.*\.md$'
           nondoc=$(echo "$files" | grep -Ev "$allow" || true)
           if [ -n "$nondoc" ]; then
             echo "non-doc files present — not eligible:"; echo "$nondoc"
