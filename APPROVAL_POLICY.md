@@ -42,6 +42,18 @@ Every file under `.vscode/`.
 
 `packages/salesforcedx-vscode-core/metadata_types_map_scraped.json` and `packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd`.
 
+### effect-diagnostics
+
+`config/effect-diagnostics.json`.
+
+### changelog-constants
+
+`scripts/change-log-constants.*`.
+
+### plans
+
+Every file under `plans/` at the repo root.
+
 ### prose
 
 Markdown and license text: `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/**/*.md`, `**/docs/**/*.md`, `**/README*`, `CHANGELOG*`, `**/CHANGELOG*`, `contributing/**`, `CONTRIBUTING.md`, `SECURITY*`, `CODE_OF_CONDUCT*`, `LICENSE.txt`, `**/LICENSE.txt`, `NOTICE*`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`.
