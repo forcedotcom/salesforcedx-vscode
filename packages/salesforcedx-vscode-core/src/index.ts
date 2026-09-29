@@ -29,7 +29,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
@@ -45,8 +44,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await getRuntime().runPromise(activateEffect(extensionContext));
 
   const api: SalesforceVSCodeCoreApi = {
-    getUserId,
-    telemetryService,
     workspaceContextUtils,
     services: {
       ChannelService,
@@ -205,8 +202,6 @@ const handleTheUnhandled = (): void => {
 };
 
 export type SalesforceVSCodeCoreApi = {
-  getUserId: typeof getUserId;
-  telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
     ChannelService: typeof ChannelService;

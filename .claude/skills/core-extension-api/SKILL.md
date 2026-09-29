@@ -36,12 +36,16 @@ See [external-consumers](../external-consumers/SKILL.md) for full list and searc
 ### Top-level (instances/functions)
 
 ```
-getUserId, getAuthFields, isCLIInstalled,
-SfCommandletExecutor, WorkspaceContext,
-telemetryService, workspaceContextUtils
+workspaceContextUtils
 ```
 
+`WorkspaceContext` is only `services.WorkspaceContext`, not a top-level `activate()` field.
+
 **Note**: the top-level `channelService` field was removed (W-23348840). Consumers must use `services.ChannelService`.
+
+**Note**: the top-level `telemetryService` field was removed (W-24265117). Callers use `services.TelemetryService.getInstance` or `sf.vscode.core.get.telemetry`.
+
+**Note**: the top-level `getUserId` field was removed (W-24265117). No API replacement.
 
 ### `services` (class constructors with static methods)
 
@@ -52,10 +56,6 @@ WorkspaceContext (.getInstance()), CommandEventDispatcher (.getInstance())
 ```
 
 External consumers predominantly use `services.*`. The `.getInstance()` signatures are public contract.
-
-### Overlap
-
-Some capabilities at both levels (e.g. `telemetryService` instance top-level, `services.TelemetryService` class). Consumers may use either/both — check both when evaluating usage.
 
 ## Before changing
 
