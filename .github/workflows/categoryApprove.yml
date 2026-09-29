@@ -1,9 +1,5 @@
 name: Category Approve
 
-# svc-idee-bot approves an eligible PR once the check rollup on the head is settled
-# and `agent -p --model grok-4.7-xhigh` returns a category union from the diff.
-# The author merges. IDEE_GH_TOKEN is stripped from the agent process.
-
 on:
   check_run:
     types: [completed]
