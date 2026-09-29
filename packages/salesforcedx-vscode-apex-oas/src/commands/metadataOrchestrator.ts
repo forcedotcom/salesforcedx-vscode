@@ -152,6 +152,9 @@ export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(functio
         () => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') })
       )
     ));
+  if (Array.isArray(uri)) {
+    return yield* new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') });
+  }
   return yield* ApexMetadataService.gatherOpenAPIContext(uri).pipe(
     Effect.mapError(cause => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context'), cause })),
     Effect.tap(response =>

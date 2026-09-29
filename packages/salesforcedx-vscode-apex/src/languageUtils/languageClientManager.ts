@@ -263,9 +263,6 @@ export class LanguageClientManager {
           return showRestartQuickPick(promptItems, source, restartBehavior);
       }
     }
-
-    // This case should never be reached as source is now required
-    throw new Error('Invalid source parameter');
   }
 
   public async restartLanguageServerAndClient(

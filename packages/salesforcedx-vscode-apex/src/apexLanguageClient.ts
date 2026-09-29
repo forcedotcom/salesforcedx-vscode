@@ -99,18 +99,10 @@ export class ApexLanguageClient extends LanguageClient {
     });
   }
 
-  /**
-   * Gathers OpenAPI context for the given source URI(s).
-   * @param sourceUri - The source URI(s) to gather context for.
-   * @returns A promise that resolves with the gathered context response(s).
-   */
-  public async gatherOpenAPIContext(sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse> {
-    if (!Array.isArray(sourceUri)) {
-      return this.sendRequest<ApexClassOASGatherContextResponse>(
-        'apexoas/gatherContext',
-        this.code2ProtocolConverter.asUri(sourceUri)
-      );
-    }
-    throw new Error('Not implemented - Can only handle a single Uri for context gathering');
+  public async gatherOpenAPIContext(sourceUri: URI): Promise<ApexClassOASGatherContextResponse> {
+    return this.sendRequest<ApexClassOASGatherContextResponse>(
+      'apexoas/gatherContext',
+      this.code2ProtocolConverter.asUri(sourceUri)
+    );
   }
 }

@@ -88,7 +88,7 @@ export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('
       );
     });
 
-    const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI | URI[]) {
+    const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI) {
       const client = yield* getClient();
       return yield* Effect.tryPromise({
         try: async (): Promise<ApexClassOASGatherContextResponse> => client.gatherOpenAPIContext(sourceUri),
