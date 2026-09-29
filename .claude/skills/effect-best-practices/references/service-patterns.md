@@ -240,6 +240,11 @@ export class AppService extends Effect.Service<AppService>()("AppService", {
 
 Services should return `Effect` types, never `Promise`:
 
+- enforced: `local/no-effect-service-promise-return` (type-aware)
+- files: Effect-services; apex / soql / soql-common / soql-model
+- flags: `effect`/`scoped` methods returning `Promise` (async or inferred)
+- allowed: `Effect`/`Effect.fn`; Promise fn outside `Effect.Service`
+
 ```typescript
 // CORRECT
 const findById = Effect.fn("UserService.findById")(

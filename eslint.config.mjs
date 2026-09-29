@@ -774,6 +774,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error',
 
       // Effect code should always handle promises properly
@@ -903,6 +904,7 @@ export default [
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error'
     }
   },
