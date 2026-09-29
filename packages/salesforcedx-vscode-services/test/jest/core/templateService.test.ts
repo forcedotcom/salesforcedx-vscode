@@ -213,18 +213,20 @@ describe('TemplateService', () => {
 
     it('returns only subdirectories containing a matching file', async () => {
       const layer = createTestLayer(createMockConfigService('/my/custom/templates'));
-      vscode.workspace.fs.readDirectory.mockImplementation((uri: { fsPath: string }) => {
-        if (uri.fsPath === '/my/custom/templates/lightningcomponent/lwc') {
+      // Compare against uri.path (always forward-slash) rather than uri.fsPath, which is
+      // backslash-separated on Windows and would never match these POSIX-style keys there.
+      vscode.workspace.fs.readDirectory.mockImplementation((uri: { path: string }) => {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc') {
           return Promise.resolve([
             ['myCustomTemplate', vscode.FileType.Directory],
             ['notATemplate', vscode.FileType.Directory],
             ['stray.txt', vscode.FileType.File]
           ]);
         }
-        if (uri.fsPath === '/my/custom/templates/lightningcomponent/lwc/myCustomTemplate') {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/myCustomTemplate') {
           return Promise.resolve([['myCustomTemplate.js', vscode.FileType.File]]);
         }
-        if (uri.fsPath === '/my/custom/templates/lightningcomponent/lwc/notATemplate') {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/notATemplate') {
           return Promise.resolve([['readme.md', vscode.FileType.File]]);
         }
         return Promise.resolve([]);
