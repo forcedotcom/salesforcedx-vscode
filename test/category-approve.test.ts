@@ -8,7 +8,7 @@ import {
   deniedFile,
   parseAgentResult,
   withoutOwnRun
-} from '../scripts/category-approve.mjs';
+} from '../scripts/shared/categoryDecision.ts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const allowed = categoryIdsFromPolicy(policy);
@@ -54,60 +54,57 @@ test('policy category ids match the headings', () => {
 });
 
 test('prompt names the diff file and carries no pull request body', () => {
-  const prompt = buildPrompt({ policy, diffPath: '/tmp/category-approve/pr.diff' });
+  const prompt = buildPrompt(policy, '/tmp/category-approve/pr.diff');
   assert.match(prompt, /\/tmp\/category-approve\/pr\.diff/);
   assert.match(prompt, /Read that file and no other file/);
   assert.equal(prompt.includes('pull request body'), false);
 });
 
 test('classifies when the gates pass', () => {
-  assert.equal(decideCategoryApprove(base).action, 'classify');
+  assert.equal(decideCategoryApprove(base)._tag, 'Classify');
 });
 
 test('approves a non-empty known category union', () => {
   const decision = decideCategoryApprove({ ...base, categories: ['prose', 'tests-only'] });
-  assert.equal(decision.action, 'approve');
+  assert.equal(decision._tag, 'Approve');
   assert.match(decision.reason, /prose, tests-only/);
 });
 
 test('skips an empty union and an unknown category', () => {
-  assert.equal(decideCategoryApprove({ ...base, categories: [] }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, categories: ['ship-it'] }).action, 'skip');
+  assert.equal(decideCategoryApprove({ ...base, categories: [] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, categories: ['ship-it'] })._tag, 'Skip');
 });
 
 test('skips denylist paths before classify', () => {
   assert.equal(deniedFile(['packages/foo/src/a.ts', '.github/workflows/ci.yml']), '.github/workflows/ci.yml');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/skills/wireit/SKILL.md'] }).action, 'classify');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/plans/W-1.md'] }).action, 'classify');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/workflows/auto-build-wi.js'] }).action, 'classify');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/settings.json'] }).action, 'classify');
-  assert.equal(decideCategoryApprove({ ...base, files: ['eslint.config.mjs'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/skills/wireit/SKILL.md'] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/plans/W-1.md'] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/workflows/auto-build-wi.js'] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/settings.json'] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['eslint.config.mjs'] })._tag, 'Classify');
   assert.equal(
-    decideCategoryApprove({ ...base, files: ['packages/eslint-local-rules/src/index.ts'] }).action,
-    'classify'
+    decideCategoryApprove({ ...base, files: ['packages/eslint-local-rules/src/index.ts'] })._tag,
+    'Classify'
   );
-  assert.equal(decideCategoryApprove({ ...base, files: ['.vscode/cspell.json'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.vscode/cspell.json'] })._tag, 'Classify');
   assert.equal(
     decideCategoryApprove({
       ...base,
       files: ['packages/salesforcedx-vscode-core/metadata_types_map_scraped.json']
-    }).action,
-    'classify'
+    })._tag,
+    'Classify'
   );
-  assert.equal(decideCategoryApprove({ ...base, files: ['APPROVAL_POLICY.md'] }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.cursor/rules/wireit.mdc'] }).action, 'skip');
+  assert.equal(decideCategoryApprove({ ...base, files: ['APPROVAL_POLICY.md'] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.cursor/rules/wireit.mdc'] })._tag, 'Skip');
 });
 
 test('skips forks, drafts, dependabot, changes requested, and a quiet rollup', () => {
-  assert.equal(decideCategoryApprove({ ...base, headRepoFullName: 'other/salesforcedx-vscode' }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, prDraft: true }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, authorLogin: 'dependabot[bot]' }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, reviewDecision: 'CHANGES_REQUESTED' }).action, 'skip');
-  assert.equal(decideCategoryApprove({ ...base, checks: [] }).action, 'skip');
-  assert.equal(
-    decideCategoryApprove({ ...base, checks: [{ status: 'in_progress', conclusion: null }] }).action,
-    'skip'
-  );
+  assert.equal(decideCategoryApprove({ ...base, headRepoFullName: 'other/salesforcedx-vscode' })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, prDraft: true })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, authorLogin: 'dependabot[bot]' })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, reviewDecision: 'CHANGES_REQUESTED' })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, checks: [] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, checks: [{ status: 'in_progress', conclusion: null }] })._tag, 'Skip');
 });
 
 test('dismisses a bot approval on this sha when a check failed', () => {
@@ -117,7 +114,7 @@ test('dismisses a bot approval on this sha when a check failed', () => {
     reviews,
     checks: [{ status: 'completed', conclusion: 'FAILURE' }]
   });
-  assert.equal(decision.action, 'dismiss');
+  assert.equal(decision._tag, 'Dismiss');
 });
 
 test('drops this workflow run from the rollup', () => {

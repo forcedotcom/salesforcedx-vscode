@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          node-version: 24
       - name: Install Cursor CLI
         run: curl https://cursor.com/install -fsS | bash
       - name: Decide and approve
@@ -40,4 +40,4 @@ jobs:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-        run: node scripts/category-approve-cli.mjs
+        run: node scripts/category-approve-cli.ts
