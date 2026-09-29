@@ -20,14 +20,16 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 - `.github/workflows/**`
 - `CODEOWNERS`
 - `APPROVAL_POLICY.md`
-- `.claude/skills/**`
-- `.claude/agents/**`
-- `.claude/workflows/**`
+- a non-markdown file under `.claude/`
 - `.cursor/rules/**`
 - `.cursor/commands/**`
 - `out/**`
 
 ## Categories
+
+### claude-md
+
+Every `*.md` file under `.claude/`. Skills, agents, plans, and workflow notes.
 
 ### prose
 

@@ -33,6 +33,7 @@ const base = {
 
 test('policy category ids match the headings', () => {
   assert.deepEqual(allowed, [
+    'claude-md',
     'prose',
     'tests-only',
     'dep-bump',
@@ -70,7 +71,9 @@ test('skips an empty union and an unknown category', () => {
 
 test('skips denylist paths before classify', () => {
   assert.equal(deniedFile(['packages/foo/src/a.ts', '.github/workflows/ci.yml']), '.github/workflows/ci.yml');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/skills/wireit/SKILL.md'] }).action, 'skip');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/skills/wireit/SKILL.md'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/plans/W-1.md'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/workflows/auto-build-wi.js'] }).action, 'skip');
   assert.equal(decideCategoryApprove({ ...base, files: ['APPROVAL_POLICY.md'] }).action, 'skip');
   assert.equal(decideCategoryApprove({ ...base, files: ['.cursor/rules/wireit.mdc'] }).action, 'skip');
 });

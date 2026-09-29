@@ -14,18 +14,18 @@ const DENYLIST = [
   /(^|\/)CODEOWNERS$/,
   /^APPROVAL_POLICY\.md$/,
   /^\.github\/workflows\/.+/,
-  /^\.claude\/skills\/.+/,
-  /^\.claude\/agents\/.+/,
-  /^\.claude\/workflows\/.+/,
   /^\.cursor\/rules\/.+/,
   /^\.cursor\/commands\/.+/,
   /(^|\/)out\//
 ];
 
+const claudeNonMarkdown = file => file.startsWith('.claude/') && !file.endsWith('.md');
+
 export const categoryIdsFromPolicy = markdown =>
   [...String(markdown ?? '').matchAll(/^### ([a-z0-9-]+)\s*$/gm)].map(match => match[1]);
 
-export const deniedFile = files => (files ?? []).find(file => DENYLIST.some(pattern => pattern.test(file)));
+export const deniedFile = files =>
+  (files ?? []).find(file => claudeNonMarkdown(file) || DENYLIST.some(pattern => pattern.test(file)));
 
 const hasFailingCheck = checks =>
   (checks ?? []).some(check => FAIL_CONCLUSIONS.has(String(check.conclusion ?? check.state ?? '').toUpperCase()));
