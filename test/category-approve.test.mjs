@@ -35,6 +35,8 @@ test('policy category ids match the headings', () => {
   assert.deepEqual(allowed, [
     'claude',
     'eslint',
+    'vscode',
+    'metadata-types',
     'prose',
     'tests-only',
     'dep-bump',
@@ -79,6 +81,14 @@ test('skips denylist paths before classify', () => {
   assert.equal(decideCategoryApprove({ ...base, files: ['eslint.config.mjs'] }).action, 'classify');
   assert.equal(
     decideCategoryApprove({ ...base, files: ['packages/eslint-local-rules/src/index.ts'] }).action,
+    'classify'
+  );
+  assert.equal(decideCategoryApprove({ ...base, files: ['.vscode/cspell.json'] }).action, 'classify');
+  assert.equal(
+    decideCategoryApprove({
+      ...base,
+      files: ['packages/salesforcedx-vscode-core/metadata_types_map_scraped.json']
+    }).action,
     'classify'
   );
   assert.equal(decideCategoryApprove({ ...base, files: ['APPROVAL_POLICY.md'] }).action, 'skip');

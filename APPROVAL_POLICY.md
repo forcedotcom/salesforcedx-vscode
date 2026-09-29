@@ -34,6 +34,14 @@ Every file under `.claude/`.
 
 Every ESLint config: `eslint.config.*`, `.eslintrc`, `.eslintrc.*`. Every file under `packages/eslint-local-rules/`.
 
+### vscode
+
+Every file under `.vscode/`.
+
+### metadata-types
+
+`packages/salesforcedx-vscode-core/metadata_types_map_scraped.json` and `packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd`.
+
 ### prose
 
 Markdown and license text: `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/**/*.md`, `**/docs/**/*.md`, `**/README*`, `CHANGELOG*`, `**/CHANGELOG*`, `contributing/**`, `CONTRIBUTING.md`, `SECURITY*`, `CODE_OF_CONDUCT*`, `LICENSE.txt`, `**/LICENSE.txt`, `NOTICE*`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`.
