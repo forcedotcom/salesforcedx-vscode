@@ -5,13 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/**
- * the types on this are pretty messed up (e.g. ProtocolCompletionItem is not the same as CompletionItem)
- * one options would be to skip the CompletionItem that are not ProtocolCompletionItem (ie have a type guard)
- * but I'm not sure how it's actually supposed to work and how the framework handles undefined values that as might allow through
- */
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
-
 import {
   commands,
   CompletionContext,
@@ -42,31 +35,33 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
-export const soqlMiddleware: Middleware = {
-  // @ts-ignore
-  provideCompletionItem: async (document, position, context, token, next) => {
-    const apexCompletionItems = await next(document, position, context, token);
-    if (!apexCompletionItems) {
-      return;
-    }
-
-    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
-      ? (apexCompletionItems as ProtocolCompletionItem[])
-      : (apexCompletionItems.items as ProtocolCompletionItem[]);
-
-    const soqlBlock = insideSOQLBlock(items);
-    if (soqlBlock) {
-      return !insideApexBindingExpression(document, soqlBlock.queryText, position)
-        ? await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock)
-        : items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-    } else return apexCompletionItems;
+const provideCompletionItem: Middleware['provideCompletionItem'] = async (document, position, context, token, next) => {
+  const apexCompletionItems = await next(document, position, context, token);
+  if (!apexCompletionItems) {
+    return;
   }
+
+  const items = Array.isArray(apexCompletionItems) ? apexCompletionItems : apexCompletionItems.items;
+  const soqlBlock = insideSOQLBlock(items);
+  if (!soqlBlock) {
+    return apexCompletionItems;
+  }
+  return insideApexBindingExpression(document, soqlBlock.queryText, position)
+    ? items.filter(item => item.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL)
+    : doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
 };
 
-const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): SoqlBlock | undefined => {
-  const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-  const data = soqlItem?.data as unknown;
-  return soqlItem && isSoqlLocation(data) ? { queryText: soqlItem.detail as string, location: data } : undefined;
+export const soqlMiddleware: Middleware = {
+  provideCompletionItem
+};
+
+const insideSOQLBlock = (apexItems: CompletionItem[]): SoqlBlock | undefined => {
+  const soqlItem = apexItems.find(item => item.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+  return soqlItem instanceof ProtocolCompletionItem &&
+    typeof soqlItem.detail === 'string' &&
+    isSoqlLocation(soqlItem.data)
+    ? { queryText: soqlItem.detail, location: soqlItem.data }
+    : undefined;
 };
 
 const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, position: Position): boolean => {

@@ -49,7 +49,7 @@ const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERRO
 const LSP_PARITY_PROVIDERS = ['provideDocumentSymbols'];
 
 // eslint-disable-next-line no-var
-declare var v8debug: any;
+declare var v8debug: object | undefined;
 
 type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
 
