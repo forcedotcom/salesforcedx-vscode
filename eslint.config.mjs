@@ -893,6 +893,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
     files: [
