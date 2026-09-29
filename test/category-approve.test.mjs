@@ -33,7 +33,8 @@ const base = {
 
 test('policy category ids match the headings', () => {
   assert.deepEqual(allowed, [
-    'claude-md',
+    'claude',
+    'eslint',
     'prose',
     'tests-only',
     'dep-bump',
@@ -73,7 +74,13 @@ test('skips denylist paths before classify', () => {
   assert.equal(deniedFile(['packages/foo/src/a.ts', '.github/workflows/ci.yml']), '.github/workflows/ci.yml');
   assert.equal(decideCategoryApprove({ ...base, files: ['.claude/skills/wireit/SKILL.md'] }).action, 'classify');
   assert.equal(decideCategoryApprove({ ...base, files: ['.claude/plans/W-1.md'] }).action, 'classify');
-  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/workflows/auto-build-wi.js'] }).action, 'skip');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/workflows/auto-build-wi.js'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['.claude/settings.json'] }).action, 'classify');
+  assert.equal(decideCategoryApprove({ ...base, files: ['eslint.config.mjs'] }).action, 'classify');
+  assert.equal(
+    decideCategoryApprove({ ...base, files: ['packages/eslint-local-rules/src/index.ts'] }).action,
+    'classify'
+  );
   assert.equal(decideCategoryApprove({ ...base, files: ['APPROVAL_POLICY.md'] }).action, 'skip');
   assert.equal(decideCategoryApprove({ ...base, files: ['.cursor/rules/wireit.mdc'] }).action, 'skip');
 });

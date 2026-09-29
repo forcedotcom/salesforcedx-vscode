@@ -20,16 +20,19 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 - `.github/workflows/**`
 - `CODEOWNERS`
 - `APPROVAL_POLICY.md`
-- a non-markdown file under `.claude/`
 - `.cursor/rules/**`
 - `.cursor/commands/**`
 - `out/**`
 
 ## Categories
 
-### claude-md
+### claude
 
-Every `*.md` file under `.claude/`. Skills, agents, plans, and workflow notes.
+Every file under `.claude/`.
+
+### eslint
+
+Every ESLint config: `eslint.config.*`, `.eslintrc`, `.eslintrc.*`. Every file under `packages/eslint-local-rules/`.
 
 ### prose
 
