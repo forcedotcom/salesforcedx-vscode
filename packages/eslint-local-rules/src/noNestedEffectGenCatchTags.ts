@@ -8,10 +8,7 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-const isEffectCall = (
-  node: TSESTree.Node,
-  method: 'fn' | 'gen' | 'catchTags'
-): node is TSESTree.CallExpression => {
+const isEffectCall = (node: TSESTree.Node, method: 'fn' | 'gen' | 'catchTags'): node is TSESTree.CallExpression => {
   if (node.type !== AST_NODE_TYPES.CallExpression) return false;
   const callee = node.callee;
   if (callee.type !== AST_NODE_TYPES.MemberExpression || callee.computed || callee.optional) return false;
@@ -32,9 +29,7 @@ const isEffectFnCallback = (fn: TSESTree.Node): fn is TSESTree.FunctionExpressio
   return callee.type === AST_NODE_TYPES.CallExpression && isEffectCall(callee, 'fn');
 };
 
-const isGeneratorFunction = (
-  node: TSESTree.Node
-): node is TSESTree.FunctionExpression | TSESTree.FunctionDeclaration =>
+const isGeneratorFunction = (node: TSESTree.Node): node is TSESTree.FunctionExpression | TSESTree.FunctionDeclaration =>
   (node.type === AST_NODE_TYPES.FunctionExpression || node.type === AST_NODE_TYPES.FunctionDeclaration) &&
   node.generator;
 
@@ -59,8 +54,7 @@ export const noNestedEffectGenCatchTags = RuleCreator.withoutDocs({
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Inside Effect.fn, pipe catchTags from the first Effect. Do not wrap that span in Effect.gen.'
+      description: 'Inside Effect.fn, pipe catchTags from the first Effect. Do not wrap that span in Effect.gen.'
     },
     schema: [],
     messages: {

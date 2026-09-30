@@ -97,21 +97,12 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 
 ## In-repo consumers
 
-**IMPORTANT**: In-repo packages access core API via TWO patterns:
-1. Wrapper functions in `coreExtensionUtils.ts` (easy to grep)
-2. **Direct `.exports.MEMBER()` calls** scattered across source files (easy to miss)
-
-Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensionUtils.ts`.
-
-| Package | Files | Members accessed |
-|---------|-------|------------------|
-| apex-debugger | `coreExtensionUtils.ts`, `index.ts` | `.telemetryService` |
-| apex-replay-debugger | `index.ts`, `checkpointService.ts`, `quickLaunch.ts`, `debugConfigurationProvider.ts` | `.services.WorkspaceContext`, `.getUserId` |
+No current in-repo `.exports` consumers of `SalesforceVSCodeCoreApi`.
 
 ## Keeping current
 
-Verified 2026-07-21. Before asserting "nobody uses X":
-1. Grep monorepo for `\.exports\.MEMBER` — catches direct access outside wrapper files
+Verified 2026-09-29. Before asserting "nobody uses X":
+1. Grep monorepo for `\.exports\.MEMBER`
 2. Search `org:forcedotcom` and `org:salesforcecli` via `gh api`
 3. Read private repos via contents API
 4. **For repos that ship from a non-default branch (e.g. einstein-gpt → `afv-v3.0-iac`), inspect that branch directly — code search misses it** (see the ⚠️ above)

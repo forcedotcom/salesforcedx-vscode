@@ -9,6 +9,8 @@ on:
       - 'docs/**.md'
       - '**/docs/**.md'
       - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 jobs:
   build-and-test:
