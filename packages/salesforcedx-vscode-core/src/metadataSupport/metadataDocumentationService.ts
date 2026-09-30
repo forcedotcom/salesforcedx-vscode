@@ -4,10 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
-import { isString } from 'effect/Predicate';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
+import * as Effect from 'effect/Effect';
+import { isError, isString } from 'effect/Predicate';
+import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
+import { getRuntime } from '../services/runtime';
 
 type MetadataFieldInfo = {
   name: string;
@@ -25,6 +30,113 @@ type MetadataTypeDocumentation = {
   developerGuideUrls?: string[];
 };
 
+class XsdParseError extends Schema.TaggedError<XsdParseError>()('XsdParseError', {
+  message: Schema.String
+}) {}
+
+const logXsdLoadFailure = (error: { readonly message: string }) =>
+  Effect.logError('Error loading XSD documentation - no metadata documentation will be available', { error });
+
+/**
+ * Load metadata documentation from the Salesforce metadata XSD file
+ * This reads descriptions directly from the official XSD schema
+ */
+const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMetadataDocumentation')(
+  function* (
+    documentationMap: Map<string, MetadataTypeDocumentation>,
+    extractFields: (complexType: any) => MetadataFieldInfo[]
+  ) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    // Path resolution: works for both development (out/) and production (dist/) builds
+    // Find the extension root by looking for package.json
+    const { dir: extensionRoot } = yield* Effect.iterate(
+      { dir: __dirname, found: false },
+      {
+        while: ({ dir, found }) => !found && dir !== path.dirname(dir),
+        body: ({ dir }) =>
+          api.services.FsService.fileOrFolderExists(path.join(dir, 'package.json')).pipe(
+            Effect.map(exists => (exists ? { dir, found: true } : { dir: path.dirname(dir), found: false }))
+          )
+      }
+    );
+
+    const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_common.xsd');
+    yield* Effect.log(`Loading XSD file from: ${xsdPath}`, { xsdPath });
+
+    if (!(yield* api.services.FsService.fileOrFolderExists(xsdPath))) {
+      yield* Effect.logWarning('XSD file not found - no metadata documentation will be available');
+      return;
+    }
+
+    const schema = yield* api.services.FsService.readFile(xsdPath).pipe(
+      Effect.flatMap(xsdContent =>
+        Effect.try({
+          try: () =>
+            new XMLParser({
+              ignoreAttributes: false,
+              attributeNamePrefix: '@_',
+              textNodeName: '#text',
+              parseAttributeValue: false,
+              parseTagValue: false,
+              trimValues: true
+            }).parse(xsdContent),
+          catch: cause => new XsdParseError({ message: isError(cause) ? cause.message : String(cause) })
+        })
+      ),
+      Effect.map(parsed => parsed['xsd:schema'])
+    );
+
+    if (!schema?.['xsd:complexType']) {
+      yield* Effect.logWarning('Invalid XSD structure - no metadata documentation will be available');
+      return;
+    }
+
+    const complexTypes = Array.isArray(schema['xsd:complexType'])
+      ? schema['xsd:complexType']
+      : [schema['xsd:complexType']];
+
+    for (const complexType of complexTypes) {
+      if (!complexType['@_name']) continue;
+
+      const typeName = complexType['@_name'];
+      const annotation = complexType['xsd:annotation'];
+
+      let description = '';
+      let developerGuideUrl = '';
+
+      if (annotation) {
+        const documentation = annotation['xsd:documentation'];
+        const appinfo = annotation['xsd:appinfo'];
+
+        if (documentation) {
+          description = isString(documentation) ? documentation : (documentation['#text'] ?? '');
+        }
+
+        if (appinfo) {
+          const appinfoText = isString(appinfo) ? appinfo : (appinfo['#text'] ?? '');
+          const urlMatch = appinfoText.match(/Documentation:\s*(https?:\/\/[^\s]+)/);
+          if (urlMatch) {
+            developerGuideUrl = urlMatch[1];
+          }
+        }
+      }
+
+      const fields = extractFields(complexType);
+
+      documentationMap.set(typeName, {
+        name: typeName,
+        description: description.trim(),
+        fields,
+        developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : []
+      });
+    }
+  },
+  Effect.catchTags({
+    FsServiceError: logXsdLoadFailure,
+    XsdParseError: logXsdLoadFailure
+  })
+);
+
 /**
  * Service for loading and providing metadata type documentation
  */
@@ -41,9 +153,12 @@ export class MetadataDocumentationService {
     }
 
     try {
-      await this.loadMetadataDocumentation();
+      await loadMetadataDocumentation(this.documentationMap, this.extractFieldsFromComplexType).pipe(
+        getRuntime().runPromise
+      );
       this.initialized = true;
     } catch (error) {
+      if (Runtime.isFiberFailure(error) && Cause.isInterruptedOnly(error[Runtime.FiberFailureCauseId])) throw error;
       console.error('Failed to initialize metadata documentation service:', error);
     }
   }
@@ -119,94 +234,6 @@ export class MetadataDocumentationService {
 
     // If no definition found, try to extract from XSD patterns
     return this.extractFieldFromXSDPatterns(currentType, fieldName);
-  }
-
-  /**
-   * Load metadata documentation from the Salesforce metadata XSD file
-   * This reads descriptions directly from the official XSD schema
-   */
-  private async loadMetadataDocumentation(): Promise<void> {
-    try {
-      // Path resolution: works for both development (out/) and production (dist/) builds
-      // Find the extension root by looking for package.json
-      let extensionRoot = __dirname;
-      while (extensionRoot !== path.dirname(extensionRoot)) {
-        const packageJsonPath = path.join(extensionRoot, 'package.json');
-        if (await fileOrFolderExists(packageJsonPath)) {
-          break;
-        }
-        extensionRoot = path.dirname(extensionRoot);
-      }
-
-      const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_common.xsd');
-      console.log(`Loading XSD file from: ${xsdPath}`);
-
-      if (!(await fileOrFolderExists(xsdPath))) {
-        console.warn('XSD file not found - no metadata documentation will be available');
-        return;
-      }
-
-      const xsdContent = await readFile(xsdPath);
-      const parser = new XMLParser({
-        ignoreAttributes: false,
-        attributeNamePrefix: '@_',
-        textNodeName: '#text',
-        parseAttributeValue: false,
-        parseTagValue: false,
-        trimValues: true
-      });
-
-      const parsedXsd = parser.parse(xsdContent);
-      const schema = parsedXsd['xsd:schema'];
-
-      if (!schema?.['xsd:complexType']) {
-        console.warn('Invalid XSD structure - no metadata documentation will be available');
-        return;
-      }
-
-      const complexTypes = Array.isArray(schema['xsd:complexType'])
-        ? schema['xsd:complexType']
-        : [schema['xsd:complexType']];
-
-      for (const complexType of complexTypes) {
-        if (!complexType['@_name']) continue;
-
-        const typeName = complexType['@_name'];
-        const annotation = complexType['xsd:annotation'];
-
-        let description = '';
-        let developerGuideUrl = '';
-
-        if (annotation) {
-          const documentation = annotation['xsd:documentation'];
-          const appinfo = annotation['xsd:appinfo'];
-
-          if (documentation) {
-            description = isString(documentation) ? documentation : (documentation['#text'] ?? '');
-          }
-
-          if (appinfo) {
-            const appinfoText = isString(appinfo) ? appinfo : (appinfo['#text'] ?? '');
-            const urlMatch = appinfoText.match(/Documentation:\s*(https?:\/\/[^\s]+)/);
-            if (urlMatch) {
-              developerGuideUrl = urlMatch[1];
-            }
-          }
-        }
-
-        // Extract field information from the complex type
-        const fields = this.extractFieldsFromComplexType(complexType);
-
-        this.documentationMap.set(typeName, {
-          name: typeName,
-          description: description.trim(),
-          fields,
-          developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : []
-        });
-      }
-    } catch (error) {
-      console.error('Error loading XSD documentation - no metadata documentation will be available:', error);
-    }
   }
 
   /**
