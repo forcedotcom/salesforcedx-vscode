@@ -33,7 +33,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "1.60.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
     "effect": "^3.21.2"
@@ -47,10 +47,10 @@
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo .circular-deps.json",
     "lint": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:desktop --debug",
     "test": "wireit"
   },
   "wireit": {

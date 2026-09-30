@@ -13,8 +13,8 @@ Scratch org setup: see `references/local-setup.md`.
 
 **Passing args:** Use `--` to forward params to the underlying playwright command. Prefer file path over `--grep` (exact match, immune to title changes):
 ```bash
-WIREIT_CACHE=none npm run test:web -w <package> -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
-WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
+WIREIT_CACHE=none pnpm --filter <package> test:web -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
+WIREIT_CACHE=none pnpm --filter <package> test:desktop -- --retries 0 test/playwright/specs/myTest.headless.spec.ts
 ```
 `WIREIT_CACHE=none` is always required when running a subset — wireit's cache key is based on input file fingerprints, not CLI args, so it serves the cached full-suite result otherwise.
 
@@ -28,7 +28,7 @@ env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE \
     -u VSCODE_HANDLES_UNCAUGHT_ERRORS -u VSCODE_CWD \
     -u VSCODE_CRASH_REPORTER_PROCESS_TYPE -u VSCODE_ESM_ENTRYPOINT \
     -u VSCODE_CLI -u VSCODE_CODE_CACHE_PATH -u VSCODE_L10N_BUNDLE_LOCATION \
-    WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 <spec>
+    WIREIT_CACHE=none pnpm --filter <package> test:desktop -- --retries 0 <spec>
 ```
 
 `unset` in a separate bash call won't help — each Bash tool invocation is a fresh shell.

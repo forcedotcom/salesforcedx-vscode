@@ -21,9 +21,16 @@ const WRAPPER = [
   'cat > "$dir/gh" <<\'EOF\'',
   '#!/usr/bin/env bash',
   'printf \'%s\\n\' "$*" >> "$GH_CALL_LOG"',
+  'if [[ "$*" == *"/jobs"* ]]; then',
+  '  printf \'%s\\n\' "${JOBS_TSV-}"',
+  '  exit 0',
+  'fi',
   'if [[ "$*" == *"run rerun"* ]]; then',
-  '  echo "live rerun" >&2',
-  '  exit 99',
+  '  if [ "${STUB_RERUN_EXIT:-99}" != "0" ]; then',
+  '    echo "live rerun" >&2',
+  '    exit 99',
+  '  fi',
+  '  exit 0',
   'fi',
   'case "${MEMBERSHIP_KIND:-}" in',
   "  pending) printf '%s\\n' pending ;;",
@@ -35,24 +42,35 @@ const WRAPPER = [
   'chmod +x "$dir/gh"',
   'export PATH="$dir:$PATH"',
   'export GH_CALL_LOG="$log"',
+  'set +e',
   'bash "$SCRIPT"',
+  'status=$?',
+  'set -e',
   'if [[ -s "$log" ]]; then',
   "  printf '%s\\n' 'GH_INVOKED=yes'",
+  '  sed \'s/^/GH_CALL /\' "$log"',
   'else',
   "  printf '%s\\n' 'GH_INVOKED=no'",
-  'fi'
+  'fi',
+  'exit "$status"'
 ].join('\n');
 
 const baseEnv: Readonly<Record<string, string>> = {
   EVENT: 'push',
   ACTOR: 'svc-idee-bot',
   CONCLUSION: 'failure',
-  RUN_STARTED_AT: '2026-01-01T00:00:00Z',
-  UPDATED_AT: '2026-01-01T00:10:00Z',
   RUN_ATTEMPT: '1',
   RUN_ID: '99',
   REPO: 'forcedotcom/salesforcedx-vscode'
 };
+
+const jobTsv = (row: {
+  readonly id: string;
+  readonly name: string;
+  readonly conclusion: string;
+  readonly started: string;
+  readonly completed: string;
+}) => `${row.id}\t${row.name}\t${row.conclusion}\t${row.started}\t${row.completed}`;
 
 type Decision = 'rerun' | 'skip';
 type MembershipKind = 'pending' | 'active' | 'blank';
@@ -61,8 +79,11 @@ type GateCase = {
   readonly name: string;
   readonly env: Readonly<Record<string, string>>;
   readonly membership?: MembershipKind;
+  readonly jobsTsv?: string;
   readonly decision: Decision;
   readonly ghInvoked: boolean;
+  readonly rerunArgs?: readonly string[];
+  readonly expectStatus?: number;
 };
 
 const cases: readonly GateCase[] = [
@@ -85,16 +106,133 @@ const cases: readonly GateCase[] = [
     ghInvoked: false
   },
   {
-    name: 'cancelled at 2999s skips',
-    env: { ...baseEnv, CONCLUSION: 'cancelled', UPDATED_AT: '2026-01-01T00:49:59Z' },
+    name: 'cancelled job at 3000s skips',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'Core E2E (Playwright)' },
+    jobsTsv: jobTsv({
+      id: '11',
+      name: 'e2e-desktop (ubuntu-latest)',
+      conclusion: 'cancelled',
+      started: '2026-01-01T00:00:00Z',
+      completed: '2026-01-01T00:50:00Z'
+    }),
     decision: 'skip',
-    ghInvoked: false
+    ghInvoked: true
   },
   {
-    name: 'cancelled at 3000s reruns',
-    env: { ...baseEnv, CONCLUSION: 'cancelled', UPDATED_AT: '2026-01-01T00:50:00Z' },
+    name: 'cancelled job at 60m reruns that job',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'Core E2E (Playwright)' },
+    jobsTsv: jobTsv({
+      id: '61',
+      name: 'e2e-desktop (ubuntu-latest)',
+      conclusion: 'cancelled',
+      started: '2026-01-01T00:00:00Z',
+      completed: '2026-01-01T01:00:00Z'
+    }),
     decision: 'rerun',
-    ghInvoked: false
+    ghInvoked: true,
+    rerunArgs: ['run rerun --job 61 --repo forcedotcom/salesforcedx-vscode']
+  },
+  {
+    name: 'LWC run-tests cancel under 90m skips',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'LWC E2E (Playwright)' },
+    jobsTsv: jobTsv({
+      id: '90',
+      name: 'e2e-desktop-run-tests (ubuntu-latest)',
+      conclusion: 'cancelled',
+      started: '2026-01-01T00:00:00Z',
+      completed: '2026-01-01T01:10:00Z'
+    }),
+    decision: 'skip',
+    ghInvoked: true
+  },
+  {
+    name: 'LWC timeout cancel reruns only jobs that reached their timeout',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'LWC E2E (Playwright)' },
+    jobsTsv: [
+      jobTsv({
+        id: '60',
+        name: 'e2e-desktop-lsp (ubuntu-latest)',
+        conclusion: 'cancelled',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T01:00:00Z'
+      }),
+      jobTsv({
+        id: '70',
+        name: 'e2e-desktop-run-tests (ubuntu-latest)',
+        conclusion: 'cancelled',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T01:10:00Z'
+      }),
+      jobTsv({
+        id: '71',
+        name: 'e2e-web (ubuntu-latest)',
+        conclusion: 'success',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T00:10:00Z'
+      })
+    ].join('\n'),
+    decision: 'rerun',
+    ghInvoked: true,
+    rerunArgs: ['run rerun --job 60 --repo forcedotcom/salesforcedx-vscode']
+  },
+  {
+    name: 'LWC run-tests cancel at 90m reruns one timed-out job',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'LWC E2E (Playwright)' },
+    jobsTsv: [
+      jobTsv({
+        id: '91',
+        name: 'e2e-desktop-run-tests (macos-latest)',
+        conclusion: 'cancelled',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T01:30:00Z'
+      }),
+      jobTsv({
+        id: '92',
+        name: 'e2e-desktop-run-tests (ubuntu-latest)',
+        conclusion: 'cancelled',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T01:30:00Z'
+      })
+    ].join('\n'),
+    decision: 'rerun',
+    ghInvoked: true,
+    rerunArgs: ['run rerun --job 91 --repo forcedotcom/salesforcedx-vscode']
+  },
+  {
+    name: 'timeout cancel plus a failed job reruns one timed-out job',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'LWC E2E (Playwright)' },
+    jobsTsv: [
+      jobTsv({
+        id: '3',
+        name: 'e2e-desktop-run-tests (windows-latest)',
+        conclusion: 'failure',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T00:04:00Z'
+      }),
+      jobTsv({
+        id: '91',
+        name: 'e2e-desktop-run-tests (macos-latest)',
+        conclusion: 'cancelled',
+        started: '2026-01-01T00:00:00Z',
+        completed: '2026-01-01T01:30:00Z'
+      })
+    ].join('\n'),
+    decision: 'rerun',
+    ghInvoked: true,
+    rerunArgs: ['run rerun --job 91 --repo forcedotcom/salesforcedx-vscode']
+  },
+  {
+    name: 'cancelled run with only an early failure skips',
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'Core E2E (Playwright)' },
+    jobsTsv: jobTsv({
+      id: '4',
+      name: 'e2e-desktop (ubuntu-latest)',
+      conclusion: 'failure',
+      started: '2026-01-01T00:00:00Z',
+      completed: '2026-01-01T00:04:00Z'
+    }),
+    decision: 'skip',
+    ghInvoked: true
   },
   {
     name: 'run_attempt 3 reruns',
@@ -137,9 +275,23 @@ const cases: readonly GateCase[] = [
   },
   {
     name: 'bad cancel timestamp skips',
-    env: { ...baseEnv, CONCLUSION: 'cancelled', UPDATED_AT: 'not-a-date' },
+    env: { ...baseEnv, CONCLUSION: 'cancelled', WORKFLOW_NAME: 'Core E2E (Playwright)' },
+    jobsTsv: jobTsv({
+      id: '12',
+      name: 'e2e-desktop (ubuntu-latest)',
+      conclusion: 'cancelled',
+      started: '2026-01-01T00:00:00Z',
+      completed: 'not-a-date'
+    }),
     decision: 'skip',
-    ghInvoked: false
+    ghInvoked: true
+  },
+  {
+    name: 'failed gh run rerun fails the job',
+    env: baseEnv,
+    decision: 'rerun',
+    ghInvoked: true,
+    expectStatus: 99
   }
 ];
 
@@ -151,9 +303,14 @@ const runGate = (gateCase: GateCase) => {
       HOME: process.env.HOME,
       TMPDIR: process.env.TMPDIR,
       SCRIPT,
-      RERUN_PUSH_E2E_DECIDE_ONLY: '1',
+      ...gateCase.env,
       ...(gateCase.membership === undefined ? {} : { MEMBERSHIP_KIND: gateCase.membership }),
-      ...gateCase.env
+      ...(gateCase.jobsTsv === undefined ? {} : { JOBS_TSV: gateCase.jobsTsv }),
+      ...(gateCase.rerunArgs === undefined && gateCase.expectStatus === undefined
+        ? { RERUN_PUSH_E2E_DECIDE_ONLY: '1' }
+        : gateCase.expectStatus === undefined
+          ? { STUB_RERUN_EXIT: '0' }
+          : {})
     }
   });
   const lines = typeof result.stdout === 'string' ? result.stdout.split('\n') : [];
@@ -161,6 +318,7 @@ const runGate = (gateCase: GateCase) => {
     status: result.status,
     decisionLine: lines.find(line => line === 'rerun' || line.startsWith('skip:')),
     ghInvoked: lines.includes('GH_INVOKED=yes'),
+    ghCalls: lines.flatMap(line => (line.startsWith('GH_CALL ') ? [line.slice('GH_CALL '.length)] : [])),
     stderr: typeof result.stderr === 'string' ? result.stderr : ' '
   };
 };
@@ -192,19 +350,35 @@ const pushE2ENames = [
 describe('rerunPushE2EGate', () => {
   test.each(cases)('$name', gateCase => {
     const result = runGate(gateCase);
-    expect(result.status).toBe(0);
-    expect(result.stderr).not.toContain('live rerun');
+    expect(result.status).toBe(gateCase.expectStatus ?? 0);
+    gateCase.expectStatus === undefined
+      ? expect(result.stderr).not.toContain('live rerun')
+      : expect(result.ghCalls.some(call => call.includes('--failed'))).toBe(true);
     expect(result.ghInvoked).toBe(gateCase.ghInvoked);
-    expect(result.decisionLine).toEqual(expect.stringMatching(gateCase.decision === 'rerun' ? /^rerun$/ : /^skip:/));
+    gateCase.expectStatus !== undefined
+      ? expect(result.decisionLine).toBeUndefined()
+      : gateCase.rerunArgs === undefined
+        ? expect(result.decisionLine).toEqual(
+            expect.stringMatching(gateCase.decision === 'rerun' ? /^rerun$/ : /^skip:/)
+          )
+        : expect(result.ghCalls.filter(call => call.includes('run rerun'))).toEqual([...gateCase.rerunArgs]);
   });
 });
 
 describe('rerunPushE2E workflow', () => {
-  test('lists the push E2E workflow names and reruns failed jobs only', () => {
+  test('lists the push Playwright workflow names', () => {
     const text = readText(WORKFLOW);
-    const script = readText(SCRIPT);
+    const workflowItemPrefix = '      - ';
+    const workflowsBlock = text.split('workflows:\n')[1]?.split('\n    types:')[0];
+    const listed =
+      workflowsBlock === undefined
+        ? []
+        : workflowsBlock
+            .split('\n')
+            .flatMap(line => (line.startsWith(workflowItemPrefix) ? [line.slice(workflowItemPrefix.length)] : []));
     expect(text.split('\n').filter(line => line.trim() === 'name: Rerun Push E2E')).toHaveLength(1);
-    expect(pushE2ENames.filter(name => text.includes(`- ${name}`))).toEqual([...pushE2ENames]);
+    expect(listed).toEqual([...pushE2ENames]);
+    expect(text).toContain('WORKFLOW_NAME: ${{ github.event.workflow_run.name }}');
     expect(text).toContain('types: [completed]');
     expect(text).toContain('timeout-minutes: 5');
     expect(text).toContain('group: rerun-push-e2e-${{ github.event.workflow_run.id }}');
@@ -216,6 +390,5 @@ describe('rerunPushE2E workflow', () => {
     expect(text).not.toContain('workflow_dispatch:');
     expect(text).not.toContain('pull_request:');
     expect(text).not.toContain('schedule:');
-    expect(script).toContain('gh run rerun "$RUN_ID" --failed --repo "$REPO"');
   });
 });

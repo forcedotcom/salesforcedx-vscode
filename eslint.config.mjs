@@ -974,6 +974,14 @@ export default [
     }
   },
   {
+    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
+    // Before the test override so packages/**/test/**/*.ts stays off.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'functional/no-throw-statements': 'error'
+    }
+  },
+  {
     // Relaxed rules for test files
     files: [
       'packages/**/test/**/*.ts',

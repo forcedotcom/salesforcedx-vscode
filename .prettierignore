@@ -1,4 +1,5 @@
 **/*.md
+pnpm-lock.yaml
 **/snippets/
 SHA256.md
 .claude/
