@@ -292,7 +292,7 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
-        "scripts/category-approve-cli.ts",
+        "scripts/category-approve.ts",
         "scripts/shared/categoryDecision.ts",
         "scripts/shared/scriptErrors.ts",
         "APPROVAL_POLICY.md",

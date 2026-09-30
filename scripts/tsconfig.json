@@ -14,5 +14,5 @@
     "types": ["node"]
   },
   "include": ["*.ts"],
-  "exclude": ["category-approve-cli.ts"]
+  "exclude": ["category-approve.ts"]
 }
