@@ -38,7 +38,7 @@ describe('logGetCommand', () => {
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({ services })
         } as unknown as ExtensionProviderService)
-      )
+      ) as Effect.Effect<void, unknown, never>
     );
 
     expect(listLogs).toHaveBeenCalledTimes(1);

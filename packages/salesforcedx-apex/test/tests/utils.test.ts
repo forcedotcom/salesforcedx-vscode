@@ -7,7 +7,6 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as utils from '../../src/tests/utils';
-import { getBufferSize, getJsonIndent, resetLimitsForTesting } from '../../src/tests/utils';
 
 let mockConnection: Connection;
 const testData = new MockTestOrgData();
@@ -55,39 +54,5 @@ describe('Query Namespaces', () => {
       { installedNs: true, namespace: 'myNamespace' },
       { installedNs: true, namespace: 'otherNamespace' }
     ]);
-  });
-});
-
-describe('getJsonIndent', () => {
-  beforeEach(() => {
-    resetLimitsForTesting();
-  });
-  it('should return the integer value of the environment variable when it is set and is an integer', () => {
-    process.env.SF_APEX_RESULTS_JSON_INDENT = '4';
-    const result = getJsonIndent();
-    expect(result).toBe(4);
-  });
-
-  it('should return undefined when the environment variable is not set or is not an integer', () => {
-    process.env.SF_APEX_RESULTS_JSON_INDENT = 'not an integer';
-    const result = getJsonIndent();
-    expect(result).toBeUndefined();
-  });
-});
-
-describe('getBufferSize', () => {
-  beforeEach(() => {
-    resetLimitsForTesting();
-  });
-  it('should return the integer value of the environment variable when it is set and is an integer', () => {
-    process.env.SF_APEX_JSON_BUFFER_SIZE = '512';
-    const result = getBufferSize();
-    expect(result).toBe(512);
-  });
-
-  it('should return 256 when the environment variable is not set or is not an integer', () => {
-    process.env.SF_APEX_JSON_BUFFER_SIZE = 'not an integer';
-    const result = getBufferSize();
-    expect(result).toBe(256);
   });
 });

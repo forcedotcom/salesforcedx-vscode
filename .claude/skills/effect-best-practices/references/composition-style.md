@@ -21,9 +21,8 @@ call site:
    seed a standalone `pipe(value, …)`. The nested-call-arg half (`f(g(x))`) is
    config-enforced by `missedPipeableOpportunity`, which fires at ≥2 pipeable
    call-kind transformations; judgment remains for what the pipe's subject should
-   be — hoist a named `const` over inverting a reused schema combinator
-   (`Schema.optional(Schema.Array(x))` stays a call; the repo has 0
-   `X.pipe(Schema.optional)` sites).
+   be — nested Schema combinators invert to pipe (`Schema.String.pipe(Schema.NullOr,
+   Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)`).
 
 Rest is application of these to specific combinators.
 
@@ -198,21 +197,17 @@ export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
     )
 );
 
-// GENERATOR — yield* to resolve a dependency, then run the stream pipe
+// GENERATOR — plain array seeds a pipe; the grouped chunk pipes toArray then the query
 export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
   logFileContents: string
 ) {
-  // dependent yield*: resolve conn from ExtensionProviderService, then pipe
-  const conn = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.ConnectionService.getConnection())
-  );
   return yield* pipe(
     extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)),
     Arr.map(entry => entry.heapDumpId),
     Arr.dedupe,
     Stream.fromIterable,
-    Stream.grouped(MAX_BATCH_SIZE),
-    Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
+    Stream.grouped(MAX_QUERY_IDS),
+    Stream.mapEffect(chunk => chunk.pipe(Chunk.toArray, runOverlayQuery), { concurrency: QUERY_CONCURRENCY }),
     Stream.flattenIterables,
     Stream.runCollect,
     Effect.map(Chunk.toArray)
@@ -331,7 +326,7 @@ getServicesApi.pipe(
 | --- | --- | --- |
 | Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)` |
 | Run a built effect / any nested `f(g(pipeable))` | `pipeable.pipe(g, f)` — inner-first, terminal step last; config-enforced by `missedPipeableOpportunity` at ≥2 pipeable transformations | wrap whole expr in `runPromise(effect.pipe(...))` |
-| Nested reused schema combinator (`Schema.optional(Schema.Array(x))`) | hoist a named `const` for the inner schema | invert to `x.pipe(Schema.Array, Schema.optional)` — 0 repo precedent |
+| Nested Schema combinators (`Schema.optional(Schema.NullOr(Schema.String))`, `Schema.optional(Schema.Array(x))`) | `Schema.String.pipe(Schema.NullOr, Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)` | nested `Schema.optional(Schema.NullOr/Array(...))` calls |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |

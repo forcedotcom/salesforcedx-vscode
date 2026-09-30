@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
-    "@salesforce/ts-types": "^3.0.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",

@@ -5,24 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
-import { ApexLogBodyFetchError, ApexLogQueryError } from '../errors/apexLogErrors';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import { ApexLogBodyFetchError } from '../errors/apexLogErrors';
 import { ConnectionService } from './connectionService';
+import { QueryService } from './queryService';
 import { unknownToErrorCause } from './shared';
 
+const LogUser = Schema.Struct({
+  Name: Schema.optionalWith(Schema.String, { nullable: true })
+});
+
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference) */
-export type ApexLogListItem = {
-  Id: string;
-  Application?: string;
-  DurationMilliseconds?: number;
-  LogLength: number;
-  LogUserId?: string;
-  LogUser?: { Name?: string };
-  Operation?: string;
-  StartTime: string;
-  Status: string;
-};
+export const ApexLogListItem = Schema.Struct({
+  Id: Schema.String,
+  Application: Schema.optionalWith(Schema.String, { nullable: true }),
+  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
+  LogLength: Schema.Number,
+  LogUserId: Schema.optionalWith(Schema.String, { nullable: true }),
+  LogUser: Schema.optionalWith(LogUser, { nullable: true }),
+  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
+  StartTime: Schema.String,
+  Status: Schema.String
+});
+export type ApexLogListItem = Schema.Schema.Type<typeof ApexLogListItem>;
 
 export type ListLogsOptions = {
   /** Filter to logs for this user (LogUserId) */
@@ -57,44 +66,40 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
 
 export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
   accessors: true,
-  dependencies: [ConnectionService.Default],
+  dependencies: [ConnectionService.Default, QueryService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
 
     const listLogs = Effect.fn('ApexLogService.listLogs')(function* (limit: number = 25, options?: ListLogsOptions) {
-      const conn = yield* connectionService.getConnection();
-      const query = buildListLogsQuery(limit, options);
-      const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.query<ApexLogListItem>(query),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new ApexLogQueryError({
-            message: `Failed to query ApexLog: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      return result.records;
+      return yield* Effect.flatMap(QueryService, queryService =>
+        queryService.query({ soql: buildListLogsQuery(limit, options), tooling: true }, ApexLogListItem).pipe(
+          Effect.flatMap(({ records }) => Stream.runCollect(records)),
+          Effect.map(Chunk.toReadonlyArray)
+        )
+      );
     });
 
     const getLogBody = Effect.fn('ApexLogService.getLogBody')(function* (logId: string) {
-      const conn = yield* connectionService.getConnection();
-      const apiVersion = conn.getApiVersion();
-      const url = `${conn.instanceUrl}/services/data/v${apiVersion}/tooling/sobjects/ApexLog/${logId}/Body`;
-      const body = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await conn.request({ method: 'GET', url });
-          return isString(res) ? res : String(res);
-        },
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new ApexLogBodyFetchError({
-            message: `Failed to fetch ApexLog body: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      return body;
+      return yield* connectionService.getConnection().pipe(
+        Effect.flatMap(conn =>
+          Effect.tryPromise({
+            try: async () => {
+              const res = await conn.request({
+                method: 'GET',
+                url: `${conn.instanceUrl}/services/data/v${conn.getApiVersion()}/tooling/sobjects/ApexLog/${logId}/Body`
+              });
+              return isString(res) ? res : String(res);
+            },
+            catch: error => {
+              const { cause } = unknownToErrorCause(error);
+              return new ApexLogBodyFetchError({
+                message: `Failed to fetch ApexLog body: ${cause.message}`,
+                cause: error
+              });
+            }
+          })
+        )
+      );
     });
 
     return {

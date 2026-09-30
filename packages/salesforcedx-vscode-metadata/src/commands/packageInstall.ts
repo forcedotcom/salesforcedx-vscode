@@ -8,12 +8,14 @@
 import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isUndefined } from 'effect/Predicate';
+import { isError, isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as Str from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -79,13 +81,16 @@ const gatherPollChoice = Effect.fn('packageInstall.gatherPollChoice')(function* 
 
 const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable')(function* (packageId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* api.services.ConnectionService.getConnection();
-  return yield* Effect.tryPromise({
-    try: () => conn.tooling.query<{ Id: string }>(`SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`),
-    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
-  }).pipe(
+  return yield* api.services.QueryService.pipe(
+    Effect.flatMap(queryService =>
+      queryService.query(
+        { soql: `SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`, tooling: true },
+        Schema.Struct({ Id: Schema.String })
+      )
+    ),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
     Effect.filterOrFail(
-      result => result.records.length > 0,
+      chunk => Chunk.size(chunk) > 0,
       () => new PackageInstallFailedError({ message: nls.localize('package_install_not_found', packageId) })
     ),
     Effect.as(packageId)
@@ -126,21 +131,22 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
 
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* api.services.ConnectionService.getConnection();
-  return yield* Effect.tryPromise({
-    try: () =>
-      conn.tooling.query<PackageInstallRequest>(
-        `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`
-      ),
-    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
-  }).pipe(
+  return yield* api.services.QueryService.pipe(
+    Effect.flatMap(queryService =>
+      queryService.query(
+        { soql: `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`, tooling: true },
+        Schema.Unknown.pipe(Schema.filter((value): value is PackageInstallRequest => isRecord(value)))
+      )
+    ),
+    Effect.flatMap(({ records }) => Stream.runCollect(records)),
+    Effect.map(Chunk.toReadonlyArray),
     Effect.retry({
       schedule: Schedule.exponential(Duration.seconds(1), 2.0).pipe(
         Schedule.either(Schedule.spaced(Duration.seconds(30)))
       ),
       times: 5
     }),
-    Effect.map(result => Arr.head(result.records)),
+    Effect.map(Arr.head),
     Effect.filterOrFail(
       Option.isSome,
       () => new PackageInstallFailedError({ message: `Request ${requestId} not found` })

@@ -36,7 +36,7 @@ import {
   TestRunIdResult,
   TestSuiteMembershipRecord
 } from './types';
-import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
+import { isFlowTest, queryNamespaces } from './utils';
 
 const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
 
@@ -74,26 +74,19 @@ export const writeResultFiles = async (
       switch (format) {
         case 'json':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
-          readable = TestResultStringifyStream.fromTestResult(result, {
-            bufferSize: getBufferSize()
-          });
+          readable = TestResultStringifyStream.fromTestResult(result);
           break;
         case 'tap':
           filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
-          readable = new TapFormatTransformer(result, undefined, {
-            bufferSize: getBufferSize()
-          });
+          readable = new TapFormatTransformer(result);
           break;
         case 'junit':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
-          readable = new JUnitFormatTransformer(result, {
-            bufferSize: getBufferSize()
-          });
+          readable = new JUnitFormatTransformer(result);
           break;
         case 'markdown':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
           readable = new MarkdownTextFormatTransformer(result, {
-            bufferSize: getBufferSize(),
             format: 'markdown',
             codeCoverage
           });
@@ -101,7 +94,6 @@ export const writeResultFiles = async (
         case 'text':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
           readable = new MarkdownTextFormatTransformer(result, {
-            bufferSize: getBufferSize(),
             format: 'text',
             codeCoverage
           });
@@ -118,7 +110,7 @@ export const writeResultFiles = async (
   if (codeCoverage && isTestResult(result)) {
     const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
-    filesWritten.push(await runPipeline(new JsonStreamStringify(c, undefined, getJsonIndent()), filePath));
+    filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
   }
 
   if (fileInfos) {
@@ -127,7 +119,7 @@ export const writeResultFiles = async (
       const readable =
         typeof fileInfo.content === 'string'
           ? Readable.from([fileInfo.content])
-          : new JsonStreamStringify(fileInfo.content, undefined, getJsonIndent());
+          : new JsonStreamStringify(fileInfo.content);
       filesWritten.push(await runPipeline(readable, filePath));
     }
   }

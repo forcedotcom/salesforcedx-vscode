@@ -9,6 +9,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
@@ -17,6 +18,7 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
@@ -1101,23 +1103,38 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new ResolveSuiteChildrenError({ suiteName, message: toUserFriendlyApexTestError(e) }))
       );
 
-      const classNames = yield* Effect.tryPromise({
-        try: async () => {
-          const classesInSuite = await new TestService(connection).getTestsInSuite(suiteName);
-          if (classesInSuite.length === 0) {
-            return [];
-          }
-          const classIds = classesInSuite.map(record => record.ApexClassId);
-          const classNamesQuery = `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`;
-          const queryResult = await connection.tooling.query<{ Name: string; NamespacePrefix: string | null }>(
-            classNamesQuery
-          );
-          return queryResult.records.map((record: { Name: string; NamespacePrefix?: string | null }) =>
-            record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
-          );
-        },
+      const classesInSuite = yield* Effect.tryPromise({
+        try: () => new TestService(connection).getTestsInSuite(suiteName),
         catch: e => new ResolveSuiteChildrenError({ suiteName, message: toUserFriendlyApexTestError(e) })
       });
+      const classNames =
+        classesInSuite.length === 0
+          ? []
+          : yield* api.services.QueryService.pipe(
+              Effect.flatMap(queryService =>
+                queryService.query(
+                  {
+                    soql: `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${classesInSuite
+                      .map(record => `'${record.ApexClassId.replaceAll("'", "''")}'`)
+                      .join(',')})`,
+                    tooling: true
+                  },
+                  Schema.Struct({
+                    Name: Schema.String,
+                    NamespacePrefix: Schema.optionalWith(Schema.String, { nullable: true })
+                  })
+                )
+              ),
+              Effect.flatMap(({ records }) => Stream.runCollect(records)),
+              Effect.map(chunk =>
+                Chunk.toReadonlyArray(chunk).map(record =>
+                  record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
+                )
+              ),
+              Effect.mapError(
+                e => new ResolveSuiteChildrenError({ suiteName, message: toUserFriendlyApexTestError(e) })
+              )
+            );
 
       if (classNames.length === 0) {
         yield* Effect.logDebug('No test classes found for suite', { suiteName });
