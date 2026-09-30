@@ -103,7 +103,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: Duration.millis(60_000) })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
   const checkParent = (processInfo: ProcessDetail) =>

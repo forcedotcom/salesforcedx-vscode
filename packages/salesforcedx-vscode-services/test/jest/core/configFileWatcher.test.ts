@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -59,9 +60,9 @@ describe('watchConfigFiles', () => {
     pubsub: PubSub.PubSub<FileChangeEvent>,
     uri: string
   ) => {
-    await Effect.runPromise(Effect.sleep(10));
+    await Duration.millis(10).pipe(Effect.sleep, Effect.runPromise);
     await Effect.runPromise(PubSub.publish(pubsub, { type: 'change' as const, uri: URI.file(uri) }));
-    await Effect.runPromise(Effect.sleep(100));
+    await Duration.millis(100).pipe(Effect.sleep, Effect.runPromise);
     await fiber.pipe(Fiber.interrupt, Effect.runPromise);
   };
 
