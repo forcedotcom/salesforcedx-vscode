@@ -6,69 +6,99 @@
  */
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isNullable, isRecord, isUndefined } from 'effect/Predicate';
-import * as vscode from 'vscode';
+import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
+import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
 import { stripAllRows } from '../editor/allRows';
+import { JsonObject } from '../json';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
  * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
+ * Detects and strips `ALL ROWS` clauses, routing to `/queryAll` endpoint via `scanAll` option.
+ * Shows a progress notification while query executes.
  *
- * @param query - SOQL query string to execute
+ * @param query - SOQL query string to execute (may contain trailing `ALL ROWS`)
  * @param useTooling - Whether to use the Tooling API instead of REST
  */
 export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
-  const channelService = yield* api.services.ChannelService;
 
-  yield* channelService.appendToChannel(
-    nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+  yield* api.services.ChannelService.pipe(
+    Effect.flatMap(channelService =>
+      channelService.appendToChannel(
+        nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
+      )
+    )
   );
 
-  const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
-  const { soql, scanAll } = stripAllRows(query);
-  return yield* Effect.promise(() =>
-    useTooling
-      ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
-      : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
+  return yield* Effect.all({
+    maxRows: api.services.SettingsService.pipe(
+      Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
+    ),
+    promptService: api.services.PromptService,
+    progressLocation: api.services.NotificationModeService.pipe(
+      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
+    ),
+    queryService: api.services.QueryService
+  }).pipe(
+    Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
+      queryService.query({ ...stripAllRows(query), tooling: useTooling }, JsonObject).pipe(
+        Effect.flatMap(({ totalSize, records }) =>
+          Stream.take(records, maxRows).pipe(
+            Stream.runCollect,
+            Effect.map(chunk => ({
+              done: true as const,
+              totalSize,
+              records: [...Chunk.toReadonlyArray(chunk)]
+            }))
+          )
+        ),
+        promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
+      )
+    )
   );
 });
 
-const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
+const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonObject>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
   const fileName = `soql-query-${timestamp}.csv`;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fileUri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
   yield* api.services.FsService.writeFile(fileUri, csvContent);
 
-  // Show success message with clickable file link
-  const openFileAction = nls.localize('data_query_open_file');
-  const selection = yield* Effect.promise(() =>
-    vscode.window.showInformationMessage(
-      nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
-      openFileAction
-    )
-  );
-  if (selection === openFileAction) {
-    yield* api.services.FsService.showTextDocument(fileUri);
-  }
+  const successMessage = nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath);
+  yield* notificationMode.showSuccessNotification(COMMAND, successMessage, true, [
+    {
+      label: nls.localize('data_query_open_file'),
+      run: () =>
+        getSoqlRuntime()
+          .runPromise(api.services.FsService.showTextDocument(fileUri))
+          .then(() => undefined)
+    }
+  ]);
 });
 
 export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
-  if (vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('clearOutputTab', false)) {
+  if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 
@@ -121,7 +151,7 @@ export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* (
 
 /** Shared flatten pipeline for output channel table, CSV, and Query Data View. */
 const buildFlattenedGridModel = (
-  records: QueryResult<JsonMap>['records']
+  records: QueryResult<JsonObject>['records']
 ): { flattenedFields: string[]; rows: Record<string, unknown>[] } | null => {
   const recs = records?.filter(isRecord) ?? [];
   if (recs.length === 0) {
@@ -137,7 +167,7 @@ const buildFlattenedGridModel = (
 
 /** Pre-flattened grid for SOQL Builder webview (string cells for Tabulator). */
 export const getFlattenedSoqlGridPayload = (
-  records: QueryResult<JsonMap>['records']
+  records: QueryResult<JsonObject>['records']
 ): { fields: string[]; rowData: Record<string, string>[] } | null => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
@@ -151,7 +181,7 @@ export const getFlattenedSoqlGridPayload = (
 };
 
 /** Generates table output from query records */
-export const generateTableOutput = (records: QueryResult<JsonMap>['records'], title: string): string => {
+export const generateTableOutput = (records: QueryResult<JsonObject>['records'], title: string): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -487,7 +517,7 @@ const fillParentColumnsForCsvChunk = (
 };
 
 /** Converts query records to CSV format (same row/column model as generateTableOutput). */
-export const convertToCSV = (records: QueryResult<JsonMap>['records']): string => {
+export const convertToCSV = (records: QueryResult<JsonObject>['records']): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -526,7 +556,7 @@ const DISPLAY_OBJECT_MAX_DEPTH = 10;
  * Formats a value inside an object/array for display (shows `null` / `undefined` as words).
  */
 const formatNestedDisplayValue = (value: unknown, depthRemaining: number): string => {
-  if (value === null) {
+  if (isNull(value)) {
     return 'null';
   }
   if (isUndefined(value)) {
@@ -564,7 +594,7 @@ export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISP
 };
 
 /** Displays query results in table format */
-export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonMap>) {
+export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonObject>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -578,5 +608,5 @@ export const displayTableResults = Effect.fn('displayTableResults')(function* (q
 });
 
 /** Converts query result to CSV string */
-export const convertQueryResultToCSV = (queryResult: QueryResult<JsonMap>): string =>
+export const convertQueryResultToCSV = (queryResult: QueryResult<JsonObject>): string =>
   queryResult.records?.length ? convertToCSV(queryResult.records) : nls.localize('data_query_no_records');

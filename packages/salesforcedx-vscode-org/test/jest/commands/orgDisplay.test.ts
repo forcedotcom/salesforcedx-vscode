@@ -26,8 +26,7 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 
 /** Same tag as the real services error, so the command's catchTag recovers it. */
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
 const SCRATCH_RESULT = {
@@ -79,11 +78,15 @@ const buildServices = (opts: Opts) => ({
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) => {
         opts.withProgress?.(_message);
         return effect;
       }
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
@@ -118,12 +121,13 @@ describe('orgDisplayDefaultCommand', () => {
     show = jest.fn();
   });
 
-  it('runs `sf org display --target-org "<default>" --json` and writes the table to the channel', async () => {
+  it('runs `sf org display --target-org <default> --json` and writes the table to the channel', async () => {
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org display --target-org "me@scratch.org" --json',
+      executable: 'sf',
+      args: ['org', 'display', '--target-org', 'me@scratch.org', '--json'],
       parse: expect.any(Function)
     });
     // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; the scratch-org values
@@ -147,7 +151,9 @@ describe('orgDisplayDefaultCommand', () => {
     const exit = await run(orgDisplayDefaultCommand, { orgInfo: {}, simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org display --json' }));
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({ executable: 'sf', args: ['org', 'display', '--json'] })
+    );
   });
 
   it('renders the non-scratch table (connectedStatus, no scratch block)', async () => {
@@ -183,13 +189,11 @@ describe('orgDisplayDefaultCommand', () => {
 
   it('recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload', async () => {
     // sf exits non-zero on failure, so simpleExec fails; its message carries the JSON error payload,
-    // which decodeTaggedCliResponse slices out of the `Command failed: ...` prefix.
-    const command = 'sf org display --target-org "me@scratch.org" --json';
+    // which decodeTaggedCliResponse extracts after TerminalService's command-free failure prefix.
     simpleExec = jest.fn(() =>
       Effect.fail(
         new TerminalServiceError({
-          command,
-          message: `Command failed: ${command}\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
+          message: `Command failed\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
         })
       )
     );
@@ -204,9 +208,7 @@ describe('orgDisplayDefaultCommand', () => {
   it('propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)', async () => {
     // infra failure, not a CLI-reported one: there is nothing to decode, so the typed error must reach
     // ErrorHandlerService with its real diagnostic instead of becoming an opaque OrgDisplayParseError.
-    simpleExec = jest.fn(() =>
-      Effect.fail(new TerminalServiceError({ command: 'sf org display --json', message: 'sh: sf: command not found' }))
-    );
+    simpleExec = jest.fn(() => Effect.fail(new TerminalServiceError({ message: 'sh: sf: command not found' })));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -256,26 +258,30 @@ describe('orgDisplayUsernameCommand', () => {
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
   });
 
-  it('runs `sf org display --target-org "<picked>" --json` for the picked org and writes the table', async () => {
+  it('runs `sf org display --target-org <picked> --json` for the picked org and writes the table', async () => {
     const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org display --target-org "me@scratch.org" --json',
+      executable: 'sf',
+      args: ['org', 'display', '--target-org', 'me@scratch.org', '--json'],
       parse: expect.any(Function)
     });
     expect(appendToChannel.mock.calls[0][0]).toContain('Username');
     expect(show).toHaveBeenCalledTimes(1);
   });
 
-  it('quotes the picked username so a value with spaces survives /bin/sh -c word splitting', async () => {
+  it('passes a username with spaces as a single argv element (no shell word splitting)', async () => {
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'my org@example.com' }));
 
     const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: 'sf org display --target-org "my org@example.com" --json' })
+      expect.objectContaining({
+        executable: 'sf',
+        args: ['org', 'display', '--target-org', 'my org@example.com', '--json']
+      })
     );
   });
 

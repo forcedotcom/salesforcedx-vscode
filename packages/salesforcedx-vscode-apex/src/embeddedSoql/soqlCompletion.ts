@@ -5,13 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/**
- * the types on this are pretty messed up (e.g. ProtocolCompletionItem is not the same as CompletionItem)
- * one options would be to skip the CompletionItem that are not ProtocolCompletionItem (ie have a type guard)
- * but I'm not sure how it's actually supposed to work and how the framework handles undefined values that as might allow through
- */
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
-
 import {
   commands,
   CompletionContext,
@@ -28,6 +21,11 @@ import { URI } from 'vscode-uri';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
+type SoqlBlock = { queryText: string; location: { startIndex: number } };
+
+const isSoqlLocation = (data: unknown): data is SoqlBlock['location'] =>
+  typeof data === 'object' && data !== null && 'startIndex' in data && typeof data.startIndex === 'number';
+
 const virtualDocumentContents = new Map<string, string>();
 
 workspace.registerTextDocumentContentProvider('embedded-soql', {
@@ -37,30 +35,33 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
-export const soqlMiddleware: Middleware = {
-  // @ts-ignore
-  provideCompletionItem: async (document, position, context, token, next) => {
-    const apexCompletionItems = await next(document, position, context, token);
-    if (!apexCompletionItems) {
-      return;
-    }
-
-    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
-      ? (apexCompletionItems as ProtocolCompletionItem[])
-      : (apexCompletionItems.items as ProtocolCompletionItem[]);
-
-    const soqlBlock = insideSOQLBlock(items);
-    if (soqlBlock) {
-      return !insideApexBindingExpression(document, soqlBlock.queryText, position)
-        ? await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock)
-        : items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-    } else return apexCompletionItems;
+const provideCompletionItem: Middleware['provideCompletionItem'] = async (document, position, context, token, next) => {
+  const apexCompletionItems = await next(document, position, context, token);
+  if (!apexCompletionItems) {
+    return;
   }
+
+  const items = Array.isArray(apexCompletionItems) ? apexCompletionItems : apexCompletionItems.items;
+  const soqlBlock = insideSOQLBlock(items);
+  if (!soqlBlock) {
+    return apexCompletionItems;
+  }
+  return insideApexBindingExpression(document, soqlBlock.queryText, position)
+    ? items.filter(item => item.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL)
+    : doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
 };
 
-const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): { queryText: string; location: any } | undefined => {
-  const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-  return soqlItem ? { queryText: soqlItem.detail as string, location: soqlItem.data } : undefined;
+export const soqlMiddleware: Middleware = {
+  provideCompletionItem
+};
+
+const insideSOQLBlock = (apexItems: CompletionItem[]): SoqlBlock | undefined => {
+  const soqlItem = apexItems.find(item => item.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+  return soqlItem instanceof ProtocolCompletionItem &&
+    typeof soqlItem.detail === 'string' &&
+    isSoqlLocation(soqlItem.data)
+    ? { queryText: soqlItem.detail, location: soqlItem.data }
+    : undefined;
 };
 
 const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, position: Position): boolean => {
@@ -72,11 +73,7 @@ const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, 
   return !!wordAtCursor && wordAtCursor.startsWith(':');
 };
 
-const getSOQLVirtualContent = (
-  document: TextDocument,
-  position: Position,
-  soqlBlock: { queryText: string; location: any }
-): string => {
+const getSOQLVirtualContent = (document: TextDocument, position: Position, soqlBlock: SoqlBlock): string => {
   const eol = eolForDocument(document);
   const blankedContent = document
     .getText()
@@ -95,7 +92,7 @@ const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
   context: CompletionContext,
-  soqlBlock: { queryText: string; location: any }
+  soqlBlock: SoqlBlock
 ): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));

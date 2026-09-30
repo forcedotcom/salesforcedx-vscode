@@ -12,10 +12,12 @@ import { identity } from 'effect/Function';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { getOrgChannelService } from '../channels';
 import { nls } from '../messages';
 import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
+
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Delete Org';
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT = Duration.seconds(120);
@@ -49,27 +51,27 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   if (orgInfo.isScratch !== true && orgInfo.isSandbox !== true) {
     return yield* new OrgNotDeletableError({ message: nls.localize('org_delete_default_not_deletable') });
   }
-  const deleteSubcommand = orgInfo.isSandbox === true ? 'org delete sandbox' : 'org delete scratch';
+  const deleteKind = orgInfo.isSandbox === true ? 'sandbox' : 'scratch';
 
   // pass --target-org so the delete resolves the default org by username rather than depending on
   // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
-  const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
+  const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   const terminalService = yield* api.services.TerminalService;
-  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, which aborts the
-  // runtime AbortSignal simpleExec threads into exec, killing the long-running sf child.
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the long-running sf child.
   const output = yield* terminalService
     .simpleExec({
-      command: `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
+      executable: 'sf',
+      args: ['org', 'delete', deleteKind, ...targetOrgArgs, '--no-prompt'],
       parse: identity,
       timeout: DELETE_TIMEOUT
     })
-    .pipe(promptService.withCancellableProgress(nls.localize('org_delete_default_progress')));
+    .pipe(promptService.withCancellableProgress(nls.localize('org_delete_default_progress'), progressLocation));
 
   const channel = yield* api.services.ChannelService;
-  yield* channel.appendToChannel(output);
-  yield* Effect.sync(() => {
-    getOrgChannelService().showChannelOutput();
-  });
+  yield* channel.appendToChannel(output || nls.localize('org_delete_success', orgInfo.username ?? ''));
+  yield* channel.showChannel;
 
   yield* Effect.tryPromise({
     try: () => updateConfigAndStateAggregators(),
@@ -100,6 +102,8 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // services are stateless and constant across orgs: resolve once, capture by closure in deleteOne
   const promptService = yield* api.services.PromptService;
   const terminalService = yield* api.services.TerminalService;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   /** Runs `sf org delete scratch|sandbox --target-org <username> --no-prompt` for a single org, tagging the
    * org onto the success so the post-loop channel writes can name it. A `TerminalServiceError` (non-zero exit)
@@ -108,7 +112,8 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(
     function* (org: OrgToDelete) {
       const output = yield* terminalService.simpleExec({
-        command: `sf org delete ${org.orgType} --target-org ${org.username} --no-prompt`,
+        executable: 'sf',
+        args: ['org', 'delete', org.orgType, '--target-org', org.username, '--no-prompt'],
         parse: identity,
         timeout: DELETE_TIMEOUT
       });
@@ -118,15 +123,18 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
     (effect, org) => effect.pipe(Effect.mapError(() => org))
   );
 
-  // One cancellable progress around the WHOLE loop: clicking Cancel interrupts this fiber, which aborts the
-  // runtime AbortSignal simpleExec threads into exec (killing the running sf child) and stops the loop. The
-  // interrupt is NOT a typed failure, so `Effect.partition`'s per-element `Effect.either` does not capture it;
-  // it propagates out as a `UserCancellationError` that the command boundary swallows (user cancelled).
+  // One cancellable progress around the WHOLE loop: Cancel interrupts this fiber, killing the running sf child
+  // and stopping the loop. The interrupt is NOT a typed failure, so `Effect.partition`'s per-element
+  // `Effect.either` does not capture it; it propagates as a `UserCancellationError` the command boundary swallows.
   const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
-    promptService.withCancellableProgress(nls.localize('org_delete_username_text'))
+    promptService.withCancellableProgress(nls.localize('org_delete_username_text'), progressLocation)
   );
 
-  yield* Effect.forEach(successes, ({ output }) => channel.appendToChannel(output), { discard: true });
+  yield* Effect.forEach(
+    successes,
+    ({ org, output }) => channel.appendToChannel(output || nls.localize('org_delete_success', org.username)),
+    { discard: true }
+  );
   yield* Effect.forEach(
     failed,
     org => channel.appendToChannel(nls.localize('org_delete_failed_for_org', org.username, orgTypeLabel(org.orgType))),

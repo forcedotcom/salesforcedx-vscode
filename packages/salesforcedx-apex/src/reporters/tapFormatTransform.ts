@@ -6,33 +6,29 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, ReadableOptions } from 'node:stream';
-import { ApexTestResultData, ApexTestResultOutcome, TestResult } from '../tests/types';
+import { ApexTestResultData, TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
-type TapFormatTransformerOptions = ReadableOptions & {
-  bufferSize?: number;
-};
+const BUFFER_SIZE = 256;
 
 export class TapFormatTransformer extends Readable {
   private readonly logger: Logger;
   private testResult: TestResult;
   private epilogue?: string[];
   private buffer: string;
-  private bufferSize: number;
 
-  constructor(testResult: TestResult, epilogue?: string[], options?: TapFormatTransformerOptions) {
+  constructor(testResult: TestResult, epilogue?: string[], options?: ReadableOptions) {
     super(options);
     this.testResult = testResult;
     this.epilogue = epilogue;
     this.logger = Logger.childFromRoot('TapFormatTransformer');
     this.buffer = '';
-    this.bufferSize = options?.bufferSize || 256; // Default buffer size is 256
   }
 
   private pushToBuffer(chunk: string): void {
     this.buffer += chunk;
-    if (this.buffer.length >= this.bufferSize) {
+    if (this.buffer.length >= BUFFER_SIZE) {
       this.push(this.buffer);
       this.buffer = '';
     }
@@ -66,7 +62,7 @@ export class TapFormatTransformer extends Readable {
   public buildTapResults(): void {
     this.testResult.tests.forEach((test: ApexTestResultData, index: number) => {
       const testNumber = index + 1;
-      const outcome = test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok';
+      const outcome = test.outcome === 'Pass' ? 'ok' : 'not ok';
       this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
       buildTapDiagnostics(test).forEach(s => {
         this.pushToBuffer(`# ${s}\n`);

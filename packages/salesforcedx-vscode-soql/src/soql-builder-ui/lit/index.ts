@@ -20,11 +20,20 @@ const serviceLayer = VscodeSoqlBuilderServiceLive.pipe(Layer.provide(VscodeMessa
 const main = document.querySelector('#main') ?? document.body.appendChild(document.createElement('main'));
 const app = new SoqlBuilderElement();
 app.labels = {
+  allRows: messages.label_all_rows,
+  clearAllFields: messages.action_clear_all_fields,
+  count: messages.label_count,
   fields: messages.label_fields,
   from: messages.label_from,
   inputs: messages.label_soql_query_inputs,
+  invalidLimit: messages.error_invalid_limit,
+  limit: messages.label_limit,
+  limitPlaceholder: messages.placeholder_limit,
+  loading: messages.label_loading,
   noDefaultOrg: messages.label_no_default_org,
-  query: messages.label_soql_query
+  noResults: messages.label_no_results_found,
+  query: messages.label_soql_query,
+  selectAllFields: messages.action_select_all_fields
 };
 app.lifecycle = new SoqlBuilderApplication(app, serviceLayer);
 main.append(app);

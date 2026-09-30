@@ -4,6 +4,10 @@ on the web, we don't have local fs. So we're going to use memfs as an in-memory 
 
 It doesn't have persistence, so we need to write transactions to browser storage (IndexDB).
 
+## IDB Transaction Settlement
+
+IDB transactions must wait for `transaction.oncomplete` (or `onabort`/`onerror`), not just `request.onsuccess`. Waiting only on request success can hang follow-up transactions in the extension-host worker. `settleIdbTransaction` enforces this with a 5-second timeout that aborts the hung transaction so the next write is not blocked.
+
 ## Big picture
 
 ```mermaid
@@ -32,21 +36,23 @@ graph TD
 
 ### User edits a file
 
-Every change by the user generates a VSCode onDidChange event. When the user saves a file, we did the onDidChange event
-
-The change flows from top to bottom:
+Every change generates onDidChange. Explorer event fires immediately, IDB persist happens asynchronously.
 
 ```mermaid
 graph TD
     A["User types a character<br/>in vscode editor"]
     B["FileSystemProvider<br/>(updates memfs)"]
     C["memfsWatcher<br/>(Detects file system change)"]
-    D["IndexedDB<br/>(File persisted to<br/>browser storage)"]
+    D["Explorer<br/>(File change UI)"]
+    E["IndexedDB<br/>(File persisted to<br/>browser storage)"]
 
     A --> |"onDidChange event"| B
     B --> |"File change event<br/>(rename/change)"| C
-    C --> |"Persistence operation<br/>(saveFile call)"| D
+    C --> |"Fire explorer event immediately"| D
+    C --> |"Async IDB persist<br/>(saveFile/deleteFile)"| E
 ```
+
+**Note**: IDB persist failures are caught; don't kill the watch stream.
 
 ### Rehydrating the project
 

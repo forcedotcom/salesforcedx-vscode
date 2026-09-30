@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Table } from '../../src';
+import { Table } from '../../src/utils/table';
 
 describe('Table Utils', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {

@@ -27,11 +27,6 @@ import {
 } from '../oasUtils';
 
 /** @ExportTaggedError */
-export class EsrWriteFailed extends Data.TaggedError('EsrWriteFailed')<{
-  readonly message: string;
-}> {}
-
-/** @ExportTaggedError */
 export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
   readonly message: string;
 }> {}
@@ -46,11 +41,6 @@ export type EsrContext = {
   newPath: string;
   providerType: string | undefined;
 };
-
-const toEsrWriteFailed = (e: { function: string; filePath: string; cause: { message: string } }) =>
-  new EsrWriteFailed({
-    message: nls.localize('artifact_failed', `${e.function} failed for ${e.filePath}: ${e.cause.message}`)
-  });
 
 /** Type guard to check if an object is an OpenAPI OperationObject */
 const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
@@ -139,6 +129,7 @@ export const handleExistingESR = async (): Promise<string> =>
 
 export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess().pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
@@ -156,13 +147,13 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
     )
   );
   const defaultESRFolder = path.join(workspaceInfo.fsPath, 'force-app', 'main', 'default', esrDefaultDirectoryName);
-  const folderUri = yield* Effect.promise(async () =>
+  const folderUri = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('select_folder_for_oas'),
       value: defaultESRFolder
     })
-  );
-  return folderUri ? path.resolve(folderUri) : undefined;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  return path.resolve(folderUri);
 });
 
 /**
@@ -353,15 +344,11 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = api.services.FsService;
   const exists = yield* fsService.fileOrFolderExists(ctx.newPath);
-  const existingContent = exists
-    ? yield* fsService.readFile(ctx.newPath).pipe(Effect.catchTag('FsServiceError', toEsrWriteFailed))
-    : undefined;
+  const existingContent = exists ? yield* fsService.readFile(ctx.newPath) : undefined;
   //Step 1: Build the content of the ESR Xml file
-  const updatedContent = yield* buildESRXml(ctx, existingContent).pipe(
-    Effect.catchTag('FsServiceError', toEsrWriteFailed)
-  );
+  const updatedContent = yield* buildESRXml(ctx, existingContent);
   //Step 2: Write OpenAPI Document to File
-  yield* writeAndOpenEsrFile(ctx, updatedContent).pipe(Effect.catchTag('FsServiceError', toEsrWriteFailed));
+  yield* writeAndOpenEsrFile(ctx, updatedContent);
   // Step 3: If the user chose to merge, open a diff between the original and new ESR files
   yield* displayFileDifferences(ctx);
 

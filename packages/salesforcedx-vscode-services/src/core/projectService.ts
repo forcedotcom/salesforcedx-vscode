@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import { Global, SfProject } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
@@ -13,12 +14,14 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { artifactNamespacesEqual, type ArtifactNamespace } from './artifactIdentity';
@@ -71,6 +74,16 @@ const globalSfProjectCache = Effect.runSync(
     lookup: resolveSfProject
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
+
+// Project cache state and its notifications share module-level lifetime so every services API consumer
+// observes the same ordered stream, just as every ProjectService instance uses the same project cache.
+const projectConfigChangePubSub = Effect.runSync(PubSub.sliding<FileChangeEvent>(100));
+
+/** Read-only stream of root sfdx-project.json events published after project cache invalidation. */
+export const projectConfigChanges = Stream.fromPubSub(projectConfigChangePubSub);
+
+/** Internal publisher used by sfProjectFileWatcher after it has invalidated all project caches. */
+export const publishProjectConfigChange = (event: FileChangeEvent) => PubSub.publish(projectConfigChangePubSub, event);
 
 /**
  * Invalidate the SfProject cache so the next `getSfProject` re-reads sfdx-project.json from disk.
@@ -214,19 +227,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
       return (
         (yield* isSalesforceProject()) &&
-        (yield* getSfProject())
-          .getPackageDirectories()
-          // normalizes paths to forward slashes
-          .map(dir => toUri(dir.fullPath).path)
-          // Remove trailing forwardslash if present
-          .map(dir => dir.replace(/\/$/, ''))
-          .some(
-            dir =>
-              // Use URI.path which is normalized (always uses /) regardless of OS.
-              // Compare case-insensitively: VS Code provides uppercase drive letters on
-              // Windows (e.g. /C:/...) while vscode-uri normalizes to lowercase (/c:/...).
-              uri.path.toLowerCase().startsWith(`${dir.toLowerCase()}/`) || uri.path.toLowerCase() === dir.toLowerCase()
-          )
+        (yield* getSfProject()).getPackageDirectories().some(dir => isUriEqualOrWithin(toUri(dir.fullPath), uri))
       );
     });
 
@@ -295,6 +296,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       getSfProject,
       getProjectNamespace,
       isArtifactNamespaceWorkspaceEligible,
+      projectConfigChanges,
       isInPackageDirectories,
       ensureInPackageDirectories,
       getSoqlMetadataPath,

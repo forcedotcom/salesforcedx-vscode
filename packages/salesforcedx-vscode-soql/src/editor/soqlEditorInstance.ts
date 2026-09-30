@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -18,18 +18,33 @@ import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
+import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { getConnection, isDefaultOrgSet } from '../services/org';
+import { isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
+import {
+  invalidateMetadataRequests,
+  MetadataRequestGenerationGateLive,
+  runForCurrentMetadataGeneration
+} from './metadataRequestGeneration';
 import { runQuery } from './queryRunner';
+
+const COMMAND: ProgressOnlyCommandKey = 'SOQL Builder Run Query';
 
 const appendToChannel = (message: string) =>
   getServicesApi.pipe(
     Effect.flatMap(api => api.services.ChannelService),
     Effect.flatMap(svc => svc.appendToChannel(message))
+  );
+
+const reportMessageError = (event: SoqlEditorEvent) =>
+  appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`)).pipe(
+    Effect.tapErrorCause(Effect.logError),
+    Effect.ignore
   );
 
 const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: string) {
@@ -81,6 +96,38 @@ type SoqlEditorEvent =
       payload: never;
     };
 
+const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* (
+  document: vscode.TextDocument,
+  maxRows: number | undefined,
+  openQueryDataView: (data: QueryResult<JsonObject>) => Promise<void>,
+  runQueryDone: () => Effect.Effect<void>
+) {
+  const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
+  if (!isOrgSet) {
+    const message = nls.localize('info_no_default_org');
+    yield* appendToChannel(message);
+    yield* Effect.promise(() => vscode.window.showInformationMessage(message));
+    yield* runQueryDone();
+    return;
+  }
+  const queryText = document.getText();
+  const api = yield* getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  const queryData = yield* Effect.promise(() =>
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: progressLocation,
+        title: nls.localize('progress_running_query')
+      },
+      () => getSoqlRuntime().runPromise(runQuery(queryText, { maxRows }))
+    )
+  );
+  yield* Effect.promise(() => openQueryDataView(queryData));
+  yield* runQueryDone();
+});
+
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
   /** True for exactly one debounced cycle after the webview triggered a document edit, to avoid echoing it back. */
@@ -93,47 +140,53 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
-
-    // Stream-based message handling: each message is dispatched concurrently as a named OTel span
-    const messageFiber = getSoqlRuntime().runFork(
-      Stream.async<SoqlEditorEvent>(emit => {
-        const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
-          void emit.single(event);
-        });
-        return Effect.sync(() => {
-          disposable.dispose();
-        });
-      }).pipe(
-        Stream.mapEffect(
-          event =>
-            this.handleMessageEffect(event).pipe(
-              Effect.catchAllCause(_cause =>
-                appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`))
-              )
-            ),
-          { concurrency: 'unbounded' }
-        ),
-        Stream.runDrain
-      )
+    vscode.workspace.onDidChangeTextDocument(
+      debounce((event: vscode.TextDocumentChangeEvent) => {
+        this.onDocumentChangeHandler(event);
+      }, 1000),
+      this,
+      this.subscriptions
     );
-    this.subscriptions.push({ dispose: () => Fiber.interrupt(messageFiber).pipe(Effect.runFork) });
 
-    const { onConnectionChanged, onNoDefaultOrg } = this;
-    const connectionFiber = getSoqlRuntime().runFork(
-      Effect.gen(function* () {
+    const instanceFiber = getSoqlRuntime().runFork(
+      Effect.gen(this, function* () {
+        const messages = Stream.async<SoqlEditorEvent>(emit => {
+          const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
+            void emit.single(event);
+          });
+          return Effect.sync(() => {
+            disposable.dispose();
+          });
+        }).pipe(
+          Stream.mapEffect(
+            event => this.handleMessageEffect(event).pipe(Effect.catchAllCause(() => reportMessageError(event))),
+            { concurrency: 'unbounded' }
+          ),
+          Stream.runDrain
+        );
+
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* targetOrgRef.changes.pipe(
-          Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
+        const connectionChanges = targetOrgRef.changes.pipe(
+          Stream.map(org => org.orgId),
           Stream.changes,
-          Stream.runForEach(isOrgSet => (isOrgSet ? onConnectionChanged() : onNoDefaultOrg()))
+          Stream.runForEach(orgId =>
+            invalidateMetadataRequests(this.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org'))
+          )
         );
-      })
-    );
-    this.subscriptions.push({ dispose: () => Fiber.interrupt(connectionFiber).pipe(Effect.runFork) });
 
-    webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
+        yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true });
+      }).pipe(Effect.provide(MetadataRequestGenerationGateLive))
+    );
+    this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
+
+    webviewPanel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      this,
+      this.subscriptions
+    );
   }
 
   protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
@@ -200,57 +253,45 @@ export class SOQLEditorInstance {
         );
       }
 
-      case 'sobject_metadata_request':
-        return retrieveSObject(event.payload).pipe(
-          Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
+      case 'sobject_metadata_request': {
+        return runForCurrentMetadataGeneration(retrieveSObject(event.payload), sobject =>
+          sobject ? this.updateSObjectMetadata(sobject) : Effect.void
+        ).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
+      }
 
-      case 'sobjects_request':
-        return listSObjectNamesEffect.pipe(
-          Effect.flatMap(names => (names ? this.updateSObjects(names) : Effect.void)),
+      case 'sobjects_request': {
+        return runForCurrentMetadataGeneration(listSObjectNamesEffect, names => this.updateSObjects(names)).pipe(
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );
+      }
 
       case 'run_query': {
+        const openQueryDataView = (data: QueryResult<JsonObject>) => this.openQueryDataView(data);
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
-        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
-        const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
-        return Effect.gen(function* () {
-          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
-          if (!isOrgSet) {
-            const message = nls.localize('info_no_default_org');
-            yield* appendToChannel(message);
-            yield* Effect.promise(() => vscode.window.showInformationMessage(message));
-            yield* runQueryDone();
-            return;
-          }
-          const queryText = document.getText();
-          const conn = yield* Effect.promise(() => getConnection());
-          const queryData = yield* Effect.promise(() =>
-            vscode.window.withProgress(
-              {
-                cancellable: false,
-                location: vscode.ProgressLocation.Notification,
-                title: nls.localize('progress_running_query')
-              },
-              () => runQuery(conn)(queryText, { maxRows })
-            )
-          );
-          yield* Effect.promise(() => openQueryDataView(queryData));
-          yield* runQueryDone();
-        }).pipe(
-          Effect.catchAllCause(cause => {
-            const err = Cause.squash(cause);
-            return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
-              Effect.andThen(this.runQueryDone())
-            );
-          }),
-          Effect.withSpan('SOQLEditor.run_query')
-        );
+        return Effect.promise(() =>
+          getSoqlRuntime().runPromise(
+            Effect.gen(function* () {
+              const api = yield* (yield* ExtensionProviderService).getServicesApi;
+              const maxRows = yield* (yield* api.services.SettingsService).getValue<number>(
+                SOQL_CONFIGURATION_NAME,
+                'maxQueryLimit'
+              );
+              yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
+                Effect.catchAllCause(cause => {
+                  const err = Cause.squash(cause);
+                  return appendToChannel(
+                    nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
+                  ).pipe(Effect.andThen(runQueryDone()));
+                })
+              );
+            })
+          )
+        ).pipe(Effect.withSpan('SOQLEditor.run_query'));
       }
 
       case 'get_query_plan': {
@@ -303,7 +344,7 @@ export class SOQLEditorInstance {
     ).pipe(Effect.asVoid);
   }
 
-  protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {
+  protected async openQueryDataView(queryData: QueryResult<JsonObject>): Promise<void> {
     const webview = new QueryDataView(this.subscriptions, queryData, this.document);
     await webview.createOrShowWebView();
   }
@@ -316,7 +357,9 @@ export class SOQLEditorInstance {
   }
 
   protected dispose(): void {
-    this.subscriptions.forEach(disposable => disposable.dispose());
+    this.subscriptions.forEach(disposable => {
+      disposable.dispose();
+    });
     if (this.disposedCallback) {
       this.disposedCallback(this);
     }
@@ -325,7 +368,4 @@ export class SOQLEditorInstance {
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
   }
-
-  public onConnectionChanged = () => this.sendMessageToUi('connection_changed');
-  private readonly onNoDefaultOrg = () => this.sendMessageToUi('no_default_org');
 }

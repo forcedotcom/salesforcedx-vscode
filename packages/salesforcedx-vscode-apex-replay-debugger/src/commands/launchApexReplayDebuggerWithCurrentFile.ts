@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { updateLastOpened } from '../activation/getDialogStartingPath';
 import { nls } from '../messages';
+import { launchFromLogFile } from './launchFromLogFile';
 
-export const launchApexReplayDebuggerWithCurrentFile = async () => {
+export const launchApexReplayDebuggerWithCurrentFile = async (extensionContext: vscode.ExtensionContext) => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void vscode.window.showErrorMessage(nls.localize('unable_to_locate_editor'));
@@ -24,7 +25,8 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
   }
 
   if (isLogFile(sourceUri)) {
-    await launchReplayDebuggerLogFile(sourceUri);
+    updateLastOpened(extensionContext, sourceUri);
+    await launchFromLogFile(sourceUri.fsPath);
     return;
   }
 
@@ -46,18 +48,14 @@ const isLogFile = (sourceUri: URI): boolean => Utils.extname(sourceUri).toLowerC
 
 const isAnonymousApexFile = (sourceUri: URI): boolean => Utils.extname(sourceUri).toLowerCase() === '.apex';
 
-const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
-  await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {
-    fsPath: sourceUri.fsPath
-  });
-};
-
 const IS_TEST_REG_EXP = /@isTest/i;
 
-const getApexTestClassName = (document: vscode.TextDocument): string | undefined =>
-  document.uri.fsPath.endsWith('.cls') && IS_TEST_REG_EXP.test(document.getText())
-    ? basename(document.uri.fsPath, '.cls')
+const getApexTestClassName = (document: vscode.TextDocument): string | undefined => {
+  const fileName = Utils.basename(document.uri);
+  return fileName.endsWith('.cls') && IS_TEST_REG_EXP.test(document.getText())
+    ? fileName.slice(0, -'.cls'.length)
     : undefined;
+};
 
 const launchAnonymousApexReplayDebugger = async () => {
   if (!(await sfProjectPreconditionChecker.check())) return;

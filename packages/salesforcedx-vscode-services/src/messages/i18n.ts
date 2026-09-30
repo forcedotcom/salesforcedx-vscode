@@ -51,6 +51,7 @@ export const messages = {
   org_metadata_catalog_state_missing:
     'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
   org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s',
+  org_operation_target_changed: "The active org changed while an operation for '%s' was in progress.",
   org_operation_superseded: 'The active org changed before this operation finished. Run it again for the current org.'
 } as const;
 

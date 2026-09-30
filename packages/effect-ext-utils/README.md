@@ -22,6 +22,8 @@ npm install @salesforce/effect-ext-utils
 
 ## Usage
 
+### annotateRootSpan
+
 ```typescript
 import { annotateRootSpan } from '@salesforce/effect-ext-utils';
 

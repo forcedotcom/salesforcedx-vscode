@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotNull } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 
@@ -37,7 +38,7 @@ export const transformHtml = (html: string, lwcDistUri: URI, webview: vscode.Web
 const transformScriptTags = (html: string, lwcDistUri: URI, webview: vscode.Webview): string => {
   let matches: string[] | null;
   let newScriptSrc: URI;
-  while ((matches = scriptRegex.exec(html)) !== null) {
+  while (isNotNull((matches = scriptRegex.exec(html)))) {
     newScriptSrc = webview.asWebviewUri(Utils.joinPath(lwcDistUri, matches[1]));
     // eslint-disable-next-line no-param-reassign
     html = html.replace(`./${matches[1]}`, newScriptSrc.toString());

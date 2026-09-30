@@ -21,6 +21,7 @@ jest.mock('../../../src/commands/sobjectArtifactWriter', () => ({
 }));
 
 import { refreshSObjectsCommand, SOBJECT_REFRESH_COMPLETE_CMD } from '../../../src/commands/refreshSObjects';
+import { nls } from '../../../src/messages';
 
 const SUCCESS_CODE = 0;
 const FAILURE_CODE = 1;
@@ -30,6 +31,8 @@ const appendToChannel = jest.fn(() => Effect.void);
 // Stand-in PromptService.withCancellableProgressReporting: runs the build effect with a mock
 // progress + uncancelled token in the same fiber, so a typed failure propagates unchanged.
 const mockPromptService = {
+  considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+    value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
   withCancellableProgressReporting:
     (_title: string, _location?: vscode.ProgressLocation) =>
     <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
@@ -91,6 +94,29 @@ describe('refreshSObjectsCommand completion + error surfacing', () => {
 
     expect(exit._tag).toBe('Success');
     expect(executeCommand).toHaveBeenCalledWith(SOBJECT_REFRESH_COMPLETE_CMD, { exitCode: SUCCESS_CODE });
+  });
+
+  it('refreshes the selected category', async () => {
+    (vscode.window.showQuickPick as jest.Mock).mockResolvedValue(nls.localize('sobject_refresh_custom'));
+    streamAndWriteSobjectArtifacts.mockReturnValue(
+      Effect.succeed({ data: { cancelled: false, standardObjects: 0, customObjects: 2 } })
+    );
+
+    const exit = await runCommand('manual');
+
+    expect(exit._tag).toBe('Success');
+    expect(streamAndWriteSobjectArtifacts).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'CUSTOM', source: 'manual' })
+    );
+  });
+
+  it('cancels when no category is selected', async () => {
+    (vscode.window.showQuickPick as jest.Mock).mockResolvedValue(undefined);
+
+    const exit = await runCommand('manual');
+
+    expect(exit._tag).toBe('Success');
+    expect(streamAndWriteSobjectArtifacts).not.toHaveBeenCalled();
   });
 
   it('surfaces the real underlying error (not "An error has occurred") and emits FAILURE_CODE', async () => {

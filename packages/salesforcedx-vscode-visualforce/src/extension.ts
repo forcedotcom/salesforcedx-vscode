@@ -5,21 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import { type ExtensionContext } from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { createVisualforceComponentCommand } from './commands/createVisualforceComponent';
 import { createVisualforcePageCommand } from './commands/createVisualforcePage';
 import { configureLanguages } from './languageConfiguration';
-import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { startLanguageServer } from './startLanguageServer';
 
 export const activate = async (context: ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, 'Visualforce'));
   await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 

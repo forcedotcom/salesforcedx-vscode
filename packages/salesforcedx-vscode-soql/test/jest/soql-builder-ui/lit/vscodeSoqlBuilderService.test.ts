@@ -20,6 +20,7 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import {
+  createSoqlBuilderTelemetry,
   parseSoqlBuilderQuery,
   serializeSoqlBuilderQuery
 } from '../../../../src/soql-builder-ui/lit/soqlBuilderModelAdapter';
@@ -117,6 +118,62 @@ describe('VscodeSoqlBuilderService', () => {
     expect(restored.allRows).toBe(true);
   });
 
+  it('publishes and saves Limit and All Rows changes without altering other clauses', async () => {
+    const harness = makeMessageHarness({
+      originalSoqlStatement: "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 10"
+    });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: true });
+
+        const withAllRows = yield* service.initialState;
+        expect(withAllRows.query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+          "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 25 ALL ROWS"
+        );
+
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: false });
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+      "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 25"
+    );
+    expect(state.query.limit).toEqual({ _tag: 'Valid', value: 25 });
+    expect(state.query.allRows).toBe(false);
+    expect(createSoqlBuilderTelemetry(state.query).limit).toBe(25);
+    expect(lastSavedState(harness.states)).toEqual(state);
+    expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(3);
+  });
+
+  it('defers publishing other clause changes while Limit input is invalid', async () => {
+    const originalSoqlStatement = 'SELECT Id FROM Account LIMIT 10';
+    const harness = makeMessageHarness({ originalSoqlStatement });
+
+    const invalidState = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Invalid', input: '-1' } });
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: true });
+
+        const invalid = yield* service.initialState;
+        expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(0);
+
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        return invalid;
+      })
+    );
+
+    expect(invalidState.query.limit).toEqual({ _tag: 'Invalid', input: '-1' });
+    expect(invalidState.query.allRows).toBe(true);
+    expect(invalidState.query.originalSoqlStatement).toBe(originalSoqlStatement);
+    expect(lastSavedState(harness.states).query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+      'SELECT Id FROM Account LIMIT 25 ALL ROWS'
+    );
+  });
+
   it('maps every public action to immutable state and the existing host messages', async () => {
     const harness = makeMessageHarness();
 
@@ -171,6 +228,124 @@ describe('VscodeSoqlBuilderService', () => {
     expect(state.query.limit).toEqual({ _tag: 'Valid', value: 25 });
     expect(state.query.allRows).toBe(true);
     expect(state.notificationsDismissed).toBe(true);
+  });
+
+  it('publishes COUNT and bulk field-selection actions through the host contract', async () => {
+    const harness = makeMessageHarness();
+    const metadata = {
+      ...accountMetadata,
+      fields: [
+        ...accountMetadata.fields,
+        {
+          ...accountMetadata.fields[0],
+          label: 'Account Name',
+          name: 'Name',
+          type: 'string'
+        }
+      ]
+    } as const;
+
+    await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Account' });
+        harness.emit({ type: MessageType.SOBJECT_METADATA_RESPONSE, payload: metadata });
+        yield* Effect.sleep(Duration.millis(10));
+
+        yield* service.dispatch({ _tag: 'FieldsSelected', fieldNames: ['COUNT()'] });
+        const countState = yield* service.initialState;
+        expect(countState.query.fields).toEqual(['COUNT()']);
+        const countQuery = harness.messages.findLast(message => message.type === MessageType.UI_SOQL_CHANGED)?.payload;
+        expect(countQuery?.replace(/\s+/gu, ' ').trim()).toBe('SELECT COUNT() FROM Account');
+
+        yield* service.dispatch({ _tag: 'AllFieldsSelected' });
+        const allFieldsState = yield* service.initialState;
+        expect(allFieldsState.query.fields).toEqual(['Id', 'Name']);
+        const allFieldsQuery = harness.messages.findLast(
+          message => message.type === MessageType.UI_SOQL_CHANGED
+        )?.payload;
+        expect(allFieldsQuery?.replace(/\s+/gu, ' ').trim()).toBe('SELECT Id, Name FROM Account');
+
+        yield* service.dispatch({ _tag: 'AllFieldsCleared' });
+        const clearedState = yield* service.initialState;
+        expect(clearedState.query.fields).toEqual([]);
+      })
+    );
+  });
+
+  it('resets dependent clauses and requests metadata once when From changes', async () => {
+    const harness = makeMessageHarness({
+      originalSoqlStatement:
+        "SELECT Id FROM Account WHERE Name = 'Acme' ORDER BY Name DESC NULLS LAST LIMIT 10 ALL ROWS"
+    });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
+        yield* service.dispatch({ _tag: 'ObjectSelected', objectName: 'Contact' });
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.query).toMatchObject({
+      allRows: false,
+      fields: [],
+      limit: { _tag: 'Empty' },
+      orderBy: [],
+      sObject: 'Contact',
+      where: { conditions: [] }
+    });
+    expect(
+      harness.messages.filter(
+        message => message.type === MessageType.SOBJECT_METADATA_REQUEST && message.payload === 'Contact'
+      )
+    ).toHaveLength(1);
+    const publishedQuery = harness.messages.findLast(message => message.type === MessageType.UI_SOQL_CHANGED)?.payload;
+    expect(publishedQuery).toContain('FROM Contact');
+    expect(publishedQuery).not.toMatch(/WHERE|ORDER BY|LIMIT|ALL ROWS/u);
+  });
+
+  it('clears object metadata for a missing org and ignores a late object-list response', async () => {
+    const harness = makeMessageHarness();
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Account'] });
+        yield* Effect.sleep(Duration.millis(10));
+        harness.emit({ type: MessageType.NO_DEFAULT_ORG });
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['PreviousOrgObject__c'] });
+        yield* Effect.sleep(Duration.millis(10));
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.hasNoDefaultOrg).toBe(true);
+    expect(state.metadata.objects).toEqual([]);
+    expect(state.isObjectsLoading).toBe(false);
+  });
+
+  it('clears metadata and reloads a restored selection after the default org changes', async () => {
+    const harness = makeMessageHarness({ originalSoqlStatement: 'SELECT Id FROM Account' });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        harness.emit({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Account', 'Contact'] });
+        yield* Effect.sleep(Duration.millis(10));
+        harness.emit({ type: MessageType.CONNECTION_CHANGED });
+        yield* Effect.sleep(Duration.millis(10));
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.hasNoDefaultOrg).toBe(false);
+    expect(state.metadata.objects).toEqual([]);
+    expect(state.isObjectsLoading).toBe(true);
+    expect(state.isFieldsLoading).toBe(true);
+    expect(harness.messages.filter(message => message.type === MessageType.SOBJECTS_REQUEST)).toHaveLength(2);
+    expect(
+      harness.messages.filter(
+        message => message.type === MessageType.SOBJECT_METADATA_REQUEST && message.payload === 'Account'
+      )
+    ).toHaveLength(2);
   });
 
   it('restores the complete query and does not echo external text changes', async () => {

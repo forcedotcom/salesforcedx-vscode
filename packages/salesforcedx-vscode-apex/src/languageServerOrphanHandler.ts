@@ -11,6 +11,7 @@ import {
   ExtensionProviderService,
   type Row
 } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
@@ -38,14 +39,23 @@ type ProcessDetail = typeof ProcessDetailSchema.Type;
 
 const isWindows = process.platform === 'win32';
 
-const listProcessesCmd = isWindows
-  ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
-  : 'ps -e -o pid,ppid,command';
+const listProcessesCmd: { executable: string; args: readonly string[] } = isWindows
+  ? {
+      executable: 'powershell.exe',
+      args: [
+        '-command',
+        'Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders'
+      ]
+    }
+  : { executable: 'ps', args: ['-e', '-o', 'pid,ppid,command'] };
 
-const parentCheckCmd = (ppid: number): string =>
+const parentCheckCmd = (ppid: number): { executable: string; args: readonly string[] } =>
   isWindows
-    ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'"`
-    : `ps -p ${ppid}`;
+    ? {
+        executable: 'powershell.exe',
+        args: ['-command', `Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'`]
+      }
+    : { executable: 'ps', args: ['-p', String(ppid)] };
 
 const decodeProcessList = Schema.decodeSync(Schema.mutable(Schema.Array(ProcessDetailSchema)));
 
@@ -80,7 +90,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
   // Windows-only guard: powershell must be present to list processes.
   if (isWindows) {
     const hasPowershell = yield* terminal
-      .simpleExec({ command: 'where powershell', parse: stdout => stdout.length > 0 })
+      .simpleExec({ executable: 'where', args: ['powershell'], parse: stdout => stdout.length > 0 })
       .pipe(
         Effect.catchTag('TerminalServiceError', e =>
           annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as(false))
@@ -93,13 +103,13 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec({ command: listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
-  const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
+  const checkParent = (processInfo: ProcessDetail) =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
-      : terminal.simpleExec({ command: parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
+      : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
           Effect.as(processInfo),
           Effect.catchTag('TerminalServiceError', e =>
             annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as({ ...processInfo, orphaned: true }))
@@ -142,28 +152,26 @@ const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(func
   );
 });
 
-/** Read the auto-terminate setting; any failure (missing setting / services unavailable) degrades to false. */
-const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(function* () {
-  return yield* Effect.gen(function* () {
+/** Auto-terminate setting; read/services failure → false. */
+const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
+  function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* (yield* api.services.SettingsService).getValue<boolean>(
+    return yield* (yield* api.services.SettingsService).getValueOrElse(
       APEX_SETTINGS_SECTION,
       AUTO_TERMINATE_KEY,
       false
     );
-  }).pipe(
-    Effect.map(v => v === true),
-    Effect.catchTags({
-      MissingSettingsError: () => Effect.succeed(false),
-      ServicesExtensionNotFoundError: () => Effect.succeed(false),
-      InvalidServicesApiError: () => Effect.succeed(false)
-    })
-  );
-});
+  },
+  Effect.catchTags({
+    MissingSettingsError: () => Effect.succeed(false),
+    ServicesExtensionNotFoundError: () => Effect.succeed(false),
+    InvalidServicesApiError: () => Effect.succeed(false)
+  })
+);
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
   numTries = 3,
-  delayBetweenTriesMs = 2000
+  delayBetweenTries: Duration.DurationInput = Duration.seconds(2)
 ) {
   // Check up to numTries times, pausing between checks: a process may self-exit between checks
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
@@ -172,7 +180,7 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   let confirmedOrphans: ProcessDetail[] = [];
   for (let i = 1; i <= numTries; i++) {
     if (i > 1) {
-      yield* Effect.sleep(delayBetweenTriesMs);
+      yield* Effect.sleep(delayBetweenTries);
     }
     confirmedOrphans = yield* findOrphanedProcessesSafe();
     if (confirmedOrphans.length === 0) {
@@ -300,10 +308,10 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   }
   // Persist the setting, then kill. Any failure — write error or services unavailable — is recorded
   // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
-  yield* Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* (yield* api.services.SettingsService).setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true);
-  }).pipe(
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
       ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),

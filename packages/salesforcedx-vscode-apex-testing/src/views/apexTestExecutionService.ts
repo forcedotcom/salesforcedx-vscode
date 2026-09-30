@@ -4,19 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
+import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
+import { showRunSuccessNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -30,7 +34,7 @@ import {
   isSuite,
   isSuiteClass
 } from '../utils/testItemUtils';
-import { writeAndOpenTestReport } from '../utils/testReportGenerator';
+import { openTestReport, writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
@@ -129,8 +133,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const [methodItems, classItems, codeCoverage, concise] = yield* Effect.all([
         ApexTestTreeService.getMethodItems(),
         ApexTestTreeService.getClassItems(),
-        settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
-        settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)
+        settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
+        settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false)
       ]);
       const run = yield* Effect.sync(() => ctx.controller.createTestRun(new vscode.TestRunRequest()));
       yield* Effect.sync(() =>
@@ -140,8 +144,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           testsToRun: [],
           methodItems,
           classItems,
-          codeCoverage: codeCoverage ?? false,
-          concise: concise ?? false
+          codeCoverage,
+          concise
         })
       ).pipe(Effect.ensuring(Effect.sync(() => run.end())));
     });
@@ -156,7 +160,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       apexTestDir: URI,
       testResultUri: URI
     ) {
-      const testRunId = yield* Effect.promise(() => readTestRunIdFile(apexTestDir));
+      const testRunId = yield* readTestRunIdFile(apexTestDir);
       const expectedResultUri = Utils.joinPath(
         apexTestDir,
         testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
@@ -197,7 +201,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const testService = new TestService(connection);
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
-            payload: { testLevel: TestLevel.RunAllTestsInOrg, skipCodeCoverage: !codeCoverage },
+            payload: { testLevel: 'RunAllTestsInOrg' as const, skipCodeCoverage: !codeCoverage },
             hasSuite: false,
             hasClass: false
           }
@@ -243,21 +247,24 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Generate and open the report (non-fatal: log + continue on failure).
       const reportSettings = yield* api.services.SettingsService;
-      const outputFormat =
-        (yield* reportSettings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ??
-        'markdown';
-      const sortOrder =
-        (yield* reportSettings.getValue<'runtime' | 'coverage' | 'severity'>(
-          APEX_TESTING_SECTION,
-          'testSortOrder',
-          'runtime'
-        )) ?? 'runtime';
-      yield* writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
+      const outputFormat = yield* reportSettings.getValueOrElse<'markdown' | 'text'>(
+        APEX_TESTING_SECTION,
+        'outputFormat',
+        'markdown'
+      );
+      const sortOrder = yield* reportSettings.getValueOrElse<'runtime' | 'coverage' | 'severity'>(
+        APEX_TESTING_SECTION,
+        'testSortOrder',
+        'runtime'
+      );
+      const reportUri = yield* writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
         Effect.tap(() => Effect.annotateCurrentSpan({ outputFormat, trigger: 'testExplorer' })),
         Effect.withSpan('apexTestReportGenerated'),
         // Report generation is best-effort; recover failures AND defects (e.g. a transformer throwing
         // synchronously) so a broken report never fails the test run, matching the legacy try/catch.
-        Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', { cause }))
+        Effect.catchAllCause(cause =>
+          Effect.logError('Failed to generate test report', { cause }).pipe(Effect.as(undefined))
+        )
       );
 
       // Clear stale indicators and apply active tags BEFORE updating results: VS Code snapshots
@@ -273,23 +280,30 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       );
 
       const totalCount = result.summary.testsRan ?? 0;
+      const command: ProgressAndSuccessCommandKey = messages.apex_test_run_text;
       const executionName = hasSuite
         ? nls.localize('apex_test_suite_run_text')
         : hasClass
           ? nls.localize('apex_test_class_run_text')
           : nls.localize('apex_test_run_text');
-      if (totalCount > 0) {
-        yield* Effect.sync(
-          () =>
-            void vscode.window.showInformationMessage(
-              nls.localize('apex_test_successful_execution_message', executionName)
-            )
-        );
-      }
       // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
       // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
+      // Must append BEFORE the success notification below: a toast success notification with an action
+      // button awaits the user's response, which never resolves in a headless e2e run.
       const channelService = yield* api.services.ChannelService;
       yield* channelService.appendToChannel(`Ended ${executionName}`);
+      if (totalCount > 0) {
+        const notificationMode = yield* api.services.NotificationModeService;
+        const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
+        yield* showRunSuccessNotification(
+          notificationMode,
+          command,
+          executionName,
+          reportUri,
+          outputFormat,
+          (uri, format) => Runtime.runPromise(runtime)(openTestReport(uri, format))
+        );
+      }
     });
 
     /**
@@ -459,8 +473,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           const tmpFolder = yield* getTempFolder();
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
           const settings = yield* api.services.SettingsService;
-          const codeCoverage =
-            (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
+          const codeCoverage = yield* settings.getValueOrElse(
+            APEX_TESTING_SECTION,
+            'retrieve-test-code-coverage',
+            false
+          );
           const runAllTestsInOrg =
             runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
           yield* executeTests({

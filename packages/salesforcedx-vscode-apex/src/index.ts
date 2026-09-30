@@ -53,7 +53,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
-  yield* Effect.promise(() => createLanguageClient(context, languageServerStatusBarItem));
+  yield* createLanguageClient(context, languageServerStatusBarItem);
 
   yield* Effect.sync(() => {
     // Register settings change handler for LSP parity capabilities
@@ -77,30 +77,18 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   yield* Effect.forkIn(checkAndResolveOrphanedLanguageServers(), scope).pipe(Effect.asVoid);
 });
 
-const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
-  // Customer-facing commands (log.get and anon.execute.* moved to salesforcedx-vscode-apex-log)
-  const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', () =>
-    vscode.commands.executeCommand('sf.anon.apex.execute.document')
-  );
-  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
-    'sf.apex.languageServer.restart',
-    async (source?: 'commandPalette' | 'statusBar') => {
-      await restartLanguageServerAndClient(context, source ?? 'commandPalette');
-    }
-  );
-
-  return vscode.Disposable.from(anonApexRunDelegateCmd, restartApexLanguageServerCmd);
-};
+const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =>
+  vscode.commands.registerCommand('sf.apex.languageServer.restart', async (source?: 'commandPalette' | 'statusBar') => {
+    await restartLanguageServerAndClient(context, source ?? 'commandPalette');
+  });
 
 // root: true → exports as a top-level span (not an orphaned child of any ambient span)
 const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
-  // `ensuring` runs teardown (disposeOutputChannel + closeExtensionScope) even if stop() rejects, so
-  // the client child scope closes and the apex.lsp.client span flushes. `tryPromise`+`ignore`: surface
-  // the rejection then swallow it so deactivate() still resolves.
+  // `ensuring` closes the extension scope even if stop() rejects. This disposes the output channel,
+  // closes the client child scope, and flushes the apex.lsp.client span. `tryPromise`+`ignore` surfaces
+  // the rejection then swallows it so deactivate() still resolves.
   yield* Effect.tryPromise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve()).pipe(
-    Effect.ensuring(
-      Effect.sync(() => languageClientManager.disposeOutputChannel()).pipe(Effect.zipRight(closeExtensionScope()))
-    ),
+    Effect.ensuring(closeExtensionScope()),
     Effect.ignore
   );
 });

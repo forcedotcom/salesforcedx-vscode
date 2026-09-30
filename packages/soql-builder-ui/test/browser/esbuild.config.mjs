@@ -10,7 +10,7 @@ import { commonConfigBrowser } from '../../../../scripts/bundling/web.mjs';
 
 await build({
   ...commonConfigBrowser,
-  entryPoints: ['test/browser/fixture.ts'],
+  entryPoints: ['.test-dist/browser-compiled/test/browser/fixture.js'],
   format: 'iife',
   minify: false,
   outfile: '.test-dist/browser/fixture.js',

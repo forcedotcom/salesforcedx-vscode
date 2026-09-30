@@ -8,5 +8,15 @@
   "apex_oas_enable_rest_gen": "Enable OpenAPI document generation for Apex REST (@RestResource) classes. Disabled by default because it depends on an external AI model service. AuraEnabled classes are unaffected.",
   "configuration_title": "Salesforce Apex OAS Configuration",
   "create_openapi_doc_class": "SFDX: Create OpenAPI Document from This Class",
-  "validate_oas_document": "SFDX: Validate OpenAPI Document"
+  "validate_oas_document": "SFDX: Validate OpenAPI Document",
+  "extension_level_notifications_description": "Notification style for all Apex OAS commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-apex-oas.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Apex OAS command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-apex-oas.extensionLevelNotifications settings.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications.successToast.description": "Show the confirmation as a toast notification.",
+  "notifications.successStatusBar.description": "Show the confirmation in the status bar.",
+  "notifications_create_openapi_doc_description": "Notification style for SFDX: Create OpenAPI Document from This Class.",
+  "notifications_validate_oas_document_description": "Notification style for SFDX: Validate OpenAPI Document."
 }

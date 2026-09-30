@@ -40,6 +40,8 @@ jest.mock('@salesforce/effect-ext-utils', () => {
   };
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const E = require('effect/Effect');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const R = require('effect/SubscriptionRef');
   return {
     ServicesExtensionNotFoundError: ServicesExtensionNotFoundErrorClass,
     InvalidServicesApiError: InvalidServicesApiErrorClass,
@@ -52,7 +54,7 @@ jest.mock('@salesforce/effect-ext-utils', () => {
       }
       return E.succeed({
         services: {
-          TelemetryIdentitySnapshot: () => mockApiState.identity
+          TargetOrgRef: () => R.make(mockApiState.identity)
         }
       });
     }

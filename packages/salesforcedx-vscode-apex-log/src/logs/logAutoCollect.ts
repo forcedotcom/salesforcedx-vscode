@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -15,6 +16,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
 import { KnownLogIdsRef, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
@@ -60,14 +62,12 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
       )
     ].map(([userId, recs]) => [userId, recs.map(r => toDate(r.startDate!)).reduce((a, b) => (a < b ? a : b))])
   );
-  const userIds = [
-    ...new Set(
-      activeItems
-        .map(r => r.tracedEntityId)
-        .filter(isString)
-        .filter(id => id.startsWith('005'))
-    )
-  ];
+  const userIds = Arr.dedupe(
+    activeItems
+      .map(r => r.tracedEntityId)
+      .filter(isString)
+      .filter(id => id.startsWith('005'))
+  );
   const minStart =
     startDateByUser.size > 0 ? [...startDateByUser.values()].reduce((a, b) => (a < b ? a : b)) : undefined;
 
@@ -109,7 +109,7 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
 const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const settings = yield* api.services.SettingsService;
-  return (yield* settings.getValue('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30)) ?? 30;
+  return yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30);
 });
 
 /** Polling stream that auto-collects Apex logs when trace flags are active. Writes to collectorRef for status bar display. */

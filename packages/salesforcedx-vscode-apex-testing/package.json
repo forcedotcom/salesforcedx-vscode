@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.15.2",
+  "version": "67.27.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,6 +36,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^9.1.9",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "salesforcedx-vscode-services": "*"
@@ -48,10 +49,16 @@
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing test:web --debug",
+    "test:web:org-wide": "wireit",
+    "test:web:class-scoped": "wireit",
+    "test:web:ride-along": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:org-wide": "wireit",
+    "test:desktop:class-scoped": "wireit",
+    "test:desktop:ride-along": "wireit",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -59,7 +66,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing lint --fix",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit",
@@ -71,7 +78,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-apex:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services:compile"
@@ -153,7 +159,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts --exclude \"/node_modules/|/out/|/dist/|/packages/\"",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/**/*.ts --exclude \"/node_modules/|/out/|/dist/\"",
       "dependencies": [
         "compile"
       ],
@@ -165,7 +171,7 @@
       ]
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -183,7 +189,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle:local",
@@ -246,6 +252,162 @@
       ],
       "output": []
     },
+    "test:web:org-wide": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts runApexTestsCommandPalette.headless.spec.ts testExplorer.headless.spec.ts clearApexTestResults.headless.spec.ts staleTestResultsRestoration.headless.spec.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:web:class-scoped": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts runApexTestsCodeLens.headless.spec.ts apexTestSuite.headless.spec.ts runApexTestsFailAndFix.headless.spec.ts codeCoverageColorizer.headless.spec.ts inWorkspaceFilter.headless.spec.ts orgOnlyClassRetrieve.headless.spec.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:web:ride-along": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts apexTestSuiteDelete.headless.spec.ts clearOnLogout.headless.spec.ts noOrgVisibility.headless.spec.ts noProjectVisibility.headless.spec.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:desktop:org-wide": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts runApexTestsCommandPalette.headless.spec.ts testExplorer.headless.spec.ts clearApexTestResults.headless.spec.ts staleTestResultsRestoration.headless.spec.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-org:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:desktop:class-scoped": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts runApexTestsCodeLens.headless.spec.ts apexTestSuite.headless.spec.ts runApexTestsFailAndFix.headless.spec.ts codeCoverageColorizer.headless.spec.ts inWorkspaceFilter.headless.spec.ts orgOnlyClassRetrieve.headless.spec.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-org:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:desktop:ride-along": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts apexTestSuiteDelete.headless.spec.ts clearOnLogout.headless.spec.ts noOrgVisibility.headless.spec.ts noProjectVisibility.headless.spec.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-org:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
     "test:e2e": {
       "dependencies": [
         "test:web",
@@ -265,7 +427,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -567,6 +729,93 @@
           "type": "boolean",
           "default": true,
           "description": "%apex_restore_previous_results_description%"
+        },
+        "salesforcedx-vscode-apex-testing.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-apex-testing.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SFDX: Run Apex Tests": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_apex_test_run_description%"
+            },
+            "SFDX: Create Apex Test Suite": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_apex_test_suite_create_description%"
+            },
+            "SFDX: Edit Apex Test Suite": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_apex_test_suite_edit_description%"
+            },
+            "SFDX: Retrieve Org-Only Apex Test Class": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_apex_test_retrieve_org_only_class_description%"
+            }
+          },
+          "additionalProperties": false
         }
       }
     }

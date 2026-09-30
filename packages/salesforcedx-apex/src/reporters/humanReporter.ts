@@ -7,12 +7,7 @@
 
 import * as os from 'node:os';
 import { nls } from '../i18n';
-import {
-  type ApexTestResultData,
-  type CodeCoverageResult,
-  type TestResult,
-  ApexTestResultOutcome
-} from '../tests/types';
+import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
@@ -117,16 +112,13 @@ export class HumanReporter {
   @elapsedTime()
   private formatTestResults(tests: ApexTestResultData[], concise: boolean, showCategory: boolean): string {
     const testRowArray: Row[] = tests
-      .filter(
-        elem =>
-          !concise || elem.outcome === ApexTestResultOutcome.Fail || elem.outcome === ApexTestResultOutcome.CompileFail
-      )
+      .filter(elem => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
       .map(elem => ({
         name: elem.fullName,
         ...(showCategory && { category: elem.category }),
         outcome: elem.outcome,
         msg: buildMsg(elem),
-        runtime: elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
+        runtime: elem.outcome !== 'Fail' ? `${elem.runTime}` : ''
       }));
 
     if (testRowArray.length > 0) {
@@ -182,10 +174,7 @@ export class HumanReporter {
   @elapsedTime()
   private formatDetailedCov(testResult: TestResult, concise: boolean, showCategory: boolean): string {
     const testRowArray: Row[] = testResult.tests
-      .filter(
-        (elem: ApexTestResultData) =>
-          !concise || elem.outcome === ApexTestResultOutcome.Fail || elem.outcome === ApexTestResultOutcome.CompileFail
-      )
+      .filter((elem: ApexTestResultData) => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
       .flatMap(elem => {
         const base = {
           name: elem.fullName,

@@ -7,7 +7,7 @@
 
 import { code2ProtocolConverter } from '@salesforce/effect-ext-utils';
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { workspace } from 'vscode';
+import { RelativePattern, workspace } from 'vscode';
 import type { DocumentSelector } from 'vscode-languageclient';
 import { URI } from 'vscode-uri';
 
@@ -20,18 +20,51 @@ const protocol2CodeConverter = (value: string) => URI.parse(value);
 export const buildDocumentSelector = (schemes: string[]): DocumentSelector =>
   schemes.flatMap(scheme => LWC_DOCUMENT_SELECTOR_LANGUAGES.map(language => ({ language, scheme })));
 
-/** File system watchers to synchronize with the LWC language server. */
-const getSynchronizeFileEvents = () => [
-  workspace.createFileSystemWatcher('**/*.resource'),
-  workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
-  workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
-  workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
-  workspace.createFileSystemWatcher('**/lwc/*/*.js'),
-  workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
-  workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
-  // need to watch for directory deletions as no events are created for contents or deleted directories
-  workspace.createFileSystemWatcher('**/', false, true, false)
-];
+/**
+ * File system watchers to synchronize with the LWC language server.
+ *
+ * When package directory URIs are provided, watchers are scoped to only those directories
+ * to avoid scanning the entire workspace (including node_modules, .git, etc.).
+ * Each URI is already a complete watcher base, so this does not depend on workspace.workspaceFolders.
+ * Falls back to ** patterns if no package directories are available.
+ *
+ * @param packageDirectoryUris - Package directories from sfdx-project.json.
+ */
+const getSynchronizeFileEvents = (packageDirectoryUris?: URI[]) => {
+  // If we have package directories, scope watchers to only those paths for better performance
+  if (packageDirectoryUris?.length) {
+    return packageDirectoryUris.flatMap(packageDirectoryUri => {
+      const relativePattern = (pattern: string): RelativePattern => new RelativePattern(packageDirectoryUri, pattern);
+
+      return [
+        workspace.createFileSystemWatcher(relativePattern('**/*.resource')),
+        workspace.createFileSystemWatcher(relativePattern('**/labels/CustomLabels.labels-meta.xml')),
+        workspace.createFileSystemWatcher(relativePattern('**/staticresources/*.resource-meta.xml')),
+        workspace.createFileSystemWatcher(relativePattern('**/contentassets/*.asset-meta.xml')),
+        workspace.createFileSystemWatcher(relativePattern('**/lwc/*/*.js')),
+        workspace.createFileSystemWatcher(relativePattern('**/modules/*/*/*.js')),
+        workspace.createFileSystemWatcher(relativePattern('**/modules/*/*/*.ts')),
+        workspace.createFileSystemWatcher(relativePattern('**/*.js-meta.xml')),
+        // Watch for directory deletions only (ignore creates) - .js-meta.xml watcher handles needed creates
+        workspace.createFileSystemWatcher(relativePattern('**/'), true, true, false)
+      ];
+    });
+  }
+
+  // Fallback to workspace-wide patterns if no package directories available
+  return [
+    workspace.createFileSystemWatcher('**/*.resource'),
+    workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
+    workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
+    workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
+    workspace.createFileSystemWatcher('**/lwc/*/*.js'),
+    workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
+    workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
+    workspace.createFileSystemWatcher('**/*.js-meta.xml'),
+    // Watch for directory deletions only (ignore creates) - .js-meta.xml watcher handles needed creates
+    workspace.createFileSystemWatcher('**/', true, true, false)
+  ];
+};
 
 const sharedUriConverters = {
   code2Protocol: code2ProtocolConverter,
@@ -45,9 +78,12 @@ export type LwcInitializationOptions = {
 };
 
 /** Shared language client options. Override documentSelector (and add outputChannel etc.) in node/web. */
-export const getBaseClientOptions = (initializationOptions: LwcInitializationOptions) => ({
+export const getBaseClientOptions = (
+  initializationOptions: LwcInitializationOptions,
+  packageDirectoryUris?: URI[]
+) => ({
   synchronize: {
-    fileEvents: getSynchronizeFileEvents()
+    fileEvents: getSynchronizeFileEvents(packageDirectoryUris)
   },
   initializationOptions,
   uriConverters: sharedUriConverters

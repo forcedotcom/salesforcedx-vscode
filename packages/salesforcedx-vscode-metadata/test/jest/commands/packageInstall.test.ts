@@ -11,6 +11,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { packageInstallCommand } from '../../../src/commands/packageInstall';
 import { nls } from '../../../src/messages';
+import type { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
@@ -18,7 +19,12 @@ describe('packageInstallCommand package ID validation', () => {
   it('accepts valid package IDs and empty input and rejects malformed IDs', async () => {
     const showInputBox = vscode.window.showInputBox as jest.Mock;
     showInputBox.mockResolvedValueOnce(undefined);
+    const notificationMode = {
+      getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+      showSuccessNotification: () => Effect.void
+    } as unknown as NotificationModeService;
     const services = {
+      NotificationModeService: Effect.succeed(notificationMode),
       PromptService: Effect.succeed({
         considerUndefinedAsCancellation: <T>(value: T | undefined) =>
           value === undefined ? Effect.fail(new UserCancellationError({})) : Effect.succeed(value)

@@ -356,7 +356,7 @@ async function run() {
     }
 
     function getLatestExtensionsVersion() {
-      const result = execSync('npx vsce show salesforce.salesforcedx-vscode --json').toString();
+      const result = execSync('pnpm exec vsce show salesforce.salesforcedx-vscode --json').toString();
       return JSON.parse(result).versions[0].version;
     }
 

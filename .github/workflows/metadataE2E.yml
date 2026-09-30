@@ -20,20 +20,14 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-metadataE2E
@@ -59,20 +53,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -84,7 +72,11 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata
+          pnpm --filter salesforcedx-vscode-metadata test:web
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -95,15 +87,6 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
-            dreamhouse-lwc
-          retry_wait_seconds: 60
-
       - name: Auth to dev hub (global)
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -113,13 +96,38 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Install Playwright browsers and OS deps
+      - name: Install Playwright and clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
+
+          retry pnpm exec playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
@@ -154,7 +162,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata
+          pnpm --filter salesforcedx-vscode-metadata test:web
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -166,7 +174,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed
+          pnpm --filter salesforcedx-vscode-metadata test:web -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -233,20 +241,14 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -258,7 +260,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -278,22 +280,38 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Install Playwright browsers and OS deps
+      - name: Install Playwright and clone dreamhouse
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
 
-      - name: Clone dreamhouse
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc
-            dreamhouse-lwc
-          retry_wait_seconds: 60
+          retry pnpm exec playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
@@ -341,7 +359,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -353,7 +371,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -403,16 +421,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       - name: Try E2E conflicts tests
         id: try-run
@@ -422,7 +434,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -440,7 +452,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Generate minimal project
@@ -462,7 +474,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -471,7 +483,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --last-failed
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -536,16 +548,10 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       - name: Try E2E conflicts tests
         id: try-run
@@ -557,7 +563,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -575,7 +581,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Generate minimal project
@@ -611,7 +617,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -622,7 +628,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

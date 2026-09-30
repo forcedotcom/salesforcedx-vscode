@@ -8,160 +8,39 @@ review: never
 
 Full doc: [contributing/publishing.md](../../../contributing/publishing.md)
 
-## Scripts in this skill
+## Step 1 — Download stable release build
 
-Run from repo root via `npx ts-node` (no global `ts-node`):
-
-- `npx ts-node .claude/skills/release/detect-state.ts` — outputs JSON with `currentRelease`, `version`, `priorRelease`, `tagExists`, `onReleaseBranch`, `commitCount`, `branchUrl`, `compareUrl`
-
-## Step 0 — Verify release branch
-
-Run `detect-state.ts` first to capture all context for subsequent steps.
-
-Check that the scheduled `createReleaseBranch.yml` ran:
+Get VSIX + SHA256 from GitHub pre-release created by `build-github-release.yml`. Release notes link to [docs/release-testing-guide.md](../../../docs/release-testing-guide.md) for full testing/publishing instructions:
 
 ```sh
-gh run list --workflow=createReleaseBranch.yml -L 5 --repo forcedotcom/salesforcedx-vscode
-```
-
-Report status + timestamp. If the top-level run shows **failure**, inspect jobs — the workflow has two: `Create Branch` then `Trigger Generate Changelog Workflow`:
-
-```sh
-gh run view <runId> --repo forcedotcom/salesforcedx-vscode
-```
-
-Decision matrix:
-
-- **Both jobs succeeded** → continue to Step 1
-- **`Create Branch` failed** → branch never created. Re-run with default (minor):
-  ```sh
-  gh workflow run createReleaseBranch.yml -f releaseType=minor --repo forcedotcom/salesforcedx-vscode
-  ```
-- **`Create Branch` succeeded but `Generate Changelog` failed** → partial state: branch exists on remote but CHANGELOG is not updated for the new version. Recovery: delete the broken branch, then re-dispatch the workflow. Confirm no open PRs first.
-  ```sh
-  gh pr list --state open --head release/v<version> --repo forcedotcom/salesforcedx-vscode
-  git push origin --delete release/v<version>
-  gh workflow run createReleaseBranch.yml -f releaseType=minor --repo forcedotcom/salesforcedx-vscode
-  ```
-- **No run this week** → re-run with default (minor), same command as above
-- **User explicitly requests patch** (code changes landed after branch cut) → run with patch:
-  ```sh
-  gh workflow run createReleaseBranch.yml -f releaseType=patch --repo forcedotcom/salesforcedx-vscode
-  ```
-
-After any re-dispatch, watch the new run until it completes before Step 1:
-
-```sh
-gh run list --workflow=createReleaseBranch.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
-gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
-```
-
-## Step 1 — Show release branch link
-
-Print `branchUrl` from `detect-state.ts`.
-
-## Step 2 — Show changes
-
-Print `compareUrl` and `commitCount` from `detect-state.ts` so user can review what's in this release without leaving the chat.
-
-## Step 3-4 — Polish changelog
-
-Check out the release branch:
-
-```sh
-git fetch origin && git checkout <currentRelease> && git pull
-```
-
-Read and follow [.claude/skills/changelog/SKILL.md](../changelog/SKILL.md) to polish `packages/salesforcedx-vscode/CHANGELOG.md`.
-
-**Verify release date.** Auto-generated header uses `today + 2 days` (see `scripts/change-log-generator-utils.ts` `getReleaseDate`). Assumes Monday branch-cut → Wednesday release. Always Wednesday, even for re-runs/patches. If not upcoming Wednesday, fix and confirm date with user before commit.
-
-Show `git diff packages/salesforcedx-vscode/CHANGELOG.md` to user.
-
-**Wait for explicit "approved" before proceeding.**
-
-After approval:
-
-```sh
-git add packages/salesforcedx-vscode/CHANGELOG.md && git commit -m 'chore: polish changelog' && git push
-```
-
-After pushing, print a link to the rendered CHANGELOG on the branch so the user can share it with the team. Format:
-
-```
-https://github.com/forcedotcom/salesforcedx-vscode/blob/<currentRelease>/packages/salesforcedx-vscode/CHANGELOG.md
-```
-
-## Step 5 — Wait for team approval
-
-Stop here. Tell the user: "Let me know when the team has approved the changelog and you're ready to run PreRelease."
-
-Do not proceed until user says so.
-
-## Step 6 — Run PreRelease workflow
-
-Dispatch when user signals approval:
-
-```sh
-gh workflow run prerelease.yml \
-  -f releaseBranch=<currentRelease> \
-  --ref develop \
-  --repo forcedotcom/salesforcedx-vscode
-```
-
-Capture the run:
-
-```sh
-gh run list --workflow=prerelease.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
-```
-
-Monitor until complete:
-
-```sh
-gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
-```
-
-## Step 7 — Monitor build and release
-
-After PreRelease succeeds, the merge into `main` triggers `testBuildAndRelease.yml`. Monitor it:
-
-```sh
-gh run list --workflow=testBuildAndRelease.yml -L 1 --json databaseId --repo forcedotcom/salesforcedx-vscode
-gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
-```
-
-Confirm the release tag was created:
-
-```sh
-gh release view v<version> --repo forcedotcom/salesforcedx-vscode
-```
-
-## Step 8 — Download and install vsixes
-
-Ask user: `code` or `code-insiders`? (default `code`)
-
-```sh
+gh release list --repo forcedotcom/salesforcedx-vscode | head -5
 gh release download v<version> \
   --dir ~/Downloads/v<version> \
   --pattern '*.vsix' \
   --repo forcedotcom/salesforcedx-vscode
+```
 
+## Step 2 — Install and test locally
+
+Ask user: `code` or `code-insiders`? (default `code`)
+
+```sh
 find ~/Downloads/v<version> -type f -name "*.vsix" -exec <binary> --install-extension {} \;
 ```
 
 User should reload VS Code and run a few commands to validate.
 
-## Step 9 — Confirm manual testing is complete
+## Step 3 — Confirm manual testing is complete
 
-### 9a — Create the Slack testing doc
+### 3a — Create the Slack testing doc
 
 The user creates the testing doc from the team's Slack template: https://salesforce.enterprise.slack.com/docs/T092Z56AE/F0B7RLRUSRG
 
-> Create a new doc from the Slack template and name it **Release Testing v\<version\>** (e.g. `Release Testing v66.13.0`), where `<version>` matches the GH release tag.
+> Create a new doc from the Slack template and name it **Release Testing v\<version\>** (e.g. `Release Testing v67.12.0`), where `<version>` matches the GH release tag.
 
-Use the version captured from `gh release view v<version>` in Step 7 (or `detect-state.ts` `version` field) so the title matches the published tag exactly. Wait for the user to confirm the doc is created and shared with the team before continuing.
+Use the version from Step 1. Wait for the user to confirm the doc is created and shared with the team before continuing.
 
-### 9b — Run smoke checks
+### 3b — Run smoke checks
 
 Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Slack doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
 
@@ -175,49 +54,69 @@ Suggested smoke checks the user may run before confirming:
 
 Do not proceed until the user explicitly confirms testing is complete.
 
-## Step 10 — Approve marketplace publishes
+## Step 4 — Promote the release, then trigger marketplace publish
 
-After the GitHub Release is created in Step 7, `publishVSCode.yml` (Microsoft Marketplace) and `publishOpenVSX.yml` (Open VSX) auto-trigger on the `release: [released]` event. Both are gated by the `publish` GitHub Environment and wait for manual approval.
-
-Once the user confirms readiness in Step 9, list the pending runs:
+Once user confirms testing is complete, first promote the GitHub release from pre-release to a full release — this is the actual "make it stable" signal, and it's required before `vsce publish` will accept the VSIX. The publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce` whenever it's still `true`; that fails outright since these VSIXs were packaged as stable (`Cannot use '--pre-release' flag with a package that was not packaged as pre-release`):
 
 ```sh
-gh run list --workflow=publishVSCode.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
-gh run list --workflow=publishOpenVSX.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh release edit v<version> --prerelease=false --title "Release <version> - Tested & Approved" --latest --repo forcedotcom/salesforcedx-vscode
 ```
 
-Print both run URLs and tell the user to approve each pending deployment in the GitHub UI (Actions → run → Review pending deployments → Approve and deploy). Approval cannot be performed by the same identity that triggered the run, so the user must do this themselves.
+Also updates the release title from "Ready for Testing" to "Tested & Approved" to reflect that manual testing passed, and marks it `--latest` so GitHub (and anything resolving "the latest release" via the API) points at it instead of whatever shipped previously.
 
-After approval, monitor each run to completion:
+Flip auto-fires both workflows via `on.release.types: [released]` ([`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishVSCode.yml), [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.github/workflows/publishOpenVSX.yml)):
+
+- `publish` → `vscode-publish-release-vsix.yml` with `release-tag` = that tag (VSIXs on the GH release)
+- `prepare-release-metadata` checks out `ref: develop` only to compare tags + set Code Builder / GUS patch-vs-minor metadata — does **not** publish develop's tree
+- Open VSX checks out `$RELEASE_TAG`
+
+Both still need `publish` environment approval. Manual `workflow_dispatch` = retry only.
+
+Dispatch **both** [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) — dispatching one does **not** trigger the other (verified against run history: manual dispatches always appear as two separate `workflow_dispatch` runs, never a cascade). Use the tag form (`v<version>`, e.g. `v67.12.0`):
 
 ```sh
+gh workflow run publishVSCode.yml  -f version="v<version>"      --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishOpenVSX.yml -f release-tag="v<version>" --repo forcedotcom/salesforcedx-vscode
+```
+
+Both gated by the `publish` environment — user will approve **each** run in GitHub UI (Actions → run → Review pending → Approve + deploy).
+
+Tell user: "Triggered both publish workflows (Marketplace + Open VSX). You'll need to approve the environment gate on each in GitHub Actions UI."
+
+Monitor runs:
+
+```sh
+gh run list --workflow=publishVSCode.yml  -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishOpenVSX.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
 gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
 ```
 
-Verify the extensions are live before continuing:
+Verify live:
 
-- Microsoft Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode
-- Open VSX: https://open-vsx.org/extension/salesforce/salesforcedx-vscode
+- [Microsoft Marketplace](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)
+- [Open VSX](https://open-vsx.org/extension/salesforce/salesforcedx-vscode)
 
-## Step 11 — Slack post
+## Step 5 — Slack post
 
-Compose the post from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
+Compose from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
 - Header: `*Salesforce Extensions for VS Code v<version> is out* :tada:`
-- Marketplace link: `<https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode|VS Code Marketplace>` — note "see the *Changelog* tab for full details"
-- Sections: `*Added*` / `*Fixed*` (from `## Added` / `## Fixed`)
-- Subsection headers (`#### foo`) → blockquote (`> foo`)
-- Bullets: drop ` ([PR #N](url), [ISSUE #N](url))` trailers
+- Link: bare URL on its own line — `VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode` (see *Changelog* tab for full details). Do **not** use Slack's `<url|text>` bracket-pipe syntax: anything outside Slack's own composer (chat clients, clipboards, other markdown renderers) tends to do naive URL auto-detection, grabs everything up to the next whitespace, and mangles the link — encoding the `|` as `%7C` and swallowing the leading text into the URL.
+- Sections: `*Added*` / `*Fixed*`
+- Subsections (`#### foo`) → blockquote (`> foo`)
+- Drop PR/issue trailers
 
-Show the composed post to the user in a fenced code block.
+Show composed post. If Slack MCP available → offer to post/draft to `#platform-dev-tools`. Wait for approval before sending.
 
-**If Slack MCP is available**: offer to post or draft to `#platform-dev-tools`. Wait for explicit approval or change feedback before calling `slack_send_message` / `slack_send_message_draft`.
+## Emergency Hotfixes
 
-**If not**: user copy-pastes manually.
+For critical security/production bugs, use the separate **`/patch-release`** skill.
+
+See [patch-release/SKILL.md](../patch-release/SKILL.md) for emergency patch release workflow.
 
 ## Conventions
 
-- All `gh` commands include `--repo forcedotcom/salesforcedx-vscode`
-- Never push to a release branch without explicit user approval of the diff
-- Never dispatch `prerelease.yml` without explicit user signal
-- Never instruct the user to approve marketplace publishes until they confirm manual testing of the installed vsixes is complete
+- All `gh` commands use `--repo forcedotcom/salesforcedx-vscode`
+- Don't approve publishes until manual testing done
+- Patch releases bypass timeline for emergencies only
+- Always cherry-pick fixes to develop after publishing

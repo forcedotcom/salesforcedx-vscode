@@ -29,23 +29,22 @@ export type ProgressReporter = (message: string) => Effect.Effect<void>;
  * life between the folder prompt and the final toast. The notification closes when the Effect settles.
  * @param title - The notification title shown for the whole operation.
  * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
+ * @param location - Where to show the progress (toast vs status bar); defaults to a toast notification.
  */
 export const withSteppedProgress = <A, E, R>(
   title: string,
-  body: (report: ProgressReporter) => Effect.Effect<A, E, R>
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
+  location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
 ) =>
   Effect.runtime<R>().pipe(
     Effect.flatMap(runtime =>
       Effect.async<A, E>(resume => {
-        void vscode.window.withProgress(
-          { location: vscode.ProgressLocation.Notification, title, cancellable: false },
-          progress => {
-            const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
-            return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
-              resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-            });
-          }
-        );
+        void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
+          const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+          return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
+            resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+          });
+        });
       })
     )
   );

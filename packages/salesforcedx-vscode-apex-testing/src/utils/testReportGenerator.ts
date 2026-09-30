@@ -74,20 +74,11 @@ const generateReportUri = (outputDir: URI, testRunId: string | undefined, extens
   return Utils.joinPath(outputDir, filename);
 };
 
-/** Opens the report file in the editor (forked as a daemon so it doesn't block the caller) */
-const openReportOnUserAction = Effect.fn('writeAndOpenTestReport.openReport')(function* (
+/** Opens the report file in the editor. Wired as a success-toast action's `run` callback by callers. */
+export const openTestReport = Effect.fn('writeAndOpenTestReport.openReport')(function* (
   reportUri: URI,
   format: OutputFormat
 ) {
-  const openAction = nls.localize('apex_test_report_open_action');
-  const message = nls.localize('apex_test_report_ready_message', Utils.basename(reportUri));
-
-  const selection = yield* Effect.tryPromise(() => vscode.window.showInformationMessage(message, openAction));
-
-  if (selection !== openAction) {
-    return;
-  }
-
   if (format === 'markdown') {
     yield* Effect.tryPromise(() => vscode.commands.executeCommand('markdown.preview.refresh')).pipe(
       Effect.catchAll(() => Effect.void)
@@ -99,7 +90,7 @@ const openReportOnUserAction = Effect.fn('writeAndOpenTestReport.openReport')(fu
   }
 });
 
-/** Writes test report to file and notifies the user when it's ready */
+/** Writes test report to file. Callers are responsible for notifying the user and providing action button wiring. */
 export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(function* (
   result: TestResult,
   outputDir: URI,
@@ -111,10 +102,16 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
   const settings = yield* api.services.SettingsService;
-  const performanceThresholdMs =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testPerformanceThresholdMs', 5000)) ?? 5000;
-  const coverageThresholdPercent =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testCoverageThresholdPercent', 75)) ?? 75;
+  const performanceThresholdMs = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testPerformanceThresholdMs',
+    5000
+  );
+  const coverageThresholdPercent = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testCoverageThresholdPercent',
+    75
+  );
 
   // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
   const transformer = createReportTransformer(
@@ -145,12 +142,6 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   if (format === 'markdown') {
     yield* channelSvc.appendToChannel(nls.localize('apex_test_report_markdown_preview_tip'));
   }
-
-  // Show notification with option to open — fire-and-forget daemon fiber
-  yield* openReportOnUserAction(reportUri, format).pipe(
-    Effect.catchAll(error => Effect.logError(`[Test Report] Error in notification handler: ${String(error)}`)),
-    Effect.forkDaemon
-  );
 
   return reportUri;
 });

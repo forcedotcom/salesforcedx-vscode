@@ -93,7 +93,8 @@ export const AllServicesLayer = Layer.unwrapEffect(
 
 ```ts
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getRuntime } from './services/runtime';
 
 const myProgram = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -102,7 +103,7 @@ const myProgram = Effect.gen(function* () {
   return configAggregator;
 });
 
-Effect.runPromise(myProgram.pipe(Effect.provide(AllServicesLayer)));
+await getRuntime().runPromise(myProgram);
 ```
 
 See `packages/salesforcedx-vscode-metadata/src/services/extensionProvider.ts` for a complete example.

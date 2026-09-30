@@ -71,6 +71,8 @@ jq -rc 'select(.kind=="span" and .parentSpanId=="") | {name, userId:.attributes.
 }
 ```
 
+Hosted Web Console cannot write this dir. Local OTLP (`enableLocalTraces` → `:4318`) → `web-console-local-traces`.
+
 ## Enable (Web / run:web)
 
 Web POSTs to local span file server (port 3003). Server must run.

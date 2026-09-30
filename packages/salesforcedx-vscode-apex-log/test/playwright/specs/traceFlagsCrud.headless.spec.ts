@@ -17,7 +17,7 @@ import {
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
-  selectFirstQuickInputOption,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -123,7 +123,7 @@ test('Trace Flags CRUD: open, create/delete current user trace flag, create/dele
     await quickInput.locator('input.input').fill(debugLevelDeveloperName);
     await page.keyboard.press('Enter');
 
-    await selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 });
+    await selectQuickInputOption(page, 'Yes (Apex=DEBUG, VF=INFO, DB=INFO)', { optionVisibleTimeout: 10_000 });
 
     await openTraceFlagsAndExpectContent(page, debugLevelMasterLabel);
     await saveScreenshot(page, 'debug-level.created.png');

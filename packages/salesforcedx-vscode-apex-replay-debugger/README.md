@@ -4,6 +4,13 @@ Apex Replay Debugger simulates a live debugging session using a debug log that i
 
 **DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
+## Settings
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `salesforcedx-vscode-apex-replay-debugger.extensionLevelNotifications` | string | `"progressToastSuccessToast"` | Controls notifications for all replay debugger commands. Options: `"progressToastSuccessToast"`, `"progressToastSuccessOff"`, `"progressStatusBarSuccessStatusBar"`, `"progressStatusBarSuccessOff"`. |
+| `salesforcedx-vscode-apex-replay-debugger.commandLevelNotifications` | object | — | Per-command notification settings (e.g. "Debug Apex Test Class", "Debug Anonymous Apex", "Update Checkpoints in Org"). Overrides extension-level setting for specific commands. |
+
 ## Documentation
 
 For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.

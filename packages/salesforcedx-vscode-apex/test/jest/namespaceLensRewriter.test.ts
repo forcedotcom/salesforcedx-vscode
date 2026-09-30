@@ -8,6 +8,10 @@
 import * as vscode from 'vscode';
 import { rewriteNamespaceLens } from '../../src/namespaceLensRewriter';
 
+jest.mock('../../src/services/runtime', () => ({
+  getRuntime: () => ({ runFork: () => undefined })
+}));
+
 describe('rewriteNamespaceLens Unit Tests', () => {
   const createMockCodeLens = (title: string, args?: string[]): vscode.CodeLens => ({
     range: new vscode.Range(0, 0, 0, 10),

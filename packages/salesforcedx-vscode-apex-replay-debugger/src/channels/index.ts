@@ -6,7 +6,10 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
+
+export type DebuggerWindowType = 'error' | 'warning';
 
 const getChannelService = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -34,6 +37,12 @@ const appendAndShow = Effect.fn('channels.appendAndShowChannelOutput')(function*
  * set) never reach the caller: `runFork` reports them on the forked fiber instead of throwing, so
  * channel output stays best-effort for the sync `void` callers of `writeToDebuggerOutputWindow`.
  */
-export const appendAndShowChannelOutput = (message: string): void => {
+const appendAndShowChannelOutput = (message: string): void => {
   getRuntime().runFork(Effect.ignoreLogged(appendAndShow(message)));
+};
+
+export const writeToDebuggerOutputWindow = (output: string, windowType?: DebuggerWindowType) => {
+  appendAndShowChannelOutput(output);
+  if (!windowType) return;
+  windowType === 'error' ? vscode.window.showErrorMessage(output) : vscode.window.showWarningMessage(output);
 };

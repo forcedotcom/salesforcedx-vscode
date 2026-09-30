@@ -9,9 +9,11 @@ import {
   closeAllEditors,
   closeWelcomeTabs,
   clearOutputChannel,
+  createMinimalOrg,
   ensureSecondarySideBarHidden,
   executeCommandById,
   selectOutputChannel,
+  upsertScratchOrgAuthFieldsToSettings,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
@@ -22,9 +24,11 @@ import { test } from '../fixtures';
 
 test('tagged command errors include the tag only in channel output', async ({ page }) => {
   test.setTimeout(120_000);
+  const createResult = await createMinimalOrg();
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   await verifyCommandExists(page, packageNls.project_info_text, 60_000);
   await closeAllEditors(page);
 
@@ -33,6 +37,7 @@ test('tagged command errors include the tag only in channel output', async ({ pa
 
   const expectedText = `[ManifestSelectionRequiredError] ${messages.deploy_select_manifest}`;
   await executeCommandById(page, 'sf.metadata.deploy.in.manifest', {
-    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 5000 })
+    timeout: 90_000,
+    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 15_000 })
   });
 });

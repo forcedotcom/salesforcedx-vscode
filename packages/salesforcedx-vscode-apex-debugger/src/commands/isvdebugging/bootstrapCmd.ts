@@ -6,10 +6,12 @@
  */
 import { Global } from '@salesforce/core/global';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError, isString } from 'effect/Predicate';
+import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -17,6 +19,9 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
+
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Create and Set Up Project for ISV Debugging';
 
 type InstalledPackageInfo = {
   id: string;
@@ -66,17 +71,19 @@ const relativeMetadataTempPath = () => path.join(relativeToolsFolder(), ISVDEBUG
 const relativeApexPackageXmlPath = () => path.join(relativeMetadataTempPath(), PACKAGE_XML);
 const relativeInstalledPackagesPath = () => path.join(relativeToolsFolder(), INSTALLED_PACKAGES);
 
+const OrgNamespaceQueryResponse = Schema.Struct({
+  result: Schema.Struct({ records: Schema.Array(Schema.Unknown) })
+});
+const OrgNamespaceRecord = Schema.Struct({ NamespacePrefix: Schema.String });
+
 /** Parses `sf data query --json` stdout for `Organization.NamespacePrefix`; empty string when absent. */
-export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string => {
-  const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
-  if (
-    orgNamespaceQueryResponse.result?.records?.[0] &&
-    isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
-  ) {
-    return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
-  }
-  return '';
-};
+export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string =>
+  Schema.decodeUnknownOption(OrgNamespaceQueryResponse)(JSON.parse(orgNamespaceQueryJson)).pipe(
+    Option.flatMap(({ result }) => Arr.head(result.records)),
+    Option.flatMap(Schema.decodeUnknownOption(OrgNamespaceRecord)),
+    Option.map(({ NamespacePrefix }) => NamespacePrefix),
+    Option.getOrElse(() => '')
+  );
 
 /** Parses `sf package installed list --json` stdout into the installed-package descriptors. */
 export const parsePackageInstalledListJson = (packagesJson: string): InstalledPackageInfo[] => {
@@ -95,19 +102,17 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
   );
 };
 
-/** The forceide:// URL's `url`/`sessionId` values are interpolated into shell command strings (config set /
- * --target-org). A pasted URL is attacker-shapeable, and double-quote wrapping does NOT neutralize `$`, backtick,
- * `\`, `"` under /bin/sh, so reject any shell metacharacter here (parity with validateAliasInput's shell-safe
- * gate). Legitimate Salesforce session ids / login URLs never contain these. */
-const SHELL_UNSAFE = /[`$\\"'|&;<>()\s]/;
+/** Defense-in-depth on attacker-shapeable forceide:// pastes. Rejects chars that never appear in real
+ * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
+const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
 const uriValidator = (value: string): string | undefined => {
   try {
     const parameter = new URL(value).searchParams;
     const url = parameter.get('url');
     const sessionId = parameter.get('sessionId');
-    // `''` passes isString + SHELL_UNSAFE, so require non-empty here — keeps gatherForceIdeUri's parse total.
-    if (!url || !sessionId || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
+    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
   } catch {
@@ -129,8 +134,7 @@ const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(funct
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  // uriValidator (validateInput) already rejected undefined/empty url+sessionId and any shell metacharacter, so
-  // both are non-empty strings here.
+  // uriValidator already rejected empty url+sessionId, so both are non-empty here.
   const parameter = new URL(forceIdeUri).searchParams;
   const loginUrl = parameter.get('url')!;
   const sessionId = parameter.get('sessionId')!;
@@ -167,7 +171,14 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(Effect.flatMap(folders => promptService.considerUndefinedAsCancellation(folders?.[0])));
+  ).pipe(
+    Effect.flatMap(folders =>
+      Option.match(Arr.head(folders ?? []), {
+        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
+        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
+      })
+    )
+  );
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });
@@ -190,6 +201,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminalService = yield* api.services.TerminalService;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
   const fs = api.services.FsService;
 
   const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
@@ -206,14 +218,16 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const salesforceProjectJsonUri = Utils.joinPath(projectUri, 'sfdx-project.json');
 
   // No env here: simpleExec gathers NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY (plus
-  // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf ` command at exec time, so corp-proxy CA certs
-  // and CLI env reach these bootstrap children without being threaded through.
-  const runSf = (command: string, cwd: string) =>
-    terminalService.simpleExec({ command, parse: identity, cwd, timeout: CLI_TIMEOUT });
+  // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf` command at exec time.
+  const runSf = (args: readonly string[], cwd: string) =>
+    terminalService.simpleExec({ executable: 'sf', args, parse: identity, cwd, timeout: CLI_TIMEOUT });
 
   // Drive the whole bootstrap under a cancellable progress notification (each step reports its label). Cancel
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
-  yield* promptService.withCancellableProgressReporting(nls.localize('isv_debug_bootstrap_progress_title'))(progress =>
+  yield* promptService.withCancellableProgressReporting(
+    nls.localize('isv_debug_bootstrap_progress_title'),
+    yield* notificationMode.getProgressLocation(COMMAND)
+  )(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));
 
@@ -223,21 +237,36 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       // 1: create project
       yield* report(nls.localize('isv_debug_bootstrap_create_project'));
       yield* runSf(
-        `sf project generate --name "${projectName}" --output-dir "${projectParentPath}" --template standard`,
+        ['project', 'generate', '--name', projectName, '--output-dir', projectParentPath, '--template', 'standard'],
         projectParentPath
       );
 
-      // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath)
+      // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath). `sf config set`
+      // takes each key=value as one token.
       yield* report(nls.localize('isv_debug_bootstrap_configure_project'));
       yield* runSf(
-        `sf config set org-isv-debugger-sid="${sessionId}" org-isv-debugger-url="${loginUrl}" org-instance-url="${loginUrl}"`,
+        [
+          'config',
+          'set',
+          `org-isv-debugger-sid=${sessionId}`,
+          `org-isv-debugger-url=${loginUrl}`,
+          `org-instance-url=${loginUrl}`
+        ],
         projectPath
       );
 
       // 2b: update sfdx-project.json with namespace
       yield* report(nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace'));
       const orgNamespaceInfoResponseJson = yield* runSf(
-        `sf data query --query "SELECT NamespacePrefix FROM Organization LIMIT 1" --target-org "${sessionId}" --json`,
+        [
+          'data',
+          'query',
+          '--query',
+          'SELECT NamespacePrefix FROM Organization LIMIT 1',
+          '--target-org',
+          sessionId,
+          '--json'
+        ],
         projectPath
       );
       const salesforceProjectJson = yield* fs.readFile(salesforceProjectJsonUri);
@@ -257,14 +286,14 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       // 3b: retrieve unmanaged org source (--manifest is relative → resolvable at cwd=projectPath)
       yield* report(nls.localize('isv_debug_bootstrap_retrieve_org_source'));
       yield* runSf(
-        `sf project retrieve start --manifest "${relativeApexPackageXmlPath()}" --target-org "${sessionId}"`,
+        ['project', 'retrieve', 'start', '--manifest', relativeApexPackageXmlPath(), '--target-org', sessionId],
         projectPath
       );
 
       // 4: get list of installed packages
       yield* report(nls.localize('isv_debug_bootstrap_list_installed_packages'));
       const packageInfos = parsePackageInstalledListJson(
-        yield* runSf(`sf package installed list --target-org "${sessionId}" --json`, projectPath)
+        yield* runSf(['package', 'installed', 'list', '--target-org', sessionId, '--json'], projectPath)
       );
 
       // 5a: create directory where packages are to be retrieved (.sfdx/tools/installed-packages)
@@ -278,7 +307,20 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
             Effect.tap(() =>
               runSf(
                 // '.' in package name trims the folder name (salesforce.fth → salesforce), so replace it in zip-file-name
-                `sf project retrieve start --package-name "${packageInfo.name}" --target-org "${sessionId}" --target-metadata-dir "${relativeInstalledPackagesPath()}" --unzip --zip-file-name "${packageInfo.name.replaceAll('.', '-')}"`,
+                [
+                  'project',
+                  'retrieve',
+                  'start',
+                  '--package-name',
+                  packageInfo.name,
+                  '--target-org',
+                  sessionId,
+                  '--target-metadata-dir',
+                  relativeInstalledPackagesPath(),
+                  '--unzip',
+                  '--zip-file-name',
+                  packageInfo.name.replaceAll('.', '-')
+                ],
                 projectPath
               )
             )

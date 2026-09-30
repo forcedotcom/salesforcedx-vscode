@@ -49,9 +49,8 @@ export const resolveRunInputs = <E, R>(
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const settings = yield* api.services.SettingsService;
-    const codeCoverage =
-      (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
-    const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
+    const codeCoverage = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false);
+    const concise = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false);
     const resolved = yield* Effect.all(
       {
         payload: api.services.ConnectionService.getConnection().pipe(
@@ -83,7 +82,11 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   );
 });
 
-/** Runs Apex tests and writes results. Returns undefined when the run produced no usable result (timeout / no summary). */
+/** Runs Apex tests and writes results. Returns the completed (or soft-failed) test result plus the
+ * generated report's location/format for callers to wire into a success toast's "Open Report" action.
+ * `result` is undefined when the run produced no usable result (timeout / no summary); `reportUri` is
+ * undefined when report generation failed (channel gets a warning line, but the run itself still
+ * succeeds — no toast interruption). */
 export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTestRunOptions) {
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
 
@@ -108,7 +111,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
   if (!result || !('summary' in result)) {
-    return undefined;
+    return { result: undefined, reportUri: undefined, outputFormat: 'markdown' as const };
   }
 
   // Non-fatal: a write failure logs and the run continues (report generation still happens below).
@@ -120,13 +123,32 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // Generate and open test report
   const settings = yield* api.services.SettingsService;
-  const outputFormat =
-    (yield* settings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ?? 'markdown';
-  const sortOrder =
-    (yield* settings.getValue<'runtime' | 'coverage' | 'severity'>(APEX_TESTING_SECTION, 'testSortOrder', 'runtime')) ??
-    'runtime';
-  yield* writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder).pipe(
-    Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
+  const outputFormat = yield* settings.getValueOrElse<'markdown' | 'text'>(
+    APEX_TESTING_SECTION,
+    'outputFormat',
+    'markdown'
+  );
+  const sortOrder = yield* settings.getValueOrElse<'runtime' | 'coverage' | 'severity'>(
+    APEX_TESTING_SECTION,
+    'testSortOrder',
+    'runtime'
+  );
+  const channelService = yield* api.services.ChannelService;
+  const reportUri = yield* writeAndOpenTestReport(
+    result,
+    options.outputDir,
+    outputFormat,
+    options.codeCoverage,
+    sortOrder
+  ).pipe(
+    Effect.catchAll(error =>
+      Effect.logError(`Failed to generate test report: ${String(error)}`).pipe(
+        Effect.andThen(
+          channelService.appendToChannel(nls.localize('apex_test_report_generation_failed_message', String(error)))
+        ),
+        Effect.as(undefined)
+      )
+    )
   );
 
   const summary = result.summary;
@@ -138,5 +160,5 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
     testsFailed: Number(summary?.failing ?? 0)
   });
 
-  return result;
+  return { result, reportUri, outputFormat };
 });

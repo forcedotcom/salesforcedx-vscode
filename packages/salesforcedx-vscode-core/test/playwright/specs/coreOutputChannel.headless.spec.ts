@@ -11,17 +11,20 @@ import {
   countOutputChannelOptions,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 const CORE_CHANNEL = 'Salesforce CLI';
 
@@ -39,11 +42,13 @@ test("Core output channel: single 'Salesforce CLI' channel, wired to services la
     await saveScreenshot(page, 'coreOutputChannel.01-ready.png');
   });
 
-  await test.step('metadataXmlSupport wrote to the services-owned channel via getCoreChannelService', async () => {
+  await test.step('metadataXmlSupport wrote to the services-owned channel', async () => {
+    await verifyCommandExists(page, packageNls.config_list_text, 30_000);
+    await executeCommandWithCommandPalette(page, packageNls.config_list_text);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, CORE_CHANNEL, 10_000);
     // Core harness installs no redhat.vscode-xml, so initializeMetadataSupport hits the no-redhat
-    // branch and writes this via the legacy wrapper backed by the single services channel.
+    // branch and writes this through ChannelService.
     await waitForOutputChannelText(page, { expectedText: messages.metadata_xml_no_redhat_extension_found });
     await saveScreenshot(page, 'coreOutputChannel.02-text-verified.png');
   });

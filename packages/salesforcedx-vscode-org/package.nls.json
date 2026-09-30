@@ -1,6 +1,8 @@
 {
   "alias_list_text": "SFDX: List All Aliases",
+  "command_succeeded_text": "%s successfully ran",
   "config_set_org_text": "SFDX: Set a Default Org",
+  "configuration_title": "Salesforce Org Management",
   "org_create_default_scratch_org_text": "SFDX: Create a Default Scratch Org...",
   "org_delete_default_text": "SFDX: Delete Default Org",
   "org_delete_username_text": "SFDX: Delete Org...",
@@ -16,5 +18,21 @@
   "org_open_default_scratch_org_text": "SFDX: Open Default Org",
   "org_select_text": "Select an org to set as default",
   "status_bar_open_org_tooltip": "Open Default Org in Browser",
-  "status_bar_org_picker_tooltip": "Change your default org"
+  "status_bar_org_picker_tooltip": "Change your default org",
+  "extension_level_notifications_description": "Notification style for all Org Management commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-org.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Org Management command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-org.extensionLevelNotifications settings.",
+  "notifications.progressToast.description": "Show progress as a toast notification.",
+  "notifications.progressStatusBar.description": "Show progress spinner in the status bar.",
+  "notifications.successToast.description": "Show the confirmation as a toast notification.",
+  "notifications.successStatusBar.description": "Show the confirmation in the status bar.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications_org_login_web_dev_hub_description": "Notification style for SFDX: Authorize a Dev Hub.",
+  "notifications_org_login_web_description": "Notification style for SFDX: Authorize an Org.",
+  "notifications_org_create_description": "Notification style for SFDX: Create a Default Scratch Org.",
+  "notifications_org_display_description": "Notification style for SFDX: Display Org Details (default and by username).",
+  "notifications_org_delete_description": "Notification style for SFDX: Delete Org (default and by username).",
+  "notifications_org_list_clean_description": "Notification style for SFDX: Remove Deleted and Expired Orgs."
 }

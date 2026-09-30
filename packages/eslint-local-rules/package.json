@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
-  "version": "65.12.2",
+  "version": "65.13.1",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
   "author": "Salesforce",
@@ -71,6 +71,7 @@
       ],
       "files": [
         "test/**/*.ts",
+        "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "jest.config.js",
         "../../config/jest.base.config.js"
       ],
@@ -117,15 +118,15 @@
   },
   "dependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
-    "@typescript-eslint/parser": "^8.67.0",
-    "@typescript-eslint/utils": "^8.67.0",
-    "minimatch": "^10.2.4"
+    "@typescript-eslint/parser": "^8.68.0",
+    "@typescript-eslint/utils": "^8.68.0",
+    "minimatch": "^10.2.6"
   },
   "devDependencies": {
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
     "@types/semver": "7.5.8",
-    "@typescript-eslint/rule-tester": "^8.67.0",
+    "@typescript-eslint/rule-tester": "^8.68.0",
     "semver": "^7.5.4"
   }
 }

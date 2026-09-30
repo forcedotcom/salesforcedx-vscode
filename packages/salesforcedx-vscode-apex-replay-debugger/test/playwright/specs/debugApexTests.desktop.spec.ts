@@ -28,19 +28,20 @@ import { test } from '../fixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
 
 /**
- * Clicks a Test Explorer tree row's "Debug Test" action button using the retry/force-click pattern.
+ * Clicks a Test Explorer tree row's "Debug Test" action button using a bounded stale-row retry.
  * Clicking a tree row re-renders the tree (selection highlight + action buttons), invalidating element
- * refs — retry/force-click to tolerate the stale refs.
+ * refs, so retry the normal actions to tolerate stale refs.
  */
 const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> => {
   const item = page.getByRole('treeitem', { name });
   await item.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(async () => {
-    await item.click({ force: true });
-    await item.hover({ force: true });
+    await item.click();
+    await item.hover();
     const debugButton = item.getByRole('button', { name: /^Debug Test/ });
     await debugButton.waitFor({ state: 'visible', timeout: 3000 });
-    await debugButton.click({ force: true });
+    await expect(debugButton).toBeEnabled({ timeout: 3000 });
+    await debugButton.click();
   }).toPass({ timeout: 30_000 });
 };
 
@@ -57,7 +58,8 @@ const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const twistie = row.locator('.monaco-tl-twistie');
   const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
   if (!collapsed) return;
-  await twistie.click({ force: true });
+  await expect(twistie).toBeVisible({ timeout: 5000 });
+  await twistie.click();
   await page.waitForTimeout(400);
 };
 

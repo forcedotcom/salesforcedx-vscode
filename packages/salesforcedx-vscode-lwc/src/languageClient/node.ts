@@ -10,11 +10,13 @@ import {
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import type { URI } from 'vscode-uri';
 import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: LwcInitializationOptions
+  initializationOptions: LwcInitializationOptions,
+  packageDirectoryUris?: URI[]
 ): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
@@ -30,7 +32,7 @@ export const createLanguageClient = (
   };
 
   const clientOptions: LanguageClientOptions = {
-    ...getBaseClientOptions(initializationOptions),
+    ...getBaseClientOptions(initializationOptions, packageDirectoryUris),
     documentSelector: buildDocumentSelector(['file'])
   };
 

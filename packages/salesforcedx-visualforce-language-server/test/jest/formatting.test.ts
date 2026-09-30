@@ -8,7 +8,7 @@ import * as assert from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { FormattingOptions, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
+import { FormattingOptions, Range, TextDocument, type TextEdit } from 'vscode-languageserver-types';
 import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
 

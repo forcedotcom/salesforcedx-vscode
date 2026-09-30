@@ -1,17 +1,11 @@
-# 67.14.0 - August 26, 2026
-
-## Added
-
-#### salesforcedx-vscode-lwc
-
-- We added full stack traces to Jest crash errors in the **Test Explorer**, so you can see what went wrong instead of "No test results produced". ([PR #7940](https://github.com/forcedotcom/salesforcedx-vscode/pull/7940))
+# 67.25.6 - October 7, 2026
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-replay-debugger
+#### salesforcedx-vscode-soql
 
-- We fixed a bug where breakpoints didn't stop when debugging Anonymous Apex from `.apex` files, `.cls` files, or log files. ([PR #8018](https://github.com/forcedotcom/salesforcedx-vscode/pull/8018))
+- We fixed a bug where the **Include deleted/archived records** checkbox and label were misaligned in SOQL Builder. ([PR #8268](https://github.com/forcedotcom/salesforcedx-vscode/pull/8268))
 
-#### salesforcedx-vscode-metadata
+## Under the Hood
 
-- We fixed a bug where the source tracking status bar icon kept showing a deleted org after you deleted your default scratch org. ([PR #8027](https://github.com/forcedotcom/salesforcedx-vscode/pull/8027))
+- We made some under the hood changes. ([PR #8243](https://github.com/forcedotcom/salesforcedx-vscode/pull/8243), [PR #8244](https://github.com/forcedotcom/salesforcedx-vscode/pull/8244), [PR #8277](https://github.com/forcedotcom/salesforcedx-vscode/pull/8277))

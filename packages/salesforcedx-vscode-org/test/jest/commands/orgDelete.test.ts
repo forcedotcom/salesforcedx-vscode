@@ -15,11 +15,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
-jest.mock('../../../src/channels', () => ({
-  getOrgChannelService: () => ({ appendLine: jest.fn(), showChannelOutput: jest.fn() }),
-  setOrgChannel: jest.fn()
-}));
-
 const mockUpdateConfigAndStateAggregators = jest.fn<Promise<void>, []>();
 jest.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => mockUpdateConfigAndStateAggregators()
@@ -38,26 +33,38 @@ type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isS
 // (e.g. the source tracking status bar icons) reset instead of lingering on the now-deleted org (W-23950821).
 const mockClearDefaultOrgRef = jest.fn(() => Effect.void);
 
-const buildServices = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) => ({
+const buildServices = (
+  orgInfo: OrgSnapshot,
+  confirm: boolean,
+  simpleExec: jest.Mock,
+  onAppend: jest.Mock = jest.fn(() => Effect.void)
+) => ({
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       confirm ? Effect.void : Effect.fail(userCancellationError),
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect
   }),
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void }),
+  ChannelService: Effect.succeed({
+    appendToChannel: (msg: string) => onAppend(msg),
+    showChannel: Effect.void
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  }),
   TargetOrgRef: () => SubscriptionRef.make(orgInfo),
   ClearDefaultOrgRef: mockClearDefaultOrgRef
 });
 
-const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) =>
+const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock, onAppend?: jest.Mock) =>
   Effect.runPromiseExit(
     orgDeleteDefaultCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec) })
+        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec, onAppend) })
       } as unknown as ExtensionProviderService)
     ) as Effect.Effect<void, unknown, never>
   );
@@ -76,7 +83,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete scratch --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -91,7 +99,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete sandbox --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -103,7 +112,8 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org delete scratch --target-org me@scratch.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'me@scratch.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -119,6 +129,15 @@ describe('orgDeleteDefaultCommand', () => {
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
     // nothing was deleted, so the org ref must not be cleared
     expect(mockClearDefaultOrgRef).not.toHaveBeenCalled();
+  });
+
+  it('appends a fallback success message when sf emits empty stdout', async () => {
+    const simpleExec = jest.fn(() => Effect.succeed(''));
+    const onAppend = jest.fn(() => Effect.void);
+    const exit = await run({ username: 'me@scratch.org', isScratch: true }, true, simpleExec, onAppend);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(onAppend).toHaveBeenCalledWith('Successfully deleted org me@scratch.org.');
   });
 
   it('fails with UserCancellationError and does not exec when the user declines', async () => {
@@ -137,8 +156,7 @@ describe('orgDeleteDefaultCommand', () => {
 // Mirrors the real TerminalServiceError (terminalService.ts) so the partial-failure test exercises the
 // actual error shape the catchTag captures, not a hand-rolled stand-in.
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String,
-  command: Schema.String
+  message: Schema.String
 }) {}
 
 // Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
@@ -155,7 +173,7 @@ const appendToChannel = jest.fn<Effect.Effect<void>, [string]>();
 const buildUsernameServices = (simpleExec: jest.Mock) => ({
   PromptService: Effect.succeed({
     withCancellableProgress:
-      <A, E>(_message: string) =>
+      <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect.pipe(
           Effect.catchAllCause(cause =>
@@ -168,7 +186,11 @@ const buildUsernameServices = (simpleExec: jest.Mock) => ({
         )
   }),
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void })
+  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
+  })
 });
 
 const runUsername = (simpleExec: jest.Mock) =>
@@ -199,12 +221,14 @@ describe('orgDeleteUsernameCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenNthCalledWith(1, {
-      command: 'sf org delete scratch --target-org a@scratch.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'scratch', '--target-org', 'a@scratch.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
     expect(simpleExec).toHaveBeenNthCalledWith(2, {
-      command: 'sf org delete sandbox --target-org b@sandbox.org --no-prompt',
+      executable: 'sf',
+      args: ['org', 'delete', 'sandbox', '--target-org', 'b@sandbox.org', '--no-prompt'],
       parse: expect.any(Function),
       timeout: Duration.seconds(120)
     });
@@ -213,16 +237,15 @@ describe('orgDeleteUsernameCommand', () => {
 
   it('continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
-    // org-1 fails the way the real service does: childProcess.exec rejects on non-zero exit, wrapped in
-    // Effect.tryPromise -> TerminalServiceError. A bare simpleExec loop would short-circuit here and never run org-2.
-    const simpleExec = jest.fn((args: { command: string }) =>
-      args.command.includes('a@scratch.org')
+    // org-1 fails the way the real service does: non-zero CLI exit → TerminalServiceError.
+    // A bare simpleExec loop would short-circuit here and never run org-2.
+    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org')
         ? Effect.tryPromise({
             try: () => Promise.reject(new Error('Command failed: non-zero exit')),
             catch: e =>
               new TerminalServiceError({
-                message: e instanceof Error ? e.message : 'exec failed',
-                command: args.command
+                message: e instanceof Error ? e.message : 'exec failed'
               })
           })
         : Effect.succeed('deleted')
@@ -234,7 +257,7 @@ describe('orgDeleteUsernameCommand', () => {
     expect(simpleExec).toHaveBeenCalledTimes(2);
     expect(simpleExec).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ command: expect.stringContaining('b@sandbox.org') })
+      expect.objectContaining({ args: expect.arrayContaining(['b@sandbox.org']) })
     );
     // failure line for org-1
     expect(appendToChannel).toHaveBeenCalledWith(
@@ -253,8 +276,8 @@ describe('orgDeleteUsernameCommand', () => {
     // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
     // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
     // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)
-    const simpleExec = jest.fn((args: { command: string }) =>
-      args.command.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
+    const simpleExec = jest.fn((params: { args: readonly string[] }) =>
+      params.args.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
     );
 
     const exit = await runUsername(simpleExec);
@@ -269,6 +292,16 @@ describe('orgDeleteUsernameCommand', () => {
     }
     // cache flush does NOT run: the fiber short-circuited before reaching it
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+  });
+
+  it('appends a fallback success message per org when sf emits empty stdout', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg] }));
+    const simpleExec = jest.fn(() => Effect.succeed(''));
+
+    const exit = await runUsername(simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('Successfully deleted org a@scratch.org.');
   });
 
   it('does not delete or flush when the picker cancels', async () => {

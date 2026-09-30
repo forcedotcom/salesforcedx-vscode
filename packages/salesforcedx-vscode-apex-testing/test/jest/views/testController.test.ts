@@ -64,6 +64,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
   const mockAppendToChannel = jest.fn(() => EffectLib.void);
   const mockChannelService = { appendToChannel: mockAppendToChannel };
+  const mockShowSuccessNotification = jest.fn(() => EffectLib.void);
+  const mockNotificationModeService = {
+    showSuccessNotification: mockShowSuccessNotification,
+    getProgressLocation: jest.fn(() => EffectLib.succeed(require('vscode').ProgressLocation.Window))
+  };
   const mockServicesApi = {
     services: {
       ConnectionService: MockConnectionService,
@@ -71,6 +76,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
       // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
       // Effect.succeed — same seam as testReportGenerator.test.ts.
       ChannelService: EffectLib.succeed(mockChannelService),
+      NotificationModeService: EffectLib.succeed(mockNotificationModeService),
       WorkspaceService: MockWorkspaceService,
       MetadataRetrieveService: {
         retrieve: mockMetadataRetrieve
@@ -82,6 +88,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
       // (yield* api.services.SettingsService), so wrap in Effect.succeed.
       SettingsService: EffectLib.succeed({
         getValue: (_section: string, key: string, defaultValue: unknown) =>
+          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue),
+        getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
           EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
       }),
       // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):
@@ -139,6 +147,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
     __mockAppendToChannel: mockAppendToChannel,
     __mockMetadataRetrieve: mockMetadataRetrieve,
     __mockCatalogInvalidate: mockCatalogInvalidate,
+    __mockShowSuccessNotification: mockShowSuccessNotification,
     // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
     __resetTree: () => {
       ensureRuntime();
@@ -150,10 +159,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
+  const EffectLib = jest.requireActual('effect/Effect');
   return {
     ...actual,
-    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
-    readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
+    readTestRunIdFile: jest.fn(() => EffectLib.succeed(undefined))
   };
 });
 
@@ -177,13 +186,6 @@ const mockTestServiceMethods = {
 
 jest.mock('@salesforce/apex-node', () => ({
   TestService: jest.fn().mockImplementation(() => mockTestServiceMethods),
-  TestLevel: {
-    RunSpecifiedTests: 'RunSpecifiedTests',
-    RunAllTestsInOrg: 'RunAllTestsInOrg'
-  },
-  ResultFormat: {
-    json: 'json'
-  },
   HumanReporter: jest.fn().mockImplementation(() => ({
     format: jest.fn().mockReturnValue('')
   }))
@@ -197,7 +199,6 @@ import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
-import * as testUtils from '../../../src/utils/testUtils';
 import * as Option from 'effect/Option';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
@@ -291,7 +292,6 @@ describe('ApexTestController', () => {
 
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
-    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -769,8 +769,10 @@ describe('ApexTestController', () => {
         uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
-      notificationService.showSuccessfulExecution = jest.fn();
       notificationService.showInformationMessage = jest.fn();
+      (
+        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+      ).__mockShowSuccessNotification.mockClear();
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
       (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue({
         uri: orgOnlyClassFileUri
@@ -792,13 +794,18 @@ describe('ApexTestController', () => {
 
       expect(
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
-      ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], { ignoreConflicts: true });
+      ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], {
+        ignoreConflicts: true,
+        progressLocation: vscode.ProgressLocation.Window
+      });
       expect(vscode.window.showTextDocument).toHaveBeenCalledWith(
         expect.objectContaining({ scheme: 'memfs', path: orgOnlyClassFileUri.path }),
         expect.anything()
       );
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+      expect(
+        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+      ).toHaveBeenCalled();
     });
 
     it('shows the canceled notification when retrieve is cancelled (UserCancellationError)', async () => {
@@ -810,7 +817,9 @@ describe('ApexTestController', () => {
 
       notificationService.showInformationMessage = jest.fn();
       notificationService.showFailedExecution = jest.fn();
-      notificationService.showSuccessfulExecution = jest.fn();
+      (
+        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+      ).__mockShowSuccessNotification.mockClear();
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
       (
         extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
@@ -822,7 +831,9 @@ describe('ApexTestController', () => {
 
       expect(notificationService.showInformationMessage).toHaveBeenCalled();
       expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
-      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+      expect(
+        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+      ).not.toHaveBeenCalled();
     });
 
     it('shows failed-execution when retrieve fails (MetadataRetrieveError)', async () => {
@@ -833,7 +844,9 @@ describe('ApexTestController', () => {
       } as unknown as vscode.TestItem;
 
       notificationService.showFailedExecution = jest.fn();
-      notificationService.showSuccessfulExecution = jest.fn();
+      (
+        extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }
+      ).__mockShowSuccessNotification.mockClear();
       (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
       (
         extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
@@ -844,7 +857,9 @@ describe('ApexTestController', () => {
       await controller.retrieveOrgOnlyClass(classTestItem);
 
       expect(notificationService.showFailedExecution).toHaveBeenCalled();
-      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+      expect(
+        (extensionProvider as unknown as { __mockShowSuccessNotification: jest.Mock }).__mockShowSuccessNotification
+      ).not.toHaveBeenCalled();
     });
 
     it('does not retrieve for local class items', async () => {
@@ -877,49 +892,6 @@ describe('ApexTestController', () => {
       expect(
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
       ).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('resolveHandler', () => {
-    it('should request document symbols for class methods with default range', async () => {
-      const methodItem = {
-        id: 'method:OrgOnlyClass.testMethod1',
-        label: 'testMethod1',
-        uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
-      } as unknown as vscode.TestItem;
-
-      const classItem = {
-        id: 'class:OrgOnlyClass',
-        label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-        children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
-          // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
-          [Symbol.iterator]: () => [[methodItem.id, methodItem] as const][Symbol.iterator]()
-        }
-      } as unknown as vscode.TestItem;
-
-      (testUtils.getMethodLocationsFromSymbols as jest.Mock).mockResolvedValue(
-        new Map([
-          [
-            'testMethod1',
-            new vscode.Location(
-              URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls'),
-              new vscode.Range(new vscode.Position(9, 2), new vscode.Position(9, 2))
-            )
-          ]
-        ])
-      );
-
-      await mockTestController.resolveHandler?.(classItem);
-
-      expect(testUtils.getMethodLocationsFromSymbols).toHaveBeenCalledWith(
-        classItem.uri,
-        expect.arrayContaining(['testMethod1'])
-      );
-      expect(methodItem.range?.start.line).toBe(9);
-      expect(methodItem.range?.start.character).toBe(2);
     });
   });
 
@@ -1073,8 +1045,8 @@ describe('ApexTestController', () => {
 
       await controller.incrementalUpdate(changes, true);
 
-      // Suite parent deleted from controller and suiteItems Ref cleared (populateSuiteItems re-adds nothing
-      // because retrieveAllSuites returns [] from the mock).
+      // Suite parent deleted from controller and suiteItems Ref cleared (retrieveAllSuites returns []
+      // from the mock, so the parent is not re-added).
       expect(mockTestController.items.delete).toHaveBeenCalledWith('apex-test-suites-parent');
     });
 

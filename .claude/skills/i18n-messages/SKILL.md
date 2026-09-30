@@ -62,3 +62,5 @@ Don't prefix new strings with `Error:`/`Warning:` — the `show*Message` API sup
 ## Cross-ref
 
 `vscode-window-messages` covers the notification/button API (which `show*Message`, return values, Effect, modal). This skill is the message *text*. Don't duplicate API guidance here.
+
+`package.json` / `package.nls.json` command titles, menus, and notification slot keys: [command-ui](../command-ui/SKILL.md).

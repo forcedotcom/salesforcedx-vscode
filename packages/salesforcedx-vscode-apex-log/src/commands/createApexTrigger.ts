@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as String from 'effect/String';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -31,10 +32,7 @@ const promptForSObject = Effect.fn('promptForTriggerSObject')(function* () {
   if (sobjects.length === 0) {
     return yield* Effect.promise(() =>
       vscode.window.showInputBox({ prompt: nls.localize('apex_trigger_sobject_prompt') })
-    ).pipe(
-      Effect.map(raw => raw?.trim()),
-      Effect.flatMap(promptService.considerUndefinedAsCancellation)
-    );
+    ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
   }
 
   const items: vscode.QuickPickItem[] = sobjects

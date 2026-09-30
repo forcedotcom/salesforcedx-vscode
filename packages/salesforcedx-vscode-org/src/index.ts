@@ -5,17 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  buildAllServicesLayer,
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { getOrgChannelService, setOrgChannel } from './channels';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
@@ -34,8 +28,7 @@ import {
   ORG_LOGOUT_DEFAULT_COMMAND,
   ORG_OPEN_COMMAND
 } from './constants';
-import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
-import { nls } from './messages';
+import { buildAllServicesLayer, disposeOrgRuntime, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
@@ -43,39 +36,30 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
+  yield* api.services.registerCommandWithRuntime(getOrgRuntime())('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
 });
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
+export const activate = (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
-  // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
-  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
-
-  const api: SalesforceVSCodeOrgApi = {
-    channelService: getOrgChannelService()
-  };
-  return api;
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  return activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 };
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
+  // Share the Effect layer's OutputChannel so only one 'Salesforce Org Management' channel exists.
   const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  setOrgChannel(orgChannel);
   extensionContext.subscriptions.push(orgChannel);
-  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
@@ -92,10 +76,19 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;
+
+  // show(true) preserves focus, matching utils-vscode ChannelService.showChannelOutput.
+  return {
+    channelService: {
+      appendLine: orgChannel.appendLine.bind(orgChannel),
+      showChannelOutput: () => orgChannel.show(true)
+    }
+  } satisfies SalesforceVSCodeOrgApi;
 });
 
-export const deactivate = (): void => {
+export const deactivate = async (): Promise<void> => {
   Effect.runSync(closeExtensionScope());
+  await disposeOrgRuntime();
   console.log('Salesforce Org Management extension deactivated');
 };
 

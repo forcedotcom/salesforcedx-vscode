@@ -10,8 +10,6 @@ export const TELEMETRY_OPT_OUT_LINK = 'https://developer.salesforce.com/tools/vs
 export const TELEMETRY_INTERNAL_VALUE = 'sfdxTelemetryMessageInternal';
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
-export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
-export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
@@ -19,4 +17,3 @@ export const SOQL_FILE_NAME_EXTENSION = '.soql';
 export const AURA_PATH = '/force-app/main/default/aura/';
 export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
 export const LWC_PATH = '/force-app/main/default/lwc/';
-export const FUNCTIONS_PATH = '/functions/';

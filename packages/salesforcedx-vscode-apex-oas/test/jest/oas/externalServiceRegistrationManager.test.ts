@@ -6,12 +6,16 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
+import { FsService, FsServiceError } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages/nls';
+import type { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
   buildESRXml,
   buildESRYaml,
@@ -19,6 +23,7 @@ import {
   type EsrContext,
   extractInfoProperties,
   type FullPath,
+  generateEsrMD,
   getFolderForArtifact,
   getOperationsFromYaml,
   handleExistingESR,
@@ -36,7 +41,11 @@ const buildExtensionProviderLayer = (registryAccess: any) =>
         },
         WorkspaceService: {
           getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace })
-        }
+        },
+        PromptService: Effect.succeed({
+          considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
+        })
       }
     } as any)
   });
@@ -65,6 +74,40 @@ const baseOasSpec: OpenAPIV3.Document = {
 } as OpenAPIV3.Document;
 
 const baseFullPath: FullPath = ['/path/to/original', '/path/to/new'];
+
+const processedOasResult: ProcessorInputOutput = {
+  openAPIDoc: baseOasSpec,
+  errors: []
+};
+
+const buildFsService = (
+  overrides: Partial<InstanceType<typeof FsService>>
+): Partial<InstanceType<typeof FsService>> => ({
+  fileOrFolderExists: () => Effect.succeed(false),
+  writeFile: () => Effect.void,
+  ...overrides
+});
+
+const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<InstanceType<typeof FsService>>) => {
+  const layer = Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({ services: { FsService: fsService } })
+  } as unknown as ExtensionProviderService);
+  return Effect.runPromise(
+    generateEsrMD(isESRDecomposed, processedOasResult, [
+      '/path/to/Test.externalServiceRegistration-meta.xml',
+      '/path/to/Test.externalServiceRegistration-meta.xml'
+    ]).pipe(
+      Effect.provide(layer),
+      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
+      Effect.flip
+    )
+  );
+};
+
+const buildFsServiceError = (operation: string, filePath: string) => {
+  const cause = new Error(`${operation} failed`);
+  return new FsServiceError({ cause, message: cause.message, function: operation, filePath });
+};
 
 const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
   isESRDecomposed: false,
@@ -102,12 +145,18 @@ describe('externalServiceRegistrationManager', () => {
       });
     });
 
-    it('returns undefined if no folder is selected', async () => {
+    it('fails with UserCancellationError if no folder is selected', async () => {
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
-      const result = await runEffect(getFolderForArtifact(), {
-        getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
-      });
-      expect(result).toBeUndefined();
+      const exit = await Effect.runPromiseExit(
+        getFolderForArtifact().pipe(
+          Effect.provide(
+            buildExtensionProviderLayer({
+              getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
+            })
+          )
+        ) as Effect.Effect<unknown, unknown, never>
+      );
+      expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
     });
 
     it('throws if registry access fails', async () => {
@@ -253,6 +302,52 @@ describe('externalServiceRegistrationManager', () => {
         ) as Effect.Effect<void, never, never>
       );
       expect(writeFile).toHaveBeenCalledWith('/path/to/esr.yaml', 'safeSpec');
+    });
+  });
+
+  describe('generateEsrMD', () => {
+    const esrPath = '/path/to/Test.externalServiceRegistration-meta.xml';
+    const yamlPath = '/path/to/Test.yaml';
+
+    it('preserves FsServiceError from reading an existing ESR', async () => {
+      const error = buildFsServiceError('readFile', esrPath);
+
+      const failure = await runGenerateAndGetFailure(
+        false,
+        buildFsService({
+          fileOrFolderExists: () => Effect.succeed(true),
+          readFile: () => Effect.fail(error)
+        })
+      );
+
+      expect(failure).toStrictEqual(error);
+    });
+
+    it('preserves FsServiceError from writing decomposed YAML', async () => {
+      const error = buildFsServiceError('writeFile', yamlPath);
+
+      const failure = await runGenerateAndGetFailure(true, buildFsService({ writeFile: () => Effect.fail(error) }));
+
+      expect(failure).toStrictEqual(error);
+    });
+
+    it('preserves FsServiceError from writing ESR XML', async () => {
+      const error = buildFsServiceError('writeFile', esrPath);
+
+      const failure = await runGenerateAndGetFailure(false, buildFsService({ writeFile: () => Effect.fail(error) }));
+
+      expect(failure).toStrictEqual(error);
+    });
+
+    it('preserves FsServiceError from opening the generated ESR', async () => {
+      const error = buildFsServiceError('showTextDocument', esrPath);
+
+      const failure = await runGenerateAndGetFailure(
+        false,
+        buildFsService({ showTextDocument: () => Effect.fail(error) })
+      );
+
+      expect(failure).toStrictEqual(error);
     });
   });
 });

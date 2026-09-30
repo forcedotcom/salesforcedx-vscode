@@ -5,33 +5,31 @@
 
 'use strict';
 
+import { type LanguageSettings } from 'vscode-css-languageservice';
+import { type DocumentContext } from 'vscode-html-languageservice';
+import { type ColorInformation, type ColorPresentation } from 'vscode-languageserver-protocol';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 import {
-  DocumentContext,
-  getLanguageService as getHTMLLanguageService
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { LanguageSettings } from 'vscode-css-languageservice';
-import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import {
-  CompletionItem,
-  CompletionList,
-  Definition,
-  Diagnostic,
-  DocumentHighlight,
-  DocumentLink,
-  FormattingOptions,
-  Hover,
-  Location,
-  Position,
-  Range,
-  SignatureHelp,
-  SymbolInformation,
-  TextEdit
+  type CompletionItem,
+  type CompletionList,
+  type Definition,
+  type Diagnostic,
+  type DocumentHighlight,
+  type DocumentLink,
+  type FormattingOptions,
+  type Hover,
+  type Location,
+  type Position,
+  type Range,
+  type SignatureHelp,
+  type SymbolInformation,
+  type TextEdit
 } from 'vscode-languageserver-types';
-import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
+import { getLanguageModelCache, type LanguageModelCache } from '../languageModelCache';
 import { getCSSMode } from './cssMode';
-import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
+import { getDocumentRegions, type HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
+import { getVisualforceHtmlLanguageService } from './visualforceHtmlLanguageService';
 
 export type Settings = LanguageSettings & {
   css?: any;
@@ -78,7 +76,7 @@ type LanguageModeRange = Range & {
 export const getLanguageModes = async (supportedLanguages: {
   [languageId: string]: boolean;
 }): Promise<LanguageModes> => {
-  const htmlLanguageService = getHTMLLanguageService();
+  const htmlLanguageService = getVisualforceHtmlLanguageService();
   const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
     getDocumentRegions(htmlLanguageService, document)
   );

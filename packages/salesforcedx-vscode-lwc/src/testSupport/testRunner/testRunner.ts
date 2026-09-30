@@ -4,19 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
-import { telemetryService } from '../../telemetry';
-import { isTestCaseInfo, TestExecutionInfo } from '../types';
+import { isTestCaseInfo, type TestExecutionInfo, type TestRunType } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
-
-export type TestRunType = 'run' | 'debug' | 'watch';
 
 /**
  * Returns the path to pass to Jest's --runTestsByPath.
@@ -114,7 +112,9 @@ export class TestRunner {
    * Generate shell execution info necessary for task execution
    */
   public async getShellExecutionInfo() {
-    const workspaceFolder = workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri);
+    const workspaceFolder = await getRuntime().runPromise(
+      workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri)
+    );
     if (workspaceFolder) {
       const jestExecutionInfo = await this.getJestExecutionInfo(workspaceFolder);
       if (jestExecutionInfo) {
@@ -169,10 +169,15 @@ export class TestRunner {
         const logName = this.logName;
         const startTime = globalThis.performance.now();
         sfTask.onDidEnd(() => {
-          telemetryService.sendEventData(
-            logName,
-            { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
-            { executionTime: globalThis.performance.now() - startTime }
+          getRuntime().runFork(
+            Effect.void.pipe(
+              Effect.withSpan(logName, {
+                attributes: {
+                  workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry(),
+                  executionTime: globalThis.performance.now() - startTime
+                }
+              })
+            )
           );
         });
       }
