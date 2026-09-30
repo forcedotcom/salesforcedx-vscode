@@ -14,10 +14,10 @@ const filename = join(fixtureDir, 'subject.ts');
 
 const ruleTester = new RuleTester({
   languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: fixtureDir
-      }
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: fixtureDir
+    }
   }
 });
 
