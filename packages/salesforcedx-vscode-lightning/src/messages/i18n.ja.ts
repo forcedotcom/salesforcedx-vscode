@@ -25,6 +25,13 @@ export const messages: Partial<Record<MessageKey, string>> = {
   aura_generate_component_success: 'Aura コンポーネントが正常に作成されました',
   aura_generate_event_success: 'Aura イベントが正常に作成されました',
   aura_generate_interface_success: 'Aura インターフェースが正常に作成されました',
+  template_type_prompt: 'テンプレートの種類を選択',
+  aura_builtin_templates_label: '組み込みテンプレート',
+  aura_custom_templates_label: 'カスタムテンプレート',
+  aura_component_default_template_description: '標準の Aura コンポーネント',
+  aura_event_default_template_description: '標準の Aura イベント',
+  aura_interface_default_template_description: '標準の Aura インターフェース',
+  aura_app_default_template_description: '標準の Aura アプリ',
   rename_component_warning:
     '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
   rename_component_input_dup_file_name_error:

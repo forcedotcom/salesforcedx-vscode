@@ -28,6 +28,13 @@ export const messages = {
   aura_generate_component_success: 'Aura component created successfully',
   aura_generate_event_success: 'Aura event created successfully',
   aura_generate_interface_success: 'Aura interface created successfully',
+  template_type_prompt: 'Select template type',
+  aura_builtin_templates_label: 'Built-In Templates',
+  aura_custom_templates_label: 'Custom Templates',
+  aura_component_default_template_description: 'Standard Aura component',
+  aura_event_default_template_description: 'Standard Aura event',
+  aura_interface_default_template_description: 'Standard Aura interface',
+  aura_app_default_template_description: 'Standard Aura app',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   rename_component_input_dup_file_name_error:

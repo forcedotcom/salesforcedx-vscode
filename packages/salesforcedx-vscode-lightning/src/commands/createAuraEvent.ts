@@ -7,9 +7,47 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForAuraName } from './promptForAuraName';
+
+const AURA_EVENT_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  DefaultLightningEvt: nls.localize('aura_event_default_template_description')
+};
+
+const promptForTemplate = Effect.fn('promptForAuraEventTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('lightningevent', '.evt');
+  if (customTemplateNames.length === 0) {
+    return 'DefaultLightningEvt';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('lightningevent', /\.evt$/);
+  const builtInItems = builtInNames.map(label => ({
+    label,
+    description: AURA_EVENT_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
+
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_custom_templates_label') },
+    ...customItems
+  ];
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, { placeHolder: nls.localize('template_type_prompt') })
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(selected => selected.label)
+  );
+});
 
 export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(function* (
   outputDirParam?: URI,
@@ -21,6 +59,7 @@ export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(functi
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
 
+  const template = yield* promptForTemplate();
   const eventName = yield* promptForAuraName();
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
@@ -42,7 +81,7 @@ export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(functi
     outputdir: outputDirUri,
     options: {
       eventname: eventName,
-      template: 'DefaultLightningEvt',
+      template,
       internal: options?.internal ?? false
     }
   });
