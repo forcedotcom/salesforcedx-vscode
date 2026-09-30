@@ -218,6 +218,10 @@ jobs:
           echo "Generated checksums:"
           cat /tmp/release-scripts/checksums.txt
 
+          # setup-pnpm's post step resolves this path after the source checkout deletes it
+          cp -a .github/actions/setup-pnpm /tmp/release-scripts/setup-pnpm
+          echo "✓ Saved: .github/actions/setup-pnpm"
+
       - name: Create isolated release branch
         if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         env:
@@ -240,9 +244,22 @@ jobs:
         run: |
           # Restore scripts from temp location
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
-          mkdir -p scripts
+          mkdir -p scripts .github/actions
+          rm -rf .github/actions/setup-pnpm
+          cp -a /tmp/release-scripts/setup-pnpm .github/actions/setup-pnpm
+          echo "✓ Restored: .github/actions/setup-pnpm"
 
-          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+          # A source ref from before the pnpm workspace keeps its own update-release-versions.js,
+          # which rewrites package-lock.json. Overlaying the current script would write pnpm-lock.yaml.
+          if [ -f pnpm-workspace.yaml ]; then
+            SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+            CHECKSUMS=/tmp/release-scripts/checksums.txt
+          else
+            echo "Source has no pnpm workspace; keeping its update-release-versions.js"
+            SCRIPTS="scripts/calculate-release-version.js"
+            grep 'calculate-release-version.js$' /tmp/release-scripts/checksums.txt > /tmp/release-scripts/checksums-restore.txt
+            CHECKSUMS=/tmp/release-scripts/checksums-restore.txt
+          fi
 
           # Verify all scripts exist in temp
           for script in $SCRIPTS; do
@@ -262,7 +279,7 @@ jobs:
 
           # Verify integrity with checksums
           cd scripts
-          if ! sha256sum -c /tmp/release-scripts/checksums.txt 2>/dev/null; then
+          if ! sha256sum -c "$CHECKSUMS" 2>/dev/null; then
             echo "::error::Script integrity check failed - checksums do not match"
             exit 1
           fi
@@ -287,7 +304,11 @@ jobs:
         run: |
           # Commit the version changes to the isolated branch
           # This is a release-only commit that will NOT be merged to develop
-          git add packages/*/package.json pnpm-lock.yaml
+          if [ -f pnpm-workspace.yaml ]; then
+            git add packages/*/package.json pnpm-lock.yaml
+          else
+            git add packages/*/package.json package-lock.json
+          fi
 
           git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
 
@@ -333,7 +354,7 @@ jobs:
       - name: Install dependencies with updated versions
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
-          command: pnpm install --frozen-lockfile
+          command: bash -c 'if [ -f pnpm-workspace.yaml ]; then pnpm install --frozen-lockfile; else npm ci; fi'
       - name: Relabel this week's changelog for stable release
         # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content
@@ -365,10 +386,16 @@ jobs:
         env:
           IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
         run: |
-          if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
-            pnpm vscode:package:prerelease
+          if [ -f pnpm-workspace.yaml ]; then
+            if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
+              pnpm vscode:package:prerelease
+            else
+              pnpm vscode:package
+            fi
+          elif [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
+            npm run vscode:package:prerelease
           else
-            pnpm vscode:package
+            npm run vscode:package
           fi
 
       - name: Collect VSIXs
@@ -376,7 +403,11 @@ jobs:
 
       - name: Generate SHA256 checksums
         run: |
-          pnpm vscode:sha256
+          if [ -f pnpm-workspace.yaml ]; then
+            pnpm vscode:sha256
+          else
+            npm run vscode:sha256
+          fi
           scripts/concatenate-sha256.js
           rm ./SHA256
 
