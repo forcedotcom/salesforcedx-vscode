@@ -60,7 +60,7 @@ export const createAuraAppCommand = Effect.fn('createAuraAppCommand')(function* 
   const fsService = yield* api.services.FsService;
 
   const template = yield* promptForTemplate();
-  const appName = yield* promptForAuraName();
+  const appName = yield* promptForAuraName({ promptKey: 'aura_app_name_prompt' });
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
 

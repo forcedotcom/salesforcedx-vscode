@@ -20,6 +20,9 @@ export const messages = {
   aura_language_server_loading: 'Indexing Aura files. Hold tight, almost ready… $(sync~spin)',
   aura_language_server_loaded: 'Indexing complete $(check)',
   aura_component_name_prompt: 'Enter Aura component name',
+  aura_event_name_prompt: 'Enter Aura event name',
+  aura_interface_name_prompt: 'Enter Aura interface name',
+  aura_app_name_prompt: 'Enter Aura app name',
   aura_component_name_empty_error: 'Name cannot be empty',
   aura_component_name_format_error:
     'Name must start with a letter and contain only alphanumeric characters and underscores',

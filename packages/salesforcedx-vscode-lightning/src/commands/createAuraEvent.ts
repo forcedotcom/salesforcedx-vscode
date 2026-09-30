@@ -60,7 +60,7 @@ export const createAuraEventCommand = Effect.fn('createAuraEventCommand')(functi
   const fsService = yield* api.services.FsService;
 
   const template = yield* promptForTemplate();
-  const eventName = yield* promptForAuraName();
+  const eventName = yield* promptForAuraName({ promptKey: 'aura_event_name_prompt' });
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
 
