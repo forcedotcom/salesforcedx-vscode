@@ -50,10 +50,9 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
     await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
 
     // Step 1: Select template (built-in templates are pinned first: 'default', then 'typeScript', then others)
-    // Click the first option instead of Enter — 1.116+ sometimes drops Enter on quick picks (see PR #7193).
     await waitForQuickInputFirstOption(page);
     await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-    await selectQuickInputOption(page, 'JavaScript');
+    await selectQuickInputOption(page, 'default');
     await saveScreenshot(page, 'step1.component-type-selected.png');
 
     // Step 2: Enter component name
