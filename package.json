@@ -40,6 +40,7 @@
     "@salesforce/apex-tmlanguage": "^2.0.3",
     "@salesforce/core": "9.1.11",
     "@salesforce/dev-config": "^4.3.2",
+    "@salesforce/effect-octokit": "*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
@@ -180,6 +181,7 @@
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
         "./packages/effect-ext-utils:compile",
+        "./packages/effect-octokit:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
         "./packages/salesforcedx-visualforce-language-server:compile",
@@ -215,6 +217,7 @@
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
+        "./packages/effect-octokit:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
         "./packages/salesforcedx-vscode-apex:lint",
@@ -272,7 +275,8 @@
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
-        "./packages/effect-ext-utils:test"
+        "./packages/effect-ext-utils:test",
+        "./packages/effect-octokit:test"
       ]
     },
     "test:ai-safeguards": {
@@ -290,7 +294,7 @@
         "scripts/ai-auto-approve-cli.mjs",
         "scripts/category-approve-cli.ts",
         "scripts/shared/categoryDecision.ts",
-        "scripts/shared/github.ts",
+        "scripts/shared/scriptErrors.ts",
         "APPROVAL_POLICY.md",
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",

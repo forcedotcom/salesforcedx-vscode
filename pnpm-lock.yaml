@@ -100,6 +100,9 @@ importers:
       '@salesforce/dev-config':
         specifier: ^4.3.2
         version: 4.3.3
+      '@salesforce/effect-octokit':
+        specifier: '*'
+        version: link:packages/effect-octokit
       '@secretlint/node':
         specifier: 11.7.1
         version: 11.7.1(supports-color@8.1.1)
@@ -365,6 +368,27 @@ importers:
       salesforcedx-vscode-services:
         specifier: '*'
         version: link:../salesforcedx-vscode-services
+
+  packages/effect-octokit:
+    dependencies:
+      '@octokit/core':
+        specifier: ^7.0.6
+        version: 7.0.8
+      '@octokit/graphql':
+        specifier: ^9.0.3
+        version: 9.0.5
+      '@octokit/plugin-paginate-rest':
+        specifier: ^14.0.0
+        version: 14.0.0(@octokit/core@7.0.8)
+      '@octokit/request-error':
+        specifier: ^7.0.2
+        version: 7.1.2
+      '@octokit/types':
+        specifier: ^16.0.0
+        version: 16.0.0
+      effect:
+        specifier: ^3.21.2
+        version: 3.22.2
 
   packages/eslint-local-rules:
     dependencies:

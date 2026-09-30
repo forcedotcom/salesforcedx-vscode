@@ -571,6 +571,7 @@ export default [
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-utils-vscode/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
@@ -627,6 +628,7 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
+      'packages/effect-octokit/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -756,6 +758,7 @@ export default [
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/soql-builder-ui/src/domain.ts',
       'packages/soql-builder-ui/src/effect/**/*.ts',
       'packages/soql-builder-ui/src/testing/**/*.ts',
@@ -834,7 +837,7 @@ export default [
   },
   {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
-    files: ['packages/effect-ext-utils/**/*.ts'],
+    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
