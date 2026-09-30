@@ -284,11 +284,11 @@ export class SOQLEditorInstance {
               yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
                 Effect.catchAllCause(cause => {
                   const err = Cause.squash(cause);
-                  const detail = isError(err) ? err.message : String(err);
-                  return appendToChannel(nls.localize('error_run_soql_query', detail)).pipe(
+                  const message = nls.localize('error_run_soql_query', isError(err) ? err.message : String(err));
+                  return appendToChannel(message).pipe(
                     Effect.tap(() =>
                       Effect.sync(() => {
-                        void vscode.window.showErrorMessage(nls.localize('error_run_soql_query_toast', detail));
+                        void vscode.window.showErrorMessage(message);
                       })
                     ),
                     Effect.andThen(runQueryDone())
