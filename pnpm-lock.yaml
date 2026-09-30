@@ -650,9 +650,6 @@ importers:
       '@jsforce/jsforce-node':
         specifier: ^3.10.18
         version: 3.10.25
-      '@salesforce/ts-types':
-        specifier: ^3.0.0
-        version: 3.2.0
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -1747,9 +1744,6 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
-      '@salesforce/ts-types':
-        specifier: ^3.0.0
-        version: 3.2.0
       '@types/debounce':
         specifier: ^1.2.0
         version: 1.2.4

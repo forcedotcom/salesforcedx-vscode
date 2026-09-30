@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { AnyJson } from '@salesforce/ts-types';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -16,7 +15,7 @@ import * as path from 'node:path';
  * @param fileContent file contents
  * @internal - Only used within salesforcedx-apex package
  */
-export function createFile(filePath: string, fileContent: AnyJson): void {
+export function createFile(filePath: string, fileContent: string): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.closeSync(fs.openSync(filePath, 'w'));
 
