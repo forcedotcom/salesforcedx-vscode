@@ -27,6 +27,7 @@ export const messages = {
   error_sobjects_request:
     "ERROR: We can't retrieve the objects in the org. Make sure that you're connected to an authorized org and have permissions to view the objects in the org.",
   error_run_soql_query: "ERROR: We can't run the SOQL query. %s",
+  error_run_soql_query_toast: "We can't run the SOQL query. %s.",
   error_unknown_error:
     'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
   error_data_view_save:
