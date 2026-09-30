@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/salesforcedx-vscode",
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@12.8.2",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
@@ -14,8 +14,6 @@
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
-    "node": "^22.19.0",
-    "npm": "^11",
     "semver": "^7.5.4",
     "ts-node": "10.9.2",
     "url": "0.11.4"
@@ -28,6 +26,8 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
+    "@effect/platform": "0.96.1",
+    "@effect/platform-node": "0.106.0",
     "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
