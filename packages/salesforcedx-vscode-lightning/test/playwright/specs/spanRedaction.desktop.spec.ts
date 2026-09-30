@@ -19,7 +19,7 @@
  * redactionFixtures): spanTransformProcessor stamps it on every root span, and the Azure exporter
  * copies span attributes into `data.baseData.properties`. One planted value, both files, no org and no
  * failing command needed. status.message / exception events cannot be planted deterministically from
- * e2e — those paths are covered by test/jest/observability/redactingSpanProcessor.test.ts.
+ * e2e — those paths are covered by test/unit/observability/redactingSpanProcessor.test.ts.
  */
 
 import { expect } from '@playwright/test';

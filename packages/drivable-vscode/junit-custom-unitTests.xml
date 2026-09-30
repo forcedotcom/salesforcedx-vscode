@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="13" failures="0" errors="0" time="0.071397668">
+    <testsuite name="test/artifactService.test.ts" timestamp="2026-09-24T04:32:59.206Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.018818625">
+        <testcase classname="test/artifactService.test.ts" name="ArtifactService &gt; writes JSONL plus typed finding and summary deliverables" time="0.018114042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/extensionService.test.ts" timestamp="2026-09-24T04:32:59.206Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.016621667">
+        <testcase classname="test/extensionService.test.ts" name="ExtensionService &gt; rejects a development extension package missing version" time="0.01599725">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/mcpServer.test.ts" timestamp="2026-09-24T04:32:59.207Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.021408667">
+        <testcase classname="test/mcpServer.test.ts" name="drivable VS Code MCP server &gt; initializes with tool capability and publishes six Effect-generated input schemas" time="0.002488167">
+        </testcase>
+        <testcase classname="test/mcpServer.test.ts" name="drivable VS Code MCP server &gt; calls tools through the Effect runtime and preserves text and image results" time="0.005440625">
+        </testcase>
+        <testcase classname="test/mcpServer.test.ts" name="drivable VS Code MCP server &gt; returns a tool error when Effect Schema rejects call arguments" time="0.003581292">
+        </testcase>
+        <testcase classname="test/mcpServer.test.ts" name="drivable VS Code MCP server &gt; shutdown interrupts active handlers before finishing and closing" time="0.00534525">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/schemas.test.ts" timestamp="2026-09-24T04:32:59.207Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.014548709">
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; retains the canonical 15 extension inventory" time="0.001641708">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; decodes MCP inputs through canonical Effect schemas" time="0.002820042">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; rejects stale action sequences at the schema boundary" time="0.000455917">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; validates persisted artifact contracts" time="0.002480083">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; attempts every release when releases fail" time="0.003952417">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; attempts every scope finalizer and reports their failures" time="0.00078475">
+        </testcase>
+        <testcase classname="test/schemas.test.ts" name="drivable VS Code contracts &gt; drains queued console entries in order before stopping" time="0.001461583">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="49" failures="0" errors="0" time="0.101150499">
+    <testsuite name="test/aura-indexer/attributeOrder.spec.ts" timestamp="2026-09-24T04:31:54.545Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.002824083">
+        <testcase classname="test/aura-indexer/attributeOrder.spec.ts" name="sorts standard component attributes with locale-aware comparison" time="0.0021835">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/aura-indexer/indexer.spec.ts" timestamp="2026-09-24T04:31:54.546Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="1" time="0.0825595">
+        <testcase classname="test/aura-indexer/indexer.spec.ts" name="indexer parsing content &gt; aura indexer" time="0.057815459">
+        </testcase>
+        <testcase classname="test/aura-indexer/indexer.spec.ts" name="indexer parsing content &gt; should index a valid aura component" time="0.02249125">
+        </testcase>
+        <testcase classname="test/aura-indexer/indexer.spec.ts" name="indexer parsing content &gt; should handle indexing an invalid aura component" time="0">
+            <skipped/>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/auraUtils.test.ts" timestamp="2026-09-24T04:31:54.546Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="28" failures="0" errors="0" skipped="0" time="0.007907083">
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should extract property from v binding in attribute" time="0.002805834">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should extract property from c binding in attribute" time="0.000494667">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should extract property from m binding in attribute" time="0.000215792">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should return null when cursor is before dot" time="0.000254959">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should handle quoted attribute values" time="0.000264083">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should handle double quoted attribute values" time="0.000124542">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; basic functionality &gt; should return null for non-binding attributes" time="0.000198084">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; body text bindings &gt; should extract property from v binding in body text" time="0.000138458">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; body text bindings &gt; should extract property from c binding in body text" time="0.000577459">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; body text bindings &gt; should extract property from m binding in body text" time="0.000195833">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; body text bindings &gt; should return null when cursor is before dot in body text" time="0.000138917">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; body text bindings &gt; should handle multiple bindings in body text" time="0.000087208">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should return null for empty document" time="0.000060375">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should return null for invalid HTML" time="0.000059708">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should return null when cursor is outside any node" time="0.000068875">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should handle expressions with special characters in property names" time="0.0000735">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should handle expressions with numbers in property names" time="0.000067292">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should return &quot;&quot; for incomplete expressions" time="0.000064584">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should extract property when cursor is within property name in attribute" time="0.000064417">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should extract property when cursor is within property name in body text" time="0.00006225">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should extract property when cursor is at start of property name" time="0.000060792">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; edge cases &gt; should extract property when cursor is at end of property name" time="0.000061125">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; complex scenarios &gt; should handle multiple attributes with bindings" time="0.000070125">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; complex scenarios &gt; should handle self-closing tags with bindings" time="0.000165625">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; complex scenarios &gt; should handle expressions with comments" time="0.000069">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; advanced scenarios &gt; should handle nested properties" time="0.000088083">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; advanced scenarios &gt; should handle expressions with multiple dots" time="0.00006825">
+        </testcase>
+        <testcase classname="test/auraUtils.test.ts" name="getAuraBindingValue &gt; advanced scenarios &gt; should handle negated expressions" time="0.00006675">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tern-server/stringUtil.test.ts" timestamp="2026-09-24T04:31:54.548Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.004075041">
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findWord &gt; should find start and end of word" time="0.001137083">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findWord &gt; should find start and end of word with number and underscore" time="0.000186458">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findWord &gt; should find start and end of word in multiline string" time="0.000151958">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; countPreviousCommas &gt; should find number of preceding commas" time="0.000157625">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; countPreviousCommas &gt; should find number of preceding commas with chars between" time="0.000184417">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; countPreviousCommas &gt; should find number of preceding commas with new line" time="0.000073125">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousLeftParan &gt; should find index of preceding left bracket" time="0.000131541">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousLeftParan &gt; should find index of preceding left bracket with chars between" time="0.000066375">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousLeftParan &gt; should return -1 with new line" time="0.000403541">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousWord &gt; should find start and end of preceding word before &quot;.&quot;" time="0.000156334">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousWord &gt; should find new line char before &quot;.&quot; with new line" time="0.000147166">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousWord &gt; should return index of start char for testWord" time="0.000062583">
+        </testcase>
+        <testcase classname="test/tern-server/stringUtil.test.ts" name="string-util &gt; findPreviousWord &gt; should return index previous word after &quot;,&quot;" time="0.000055791">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/tern-server/ternCompletion.spec.ts" timestamp="2026-09-24T04:31:54.549Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="1" time="0.003784792">
+        <testcase classname="test/tern-server/ternCompletion.spec.ts" name="tern completion &gt; tern completions" time="0.002486667">
+        </testcase>
+        <testcase classname="test/tern-server/ternCompletion.spec.ts" name="tern completion &gt; tern hover" time="0.000300792">
+        </testcase>
+        <testcase classname="test/tern-server/ternCompletion.spec.ts" name="tern completion &gt; tern definition, same file" time="0.000262542">
+        </testcase>
+        <testcase classname="test/tern-server/ternCompletion.spec.ts" name="tern completion &gt; tern references" time="0">
+            <skipped/>
+        </testcase>
+    </testsuite>
+</testsuites>

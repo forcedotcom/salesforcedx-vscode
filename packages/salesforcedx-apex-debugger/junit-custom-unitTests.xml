@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="241" failures="0" errors="0" time="0.344499207">
+    <testsuite name="test/jest/core/breakpointService.test.ts" timestamp="2026-09-24T04:32:57.475Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="36" failures="0" errors="0" skipped="0" time="0.014335791">
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; Should be able to construct an instance." time="0.001431416">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; Should be able to call setValidLines." time="0.000535209">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; Should return false if hasLineNumberMapping is empty." time="0.000389458">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; isApexDebuggerBreakpointId() &gt; Should return false if isApexDebuggerBreakpointId is empty." time="0.000240166">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; isApexDebuggerBreakpointId() &gt; Should return false if isApexDebuggerBreakpointId is not the debugger id." time="0.00021325">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; isApexDebuggerBreakpointId() &gt; Should return true if isApexDebuggerBreakpointId is not value." time="0.000159542">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getTyperefFor() &gt; Should return undefined if getTyperefFor is empty." time="0.0001795">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getTyperefFor() &gt; Should return undefined if the line is not found." time="0.000152958">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getTyperefFor() &gt; Should return the typeref if the line is found." time="0.0008125">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getSourcePathFromTyperef() &gt; Should return undefined if getSourcePathFromTyperef is empty." time="0.000294958">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getSourcePathFromTyperef() &gt; Should return typeref if getSourcePathFromTyperef is not empty." time="0.000217792">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getSourcePathFromPartialTyperef() &gt; Should return undefined if getSourcePathFromPartialTyperef is empty." time="0.000175833">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getSourcePathFromPartialTyperef() &gt; Should return typeref if getSourcePathFromPartialTyperef is not empty." time="0.00014875">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; cacheLineBreakpoint() &gt; Should return undefined if cacheLineBreakpoint is empty." time="0.000157792">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; cacheLineBreakpoint() &gt; Should add a new line breakpoint to the cache." time="0.000141083">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getBreakpointsFor() &gt; Should return undefined if getBreakpointsFor is empty." time="0.000222834">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getBreakpointsFor() &gt; Should return a set of breakpoints." time="0.000145083">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getExceptionBreakpointCache() &gt; Should return undefined if getExceptionBreakpointCache is empty." time="0.000162916">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getExceptionBreakpointCache() &gt; Should return a set of breakpoints." time="0.000143625">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getLineBreakpointCache() &gt; Should return undefined if getLineBreakpointCache is empty." time="0.000165333">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getLineBreakpointCache() &gt; Should return a set of breakpoints." time="0.000157">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getBreakpointsFor() cache &gt; Should return undefined if cache is empty." time="0.000159292">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; getBreakpointsFor() cache &gt; Should return a breakpoint." time="0.000181875">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createLineBreakpoint() &gt; Should resolve to breakpointId if found." time="0.000894584">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createLineBreakpoint() &gt; Should reject with result if not a breakpoint id." time="0.000651083">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createLineBreakpoint() &gt; Should reject with result if not able to parse." time="0.00075975">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; deleteBreakpoint() &gt; Should resolve to breakpointId if deleted." time="0.00037125">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; deleteBreakpoint() &gt; Should reject with result if not a breakpoint id." time="0.000407084">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; deleteBreakpoint() &gt; Should reject with result if not able to parse." time="0.00033175">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; reconcileLineBreakpoints() &gt; Should delete breakpoint if known and not in clientLines." time="0.000375542">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; reconcileLineBreakpoints() &gt; Should create a breakpoint if typeref is found ." time="0.000252625">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createExceptionBreakpoint() &gt; Should resolve to breakpointId if deleted." time="0.000460333">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createExceptionBreakpoint() &gt; Should reject with result if not a breakpoint id." time="0.000374667">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; createExceptionBreakpoint() &gt; Should reject with result if not able to parse." time="0.000348333">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; reconcileExceptionBreakpoints() &gt; Should delete breakpoint if known and never." time="0.000324375">
+        </testcase>
+        <testcase classname="test/jest/core/breakpointService.test.ts" name="breakpointService Unit Tests. &gt; reconcileExceptionBreakpoints() &gt; Should create breakpoint if not known and always." time="0.000265208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/cliCommandExecution.test.ts" timestamp="2026-09-24T04:32:57.479Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.008335708">
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Should be able to create an instance." time="0.002139292">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Should be able to create an instance with cancelation token." time="0.000721917">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Subscribe handlers. &gt; Should call timer unsubscribe on exit." time="0.001349167">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Subscribe handlers. &gt; Should call timer unsubscribe on error." time="0.00026425">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Verify child process. &gt; Should fail to create if child has no pid." time="0.000619333">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Verify child process. &gt; Should fail to create if child has no stdout." time="0.00028775">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; Verify child process. &gt; Should fail to create if child has no stderr." time="0.000215667">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; kill on timeout. &gt; Should be able to successfully kill child process." time="0.000385375">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecution.test.ts" name="CliCommandExecution Unit Tests. &gt; kill on timeout. &gt; Should log if fails to kill child process." time="0.001177709">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/core/cliCommandExecutor.test.ts" timestamp="2026-09-24T04:32:57.479Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.003795833">
+        <testcase classname="test/jest/core/cliCommandExecutor.test.ts" name="CliCommandExecutor Unit Tests. &gt; Should be able to create an instance with the env patched." time="0.001767417">
+        </testcase>
+        <testcase classname="test/jest/core/cliCommandExecutor.test.ts" name="CliCommandExecutor Unit Tests. &gt; Should be able to execute the command." time="0.001224334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/extractJsonObject.test.ts" timestamp="2026-09-24T04:32:57.479Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002394625">
+        <testcase classname="test/jest/extractJsonObject.test.ts" name="extractJsonObject unit tests &gt; Should be able to parse a json string." time="0.001263">
+        </testcase>
+        <testcase classname="test/jest/extractJsonObject.test.ts" name="extractJsonObject unit tests &gt; Should throw if JSON fails to parse." time="0.000479667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/requestService/requestService.test.ts" timestamp="2026-09-24T04:32:57.480Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.008408834">
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; should be able to create an instance." time="0.001123334">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; Should have default timeout." time="0.000395417">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; getEnvVars() &gt; should not include request specific properties if not set." time="0.00054675">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; getEnvVars() &gt; Should include request specific properties if defined." time="0.000312917">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; execute() &gt; Should include proxy info if defined." time="0.003106917">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; execute() &gt; Should include proxy authorization info if defined." time="0.00048775">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; execute() &gt; Should include query string if defined." time="0.00035075">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; execute() &gt; Should reject on error." time="0.000547792">
+        </testcase>
+        <testcase classname="test/jest/requestService/requestService.test.ts" name="RequestService unit tests. &gt; sendRequest() &gt; Should make the xhr call on sendRequest." time="0.000575">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/adapter/apexDebug.test.ts" timestamp="2026-09-24T04:32:57.481Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="112" failures="0" errors="0" skipped="0" time="0.24811675">
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should use proper values from Value" time="0.001336291">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should set slot to MAX integer for non local value" time="0.000134625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should set slot to specific value for LocalValue" time="0.000304542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print null string as &quot;null&quot;" time="0.000113625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print empty string" time="0.000142167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print string" time="0.0001535">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print value" time="0.000084584">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print null" time="0.000075416">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should summarize reference-backed SObject field with undefined value as its type label" time="0.000685375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should summarize reference-backed SObject field with non-string value as its type label" time="0.000132875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should preserve reference-backed collection string summary" time="0.0001275">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should expose variablesReference for reference-backed values (expansion preserved)" time="0.000068708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare Value of different kinds" time="0.000100875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare Value of same kinds" time="0.000063084">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on slot for Local" time="0.000103709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on slot for Field" time="0.000147083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on name for others" time="0.000108958">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on numbered name (eg. array index)" time="0.0000675">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare numbered name with string" time="0.000066792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand object correctly" time="0.000356167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand list correctly" time="0.000517292">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand set correctly" time="0.0001095">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand map correctly" time="0.000289209">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should not expand unknown reference type" time="0.000082917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; resolveApexIdToVariableReference &gt; Should handle undefined input" time="0.00007175">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; resolveApexIdToVariableReference &gt; Should call fetchReferences for unknown input" time="0.000375042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should create as part of stackTraceRequest with variables info" time="0.001168084">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should create as part of stackTraceRequest without variables info" time="0.000316417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should populate as part of fetchFrameVariables" time="0.000244708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should return no scopes for unknown frameId" time="0.000165333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should return three scopes for known frameId" time="0.000233167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand local scope" time="0.000274333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand static scope" time="0.000157042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand global scope" time="0.00023675">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return no variables for unknown variablesReference" time="0.000389792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return variables for known variablesReference" time="0.00030675">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return no variables when expand errors out" time="0.000239083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Attach &gt; Should not attach" time="0.000159542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should launch successfully (interactive debugger)" time="0.00117325">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should not launch if ApexDebuggerSession object is not accessible" time="0.000412125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should not launch if streaming service errors out" time="0.000266209">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should not launch without line number mapping" time="0.000360125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should launch successfully for ISV project (ISV debugger)" time="0.000351959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)" time="0.000306875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should configure tracing with boolean" time="0.000232">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should not do any tracing by default" time="0.000203167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should configure tracing for specific category only" time="0.000323708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should configure tracing for all categories" time="0.000215542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should return empty string with null launch array" time="0.000140542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Launch &gt; Should return empty string with empty launch array" time="0.000138709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Workspace settings &gt; Should save proxy settings" time="0.00030075">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Workspace settings &gt; Should save connection settings" time="0.187171708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Line breakpoint info &gt; Should not save line number mapping" time="0.000997167">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Line breakpoint info &gt; Should save line number mapping" time="0.001970791">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Idle session &gt; Should clear idle timers" time="0.002747625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Idle session &gt; Should create idle timers" time="0.002569709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Disconnect &gt; Should not use session service if not connected" time="0.000617709">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Disconnect &gt; Should try to disconnect and stop" time="0.00075425">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Disconnect &gt; Should try to disconnect and not stop" time="0.000739584">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Line breakpoint request &gt; Should create breakpoint" time="0.001356917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Line breakpoint request &gt; Should not create breakpoint without source argument" time="0.000743875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Line breakpoint request &gt; Should not create breakpoint without lines argument" time="0.001086667">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Continue request &gt; Should continue successfully" time="0.000561083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Continue request &gt; Should not continue unknown thread" time="0.00045625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Continue request &gt; Should handle run command error response" time="0.000524833">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stepping &gt; Step into should call proper command" time="0.000555959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stepping &gt; Step out should send proper command" time="0.000461708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stepping &gt; Step over should send proper command" time="0.000430166">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Threads request &gt; Should return known debugged requests" time="0.000555625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Threads request &gt; Should not return any debugged requests" time="0.000348">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stacktrace request &gt; Should not get state of unknown thread" time="0.000426291">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stacktrace request &gt; Should return response with empty stackframes" time="0.000531542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stacktrace request &gt; Should process stack frame with local source" time="0.000756">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stacktrace request &gt; Should process stack frame with unknown source" time="0.00082125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Stacktrace request &gt; Should handle state command error response" time="0.000435084">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Hotswap warning &gt; Should log warning to debug console" time="0.00058075">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Exception breakpoint request &gt; Should create exception breakpoint" time="0.00064925">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Exception breakpoint request &gt; Should remove exception breakpoint" time="0.000634667">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Exception breakpoint request &gt; Should ignore unknown break mode" time="0.000542166">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Exception breakpoint request &gt; Should not call breakpoint service with undefined request args" time="0.000358417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; Exception breakpoint request &gt; Should not call breakpoint service with undefined exception info" time="0.000330042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Custom request &gt; List exception breakpoints &gt; Should return list of breakpoint typerefs" time="0.000687333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Logging &gt; Should not log without an error" time="0.000515125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Logging &gt; Should not log error without an error message" time="0.000634375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Logging &gt; Should error to console with unexpected error schema" time="0.000361375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Logging &gt; Should error to console with non JSON" time="0.000274708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Logging &gt; Should log debugger event to console" time="0.002126959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Streaming &gt; Should call streaming service subscribe" time="0.000559959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SessionTerminated] - Should stop session service" time="0.0003935">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SessionTerminated] - Should not stop session service if session IDs do not match" time="0.000204542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SessionTerminated] - Should not stop session service if it is not connected" time="0.000204542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [RequestStarted] - Should create new request thread" time="0.000203708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [RequestFinished] - Should delete request thread" time="0.000299833">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [RequestFinished] - Should not handle unknown request" time="0.000172083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [RequestFinished] - Should clear variable handles" time="0.001267834">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Resumed] - Should send continued event" time="0.000680875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Resumed] - Should not handle unknown request" time="0.000368208">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should send breakpoint stopped event" time="0.000393584">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should display exception type when stopped on exception breakpoint" time="0.000195458">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should display exception for namespaced orgs" time="0.000177458">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should display exception for namespaced org with exception as inner class" time="0.000568042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should display exception for namespaced org with exception as inner class in a trigger" time="0.001491333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should send stepping stopped event" time="0.001138375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should not handle without request ID" time="0.000825833">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Stopped] - Should not clear variable handles" time="0.000765542">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SystemWarning] - Should send events with description" time="0.000952083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SystemWarning] - Should not send event without description" time="0.000733917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SystemGack] - Should send events with description" time="0.000748083">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SystemGack] - Should not send event without description" time="0.000716541">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [ApexException] - Should log event" time="0.00065075">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [Debug] - Should log event" time="0.00066425">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebug.test.ts" name="Interactive debugger adapter - unit &gt; Debugger events &gt; [SystemInfo] - Should log event" time="0.002097084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/adapter/apexDebugVariablesHandling.test.ts" timestamp="2026-09-24T04:32:57.489Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="37" failures="0" errors="0" skipped="0" time="0.010541959">
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should use proper values from Value" time="0.001216792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should set slot to MAX integer for non local value" time="0.000136917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should set slot to specific value for LocalValue" time="0.000303875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print null string as &quot;null&quot;" time="0.000116958">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print empty string" time="0.000147334">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print string" time="0.0001485">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print value" time="0.000080917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should correctly print null" time="0.000074292">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should summarize reference-backed SObject field with undefined value as its type label" time="0.000648375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should summarize reference-backed SObject field with non-string value as its type label" time="0.000135625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should preserve reference-backed collection string summary" time="0.000136959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should expose variablesReference for reference-backed values (expansion preserved)" time="0.000071917">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare Value of different kinds" time="0.000101333">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare Value of same kinds" time="0.000063292">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on slot for Local" time="0.000108416">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on slot for Field" time="0.000179041">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on name for others" time="0.000108583">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare based on numbered name (eg. array index)" time="0.00007">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexVariable &gt; Should compare numbered name with string" time="0.000068708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand object correctly" time="0.000347791">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand list correctly" time="0.000500041">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand set correctly" time="0.000112417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should expand map correctly" time="0.000290375">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; populateReferences &gt; Should not expand unknown reference type" time="0.000084">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; resolveApexIdToVariableReference &gt; Should handle undefined input" time="0.00007425">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; resolveApexIdToVariableReference &gt; Should call fetchReferences for unknown input" time="0.000372708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should create as part of stackTraceRequest with variables info" time="0.001137875">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should create as part of stackTraceRequest without variables info" time="0.000317959">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; ApexDebugStackFrameInfo &gt; Should populate as part of fetchFrameVariables" time="0.000237958">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should return no scopes for unknown frameId" time="0.000165625">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should return three scopes for known frameId" time="0.000231417">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand local scope" time="0.000270125">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand static scope" time="0.000152708">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; scopesRequest &gt; Should expand global scope" time="0.000207208">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return no variables for unknown variablesReference" time="0.000274042">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return variables for known variablesReference" time="0.000368792">
+        </testcase>
+        <testcase classname="test/unit/adapter/apexDebugVariablesHandling.test.ts" name="Debugger adapter variable handling - unit &gt; variablesRequest &gt; Should return no variables when expand errors out" time="0.000359667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/baseDebuggerCommand.test.ts" timestamp="2026-09-24T04:32:57.491Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.006948">
+        <testcase classname="test/unit/commands/baseDebuggerCommand.test.ts" name="Base command &gt; Should build request without query string" time="0.003772292">
+        </testcase>
+        <testcase classname="test/unit/commands/baseDebuggerCommand.test.ts" name="Base command &gt; Should build request with query string" time="0.000470625">
+        </testcase>
+        <testcase classname="test/unit/commands/baseDebuggerCommand.test.ts" name="Base command &gt; Should build request with body" time="0.000776083">
+        </testcase>
+        <testcase classname="test/unit/commands/baseDebuggerCommand.test.ts" name="Base command &gt; Should handle command error" time="0.0004625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/frameCommand.test.ts" timestamp="2026-09-24T04:32:57.491Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.009204416">
+        <testcase classname="test/unit/commands/frameCommand.test.ts" name="Base command &gt; Should build request without query string" time="0.003858292">
+        </testcase>
+        <testcase classname="test/unit/commands/frameCommand.test.ts" name="Base command &gt; Should build request with query string" time="0.001071166">
+        </testcase>
+        <testcase classname="test/unit/commands/frameCommand.test.ts" name="Base command &gt; Should build request with body" time="0.000874083">
+        </testcase>
+        <testcase classname="test/unit/commands/frameCommand.test.ts" name="Base command &gt; Should handle command error" time="0.001002917">
+        </testcase>
+        <testcase classname="test/unit/commands/frameCommand.test.ts" name="Frame command &gt; Should build request" time="0.000653375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/referencesCommand.test.ts" timestamp="2026-09-24T04:32:57.492Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.013119584">
+        <testcase classname="test/unit/commands/referencesCommand.test.ts" name="Base command &gt; Should build request without query string" time="0.007695833">
+        </testcase>
+        <testcase classname="test/unit/commands/referencesCommand.test.ts" name="Base command &gt; Should build request with query string" time="0.001118125">
+        </testcase>
+        <testcase classname="test/unit/commands/referencesCommand.test.ts" name="Base command &gt; Should build request with body" time="0.002060208">
+        </testcase>
+        <testcase classname="test/unit/commands/referencesCommand.test.ts" name="Base command &gt; Should handle command error" time="0.000497667">
+        </testcase>
+        <testcase classname="test/unit/commands/referencesCommand.test.ts" name="References command &gt; Should build request" time="0.000279166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/runCommand.test.ts" timestamp="2026-09-24T04:32:57.492Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003848125">
+        <testcase classname="test/unit/commands/runCommand.test.ts" name="Base command &gt; Should build request without query string" time="0.001630792">
+        </testcase>
+        <testcase classname="test/unit/commands/runCommand.test.ts" name="Base command &gt; Should build request with query string" time="0.000436291">
+        </testcase>
+        <testcase classname="test/unit/commands/runCommand.test.ts" name="Base command &gt; Should build request with body" time="0.000398125">
+        </testcase>
+        <testcase classname="test/unit/commands/runCommand.test.ts" name="Base command &gt; Should handle command error" time="0.000402916">
+        </testcase>
+        <testcase classname="test/unit/commands/runCommand.test.ts" name="Run command &gt; Should have proper request path" time="0.000237875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/stateCommand.test.ts" timestamp="2026-09-24T04:32:57.493Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.004233583">
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="Base command &gt; Should build request without query string" time="0.001721708">
+        </testcase>
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="Base command &gt; Should build request with query string" time="0.000422834">
+        </testcase>
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="Base command &gt; Should build request with body" time="0.000384833">
+        </testcase>
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="Base command &gt; Should handle command error" time="0.000418417">
+        </testcase>
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="State command &gt; Should build request" time="0.000242958">
+        </testcase>
+        <testcase classname="test/unit/commands/stateCommand.test.ts" name="State command &gt; Should handle run command error" time="0.0002005">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/stepCommands.test.ts" timestamp="2026-09-24T04:32:57.497Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.008138458">
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Base command &gt; Should build request without query string" time="0.003332667">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Base command &gt; Should build request with query string" time="0.000449208">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Base command &gt; Should build request with body" time="0.000705041">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Base command &gt; Should handle command error" time="0.000603833">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Step commands &gt; Step Into command should have proper request url" time="0.000289167">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Step commands &gt; Step Out command should have proper request url" time="0.000287709">
+        </testcase>
+        <testcase classname="test/unit/commands/stepCommands.test.ts" name="Step commands &gt; Step Over command should have proper request url" time="0.000287166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/core/streamingClient.test.ts" timestamp="2026-09-24T04:32:57.499Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.003077541">
+        <testcase classname="test/unit/core/streamingClient.test.ts" name="Debugger streaming client &gt; Helpers &gt; Should set &amp; get replay ID" time="0.001614209">
+        </testcase>
+        <testcase classname="test/unit/core/streamingClient.test.ts" name="Debugger streaming client &gt; Faye &gt; Should set headers" time="0.000771333">
+        </testcase>
+    </testsuite>
+</testsuites>

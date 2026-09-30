@@ -47,9 +47,11 @@ type RevisionManifest = {
   readonly rootUri: HashableUri;
 };
 
-const byNewestThenRoot = Order.combine(
+// materializedAt is millisecond ISO. A batch can share one timestamp; the revision
+// directory is the remote last-modified date, which sorts newest-last.
+const byNewest = Order.combine(
   Order.mapInput(Order.reverse(Order.string), (candidate: RevisionManifest) => candidate.manifest.materializedAt),
-  Order.mapInput(Order.string, (candidate: RevisionManifest) => candidate.rootUri.uri.path)
+  Order.mapInput(Order.reverse(Order.string), (candidate: RevisionManifest) => candidate.rootUri.uri.path)
 );
 
 export const isOrgMetadataShadowUri = (workspaceUri: URI, uri: URI): boolean => {
@@ -197,7 +199,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
           currentRoot,
           ...Arr.sort(
             manifests.filter(candidate => !Equal.equals(candidate.rootUri, currentRoot)),
-            byNewestThenRoot
+            byNewest
           )
             .slice(0, ORG_METADATA_SHADOW_REVISIONS_TO_KEEP - 1)
             .map(candidate => candidate.rootUri)

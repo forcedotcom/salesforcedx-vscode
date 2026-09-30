@@ -14,6 +14,15 @@ import * as path from 'node:path';
 import * as stream from 'node:stream';
 import { LogRecord, LogResult } from '../../src/logs/types';
 
+vi.mock('node:fs', async importOriginal => ({
+  ...(await importOriginal<typeof import('node:fs')>()),
+  closeSync: vi.fn(),
+  createWriteStream: vi.fn(),
+  existsSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  openSync: vi.fn()
+}));
+
 type LogQueryResult = {
   records: LogRecord[];
 };
@@ -24,6 +33,7 @@ type LogServiceInternals = {
 };
 
 const logServicePrototype = LogService.prototype as unknown as LogServiceInternals;
+const createWriteStreamMock = vi.mocked(fs.createWriteStream);
 
 const logRecords: LogRecord[] = [
   {
@@ -101,6 +111,11 @@ describe('Apex Log Service Tests', () => {
   let toolingRequestStub: SinonStub;
 
   beforeEach(async () => {
+    createWriteStreamMock.mockReset();
+    vi.mocked(fs.closeSync).mockReset();
+    vi.mocked(fs.existsSync).mockReset();
+    vi.mocked(fs.mkdirSync).mockReset();
+    vi.mocked(fs.openSync).mockReset();
     await $$.stubAuths(testData);
 
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -200,13 +215,9 @@ describe('Apex Log Service Tests', () => {
     const filePath = path.join('testTmp', 'file', 'path', 'logs');
     $$.SANDBOX.stub(LogService.prototype, 'getLogRecords').resolves(logRecords);
 
-    const createStreamStub = $$.SANDBOX.stub(fs, 'createWriteStream');
-
-    createStreamStub.onCall(0).returns(new stream.PassThrough() as any);
-
-    createStreamStub.onCall(1).returns(new stream.PassThrough() as any);
-    $$.SANDBOX.stub(fs, 'closeSync');
-    $$.SANDBOX.stub(fs, 'openSync');
+    createWriteStreamMock
+      .mockReturnValueOnce(new stream.PassThrough() as any)
+      .mockReturnValueOnce(new stream.PassThrough() as any);
 
     const logs = ['48jnskd', '57fskjf'];
     toolingRequestStub.onFirstCall().resolves(logs[0]);
@@ -223,7 +234,7 @@ describe('Apex Log Service Tests', () => {
     });
 
     expect(response).toEqual(logResult);
-    expect(createStreamStub.callCount).toBe(2);
+    expect(createWriteStreamMock).toHaveBeenCalledTimes(2);
   });
 
   it('should successfully create a .log file', async () => {
@@ -232,21 +243,17 @@ describe('Apex Log Service Tests', () => {
     const logIds = ['07WgsWfad'];
     const logs = ['log content'];
     const logsPath = path.join(filePath, `${logIds[0]}.log`);
-    $$.SANDBOX.stub(fs, 'existsSync').returns(true);
-    const createStreamStub = $$.SANDBOX.stub(fs, 'createWriteStream');
-
-    createStreamStub.onCall(0).returns(new stream.PassThrough() as any);
-
-    createStreamStub.onCall(1).returns(new stream.PassThrough() as any);
-    $$.SANDBOX.stub(fs, 'closeSync');
-    $$.SANDBOX.stub(fs, 'openSync');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    createWriteStreamMock
+      .mockReturnValueOnce(new stream.PassThrough() as any)
+      .mockReturnValueOnce(new stream.PassThrough() as any);
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
     await apexLogGet.getLogs({
       logId: '07WgsWfad',
       outputDir: filePath
     });
-    expect(createStreamStub.calledWith(logsPath)).toBe(true);
+    expect(createWriteStreamMock).toHaveBeenCalledWith(logsPath);
   });
 
   it('should throw an error if numberOfLogs or logId are not given to getLogs', async () => {

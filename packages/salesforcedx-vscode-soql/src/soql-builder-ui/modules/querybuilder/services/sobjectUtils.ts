@@ -34,7 +34,7 @@ export const fieldMap = (sobjectMetadata: SObjectMetadata | undefined): FieldMap
     (sobjectMetadata?.fields ?? []).map(field => [
       field.name.toLowerCase(),
       {
-        type: typeMap[field.type.toLowerCase()] ?? SObjectFieldType.AnyType,
+        type: typeMap[field.type?.toLowerCase() ?? ''] ?? SObjectFieldType.AnyType,
         picklistValues: picklistValueStrings(field.picklistValues),
         nillable: field.nillable
       }

@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="166" failures="0" errors="0" time="2.899650792">
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:31:26.382Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.001893292">
+        <testcase classname="test/jest/index.test.ts" name="OAS Extension Activation &gt; module loads without error" time="0.000987708">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="package.json settings &gt; contributes enableRestOASGen as a boolean defaulting to false (REST path blocked by default)" time="0.000270834">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/documentProcessingPipeline/methodValidationStep.test.ts" timestamp="2026-09-24T04:31:26.382Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.031731666">
+        <testcase classname="test/jest/oas/documentProcessingPipeline/methodValidationStep.test.ts" name="methodValidationStep &gt; preserves source order for multiple method mismatches" time="0.031078458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" timestamp="2026-09-24T04:31:26.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.006056875">
+        <testcase classname="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" name="oasReorderStep &gt; reorders info section attributes" time="0.003357667">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" name="oasReorderStep &gt; reorders operation-level attributes" time="0.00056175">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" name="oasReorderStep &gt; reorders path-level attributes" time="0.00052825">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" name="oasReorderStep &gt; does not modify paths without description" time="0.000355584">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/oasReorderStep.test.ts" name="oasReorderStep &gt; handles empty paths gracefully" time="0.000401042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" timestamp="2026-09-24T04:31:26.383Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="35" failures="0" errors="0" skipped="0" time="0.563869042">
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; open api version must be 3.0.0" time="0.062279875">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; servers url should be present" time="0.041297208">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer, at global level" time="0.018754583">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.&lt;method&gt;.description is required" time="0.017079375">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.&lt;method&gt;.servers should not be present" time="0.016616166">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.&lt;method&gt;.options should not be present" time="0.016236">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.&lt;method&gt;.head should not be present" time="0.011853709">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.&lt;method&gt;.trace should not be present" time="0.01125925">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; info.description is required" time="0.014993208">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations-description is required" time="0.015066833">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations-callbacks should not be present" time="0.019241708">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations-deprecated should not be present" time="0.01301825">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations-security should not be present" time="0.014251541">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations-servers should not be present" time="0.013621083">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; request body description is required" time="0.012789333">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; requestBody content must be /application/json" time="0.01330675">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters in `cookie` is not allowed" time="0.014256584">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters in `cookie` is not allowed" time="0.012998542">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters description is required" time="0.011888959">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters description is required" time="0.012737958">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters deprecated is not allowed" time="0.013140292">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters deprecated is not allowed" time="0.012952167">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters explode should be false" time="0.0150345">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters explode should be false" time="0.013807583">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters allowReserved should be false" time="0.014043958">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters allowReserved should be false" time="0.013455958">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; paths.parameters content should be `application/json`" time="0.012902625">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.parameters content should be `application/json`" time="0.013385166">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.responses.headers are not allowed" time="0.012383208">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; operations.responses.content should be application/json" time="0.012641083">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; request-media-encoding is not allowed" time="0.011976875">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; response-media-encoding is not allowed" time="0.01313375">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="ruleset &gt; should not log errors when all rules are met" time="0.012863167">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="should not throw false positives when `parameters` property is missing" time="0.011850459">
+        </testcase>
+        <testcase classname="test/jest/oas/documentProcessingPipeline/ruleset.spectral.test.ts" name="should not log info-contact &amp; operation-tag-defined" time="0.015034667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/externalServiceRegistrationManager.test.ts" timestamp="2026-09-24T04:31:26.386Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="21" failures="0" errors="0" skipped="0" time="0.025718833">
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; handleExistingESR returns the warning message selection" time="0.001122583">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getFolderForArtifact &gt; returns the selected folder path" time="0.002817334">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getFolderForArtifact &gt; fails with UserCancellationError if no folder is selected" time="0.003061875">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getFolderForArtifact &gt; throws if registry access fails" time="0.00194725">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; replaceXmlToYaml swaps the extension" time="0.000300875">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; extractInfoProperties &gt; returns the description from info" time="0.000200917">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; extractInfoProperties &gt; returns empty string when description is missing" time="0.000195917">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getOperationsFromYaml &gt; extracts active operations from paths" time="0.000253583">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getOperationsFromYaml &gt; returns empty array when paths is missing" time="0.000437333">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; getOperationsFromYaml &gt; skips operations without operationId" time="0.000138083">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; createESRObject &gt; embeds the schema in composed mode" time="0.000222667">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; createESRObject &gt; omits schema in decomposed mode" time="0.000308667">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; buildESRXml &gt; produces XML with the OAS metadata for new files" time="0.0061555">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; buildESRXml &gt; adds operations when merging into existing XML" time="0.0011545">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; buildESRXml &gt; preserves the existing schema when present" time="0.000766583">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; buildESRXml &gt; strips merge timestamp suffix from className" time="0.00063975">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; buildESRYaml &gt; writes YAML alongside the ESR XML via the FsService" time="0.000598792">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; generateEsrMD &gt; preserves FsServiceError from reading an existing ESR" time="0.001047667">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; generateEsrMD &gt; preserves FsServiceError from writing decomposed YAML" time="0.001055084">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; generateEsrMD &gt; preserves FsServiceError from writing ESR XML" time="0.001139709">
+        </testcase>
+        <testcase classname="test/jest/oas/externalServiceRegistrationManager.test.ts" name="externalServiceRegistrationManager &gt; generateEsrMD &gt; preserves FsServiceError from opening the generated ESR" time="0.000915083">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/generationStrategy/apexRest.test.ts" timestamp="2026-09-24T04:31:26.388Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.141297125">
+        <testcase classname="test/jest/oas/generationStrategy/apexRest.test.ts" name="callLLMWithRetry &gt; returns the response when the first call is non-empty" time="0.017118375">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/apexRest.test.ts" name="callLLMWithRetry &gt; retries on an empty response and returns the first non-empty result" time="0.021367625">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/apexRest.test.ts" name="callLLMWithRetry &gt; fails with LLMRetriesExhausted when every attempt is empty" time="0.044453458">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/apexRest.test.ts" name="callLLMWithRetry &gt; retries a connection error (transient) and exhausts to LLMRetriesExhausted, preserving the reason" time="0.044344875">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/apexRest.test.ts" name="callLLMWithRetry &gt; invokes the onAttempt callback once per attempt" time="0.01300025">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" timestamp="2026-09-24T04:31:26.388Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.008148792">
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getMethodImplementation &gt; should return the correct method implementation" time="0.003054125">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getMethodImplementation &gt; should fail if the method is not found" time="0.002248167">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getAnnotationsWithParameters &gt; should return the correct string with one annotation" time="0.000211959">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getAnnotationsWithParameters &gt; should return the correct string with multiple annotations" time="0.000210959">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getAnnotationsWithParameters &gt; should return the correct string with no annotations" time="0.000155917">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="buildClassPrompt &gt; should build the correct class prompt" time="0.000233">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="buildClassPrompt &gt; should build the correct class prompt with RestResource annotation" time="0.000092459">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getPromptForMethodContext &gt; should return the correct prompt for HttpGet annotation" time="0.000140334">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getPromptForMethodContext &gt; should return the correct prompt for HttpPost annotation" time="0.000397917">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getPromptForMethodContext &gt; should return the correct prompt for HttpPut annotation" time="0.00011475">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getPromptForMethodContext &gt; should return the correct prompt for HttpPatch annotation" time="0.000133709">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/buildPromptUtils.test.ts" name="getPromptForMethodContext &gt; should return the correct prompt for HttpDelete annotation" time="0.00006325">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/generationStrategy/formatUtils.test.ts" timestamp="2026-09-24T04:31:26.390Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="20" failures="0" errors="0" skipped="0" time="0.022988709">
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should format the URL path correctly with parameters" time="0.001112459">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should format the URL path correctly without trailing slash or asterisk" time="0.000228209">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should return root path if urlMapping is empty" time="0.000116959">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should handle urlMapping with only asterisk" time="0.000226">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should handle urlMapping with only slash" time="0.000163625">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="formatUrlPath &gt; should handle urlMapping with only slash without params" time="0.000086375">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="extractParametersInPath &gt; should extract parameters in path correctly" time="0.0018555">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="extractParametersInPath &gt; should sort parameters correctly" time="0.000264333">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="extractParametersInPath &gt; should return empty array if no parameters in path" time="0.000454166">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="extractParametersInPath &gt; should handle invalid OAS structure gracefully" time="0.00013075">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="excludeNon2xxResponses &gt; should exclude non-2xx responses" time="0.000322833">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="excludeNon2xxResponses &gt; should handle empty responses gracefully" time="0.000089375">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="excludeNon2xxResponses &gt; should handle invalid OAS structure gracefully" time="0.00007525">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="getMethodTypeFromAnnotation &gt; should return the correct HTTP method for a valid annotation" time="0.002135541">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="getMethodTypeFromAnnotation &gt; should fail with MethodNotFoundInDocSymbols for an invalid annotation" time="0.011443958">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="excludeUnrelatedMethods &gt; should exclude unrelated methods" time="0.000919791">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="excludeUnrelatedMethods &gt; should handle empty OAS gracefully" time="0.000423583">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="updateOperationIds &gt; should update operation IDs correctly" time="0.000185084">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="updateOperationIds &gt; should handle empty OAS gracefully" time="0.000074667">
+        </testcase>
+        <testcase classname="test/jest/oas/generationStrategy/formatUtils.test.ts" name="combineYamlByMethod &gt; should combine YAML content correctly" time="0.001381">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/oasUtils.test.ts" timestamp="2026-09-24T04:31:26.391Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="36" failures="0" errors="0" skipped="0" time="0.021358541">
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should return true when class has RestResource annotation and methods have HTTP REST annotations" time="0.001033083">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should return false when class has no RestResource annotation" time="0.000231875">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should return false when class has RestResource annotation but no methods have HTTP REST annotations" time="0.000114666">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should return true when class has RestResource annotation and at least one method has HTTP REST annotation" time="0.00036875">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should handle empty methods array" time="0.000220875">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasValidRestAnnotations &gt; should work with various HTTP REST annotations" time="0.000253333">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasAuraFrameworkCapability &gt; should return true when class has no annotations and methods have AuraEnabled annotations" time="0.000124375">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasAuraFrameworkCapability &gt; should return false when class has annotations even if methods have AuraEnabled annotations" time="0.000082584">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasAuraFrameworkCapability &gt; should return false when class has no annotations but methods have no AuraEnabled annotations" time="0.000536">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasAuraFrameworkCapability &gt; should return true when class has no annotations and at least one method has AuraEnabled annotation" time="0.00015825">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasAuraFrameworkCapability &gt; should return false when class has no annotations but methods array is empty" time="0.000148541">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasMixedFrameworks &gt; should return true when class has RestResource and methods have AuraEnabled" time="0.00009275">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasMixedFrameworks &gt; should return true when class has HTTP annotations and methods have AuraEnabled" time="0.000067417">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasMixedFrameworks &gt; should return false when class has only RestResource and methods have only HTTP annotations" time="0.000115041">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="isValidRegistrationProviderType &gt; should return true for valid provider types" time="0.000513666">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="isValidRegistrationProviderType &gt; should return false for invalid provider types" time="0.00019725">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="isValidRegistrationProviderType &gt; should return false for undefined input" time="0.000165458">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasNoClassAnnotations &gt; should return true when class has no annotations" time="0.000187875">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="hasNoClassAnnotations &gt; should return false when class has annotations" time="0.000166042">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="summarizeDiagnostics &gt; should correctly count diagnostics by severity" time="0.003073708">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="summarizeDiagnostics &gt; should handle empty diagnostics array" time="0.00010175">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="getCurrentTimestamp &gt; should return timestamp in correct format" time="0.001244084">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should extract JSON string from valid JSON object" time="0.00236675">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should fail for invalid JSON object" time="0.002297">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should strip markdown code fences with json language identifier" time="0.000401208">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should strip markdown code fences without language identifier" time="0.000243042">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should strip markdown code fences with extra whitespace" time="0.000282792">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="cleanupGeneratedDoc &gt; should handle markdown wrapped multi-line JSON" time="0.000314916">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="parseOASDocFromJson &gt; should parse valid JSON string" time="0.000098125">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="parseOASDocFromJson &gt; should throw error for invalid JSON" time="0.000358541">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="parseOASDocFromYaml &gt; should parse valid YAML string" time="0.002872166">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="parseOASDocFromYaml &gt; should throw error for invalid YAML" time="0.001039292">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="diagnoseIneligibility &gt; explains @RestResource class with no HTTP-verb method" time="0.000154083">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="diagnoseIneligibility &gt; explains HTTP-verb methods on a class missing @RestResource" time="0.000072584">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="diagnoseIneligibility &gt; explains @AuraEnabled methods blocked by class-level annotations" time="0.00007975">
+        </testcase>
+        <testcase classname="test/jest/oas/oasUtils.test.ts" name="diagnoseIneligibility &gt; explains a class with no OpenAPI-relevant annotations at all" time="0.000059792">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/promptGenerationOrchestrator.test.ts" timestamp="2026-09-24T04:31:26.395Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.012713417">
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getLeastCallsStrategy &gt; returns strategy with minimum calls excluding zero" time="0.003289583">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getLeastCallsStrategy &gt; returns first strategy when multiple share min" time="0.000425666">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getLeastCallsStrategy &gt; fails when all zero" time="0.002334792">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getLeastCallsStrategy &gt; fails for empty bids" time="0.000713917">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getMostCallsStrategy &gt; returns strategy with highest calls" time="0.000483709">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; getMostCallsStrategy &gt; fails when all zero" time="0.00053925">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; applyRule &gt; applies LEAST_CALLS" time="0.000224416">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="promptGenerationOrchestrator pure helpers &gt; applyRule &gt; applies MOST_CALLS" time="0.000231667">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="selectStrategyByBidRule &gt; returns the strategy chosen by LEAST_CALLS" time="0.001476083">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="selectStrategyByBidRule &gt; returns the strategy chosen by MOST_CALLS" time="0.000570166">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="selectStrategyByBidRule &gt; fails when all bids are zero" time="0.000722417">
+        </testcase>
+        <testcase classname="test/jest/oas/promptGenerationOrchestrator.test.ts" name="selectStrategyByBidRule &gt; fails when the chosen strategy is missing from the strategies map" time="0.000503125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/oas/propertyCorrectionStep.test.ts" timestamp="2026-09-24T04:31:26.396Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.012871333">
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; ensures info version is present" time="0.004254875">
+        </testcase>
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; ensures servers are present" time="0.001628792">
+        </testcase>
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; preserves existing response descriptions" time="0.00483325">
+        </testcase>
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; fills empty parameter descriptions with default" time="0.000418417">
+        </testcase>
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; fills missing request body descriptions with default" time="0.000457333">
+        </testcase>
+        <testcase classname="test/jest/oas/propertyCorrectionStep.test.ts" name="propertyCorrectionStep &gt; removes security sections at root and within methods" time="0.000467917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/services/apexMetadataService.test.ts" timestamp="2026-09-24T04:31:26.396Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.013554875">
+        <testcase classname="test/jest/services/apexMetadataService.test.ts" name="probeReady &gt; succeeds with the client when the LS is ready" time="0.008016875">
+        </testcase>
+        <testcase classname="test/jest/services/apexMetadataService.test.ts" name="probeReady &gt; fails with ApexLspNotReady (retryable) while still indexing" time="0.002011084">
+        </testcase>
+        <testcase classname="test/jest/services/apexMetadataService.test.ts" name="probeReady &gt; fails with ApexLspNotReady when no client instance exists yet" time="0.001422208">
+        </testcase>
+        <testcase classname="test/jest/services/apexMetadataService.test.ts" name="probeReady &gt; fails fast with ApexLspRequestFailed (non-retryable) when init failed" time="0.000511875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/services/llmService.test.ts" timestamp="2026-09-24T04:31:26.397Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="2.037448292">
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.ensureAvailable &gt; succeeds when the service is obtainable on the first try" time="0.00570475">
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.ensureAvailable &gt; retries the obtain and succeeds once the provider registers the service" time="0.20323275">
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.ensureAvailable &gt; fails with a user-actionable LLMCallFailed when the service never appears, raw detail kept as cause" time="0.608944458">
+            <system-out>
+timestamp=2026-09-24T04:31:25.151Z level=ERROR fiber=#2 message=&quot;Failed to obtain LLM service&quot; message=&quot;{
+  \&quot;message\&quot;: \&quot;Failed to obtain LLMService: Error: Command salesforcedx-einstein-gpt.getLLMServiceInstance cannot be found in the current vscode session.\&quot;,
+  \&quot;cause\&quot;: {},
+  \&quot;_tag\&quot;: \&quot;LLMCallFailed\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.ensureAvailable &gt; appends the v3 workaround hint when the GPT extension is installed at v4.x" time="0.608184458">
+            <system-out>
+timestamp=2026-09-24T04:31:25.762Z level=ERROR fiber=#3 message=&quot;Failed to obtain LLM service&quot; message=&quot;{
+  \&quot;message\&quot;: \&quot;Failed to obtain LLMService: Error: Command not found\&quot;,
+  \&quot;cause\&quot;: {},
+  \&quot;_tag\&quot;: \&quot;LLMCallFailed\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.ensureAvailable &gt; omits the v4 hint when the GPT extension is a different major (or absent)" time="0.608269791">
+            <system-out>
+timestamp=2026-09-24T04:31:26.371Z level=ERROR fiber=#4 message=&quot;Failed to obtain LLM service&quot; message=&quot;{
+  \&quot;message\&quot;: \&quot;Failed to obtain LLMService: Error: Command not found\&quot;,
+  \&quot;cause\&quot;: {},
+  \&quot;_tag\&quot;: \&quot;LLMCallFailed\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.callLLM error classification &gt; maps a ModelApiRequestError connection failure to LLMConnectionFailed with guidance" time="0.001090667">
+        </testcase>
+        <testcase classname="test/jest/services/llmService.test.ts" name="LLMService.callLLM error classification &gt; maps an ordinary failure to LLMCallFailed" time="0.000678708">
+        </testcase>
+    </testsuite>
+</testsuites>

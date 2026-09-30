@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/// <reference types="jest" />
+/// <reference types="vitest/globals" />
 /// <reference types="node" />
 
 import { spawnSync } from 'node:child_process';
@@ -48,7 +48,7 @@ const WRAPPER = [
   'set -e',
   'if [[ -s "$log" ]]; then',
   "  printf '%s\\n' 'GH_INVOKED=yes'",
-  "  sed 's/^/GH_CALL /' \"$log\"",
+  '  sed \'s/^/GH_CALL /\' "$log"',
   'else',
   "  printf '%s\\n' 'GH_INVOKED=no'",
   'fi',

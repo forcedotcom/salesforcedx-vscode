@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="135" failures="0" errors="0" time="0.213661459">
+    <testsuite name="test/jest/context/workspaceOrgShape.test.ts" timestamp="2026-09-24T04:32:15.877Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.003248583">
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; returns Scratch when isScratch true" time="0.001044167">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; returns Sandbox when isSandbox true and isScratch false" time="0.000192792">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; prefers Scratch over Sandbox when both flags set (precedence)" time="0.0001065">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; returns Production when alias is set" time="0.000207583">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; returns Production when only username is set" time="0.000152042">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="shapeFrom &gt; returns Undefined when nothing is populated" time="0.0000795">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/helpers/errorUtils.test.ts" timestamp="2026-09-24T04:32:15.879Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.002892709">
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle Error objects" time="0.001056291">
+        </testcase>
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle Error objects without message" time="0.000140875">
+        </testcase>
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle string errors" time="0.000156583">
+        </testcase>
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle objects with toString method" time="0.000195291">
+        </testcase>
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle null and undefined" time="0.000162042">
+        </testcase>
+        <testcase classname="test/jest/helpers/errorUtils.test.ts" name="errorUtils &gt; errorToString &gt; should handle numbers and other primitives" time="0.000151416">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/helpers/fs.test.ts" timestamp="2026-09-24T04:32:15.880Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.008828083">
+        <testcase classname="test/jest/helpers/fs.test.ts" name="file system utilities &gt; readFile &gt; should read file content successfully" time="0.004509417">
+        </testcase>
+        <testcase classname="test/jest/helpers/fs.test.ts" name="file system utilities &gt; readFile &gt; should throw error when read fails" time="0.002218708">
+        </testcase>
+        <testcase classname="test/jest/helpers/fs.test.ts" name="file system utilities &gt; fileOrFolderExists &gt; should return true when file exists" time="0.000396459">
+        </testcase>
+        <testcase classname="test/jest/helpers/fs.test.ts" name="file system utilities &gt; fileOrFolderExists &gt; should return false when file does not exist" time="0.000168334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/services/getIdentityFromServices.test.ts" timestamp="2026-09-24T04:32:15.880Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.009028209">
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; returns identity from defaultOrgRef on happy path" time="0.003352167">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; derives orgShape Production from alias via shapeFrom wiring" time="0.000656709">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; derives orgShape Scratch and propagates org fields through the bridge" time="0.000501625">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; falls back webUserId to UNAUTHENTICATED_USER when missing" time="0.000312083">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; rejects when the services extension is missing" time="0.002365333">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; rejects when the services API is invalid" time="0.000806917">
+        </testcase>
+        <testcase classname="test/jest/services/getIdentityFromServices.test.ts" name="TelemetryService.getIdentityFromServices &gt; runtime error tag classes are referenced" time="0.00021375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/appInsights.test.ts" timestamp="2026-09-24T04:32:15.880Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="15" failures="0" errors="0" skipped="0" time="0.022313083">
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; sendTelemetryEvent and sendExceptionEvent &gt; should send telemetry data to appInsightsClient.trackEvent" time="0.003228416">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; sendTelemetryEvent and sendExceptionEvent &gt; should send orgId to appInsightsClient.trackException" time="0.000704792">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; sendTelemetryEvent and sendExceptionEvent &gt; should omit org properties when orgIdentity is unset" time="0.000361708">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; sendTelemetryEvent and sendExceptionEvent &gt; should include orgEdition in event properties when available" time="0.000245791">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; dispose &gt; should flush events to appInsightsClient and resolve" time="0.006970125">
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;aKey&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; dispose &gt; should resolve immediately if appInsightsClient is undefined" time="0.000468208">
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;aKey&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getCommonProperties &gt; should return common system properties" time="0.00015325">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getCommonProperties &gt; should return extname that was passed in params" time="0.000127458">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getCommonProperties &gt; should return extVersion passed in params" time="0.000446375">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getInternalProperties &gt; should return internal properties" time="0.00520225">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getInternalProperties &gt; should return hostname" time="0.000812542">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - getInternalProperties &gt; should return username" time="0.000213166">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - aggregateLoggingProperties &gt; should return properties" time="0.000488583">
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;testKey&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - aggregateLoggingProperties &gt; should return common and internal properties when is internal user" time="0.000651542">
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;testKey&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/appInsights.test.ts" name="AppInsights &gt; AppInsights - aggregateLoggingProperties &gt; should return common properties when is not internal user" time="0.000450875">
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;testKey&apos;[39m ]
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/determineReporters.test.ts" timestamp="2026-09-24T04:32:15.882Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.03495125">
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; should return an array" time="0.008165541">
+            <system-out>
+O11yReporter not initialized yet, skipping addition.
+adding AppInsights reporter for salesforcedx-vscode;1.0.0
+
+            </system-out>
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;1234567890&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; in dev mode &gt; should return no reporters" time="0.001040125">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; in dev mode &gt; should return TelemetryFile reporter when local logging is enabled" time="0.000704834">
+            <system-out>
+Local telemetry event logging enabled for: salesforcedx-vscode. Telemetry events will be appended to the file at: /salesforcedx-vscode-telemetry.json.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; in dev mode &gt; should return empty reporters when O11Y_ENDPOINT is set but O11yReporter not initialized" time="0.000455458">
+            <system-out>
+O11yReporter not initialized yet, skipping addition.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; not in dev mode &gt; should return AppInsights reporter when log stream is disabled" time="0.000698375">
+            <system-out>
+O11yReporter not initialized yet, skipping addition.
+adding AppInsights reporter for salesforcedx-vscode;1.0.0
+
+            </system-out>
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;1234567890&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; not in dev mode &gt; should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled" time="0.000947416">
+            <system-out>
+O11yReporter not initialized yet, skipping addition.
+adding AppInsights reporter for salesforcedx-vscode;1.0.0
+VS Code telemetry event logging enabled for: salesforcedx-vscode. Telemetry events will be written via write stream to a file at: /salesforcedx-vscode.txt.
+
+            </system-out>
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;1234567890&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="determineReporters &gt; keeps local reporters independent from production reporters" time="0.000676625">
+            <system-out>
+Local telemetry event logging enabled for: salesforcedx-vscode. Telemetry events will be appended to the file at: /salesforcedx-vscode-telemetry.json.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should initialize and add an O11yReporter instance" time="0.010305208">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should not re-initialize if already initialized" time="0.002552541">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should wait for in-progress initialization if called concurrently" time="0.00147125">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should clean up if initialization fails" time="0.002470625">
+            <system-err>
+O11y initialization failed: Error: fail!
+    at [90m/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39mtest/jest/telemetry/reporters/determineReporters.test.ts:204:38
+[90m    at processTicksAndRejections (node:internal/process/task_queues:103:5)[39m
+    at file:///Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:2783:20
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should add O11yReporter to reporters if initialized" time="0.002572958">
+            <system-out>
+Added O11y reporter to reporters list
+adding AppInsights reporter for test-reporter;2.0.0
+
+            </system-out>
+            <system-err>
+ApplicationInsights:An invalid instrumentation key was provided. There may be resulting telemetry loss [ [32m&apos;ai-key&apos;[39m ]
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/determineReporters.test.ts" name="initializeO11yReporter &gt; should include the initialized O11yReporter in dev mode when O11Y_ENDPOINT is set" time="0.0017475">
+            <system-out>
+Added O11y reporter to reporters list
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/logStream.test.ts" timestamp="2026-09-24T04:32:15.883Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.004481542">
+        <testcase classname="test/jest/telemetry/reporters/logStream.test.ts" name="LogStream &gt; should write the telemetry event to the file" time="0.002393083">
+            <system-out>
+VS Code telemetry event logging enabled for: myExtension. Telemetry events will be written via write stream to a file at: /path/to/logs/myExtension.txt.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStream.test.ts" name="LogStream &gt; should write the exception event to the file" time="0.000479958">
+            <system-out>
+VS Code telemetry event logging enabled for: myExtension. Telemetry events will be written via write stream to a file at: /path/to/logs/myExtension.txt.
+LogStream.sendExceptionEvent - exceptionMessage: An exception occurred
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStream.test.ts" name="LogStream &gt; should emit cached orgIdentity props on the telemetry event" time="0.000577125">
+            <system-out>
+VS Code telemetry event logging enabled for: myExtension. Telemetry events will be written via write stream to a file at: /path/to/logs/myExtension.txt.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStream.test.ts" name="LogStream &gt; should emit cached orgIdentity props on the exception event" time="0.000239459">
+            <system-out>
+VS Code telemetry event logging enabled for: myExtension. Telemetry events will be written via write stream to a file at: /path/to/logs/myExtension.txt.
+LogStream.sendExceptionEvent - exceptionMessage: An exception occurred
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/logStreamConfig.test.ts" timestamp="2026-09-24T04:32:15.884Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003409667">
+        <testcase classname="test/jest/telemetry/reporters/logStreamConfig.test.ts" name="LogStreamConfig &gt; logFilePath &gt; should return the value of VSCODE_LOGS environment variable" time="0.001132084">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStreamConfig.test.ts" name="LogStreamConfig &gt; logFilePath &gt; should return an empty string if VSCODE_LOGS environment variable is not set" time="0.000146916">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStreamConfig.test.ts" name="LogStreamConfig &gt; isEnabled &gt; should return false if VSCODE_LOGS is not set" time="0.000170542">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStreamConfig.test.ts" name="LogStreamConfig &gt; isEnabled &gt; should return false if VSCODE_LOG_LEVEL is not set to trace" time="0.000202208">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/logStreamConfig.test.ts" name="LogStreamConfig &gt; isEnabled &gt; should return true if VSCODE_LOGS is provided and VSCODE_LOG_LEVEL is set to trace" time="0.000155125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/o11yReporter.test.ts" timestamp="2026-09-24T04:32:15.884Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.080291459">
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; initialize &gt; should call o11yService.initialize with extensionName, endpoint, and getConnection" time="0.002041333">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; initialize &gt; getConnection thunk re-resolves current org per call" time="0.004879709">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendTelemetryEvent &gt; should send telemetry event with properties and measurements" time="0.013563875">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendTelemetryEvent &gt; should not send telemetry if userOptIn is false" time="0.000504917">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendTelemetryEvent &gt; should not throw when logEvent fails" time="0.000755625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendTelemetryEvent &gt; should contain PFT event failures" time="0.053211209">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendExceptionEvent &gt; should send exception telemetry with properties and measurements" time="0.000829291">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendExceptionEvent &gt; should not send exception if userOptIn is false" time="0.000208791">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; sendExceptionEvent &gt; should not throw when logEvent fails" time="0.001062584">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; dispose &gt; should resolve without errors" time="0.000614875">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; dispose &gt; should resolve when forceFlush fails" time="0.000389375">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; telemetryTag handling &gt; should include telemetryTag in sent properties" time="0.000732875">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/o11yReporter.test.ts" name="O11yReporter &gt; telemetryTag handling &gt; should not include telemetryTag if not set" time="0.000416959">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/telemetryFile.test.ts" timestamp="2026-09-24T04:32:15.885Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.0105245">
+        <testcase classname="test/jest/telemetry/reporters/telemetryFile.test.ts" name="TelemetryFile &gt; should append the telemetry event to the telemetry file." time="0.003504416">
+            <system-out>
+Local telemetry event logging enabled for: extensionId. Telemetry events will be appended to the file at: /mock/workspace/path/extensionId-telemetry.json.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryFile.test.ts" name="TelemetryFile &gt; should merge cached orgIdentity props into the telemetry event" time="0.000905125">
+            <system-out>
+Local telemetry event logging enabled for: extensionId. Telemetry events will be appended to the file at: /mock/workspace/path/extensionId-telemetry.json.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryFile.test.ts" name="TelemetryFile &gt; should append the exception event to the telemetry file" time="0.000509625">
+            <system-out>
+Local telemetry event logging enabled for: extensionId. Telemetry events will be appended to the file at: /mock/workspace/path/extensionId-telemetry.json.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryFile.test.ts" name="TelemetryFile &gt; should dispose" time="0.000664166">
+            <system-out>
+Local telemetry event logging enabled for: extensionId. Telemetry events will be appended to the file at: /mock/workspace/path/extensionId-telemetry.json.
+
+dispose called on Local Telemetry Logger.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryFile.test.ts" name="TelemetryFile &gt; writeToFile &gt; should append data to the telemetry file" time="0.003928667">
+            <system-out>
+Local telemetry event logging enabled for: extensionId. Telemetry events will be appended to the file at: /mock/workspace/path/extensionId-telemetry.json.
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" timestamp="2026-09-24T04:32:15.885Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="15" failures="0" errors="0" skipped="0" time="0.0038745">
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should be an object following TelemetryReporterConfig interface" time="0.001001041">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have extName property of type string" time="0.000283916">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have version property of type string" time="0.000294917">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have aiKey property of type string" time="0.000105583">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have userId property of type string" time="0.000174375">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have reporterName property of type string" time="0.000089792">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have isDevMode property of type boolean" time="0.000078916">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the correct extension name" time="0.000064625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the correct version" time="0.000347125">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the correct AI key" time="0.000105083">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the correct user ID" time="0.000111083">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have isDevMode false" time="0.000057625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the updated isDevMode flag" time="0.000058">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; config should have webUserId property of type string" time="0.000064709">
+        </testcase>
+        <testcase classname="test/jest/telemetry/reporters/telemetryReporterConfig.test.ts" name="TelemetryReporterConfig &gt; should have the correct webUserId field" time="0.000054958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/telemetry.test.ts" timestamp="2026-09-24T04:32:15.886Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="37" failures="0" errors="0" skipped="0" time="0.024166458">
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service Provider &gt; getInstance should return a TelemetryService instance for core extension when no name is provided" time="0.001663666">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service Provider &gt; getInstance should return the same TelemetryService instance for core extension on subsequent calls" time="0.000394917">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service Provider &gt; getInstance should return a TelemetryService instance for a named extension" time="0.000277625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service Provider &gt; getInstance should return the same TelemetryService instance for a named extension on subsequent calls" time="0.000122916">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service Provider &gt; getInstance should return different instances for different extension names" time="0.000536416">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - getInstance &gt; getInstance should return the core instance if no extension name provided" time="0.000170416">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - getInstance &gt; getInstance should return the same TelemetryService instance for a named extension on subsequent calls" time="0.000145666">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryExtensionConfigurationEnabled &gt; should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" time="0.000415667">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryExtensionConfigurationEnabled &gt; should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" time="0.000501084">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryExtensionConfigurationEnabled &gt; should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" time="0.000295667">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryExtensionConfigurationEnabled &gt; should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" time="0.000230042">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return true when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are true" time="0.000600083">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are false" time="0.000143208">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when isTelmetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" time="0.000125041">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when isTelmetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" time="0.000116875">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return true when internal user" time="0.000106833">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return true when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is true" time="0.000114">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is false" time="0.000202333">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" time="0.000131584">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - isTelemetryEnabled &gt; should return false when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" time="0.000112875">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendExtensionActivationEvent timing parameter compatibility &gt; should work with number startTime (new format)" time="0.002533">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendExtensionActivationEvent timing parameter compatibility &gt; should work with hrtime tuple startTime (legacy format)" time="0.000447">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendExtensionActivationEvent timing parameter compatibility &gt; should work with undefined startTime" time="0.000405708">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendExtensionActivationEvent timing parameter compatibility &gt; should use markEndTime when provided, regardless of startTime format" time="0.000260042">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendCommandEvent timing parameter compatibility &gt; should work with number startTime (new format)" time="0.000365625">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendCommandEvent timing parameter compatibility &gt; should work with hrtime tuple startTime (legacy format)" time="0.000295292">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendCommandEvent timing parameter compatibility &gt; should work with undefined startTime" time="0.000268334">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; sendCommandEvent timing parameter compatibility &gt; should include measurements when provided with timing" time="0.000290042">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; updateReporters caches org identity &gt; sets orgIdentity on every reporter class" time="0.000989333">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; governed production telemetry boundary &gt; dispatches production telemetry when a local reporter throws" time="0.003517">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+            <system-err>
+Error: local failure
+    at Object.&lt;anonymous&gt; [90m(/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39mtest/jest/telemetry/telemetry.test.ts:440:17[90m)[39m
+    at Object.Mock [as sendTelemetryEvent] (file:///Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/node_modules/[4mvitest[24m/dist/chunks/spy.DQ0ZsPbi.js:320:40)
+    at sendToReporter [90m(/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39msrc/services/telemetry.ts:94:16[90m)[39m
+    at [90m/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39msrc/services/telemetry.ts:457:13
+    at Array.map (&lt;anonymous&gt;)
+    at [90m/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39msrc/services/telemetry.ts:455:29
+    at TelemetryService.&lt;anonymous&gt; [90m(/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39mtest/jest/telemetry/telemetry.test.ts:226:9[90m)[39m
+    at TelemetryService.Mock [as validateTelemetry] (file:///Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/node_modules/[4mvitest[24m/dist/chunks/spy.DQ0ZsPbi.js:320:40)
+    at TelemetryService.sendTelemetryItem [90m(/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39msrc/services/telemetry.ts:454:12[90m)[39m
+    at TelemetryService.sendEventData [90m(/Users/shane.mclaughlin/eng/auto-build/salesforcedx-vscode.worktrees/sm-W-24179402/packages/salesforcedx-utils-vscode/[39msrc/services/telemetry.ts:423:10[90m)[39m
+
+            </system-err>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; governed production telemetry boundary &gt; captures a complete immutable envelope identity at send time" time="0.002086292">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; governed production telemetry boundary &gt; retains invocation identity during Gov to nonGov delayed enablement" time="0.001862959">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; governed production telemetry boundary &gt; retains invocation identity during nonGov to Gov delayed enablement" time="0.001773916">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; lifecycle &gt; registers the service once and direct disposal remains idempotent" time="0.000785583">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; hrTimeToMilliseconds helper method &gt; should convert number correctly" time="0.000169208">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; hrTimeToMilliseconds helper method &gt; should convert hrtime tuple correctly" time="0.000146833">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetry.test.ts" name="Telemetry &gt; Telemetry Service - Backwards Compatibility &gt; hrTimeToMilliseconds helper method &gt; should handle undefined by defaulting to [0, 0]" time="0.000140666">
+            <system-out>
+[TelemetryServiceProvider] No extensionName provided. Defaulting to &quot;salesforcedx-vscode-core&quot;.
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/utils/devModeUtils.test.ts" timestamp="2026-09-24T04:32:15.890Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002976666">
+        <testcase classname="test/jest/telemetry/utils/devModeUtils.test.ts" name="isLocalLogging &gt; returns true when local logging is enabled" time="0.001509917">
+        </testcase>
+        <testcase classname="test/jest/telemetry/utils/devModeUtils.test.ts" name="isLocalLogging &gt; returns false when local logging is disabled" time="0.000470375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/utils/isInternal.test.ts" timestamp="2026-09-24T04:32:15.890Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.00267475">
+        <testcase classname="test/jest/telemetry/utils/isInternal.test.ts" name="Telemetry internal user check &gt; should return true if internal user" time="0.00129575">
+        </testcase>
+        <testcase classname="test/jest/telemetry/utils/isInternal.test.ts" name="Telemetry internal user check &gt; should return false if not an internal user" time="0.000339959">
+        </testcase>
+        <testcase classname="test/jest/telemetry/utils/isInternal.test.ts" name="Telemetry internal user check &gt; should return false if hostname is undefined" time="0.0001865">
+        </testcase>
+    </testsuite>
+</testsuites>

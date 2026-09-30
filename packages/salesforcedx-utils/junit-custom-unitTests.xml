@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="33" failures="0" errors="0" time="0.019610458">
+    <testsuite name="test/jest/cli/command.test.ts" timestamp="2026-09-24T04:33:15.201Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003535458">
+        <testcase classname="test/jest/cli/command.test.ts" name="Command unit tests. &gt; Should be able to create a command." time="0.00127725">
+        </testcase>
+        <testcase classname="test/jest/cli/command.test.ts" name="Command unit tests. &gt; Should be able to pass a fully built builder." time="0.000363125">
+        </testcase>
+        <testcase classname="test/jest/cli/command.test.ts" name="Command unit tests. &gt; Should return description for toString if exists." time="0.000112375">
+        </testcase>
+        <testcase classname="test/jest/cli/command.test.ts" name="Command unit tests. &gt; Should construct string if no description provided." time="0.000778833">
+        </testcase>
+        <testcase classname="test/jest/cli/command.test.ts" name="Command unit tests. &gt; Should build a command." time="0.000252125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/cli/commandBuilder.test.ts" timestamp="2026-09-24T04:33:15.202Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.00374575">
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be a be able to create an instance and build a command." time="0.001439417">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be able to set description." time="0.000251834">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be able to set a flag." time="0.000534208">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should have special handling for the json flag." time="0.000182292">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be able to set json flags." time="0.0001525">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be able to set a log name." time="0.000146333">
+        </testcase>
+        <testcase classname="test/jest/cli/commandBuilder.test.ts" name="CommandBuild unit tests &gt; Should be able to chain it all together." time="0.000169167">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/cli/commandOutput.test.ts" timestamp="2026-09-24T04:33:15.203Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.003611583">
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should handle successful process exit." time="0.001333334">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should have data from stdout on success." time="0.000445959">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should process multiple calls to stdout." time="0.000398042">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should have data from stderr on failure for not command sf." time="0.00015075">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should have data from stdout on failure if there is no stderr when command not sf." time="0.000171666">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should have data from stdout on failure for sf command." time="0.0001685">
+        </testcase>
+        <testcase classname="test/jest/cli/commandOutput.test.ts" name="CommandOutput Unit Tests. &gt; Should have data from stderr on failure if there is no stdout when sf command." time="0.000118416">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/cli/sfCommandBuilder.test.ts" timestamp="2026-09-24T04:33:15.203Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.002931">
+        <testcase classname="test/jest/cli/sfCommandBuilder.test.ts" name="sfCommandBuilder unit tests. &gt; Should default to sf command." time="0.002211625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/helpers/classifyOrgForTelemetry.test.ts" timestamp="2026-09-24T04:33:15.203Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.002452167">
+        <testcase classname="test/jest/helpers/classifyOrgForTelemetry.test.ts" name="classifyOrgForTelemetry &gt; classifies stg9402s as gov" time="0.001154916">
+        </testcase>
+        <testcase classname="test/jest/helpers/classifyOrgForTelemetry.test.ts" name="classifyOrgForTelemetry &gt; classifies usa9001 as gov" time="0.000209875">
+        </testcase>
+        <testcase classname="test/jest/helpers/classifyOrgForTelemetry.test.ts" name="classifyOrgForTelemetry &gt; classifies usa9102 as nonGov" time="0.000096875">
+        </testcase>
+        <testcase classname="test/jest/helpers/classifyOrgForTelemetry.test.ts" name="classifyOrgForTelemetry &gt; requires an org and instance name" time="0.000207292">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" timestamp="2026-09-24T04:33:15.204Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.0033345">
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; accepts HTTP(S) loopback endpoint http://localhost:3002" time="0.001029167">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; accepts HTTP(S) loopback endpoint https://127.0.0.1:4318" time="0.000231875">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; accepts HTTP(S) loopback endpoint http://[::1]:3003" time="0.000099792">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint undefined" time="0.000199">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint " time="0.000152667">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint https://remote.example/o11y" time="0.00008075">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint http://localhost.example.com" time="0.00012125">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint file:///tmp/o11y" time="0.000066291">
+        </testcase>
+        <testcase classname="test/jest/helpers/isLoopbackHttpEndpoint.test.ts" name="isLoopbackHttpEndpoint &gt; rejects non-loopback endpoint not a url" time="0.000431">
+        </testcase>
+    </testsuite>
+</testsuites>

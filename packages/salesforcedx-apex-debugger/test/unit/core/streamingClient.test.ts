@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Client as FayeClient } from 'faye';
 import { StreamingClient, StreamingClientInfoBuilder } from '../../../src/core';
 import { RequestService } from '../../../src/requestService/requestService';
@@ -27,10 +28,10 @@ describe('Debugger streaming client', () => {
   });
 
   describe('Faye', () => {
-    let fayeHeaderSpy: jest.SpyInstance;
+    let fayeHeaderSpy: VitestMockInstance;
 
     beforeEach(() => {
-      fayeHeaderSpy = jest.spyOn(FayeClient.prototype, 'setHeader').mockImplementation(() => {});
+      fayeHeaderSpy = vi.spyOn(FayeClient.prototype, 'setHeader').mockImplementation(() => {});
     });
 
     it('Should set headers', () => {

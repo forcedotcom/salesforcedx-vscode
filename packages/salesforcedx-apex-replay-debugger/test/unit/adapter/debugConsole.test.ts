@@ -6,14 +6,15 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
@@ -21,7 +22,7 @@ import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
 describe('Debug console', () => {
-  let sendEventSpy: jest.SpyInstance;
+  let sendEventSpy: VitestMockInstance;
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -85,7 +86,7 @@ describe('Debug console', () => {
   describe('Print', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {
@@ -115,7 +116,7 @@ describe('Debug console', () => {
   describe('Warn', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {
@@ -141,7 +142,7 @@ describe('Debug console', () => {
   describe('Error', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {

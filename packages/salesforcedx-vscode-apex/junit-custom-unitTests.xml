@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="125" failures="0" errors="0" time="0.615192249">
+    <testsuite name="test/jest/dropLsAnonymousApexExecuteLenses.test.ts" timestamp="2026-09-24T04:31:52.922Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.006026292">
+        <testcase classname="test/jest/dropLsAnonymousApexExecuteLenses.test.ts" name="dropLsAnonymousApexExecuteLenses &gt; drops Jorje Execute and keeps Debug and test lenses" time="0.003525167">
+        </testcase>
+        <testcase classname="test/jest/dropLsAnonymousApexExecuteLenses.test.ts" name="dropLsAnonymousApexExecuteLenses &gt; returns empty when every lens is Execute" time="0.001776666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:31:52.923Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.073183291">
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; indexDoneHandler &gt; should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false" time="0.002338709">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; indexDoneHandler &gt; should call setClientReady when enableSyncInitJobs is true" time="0.000755625">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; Settings Change Handler &gt; should execute restart command when lspParityCapabilities setting changes" time="0.000268833">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; Settings Change Handler &gt; should not execute restart command when other settings change" time="0.000165375">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; Settings Change Handler &gt; should check for the correct configuration key" time="0.000198541">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; activate &gt; should throw error if no workspace folders exist" time="0.0610865">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; activate &gt; should not start the Apex language server in a non-Salesforce workspace" time="0.001353084">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; activate &gt; should start the Apex language server in a Salesforce workspace" time="0.002567167">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; deactivate &gt; should call stop on the language client" time="0.001603125">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; deactivate &gt; should handle case when client instance is null" time="0.000675959">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="index tests &gt; deactivate &gt; should still resolve when stop rejects (scope teardown/span flush not skipped)" time="0.0010145">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageServer.test.ts" timestamp="2026-09-24T04:31:52.924Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.02102175">
+        <testcase classname="test/jest/languageServer.test.ts" name="languageServer client span &gt; opens exactly one apex.lsp.client root span per lifetime" time="0.008393667">
+        </testcase>
+        <testcase classname="test/jest/languageServer.test.ts" name="languageServer client span &gt; onTelemetry writes allowlisted attrs onto the live client span" time="0.002713125">
+        </testcase>
+        <testcase classname="test/jest/languageServer.test.ts" name="languageServer client span &gt; a blocked telemetry feature is not written onto the client span" time="0.001571459">
+        </testcase>
+        <testcase classname="test/jest/languageServer.test.ts" name="languageServer client span &gt; fails createServer with a requirements-phase setup error" time="0.004448083">
+        </testcase>
+        <testcase classname="test/jest/languageServer.test.ts" name="languageServer client span &gt; restart ends the prior client span and opens exactly one new live span" time="0.00300325">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageServerOrphanHandler.test.ts" timestamp="2026-09-24T04:31:52.924Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.324238375">
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; no orphan processes → no prompt, no kill" time="0.1914265">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; parent alive → not orphaned → no prompt" time="0.003956875">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; orphan found + user confirms → kill called" time="0.013335209">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; orphan disappears on re-check → no prompt, no kill" time="0.005182417">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; user dismisses prompt → UserCancellationError caught → no kill" time="0.007486583">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; kill fails twice then succeeds → retry within bound" time="0.034752458">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; kill fails all attempts → ProcessTerminationError caught internally + root-span annotation, never propagates" time="0.027672917">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; web platform → TerminalServiceError → empty result, no prompt" time="0.00303725">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; autoTerminateOrphanedProcesses setting &gt; setting true + orphans found → kills without prompt" time="0.006914875">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; autoTerminateOrphanedProcesses setting &gt; setting false + user clicks &quot;Always Auto-Terminate&quot; + confirms modal → setValue called + kills" time="0.008192875">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; autoTerminateOrphanedProcesses setting &gt; setting false + user clicks &quot;Always Auto-Terminate&quot; + cancels modal → no kill, setValue not called" time="0.0062525">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; autoTerminateOrphanedProcesses setting &gt; setting false + existing flows unchanged (terminate, show, dismiss)" time="0.006520666">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler &gt; autoTerminateOrphanedProcesses setting &gt; SettingsService.setValue failure → span annotation recorded, kill still proceeds" time="0.006117625">
+        </testcase>
+        <testcase classname="test/jest/languageServerOrphanHandler.test.ts" name="languageServerOrphanHandler (Windows powershell guard) &gt; where powershell fails → empty result + root-span annotation, no prompt" time="0.002194917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageServerScanConfig.test.ts" timestamp="2026-09-24T04:31:52.925Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.00949125">
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; buildMetadataRegistryScanConfig &gt; builds scan config from the shared metadata registry service" time="0.004044167">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; buildMetadataRegistryScanConfig &gt; returns undefined when the services API is unavailable" time="0.000503209">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; buildMetadataRegistryScanConfig &gt; propagates services API activation failure" time="0.001708417">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; buildMetadataRegistryScanConfig &gt; returns undefined when registry access fails" time="0.000904958">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; buildMetadataRegistryScanConfig &gt; returns undefined when no metadata folders are excluded" time="0.00060075">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; deriveExcludedMetadataFolders &gt; excludes strict metadata directories that are not apex folders" time="0.000138083">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; deriveExcludedMetadataFolders &gt; normalizes folder names and filters empty values" time="0.000134542">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; deriveExcludedMetadataFolders &gt; sorts folder names with locale-aware comparison" time="0.000160167">
+        </testcase>
+        <testcase classname="test/jest/languageServerScanConfig.test.ts" name="languageServerScanConfig &gt; deriveExcludedMetadataFolders &gt; returns empty list when strictDirectoryNames is missing" time="0.000432084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageUtils/apexLanguageConfiguration.test.ts" timestamp="2026-09-24T04:31:52.926Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.004248833">
+        <testcase classname="test/jest/languageUtils/apexLanguageConfiguration.test.ts" name="Apex Language Configuration &gt; wordPattern &gt; should match valid Apex identifiers" time="0.002152458">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/apexLanguageConfiguration.test.ts" name="Apex Language Configuration &gt; wordPattern &gt; should match decimal numbers" time="0.000291584">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/apexLanguageConfiguration.test.ts" name="Apex Language Configuration &gt; wordPattern &gt; should match parts of strings containing special characters" time="0.00094775">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageUtils/languageClientManager.test.ts" timestamp="2026-09-24T04:31:52.926Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="22" failures="0" errors="0" skipped="0" time="0.02885325">
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Status Management &gt; Should return correct initial status" time="0.001138875">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Status Management &gt; Should return ready status" time="0.000171458">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Status Management &gt; Should return indexing status" time="0.000259958">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Status Management &gt; Should return error status" time="0.000122958">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Status Management &gt; Should return unavailable status" time="0.000173708">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Instance Management &gt; Should manage client instance" time="0.000116875">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Instance Management &gt; Should manage status bar instance" time="0.000234375">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Instance Management &gt; Should maintain singleton instance" time="0.000089417">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Setup &gt; keeps createLanguageClient as a Promise adapter" time="0.0055135">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Client Setup &gt; reports a typed client start failure through existing status UI" time="0.002864875">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should show information message if already restarting" time="0.000716375">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should cancel operation if no option is selected" time="0.002626">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should restart without cleaning DB when restart only option is selected" time="0.001885291">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should restart and clean DB when clean and restart option is selected" time="0.004150375">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should complete restart without stranding isRestarting when services extension is unavailable" time="0.002101375">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should handle errors during client stop" time="0.001585">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; should reset isRestarting flag if there is no client instance" time="0.000975166">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; Restart Behavior Setting &gt; should use prompt behavior by default" time="0.000804209">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; Restart Behavior Setting &gt; should use restart behavior when configured" time="0.000613125">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; Restart Language Server &gt; Restart Behavior Setting &gt; should use reset behavior when configured" time="0.00116875">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; toolsDirsToDelete &gt; keeps only NNN-named directories" time="0.000302">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/languageClientManager.test.ts" name="Language Client Manager &gt; toolsDirsToDelete &gt; returns empty for no matches" time="0.000118584">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageUtils/requirements.test.ts" timestamp="2026-09-24T04:31:52.928Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.016643875">
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should allow valid java runtime path outside the project" time="0.009647833">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should reject when the configured java home path does not exist" time="0.000929459">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should treat a services-extension failure as a missing path (catchTags → false)" time="0.003613542">
+            <system-out>
+timestamp=2026-09-24T04:31:52.598Z level=WARN fiber=#5 message=&quot;services extension unavailable for fileOrFolderExists&quot; message=&quot;{
+  \&quot;_tag\&quot;: \&quot;ServicesExtensionNotFoundError\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should not support Java 8" time="0.000315833">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should support Java 11" time="0.000206">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should support Java 17" time="0.000189125">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should support Java 21" time="0.000131083">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should support Java 23" time="0.00011625">
+        </testcase>
+        <testcase classname="test/jest/languageUtils/requirements.test.ts" name="Java Requirements Test &gt; Cross-platform tests &gt; Should reject java version check when execFile fails" time="0.0005185">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/namespaceLensRewriter.test.ts" timestamp="2026-09-24T04:31:52.928Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="31" failures="0" errors="0" skipped="0" time="0.108397417">
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when the org has a namespace set in it &gt; should return lens unchanged" time="0.005017959">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when the org has a namespace set in it &gt; should return lens with no project namespace" time="0.000909083">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when the org has a namespace set in it &gt; should not rewrite arguments with different namespace than project namespace" time="0.003537541">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: OtherNamespace.MyClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: OtherNamespace.MyClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when lens has no command or title &gt; should return lens unchanged when command is undefined" time="0.001237916">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when lens has no command or title &gt; should return lens unchanged when title is empty string" time="0.00081125">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; when lens has no command or title &gt; should return lens unchanged when namespaceFromProject is undefined" time="0.002988541">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Run Test&quot; &gt; should rewrite namespace.class.method to class.method" time="0.000900375">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.MyClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Run Test&quot; &gt; should handle multiple arguments" time="0.00125225">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.MyClass.testMethod1,MyNamespace.AnotherClass.testMethod2
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod1,AnotherClass.testMethod2
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Run Test&quot; &gt; should not modify arguments that do not match pattern" time="0.001239958">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyClass.testMethod,MyNamespace.MyClass,SomeOtherArg
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod,MyNamespace.MyClass,SomeOtherArg
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Run Test&quot; &gt; should handle empty arguments array" time="0.001234417">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: 
+provideCodeLenses Middleware &gt; Single test modified: 
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Run Test&quot; &gt; should handle undefined arguments" time="0.001032042">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: undefined
+provideCodeLenses Middleware &gt; Single test modified: undefined
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Debug Test&quot; &gt; should rewrite namespace.class.method to class.method" time="0.002307625">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.MyClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Debug Test&quot; &gt; should handle multiple arguments" time="0.000933292">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.MyClass.testMethod1,MyNamespace.AnotherClass.testMethod2
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod1,AnotherClass.testMethod2
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Debug Test&quot; &gt; should not modify arguments that do not match pattern" time="0.000852542">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyClass.testMethod,MyNamespace.MyClass,SomeOtherArg
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod,MyNamespace.MyClass,SomeOtherArg
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Debug Test&quot; &gt; should handle empty arguments array" time="0.000847292">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: 
+provideCodeLenses Middleware &gt; Single test modified: 
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; single test scenarios &gt; with title &quot;Debug Test&quot; &gt; should handle undefined arguments" time="0.000876208">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: undefined
+provideCodeLenses Middleware &gt; Single test modified: undefined
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Run All Tests&quot; &gt; should rewrite namespace.class to class" time="0.01455975">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyNamespace.MyClass
+provideCodeLenses Middleware &gt; All tests modified: MyClass
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Run All Tests&quot; &gt; should handle multiple arguments" time="0.001456167">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyNamespace.MyClass,MyNamespace.AnotherClass
+provideCodeLenses Middleware &gt; All tests modified: MyClass,AnotherClass
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Run All Tests&quot; &gt; should not modify arguments that do not match pattern" time="0.001009584">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyClass,SomeOtherArg
+provideCodeLenses Middleware &gt; All tests modified: MyClass,SomeOtherArg
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Run All Tests&quot; &gt; should handle empty arguments array" time="0.000912167">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: 
+provideCodeLenses Middleware &gt; All tests modified: 
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Run All Tests&quot; &gt; should handle undefined arguments" time="0.000919583">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: undefined
+provideCodeLenses Middleware &gt; All tests modified: undefined
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Debug All Tests&quot; &gt; should rewrite namespace.class to class" time="0.000929208">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyNamespace.MyClass
+provideCodeLenses Middleware &gt; All tests modified: MyClass
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Debug All Tests&quot; &gt; should handle multiple arguments" time="0.001224125">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyNamespace.MyClass,MyNamespace.AnotherClass
+provideCodeLenses Middleware &gt; All tests modified: MyClass,AnotherClass
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Debug All Tests&quot; &gt; should not modify arguments that do not match pattern" time="0.001268166">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: MyClass,SomeOtherArg
+provideCodeLenses Middleware &gt; All tests modified: MyClass,SomeOtherArg
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Debug All Tests&quot; &gt; should handle empty arguments array" time="0.001284959">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: 
+provideCodeLenses Middleware &gt; All tests modified: 
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; all tests scenarios &gt; with title &quot;Debug All Tests&quot; &gt; should handle undefined arguments" time="0.009686542">
+            <system-out>
+provideCodeLenses Middleware &gt; All tests originally: undefined
+provideCodeLenses Middleware &gt; All tests modified: undefined
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; other &gt; should not modify lens with unrecognized title" time="0.001721833">
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; other &gt; should preserve original lens properties" time="0.001261583">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.MyClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; other &gt; should handle mixed matching and non-matching arguments" time="0.037052916">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.TestClass.testMethod,OtherNamespace.TestClass.testMethod,TestClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: TestClass.testMethod,OtherNamespace.TestClass.testMethod,TestClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; other &gt; should handle different namespace names" time="0.0033805">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: VeryDeepNamespace.MyClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: MyClass.testMethod
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/namespaceLensRewriter.test.ts" name="rewriteNamespaceLens Unit Tests &gt; other &gt; should work with both single and all test commands in sequence" time="0.002898">
+            <system-out>
+provideCodeLenses Middleware &gt; Single test originally: MyNamespace.TestClass.testMethod
+provideCodeLenses Middleware &gt; Single test modified: TestClass.testMethod
+provideCodeLenses Middleware &gt; All tests originally: MyNamespace.TestClass
+provideCodeLenses Middleware &gt; All tests modified: TestClass
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/services/runtime.test.ts" timestamp="2026-09-24T04:31:52.931Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.006071625">
+        <testcase classname="test/jest/services/runtime.test.ts" name="services/runtime disposeRuntime &gt; is a no-op when the runtime was never created" time="0.002065417">
+        </testcase>
+        <testcase classname="test/jest/services/runtime.test.ts" name="services/runtime disposeRuntime &gt; disposes the created runtime and clears the memo so getRuntime rebuilds fresh" time="0.002436292">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/settings.test.ts" timestamp="2026-09-24T04:31:52.931Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.003869166">
+        <testcase classname="test/jest/settings.test.ts" name="settings Unit Tests. &gt; Should be able to get retrieveEnableSyncInitJobs setting." time="0.001441375">
+        </testcase>
+        <testcase classname="test/jest/settings.test.ts" name="settings Unit Tests. &gt; Should be able to get retrieveAAMethodAnnotations setting." time="0.0013795">
+        </testcase>
+        <testcase classname="test/jest/settings.test.ts" name="settings Unit Tests. &gt; Should be able to get lspParityCapabilities setting." time="0.000346417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" timestamp="2026-09-24T04:31:52.932Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.008316167">
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; partitions every Jorje-sourced Feature into allowed xor blocked" time="0.0052105">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; has no duplicate entries in JORJE inventory" time="0.000230333">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; keeps allowed and blocked disjoint" time="0.000177625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; includes legacy aliases only in allowed (not in Jorje source list)" time="0.000544459">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; allows listed Feature values" time="0.000281625">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; rejects blocked Feature values" time="0.000325958">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; rejects unknown Feature values" time="0.000080959">
+        </testcase>
+        <testcase classname="test/jest/telemetry/apexLspTelemetryAllowlist.test.ts" name="apexLspTelemetryAllowlist &gt; rejects missing or invalid Feature" time="0.000086542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/views/apexLspStatusBarItem.test.ts" timestamp="2026-09-24T04:31:52.932Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.004830958">
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; initialization &gt; should create language status item and diagnostic collection" time="0.001879833">
+        </testcase>
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; error handling &gt; should set error message and diagnostic with correct severity" time="0.000815416">
+        </testcase>
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; status updates &gt; should update status when indexing" time="0.000330875">
+        </testcase>
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; status updates &gt; should update status when ready" time="0.000297208">
+        </testcase>
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; status updates &gt; should update status when restarting" time="0.000310917">
+        </testcase>
+        <testcase classname="test/jest/views/apexLspStatusBarItem.test.ts" name="ApexLSPStatusBarItem &gt; disposal &gt; should dispose language status items" time="0.000238167">
+        </testcase>
+    </testsuite>
+</testsuites>

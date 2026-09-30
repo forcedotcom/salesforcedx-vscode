@@ -5,18 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 // Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+vi.mock('@vscode/debugadapter', async importOriginal => {
+  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+  return {
+    ...actual,
+    DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
+  };
+});
 
 import {
   Event,
+  DebugSession,
   InitializedEvent,
   Source,
   StackFrame,
@@ -73,18 +75,18 @@ describe('Replay debugger adapter - unit', () => {
   const logFilePath = `path/${logFileName}`;
 
   describe('Launch', () => {
-    let sendResponseSpy: jest.SpyInstance;
-    let sendEventSpy: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
+    let sendEventSpy: VitestMockInstance;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
-    let hasLogLinesStub: jest.SpyInstance;
-    let meetsLogLevelRequirementsStub: jest.SpyInstance;
-    let readLogFileStub: jest.SpyInstance;
-    let getLogSizeStub: jest.SpyInstance;
-    let printToDebugConsoleStub: jest.SpyInstance;
-    let errorToDebugConsoleStub: jest.SpyInstance;
-    let scanLogForHeapDumpLinesStub: jest.SpyInstance;
-    let setHeapDumpResultsStub: jest.SpyInstance;
+    let hasLogLinesStub: VitestMockInstance;
+    let meetsLogLevelRequirementsStub: VitestMockInstance;
+    let readLogFileStub: VitestMockInstance;
+    let getLogSizeStub: VitestMockInstance;
+    let printToDebugConsoleStub: VitestMockInstance;
+    let errorToDebugConsoleStub: VitestMockInstance;
+    let scanLogForHeapDumpLinesStub: VitestMockInstance;
+    let setHeapDumpResultsStub: VitestMockInstance;
     const lineBpInfo: LineBreakpointInfo[] = [
       {
         uri: 'classA',
@@ -103,25 +105,21 @@ describe('Replay debugger adapter - unit', () => {
         stopOnEntry: true,
         trace: false
       };
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Mock console methods to prevent them from calling sendEvent
-      printToDebugConsoleStub = jest
-        .spyOn(ApexReplayDebug.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
-      errorToDebugConsoleStub = jest
-        .spyOn(ApexReplayDebug.prototype, 'errorToDebugConsole')
-        .mockImplementation(() => {});
+      printToDebugConsoleStub = vi.spyOn(ApexReplayDebug.prototype, 'printToDebugConsole').mockImplementation(() => {});
+      errorToDebugConsoleStub = vi.spyOn(ApexReplayDebug.prototype, 'errorToDebugConsole').mockImplementation(() => {});
       // Create a targeted sendEvent spy that only tracks the events we care about
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         // Only track metric events and initialized events, not output events from console methods
         if (event.event === 'output') {
           return;
         }
         // Call the original implementation for non-output events
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      readLogFileStub = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
-      getLogSizeStub = jest.spyOn(LogContext.prototype, 'getLogSize').mockReturnValue(123);
+      readLogFileStub = vi.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
+      getLogSizeStub = vi.spyOn(LogContext.prototype, 'getLogSize').mockReturnValue(123);
     });
 
     afterEach(() => {
@@ -142,8 +140,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return error when there are no log lines', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(false);
-      meetsLogLevelRequirementsStub = jest
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(false);
+      meetsLogLevelRequirementsStub = vi
         .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
         .mockReturnValue(false);
 
@@ -168,8 +166,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return error when log levels are incorrect', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      meetsLogLevelRequirementsStub = vi
         .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
         .mockReturnValue(false);
 
@@ -194,10 +192,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send response', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      meetsLogLevelRequirementsStub = vi.spyOn(LogContext.prototype, 'meetsLogLevelRequirements').mockReturnValue(true);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
@@ -213,12 +209,10 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should not apply heap dump results if no heap dumps are found in the logs', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(false);
-      setHeapDumpResultsStub = jest.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      meetsLogLevelRequirementsStub = vi.spyOn(LogContext.prototype, 'meetsLogLevelRequirements').mockReturnValue(true);
+      scanLogForHeapDumpLinesStub = vi.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(false);
+      setHeapDumpResultsStub = vi.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
@@ -231,12 +225,10 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should apply heap dump results if heap dumps are found in the logs', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
-      setHeapDumpResultsStub = jest.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      meetsLogLevelRequirementsStub = vi.spyOn(LogContext.prototype, 'meetsLogLevelRequirements').mockReturnValue(true);
+      scanLogForHeapDumpLinesStub = vi.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
+      setHeapDumpResultsStub = vi.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
 
       args.lineBreakpointInfo = lineBpInfo;
       args.heapDumpResults = [];
@@ -250,12 +242,10 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should report a wrap up error if any heap dump result carries an error', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
-      setHeapDumpResultsStub = jest.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      meetsLogLevelRequirementsStub = vi.spyOn(LogContext.prototype, 'meetsLogLevelRequirements').mockReturnValue(true);
+      scanLogForHeapDumpLinesStub = vi.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
+      setHeapDumpResultsStub = vi.spyOn(LogContext.prototype, 'setHeapDumpResults').mockImplementation(() => {});
 
       args.lineBreakpointInfo = lineBpInfo;
       args.heapDumpResults = [{ heapDumpId: 'id1', error: 'boom' }];
@@ -282,10 +272,10 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Configuration done', () => {
-    let sendEventSpy: jest.SpyInstance;
-    let updateFramesStub: jest.SpyInstance;
-    let continueRequestStub: jest.SpyInstance;
-    let getLaunchArgsStub: jest.SpyInstance;
+    let sendEventSpy: VitestMockInstance;
+    let updateFramesStub: VitestMockInstance;
+    let continueRequestStub: VitestMockInstance;
+    let getLaunchArgsStub: VitestMockInstance;
     let response: DebugProtocol.ConfigurationDoneResponse;
     const args: DebugProtocol.ConfigurationDoneArguments = {};
     const launchRequestArgs: LaunchRequestArguments = {
@@ -299,14 +289,14 @@ describe('Replay debugger adapter - unit', () => {
       adapter = new MockApexReplayDebug();
       adapter.setLogFile(launchRequestArgs);
       // Create a targeted sendEvent spy that filters out output events
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
           return;
         }
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      updateFramesStub = jest.spyOn(LogContext.prototype, 'updateFrames');
-      continueRequestStub = jest.spyOn(ApexReplayDebug.prototype, 'continueRequest').mockImplementation(() => {});
+      updateFramesStub = vi.spyOn(LogContext.prototype, 'updateFrames');
+      continueRequestStub = vi.spyOn(ApexReplayDebug.prototype, 'continueRequest').mockImplementation(() => {});
       response = adapter.getDefaultResponse();
     });
 
@@ -318,7 +308,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send stopped event', () => {
-      getLaunchArgsStub = jest.spyOn(LogContext.prototype, 'getLaunchArgs').mockReturnValue({
+      getLaunchArgsStub = vi.spyOn(LogContext.prototype, 'getLaunchArgs').mockReturnValue({
         stopOnEntry: true
       } as LaunchRequestArguments);
 
@@ -333,7 +323,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should continue until next breakpoint', () => {
-      getLaunchArgsStub = jest.spyOn(LogContext.prototype, 'getLaunchArgs').mockReturnValue({
+      getLaunchArgsStub = vi.spyOn(LogContext.prototype, 'getLaunchArgs').mockReturnValue({
         stopOnEntry: false
       } as LaunchRequestArguments);
 
@@ -349,28 +339,26 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Disconnect', () => {
-    let sendEventSpy: jest.SpyInstance;
-    let sendResponseSpy: jest.SpyInstance;
+    let sendEventSpy: VitestMockInstance;
+    let sendResponseSpy: VitestMockInstance;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
-    let printToDebugConsoleStub: jest.SpyInstance;
+    let printToDebugConsoleStub: VitestMockInstance;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
       response = adapter.getDefaultResponse();
       args = {};
       // Mock printToDebugConsole to prevent it from calling sendEvent
-      printToDebugConsoleStub = jest
-        .spyOn(ApexReplayDebug.prototype, 'printToDebugConsole')
-        .mockImplementation(() => {});
+      printToDebugConsoleStub = vi.spyOn(ApexReplayDebug.prototype, 'printToDebugConsole').mockImplementation(() => {});
       // Create a targeted sendEvent spy that filters out output events
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
           return;
         }
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
     });
 
     afterEach(() => {
@@ -394,9 +382,9 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Threads', () => {
-    let sendResponseSpy: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
     let response: DebugProtocol.ThreadsResponse;
-    let readLogFileStub: jest.SpyInstance;
+    let readLogFileStub: VitestMockInstance;
     const launchRequestArgs: LaunchRequestArguments = {
       logFileContents: 'test log content',
       logFilePath,
@@ -409,8 +397,8 @@ describe('Replay debugger adapter - unit', () => {
       response = Object.assign(adapter.getDefaultResponse(), {
         body: { threads: [] }
       });
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      readLogFileStub = vi.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
 
@@ -432,11 +420,11 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Stacktrace', () => {
-    let sendResponseSpy: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
     let response: DebugProtocol.StackTraceResponse;
     let args: DebugProtocol.StackTraceArguments;
-    let readLogFileStub: jest.SpyInstance;
-    let getFramesStub: jest.SpyInstance;
+    let readLogFileStub: VitestMockInstance;
+    let getFramesStub: VitestMockInstance;
     const launchRequestArgs: LaunchRequestArguments = {
       logFileContents: 'test log content',
       logFilePath,
@@ -468,10 +456,10 @@ describe('Replay debugger adapter - unit', () => {
       args = {
         threadId: ApexReplayDebug.THREAD_ID
       };
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      readLogFileStub = vi.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
-      getFramesStub = jest.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
+      getFramesStub = vi.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
     });
 
     afterEach(() => {
@@ -491,11 +479,11 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Continue/run', () => {
-    let sendResponseSpy: jest.SpyInstance;
-    let sendEventSpy: jest.SpyInstance;
-    let hasLogLinesStub: jest.SpyInstance;
-    let updateFramesStub: jest.SpyInstance;
-    let shouldStopForBreakpointStub: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
+    let sendEventSpy: VitestMockInstance;
+    let hasLogLinesStub: VitestMockInstance;
+    let updateFramesStub: VitestMockInstance;
+    let shouldStopForBreakpointStub: VitestMockInstance;
     let response: DebugProtocol.ContinueResponse;
     let args: DebugProtocol.ContinueArguments;
     const launchRequestArgs: LaunchRequestArguments = {
@@ -514,13 +502,13 @@ describe('Replay debugger adapter - unit', () => {
       args = {
         threadId: ApexReplayDebug.THREAD_ID
       };
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Create a targeted sendEvent spy that filters out output events
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
           return;
         }
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
     });
 
@@ -537,7 +525,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should terminate session', () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(false);
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(false);
 
       adapter.continueRequest(response, args);
 
@@ -549,12 +537,12 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should hit breakpoint', () => {
-      hasLogLinesStub = jest
+      hasLogLinesStub = vi
         .spyOn(LogContext.prototype, 'hasLogLines')
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false);
-      updateFramesStub = jest.spyOn(LogContext.prototype, 'updateFrames');
-      shouldStopForBreakpointStub = jest
+      updateFramesStub = vi.spyOn(LogContext.prototype, 'updateFrames');
+      shouldStopForBreakpointStub = vi
         .spyOn(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
         .mockReturnValue(true);
 
@@ -567,12 +555,12 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should not hit breakpoint', () => {
-      hasLogLinesStub = jest
+      hasLogLinesStub = vi
         .spyOn(LogContext.prototype, 'hasLogLines')
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false);
-      updateFramesStub = jest.spyOn(LogContext.prototype, 'updateFrames');
-      shouldStopForBreakpointStub = jest
+      updateFramesStub = vi.spyOn(LogContext.prototype, 'updateFrames');
+      shouldStopForBreakpointStub = vi
         .spyOn(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
         .mockReturnValue(false);
 
@@ -587,15 +575,15 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should handle errors during step execution', () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+      hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
 
       // Cause `updateFrames` to throw an error to trigger the catch block
       const error = new Error('Test error during step execution');
-      updateFramesStub = jest.spyOn(LogContext.prototype, 'updateFrames').mockImplementation(() => {
+      updateFramesStub = vi.spyOn(LogContext.prototype, 'updateFrames').mockImplementation(() => {
         throw error;
       });
 
-      shouldStopForBreakpointStub = jest
+      shouldStopForBreakpointStub = vi
         .spyOn(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
         .mockReturnValue(false);
 
@@ -617,23 +605,23 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Stepping', () => {
-    let sendResponseSpy: jest.SpyInstance;
-    let sendEventSpy: jest.SpyInstance;
-    let hasLogLinesStub: jest.SpyInstance;
-    let updateFramesStub: jest.SpyInstance;
-    let getNumOfFramesStub: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
+    let sendEventSpy: VitestMockInstance;
+    let hasLogLinesStub: VitestMockInstance;
+    let updateFramesStub: VitestMockInstance;
+    let getNumOfFramesStub: VitestMockInstance;
 
     beforeEach(() => {
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Create a targeted sendEvent spy that filters out output events
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
           return;
         }
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      updateFramesStub = jest.spyOn(LogContext.prototype, 'updateFrames');
-      hasLogLinesStub = jest
+      updateFramesStub = vi.spyOn(LogContext.prototype, 'updateFrames');
+      hasLogLinesStub = vi
         .spyOn(LogContext.prototype, 'hasLogLines')
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false);
@@ -648,7 +636,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send step over', () => {
-      getNumOfFramesStub = jest
+      getNumOfFramesStub = vi
         .spyOn(LogContext.prototype, 'getNumOfFrames')
         .mockReturnValueOnce(2)
         .mockReturnValueOnce(2);
@@ -672,7 +660,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send step in', () => {
-      getNumOfFramesStub = jest
+      getNumOfFramesStub = vi
         .spyOn(LogContext.prototype, 'getNumOfFrames')
         .mockReturnValueOnce(2)
         .mockReturnValueOnce(3);
@@ -696,7 +684,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send step out', () => {
-      getNumOfFramesStub = jest
+      getNumOfFramesStub = vi
         .spyOn(LogContext.prototype, 'getNumOfFrames')
         .mockReturnValueOnce(2)
         .mockReturnValueOnce(1);
@@ -721,10 +709,10 @@ describe('Replay debugger adapter - unit', () => {
   });
 
   describe('Breakpoints', () => {
-    let sendResponseSpy: jest.SpyInstance;
-    let sendEventSpy: jest.SpyInstance;
-    let canSetLineBreakpointStub: jest.SpyInstance;
-    let getTopFrameStub: jest.SpyInstance;
+    let sendResponseSpy: VitestMockInstance;
+    let sendEventSpy: VitestMockInstance;
+    let canSetLineBreakpointStub: VitestMockInstance;
+    let getTopFrameStub: VitestMockInstance;
     let response: DebugProtocol.SetBreakpointsResponse;
     let args: DebugProtocol.SetBreakpointsArguments;
     const launchRequestArgs: LaunchRequestArguments = {
@@ -743,13 +731,13 @@ describe('Replay debugger adapter - unit', () => {
       args = {
         source: {}
       };
-      sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+      sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Create a targeted sendEvent spy that filters out output events
-      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+      sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
           return;
         }
-        return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+        return DebugSession.prototype.sendEvent.call(adapter, event);
       });
     });
 
@@ -765,7 +753,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should stop for breakpoint', () => {
-      getTopFrameStub = jest
+      getTopFrameStub = vi
         .spyOn(LogContext.prototype, 'getTopFrame')
         .mockReturnValue({ line: 2, source: { path: '/path/foo.cls' } } as StackFrame);
       adapter.getBreakpoints().set('file:///path/foo.cls', [2]);
@@ -779,7 +767,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should not stop for breakpoint', () => {
-      getTopFrameStub = jest
+      getTopFrameStub = vi
         .spyOn(LogContext.prototype, 'getTopFrame')
         .mockReturnValue({ line: 2, source: { path: '/path/foo.cls' } } as StackFrame);
       adapter.getBreakpoints().set('file:///path/bar.cls', [2]);
@@ -823,7 +811,7 @@ describe('Replay debugger adapter - unit', () => {
       args.source.path = apexFilePath;
       args.lines = [3, 7];
       args.breakpoints = [{ line: 3 }, { line: 7 }];
-      canSetLineBreakpointStub = jest.spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint');
+      canSetLineBreakpointStub = vi.spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint');
 
       adapter.setBreakPointsRequest(response, args);
 
@@ -848,7 +836,7 @@ describe('Replay debugger adapter - unit', () => {
       args.lines = [1, 2];
       args.breakpoints = [];
       args.breakpoints.push({ line: 1 }, { line: 2 });
-      canSetLineBreakpointStub = jest
+      canSetLineBreakpointStub = vi
         .spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint')
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false);
@@ -885,11 +873,11 @@ describe('Replay debugger adapter - unit', () => {
 
   describe('Launch request', () => {
     describe('Line breakpoint info', () => {
-      let sendEventSpy: jest.SpyInstance;
-      let sendResponseSpy: jest.SpyInstance;
-      let createMappingsFromLineBreakpointInfo: jest.SpyInstance;
-      let hasLogLinesStub: jest.SpyInstance;
-      let meetsLogLevelRequirementsStub: jest.SpyInstance;
+      let sendEventSpy: VitestMockInstance;
+      let sendResponseSpy: VitestMockInstance;
+      let createMappingsFromLineBreakpointInfo: VitestMockInstance;
+      let hasLogLinesStub: VitestMockInstance;
+      let meetsLogLevelRequirementsStub: VitestMockInstance;
       const initializedResponse = {
         success: true,
         type: 'response',
@@ -912,19 +900,19 @@ describe('Replay debugger adapter - unit', () => {
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
-        hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-        meetsLogLevelRequirementsStub = jest
+        hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+        meetsLogLevelRequirementsStub = vi
           .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
           .mockReturnValue(true);
         // Create a targeted sendEvent spy that filters out output events
-        sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
+        sendEventSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
           if (event.event === 'output') {
             return;
           }
-          return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
+          return DebugSession.prototype.sendEvent.call(adapter, event);
         });
-        sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-        createMappingsFromLineBreakpointInfo = jest.spyOn(
+        sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
+        createMappingsFromLineBreakpointInfo = vi.spyOn(
           BreakpointUtil.prototype,
           'createMappingsFromLineBreakpointInfo'
         );

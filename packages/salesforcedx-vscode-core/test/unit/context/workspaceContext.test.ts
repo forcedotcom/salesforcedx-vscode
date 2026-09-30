@@ -1,0 +1,334 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { ExtensionProviderService, closeExtensionScope } from '@salesforce/effect-ext-utils';
+import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { OrgId } from 'salesforcedx-vscode-services/src/core/schemas/salesforceId';
+import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
+import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
+
+vi.mock('@salesforce/salesforcedx-utils-vscode', async () => ({
+  ...(await vi.importActual<typeof import('@salesforce/salesforcedx-utils-vscode')>(
+    '@salesforce/salesforcedx-utils-vscode'
+  )),
+  refreshAllExtensionReporters: vi.fn().mockResolvedValue(undefined)
+}));
+
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
+const ORG_DEFAULT = brandedOrgId('00D000000000001');
+const ORG_INITIAL = brandedOrgId('00D000000000002');
+const ORG_SWITCHED = brandedOrgId('00D000000000003');
+const ORG_FIRST = brandedOrgId('00D000000000004');
+const ORG_SECOND = brandedOrgId('00D000000000005');
+const ORG_CHANGED = brandedOrgId('00D000000000006');
+const ORG_BEFORE = brandedOrgId('00D000000000007');
+const ORG_USER = brandedOrgId('00D000000000008');
+const ORG_CLOSED = brandedOrgId('00D000000000009');
+
+const targetOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
+let getTargetOrgRef = () => Effect.succeed(targetOrgRef);
+const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
+const connectDefaultOrg = () =>
+  SubscriptionRef.update(targetOrgRef, current => ({
+    ...current,
+    username: current.username ?? 'default@example.com',
+    orgId: current.orgId ?? ORG_DEFAULT
+  })).pipe(Effect.as(connection));
+let getConnection: () => Effect.Effect<typeof connection> = connectDefaultOrg;
+const servicesApi = {
+  services: {
+    ConnectionService: { getConnection: () => getConnection() },
+    TargetOrgRef: () => getTargetOrgRef(),
+    ExtensionContextService
+  }
+};
+const coreContext = {
+  extension: { id: 'salesforce.salesforcedx-vscode-core' },
+  subscriptions: []
+};
+const replayContext = {
+  extension: { id: 'salesforce.salesforcedx-vscode-apex-replay-debugger' },
+  subscriptions: []
+};
+const providerLayer = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.succeed(servicesApi)
+} as never);
+const extensionContextLayer = Layer.succeed(
+  ExtensionContextService,
+  new ExtensionContextService({
+    getContext: Effect.succeed(coreContext as never),
+    getDisplayName: Effect.succeed('Salesforce CLI')
+  })
+);
+const connectionServiceLayer = Layer.succeed(ConnectionService, servicesApi.services.ConnectionService as never);
+const dependencies = Layer.mergeAll(providerLayer, extensionContextLayer, connectionServiceLayer);
+const createRuntime = () =>
+  ManagedRuntime.make(Layer.merge(dependencies, Layer.provide(WorkspaceContextService.Default, dependencies)));
+let runtime = createRuntime();
+
+vi.mock('../../../src/services/runtime', () => ({ getRuntime: () => runtime }));
+
+const flushEffects = () => new Promise(resolve => setImmediate(resolve));
+
+const setTargetOrg = (identity: typeof DefaultOrgInfoSchema.Type) =>
+  Effect.runPromise(SubscriptionRef.set(targetOrgRef, identity));
+
+describe('WorkspaceContext', () => {
+  beforeEach(async () => {
+    await runtime.dispose();
+    await Effect.runPromise(closeExtensionScope());
+    runtime = createRuntime();
+    vi.clearAllMocks();
+    coreContext.subscriptions.length = 0;
+    replayContext.subscriptions.length = 0;
+    getTargetOrgRef = () => Effect.succeed(targetOrgRef);
+    getConnection = connectDefaultOrg;
+    WorkspaceContext.disposeInstance();
+    WorkspaceContext.getInstance(true);
+    await flushEffects();
+    vi.clearAllMocks();
+    await setTargetOrg({});
+    vi.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    WorkspaceContext.disposeInstance();
+    await runtime.dispose();
+    await Effect.runPromise(closeExtensionScope());
+    runtime = createRuntime();
+  });
+
+  it('seeds synchronous getters from the initial snapshot without firing an event', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: 'initial@example.com',
+      alias: 'initial',
+      orgId: ORG_INITIAL
+    });
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+
+  it('does not require a connection to initialize from an empty target-org snapshot', async () => {
+    const getConnectionMock = vi.fn(() => Effect.succeed(connection));
+    getConnection = getConnectionMock;
+    const context = WorkspaceContext.getInstance(true);
+
+    await context.initialize(coreContext as never);
+
+    expect(getConnectionMock).not.toHaveBeenCalled();
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: undefined
+    });
+  });
+
+  it('initializes from orgId before username enrichment without emitting setup changes', async () => {
+    await setTargetOrg({ orgId: ORG_INITIAL });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+
+    await context.initialize(coreContext as never);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: ORG_INITIAL
+    });
+  });
+
+  it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    const observedGetters: object[] = [];
+    context.onOrgChange(() =>
+      observedGetters.push({ username: context.username, alias: context.alias, orgId: context.orgId })
+    );
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    const switched = { username: 'switched@example.com', alias: 'configured', orgId: ORG_SWITCHED };
+    await setTargetOrg(switched);
+    await setTargetOrg({ ...switched });
+    await flushEffects();
+
+    expect(observedGetters).toEqual([{ username: switched.username, alias: switched.alias, orgId: switched.orgId }]);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
+  });
+
+  it('serializes telemetry refreshes across target-org changes', async () => {
+    const firstRefresh = Promise.withResolvers<void>();
+    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
+    const context = WorkspaceContext.getInstance(true);
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
+
+    await setTargetOrg({ username: 'first@example.com', orgId: ORG_FIRST });
+    await flushEffects();
+    await setTargetOrg({ username: 'second@example.com', orgId: ORG_SECOND });
+    await flushEffects();
+
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+    firstRefresh.resolve();
+    await flushEffects();
+    await flushEffects();
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(2);
+  });
+
+  it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_INITIAL });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: ORG_CHANGED });
+    await flushEffects();
+
+    expect(context.orgId).toBe(ORG_CHANGED);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires when only the configured alias changes', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'first', orgId: ORG_INITIAL });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    await setTargetOrg({ username: 'initial@example.com', alias: 'second', orgId: ORG_INITIAL });
+    await flushEffects();
+
+    expect(context.alias).toBe('second');
+    expect(listener).toHaveBeenCalledWith({ username: 'initial@example.com', alias: 'second' });
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes no-org values to undefined', async () => {
+    await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: ORG_BEFORE });
+    const context = WorkspaceContext.getInstance(true);
+    await context.initialize(replayContext as never);
+    vi.clearAllMocks();
+
+    const changed = new Promise<void>(resolve => context.onOrgChange(() => resolve()));
+    await setTargetOrg({});
+    await changed;
+
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: undefined
+    });
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+  });
+
+  it('initializes once and keeps connection delegation unchanged', async () => {
+    await setTargetOrg({ username: 'user@example.com', orgId: ORG_USER });
+    const context = WorkspaceContext.getInstance(true);
+
+    await Promise.all([
+      context.initialize(coreContext as never),
+      context.initialize(coreContext as never),
+      context.initialize(coreContext as never)
+    ]);
+
+    expect(await context.getConnection()).toBe(connection);
+    expect(coreContext.subscriptions).toHaveLength(0);
+  });
+
+  it('initializes with empty identity when no target org is configured', async () => {
+    const context = WorkspaceContext.getInstance(true);
+
+    await context.initialize(coreContext as never);
+
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: undefined
+    });
+  });
+
+  it('keeps retained facades live when the singleton reference is replaced', async () => {
+    await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: ORG_FIRST });
+    const first = WorkspaceContext.getInstance(true);
+    const firstListener = vi.fn();
+    first.onOrgChange(firstListener);
+    await first.initialize(coreContext as never);
+
+    const replacement = WorkspaceContext.getInstance(true);
+    const replacementListener = vi.fn();
+    replacement.onOrgChange(replacementListener);
+    await replacement.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    const switched = { username: 'second@example.com', alias: 'second', orgId: ORG_SECOND };
+    await setTargetOrg(switched);
+    await flushEffects();
+
+    expect(firstListener).toHaveBeenCalledTimes(1);
+    expect(replacementListener).toHaveBeenCalledTimes(1);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
+      username: switched.username,
+      alias: switched.alias,
+      orgId: switched.orgId
+    });
+    expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual({
+      username: switched.username,
+      alias: switched.alias,
+      orgId: switched.orgId
+    });
+  });
+
+  it('disposes shared facade state with the singleton', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+
+    WorkspaceContext.disposeInstance();
+    expect(context.username).toBeUndefined();
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('stops org-change processing when the extension scope closes', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    const listener = vi.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+    vi.clearAllMocks();
+
+    await Effect.runPromise(closeExtensionScope());
+    await setTargetOrg({ username: 'after-close@example.com', orgId: ORG_CLOSED });
+    await flushEffects();
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+});

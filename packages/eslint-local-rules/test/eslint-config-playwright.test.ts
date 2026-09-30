@@ -34,32 +34,47 @@ const lintPlaywright = (code: string): number => {
 };
 
 describe('Playwright ESLint configuration', () => {
-  it('reports an ordinary forced Playwright action', () => {
-    expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+  // Each case spawns ESLint. The first spawn exceeds Vitest's 5s default when the suite runs in parallel.
+  const eslintSpawnTimeoutMs = 20_000;
+
+  it(
+    'reports an ordinary forced Playwright action',
+    () => {
+      expect(
+        lintPlaywright(`import { test } from '@playwright/test';
 test('click', async ({ page }) => {
   await page.getByRole('button').click({ force: true });
 });`)
-    ).toBe(1);
-  });
+      ).toBe(1);
+    },
+    eslintSpawnTimeoutMs
+  );
 
-  it('allows the documented Windows Test Explorer tooltip workaround', () => {
-    expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+  it(
+    'allows the documented Windows Test Explorer tooltip workaround',
+    () => {
+      expect(
+        lintPlaywright(`import { test } from '@playwright/test';
 test('click', async ({ page }) => {
   // eslint-disable-next-line playwright/no-force-option -- Windows Test Explorer tooltip intercepts pointer events
   await page.getByRole('button').click({ force: true });
 });`)
-    ).toBe(0);
-  });
+      ).toBe(0);
+    },
+    eslintSpawnTimeoutMs
+  );
 
-  it('does not report Node filesystem force options', () => {
-    expect(
-      lintPlaywright(`import { test } from '@playwright/test';
+  it(
+    'does not report Node filesystem force options',
+    () => {
+      expect(
+        lintPlaywright(`import { test } from '@playwright/test';
 import * as fs from 'node:fs/promises';
 test('remove', async () => {
   await fs.rm('tmp', { force: true });
 });`)
-    ).toBe(0);
-  });
+      ).toBe(0);
+    },
+    eslintSpawnTimeoutMs
+  );
 });

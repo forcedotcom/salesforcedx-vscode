@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="32" failures="0" errors="0" time="0.047898667">
+    <testsuite name="test/jest/commands/anonymousApexExecuteCodeLensProvider.test.ts" timestamp="2026-09-24T04:32:28.115Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.003755291">
+        <testcase classname="test/jest/commands/anonymousApexExecuteCodeLensProvider.test.ts" name="provideAnonymousApexExecuteLenses &gt; returns Execute lens for non-empty script with a target org" time="0.002491916">
+        </testcase>
+        <testcase classname="test/jest/commands/anonymousApexExecuteCodeLensProvider.test.ts" name="provideAnonymousApexExecuteLenses &gt; returns no lens when the script is empty or whitespace" time="0.000328042">
+        </testcase>
+        <testcase classname="test/jest/commands/anonymousApexExecuteCodeLensProvider.test.ts" name="provideAnonymousApexExecuteLenses &gt; returns no lens when there is no target org" time="0.000158334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/traceFlags/traceFlagsContentProvider.test.ts" timestamp="2026-09-24T04:32:28.116Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="11" failures="0" errors="0" skipped="0" time="0.004715667">
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="enrichTraceFlags &gt; uses debugLevelName from the trace flag (relationship join) when present" time="0.001404583">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="enrichTraceFlags &gt; falls back to the debugLevels lookup when the join name is absent" time="0.000301875">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="enrichTraceFlags &gt; does not throw and reports an orphan when the debug level cannot be resolved (issue #7528)" time="0.00045675">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="enrichTraceFlags &gt; leaves debugLevelName undefined for a flag with no debugLevelId, no orphan" time="0.000275084">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="enrichTraceFlags &gt; renders resolvable flags even when another flag in the batch is orphaned" time="0.000317125">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="isOrphanedTraceFlag &gt; is true when debugLevelId is set but debugLevelName is unresolved" time="0.000095625">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="isOrphanedTraceFlag &gt; is false when the debug level resolved to a name" time="0.000137666">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="isOrphanedTraceFlag &gt; is false when the flag has no debugLevelId at all" time="0.000077708">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="orphanLensTargets &gt; returns one target per orphaned active flag, carrying its id and missing debugLevelId" time="0.000487291">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="orphanLensTargets &gt; returns no targets when every flag resolved a debug level name" time="0.000132167">
+        </testcase>
+        <testcase classname="test/jest/traceFlags/traceFlagsContentProvider.test.ts" name="orphanLensTargets &gt; ignores inactive flags even when orphaned" time="0.000119417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/commands/logGet.test.ts" timestamp="2026-09-24T04:32:28.117Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.005021375">
+        <testcase classname="test/unit/commands/logGet.test.ts" name="logGetCommand &gt; fails early when no logs exist" time="0.004377417">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/statusBar/traceFlagStatusBar.test.ts" timestamp="2026-09-24T04:32:28.117Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.003255792">
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; returns undefined when records are empty" time="0.001015166">
+        </testcase>
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; returns the DEVELOPER_LOG flag for the current user" time="0.000291584">
+        </testcase>
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; ignores DEVELOPER_LOG flags belonging to another user" time="0.000253125">
+        </testcase>
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; returns USER_DEBUG flags for the current user" time="0.00026025">
+        </testcase>
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; returns current user flag even when another user has one with a later expiry" time="0.000256792">
+        </testcase>
+        <testcase classname="test/unit/statusBar/traceFlagStatusBar.test.ts" name="selectCurrentUserFlag &gt; returns current user USER_DEBUG flag even when another user has DEVELOPER_LOG" time="0.000165708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/traceFlags/pickDebugLevelToRemove.test.ts" timestamp="2026-09-24T04:32:28.117Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.008016292">
+        <testcase classname="test/unit/traceFlags/pickDebugLevelToRemove.test.ts" name="pickDebugLevelToRemove &gt; calls showQuickPick with all levels and resolves the picked debugLevelId" time="0.004386625">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickDebugLevelToRemove.test.ts" name="pickDebugLevelToRemove &gt; fails with UserCancellationError when the user dismisses the QuickPick" time="0.002346417">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickDebugLevelToRemove.test.ts" name="pickDebugLevelToRemove &gt; uses masterLabel as the QuickPick label and developerName as the detail" time="0.000600542">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/traceFlags/pickTraceFlag.test.ts" timestamp="2026-09-24T04:32:28.117Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.020962584">
+        <testcase classname="test/unit/traceFlags/pickTraceFlag.test.ts" name="pickTraceFlag &gt; calls showQuickPick with the given flags and resolves the picked traceFlagId" time="0.016079041">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickTraceFlag.test.ts" name="pickTraceFlag &gt; fails with UserCancellationError when the user dismisses the QuickPick" time="0.002409708">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickTraceFlag.test.ts" name="pickTraceFlag &gt; labels the item with tracedEntityName" time="0.000712666">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickTraceFlag.test.ts" name="pickTraceFlag &gt; labels the item with tracedEntityId when name absent" time="0.000469209">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/pickTraceFlag.test.ts" name="pickTraceFlag &gt; labels the item with tf.id when name and entityId absent" time="0.000522541">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/unit/traceFlags/traceFlagActive.test.ts" timestamp="2026-09-24T04:32:28.118Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002171666">
+        <testcase classname="test/unit/traceFlags/traceFlagActive.test.ts" name="isTraceFlagActive &gt; returns false for an expired item" time="0.001001625">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/traceFlagActive.test.ts" name="isTraceFlagActive &gt; returns true for a future item" time="0.000226125">
+        </testcase>
+        <testcase classname="test/unit/traceFlags/traceFlagActive.test.ts" name="isTraceFlagActive &gt; returns false at the expiry boundary (expirationDate === now)" time="0.000265">
+        </testcase>
+    </testsuite>
+</testsuites>

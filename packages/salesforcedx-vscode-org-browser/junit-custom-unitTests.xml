@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="30" failures="0" errors="0" time="0.051118501">
+    <testsuite name="test/jest/catalogChange.test.ts" timestamp="2026-09-24T04:32:26.468Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.01255275">
+        <testcase classname="test/jest/catalogChange.test.ts" name="shouldRefreshTreeForCatalogChange &gt; does not duplicate the retrieve command tree update" time="0.000953958">
+        </testcase>
+        <testcase classname="test/jest/catalogChange.test.ts" name="shouldRefreshTreeForCatalogChange &gt; refreshes after a deploy operation" time="0.000222417">
+        </testcase>
+        <testcase classname="test/jest/catalogChange.test.ts" name="shouldRefreshTreeForCatalogChange &gt; refreshes after a delete operation" time="0.000096958">
+        </testcase>
+        <testcase classname="test/jest/catalogChange.test.ts" name="shouldRefreshTreeForCatalogChange &gt; refreshes for non-operation catalog changes" time="0.000238709">
+        </testcase>
+        <testcase classname="test/jest/catalogChange.test.ts" name="shouldRefreshTreeForCatalogChange &gt; coalesces a burst of catalog changes into one tree refresh" time="0.010278333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/componentPresence.test.ts" timestamp="2026-09-24T04:32:26.469Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002169625">
+        <testcase classname="test/jest/componentPresence.test.ts" name="isMemberPresentInProject &gt; uses ComponentSet membership when available" time="0.001131625">
+        </testcase>
+        <testcase classname="test/jest/componentPresence.test.ts" name="isMemberPresentInProject &gt; detects decomposed metadata through the filename index" time="0.000221917">
+        </testcase>
+        <testcase classname="test/jest/componentPresence.test.ts" name="isMemberPresentInProject &gt; returns false when neither index contains the member" time="0.000122625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/customField.test.ts" timestamp="2026-09-24T04:32:26.469Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.012939667">
+        <testcase classname="test/jest/customField.test.ts" name="fieldNodeLabel &gt; labels inventory-only fields by catalog name" time="0.00117125">
+        </testcase>
+        <testcase classname="test/jest/customField.test.ts" name="fieldNodeLabel &gt; labels described fields with type details" time="0.011092">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/index.test.ts" timestamp="2026-09-24T04:32:26.470Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="2" time="0.013813292">
+        <testcase classname="test/jest/index.test.ts" name="Extension activation ordering &gt; registers the Org Browser UI before waiting for an org ID" time="0.013065458">
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="Extension &gt; should activate successfully" time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/jest/index.test.ts" name="Extension &gt; should deactivate successfully" time="0">
+            <skipped/>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/metadataTypeTreeProvider.test.ts" timestamp="2026-09-24T04:32:26.470Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.008009042">
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; passes everything when no type filter is set" time="0.00132475">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; exact-matches (case-insensitive) without wildcards" time="0.0003485">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; wildcard-matches when * is present" time="0.000351042">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; regex-matches when isRegex flag is true" time="0.000553083">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; regex alternation works" time="0.000275333">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="passesTypeFilter &gt; invalid regex returns no match" time="0.000137875">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="MetadataTypeTreeProvider text filter state &gt; defaults to no text filter" time="0.000131375">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="MetadataTypeTreeProvider text filter state &gt; setTextFilter stores both values and fires a change event" time="0.000157125">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="MetadataTypeTreeProvider text filter state &gt; clearTextFilter resets both values and fires a change event" time="0.000520708">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="MetadataTypeTreeProvider root node identity &gt; reuses the same root element for a metadata type across refresh projections" time="0.000516916">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="MetadataTypeTreeProvider empty-tree context &gt; updates the context only when the empty state changes" time="0.000286667">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="superseded org requests &gt; discards children from an acquisition tied to the former org" time="0.001587583">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="applyViewModeChildFilter with component filter &gt; passes all nodes when componentFilter is undefined" time="0.000170875">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="applyViewModeChildFilter with component filter &gt; exact-matches componentName case-insensitively when componentFilter is set without wildcards" time="0.000127042">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="applyViewModeChildFilter with component filter &gt; wildcard-matches componentName when componentFilter contains *" time="0.000207583">
+        </testcase>
+        <testcase classname="test/jest/metadataTypeTreeProvider.test.ts" name="applyViewModeChildFilter with component filter &gt; treats an empty componentFilter as a no-op (colon typed, nothing after it yet)" time="0.000099083">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/retrieveMetadata.test.ts" timestamp="2026-09-24T04:32:26.471Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.001634125">
+        <testcase classname="test/jest/retrieveMetadata.test.ts" name="hasRetrieveTreeItem &gt; rejects a missing inline-action argument" time="0.001031875">
+        </testcase>
+    </testsuite>
+</testsuites>

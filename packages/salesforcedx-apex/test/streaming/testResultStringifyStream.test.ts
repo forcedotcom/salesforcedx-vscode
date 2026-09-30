@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { once } from 'node:events';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { CodeCoverageResult, TestResult } from '../../src/tests';
 import { PerClassCoverage } from '../../src/tests/types';
@@ -135,7 +136,7 @@ describe('TestResultStringifyStream', () => {
     };
   });
 
-  it('should transform TestResult into a JSON string with empty tests and no coverage', done => {
+  it('should transform TestResult into a JSON string with empty tests and no coverage', async () => {
     let output = '';
     const emptyTestsNoCoverage = structuredClone(testResult);
     delete emptyTestsNoCoverage.codecoverage;
@@ -146,16 +147,14 @@ describe('TestResultStringifyStream', () => {
       output += chunk;
     });
 
-    stream.on('end', () => {
-      expect(() => JSON.parse(output)).not.toThrow();
-      const expectedOutput = JSON.stringify(emptyTestsNoCoverage);
-      expect(output).toBe(expectedOutput);
-      done();
-    });
-
+    const end = once(stream, 'end');
     stream._read();
+    await end;
+    expect(() => JSON.parse(output)).not.toThrow();
+    const expectedOutput = JSON.stringify(emptyTestsNoCoverage);
+    expect(output).toBe(expectedOutput);
   });
-  it('should transform TestResult into a JSON string with tests and no coverage', done => {
+  it('should transform TestResult into a JSON string with tests and no coverage', async () => {
     let output = '';
     const testsWithoutCoverage = structuredClone(tests);
     const resultsWithTests = {
@@ -170,16 +169,14 @@ describe('TestResultStringifyStream', () => {
       output += chunk;
     });
 
-    stream.on('end', () => {
-      expect(() => JSON.parse(output)).not.toThrow();
-      const expectedOutput = JSON.stringify(resultsWithTests);
-      expect(output).toBe(expectedOutput);
-      done();
-    });
-
+    const end = once(stream, 'end');
     stream._read();
+    await end;
+    expect(() => JSON.parse(output)).not.toThrow();
+    const expectedOutput = JSON.stringify(resultsWithTests);
+    expect(output).toBe(expectedOutput);
   });
-  it('should transform TestResult into a JSON string with tests and coverage both present', done => {
+  it('should transform TestResult into a JSON string with tests and coverage both present', async () => {
     let output = '';
     const testsWithCoverage = structuredClone(tests);
     testsWithCoverage[0].perClassCoverage = [perClassCoverageData[0]];
@@ -196,13 +193,11 @@ describe('TestResultStringifyStream', () => {
       output += chunk;
     });
 
-    stream.on('end', () => {
-      expect(() => JSON.parse(output)).not.toThrow();
-      const expectedOutput = JSON.stringify(resultsWithTests);
-      expect(output).toBe(expectedOutput);
-      done();
-    });
-
+    const end = once(stream, 'end');
     stream._read();
+    await end;
+    expect(() => JSON.parse(output)).not.toThrow();
+    const expectedOutput = JSON.stringify(resultsWithTests);
+    expect(output).toBe(expectedOutput);
   });
 });

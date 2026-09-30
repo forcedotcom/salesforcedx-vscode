@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="164" failures="0" errors="0" time="0.264597705">
+    <testsuite name="test/jest/analyzers/selectAnalyzer.test.ts" timestamp="2026-09-24T04:32:37.453Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.040617875">
+        <testcase classname="test/jest/analyzers/selectAnalyzer.test.ts" name="SelectAnalyzer should &gt; identify simple selections" time="0.035148083">
+        </testcase>
+        <testcase classname="test/jest/analyzers/selectAnalyzer.test.ts" name="SelectAnalyzer should &gt; identify related selections" time="0.000982708">
+        </testcase>
+        <testcase classname="test/jest/analyzers/selectAnalyzer.test.ts" name="SelectAnalyzer should &gt; identify inner query selections" time="0.001126083">
+        </testcase>
+        <testcase classname="test/jest/analyzers/selectAnalyzer.test.ts" name="SelectAnalyzer should &gt; identify aggregate function selections" time="0.001825834">
+        </testcase>
+        <testcase classname="test/jest/analyzers/selectAnalyzer.test.ts" name="SelectAnalyzer should &gt; identify aliased selections" time="0.000705958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/andOrConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.454Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.00443775">
+        <testcase classname="test/jest/model/impl/andOrConditionImpl.test.ts" name="AndOrConditionImpl should &gt; store left and right conditions and the AndOr operator" time="0.002673167">
+        </testcase>
+        <testcase classname="test/jest/model/impl/andOrConditionImpl.test.ts" name="AndOrConditionImpl should &gt; return left condition followed by AndOr operator followed by right condition for toSoqlSyntax()" time="0.000239875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/fieldCompareConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.454Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002172833">
+        <testcase classname="test/jest/model/impl/fieldCompareConditionImpl.test.ts" name="FieldCompareConditionImpl should &gt; store field, operator, and value" time="0.001286042">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fieldCompareConditionImpl.test.ts" name="FieldCompareConditionImpl should &gt; return field, operator, and value separated by spaces for toSoqlSyntax()" time="0.00021525">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/fieldRefImpl.test.ts" timestamp="2026-09-24T04:32:37.454Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002317875">
+        <testcase classname="test/jest/model/impl/fieldRefImpl.test.ts" name="FieldRefImpl should &gt; store a string field name as fieldName" time="0.001255958">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fieldRefImpl.test.ts" name="FieldRefImpl should &gt; return field name for toSoqlSyntax()" time="0.000234208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/fieldSelectionImpl.test.ts" timestamp="2026-09-24T04:32:37.454Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.005240875">
+        <testcase classname="test/jest/model/impl/fieldSelectionImpl.test.ts" name="FieldSelectionImpl should &gt; store a field" time="0.002704333">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fieldSelectionImpl.test.ts" name="FieldSelectionImpl should &gt; store an unmodeled syntax object as the alias" time="0.000774667">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fieldSelectionImpl.test.ts" name="FieldSelectionImpl should &gt; return field name followed by alias for toSoqlSyntax()" time="0.000331875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/fromImpl.test.ts" timestamp="2026-09-24T04:32:37.455Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.003903458">
+        <testcase classname="test/jest/model/impl/fromImpl.test.ts" name="FromImpl should &gt; store SObject name as a string" time="0.002433917">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fromImpl.test.ts" name="FromImpl should &gt; store as and using clauses as unmodeled syntax" time="0.000277542">
+        </testcase>
+        <testcase classname="test/jest/model/impl/fromImpl.test.ts" name="FromImpl should &gt; return FROM sobject name followed by as and using clauses for toSoqlSyntax()" time="0.000173375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/headerCommentsImpl.test.ts" timestamp="2026-09-24T04:32:37.455Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002313042">
+        <testcase classname="test/jest/model/impl/headerCommentsImpl.test.ts" name="HeaderCommentsImpl should &gt; store comments text" time="0.001218541">
+        </testcase>
+        <testcase classname="test/jest/model/impl/headerCommentsImpl.test.ts" name="HeaderCommentsImpl should &gt; return the comment string on toSoqlSyntax()" time="0.000189208">
+        </testcase>
+        <testcase classname="test/jest/model/impl/headerCommentsImpl.test.ts" name="HeaderCommentsImpl should &gt; return the empty string on toSoqlSyntax() when no comments" time="0.000220958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/inListConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.455Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.0022945">
+        <testcase classname="test/jest/model/impl/inListConditionImpl.test.ts" name="InListConditionImpl should &gt; store field, operator, and values" time="0.00137725">
+        </testcase>
+        <testcase classname="test/jest/model/impl/inListConditionImpl.test.ts" name="InListConditionImpl should &gt; return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" time="0.000227334">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/includesConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.455Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.005255292">
+        <testcase classname="test/jest/model/impl/includesConditionImpl.test.ts" name="IncludesConditionImpl should &gt; store field, operator, and values" time="0.003123167">
+        </testcase>
+        <testcase classname="test/jest/model/impl/includesConditionImpl.test.ts" name="IncludesConditionImpl should &gt; return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" time="0.000569042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/limitImpl.test.ts" timestamp="2026-09-24T04:32:37.456Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.006058083">
+        <testcase classname="test/jest/model/impl/limitImpl.test.ts" name="LimitImpl should &gt; store limit value as a number" time="0.00407575">
+        </testcase>
+        <testcase classname="test/jest/model/impl/limitImpl.test.ts" name="LimitImpl should &gt; return &quot;LIMIT &lt;value&gt;&quot; for toSoqlSyntax()" time="0.000610166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/literalImpl.test.ts" timestamp="2026-09-24T04:32:37.456Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.001955833">
+        <testcase classname="test/jest/model/impl/literalImpl.test.ts" name="LiteralImpl should &gt; store the literal type and value" time="0.001161125">
+        </testcase>
+        <testcase classname="test/jest/model/impl/literalImpl.test.ts" name="LiteralImpl should &gt; return the value of the literal for toSoqlSyntax()" time="0.000187583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/nestedConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.456Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.005850708">
+        <testcase classname="test/jest/model/impl/nestedConditionImpl.test.ts" name="NestedConditionImpl should &gt; store condition" time="0.004888333">
+        </testcase>
+        <testcase classname="test/jest/model/impl/nestedConditionImpl.test.ts" name="NestedConditionImpl should &gt; return nested condition in parentheses for toSoqlSyntax()" time="0.000295458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/notConditionImpl.test.ts" timestamp="2026-09-24T04:32:37.457Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.004536292">
+        <testcase classname="test/jest/model/impl/notConditionImpl.test.ts" name="NotConditionImpl should &gt; store condition" time="0.002910167">
+        </testcase>
+        <testcase classname="test/jest/model/impl/notConditionImpl.test.ts" name="NotConditionImpl should &gt; return condition preceded by NOT keyword for toSoqlSyntax()" time="0.000276125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/orderByExpressionImpl.test.ts" timestamp="2026-09-24T04:32:37.457Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002438792">
+        <testcase classname="test/jest/model/impl/orderByExpressionImpl.test.ts" name="OrderByExpressionImpl should &gt; store order by expression components" time="0.001241292">
+        </testcase>
+        <testcase classname="test/jest/model/impl/orderByExpressionImpl.test.ts" name="OrderByExpressionImpl should &gt; return field, order, and nulls order separated by spaces for toSoqlSyntax()" time="0.000245708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/orderByImpl.test.ts" timestamp="2026-09-24T04:32:37.457Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002354916">
+        <testcase classname="test/jest/model/impl/orderByImpl.test.ts" name="OrderByImpl should &gt; store ORDER BY expressions" time="0.001342792">
+        </testcase>
+        <testcase classname="test/jest/model/impl/orderByImpl.test.ts" name="OrderByImpl should &gt; return &quot;ORDER BY &quot; for empty list of expressions for toSoqlSyntax()" time="0.000206333">
+        </testcase>
+        <testcase classname="test/jest/model/impl/orderByImpl.test.ts" name="OrderByImpl should &gt; return comma separated list of fields for toSoqlSyntax()" time="0.000130875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/queryImpl.test.ts" timestamp="2026-09-24T04:32:37.458Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.007692292">
+        <testcase classname="test/jest/model/impl/queryImpl.test.ts" name="QueryImpl should &gt; store query components as appropriate model objects" time="0.005323792">
+        </testcase>
+        <testcase classname="test/jest/model/impl/queryImpl.test.ts" name="QueryImpl should &gt; return query string, one line per clause with all but SELECT clause indented for toSoqlSyntax()" time="0.000371708">
+        </testcase>
+        <testcase classname="test/jest/model/impl/queryImpl.test.ts" name="QueryImpl should &gt; emit ALL ROWS as the last clause when allRows is set for toSoqlSyntax()" time="0.000126667">
+        </testcase>
+        <testcase classname="test/jest/model/impl/queryImpl.test.ts" name="QueryImpl should &gt; omit ALL ROWS when allRows is unset for toSoqlSyntax()" time="0.000211084">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/selectCountImpl.test.ts" timestamp="2026-09-24T04:32:37.458Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.001770833">
+        <testcase classname="test/jest/model/impl/selectCountImpl.test.ts" name="SelectCountImpl should &gt; return &quot;SELECT COUNT()&quot; for toSoqlSyntax()" time="0.001118333">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/selectExprsImpl.test.ts" timestamp="2026-09-24T04:32:37.458Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.00334825">
+        <testcase classname="test/jest/model/impl/selectExprsImpl.test.ts" name="SelectExprsImpl should &gt; store select expressions" time="0.001656916">
+        </testcase>
+        <testcase classname="test/jest/model/impl/selectExprsImpl.test.ts" name="SelectExprsImpl should &gt; return SELECT when there are no select expressions for toSoqlSyntax()" time="0.0002025">
+        </testcase>
+        <testcase classname="test/jest/model/impl/selectExprsImpl.test.ts" name="SelectExprsImpl should &gt; return comma separated list of fields for toSoqlSyntax()" time="0.000127083">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/unmodeledSyntaxImpl.test.ts" timestamp="2026-09-24T04:32:37.459Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002099166">
+        <testcase classname="test/jest/model/impl/unmodeledSyntaxImpl.test.ts" name="UnmodeledSyntaxImpl should &gt; store a string as unmodeledSyntax" time="0.001219334">
+        </testcase>
+        <testcase classname="test/jest/model/impl/unmodeledSyntaxImpl.test.ts" name="UnmodeledSyntaxImpl should &gt; return stored syntax for toSoqlSyntax()" time="0.000188">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/impl/whereImpl.test.ts" timestamp="2026-09-24T04:32:37.459Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002184083">
+        <testcase classname="test/jest/model/impl/whereImpl.test.ts" name="WhereImpl should &gt; store condition" time="0.001266583">
+        </testcase>
+        <testcase classname="test/jest/model/impl/whereImpl.test.ts" name="WhereImpl should &gt; return condition preceded by WHERE keyword for toSoqlSyntax()" time="0.000238917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/model/util.test.ts" timestamp="2026-09-24T04:32:37.459Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.00579">
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; isUnmodeledSyntax should return true if the model object is unmodeled syntax" time="0.000985209">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; isUnmodeledSyntax should return false if the model object is not unmodeled syntax, even if child objects are unmodeled" time="0.000254291">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return true if SOQL query model contains unmodeled syntax" time="0.000129334">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; returns an array explaining what is unsupported" time="0.000818416">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return false if SOQL query model does not contain unmodeled syntax" time="0.000234292">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return true from isSimpleCondition for simple conditions" time="0.000711458">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return false from isSimpleCondition for non-simple conditions" time="0.000207958">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return true from isSimpleGroup for simple group of conditions" time="0.000125125">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; return false from isSimpleGroup for non-simple group of conditions" time="0.000432667">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; throws from simpleGroupToArray if condition not simple group" time="0.00038225">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; returns array and operator from simpleGroupToArray for simple group" time="0.000210167">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; throws from arrayToSimpleGroup if conditions array empty" time="0.000117792">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; throws from arrayToSimpleGroup if &gt;1 condition and operator missing" time="0.000089416">
+        </testcase>
+        <testcase classname="test/jest/model/util.test.ts" name="SoqlModelUtils should &gt; returns simple group condition from arrayToSimpleGroup" time="0.00017725">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/serialization/deserializer.test.ts" timestamp="2026-09-24T04:32:37.460Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="58" failures="0" errors="0" skipped="0" time="0.113308583">
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; model supported syntax as query objects" time="0.030787916">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; model AS and USING FROM syntax as unmodeled syntax" time="0.003524209">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax" time="0.004022459">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify SELECT COUNT() clause" time="0.000643833">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; model all unmodeled clauses as unmodeled syntax" time="0.017220541">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; model parse errors with partial parse results as ModelErrors within query" time="0.001854541">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify no selections error" time="0.00062475">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify no SELECT clause error" time="0.000618542">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete FROM clause error" time="0.001167875">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify no FROM clause error" time="0.000584125">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify empty statement error" time="0.000290625">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete LIMIT clause error when number missing" time="0.000435625">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete LIMIT clause error when value is not a number" time="0.0003275">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify LIMIT 0 as valid limit clause" time="0.000259792">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify string literals in condition" time="0.000908">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify date literals in condition" time="0.00049725">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify TRUE literal in condition" time="0.000379416">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify FALSE literal in condition" time="0.000395625">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify number literals in condition" time="0.000271083">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify null literals in condition" time="0.00033425">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify currency literals in condition" time="0.002624375">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify = operator in condition" time="0.000688792">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify != operator in condition" time="0.000553917">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify &lt;&gt; operator in condition" time="0.000471166">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify &lt; operator in condition" time="0.000403875">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify &gt; operator in condition" time="0.000399125">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify &lt;= operator in condition" time="0.000331709">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify &gt;= operator in condition" time="0.000265292">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify LIKE operator in condition" time="0.000897708">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify INCLUDES operator in condition" time="0.001293167">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify EXCLUDES operator in condition" time="0.001138167">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify IN operator in condition" time="0.000648667">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify NOT IN operator in condition" time="0.000586">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify includes condition as unmodeled syntax" time="0.000295">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify in-list condition as unmodeled syntax" time="0.000331">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify calculated condition as unmodeled syntax" time="0.000431041">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify distance condition as unmodeled syntax" time="0.006214083">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify IN semi-join condition as unmodeled syntax" time="0.000934333">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify NOT condition as unmodeled" time="0.000462791">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify complex condition as unmodeled" time="0.003830584">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify AND operator in condition" time="0.000445375">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify OR operator in condition" time="0.000335166">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify nested conditions" time="0.000397583">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify empty WHERE" time="0.000494792">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete nested WHERE condition" time="0.000644416">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete AND/OR condition" time="0.000544791">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete NOT condition" time="0.000204916">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify unrecognized literal value in condition" time="0.001112583">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify unrecognized compare operator in condition" time="0.000256625">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify unrecognized compare field in condition" time="0.000237667">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify missing compare value in condition" time="0.000704833">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify missing compare operator in condition" time="0.000266375">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify incomplete multi-value list" time="0.016707875">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; Identify comments at the top of the file" time="0.000417417">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; Identify comments at the top of the file, with parse errors" time="0.000263166">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; parse trailing ALL ROWS as allRows flag without parse errors" time="0.000169917">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; leave allRows falsy when ALL ROWS is absent" time="0.0001565">
+        </testcase>
+        <testcase classname="test/jest/serialization/deserializer.test.ts" name="deserialize should &gt; identify unexpected end of file" time="0.000654875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/serialization/serializer.test.ts" timestamp="2026-09-24T04:32:37.463Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.002163208">
+        <testcase classname="test/jest/serialization/serializer.test.ts" name="ModelSerializer should &gt; transform model to SOQL syntax" time="0.00125775">
+        </testcase>
+        <testcase classname="test/jest/serialization/serializer.test.ts" name="ModelSerializer should &gt; transform model with comments to SOQL syntax" time="0.000244291">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/booleanValidator.test.ts" timestamp="2026-09-24T04:32:37.463Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.001977917">
+        <testcase classname="test/jest/validators/booleanValidator.test.ts" name="BooleanValidator should &gt; return valid result for TRUE or FALSE" time="0.001175625">
+        </testcase>
+        <testcase classname="test/jest/validators/booleanValidator.test.ts" name="BooleanValidator should &gt; return not valid result for non-boolean value" time="0.000206958">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/currencyValidator.test.ts" timestamp="2026-09-24T04:32:37.464Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002849875">
+        <testcase classname="test/jest/validators/currencyValidator.test.ts" name="CurrencyValidator should &gt; return valid result for floating point literals" time="0.001320833">
+        </testcase>
+        <testcase classname="test/jest/validators/currencyValidator.test.ts" name="CurrencyValidator should &gt; return valid result for correctly formatted currency literals" time="0.000368959">
+        </testcase>
+        <testcase classname="test/jest/validators/currencyValidator.test.ts" name="CurrencyValidator should &gt; return not valid result for incorrectly formatted currency literals" time="0.00047125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/dateValidator.test.ts" timestamp="2026-09-24T04:32:37.464Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.003502875">
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return valid result for date only patterns" time="0.001259458">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return valid result for date and time UTC patterns" time="0.000235625">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return valid result for date and time +- offset patterns" time="0.000141166">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return not valid result for incorrect or incomplete date literal patterns" time="0.000337458">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return valid result for date range literals" time="0.000186625">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return not valid result for incorrect date range literals" time="0.000186333">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return true for parameterized date range literals" time="0.000133542">
+        </testcase>
+        <testcase classname="test/jest/validators/dateValidator.test.ts" name="DateValidator should &gt; return not valid result for incorrect parameterized date range literals" time="0.000145667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/floatValidator.test.ts" timestamp="2026-09-24T04:32:37.464Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.004899">
+        <testcase classname="test/jest/validators/floatValidator.test.ts" name="FloatValidator should &gt; return valid result for signed floating point input" time="0.002775542">
+        </testcase>
+        <testcase classname="test/jest/validators/floatValidator.test.ts" name="FloatValidator should &gt; return valid result for unsigned floating point input" time="0.000308292">
+        </testcase>
+        <testcase classname="test/jest/validators/floatValidator.test.ts" name="FloatValidator should &gt; return valid result for integer input" time="0.000121292">
+        </testcase>
+        <testcase classname="test/jest/validators/floatValidator.test.ts" name="FloatValidator should &gt; return not valid result for non-numeric input" time="0.000220166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/inputUtils.test.ts" timestamp="2026-09-24T04:32:37.465Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.0018915">
+        <testcase classname="test/jest/validators/inputUtils.test.ts" name="splitMultiInputValues should &gt; split input at comma" time="0.001240416">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/integerValidator.test.ts" timestamp="2026-09-24T04:32:37.465Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.005406791">
+        <testcase classname="test/jest/validators/integerValidator.test.ts" name="IntegerValidator should &gt; return valid result for signed integer input" time="0.001234583">
+        </testcase>
+        <testcase classname="test/jest/validators/integerValidator.test.ts" name="IntegerValidator should &gt; return valid result for unsigned integer input" time="0.000222167">
+        </testcase>
+        <testcase classname="test/jest/validators/integerValidator.test.ts" name="IntegerValidator should &gt; return not valid result for floating point input" time="0.000115541">
+        </testcase>
+        <testcase classname="test/jest/validators/integerValidator.test.ts" name="IntegerValidator should &gt; return not valid result for non-numeric input" time="0.001103166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/picklistValidator.test.ts" timestamp="2026-09-24T04:32:37.465Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003717125">
+        <testcase classname="test/jest/validators/picklistValidator.test.ts" name="PicklistValidator should &gt; return valid result when input is contained in picklist vales" time="0.002148334">
+        </testcase>
+        <testcase classname="test/jest/validators/picklistValidator.test.ts" name="PicklistValidator should &gt; return valid result when picklist vales not defined" time="0.000215958">
+        </testcase>
+        <testcase classname="test/jest/validators/picklistValidator.test.ts" name="PicklistValidator should &gt; return not valid result when input not contained in picklist values" time="0.000133292">
+        </testcase>
+        <testcase classname="test/jest/validators/picklistValidator.test.ts" name="PicklistValidator should &gt; return valid for &quot;null&quot; when field is nillable" time="0.000221291">
+        </testcase>
+        <testcase classname="test/jest/validators/picklistValidator.test.ts" name="PicklistValidator should &gt; return not valid for &quot;null&quot; when field is NOT nillable" time="0.000169">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/stringValidator.test.ts" timestamp="2026-09-24T04:32:37.466Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.002557083">
+        <testcase classname="test/jest/validators/stringValidator.test.ts" name="StringValidator should &gt; return valid result for string in single quotes" time="0.001201292">
+        </testcase>
+        <testcase classname="test/jest/validators/stringValidator.test.ts" name="StringValidator should &gt; return valid result when user input is NULL or null" time="0.000213042">
+        </testcase>
+        <testcase classname="test/jest/validators/stringValidator.test.ts" name="StringValidator should &gt; return not valid result for non-string value" time="0.000175">
+        </testcase>
+        <testcase classname="test/jest/validators/stringValidator.test.ts" name="StringValidator should &gt; return not valid result for string ending in escaped quote" time="0.000206458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/validator.test.ts" timestamp="2026-09-24T04:32:37.466Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.004921959">
+        <testcase classname="test/jest/validators/validator.test.ts" name="DefaultValidator should &gt; return valid result" time="0.001977875">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="OperatorValidator should &gt; return valid result for accepted operator" time="0.000431209">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="OperatorValidator should &gt; return not valid result for not accepted operator" time="0.00022175">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="OperatorValidator should &gt; return not valid result for unrecognized operator" time="0.0002025">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="MultipleInputValidator should &gt; return not valid result for empty input" time="0.000268208">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="MultipleInputValidator should &gt; return not valid result for invalid input for type" time="0.000120666">
+        </testcase>
+        <testcase classname="test/jest/validators/validator.test.ts" name="MultipleInputValidator should &gt; return valid result for input that is valid as determined by delegate validator" time="0.000130792">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/validators/validatorFactory.test.ts" timestamp="2026-09-24T04:32:37.466Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002769041">
+        <testcase classname="test/jest/validators/validatorFactory.test.ts" name="ValidatorFactory should &gt; return validators based on field type" time="0.001517584">
+        </testcase>
+        <testcase classname="test/jest/validators/validatorFactory.test.ts" name="ValidatorFactory should &gt; return operator validator OperatorValidator regardless of field type" time="0.000279084">
+        </testcase>
+        <testcase classname="test/jest/validators/validatorFactory.test.ts" name="ValidatorFactory should &gt; return multi-input validator MultipleInputValidator regardless of field type" time="0.000255333">
+        </testcase>
+    </testsuite>
+</testsuites>

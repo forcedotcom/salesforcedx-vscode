@@ -6,28 +6,29 @@
  */
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
-// jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
+// vi.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
 // We need to mock both the package-level export AND the internal utils module
 // because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
 
 type SyncUtils = { normalizePath?: (path: string) => string };
 type SyncFileSystemProvider = { getFileContent?: (path: string) => string | undefined };
+const languageServerMockState = vi.hoisted(() => ({ connection: undefined as unknown }));
 
 // Create the mock implementation function
-const stripComments = (src: string): string =>
-  src
+function stripComments(src: string): string {
+  return src
     .replaceAll(/\/\/.*$/gm, '')
     .replaceAll(/\/\*[\s\S]*?\*\//g, '')
     .replaceAll(/,(\s*[}\]])/g, '$1');
+}
 
-const parseJson = (src: string): Record<string, unknown> => {
+function parseJson(src: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(src);
   return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-};
+}
 
-const createReadJsonSyncMockImplementation =
-  (actualUtils: SyncUtils) =>
-  (file: string, fileSystemProvider: SyncFileSystemProvider): Record<string, unknown> => {
+function createReadJsonSyncMockImplementation(actualUtils: SyncUtils) {
+  return (file: string, fileSystemProvider: SyncFileSystemProvider): Record<string, unknown> => {
     try {
       const normalizedFile = actualUtils.normalizePath?.(file) ?? file;
       const content = fileSystemProvider?.getFileContent?.(normalizedFile);
@@ -51,16 +52,19 @@ const createReadJsonSyncMockImplementation =
       return {};
     }
   };
+}
 
 // Mock the internal utils module (used by baseContext.ts via './utils')
-jest.mock(
+vi.mock(
   '../../salesforcedx-lightning-lsp-common/out/src/utils',
-  () => {
-    const actual = jest.requireActual('../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
+  async () => {
+    const actual = (await vi.importActual<typeof import('../../salesforcedx-lightning-lsp-common/out/src/utils')>(
+      '../../salesforcedx-lightning-lsp-common/out/src/utils'
+    )) as SyncUtils;
 
     return {
       ...actual,
-      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
+      readJsonSync: vi.fn(createReadJsonSyncMockImplementation(actual))
     };
   },
   { virtual: true }
@@ -68,20 +72,24 @@ jest.mock(
 
 // Also mock the package-level export (for direct imports from the package)
 // This is used by componentIndexer.ts which imports readJsonSync from the package
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common') as Record<string, unknown>;
-  const actualUtils = jest.requireActual('../../salesforcedx-lightning-lsp-common/out/src/utils') as SyncUtils;
+vi.mock('@salesforce/salesforcedx-lightning-lsp-common', async () => {
+  const actual = (await vi.importActual<typeof import('@salesforce/salesforcedx-lightning-lsp-common')>(
+    '@salesforce/salesforcedx-lightning-lsp-common'
+  )) as Record<string, unknown>;
+  const actualUtils = (await vi.importActual<typeof import('../../salesforcedx-lightning-lsp-common/out/src/utils')>(
+    '../../salesforcedx-lightning-lsp-common/out/src/utils'
+  )) as SyncUtils;
 
   const mocked = {
     ...actual,
-    readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actualUtils))
+    readJsonSync: vi.fn(createReadJsonSyncMockImplementation(actualUtils))
   };
 
   return mocked;
 });
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-jest.mock('../src/resources/transformed-lwc-standard.json', () => {
+vi.mock('../src/resources/transformed-lwc-standard.json', () => {
   const fs = require('node:fs') as typeof import('node:fs');
   const pathModule = require('node:path') as typeof import('node:path');
   // Find package root (lwc-language-server)
@@ -105,6 +113,7 @@ jest.mock('../src/resources/transformed-lwc-standard.json', () => {
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import {
   LspFileSystemAccessor,
   normalizePath,
@@ -233,7 +242,7 @@ const setupServerForTest = async (
   testServer.fileSystemAccessor.setConnection(testServer.connection);
 
   // Mock connection.sendNotification to avoid errors during delayed initialization
-  testServer.connection.sendNotification = jest.fn();
+  testServer.connection.sendNotification = vi.fn();
 
   // LspFileSystemAccessor has no local cache; the mock sendRequest below serves readFile/stat from these maps.
   const mockFileContents = new Map<string, string>();
@@ -279,7 +288,7 @@ const setupServerForTest = async (
   // Handle workspace/readFile, workspace/stat, workspace/findFiles, and workspace/applyEdit.
   // When the server writes files (e.g. .sfdx/tsconfig.sfdx.json), capture them so getFileContent returns them.
   const provider = testServer.fileSystemAccessor;
-  (testServer.connection as any).sendRequest = jest.fn(
+  (testServer.connection as any).sendRequest = vi.fn(
     async (
       method: string | { method?: string },
       params: {
@@ -362,8 +371,8 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
   return testServer;
 };
 
-jest.mock('vscode-languageserver', () => {
-  const actual = jest.requireActual<typeof import('vscode-languageserver')>('vscode-languageserver');
+vi.mock('vscode-languageserver', async () => {
+  const actual = await vi.importActual<typeof import('vscode-languageserver')>('vscode-languageserver');
   const mockConnection = {
     onInitialize: (): boolean => true,
     onCompletion: (): boolean => true,
@@ -372,23 +381,24 @@ jest.mock('vscode-languageserver', () => {
     onHover: (): boolean => true,
     onShutdown: (): boolean => true,
     onDefinition: (): boolean => true,
-    onRequest: jest.fn(),
-    onNotification: jest.fn(),
-    sendRequest: jest.fn().mockResolvedValue({ applied: true }),
+    onRequest: vi.fn(),
+    onNotification: vi.fn(),
+    sendRequest: vi.fn().mockResolvedValue({ applied: true }),
     console: {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      info: jest.fn()
+      log: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn()
     },
     workspace: {
       getConfiguration: (): boolean => mockTypeScriptSupportConfig
     }
   } as unknown as Connection;
+  languageServerMockState.connection = mockConnection;
   return {
     ...actual,
-    createConnection: jest.fn().mockImplementation((): Connection => mockConnection),
-    TextDocuments: jest.fn().mockImplementation((): TextDocuments<TextDocument> => {
+    createConnection: vi.fn().mockImplementation((): Connection => mockConnection),
+    TextDocuments: vi.fn().mockImplementation(function textDocumentsMock(): TextDocuments<TextDocument> {
       const mockTextDocuments = {
         listen: (): boolean => true,
         onDidOpen: (): boolean => true,
@@ -411,11 +421,19 @@ jest.mock('vscode-languageserver', () => {
   };
 });
 
+vi.mock('vscode-languageserver/node', async () => {
+  const actual = await vi.importActual<typeof import('vscode-languageserver/node')>('vscode-languageserver/node');
+  return {
+    ...actual,
+    createConnection: vi.fn(() => languageServerMockState.connection as Connection)
+  };
+});
+
 describe('lwcServerNode', () => {
   // Ensure setTimeout returns a value with unref (Node's Timer has it; jsdom/browser may not)
   beforeAll(() => {
     const realSetTimeout = global.setTimeout;
-    jest.spyOn(global, 'setTimeout').mockImplementation(((...args: unknown[]) => {
+    vi.spyOn(global, 'setTimeout').mockImplementation(((...args: unknown[]) => {
       const id = realSetTimeout.apply(global, args as Parameters<typeof setTimeout>);
       if (typeof (id as { unref?: () => void }).unref !== 'function') {
         return Object.assign(id, { unref: () => {} });
@@ -425,9 +443,9 @@ describe('lwcServerNode', () => {
   });
 
   // Suppress Logger.info spam from performDelayedInitialization / findFiles during tests
-  let consoleInfoSpy: jest.SpyInstance;
+  let consoleInfoSpy: VitestMockInstance;
   beforeAll(() => {
-    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
   });
   afterAll(() => {
     consoleInfoSpy?.mockRestore();
@@ -562,7 +580,7 @@ describe('lwcServerNode', () => {
         await setupServerForTest([document]);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
-        expect(labels).toBeArrayOfSize(21);
+        expect(labels).toHaveLength(21);
         expect(labels).toContain('handleToggleAll');
         expect(labels).toContain('handleClearCompleted');
       });

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="24" failures="0" errors="0" time="0.460410291">
+    <testsuite name="test/jest/activation/getDialogStartingPath.test.ts" timestamp="2026-09-24T04:31:28.122Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.015445083">
+        <testcase classname="test/jest/activation/getDialogStartingPath.test.ts" name="getDialogStartingPath &gt; Should return last opened log folder if present" time="0.007490209">
+        </testcase>
+        <testcase classname="test/jest/activation/getDialogStartingPath.test.ts" name="getDialogStartingPath &gt; Should return project log folder when last opened log folder not present" time="0.002102042">
+        </testcase>
+        <testcase classname="test/jest/activation/getDialogStartingPath.test.ts" name="getDialogStartingPath &gt; Should return state folder as fallback when project log folder not present" time="0.002263291">
+        </testcase>
+        <testcase classname="test/jest/activation/getDialogStartingPath.test.ts" name="getDialogStartingPath &gt; Should return undefined when the workspace closes after the isEmpty check" time="0.001596584">
+        </testcase>
+        <testcase classname="test/jest/activation/getDialogStartingPath.test.ts" name="getDialogStartingPath &gt; Should return undefined when not in a project workspace" time="0.001261041">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/adapter/debugConfigurationProvider.test.ts" timestamp="2026-09-24T04:31:28.122Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.008835959">
+        <testcase classname="test/jest/adapter/debugConfigurationProvider.test.ts" name="DebugConfigurationProvider log-file prompt &gt; reads and remembers the selected log file" time="0.005426459">
+        </testcase>
+        <testcase classname="test/jest/adapter/debugConfigurationProvider.test.ts" name="DebugConfigurationProvider log-file prompt &gt; silently cancels when no log file is selected" time="0.002777916">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/channels/index.test.ts" timestamp="2026-09-24T04:31:28.123Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.21644425">
+        <testcase classname="test/jest/channels/index.test.ts" name="writeToDebuggerOutputWindow &gt; creates no channel and does not throw when no AllServicesLayer has been set" time="0.176509333">
+        </testcase>
+        <testcase classname="test/jest/channels/index.test.ts" name="writeToDebuggerOutputWindow &gt; appends the message to the services channel, then reveals it without stealing focus" time="0.02504975">
+        </testcase>
+        <testcase classname="test/jest/channels/index.test.ts" name="writeToDebuggerOutputWindow &gt; shows an error toast when windowType is error" time="0.005663625">
+        </testcase>
+        <testcase classname="test/jest/channels/index.test.ts" name="writeToDebuggerOutputWindow &gt; shows a warning toast when windowType is warning" time="0.007840458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/anonApexDebug.test.ts" timestamp="2026-09-24T04:31:28.123Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.003678916">
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="makeDoubleDigit &gt; pads single-digit numbers with a leading zero" time="0.001082708">
+        </testcase>
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="makeDoubleDigit &gt; leaves double-digit numbers unchanged" time="0.000346542">
+        </testcase>
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="getYYYYMMddHHmmssDateFormat &gt; formats a date with all double-digit components" time="0.0010205">
+        </testcase>
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="getYYYYMMddHHmmssDateFormat &gt; zero-pads single-digit month, day, hour, minute, second" time="0.000130458">
+        </testcase>
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="getYYYYMMddHHmmssDateFormat &gt; handles midnight on Jan 1" time="0.000206875">
+        </testcase>
+        <testcase classname="test/jest/commands/anonApexDebug.test.ts" name="getYYYYMMddHHmmssDateFormat &gt; handles end of day on Dec 31" time="0.000158042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/languageClientReady.test.ts" timestamp="2026-09-24T04:31:28.124Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.177838625">
+        <testcase classname="test/jest/languageClientReady.test.ts" name="waitForLanguageClientReady &gt; fails with the language-client initialization status message" time="0.007194375">
+        </testcase>
+        <testcase classname="test/jest/languageClientReady.test.ts" name="waitForLanguageClientReady &gt; returns false after language-client readiness polling expires" time="0.169825125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/services/heapDumpOverlayFetch.test.ts" timestamp="2026-09-24T04:31:28.124Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.038167458">
+        <testcase classname="test/jest/services/heapDumpOverlayFetch.test.ts" name="fetchHeapDumpOverlayResults &gt; returns empty array when the log has no heap dumps" time="0.018032875">
+        </testcase>
+        <testcase classname="test/jest/services/heapDumpOverlayFetch.test.ts" name="fetchHeapDumpOverlayResults &gt; dedups repeated heap-dump ids into one query and preserves the HeapDump payload" time="0.005530459">
+        </testcase>
+        <testcase classname="test/jest/services/heapDumpOverlayFetch.test.ts" name="fetchHeapDumpOverlayResults &gt; chunks more than 200 ids into two queries" time="0.007029458">
+        </testcase>
+        <testcase classname="test/jest/services/heapDumpOverlayFetch.test.ts" name="fetchHeapDumpOverlayResults &gt; maps an id with no returned record to an error result" time="0.002297583">
+        </testcase>
+        <testcase classname="test/jest/services/heapDumpOverlayFetch.test.ts" name="fetchHeapDumpOverlayResults &gt; fails with a tagged error when the query rejects" time="0.004345458">
+        </testcase>
+    </testsuite>
+</testsuites>

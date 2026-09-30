@@ -50,7 +50,7 @@ if (process.env.ESBUILD_PLATFORM === 'web') { ... }
 const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;
 ```
 
-Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
+Test files set/delete/save-restore the env var as Vitest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
 
 ### no-effect-fn-wrapper
 

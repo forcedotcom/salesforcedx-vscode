@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="100" failures="0" errors="0" time="0.173135376">
+    <testsuite name="test/jest/commands/openDocumentation.test.ts" timestamp="2026-09-24T04:32:00.943Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.021914916">
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens Aura documentation and emits its type" time="0.010227584">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens Apex class documentation and emits its type" time="0.002341458">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens Anonymous Apex documentation and emits its type" time="0.001567791">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens SOQL documentation and emits its type" time="0.001167666">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens LWC documentation and emits its type" time="0.002296334">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens no active editor documentation and emits its type" time="0.001838041">
+        </testcase>
+        <testcase classname="test/jest/commands/openDocumentation.test.ts" name="openDocumentationCommand &gt; opens default documentation and emits its type" time="0.00149775">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/refreshSObjects.test.ts" timestamp="2026-09-24T04:32:00.945Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.017542417">
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; returns the message of an Error instance" time="0.001190709">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; returns the nested error message from { error: Error }" time="0.000211375">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; returns the message from { message: string }" time="0.00011125">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; does not treat an array as a record (array-exclusion) and falls through to String()" time="0.000403041">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; stringifies a string primitive" time="0.000206375">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; stringifies a number primitive" time="0.000080917">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; stringifies undefined" time="0.000124542">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="extractErrorMessage &gt; stringifies null" time="0.000068458">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="initSObjectDefinitions &gt; records the true setting refresh span" time="0.008567209">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="initSObjectDefinitions &gt; records the false setting refresh span" time="0.001099375">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="initSObjectDefinitions &gt; does not refresh or record a notification when definitions exist" time="0.0008265">
+        </testcase>
+        <testcase classname="test/jest/commands/refreshSObjects.test.ts" name="initSObjectDefinitions &gt; records command errors and preserves the failure" time="0.003586041">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/commands/util/commandEventDispatcher.test.ts" timestamp="2026-09-24T04:32:00.946Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.003629209">
+        <testcase classname="test/jest/commands/util/commandEventDispatcher.test.ts" name="CommandEventDispatcher &gt; getInstance &gt; should return the instance of CommandEventDispatcher" time="0.001423">
+        </testcase>
+        <testcase classname="test/jest/commands/util/commandEventDispatcher.test.ts" name="CommandEventDispatcher &gt; getInstance &gt; should return the same instance of CommandEventDispatcher" time="0.000240959">
+        </testcase>
+        <testcase classname="test/jest/commands/util/commandEventDispatcher.test.ts" name="CommandEventDispatcher &gt; onRefreshSObjectsCommandCompletion &gt; should subscribe to the completion event without throwing" time="0.000769958">
+        </testcase>
+        <testcase classname="test/jest/commands/util/commandEventDispatcher.test.ts" name="CommandEventDispatcher &gt; dispose &gt; should not throw when disposed" time="0.000238708">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/context/workspaceContext.test.ts" timestamp="2026-09-24T04:32:00.946Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="13" failures="0" errors="0" skipped="0" time="0.064645">
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; seeds synchronous getters from the initial snapshot without firing an event" time="0.017868125">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; does not require a connection to initialize from an empty target-org snapshot" time="0.004749417">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; initializes from orgId before username enrichment without emitting setup changes" time="0.004067584">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; fires once per distinct identity after updating getters and refreshes telemetry" time="0.005222417">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; serializes telemetry refreshes across target-org changes" time="0.004139208">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; fires when orgId changes and suppresses an exact duplicate snapshot" time="0.003312333">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; fires when only the configured alias changes" time="0.004911083">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; normalizes no-org values to undefined" time="0.003256291">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; initializes once and keeps connection delegation unchanged" time="0.004043667">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; initializes with empty identity when no target org is configured" time="0.002421417">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; keeps retained facades live when the singleton reference is replaced" time="0.004448375">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; disposes shared facade state with the singleton" time="0.002738417">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceContext.test.ts" name="WorkspaceContext &gt; stops org-change processing when the extension scope closes" time="0.002504042">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/context/workspaceOrgShape.test.ts" timestamp="2026-09-24T04:32:00.947Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.010090125">
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="getOrgShape &gt; returns Undefined when there is no root workspace (org info not read)" time="0.006898916">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="getOrgShape &gt; maps the resolved DefaultOrgInfo through shapeFrom (Sandbox)" time="0.000941291">
+        </testcase>
+        <testcase classname="test/jest/context/workspaceOrgShape.test.ts" name="getOrgShape &gt; falls back to Undefined when reading org info fails (catchAll path)" time="0.001539625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/metadataSupport/metadataHoverProvider.test.ts" timestamp="2026-09-24T04:32:00.947Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="30" failures="0" errors="0" skipped="0" time="0.020080709">
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; isMetadataFile &gt; should identify metadata files correctly" time="0.001512292">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; isMetadataFile &gt; should identify XML files with metadata namespace" time="0.000322625">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractMetadataType &gt; should extract metadata type from XML element" time="0.000321208">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractMetadataType &gt; should handle namespaced elements" time="0.000210541">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractMetadataType &gt; should return null for non-metadata elements" time="0.000235375">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover &gt; should return null for non-metadata files" time="0.000296416">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover &gt; should return null when no word at position" time="0.000154125">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should extract field information for internal fields within CustomObject" time="0.000738166">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should extract field information for common fields" time="0.000598542">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should handle namespaced field elements" time="0.000290875">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should return null for metadata type elements (not fields)" time="0.000234708">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should handle nested field structures" time="0.000271">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; extractFieldInfo &gt; should handle opening tag on a different line than closing tag" time="0.00019825">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; findParentMetadataTypeWithLayers &gt; should handle multiline XML elements where closing bracket is on next line" time="0.000178916">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for common field &quot;fullName&quot;" time="0.000416708">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for CustomObject specific field &quot;enableActivities&quot;" time="0.000257708">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for ApexClass specific field with valid values" time="0.0003165">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for Flow field with valid values" time="0.000238958">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for nested Prompt field" time="0.000230708">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should return null when field documentation is not available" time="0.000203917">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should handle self-closing field elements" time="0.000213709">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for fields with pattern-based documentation (enable* pattern)" time="0.000292">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for fields with pattern-based documentation (is* pattern)" time="0.001540042">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for fields with pattern-based documentation (*Name pattern)" time="0.000400333">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; provideHover for internal fields &gt; should provide hover for fields with pattern-based documentation (*Label pattern)" time="0.000238875">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; edge cases for internal fields &gt; should handle fields within deeply nested structures" time="0.000293292">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; edge cases for internal fields &gt; should handle mixed-case field names" time="0.001005792">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; edge cases for internal fields &gt; should handle fields with attributes" time="0.007037333">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; edge cases for internal fields &gt; should handle empty field elements" time="0.000351209">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataHoverProvider.test.ts" name="MetadataHoverProvider &gt; edge cases for internal fields &gt; should handle multi-line XML elements where closing &gt; is on next line" time="0.000327917">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/metadataSupport/metadataXmlSupport.test.ts" timestamp="2026-09-24T04:32:00.949Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="22" failures="0" errors="0" skipped="0" time="0.018632">
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="metadata XML support — showSchemaDocumentationType suppression &gt; skips the write when doNotSuppressRedhatSchemaDocumentation is true" time="0.009896959">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="metadata XML support — showSchemaDocumentationType suppression &gt; writes none when doNotSuppress is false and no value is set at any scope" time="0.003005542">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="metadata XML support — showSchemaDocumentationType suppression &gt; raises a low user-level XML heap setting and reports the change" time="0.002482334">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns true when inspection returns undefined" time="0.0003325">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns true when no explicit value exists" time="0.000167333">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns false when a global value exists" time="0.000085875">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns false when a workspace value exists" time="0.0001345">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns false when a workspace folder value exists" time="0.0000725">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns false when a global language value exists" time="0.000365583">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="shouldSetSchemaDocumentationTypeToNone &gt; returns false when a workspace language value exists" time="0.000109583">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when vmargs is absent or empty &gt; returns -Xmx1024M for undefined" time="0.000146292">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when vmargs is absent or empty &gt; returns -Xmx1024M for empty string" time="0.000070417">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when vmargs is absent or empty &gt; appends -Xmx1024M when other args are present but no -Xmx" time="0.0000645">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is below 1024 MB &gt; replaces -Xmx512M with -Xmx1024M" time="0.00006425">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is below 1024 MB &gt; replaces lowercase -Xmx512m" time="0.000058333">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is below 1024 MB &gt; replaces -Xmx256M preserving surrounding args" time="0.000056625">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is below 1024 MB &gt; replaces -Xmx1G (1024 MB == threshold, no change needed)" time="0.000065333">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is below 1024 MB &gt; replaces -Xmx512k (very small, kilobytes)" time="0.000056125">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is at or above 1024 MB &gt; returns undefined for -Xmx1024M (already at minimum)" time="0.00005825">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is at or above 1024 MB &gt; returns undefined for -Xmx2048M" time="0.000055541">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is at or above 1024 MB &gt; returns undefined for -Xmx2G" time="0.000054042">
+        </testcase>
+        <testcase classname="test/jest/metadataSupport/metadataXmlSupport.test.ts" name="ensureMinXmlHeap &gt; when -Xmx is at or above 1024 MB &gt; returns undefined for -Xmx4g (lowercase G)" time="0.000053666">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/settings/salesforceCoreSettings.test.ts" timestamp="2026-09-24T04:32:00.950Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.004148375">
+        <testcase classname="test/jest/settings/salesforceCoreSettings.test.ts" name="salesforceCoreSettings &gt; getEnableAllExceptionCatcher &gt; should set the default value for enable all exception catching to be false." time="0.002652416">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/index.test.ts" timestamp="2026-09-24T04:32:00.950Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.009031417">
+        <testcase classname="test/jest/telemetry/index.test.ts" name="Telemetry &gt; showTelemetryMessage &gt; should show telemetry opt-out info message only when user is external" time="0.003670375">
+        </testcase>
+        <testcase classname="test/jest/telemetry/index.test.ts" name="Telemetry &gt; showTelemetryMessage &gt; should not show telemetry info opt-out message nor internal message" time="0.000919208">
+        </testcase>
+        <testcase classname="test/jest/telemetry/index.test.ts" name="Telemetry &gt; showTelemetryMessage &gt; should show internal info message and telemetry opt-out message" time="0.000492083">
+        </testcase>
+        <testcase classname="test/jest/telemetry/index.test.ts" name="Telemetry &gt; showTelemetryMessage &gt; should show internal info message and not telemetry opt-out message" time="0.003122625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/telemetry/telemetryMessages.test.ts" timestamp="2026-09-24T04:32:00.951Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="4" failures="0" errors="0" skipped="0" time="0.003421208">
+        <testcase classname="test/jest/telemetry/telemetryMessages.test.ts" name="Telemetry Messages &gt; internalTelemetryMessage &gt; should display the internal telemetry message" time="0.001471083">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetryMessages.test.ts" name="Telemetry Messages &gt; telemetryWithOptOutMessage &gt; should display the telemetry message with opt-out link" time="0.000477833">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetryMessages.test.ts" name="Telemetry Messages &gt; telemetryWithOptOutMessage &gt; should open the disable telemetry link when the opt-out button is clicked" time="0.000517791">
+        </testcase>
+        <testcase classname="test/jest/telemetry/telemetryMessages.test.ts" name="Telemetry Messages &gt; telemetryWithOptOutMessage &gt; should not open the disable telemetry link if opt-out link is not clicked" time="0.000206791">
+        </testcase>
+    </testsuite>
+</testsuites>

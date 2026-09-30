@@ -9,7 +9,7 @@ import type { MessageType } from '../soql-builder-ui/modules/querybuilder/servic
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
-import * as debounce from 'debounce';
+import debounce = require('debounce');
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';

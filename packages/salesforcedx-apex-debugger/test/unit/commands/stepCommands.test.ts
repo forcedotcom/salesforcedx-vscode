@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { XHROptions, XHRResponse } from 'request-light';
 import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
@@ -12,7 +13,7 @@ import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('Step commands', () => {
-  let sendRequestSpy: jest.SpyInstance;
+  let sendRequestSpy: VitestMockInstance;
   const requestService = new RequestService();
 
   beforeEach(() => {
@@ -22,7 +23,7 @@ describe('Step commands', () => {
 
   it('Step Into command should have proper request url', async () => {
     const command = new StepIntoCommand('07cFAKE');
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
@@ -41,7 +42,7 @@ describe('Step commands', () => {
 
   it('Step Out command should have proper request url', async () => {
     const command = new StepOutCommand('07cFAKE');
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
@@ -60,7 +61,7 @@ describe('Step commands', () => {
 
   it('Step Over command should have proper request url', async () => {
     const command = new StepOverCommand('07cFAKE');
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {

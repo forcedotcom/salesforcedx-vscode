@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { XHROptions, XHRResponse } from 'request-light';
 import { RunCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
@@ -12,7 +13,7 @@ import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('Run command', () => {
-  let sendRequestSpy: jest.SpyInstance;
+  let sendRequestSpy: VitestMockInstance;
   let runCommand: RunCommand;
   const requestService = new RequestService();
 
@@ -23,7 +24,7 @@ describe('Run command', () => {
   });
 
   it('Should have proper request path', async () => {
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
