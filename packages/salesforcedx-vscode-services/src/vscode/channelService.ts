@@ -69,3 +69,14 @@ const cache = Effect.runSync(
     lookup: (channelName: string) => Effect.sync(() => vscode.window.createOutputChannel(channelName))
   })
 );
+
+export const ChannelDisposalLayer = Layer.scopedDiscard(
+  Effect.addFinalizer(() =>
+    cache.values.pipe(
+      Effect.flatMap(channels =>
+        Effect.forEach(channels, channel => Effect.sync(() => channel.dispose()), { discard: true })
+      ),
+      Effect.andThen(cache.invalidateAll)
+    )
+  )
+);
