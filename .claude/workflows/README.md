@@ -222,7 +222,7 @@ Style revisions apply first; advocate revisions (effect `must`, e2e `must`, adve
 
 If the plan determines the WI is unimplementable (can't name files or definition of done), it returns `{verdict: 'blocked'}` and the workflow bounces the WI to `Waiting` with questions DM'd to the runner.
 
-**Build.** One commit per plan phase. Repo hooks (compile/lint/dead-code/LSP/effect) run on tool calls and drive correctness — the agent does not run its own retry loop. `npm install` re-runs if `package-lock.json` changes.
+**Build.** One commit per plan phase. Repo hooks (compile/lint/dead-code/LSP/effect) run on tool calls and drive correctness — the agent does not run its own retry loop. `pnpm install` re-runs if `pnpm-lock.yaml` changes.
 
 **Review.** Three parallel reads:
 
@@ -277,5 +277,5 @@ Edit at the top of the script:
 
 - [/auto-build-wi command](../skills/auto-build-wi/) — user-facing entry that invokes this workflow
 - [/loop command](https://docs.claude.com/) — schedules recurring runs
-- [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml) — reruns failed push E2E jobs while `run_attempt` < 4
+- [Rerun Push E2E](../../.github/workflows/rerunPushE2E.yml) — `failure`/`timed_out`: `gh run rerun --failed`. Timeout cancel (60m; LWC `e2e-desktop-run-tests` 90m): one `gh run rerun --job` per completed event; a later event with `run_attempt` < 4 takes a remaining id. Fast concurrency cancels skip.
 - [gus-cli skill](../skills/gus-cli/SKILL.md) — Team members table is the source of truth for runner identity

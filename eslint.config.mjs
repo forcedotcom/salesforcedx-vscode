@@ -893,6 +893,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
     files: [
@@ -948,6 +958,14 @@ export default [
     ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
       'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
+    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
+    // Before the test override so packages/**/test/**/*.ts stays off.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'functional/no-throw-statements': 'error'
     }
   },
   {
