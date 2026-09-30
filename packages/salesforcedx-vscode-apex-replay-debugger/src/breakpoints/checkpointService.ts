@@ -11,8 +11,11 @@ import type { Connection } from '@salesforce/core';
 import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isError, isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
@@ -80,9 +83,21 @@ const clearExistingCheckpoints = async (): Promise<boolean> => {
       return false;
     }
 
-    // Query for existing overlay actions
-    const queryResult = await connection.tooling.query<{ Id: string }>(
-      `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`
+    const queryResult = await ExtensionProviderService.pipe(
+      Effect.flatMap(provider => provider.getServicesApi),
+      Effect.flatMap(api => api.services.QueryService),
+      Effect.flatMap(queryService =>
+        queryService.query(
+          {
+            soql: `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
+            tooling: true
+          },
+          Schema.Struct({ Id: Schema.String })
+        )
+      ),
+      Effect.flatMap(({ records }) => Stream.runCollect(records)),
+      Effect.map(chunk => ({ records: Chunk.toReadonlyArray(chunk) })),
+      getRuntime().runPromise
     );
 
     if (queryResult.records.length === 0) {

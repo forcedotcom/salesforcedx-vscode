@@ -5,33 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
-import { Readable, ReadableOptions } from 'node:stream';
+import { Readable, type ReadableOptions } from 'node:stream';
 import { TestResult } from '../tests/types';
 import { elapsedTime } from '../utils';
 
-type TestResultStringifyStreamOptions = ReadableOptions & {
-  bufferSize?: number;
-};
+const BUFFER_SIZE = 256;
 
 export class TestResultStringifyStream extends Readable {
   private readonly logger: Logger;
   private buffer: string;
-  private readonly bufferSize: number;
 
   constructor(
     private readonly testResult: TestResult,
-    options?: TestResultStringifyStreamOptions
+    options?: ReadableOptions
   ) {
     super({ ...options, objectMode: true });
     this.testResult = testResult;
     this.logger = Logger.childFromRoot('TestResultStringifyStream');
     this.buffer = '';
-    this.bufferSize = options?.bufferSize || 256; // Default buffer size is 256
   }
 
   private pushToBuffer(data: string): void {
     this.buffer += data;
-    if (this.buffer.length >= this.bufferSize) {
+    if (this.buffer.length >= BUFFER_SIZE) {
       this.push(this.buffer);
       this.buffer = '';
     }
@@ -125,7 +121,7 @@ export class TestResultStringifyStream extends Readable {
     }
   }
 
-  public static fromTestResult(testResult: TestResult, options?: TestResultStringifyStreamOptions) {
+  public static fromTestResult(testResult: TestResult, options?: ReadableOptions) {
     return new TestResultStringifyStream(testResult, options);
   }
 
