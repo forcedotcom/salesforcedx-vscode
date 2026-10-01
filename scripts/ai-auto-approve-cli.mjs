@@ -41,22 +41,47 @@ const listReviews = async ({ token, owner, repo, pullNumber }) => {
   }));
 };
 
+const listAll = async ({ path, field, token }) => {
+  const rows = [];
+  const separator = path.includes('?') ? '&' : '?';
+  for (let page = 1; ; page++) {
+    const result = await gh(`${path}${separator}per_page=100&page=${page}`, { token });
+    rows.push(...result[field]);
+    if (rows.length >= result.total_count) return rows;
+    if (result[field].length === 0) throw new Error(`Incomplete ${field} for ${path}`);
+  }
+};
+
 const listChecks = async ({ token, owner, repo, headSha }) => {
-  const [combined, checkRuns] = await Promise.all([
+  const [combined, workflowRuns, checkRuns] = await Promise.all([
     gh(`/repos/${owner}/${repo}/commits/${headSha}/status`, { token }),
-    gh(`/repos/${owner}/${repo}/commits/${headSha}/check-runs?per_page=100`, { token })
+    listAll({ path: `/repos/${owner}/${repo}/actions/runs?head_sha=${headSha}`, field: 'workflow_runs', token }),
+    listAll({ path: `/repos/${owner}/${repo}/commits/${headSha}/check-runs?filter=all`, field: 'check_runs', token })
   ]);
   const statuses = (combined.statuses ?? []).map(status => ({
+    key: `status:${status.context}`,
+    id: status.id,
     name: status.context,
     state: status.state,
     conclusion: status.state
   }));
-  const runs = (checkRuns.check_runs ?? []).map(run => ({
-    name: run.name,
+  const workflows = workflowRuns.map(run => ({
+    key: `workflow:${run.path}`,
+    id: run.id,
+    name: run.path,
     status: run.status,
     conclusion: run.conclusion
   }));
-  return [...statuses, ...runs];
+  const runs = checkRuns
+    .filter(run => run.app?.slug !== 'github-actions')
+    .map(run => ({
+      key: `check:${run.app?.id ?? `missing-app-${run.id}`}:${run.name}`,
+      id: run.id,
+      name: run.name,
+      status: run.app?.id == null ? 'pending' : run.status,
+      conclusion: run.conclusion
+    }));
+  return [...statuses, ...workflows, ...runs];
 };
 
 const main = async () => {
