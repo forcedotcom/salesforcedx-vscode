@@ -1,0 +1,307 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
+import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Runtime from 'effect/Runtime';
+import * as path from 'node:path';
+import type { OpenAPIV3 } from 'openapi-types';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { parse as yamlParse } from 'yaml';
+import { OAS_EXTENSION_ID } from './constants';
+import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
+import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+
+/** Reports a step message into an active progress notification. */
+export type ProgressReporter = (message: string) => Effect.Effect<void>;
+
+/**
+ * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
+ * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
+ * life between the folder prompt and the final toast. The notification closes when the Effect settles.
+ * @param title - The notification title shown for the whole operation.
+ * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
+ * @param location - Where to show the progress (toast vs status bar); defaults to a toast notification.
+ */
+export const withSteppedProgress = <A, E, R>(
+  title: string,
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
+  location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
+) =>
+  Effect.runtime<R>().pipe(
+    Effect.flatMap(runtime =>
+      Effect.async<A, E>(resume => {
+        void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
+          const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+          return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
+            resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+          });
+        });
+      })
+    )
+  );
+
+// REST annotation names that should be present on the class
+export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
+
+const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
+
+/**
+ * Creates problem tab entries for an OAS document.
+ * @param {string} fullPath - The full path to the OAS document.
+ * @param {ProcessorInputOutput} processedOasResult - The processed OAS result.
+ * @param {boolean} isESRDecomposed - Whether the ESR is decomposed.
+ */
+export const createProblemTabEntriesForOasDocument = (
+  fullPath: string,
+  processedOasResult: ProcessorInputOutput,
+  isESRDecomposed: boolean
+): void => {
+  const uri = URI.file(fullPath);
+  oasDiagnosticCollection.clear();
+
+  const adjustErrors = processedOasResult.errors.map(result => {
+    // if embedded inside of ESR.xml then position is hardcoded because of `apexActionController.createESRObject`
+    const lineAdjustment = isESRDecomposed ? 0 : 4;
+    const startCharacterAdjustment = isESRDecomposed ? 0 : 11;
+    const range = new vscode.Range(
+      result.range.start.line + lineAdjustment,
+      result.range.start.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0,
+      result.range.end.line + lineAdjustment,
+      result.range.end.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0
+    );
+    return new vscode.Diagnostic(range, result.message, result.severity);
+  });
+
+  const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+  if (!mulesoftExtension?.isActive) {
+    oasDiagnosticCollection.set(uri, adjustErrors);
+  }
+};
+
+/**
+ * Detects ESR decomposition by inspecting the SDR registry's ExternalServiceRegistration type.
+ * When `decomposeExternalServiceRegistrationBeta` preset is enabled (via sfdx-project.json
+ * sourceBehaviorOptions), the registry entry gains `children` and `strategies.decomposition === 'topLevel'`.
+ * Source: node_modules/@salesforce/source-deploy-retrieve/.../decomposeExternalServiceRegistrationBeta.json
+ */
+export const checkIfESRIsDecomposed = Effect.fn('ApexOas.checkIfESRIsDecomposed')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess();
+  return yield* Effect.try(() => {
+    const esrType = registryAccess.getTypeByName('ExternalServiceRegistration');
+    return Boolean(esrType.children) || esrType.strategies?.decomposition === 'topLevel';
+  }).pipe(Effect.catchAll(() => Effect.succeed(false)));
+});
+
+/**
+ * Strips markdown code fences from a string if present.
+ * @param {string} doc - The document that may contain markdown code fences.
+ * @returns {string} - The document without markdown code fences.
+ */
+const stripMarkdownCodeFences = (doc: string): string => {
+  // Remove markdown code fences like ```json ... ``` or ``` ... ```
+  const markdownPattern = /^```(?:json)?\s*\n?([\s\S]*?)\n?```\s*$/;
+  const match = doc.match(markdownPattern);
+  return match ? match[1].trim() : doc;
+};
+
+/**
+ * Cleans up a generated document by extracting the JSON string.
+ * @param {string} doc - The document to clean up.
+ * @returns Effect yielding the cleaned-up JSON string, or InvalidJsonDocument if not a valid JSON object.
+ */
+export const cleanupGeneratedDoc = Effect.fn('ApexOas.cleanupGeneratedDoc')(function* (doc: string) {
+  // First, strip markdown code fences if present
+  const strippedDoc = stripMarkdownCodeFences(doc);
+  const jsonCandidate = identifyJsonTypeInString(strippedDoc) === 'object' ? getJsonCandidate(strippedDoc) : undefined;
+  return jsonCandidate ?? (yield* new InvalidJsonDocument({ message: 'The document is not a valid JSON object.' }));
+});
+
+/**
+ * Parses an OAS document from a JSON string.
+ * @param {string} doc - The JSON string representing the OAS document.
+ * @returns {OpenAPIV3.Document} - The parsed OAS document.
+ */
+export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.parse(doc) as OpenAPIV3.Document;
+
+/**
+ * Parses an OAS document from a YAML string.
+ * @param {string} doc - The YAML string representing the OAS document.
+ * @returns {OpenAPIV3.Document} - The parsed OAS document.
+ */
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yamlParse(doc) as OpenAPIV3.Document;
+
+const PROMPT_TEMPLATES = {
+  METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
+};
+
+type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
+
+/**
+ * Resolves the template directory URI.
+ * @returns {Promise<URI>} - The URI of the template directory.
+ */
+const resolveTemplateDir = Effect.fn('ApexOas.Templates.resolveTemplateDir')(function* () {
+  const ext = vscode.extensions.getExtension(OAS_EXTENSION_ID);
+  if (!ext) {
+    return yield* new ApexExtensionUnavailable({
+      message: `Unable to find extension ${OAS_EXTENSION_ID}`
+    });
+  }
+  return ext.extensionUri;
+});
+
+/**
+ * Gets the template path for a given key.
+ * @param {EjsTemplateKey} key - The key for the template.
+ * @returns {Promise<URI>} - The URI of the template path.
+ */
+export const getTemplatePath = Effect.fn('ApexOas.Templates.getTemplatePath')(function* (key: EjsTemplateKey) {
+  const baseExtensionPath = yield* resolveTemplateDir();
+  return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+});
+
+/**
+ * Summarizes diagnostics by severity.
+ * @param {vscode.Diagnostic[]} diagnostics - The diagnostics to summarize.
+ * @returns {number[]} - An array with counts of diagnostics by severity.
+ */
+export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] =>
+  diagnostics.reduce(
+    (acc, cur) => {
+      acc[cur.severity] += 1;
+      acc[acc.length - 1] += 1; // [error, warning, info, hint, total]
+      return acc;
+    },
+    [0, 0, 0, 0, 0]
+  );
+
+export const getCurrentTimestamp = (): string => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
+  return formattedDate;
+};
+
+/**
+ * Checks if a class has RestResource annotation.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has RestResource annotation.
+ */
+const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.some(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
+
+/**
+ * Checks if any method has HTTP REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has HTTP REST annotations.
+ */
+const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method =>
+    method.annotations.some(annotation => AA_METHOD_REST_ANNOTATIONS.has(annotation.name))
+  );
+
+/**
+ * Checks if a class has valid REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has valid REST annotations.
+ */
+export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for class-level RestResource annotation and at least one method with HTTP REST annotation
+  hasRestResourceAnnotation(context) && hasHttpRestAnnotations(context);
+
+/**
+ * Checks if a class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has no annotations.
+ */
+export const hasNoClassAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.length === 0;
+
+/**
+ * Checks if any method has AuraEnabled annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has AuraEnabled annotation.
+ */
+const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
+
+/**
+ * Checks if any method has AuraEnabled annotations and the class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has no annotations and any method has AuraEnabled annotation.
+ */
+export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for no class annotations AND at least one method with AuraEnabled annotation
+  hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
+
+/**
+ * Explains, in user-facing terms, why a class qualified for neither the REST nor the AuraEnabled
+ * generation path. Inspects the gathered context (class/method annotations) so the surfaced error
+ * names the missing prerequisite instead of a generic "not valid" message.
+ *
+ * Call only after `hasValidRestAnnotations` and `hasAuraFrameworkCapability` both returned false.
+ * @param {ApexClassOASGatherContextResponse} context - The gathered class context.
+ * @returns {string} A sentence describing the most likely reason and how to fix it.
+ */
+export const diagnoseIneligibility = (context: ApexClassOASGatherContextResponse): string => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpMethods = hasHttpRestAnnotations(context);
+
+  // REST: class is annotated @RestResource but no method carries an @HttpGet/@HttpPost/... annotation.
+  if (hasRestResource && !hasHttpMethods) {
+    return 'the class is annotated with @RestResource but no method is annotated with an HTTP verb (@HttpGet, @HttpPost, @HttpPut, @HttpPatch, or @HttpDelete). Add an HTTP-verb annotation to the methods you want to expose.';
+  }
+
+  // REST: methods carry @Http___ but the class is missing the required @RestResource annotation.
+  if (!hasRestResource && hasHttpMethods) {
+    return 'methods are annotated with HTTP verbs but the class is missing the @RestResource annotation. Add @RestResource to the class.';
+  }
+
+  // AuraEnabled: class carries annotations that block the Aura path, but a method is @AuraEnabled.
+  if (!hasNoClassAnnotations(context) && hasAuraEnabledMethods(context)) {
+    const classAnnotations = context.classDetail.annotations.map(a => `@${a.name}`).join(', ');
+    return `the class has @AuraEnabled methods but also carries class-level annotations (${classAnnotations}) that are not allowed for AuraEnabled generation. Remove the class-level annotations.`;
+  }
+
+  // No qualifying annotations at all.
+  return 'it has no methods annotated for OpenAPI generation. Annotate a class with @RestResource plus HTTP-verb methods (@HttpGet, @HttpPost, ...), or annotate methods with @AuraEnabled.';
+};
+
+/**
+ * Validates if a registration provider type is one of the allowed values.
+ * @param {string | undefined} providerType - The provider type to validate.
+ * @returns {boolean} - True if the provider type is valid, false otherwise.
+ */
+export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
+  const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
+  return isNotUndefined(providerType) && validProviderTypes.includes(providerType);
+};
+
+/**
+ * Checks if a class mixes Apex Rest and AuraEnabled frameworks (which is invalid).
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class mixes both frameworks (invalid case).
+ */
+export const hasMixedFrameworks = (context: ApexClassOASGatherContextResponse): boolean => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpAnnotations = hasHttpRestAnnotations(context);
+  const hasAuraMethods = hasAuraEnabledMethods(context);
+
+  // Invalid case: (RestResource OR Http annotations) AND AuraEnabled methods
+  return (hasRestResource || hasHttpAnnotations) && hasAuraMethods;
+};
