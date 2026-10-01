@@ -38,6 +38,8 @@ const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
 test('SOQL Run Query: code lens, current file, selected text via command palette', async ({ page }) => {
+  // Desktop default is 60s on macOS (120s on win32). This spec runs six query paths; sibling SOQL specs use 180s.
+  test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 

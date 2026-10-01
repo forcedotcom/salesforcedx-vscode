@@ -247,6 +247,36 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       return pulls;
     });
 
+    const pullBody = Effect.fn('GitHub.pullBody')(function* (owner: string, repo: string, pullNumber: number) {
+      return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner,
+            repo,
+            pull_number: pullNumber
+          })
+          .then(response => response.data.body ?? '')
+      );
+    });
+
+    const updatePullBody = Effect.fn('GitHub.updatePullBody')(function* (
+      owner: string,
+      repo: string,
+      pullNumber: number,
+      body: string
+    ) {
+      yield* run('PATCH', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
+        octokit
+          .request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner,
+            repo,
+            pull_number: pullNumber,
+            body
+          })
+          .then(() => undefined)
+      );
+    });
+
     const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
       const data = yield* run('POST', '/graphql', () =>
         octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
@@ -277,6 +307,8 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       createReview,
       dismissReview,
       pullsForCommit,
+      pullBody,
+      updatePullBody,
       pullRequest
     };
   })

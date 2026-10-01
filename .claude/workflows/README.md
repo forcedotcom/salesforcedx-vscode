@@ -240,7 +240,7 @@ Verdicts: `confirmed` (kept at claimed severity) / `downgraded` (premise holds, 
 
 **Fix review findings.** Consumes the _pre-verified_ findings (premise confirmed, severity corrected, false/redundant/no-consumer ones already gone). Auto-applies all critical and high (including every effect-advocate `must`/`should`). Cheap mediums applied; the rest — plus any `prBodyNote` passthroughs — surface in PR `Reviewer notes`. Then merges `origin/develop` — uses [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; aborts and returns to caller if unresolvable.
 
-**Draft PR.** Pushes the branch, opens a draft PR per [pr-draft skill](../skills/pr-draft/SKILL.md), appends `PR: <url>` back to `Details__c` (read-modify-write — never replaces existing content). Test plan excludes items covered by new/modified e2e files on the branch.
+**Draft PR.** Pushes the branch, opens a draft PR per [pr-draft skill](../skills/pr-draft/SKILL.md), appends `PR: <url>` back to `Details__c` (read-modify-write — never replaces existing content).
 
 ### Worktrees
 

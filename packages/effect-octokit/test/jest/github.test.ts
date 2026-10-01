@@ -78,6 +78,38 @@ describe('GitHub', () => {
     ]);
   });
 
+  it('reads a pull request body', async () => {
+    globalThis.fetch = async () => json({ body: 'hello' });
+    const body = await run(GitHub.pullBody('o', 'r', 12));
+    expect(body).toBe('hello');
+  });
+
+  it('reads a null pull request body as an empty string', async () => {
+    globalThis.fetch = async () => json({ body: null });
+    const body = await run(GitHub.pullBody('o', 'r', 12));
+    expect(body).toBe('');
+  });
+
+  it('patches a pull request body', async () => {
+    const calls: Array<{ readonly method: string; readonly url: string; readonly body: string }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(input),
+        body: typeof init?.body === 'string' ? init.body : ''
+      });
+      return json({ body: 'next' });
+    };
+    await run(GitHub.updatePullBody('o', 'r', 12, 'next'));
+    expect(calls).toEqual([
+      expect.objectContaining({
+        method: 'PATCH',
+        url: expect.stringContaining('/repos/o/r/pulls/12'),
+        body: expect.stringContaining('"body":"next"')
+      })
+    ]);
+  });
+
   it('retries once when GitHub sends retry-after', async () => {
     const attempts: number[] = [];
     globalThis.fetch = async () => {
