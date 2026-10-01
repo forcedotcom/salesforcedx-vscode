@@ -1,0 +1,14 @@
+{
+  "information_for_contributors": [
+    "There's nothing special going on here in regards to Manifest XML formatting. The forcesourcemanifest language",
+    "declaration is there to provide a finer granularity for when several commands are available and nothing else.",
+    "This file just includes the standard XML formatting file."
+  ],
+  "name": "Manifest XML",
+  "scopeName": "manifest.text.xml",
+  "patterns": [
+    {
+      "include": "text.xml"
+    }
+  ]
+}

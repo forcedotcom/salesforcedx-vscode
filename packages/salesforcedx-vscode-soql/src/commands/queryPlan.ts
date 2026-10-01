@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
+import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
+import * as Schema from 'effect/Schema';
+import { SFDX_CORE_SECTION } from '../constants';
+import { nls } from '../messages';
+import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
+
+const QueryPlanNote = Schema.Data(
+  Schema.Struct({
+    description: Schema.String,
+    fields: Schema.Chunk(Schema.String),
+    tableEnumOrId: Schema.String
+  })
+);
+
+const QueryPlanEntry = Schema.Struct({
+  cardinality: Schema.Number,
+  fields: Schema.Array(Schema.String),
+  leadingOperationType: Schema.String,
+  notes: Schema.Array(QueryPlanNote),
+  relativeCost: Schema.Number,
+  sobjectCardinality: Schema.Number,
+  sobjectType: Schema.String
+});
+
+export const QueryPlanResponse = Schema.Struct({
+  plans: Schema.Array(QueryPlanEntry)
+});
+
+export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof QueryPlanResponse>): string => {
+  const { plans } = response;
+
+  if (!plans?.length) {
+    return nls.localize('query_plan_no_plans');
+  }
+
+  const columns: Column[] = [
+    { key: 'cardinality', label: nls.localize('query_plan_col_cardinality') },
+    { key: 'fields', label: nls.localize('query_plan_col_fields') },
+    { key: 'leadingOperationType', label: nls.localize('query_plan_col_leading_op_type') },
+    { key: 'relativeCost', label: nls.localize('query_plan_col_relative_cost') },
+    { key: 'sobjectCardinality', label: nls.localize('query_plan_col_sobject_cardinality') },
+    { key: 'sobjectType', label: nls.localize('query_plan_col_sobject_type') }
+  ];
+
+  const rows: Row[] = plans.map(plan => ({
+    cardinality: String(plan.cardinality),
+    fields: plan.fields.join(', '),
+    leadingOperationType: plan.leadingOperationType,
+    relativeCost: String(plan.relativeCost),
+    sobjectCardinality: String(plan.sobjectCardinality),
+    sobjectType: plan.sobjectType
+  }));
+
+  const table = createTable(rows, columns, nls.localize('query_plan_table_title'));
+
+  const allNotes = HashSet.fromIterable(plans.flatMap(plan => plan.notes ?? []));
+  if (HashSet.size(allNotes) === 0) {
+    return table;
+  }
+
+  const notesLines = HashSet.toValues(allNotes).map(
+    note =>
+      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${Chunk.toArray(note.fields).join(', ')}`
+  );
+  return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
+};
+
+export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
+  const servicesApi = yield* getServicesApi;
+  const channelService = yield* servicesApi.services.ChannelService;
+
+  if (yield* (yield* servicesApi.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
+    yield* channelService.clearChannel;
+  }
+
+  yield* Effect.gen(function* () {
+    const connection = yield* servicesApi.services.ConnectionService.getConnection();
+    yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
+
+    const encodedQuery = encodeURIComponent(query);
+    const path = `/query?explain=${encodedQuery}`;
+
+    const result = yield* Effect.promise(() => connection.request(path)).pipe(
+      Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
+    );
+    yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
+    yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
+  }).pipe(
+    Effect.catchAllCause(cause => cause.pipe(Cause.squash, formatErrorMessage, channelService.appendToChannel)),
+    Effect.ensuring(channelService.showChannel)
+  );
+});
+
+export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
+  const servicesApi = yield* getServicesApi;
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
+  yield* servicesApi.services.ProjectService.getSfProject();
+  const inputs = yield* getQueryInputsForPlan();
+  yield* executeQueryPlan(inputs);
+});
+
+export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
+  const servicesApi = yield* getServicesApi;
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
+  yield* servicesApi.services.ProjectService.getSfProject();
+  const inputs = yield* getDocumentQueryInputsForPlan();
+  yield* executeQueryPlan(inputs);
+});

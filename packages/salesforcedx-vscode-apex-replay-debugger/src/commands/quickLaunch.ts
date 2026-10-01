@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { ApexTestResultData, LogService, TestResult, TestService } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
+import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/checkpointService';
+import { nls } from '../messages';
+import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
+import { getRuntime } from '../services/runtime';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { retrieveTestCodeCoverage } from '../utils/settings';
+import { launchFromLogFile } from './launchFromLogFile';
+
+const COMMAND: ProgressAndSuccessCommandKey = 'Debug Apex Test Class';
+
+const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  // ProjectService's folders (test results, debug logs) need an open workspace, so there's nothing to do
+  // without one
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (isEmpty) return false;
+  const connection = yield* api.services.ConnectionService.getConnection();
+
+  if (!(yield* ensureTraceFlagsForCurrentUser())) return false;
+
+  if (checkpointService.hasOneOrMoreActiveCheckpoints()) {
+    if (!(yield* sfCreateCheckpointsCommand())) return false;
+  }
+
+  const testService = new TestService(connection);
+  const singleTestName = testName ? `${testClass}.${testName}` : undefined;
+  const retrieveCodeCoverage = yield* retrieveTestCodeCoverage();
+  const payload = yield* Effect.promise(() =>
+    testService.buildSyncPayload(
+      'RunSpecifiedTests',
+      singleTestName,
+      singleTestName ? undefined : testClass,
+      undefined,
+      !retrieveCodeCoverage // the setting enables code coverage, so we need to pass false to disable it
+    )
+  );
+  // W-18453221
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
+  const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
+  yield* Effect.promise(() =>
+    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveCodeCoverage)
+  );
+
+  const tests: ApexTestResultData[] = result.tests;
+  if (tests.length === 0) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_no_results_found'));
+    return false;
+  }
+
+  const testResult = testName ? (tests.find(test => test.methodName === testName) ?? tests[0]) : tests[0];
+  if (!testResult?.apexLogId) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_no_debug_log'));
+    return false;
+  }
+
+  const logId = testResult.apexLogId!;
+  const logService = new LogService(connection);
+  const debugLogsFolder = yield* api.services.ProjectService.getDebugLogsFolder();
+  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: debugLogsFolder.fsPath }));
+  yield* Effect.promise(() => launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false));
+  yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
+  return true;
+});
+
+export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
+  const progressLocation = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
+  );
+  try {
+    await vscode.window.withProgress(
+      {
+        location: progressLocation,
+        title: `Running ${nls.localize('debug_test_exec_name')}`,
+        cancellable: false
+      },
+      () => getRuntime().runPromise(debugTest(className, methodName))
+    );
+  } catch (error) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
+  }
+};
