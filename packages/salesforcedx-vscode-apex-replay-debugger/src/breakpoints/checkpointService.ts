@@ -543,7 +543,7 @@ const setTypeRefsForEnabledCheckpoints = (): boolean => {
 let creatingCheckpoints = false;
 
 /** Creates checkpoints in the org by uploading enabled checkpoint nodes */
-export const sfCreateCheckpoints = async (): Promise<boolean> => {
+const createCheckpoints = async (): Promise<boolean> => {
   // In-spite of waiting for the lock, we still want subsequent calls to immediately return
   // from this if checkpoints are already being created instead of stacking them up.
   if (!creatingCheckpoints) {
@@ -687,6 +687,17 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   return !updateError;
 };
 
+class CreateCheckpointsError extends Schema.TaggedError<CreateCheckpointsError>()('CreateCheckpointsError', {
+  message: Schema.String
+}) {}
+
+export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand')(() =>
+  Effect.tryPromise({
+    try: createCheckpoints,
+    catch: error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })
+  })
+);
+
 // A couple of important notes about this command's processing
 // 1. There is no way to invoke a breakpoint change through vscode.debug
 //    there is only add/delete.
@@ -698,7 +709,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export const sfToggleCheckpoint = () => {
+const toggleCheckpoint = () => {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(nls.localize('checkpoint_upload_in_progress'), 'warning');
     return;
@@ -739,10 +750,12 @@ export const sfToggleCheckpoint = () => {
   }
 };
 
-// This methods was broken out of sfToggleCheckpoint for testing purposes.
+export const sfToggleCheckpointCommand = Effect.fn('sfToggleCheckpointCommand')(() => Effect.sync(toggleCheckpoint));
+
+// This methods was broken out of sfToggleCheckpointCommand for testing purposes.
 const fetchActiveEditorUri = (): URI | undefined => vscode.window.activeTextEditor?.document.uri;
 
-// This methods was broken out of sfToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpointCommand for testing purposes.
 const fetchActiveSelectionLineNumber = (): number | undefined => vscode.window.activeTextEditor?.selection?.start.line;
 
 const fetchExistingBreakpointForUriAndLineNumber = (uriInput: URI, lineInput: number): vscode.Breakpoint | undefined =>

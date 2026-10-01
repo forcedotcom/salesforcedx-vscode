@@ -10,7 +10,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
-import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
+import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/checkpointService';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
@@ -32,7 +32,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   if (!(yield* ensureTraceFlagsForCurrentUser())) return false;
 
   if (checkpointService.hasOneOrMoreActiveCheckpoints()) {
-    if (!(yield* Effect.promise(() => sfCreateCheckpoints()))) return false;
+    if (!(yield* sfCreateCheckpointsCommand())) return false;
   }
 
   const testService = new TestService(connection);
