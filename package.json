@@ -24,6 +24,7 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@cursor/sdk": "1.0.32",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
     "@effect/platform": "0.96.1",
@@ -132,6 +133,7 @@
     "lint": "wireit",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
+    "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "test:container:local": "wireit",
@@ -244,6 +246,7 @@
     "test": {
       "dependencies": [
         "test:ai-safeguards",
+        "test:manual-test-plan",
         "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -299,6 +302,18 @@
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",
         "test/category-approve.test.ts"
+      ],
+      "output": []
+    },
+    "test:manual-test-plan": {
+      "command": "node --test scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
+      "files": [
+        "scripts/manualTestPlan/**/*.mts",
+        "scripts/manualTestPlan/tsconfig.json",
+        ".github/workflows/manual-test-plan.yml"
       ],
       "output": []
     },
