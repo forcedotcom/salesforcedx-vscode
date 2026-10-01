@@ -1,0 +1,44 @@
+name: Build All
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
+      - uses: google/wireit@setup-github-actions-caching/v2
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
+      - run: pnpm --version
+      - run: node --version
+      - run: pnpm compile
+      - run: pnpm vscode:package
+      - name: Validate VSIX OPC Part URIs
+        uses: salesforcecli/github-workflows/.github/actions/validateVsix@main
+        with:
+          dir: ./packages
+      - name: Stage Artifacts
+        run: |
+          mkdir extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+      - name: Upload Extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.label }}
+          path: ./extensions/

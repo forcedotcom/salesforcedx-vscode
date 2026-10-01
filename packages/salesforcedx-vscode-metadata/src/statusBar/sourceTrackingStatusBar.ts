@@ -1,0 +1,215 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
+import { isConflictDetectionEnabled } from '../conflict/conflictDetectionSettings';
+import { EXTENSION_NAME } from '../constants';
+import { nls } from '../messages';
+import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
+import { buildCombinedHoverText } from './hover';
+
+/** Refresh the status bar's data using data from tracking service */
+const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { telemetryIgnore: true } })(
+  function* (statusBarItem: vscode.StatusBarItem) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const sourceTracking = yield* api.services.SourceTrackingService;
+
+    const hasTracking = yield* sourceTracking.hasTracking();
+
+    if (!hasTracking) {
+      statusBarItem.hide();
+      return;
+    }
+
+    // Check if conflict detection is disabled
+    const conflictDetectionEnabled = yield* isConflictDetectionEnabled();
+    if (!conflictDetectionEnabled) {
+      // Show disabled state without calling expensive getStatus()
+      showDisabledState(statusBarItem);
+      return;
+    }
+
+    const status = yield* sourceTracking.getStatus({ local: true, remote: true });
+    updateDisplay(statusBarItem)(dedupeStatus(status));
+  },
+  Effect.catchAll(() => Effect.void) // ignore errors in refresh
+);
+
+/** Show a transient refreshing state while a metadata operation is in flight */
+const showRefreshingState = (statusBarItem: vscode.StatusBarItem): void => {
+  statusBarItem.text = '$(sync~spin) Refreshing';
+  statusBarItem.tooltip = new vscode.MarkdownString(nls.localize('source_tracking_status_bar_refreshing'));
+  statusBarItem.command = undefined;
+  statusBarItem.backgroundColor = undefined;
+  statusBarItem.show();
+};
+
+/** Show disabled state when conflict detection is turned off */
+const showDisabledState = (statusBarItem: vscode.StatusBarItem): void => {
+  statusBarItem.text = '$(circle-slash) Conflict Detection Disabled';
+  statusBarItem.tooltip = new vscode.MarkdownString(
+    nls.localize('source_tracking_conflict_detection_disabled_tooltip')
+  );
+  statusBarItem.command = undefined;
+  statusBarItem.backgroundColor = undefined;
+  statusBarItem.show();
+};
+
+/** Update the status bar display */
+const updateDisplay =
+  (statusBarItem: vscode.StatusBarItem) =>
+  (dedupedStatus: StatusOutputRow[]): void => {
+    // Build combined text - always show remote and local, only show conflicts if > 0
+    const counts = calculateCounts(dedupedStatus);
+    statusBarItem.text = [
+      counts.conflicts > 0 ? `${counts.conflicts}$(warning)` : undefined,
+      `${counts.remote}$(arrow-down)`,
+      `${counts.local}$(arrow-up)`
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    // Build combined tooltip
+    statusBarItem.tooltip = buildCombinedHoverText(separateChanges(dedupedStatus), counts);
+    statusBarItem.command = getCommand(counts);
+    statusBarItem.backgroundColor = calculateBackground(counts);
+    statusBarItem.show();
+  };
+
+/** Helper to read polling interval config */
+const getPollingIntervalSeconds = Effect.fn('getPollingIntervalSeconds')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    EXTENSION_NAME,
+    'sourceTracking.pollingIntervalSeconds',
+    60
+  );
+});
+
+/** Create and initialize source tracking status bar */
+export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStatusBar')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const statusBarItem = vscode.window.createStatusBarItem(
+    'source-tracking-status-bar',
+    vscode.StatusBarAlignment.Left,
+    45
+  );
+  statusBarItem.name = 'Salesforce: Source Tracking';
+  const fileChangePubSub = yield* api.services.FileChangePubSub;
+
+  const targetOrgRef = yield* api.services.TargetOrgRef();
+  const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
+
+  // Reusable stream transformer: suppress any stream while a metadata operation is in flight
+  const suppressDuringOperation = Stream.filterEffect(() =>
+    SubscriptionRef.get(activeOpRef).pipe(Effect.andThen(count => count === 0))
+  );
+
+  // Setup dynamic polling interval that responds to config changes
+  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
+  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(yield* getPollingIntervalSeconds()));
+
+  // Watch setting changes to update poll frequency dynamically
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event =>
+      event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
+    ),
+    Stream.runForEach(() =>
+      getPollingIntervalSeconds().pipe(
+        Effect.flatMap(seconds => SubscriptionRef.set(pollIntervalRef, Duration.seconds(seconds)))
+      )
+    ),
+    Effect.fork
+  );
+
+  // Watch conflict detection setting changes to trigger immediate refresh
+  const conflictDetectionSettingStream = Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event =>
+      event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection')
+    ),
+    Stream.as('conflictDetectionSettingChange')
+  );
+  const orgChangeStream = targetOrgRef.changes.pipe(
+    // Pass when tracking status is known ('tracksSource' present) OR the ref has no orgId — the cleared
+    // state after the default org is deleted/logged out. Without the `!orgInfo.orgId` branch that cleared
+    // state is dropped and the icons linger on the gone org. (W-23950821)
+    Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && ('tracksSource' in orgInfo || !orgInfo.orgId)),
+    Stream.tap(orgInfo =>
+      Effect.sync(() => {
+        if (!orgInfo.tracksSource || !orgInfo.orgId) {
+          statusBarItem.hide();
+        }
+      })
+    ),
+    Stream.map(orgInfo => orgInfo.orgId),
+    Stream.changes,
+    suppressDuringOperation,
+    Stream.as('orgChange')
+  );
+
+  // Dynamic poll stream that restarts when interval changes
+  const dynamicPollStream = pollIntervalRef.changes.pipe(
+    Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
+    Stream.flatMap(
+      interval =>
+        Schedule.fixed(interval).pipe(
+          Stream.fromSchedule,
+          Stream.filter(() => vscode.window.state.active)
+        ),
+      { switch: true } // Restart schedule when interval changes
+    )
+  );
+
+  const fileChangeStream = Stream.merge(
+    // Subscribe to file changes TODO: maybe filter out some changes by type or uri
+    Stream.fromPubSub(fileChangePubSub).pipe(Stream.debounce(Duration.millis(500))),
+    // Poll for remote changes with configurable interval
+    dynamicPollStream
+  ).pipe(
+    Stream.debounce(Duration.millis(500)),
+    // we don't care about file events if source tracking is not enabled
+    Stream.filterEffect(() =>
+      SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
+    ),
+    // suppress events while a metadata operation is running
+    suppressDuringOperation
+  );
+
+  // Show spinner while in-flight; emit 'operationComplete' when it drains to 0
+  const operationCompleteStream = activeOpRef.changes.pipe(
+    Stream.tap(count => (count > 0 ? Effect.sync(() => showRefreshingState(statusBarItem)) : Effect.void)),
+    Stream.filter(count => count === 0)
+  );
+
+  yield* Effect.fork(
+    Stream.mergeAll({ concurrency: 'unbounded' })([
+      orgChangeStream,
+      fileChangeStream,
+      operationCompleteStream,
+      conflictDetectionSettingStream
+    ]).pipe(
+      Stream.debounce(Duration.millis(500)),
+      Stream.runForEach(() => refresh(statusBarItem))
+    )
+  );
+
+  // Now that the pubsub is running, if the org ref is not set, get the connection which will set it
+  yield* api.services.ConnectionService.getConnection().pipe(
+    // If there is no connection or an error, that's fine.
+    Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
+  );
+  yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
+  yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
+});
