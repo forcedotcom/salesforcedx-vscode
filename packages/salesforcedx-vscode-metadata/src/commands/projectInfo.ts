@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
@@ -97,11 +98,14 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
     const orgInfo = yield* SubscriptionRef.get(ref);
     const orgType = orgInfo.isScratch ? 'scratch' : orgInfo.isSandbox ? 'sandbox' : 'production';
 
-    const conn = yield* api.services.ConnectionService.getConnection();
     const sourceMemberCount = orgInfo.tracksSource
-      ? yield* Effect.tryPromise(
-          async () => (await conn.tooling.query('SELECT COUNT() FROM SourceMember')).totalSize
-        ).pipe(Effect.orElseSucceed(() => 'query failed'))
+      ? yield* api.services.QueryService.pipe(
+          Effect.flatMap(queryService =>
+            queryService.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
+          ),
+          Effect.map(({ totalSize }) => totalSize),
+          Effect.orElseSucceed(() => 'query failed')
+        )
       : 'N/A';
 
     return {
