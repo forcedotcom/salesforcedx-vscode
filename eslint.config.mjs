@@ -180,6 +180,7 @@ export default [
       'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
+      'local/no-raw-duration': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -571,6 +572,7 @@ export default [
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-utils-vscode/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
@@ -627,6 +629,7 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
+      'packages/effect-octokit/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -756,6 +759,7 @@ export default [
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/soql-builder-ui/src/domain.ts',
       'packages/soql-builder-ui/src/effect/**/*.ts',
       'packages/soql-builder-ui/src/testing/**/*.ts',
@@ -834,7 +838,7 @@ export default [
   },
   {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
-    files: ['packages/effect-ext-utils/**/*.ts'],
+    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
@@ -1023,9 +1027,15 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
     rules: {
       'no-restricted-imports': 'off'
+    }
+  },
+  {
+    files: ['scripts/manualTestPlan/test/**/*.mts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
@@ -1119,6 +1129,7 @@ export default [
     plugins: { playwright: eslintPluginPlaywright },
     rules: {
       'playwright/no-force-option': 'error',
+      'playwright/no-conditional-expect': 'error',
       // Helpers that assert or throw outside test() and do not match the prefix pattern.
       'playwright/expect-expect': [
         'error',

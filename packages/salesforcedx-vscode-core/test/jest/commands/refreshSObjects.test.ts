@@ -60,9 +60,7 @@ const recordingTracerLayer = Layer.setTracer(
   })
 );
 
-const runWithRecordingTracer = <A, E>(
-  effect: Effect.Effect<A, E, ExtensionProviderService | FsService>
-): Promise<A> =>
+const runWithRecordingTracer = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | FsService>): Promise<A> =>
   effect.pipe(Effect.provide(Layer.mergeAll(recordingTracerLayer, fsLayer)), Effect.runPromise);
 
 describe('extractErrorMessage', () => {

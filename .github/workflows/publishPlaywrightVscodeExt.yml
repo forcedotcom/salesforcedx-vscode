@@ -43,7 +43,7 @@ jobs:
       - name: Get Github user info
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
         id: github-user-info
-        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@b1f70470a9da194c0feb1ca77c1a6951f1d49f74 # main
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
         with:
           SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
@@ -100,11 +100,11 @@ jobs:
     name: Build and publish to npm
     needs: create-release
     if: needs.create-release.outputs.tag != ''
-    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@937c1b27a13a3e61096909a9417648ca9d197c95 # main
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
       packageManager: pnpm
-      packageManagerVersion: 12.0.0
+      packageManagerVersion: 12.8.2
       cacheDependencyPath: pnpm-lock.yaml
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/playwright-vscode-ext

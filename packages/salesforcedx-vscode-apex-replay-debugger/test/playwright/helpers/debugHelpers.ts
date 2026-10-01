@@ -16,9 +16,9 @@ export const continueDebugSession = async (page: Page, maxContinues = 2): Promis
     await focusMonacoInput(page.locator(`${WORKBENCH} .editor-instance .monaco-editor`).first());
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
-    // Catch intentionally swallows rejection to detect debug session end (pre-existing pattern)
-    const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
+    // Swallow rejection to detect debug session end
+    const sessionEnded = await toolbar
+      .waitFor({ state: 'hidden', timeout: 30_000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;
