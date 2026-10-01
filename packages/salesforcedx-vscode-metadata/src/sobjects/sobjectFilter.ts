@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { SObjectShortDescription } from './describeTypes';
+import { SObjectCategory, SObjectRefreshSource } from './types/general';
+
+/** filter out standard or custom if necessary and handle the "required" sobject types */
+export const sobjectTypeFilter =
+  (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
+    const isCustomObject = sobject.custom && category === 'CUSTOM';
+    const isStandardObject = !sobject.custom && category === 'STANDARD';
+
+    return (
+      (category === 'ALL' && source === 'manual') ||
+      (category === 'ALL' && (source === 'startupmin' || source === 'startup') && isRequiredSObject(sobject.name)) ||
+      ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name))
+    );
+  };
+
+/* Ignore all sobjects that end with Share or History or Feed or Event */
+const isRequiredSObject = (sobject: string): boolean => !/Share$|History$|Feed$|.+Event$/.test(sobject);

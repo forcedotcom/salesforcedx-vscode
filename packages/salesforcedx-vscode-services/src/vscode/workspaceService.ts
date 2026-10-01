@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+import * as os from 'node:os';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { getPathWithSchema } from './paths';
+
+type WorkspaceInfo = {
+  uri: URI;
+  /** includes the file:// or other schemeprefix */
+  path: string;
+  /** the path without the scheme prefix */
+  fsPath: string;
+  isEmpty: boolean;
+  isVirtualFs: boolean;
+  cwd: string;
+};
+
+type WorkspaceWithFolder = WorkspaceInfo & {
+  isEmpty: false;
+};
+
+const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
+  const folders = vscode.workspace.workspaceFolders;
+  const isVirtualFs = folders?.[0]?.uri.scheme !== 'file';
+  const originalFsPath = folders?.[0]?.uri.fsPath ?? '';
+  return {
+    uri: folders?.[0]?.uri ?? URI.parse(''),
+    path: getPathWithSchema(folders?.[0]?.uri ?? URI.parse('')),
+    isEmpty: !folders?.length,
+    isVirtualFs,
+    // in e2e tests, but not on local runs, the path had windows-style \\ separators
+    // vscode-uri implementation: https://github.com/microsoft/vscode-uri/blob/65786c7aef8aa1d142fedfde76073cc3549736d2/src/platform.ts#L19C18-L19C37
+    // finds the string "windows" in the useragent in the runner.  I haven't found a way to set that to not have the word Windows in it
+    // this could cause problems in other places, too.
+    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath,
+    cwd: process.cwd()
+  };
+}).pipe(
+  Effect.tap(info =>
+    Effect.annotateCurrentSpan({
+      ...info,
+      folders: vscode.workspace.workspaceFolders,
+      home: os.homedir(),
+      workspaceName: vscode.workspace.name
+    })
+  ),
+  Effect.withSpan('getWorkspaceInfoTask')
+);
+
+const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
+
+export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenError>()('NoWorkspaceOpenError', {
+  message: Schema.String
+}) {}
+
+export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
+  accessors: true,
+  effect: Effect.gen(function* () {
+    /** Get info about the workspace */
+    const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
+      // Always read `vscode.workspace.workspaceFolders` fresh. Cached workspace info on web poisoned the first
+      // value when the memo ran before `vscode-test-web` mounted the folder (empty / wrong `fsPath`), breaking
+      // `sf:project_opened` and commands such as **SFDX: Create Lightning Web Component** in Playwright web E2E.
+      return yield* getWorkspaceInfoTask;
+    });
+
+    /** GetWorkspaceInfo, throws if there is not one open */
+    const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
+      const info = yield* getWorkspaceInfoTask;
+      return yield* isNonEmptyWorkspace(info)
+        ? Effect.succeed(info)
+        : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));
+    });
+
+    return { getWorkspaceInfo, getWorkspaceInfoOrThrow };
+  })
+}) {}
