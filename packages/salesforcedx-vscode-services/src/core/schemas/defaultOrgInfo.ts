@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as Schema from 'effect/Schema';
+import { CliId } from '../../observability/cliTelemetry';
+import { OrgId } from './salesforceId';
+
+const StringArray = Schema.Array(Schema.String);
+
+export const DefaultOrgInfoSchema = Schema.Struct({
+  aliases: Schema.optional(StringArray),
+  orgId: Schema.optional(OrgId),
+  instanceName: Schema.optional(Schema.String),
+  devHubOrgId: Schema.optional(OrgId),
+  username: Schema.optional(Schema.String),
+  alias: Schema.optional(Schema.String),
+  devHubUsername: Schema.optional(Schema.String),
+  tracksSource: Schema.optional(Schema.Boolean),
+  isScratch: Schema.optional(Schema.Boolean),
+  isSandbox: Schema.optional(Schema.Boolean),
+  // the actual userID from the salesforce org
+  userId: Schema.optional(Schema.String),
+  cliId: Schema.optional(CliId),
+  webUserId: Schema.optional(Schema.String),
+  orgEdition: Schema.optional(Schema.String)
+});

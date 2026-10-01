@@ -1,0 +1,65 @@
+---
+name: pr-draft
+description: Draft PRs with trailing " - W-XXXXXXXX" in titles, conventional commit-style before it, GUS refs in body. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
+review: never
+---
+
+# PR Draft
+
+Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus work item number.
+
+## Work item
+
+**Confirmation required:** Never create or update work items without explicit user confirmation. Present proposed fields (Subject, Epic, Details, etc.) and wait for user to approve before any `sf data create record` or `sf data update record`.
+
+**Safety** never use `--no-verify`
+
+1. If branch name contains `W-XXXXX`, confirm it exists in GUS, resembles the work done on the branch, and use that
+2. Else ask: "Do you have a Gus work item (W-XXXXX) for this PR?"
+3. If yes → try to find it using [gus-cli/SKILL.md](../gus-cli/SKILL.md). Confirm with the user that you got it right, or ask them to choose if several could be right.
+4. If no → offer to create via Gus. Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md). **Before creating:** show user Subject, Epic, Details, assignee. Ask: "Create this work item?" Do not run `sf data create record` until user says yes. If user declines creation and still wants to proceed with the PR, include `[skip-validate-pr]` in the PR body.
+5. Before creating PR: push current branch to remote if it doesn't already exist (`git push -u origin $(git branch --show-current)` or equivalent). Never push to `develop`/`main`
+6. After PR created: update work item `Details__c` with PR link. Query current `Details__c`, append `"\nPR: <url>"` (or prepend if empty). **Before updating:** show user the new Details__c. Ask: "Update work item with PR link?" Do not run `sf data update record` until user says yes.
+7. After PR created: offer Ready for Review. If the user opts in, run the reviewer-pick → WI update → GitHub reassignment → Slack ping handoff in **[review-handoff.md](./review-handoff.md)**.
+
+## Target branch
+
+- Default `develop`
+- From other branch (≠ develop, ≠ main)? Use it. Detect: `git reflog show <branch> | tail -1` → "moving from X" / "Created from X"
+- Never `main`; inferred main → develop
+
+## Title format
+
+`type(scope): description - W-XXXXXXXX`
+
+- **Work item last:** Append a space, hyphen, space, then the GUS `Name` (` - W-21735053`). This is the `Name` field from GUS, not the Salesforce Record ID (e.g., `a07...`). If you just created the record, query the `Name` first.
+- **Types**: feat, fix, docs, style, refactor, perf, test, ci, chore, build
+- **Scope**: optional
+- Example: `build(extensions): consolidate apex-tmlanguage - W-21735053`
+- **Avoid:** leading brackets — `[W-21735053] build(extensions): …`; bare trailing WI without ` - ` — `build(extensions): … W-21735053`
+
+## GitHub issues & discussions
+
+Before finalizing body, fetch and analyze:
+
+1. **Issues:** `gh issue list --state open --limit 200 --json number,title,body,comments`
+2. **Discussions:** `gh api graphql` — fetch all open discussions (title, number, url, body)
+3. **LLM relevance pass:** read PR diff/commits + all issue/discussion titles+bodies; identify candidates
+4. **Auto-include** any issue where a comment contains the PR's W-XXXXX (e.g. `W-12345`) — no prompt needed; Git2Gus already established the link
+5. **Show remaining candidates** (issues and discussions the LLM flagged as related); ask user which to include
+6. **Stripped-href anchors in WI `Details__c`:** SF empties external hrefs on save (the why + stored forms live in [gus-cli](../gus-cli/SKILL.md)), leaving `<a href="">discussions/NNN</a>` — text survives, href empty. Scan `Details__c` for such anchors with `discussions/NNN`|`issues/NNN` text, EXCLUDE anchors with a populated real href, and auto-include the reconstructed `https://github.com/forcedotcom/salesforcedx-vscode/<path>` URL — no prompt.
+7. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
+
+## Body format
+
+- Base body on branch commits only
+- Ignore plans/conversation history (may be stale)
+- Write content per [concise/SKILL.md](../concise/SKILL.md)
+- Include `@W-XXXXX@` in "What issues does this PR fix or reference?" per [.github/PULL_REQUEST_TEMPLATE.md](../../../.github/PULL_REQUEST_TEMPLATE.md):
+- Delete before/after section if empty
+- **User declined WI:** If user explicitly declines WI but wants PR, include `[skip-validate-pr]` in body (e.g. at end)
+
+```
+### What issues does this PR fix or reference?
+#<GitHub Issue>, @W-XXXXX@
+```

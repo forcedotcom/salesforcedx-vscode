@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { SoqlBuilderElement } from './components/soqlBuilderElement.js';
+import { SoqlFieldsElement } from './components/soqlFieldsElement.js';
+import { SoqlFromElement } from './components/soqlFromElement.js';
+import { SoqlLimitElement } from './components/soqlLimitElement.js';
+
+export const registerSoqlBuilderElements = (): void => {
+  if (!customElements.get('soql-builder-fields')) {
+    customElements.define('soql-builder-fields', SoqlFieldsElement);
+  }
+  if (!customElements.get('soql-builder-from')) {
+    customElements.define('soql-builder-from', SoqlFromElement);
+  }
+  if (!customElements.get('soql-builder-limit')) {
+    customElements.define('soql-builder-limit', SoqlLimitElement);
+  }
+  if (!customElements.get('soql-builder-app')) {
+    customElements.define('soql-builder-app', SoqlBuilderElement);
+  }
+};
