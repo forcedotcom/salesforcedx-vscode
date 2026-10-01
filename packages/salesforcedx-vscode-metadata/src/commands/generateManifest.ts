@@ -78,22 +78,19 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   const resolvedSourceUri =
     sourceUri ??
     (yield* api.services.EditorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () =>
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'));
-        }).pipe(Effect.as(undefined))
-      )
+      Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined))
     ));
 
-  if (!resolvedSourceUri) {
+  const resolvedUris = resolvedSourceUri ? [resolvedSourceUri, ...(uris ?? [])] : [];
+  if (resolvedUris.length === 0 || resolvedUris.some(uri => uri.scheme !== 'file')) {
+    yield* Effect.sync(() => {
+      void vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'));
+    });
     return;
   }
 
   // Get workspace info for manifest directory
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
-  // Resolve URIs
-  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
   const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {
