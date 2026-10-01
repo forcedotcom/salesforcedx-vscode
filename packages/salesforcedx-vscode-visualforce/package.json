@@ -1,0 +1,459 @@
+{
+  "name": "salesforcedx-vscode-visualforce",
+  "private": true,
+  "displayName": "Visualforce",
+  "description": "Provides syntax highlighting for the Visualforce framework",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeVisualforce.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "67.27.0",
+  "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "@salesforce/vscode-i18n": "*",
+    "effect": "^3.21.2",
+    "vscode-css-languageservice": "^6.3.7",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/salesforcedx-visualforce-language-server": "*",
+    "salesforcedx-vscode-services": "*"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "vscode:bundle": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
+    "compile": "wireit",
+    "lint": "wireit",
+    "check:circular-deps": "wireit",
+    "test": "wireit",
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:desktop --debug",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
+    "run:web": "wireit",
+    "vscode:package": "wireit",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:package:prerelease": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-visualforce-language-server:compile",
+        "../salesforcedx-vscode-services:compile",
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json",
+        "package.nls*.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/assert-web-safe.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/assert-web-safe.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --passWithNoTests",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json --exclude \"/node_modules/|/out/|/dist/\" 'src/**/*.ts'",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:web": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "run:web": {
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle"
+      ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "syntaxes/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "syntaxes/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    }
+  },
+  "activationEvents": [
+    "onLanguage:visualforce"
+  ],
+  "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sf.visualforce.generate.component",
+        "title": "%visualforce_generate_component_text%"
+      },
+      {
+        "command": "sf.visualforce.generate.page",
+        "title": "%visualforce_generate_page_text%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "sf:project_opened"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.visualforce.generate.component",
+          "when": "explorerResourceIsFolder && resourceFilename == components && sf:project_opened"
+        },
+        {
+          "command": "sf.visualforce.generate.page",
+          "when": "explorerResourceIsFolder && resourceFilename == pages && sf:project_opened"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "visualforce",
+        "aliases": [
+          "Visualforce",
+          "visualforce"
+        ],
+        "extensions": [
+          ".page",
+          ".component"
+        ],
+        "configuration": "./syntaxes/visualforce.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "visualforce",
+        "scopeName": "text.visualforce.markup",
+        "path": "./syntaxes/visualforce.json",
+        "embeddedLanguages": {
+          "source.css": "css",
+          "source.js": "javascript"
+        }
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%configuration.title%",
+      "properties": {
+        "visualforce.format.enable": {
+          "type": "boolean",
+          "scope": "window",
+          "default": true,
+          "description": "%visualforce.format.enable.desc%"
+        },
+        "visualforce.format.wrapLineLength": {
+          "type": "integer",
+          "scope": "resource",
+          "default": 120,
+          "description": "%visualforce.format.wrapLineLength.desc%"
+        },
+        "visualforce.format.unformatted": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "scope": "resource",
+          "default": "",
+          "description": "%visualforce.format.unformatted.desc%"
+        },
+        "visualforce.format.contentUnformatted": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "scope": "resource",
+          "default": "pre,code,textarea",
+          "description": "%visualforce.format.contentUnformatted.desc%"
+        },
+        "visualforce.format.indentInnerHtml": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": false,
+          "description": "%visualforce.format.indentInnervisualforce.desc%"
+        },
+        "visualforce.format.preserveNewLines": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.format.preserveNewLines.desc%"
+        },
+        "visualforce.format.maxPreserveNewLines": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "scope": "resource",
+          "default": null,
+          "description": "%visualforce.format.maxPreserveNewLines.desc%"
+        },
+        "visualforce.format.endWithNewline": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": false,
+          "description": "%visualforce.format.endWithNewline.desc%"
+        },
+        "visualforce.format.extraLiners": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "scope": "resource",
+          "default": "head, body, /html",
+          "description": "%visualforce.format.extraLiners.desc%"
+        },
+        "visualforce.format.wrapAttributes": {
+          "type": "string",
+          "scope": "resource",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "force",
+            "force-aligned",
+            "force-expand-multiline"
+          ],
+          "enumDescriptions": [
+            "%visualforce.format.wrapAttributes.auto%",
+            "%visualforce.format.wrapAttributes.force%",
+            "%visualforce.format.wrapAttributes.forcealign%",
+            "%visualforce.format.wrapAttributes.forcemultiline%"
+          ],
+          "description": "%visualforce.format.wrapAttributes.desc%"
+        },
+        "visualforce.suggest.html5": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.suggest.html5.desc%"
+        },
+        "visualforce.validate.scripts": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.validate.scripts%"
+        },
+        "visualforce.validate.styles": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.validate.styles%"
+        },
+        "visualforce.autoClosingTags": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.autoClosingTags%"
+        },
+        "visualforce.trace.server": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "%visualforce.trace.server.desc%"
+        }
+      }
+    }
+  }
+}
