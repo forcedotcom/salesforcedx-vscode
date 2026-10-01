@@ -1,0 +1,319 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { FileChangeEvent } from '../vscode/fileChangePubSub';
+import { Global, SfProject } from '@salesforce/core';
+import * as Cache from 'effect/Cache';
+import * as Chunk from 'effect/Chunk';
+import * as Data from 'effect/Data';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as PubSub from 'effect/PubSub';
+import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import { normalize } from 'node:path';
+import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
+import { isUriEqualOrWithin } from '../vscode/uriContainment';
+import { toUri } from '../vscode/uriUtils';
+import { WorkspaceService } from '../vscode/workspaceService';
+import { artifactNamespacesEqual, type ArtifactNamespace } from './artifactIdentity';
+import { unknownToErrorCause } from './shared';
+
+export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToResolveSfProjectError>()(
+  'FailedToResolveSfProjectError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
+
+export const setProjectOpenedContext = Effect.fn('setProjectOpenedContext')(function* (
+  previousValue: Ref.Ref<boolean | undefined>,
+  value: boolean,
+  reason: string
+) {
+  const changed = yield* Ref.modify(previousValue, previous =>
+    previous === value ? [false, previous] : [true, value]
+  );
+  yield* Effect.annotateCurrentSpan({ value, reason, changed });
+  if (!changed) return;
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value));
+  yield* Effect.logInfo(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
+});
+
+const resolveSfProject = (fsPath: string) =>
+  Effect.tryPromise({
+    try: () => SfProject.resolve(fsPath),
+    catch: error => {
+      const { cause } = unknownToErrorCause(error);
+      // sfdx-core already produces a complete, user-readable sentence (e.g.
+      // "<path> does not contain a valid Salesforce DX project."); don't re-wrap and double the path.
+      return new FailedToResolveSfProjectError({
+        message: cause.message,
+        cause
+      });
+    }
+  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
+
+// Global cache - created once at module level, not scoped to any consumer
+const globalSfProjectCache = Effect.runSync(
+  Cache.makeWith({
+    capacity: 10,
+    timeToLive: Exit.match({
+      onSuccess: () => Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
+      onFailure: () => Duration.zero
+    }),
+    lookup: resolveSfProject
+  }).pipe(Effect.withSpan('sfProjectCache'))
+);
+
+// Project cache state and its notifications share module-level lifetime so every services API consumer
+// observes the same ordered stream, just as every ProjectService instance uses the same project cache.
+const projectConfigChangePubSub = Effect.runSync(PubSub.sliding<FileChangeEvent>(100));
+
+/** Read-only stream of root sfdx-project.json events published after project cache invalidation. */
+export const projectConfigChanges = Stream.fromPubSub(projectConfigChangePubSub);
+
+/** Internal publisher used by sfProjectFileWatcher after it has invalidated all project caches. */
+export const publishProjectConfigChange = (event: FileChangeEvent) => PubSub.publish(projectConfigChangePubSub, event);
+
+/**
+ * Invalidate the SfProject cache so the next `getSfProject` re-reads sfdx-project.json from disk.
+ *
+ * Two caches must be dropped together:
+ * (1) our `globalSfProjectCache` — per-key invalidate (preserves sibling workspace entries).
+ * (2) `@salesforce/core`'s static `SfProject.instances` Map — `SfProject.resolve` returns the memoized
+ * instance per path, and each instance memoizes its parsed `sfProjectJson` (sfProject.js:468). Without
+ * clearing it, a fresh `globalSfProjectCache` lookup re-resolves the SAME stale instance, so the edited
+ * `sourceApiVersion` is never picked up. `clearInstances()` is the only public API (no per-path delete);
+ * clearing all is safe — siblings simply re-resolve from disk on next use.
+ */
+export const invalidateSfProjectCache = (cacheKey: string) =>
+  globalSfProjectCache.invalidate(cacheKey).pipe(Effect.tap(() => Effect.sync(() => SfProject.clearInstances())));
+
+const TOOLS_DIR = 'tools';
+const TESTRESULTS_DIR = 'testresults';
+const APEX_DIR = 'apex';
+const DEBUG_DIR = 'debug';
+const LOGS_DIR = 'logs';
+const SOBJECTS_DIR = 'sobjects';
+const STANDARDOBJECTS_DIR = 'standardObjects';
+const CUSTOMOBJECTS_DIR = 'customObjects';
+const SOQLMETADATA_DIR = 'soqlMetadata';
+const TYPINGS_SEGMENTS = ['typings', 'lwc', 'sobjects'] as const;
+
+/** Playwright `vscode-test-web` mounts use `vscode-test-web://…`; `uri.fsPath` is `/`, so Node `SfProject.resolve` uses this marker (written by extension E2E headless servers before the web server starts). */
+const readVsCodeTestWebDiskRootMarker = Effect.promise(async (): Promise<string | undefined> => {
+  const folders = vscode.workspace.workspaceFolders;
+  if (!folders?.length || folders[0].uri.scheme !== 'vscode-test-web') {
+    return undefined;
+  }
+  const markerUri = vscode.Uri.joinPath(folders[0].uri, '.vscode', 'vscode-extension-test-disk-root.txt');
+  const { fs } = vscode.workspace;
+  if (typeof fs?.readFile !== 'function') {
+    return undefined;
+  }
+  // Jest may stub `readFile` as a no-op returning undefined; `Promise.resolve` normalizes non-Thenables.
+  return await Promise.resolve(fs.readFile(markerUri)).then(
+    buf => {
+      if (isUndefined(buf)) {
+        return undefined;
+      }
+      const text = Buffer.from(buf).toString('utf8').trim();
+      return text.length > 0 ? text : undefined;
+    },
+    () => undefined
+  );
+}).pipe(Effect.withSpan('readVsCodeTestWebDiskRootMarker'));
+
+/**
+ * Single source of truth for the `globalSfProjectCache` key, shared by `getSfProject` and `sfProjectFileWatcher`.
+ * `vscode-test-web` mounts key by the disk-root marker; desktop/Node keys by the workspace directory fsPath.
+ * @param workspaceDirFsPath the workspace folder fsPath (the directory containing sfdx-project.json)
+ */
+export const sfProjectCacheKey = (workspaceDirFsPath: string) =>
+  Effect.map(readVsCodeTestWebDiskRootMarker, markerPath => markerPath ?? normalize(workspaceDirFsPath));
+
+export const canonicalProjectNamespace = (value: unknown): ArtifactNamespace =>
+  typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+
+export const isWorkspaceNamespaceEligible = (
+  requestedNamespace: ArtifactNamespace,
+  projectNamespace: ArtifactNamespace
+): boolean => artifactNamespacesEqual(requestedNamespace, projectNamespace);
+
+/** VS Code Web test mounts are not readable by Node `SfProject.resolve`; used when resolve fails on the disk key. */
+const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async (): Promise<boolean> => {
+  const folders = vscode.workspace.workspaceFolders;
+  if (!folders?.length) {
+    return false;
+  }
+  const uri = vscode.Uri.joinPath(folders[0].uri, 'sfdx-project.json');
+  const { fs } = vscode.workspace;
+  if (typeof fs?.stat !== 'function') {
+    return false;
+  }
+  return await Promise.resolve(fs.stat(uri)).then(
+    s => isNotUndefined(s) && typeof s === 'object' && 'type' in s && s.type === vscode.FileType.File,
+    () => false
+  );
+}).pipe(Effect.withSpan('workspaceRootSalesforceManifestExistsViaVscodeFs'));
+
+export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
+  accessors: true,
+  dependencies: [WorkspaceService.Default],
+  effect: Effect.gen(function* () {
+    const workspaceService = yield* WorkspaceService;
+    const projectOpenedContext = yield* Ref.make<boolean | undefined>(undefined);
+
+    /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
+    const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
+
+      if (workspaceDescription.isEmpty) {
+        yield* setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty');
+        return false;
+      }
+
+      const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
+
+      return yield* globalSfProjectCache.get(cacheKey).pipe(
+        Effect.tap(() => setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty')),
+        Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')),
+        Effect.map(() => true),
+        Effect.catchTag('FailedToResolveSfProjectError', () =>
+          Effect.gen(function* () {
+            const viaVscodeFs = yield* workspaceRootSalesforceManifestExistsViaVscodeFs;
+            yield* setProjectOpenedContext(projectOpenedContext, viaVscodeFs, 'workspace_non_empty');
+            return viaVscodeFs;
+          })
+        )
+      );
+    });
+
+    /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
+    const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
+      const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
+      const cacheKey = yield* sfProjectCacheKey(workspacePath);
+      const project = yield* globalSfProjectCache
+        .get(cacheKey)
+        .pipe(Effect.tapError(() => setProjectOpenedContext(projectOpenedContext, false, 'workspace_empty')));
+      yield* setProjectOpenedContext(projectOpenedContext, true, 'workspace_non_empty');
+      return project;
+    });
+
+    /** Return the canonical project namespace, or null for an explicitly unnamespaced project. */
+    const getProjectNamespace = Effect.fn('ProjectService.getProjectNamespace')(function* () {
+      const project = yield* getSfProject();
+      return canonicalProjectNamespace(project.getSfProjectJson().getContents().namespace);
+    });
+
+    /** Determine whether an exact artifact namespace is eligible for attribution to this workspace. */
+    const isArtifactNamespaceWorkspaceEligible = Effect.fn('ProjectService.isArtifactNamespaceWorkspaceEligible')(
+      function* (requestedNamespace: ArtifactNamespace) {
+        return isWorkspaceNamespaceEligible(requestedNamespace, yield* getProjectNamespace());
+      }
+    );
+
+    /** Check if a URI is within any package directory */
+    const isInPackageDirectories = Effect.fn('ProjectService.isInPackageDirectories')(function* (uri: URI) {
+      return (
+        (yield* isSalesforceProject()) &&
+        (yield* getSfProject()).getPackageDirectories().some(dir => isUriEqualOrWithin(toUri(dir.fullPath), uri))
+      );
+    });
+
+    /** Fail with NotInPackageDirectoryError if any of the given URIs are outside package directories */
+    const ensureInPackageDirectories = Effect.fn('ProjectService.ensureInPackageDirectories')(function* (uris: URI[]) {
+      const outOfPackage = yield* Stream.fromIterable(uris).pipe(
+        Stream.filterEffect(uri => isInPackageDirectories(uri).pipe(Effect.map(b => !b))),
+        Stream.runCollect
+      );
+      yield* Chunk.isEmpty(outOfPackage)
+        ? Effect.void
+        : new NotInPackageDirectoryError({
+            message: 'Only files in a Salesforce package directory can be used with this command',
+            uris: Chunk.toReadonlyArray(outOfPackage)
+          });
+    });
+
+    const getStateFolder = Effect.fn('ProjectService.getStateFolder')(function* () {
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER);
+    });
+
+    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
+      return Utils.joinPath(yield* getStateFolder(), TOOLS_DIR);
+    });
+
+    const getDebugLogsFolder = Effect.fn('ProjectService.getDebugLogsFolder')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), DEBUG_DIR, LOGS_DIR);
+    });
+
+    const getApexTestResultsFolder = Effect.fn('ProjectService.getApexTestResultsFolder')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), TESTRESULTS_DIR, APEX_DIR);
+    });
+
+    const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR);
+    });
+
+    const getSoqlStandardObjectsPath = Effect.fn('ProjectService.getSoqlStandardObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getSoqlCustomObjectsPath = Effect.fn('ProjectService.getSoqlCustomObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOQLMETADATA_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    const getFauxClassesPath = Effect.fn('ProjectService.getFauxClassesPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR);
+    });
+
+    const getFauxStandardObjectsPath = Effect.fn('ProjectService.getFauxStandardObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
+    });
+
+    const getFauxCustomObjectsPath = Effect.fn('ProjectService.getFauxCustomObjectsPath')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), SOBJECTS_DIR, CUSTOMOBJECTS_DIR);
+    });
+
+    const getTypingsPath = Effect.fn('ProjectService.getTypingsPath')(function* () {
+      const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
+    });
+
+    return {
+      isSalesforceProject,
+      getSfProject,
+      getProjectNamespace,
+      isArtifactNamespaceWorkspaceEligible,
+      projectConfigChanges,
+      isInPackageDirectories,
+      ensureInPackageDirectories,
+      getSoqlMetadataPath,
+      getSoqlStandardObjectsPath,
+      getSoqlCustomObjectsPath,
+      getFauxClassesPath,
+      getFauxStandardObjectsPath,
+      getFauxCustomObjectsPath,
+      getTypingsPath,
+      getStateFolder,
+      getDebugLogsFolder,
+      getApexTestResultsFolder
+    };
+  })
+}) {}
+
+export class NotInPackageDirectoryError extends Data.TaggedError('NotInPackageDirectoryError')<{
+  readonly message: string;
+  readonly uris: readonly URI[];
+}> {}
