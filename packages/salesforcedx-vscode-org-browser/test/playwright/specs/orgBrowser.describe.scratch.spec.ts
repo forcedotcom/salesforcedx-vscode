@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
+import { OrgBrowserPage } from '../pages/orgBrowserPage';
+import {
+  closeWelcomeTabs,
+  createDreamhouseOrg,
+  ensureSecondarySideBarHidden,
+  upsertScratchOrgAuthFieldsToSettings,
+  waitForVSCodeWorkbench
+} from '@salesforce/playwright-vscode-ext';
+
+test.setTimeout(10 * 60 * 1000);
+
+test.beforeEach(async ({ page }) => {
+  const createResult = await createDreamhouseOrg();
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+  await ensureSecondarySideBarHidden(page);
+});
+
+test('Org Browser high-level validation: a few types from describe', async ({ page }) => {
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await orgBrowserPage.openOrgBrowser();
+  await test.step('validate CustomObject', async () => {
+    await orgBrowserPage.findMetadataType('CustomObject');
+  });
+
+  await test.step('validate StaticResource', async () => {
+    // pick a node that will scroll a bit
+    await orgBrowserPage.findMetadataType('StaticResource');
+  });
+
+  const tabType = await orgBrowserPage.findMetadataType('CustomTab');
+
+  await test.step('CustomTab UI (not expanded)', async () => {
+    await tabType.hover();
+    await expect(tabType).toBeVisible();
+    // Expected structure: treeitem at level 1 with toolbar containing both Refresh Type and Retrieve Metadata buttons
+    await expect(tabType).toHaveRole('treeitem');
+    await expect(tabType).toHaveAttribute('aria-level', '1');
+    await expect(tabType.locator('[aria-label="Refresh Type"]')).toBeVisible();
+    await expect(tabType.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
+  });
+});
