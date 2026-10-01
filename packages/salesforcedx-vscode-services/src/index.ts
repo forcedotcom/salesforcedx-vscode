@@ -63,7 +63,7 @@ import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
-import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { ChannelDisposalLayer, ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
@@ -506,6 +506,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       }
     }
     const internalLayers = Layer.mergeAll(
+      ChannelDisposalLayer,
       FileWatcherLayer,
       ServicesSdkLayer(),
       SettingsWatcherLayer,
@@ -609,14 +610,15 @@ export const deactivate = async (): Promise<void> => {
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  // closeExtensionScope disposes output channels, so the goodbye must be written first.
   yield* Effect.log('Salesforce Services extension is now deactivated!').pipe(runOnServicesRuntime);
+  yield* ChannelService.pipe(
+    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
+  );
   // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
   // those fibers touch, so nothing runs against a torn-down service.
   yield* disposeServicesRuntime();
   yield* closeExtensionScope();
-  yield* ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
-  );
 }).pipe(Effect.provide(ChannelService.Default));
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
