@@ -1,0 +1,26 @@
+{
+  "threshold": 0,
+  "reporters": ["console", "json"],
+  "output": "./jscpd-report",
+  "ignore": [
+    "**/node_modules/**",
+    "**/out/**",
+    "**/dist/**",
+    "**/*.d.ts",
+    "**/test/**",
+    "**/jest/**",
+    "**/.wireit/**",
+    "**/.vscode-test/**",
+    "**/.vscode-test-web/**",
+    "**/.vscode-web/**",
+    "**/.worktrees/**",
+    "**/coverage/**",
+    "**/jscpd-report/**",
+    "**/extension/**",
+    "**/salesforcedx-apex-debugger/**",
+    "**/salesforcedx-vscode-apex-debugger/**"
+  ],
+  "minLines": 5,
+  "minTokens": 50,
+  "format": ["typescript"]
+}

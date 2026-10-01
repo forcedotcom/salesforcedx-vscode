@@ -1,0 +1,232 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
+import {
+  AURA_SERVER_READY_NOTIFICATION,
+  isLWC,
+  LIGHTNING_SETTINGS_SECTION
+} from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  ApplyWorkspaceEditRequest,
+  handleApplyEditWithFs
+} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
+import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
+import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
+import * as Effect from 'effect/Effect';
+import { isNone } from 'effect/Option';
+import * as Schema from 'effect/Schema';
+import * as Scope from 'effect/Scope';
+import { log } from 'node:console';
+import * as path from 'node:path';
+import { ExtensionContext, workspace } from 'vscode';
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  RevealOutputChannelOn,
+  ServerOptions,
+  TransportKind
+} from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
+import AuraLspStatusBarItem from './auraLspStatusBarItem';
+import { createAuraAppCommand } from './commands/createAuraApp';
+import { createAuraComponentCommand } from './commands/createAuraComponent';
+import { createAuraEventCommand } from './commands/createAuraEvent';
+import { createAuraInterfaceCommand } from './commands/createAuraInterface';
+import { renameAuraCommand } from './commands/renameAura';
+import { nls } from './messages';
+import { getRuntime, setAllServicesLayer } from './services/extensionProvider';
+
+const getActivationMode = Effect.fn('aura:getActivationMode')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    LIGHTNING_SETTINGS_SECTION,
+    'activationMode',
+    'autodetect'
+  );
+});
+
+const activateCommands = Effect.fn('aura:activateCommands')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* Effect.all(
+    [
+      registerCommand('sf.lightning.generate.app', createAuraAppCommand),
+      registerCommand('sf.lightning.generate.aura.component', createAuraComponentCommand),
+      registerCommand('sf.lightning.generate.event', createAuraEventCommand),
+      registerCommand('sf.lightning.generate.interface', createAuraInterfaceCommand),
+      registerCommand('sf.internal.lightning.generate.app', (sourceUri?: URI) =>
+        createAuraAppCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.aura.component', (sourceUri?: URI) =>
+        createAuraComponentCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.event', (sourceUri?: URI) =>
+        createAuraEventCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.internal.lightning.generate.interface', (sourceUri?: URI) =>
+        createAuraInterfaceCommand(sourceUri, { internal: true })
+      ),
+      registerCommand('sf.lightning.aura.rename', renameAuraCommand)
+    ],
+    { concurrency: 'unbounded' }
+  );
+});
+
+export const activate = async (extensionContext: ExtensionContext) => {
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, 'Aura Components'));
+  await getRuntime().runPromise(activateEffect(extensionContext));
+};
+
+export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightning')(function* (
+  extensionContext: ExtensionContext
+) {
+  // Run our auto detection routine before we activate
+  // 1) If activationMode is off, don't startup no matter what
+  if ((yield* getActivationMode()) === 'off') {
+    log('Aura Language Server activationMode set to off, exiting...');
+    return;
+  }
+
+  // 2) if we have no workspace folders, exit
+  if (!workspace.workspaceFolders) {
+    log('No workspace, exiting extension');
+    return;
+  }
+
+  // Register commands eagerly so they're available even if LSP startup fails
+  const extensionScope = yield* getExtensionScope();
+  yield* activateCommands().pipe(Scope.extend(extensionScope));
+
+  // 3) If activationMode is autodetect or always, check workspaceType before startup
+  const workspaceType = yield* detectWorkspaceType(workspace.workspaceFolders.map(folder => folder.uri.fsPath));
+
+  // Check if we have a valid project structure
+  if ((yield* getActivationMode()) === 'autodetect' && !isLWC(workspaceType)) {
+    // If activationMode === autodetect and we don't have a valid workspace type, exit
+    log(
+      `Aura LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`
+    );
+    return;
+  }
+
+  // Start the Aura Language Server
+  // TODO: derive the path from extensionUri instead of pjson
+  const serverPath = yield* Schema.decodeUnknown(Schema.Struct({ serverPath: Schema.Array(Schema.String) }))(
+    extensionContext.extension.packageJSON
+  ).pipe(
+    Effect.map(decoded => decoded.serverPath),
+    Effect.option
+  );
+  if (isNone(serverPath)) {
+    log('Aura LSP - package.json serverPath is missing, exiting');
+    return;
+  }
+  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath.value));
+
+  // The debug options for the server
+  const debugOptions = {
+    execArgv: ['--nolazy', '--inspect=6020']
+  };
+
+  // If the extension is launched in debug mode then the debug server options are used
+  // Otherwise the run options are used
+  const serverOptions: ServerOptions = {
+    run: { module: serverModule, transport: TransportKind.ipc },
+    debug: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+      options: debugOptions
+    }
+  };
+
+  // Setup our fileSystemWatchers
+  const clientOptions: LanguageClientOptions = {
+    documentSelector: [
+      {
+        language: 'html',
+        scheme: 'file'
+      },
+      {
+        language: 'html',
+        scheme: 'untitled'
+      },
+      { language: 'javascript', scheme: 'file' },
+      { language: 'javascript', scheme: 'untitled' },
+      // Include json and xml to receive onDidOpen events for workspace configuration files
+      { language: 'json', scheme: 'file' },
+      { language: 'xml', scheme: 'file' }
+    ],
+    initializationOptions: {
+      workspaceType
+    },
+    revealOutputChannelOn: RevealOutputChannelOn.Error,
+    synchronize: {
+      fileEvents: [
+        workspace.createFileSystemWatcher('**/*.resource'),
+        workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
+        workspace.createFileSystemWatcher('**/aura/*/*.{cmp,app,intf,evt,js}'),
+        workspace.createFileSystemWatcher('**/components/*/*/*.{cmp,app,intf,evt,lib,js}'),
+        // need to watch for directory deletions as no events are created for contents or deleted directories
+        workspace.createFileSystemWatcher('**/', true, true, false),
+
+        // these need to be handled because we also maintain a lwc index for interop
+        workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
+        workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
+        workspace.createFileSystemWatcher('**/lwc/*/*.js'),
+        workspace.createFileSystemWatcher('**/modules/*/*/*.js')
+      ]
+    }
+  };
+
+  // Create the language client and start the client.
+  const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
+  // Handle workspace/applyEdit by writing via workspace.fs (no IDE open); must register before start()
+  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
+  console.log(`Server module path: ${serverModule}`);
+
+  // Create language status item to show indexing progress
+  const statusBarItem = new AuraLspStatusBarItem();
+  extensionContext.subscriptions.push(statusBarItem);
+
+  // Listen for server ready notification to update status
+  client.onNotification(AURA_SERVER_READY_NOTIFICATION, () => {
+    statusBarItem.ready();
+  });
+  // Register workspace read file handler before start so the server can read files during initialize
+  registerWorkspaceReadFileHandler(client);
+  log('Workspace read file handler registered');
+
+  // Start the language server
+  yield* Effect.promise(async () => {
+    try {
+      await client.start();
+      console.log('Aura Language Server started successfully');
+    } catch (error) {
+      const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
+      log(errorMessage);
+      throw error;
+    }
+  });
+
+  // Push the disposable to the context's subscriptions so that the
+  // client can be deactivated on extension deactivation
+  extensionContext.subscriptions.push(client);
+
+  // finising up with workspace awareness
+  log('Finished with workspace awareness');
+});
+
+export const deactivate = async (): Promise<void> => {
+  console.log('Aura Components Extension Deactivated');
+  await getRuntime().runPromise(closeExtensionScope());
+};
