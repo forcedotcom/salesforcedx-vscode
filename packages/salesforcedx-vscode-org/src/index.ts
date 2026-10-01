@@ -52,13 +52,12 @@ export const activate = (extensionContext: vscode.ExtensionContext): Promise<Sal
 };
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
-  extensionContext: vscode.ExtensionContext
+  _extensionContext: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  // Share the Effect layer's OutputChannel so only one 'Salesforce Org Management' channel exists.
+  // Lifecycle is owned by services (ChannelDisposalLayer); org only borrows the channel.
   const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);

@@ -227,6 +227,13 @@ describe('Extension', () => {
     ];
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = jest.fn();
+    // resetMocks clears the vscode stub, and ChannelDisposalLayer calls dispose() on every cached channel.
+    vscode.window.createOutputChannel = jest.fn(() => ({
+      clear: jest.fn(),
+      appendLine: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn()
+    }));
   });
 
   it('activates with shared services and an external span SDK', async () => {

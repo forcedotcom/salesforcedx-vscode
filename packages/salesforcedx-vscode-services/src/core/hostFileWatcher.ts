@@ -12,7 +12,7 @@ import { isNotUndefined, isString, isTagged } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { URI } from 'vscode-uri';
+import { toUri } from '../vscode/uriUtils';
 import { unknownToErrorCause } from './shared';
 
 export class HostFileNotFoundError extends Schema.TaggedError<HostFileNotFoundError>()('HostFileNotFoundError', {
@@ -48,7 +48,7 @@ const watchHostFile = (filePath: string): Stream.Stream<FileChangeEvent, HostFil
           Stream.map(
             (): FileChangeEvent => ({
               type: 'change',
-              uri: URI.file(filePath)
+              uri: toUri(filePath)
             })
           )
         )

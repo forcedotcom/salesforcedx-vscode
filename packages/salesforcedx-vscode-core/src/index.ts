@@ -61,10 +61,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 ) {
   yield* ensureCurrentWorkingDirIsProjectPath();
 
-  // Dispose the services-owned output channel with the extension context.
+  // Lifecycle is owned by services (ChannelDisposalLayer); core only borrows the channel.
   const servicesApi = yield* getServicesApi;
-  const coreChannel = yield* (yield* servicesApi.services.ChannelService).getChannel;
-  extensionContext.subscriptions.push(coreChannel);
 
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
   void showTelemetryMessage(extensionContext);
