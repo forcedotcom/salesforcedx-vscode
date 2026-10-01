@@ -32,6 +32,10 @@
     "soql": {
       "label": "SOQL",
       "extensions": ["salesforcedx-vscode-soql"]
+    },
+    "soql-notebook": {
+      "label": "SOQL Notebook",
+      "extensions": ["salesforcedx-vscode-soql-notebook"]
     }
   }
 }

@@ -208,7 +208,8 @@
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
         "./packages/drivable-vscode:compile",
-        "./packages/salesforcedx-vscode-apex-log:compile"
+        "./packages/salesforcedx-vscode-apex-log:compile",
+        "./packages/salesforcedx-vscode-soql-notebook:compile"
       ]
     },
     "lint": {
@@ -243,6 +244,7 @@
         "./packages/salesforcedx-vscode-org-browser:lint",
         "./packages/drivable-vscode:lint",
         "./packages/salesforcedx-vscode-apex-log:lint",
+        "./packages/salesforcedx-vscode-soql-notebook:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
         "./packages/salesforcedx-aura-language-server:lint",
@@ -290,6 +292,7 @@
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
+        "./packages/salesforcedx-vscode-soql-notebook:test",
         "./packages/playwright-vscode-ext:test",
         "./packages/effect-ext-utils:test",
         "./packages/effect-octokit:test"
@@ -373,7 +376,8 @@
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
         "./packages/salesforcedx-vscode-apex-log:vscode:bundle",
         "./packages/salesforcedx-vscode-metadata:vscode:bundle",
-        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
+        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle",
+        "./packages/salesforcedx-vscode-soql-notebook:vscode:bundle"
       ]
     },
     "vscode:package:legacy": {

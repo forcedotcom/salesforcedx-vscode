@@ -1,0 +1,34 @@
+.soql-notebook-table {
+  width: 100%;
+}
+
+.soql-notebook-table .tabulator {
+  background: transparent;
+  border: 0;
+}
+
+.soql-notebook-table .tabulator-tableHolder {
+  background: transparent;
+}
+
+.soql-notebook-table:not([data-paginated='true']) .tabulator-tableHolder {
+  overflow: hidden !important;
+}
+
+.soql-notebook-table .tabulator-footer {
+  display: none;
+}
+
+.soql-notebook-table[data-paginated='true'] .tabulator-footer {
+  display: block;
+}
+
+.soql-notebook-stale-banner {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  font-size: 12px;
+  margin: 0 0 6px;
+}
+
+.soql-notebook-table--stale {
+  opacity: 0.45;
+}
