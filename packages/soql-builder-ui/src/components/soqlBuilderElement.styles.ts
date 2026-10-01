@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { css } from 'lit';
+
+export const soqlBuilderElementStyles = css`
+  :host {
+    display: block;
+    max-width: 960px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .content {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(360px, 1fr) minmax(300px, 1fr);
+  }
+
+  .form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .control {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  soql-builder-fields,
+  soql-builder-from,
+  soql-builder-limit {
+    display: contents;
+  }
+
+  soql-builder-fields .input,
+  soql-builder-from .input,
+  soql-builder-limit .input {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  soql-builder-from .required {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    margin-inline-start: 2px;
+  }
+
+  soql-builder-limit .required {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    margin-inline-start: 2px;
+  }
+
+  soql-builder-limit .limit-input {
+    justify-items: start;
+  }
+
+  soql-builder-limit vscode-textfield {
+    width: 8rem;
+  }
+
+  soql-builder-limit .all-rows-input {
+    grid-column: 2;
+  }
+
+  soql-builder-limit .validation-error {
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground, #f48771));
+    font-size: 0.92em;
+  }
+
+  soql-builder-from .status {
+    color: var(--vscode-descriptionForeground, inherit);
+    font-size: 0.92em;
+  }
+
+  soql-builder-fields .status {
+    color: var(--vscode-descriptionForeground, inherit);
+    font-size: 0.92em;
+  }
+
+  .field-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  label,
+  .preview-title {
+    font-weight: 600;
+    padding-top: 4px;
+  }
+
+  vscode-single-select,
+  vscode-multi-select {
+    width: 100%;
+  }
+
+  .preview {
+    min-width: 0;
+  }
+
+  pre {
+    background: var(--vscode-textCodeBlock-background, rgba(10, 10, 10, 0.4));
+    border: 1px solid var(--vscode-widget-border, transparent);
+    color: var(--vscode-editor-foreground, inherit);
+    font-family: var(--vscode-editor-font-family, monospace);
+    margin: 6px 0 0;
+    min-height: 76px;
+    overflow: auto;
+    padding: 12px;
+    white-space: pre-wrap;
+  }
+
+  .warning {
+    background: var(--vscode-inputValidation-warningBackground, #352a05);
+    border: 1px solid var(--vscode-inputValidation-warningBorder, #b89500);
+    color: var(--vscode-inputValidation-warningForeground, inherit);
+    padding: 10px;
+  }
+
+  @media (max-width: 750px) {
+    .content {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
