@@ -1,0 +1,21 @@
+.vscode/**
+.vscode-test/**
+.wireit/**
+out/**
+test/**
+src/**
+**/*.map
+.gitignore
+.circular-deps.json
+.eslintcache
+tsconfig.json
+jest.config.js
+esbuild.config.mjs
+junit*
+node_modules
+dist/*-metafile.json
+coverage
+
+# do not reach outside the package
+../../**
+../**
