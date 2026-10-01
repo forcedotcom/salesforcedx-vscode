@@ -26,7 +26,7 @@ const isCheckGreen = check => {
   return o === 'SUCCESS' || o === 'SKIPPED' || o === 'NEUTRAL';
 };
 
-export const latestChecks = checks => {
+const latestChecks = checks => {
   const byKey = new Map();
   for (const check of checks) {
     const previous = byKey.get(check.key);
