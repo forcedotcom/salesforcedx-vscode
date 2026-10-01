@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { BaseDebuggerCommand } from './baseDebuggerCommand';
+
+export class StepIntoCommand extends BaseDebuggerCommand {
+  constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=into');
+  }
+}
+
+export class StepOutCommand extends BaseDebuggerCommand {
+  constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=out');
+  }
+}
+
+export class StepOverCommand extends BaseDebuggerCommand {
+  constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=over');
+  }
+}

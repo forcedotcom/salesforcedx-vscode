@@ -1,0 +1,131 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { TypeInventory } from './orgCatalogInternalTypes';
+import * as Arr from 'effect/Array';
+import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
+import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
+import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
+import { mergeInventory, projectChildren } from './orgCatalogProjection';
+import { OrgCatalogState } from './orgCatalogState';
+import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
+import {
+  isOrgMetadataComponentReference,
+  OrgMetadataReferenceService,
+  type OrgMetadataComponentReference
+} from './orgMetadataReference';
+
+export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('OrgCatalogInventory', {
+  accessors: true,
+  dependencies: [
+    OrgCatalogState.Default,
+    OrgCatalogWorkspace.Default,
+    OrgMetadataReferenceService.Default,
+    MetadataDescribeService.Default
+  ],
+  effect: Effect.gen(function* () {
+    const [state, workspace, references, metadataDescribeService] = yield* Effect.all([
+      OrgCatalogState,
+      OrgCatalogWorkspace,
+      OrgMetadataReferenceService,
+      MetadataDescribeService
+    ]);
+    const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (orgId: string, xmlName: string) {
+      yield* state.ensureHydrated(orgId);
+      const key = typeCacheKey(orgId, xmlName);
+      const cached = yield* state.getInventory(orgId, xmlName);
+      if (cached?.complete) return cached;
+      const semaphore = yield* state.getInventorySemaphore(key);
+      return yield* Effect.gen(function* () {
+        const coalesced = yield* state.getInventory(orgId, xmlName);
+        if (coalesced?.complete) return coalesced;
+        const restored = yield* state.getPersistedInventory(orgId, xmlName);
+        const listOrgComponents =
+          isNotUndefined(restored) && restored.complete !== false
+            ? Effect.succeed({ components: restored.components, folders: restored.folders })
+            : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
+                Match.when(true, () =>
+                  Effect.gen(function* () {
+                    const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
+                    const folderComponents = yield* Effect.all(
+                      folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
+                      { concurrency: 10 }
+                    );
+                    return { components: folderComponents.flat(), folders };
+                  })
+                ),
+                Match.orElse(() =>
+                  metadataDescribeService
+                    .listMetadata(xmlName, undefined, orgId)
+                    .pipe(Effect.map(components => ({ components, folders: [] })))
+                )
+              );
+        const [orgListing, workspaceInventory] = yield* Effect.all(
+          [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
+          { concurrency: 'unbounded' }
+        );
+        const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
+        const inventory = {
+          observedAt,
+          complete: true,
+          components: yield* mergeInventory({
+            orgId,
+            xmlName,
+            orgComponents: orgListing.components,
+            workspaceUris: workspaceInventory.components,
+            workspaceNamespace: workspaceInventory.namespace,
+            observedAt
+          }).pipe(Effect.provideService(OrgMetadataReferenceService, references)),
+          componentIdentityOrder: Arr.dedupe(
+            orgListing.components.map(component =>
+              componentIdentity(
+                { xmlName, fullName: component.fullName },
+                'namespacePrefix' in component ? (component.namespacePrefix ?? null) : null
+              )
+            )
+          ),
+          folders: HashMap.fromIterable(orgListing.folders.map(folder => [folder.fullName, folder] as const)),
+          folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
+        } satisfies TypeInventory;
+        yield* state.setInventory(orgId, xmlName, inventory);
+        if (!restored) yield* state.queuePersist(orgId);
+        return inventory;
+      }).pipe(semaphore.withPermits(1));
+    });
+
+    const getEntry = Effect.fn('OrgCatalogInventory.getEntry')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      const cached = yield* state.getInventory(orgId, reference.xmlName);
+      const inventory =
+        cached && findInventoryComponent(cached.components, reference)
+          ? cached
+          : yield* loadType(orgId, reference.xmlName);
+      return (
+        findInventoryComponent(inventory.components, reference) ??
+        (yield* projectChildren(
+          orgId,
+          reference.xmlName,
+          reference.fullName.split('/').slice(0, -1).join('/') || undefined,
+          inventory
+        ).pipe(Effect.provideService(OrgMetadataReferenceService, references))).find(
+          entry => isOrgMetadataComponentReference(entry.reference) && entry.reference.fullName === reference.fullName
+        )
+      );
+    });
+
+    const getCachedInventory = Effect.fn('OrgCatalogInventory.getCachedInventory')((orgId: string, xmlName: string) =>
+      state.getInventory(orgId, xmlName)
+    );
+
+    return { getCachedInventory, getEntry, loadType } as const;
+  })
+}) {}

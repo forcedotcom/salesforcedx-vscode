@@ -1,0 +1,62 @@
+name: Changelog body
+
+on:
+  workflow_call:
+    inputs:
+      from:
+        description: Older changelog ref (SHA or tag)
+        required: true
+        type: string
+      to:
+        description: Newer changelog ref (SHA or tag)
+        required: true
+        type: string
+    outputs:
+      body:
+        description: Changelog section body
+        value: ${{ jobs.body.outputs.body }}
+  workflow_dispatch:
+    inputs:
+      from:
+        description: Older changelog ref (SHA or tag)
+        required: true
+        type: string
+      to:
+        description: Newer changelog ref (SHA or tag)
+        required: true
+        type: string
+
+jobs:
+  body:
+    name: Changelog body
+    runs-on: ubuntu-latest
+    outputs:
+      body: ${{ steps.print.outputs.body }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Install changelog body dependencies
+        working-directory: scripts/changelogBody
+        run: npm ci
+      - name: Write changelog body
+        id: print
+        env:
+          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          FROM_REF: ${{ inputs.from }}
+          TO_REF: ${{ inputs.to }}
+        run: |
+          body="$(node scripts/changelogBody/changelogBody.mts "$FROM_REF" "$TO_REF")"
+          printf '%s\n' "$body"
+          delimiter="CHANGELOG_BODY_$(uuidgen)"
+          {
+            echo "body<<${delimiter}"
+            printf '%s\n' "$body"
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
