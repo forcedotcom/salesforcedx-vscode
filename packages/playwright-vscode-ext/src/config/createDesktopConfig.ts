@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { defineConfig } from '@playwright/test';
+
+import { createReporter } from './createReporter';
+
+type DesktopConfigOptions = {
+  /** Test directory relative to the config file (e.g. './specs') */
+  testDir: string;
+  /** Number of parallel workers (default: unset) */
+  workers?: number;
+  /** Run tests in parallel (default: true) */
+  fullyParallel?: boolean;
+  /** Per-test timeout in ms (default: 60_000) */
+  timeout?: number;
+};
+
+/** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
+export const createDesktopConfig = (options: DesktopConfigOptions) => {
+  const workers =
+    options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined);
+  return defineConfig({
+    testDir: options.testDir,
+    // Container specs (`*.container.spec.ts`, under specs/container*) drive a browser against a running
+    // Code Builder container (code-server); they can only run under createContainerConfig. Exclude them
+    // here so a broad `testDir: './specs'` never runs them in the desktop-electron project (they'd hang
+    // waiting on a container URL that isn't up — 60s timeouts in the e2e-desktop CI job).
+    testIgnore: ['**/*.container.spec.ts'],
+    fullyParallel: options.fullyParallel ?? true,
+    forbidOnly: !!process.env.CI,
+    ...(workers ? { workers } : {}),
+    reporter: createReporter('test-results/junit-desktop.xml'),
+    use: {
+      trace: 'on',
+      screenshot: 'on',
+      // win32 file-handle contention slows individual actions; give them more room.
+      actionTimeout: process.platform === 'win32' ? 20_000 : 15_000,
+      viewport: { width: 1920, height: 1080 }
+    },
+    // win32 electron launch + workbench-ready is slower; raise the test-level budget so the page
+    // fixture's setup budget plus the test body both fit. options.timeout wins (?? short-circuits).
+    // process.platform (not isWindowsDesktop()): VSCODE_DESKTOP isn't guaranteed at config-load time.
+    // In CI both modules see it, so budgets match; local win32 without it diverges — fine, win32 is CI-only.
+    timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? (process.platform === 'win32' ? 120_000 : 60_000)),
+    maxFailures: process.env.CI ? 3 : 0,
+    globalSetup: require.resolve('./downloadVSCode'),
+    projects: [
+      {
+        name: 'desktop-electron',
+        // E2E_NO_RETRIES: workflow try-run sets this env var to fail fast on cache miss (missing org/chromium).
+        // Using env var instead of CLI arg preserves wireit cache key. See workflow comments for details.
+        retries: process.env.E2E_NO_RETRIES ? 0 : process.env.CI ? 2 : 0,
+        snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/desktop-{platform}/{arg}{ext}'
+      }
+    ]
+  });
+};

@@ -1,0 +1,1157 @@
+/**
+ * * Copyright (c) 2024, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ **/
+
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import stylistic from '@stylistic/eslint-plugin-ts';
+import tsParser from '@typescript-eslint/parser';
+import globals from 'globals';
+import header from '@tony.ganchev/eslint-plugin-header';
+import eslintPluginImport from 'eslint-plugin-import-x';
+import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
+import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
+import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import eslintPluginJest from 'eslint-plugin-jest';
+import eslintPluginPlaywright from 'eslint-plugin-playwright';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
+import functional from 'eslint-plugin-functional';
+import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
+import effectPlugin from '@effect/eslint-plugin';
+import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
+import jsonPlugin from '@eslint/json';
+
+import htmlEslintPlugin from '@html-eslint/eslint-plugin';
+import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
+
+const localRules = localRulesPlugin.rules;
+const localProcessors = localRulesPlugin.processors;
+const localPlugin = { processors: localProcessors, rules: localRules };
+
+const currentYear = new Date().getFullYear();
+
+const noHrtime = {
+  selector: "MemberExpression[object.name='process'][property.name='hrtime']",
+  message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
+};
+const noInstanceofError = {
+  // keys on the bare identifier `Error`: assumes the global; won't match `ns.Error`
+  // (MemberExpression) and would also fire on a locally-named `Error` — accepted for a nudge.
+  selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
+  message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
+};
+const noNullCompare = {
+  // loose `== null` / `!= null` only (the regex is anchored, so `===`/`!==` don't match)
+  selector: "BinaryExpression[operator=/^[=!]=$/]:matches([left.raw='null'], [right.raw='null'])",
+  message:
+    "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
+};
+
+export default [
+  {
+    ignores: [
+      '**/out/**',
+      '**/dist/**',
+      '**/dist-lit/**',
+      '**/dist-migration/**',
+      '**/.test-dist/**',
+      '**/packages/**/coverage',
+      '**/test-workspaces/**',
+      '**/*.d.ts',
+      '**/jest.config.js',
+      '**/jest.integration.config.js',
+      '**/.wireit/**',
+      '.opencode/**',
+      'packages/salesforcedx-aura-language-server/src/tern/**',
+      'packages/salesforcedx-vscode-lightning/tern/**',
+      'packages/salesforcedx-vscode-lightning/extension/tern/**',
+      'packages/salesforcedx-vscode-lightning/src/resources/**',
+      'test-assets/**',
+      'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
+      // HTML: only SOQL query builder templates use @html-eslint + local i18n rule; silence other *.html
+      '**/*.html',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.html',
+      // Lint *.html and querybuilder/messages/i18n.ts; keep other SOQL webview TS excluded (LWC)
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/*.ts',
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/globals.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts',
+      '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
+      'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
+      'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
+      'packages/soql-common/src/soql-parser.lib/**',
+      'scripts/vsce-bundled-extension.ts',
+      'scripts/reportInstalls.ts',
+      'packages/salesforcedx-lwc-language-server/test/javascript/fixtures/**',
+      'packages/salesforcedx-lightning-lsp-common/src/resources/**',
+      'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
+      '**/.vscode-test-web/**',
+      '**/.vscode-test/**',
+      '**/playwright-report/**',
+      '**/playwright-report/',
+      '**/test-results/**',
+      '**/test-results/'
+    ]
+  },
+  {
+    files: ['**/*.js', '**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      ecmaVersion: 'latest',
+      globals: {
+        ...globals.node
+      }
+    },
+    plugins: {
+      import: eslintPluginImport
+    },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true
+        }
+      ]
+    }
+  },
+  {
+    files: ['**/*.ts', '**/*.mts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        projectService: true,
+        sourceType: 'module',
+        ecmaVersion: 2020,
+        globals: {
+          ...globals.browser
+        }
+      }
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      header: header,
+      import: eslintPluginImport,
+      jsdoc: eslintPluginJsdoc,
+      'jest-formatting': eslintPluginJestFormatting,
+      'prefer-arrow': eslintPluginPreferArrow,
+      '@stylistic/eslint-plugin-ts': stylistic,
+      unicorn: eslintPluginUnicorn,
+      local: localPlugin,
+      'barrel-files': eslintPluginBarrelFiles,
+      functional: functional,
+      workspaces: eslintPluginWorkspaces,
+      effect: effectPlugin
+    },
+    rules: {
+      'local/no-vscode-uri': 'error',
+      'local/no-vscode-show-text-document': 'warn',
+      'local/no-inline-esbuild-platform': 'error',
+      'local/command-must-be-in-package-json': [
+        'error',
+        {
+          ignorePatterns: [
+            // Internal commands not shown in command palette
+            '\\.internal\\.',
+            // Telemetry API exposed for other extensions
+            '\\.get\\.telemetry$',
+            // Called programmatically by pushOrDeployOnSave, not user-facing
+            '^sf\\.deploy\\.multiple\\.source\\.paths$',
+            // Delegate commands invoked by code lens, not command palette
+            '\\.delegate$',
+            // Debug adapter protocol commands
+            '^extension\\.replay-debugger\\.',
+            // Programmatic launch commands
+            '^sf\\.launch\\.',
+            // Internal toggle/config commands
+            '^sf\\.apex\\.toggle\\.',
+            '^sf\\.apex\\.debug\\.document$',
+            '^sf\\.config\\.set$'
+          ]
+        }
+      ],
+      'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-gen-catch-tags': 'error',
+      'local/no-nested-effect-ternary': 'error',
+      'local/require-effect-fn-span-name': 'error',
+      'local/no-raw-duration': 'error',
+      'local/no-duplicate-i18n-values': 'error',
+      'local/no-unused-i18n-messages': 'error',
+      'local/no-vscode-message-literals': 'error',
+      'local/no-vscode-progress-title-literals': 'error',
+      'local/no-vscode-quickpick-description-literals': 'error',
+      'local/no-vscode-validateinput-literals': 'error',
+      'local/no-self-barrel-import': 'error',
+      'local/notification-slot-matches-package-json': 'error',
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
+      'workspaces/no-relative-imports': 'error',
+      'unicorn/consistent-date-clone': 'error',
+      'unicorn/consistent-empty-array-spread': 'error',
+      'unicorn/consistent-function-scoping': 'error',
+      'unicorn/explicit-length-check': 'error',
+      'unicorn/no-array-reverse': 'error',
+      'unicorn/no-array-sort': 'error',
+      'unicorn/no-array-sort-for-min-max': 'error',
+      'unicorn/no-boolean-sort-comparator': 'error',
+      'unicorn/no-chained-comparison': 'error',
+      'unicorn/no-collection-bracket-access': 'error',
+      'unicorn/no-constant-zero-expression': 'error',
+      'unicorn/no-double-comparison': 'error',
+      'unicorn/no-duplicate-if-branches': 'error',
+      'unicorn/no-duplicate-logical-operands': 'error',
+      'unicorn/no-empty-file': 'error',
+      'unicorn/no-immediate-mutation': 'error',
+      'unicorn/no-impossible-length-comparison': 'error',
+      'unicorn/no-instanceof-builtins': 'error',
+      'unicorn/no-invalid-character-comparison': 'error',
+      'unicorn/no-loop-iterable-mutation': 'error',
+      'unicorn/no-single-promise-in-promise-methods': 'error',
+      'unicorn/no-static-only-class': 'error',
+      'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-unnecessary-boolean-comparison': 'error',
+      'unicorn/no-unused-properties': 'error',
+      'unicorn/no-useless-collection-argument': 'error',
+      'unicorn/no-useless-compound-assignment': 'error',
+      'unicorn/no-useless-delete-check': 'error',
+      'unicorn/no-useless-error-capture-stack-trace': 'error',
+      'unicorn/no-useless-fallback-in-spread': 'error',
+      'unicorn/no-useless-iterator-to-array': 'error',
+      'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-logical-operand': 'error',
+      'unicorn/no-useless-promise-resolve-reject': 'error',
+      'unicorn/no-useless-spread': 'error',
+      'unicorn/no-useless-switch-case': 'error',
+      'unicorn/no-xor-as-exponentiation': 'error',
+      'unicorn/numeric-separators-style': 'error',
+      'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-array-flat': 'error',
+      'unicorn/prefer-array-flat-map': 'error',
+      'unicorn/prefer-array-some': 'error',
+      'unicorn/prefer-at': 'error',
+      'unicorn/prefer-boolean-return': 'error',
+      'unicorn/prefer-class-fields': 'error',
+      'unicorn/prefer-date-now': 'error',
+      'unicorn/prefer-export-from': 'error',
+      'unicorn/prefer-flat-math-min-max': 'error',
+      'unicorn/prefer-hoisting-branch-code': 'error',
+      'unicorn/prefer-includes': 'error',
+      'unicorn/prefer-modern-math-apis': 'error',
+      'unicorn/prefer-native-coercion-functions': 'error',
+      'unicorn/prefer-node-protocol': 'error',
+      'unicorn/prefer-object-from-entries': 'error',
+      'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-promise-with-resolvers': 'error',
+      'unicorn/prefer-set-has': 'error',
+      'unicorn/prefer-set-size': 'error',
+      'unicorn/prefer-single-call': 'error',
+      'unicorn/prefer-single-replace': 'error',
+      'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-string-starts-ends-with': 'error',
+      'unicorn/prefer-simple-condition-first': 'error',
+      'unicorn/prefer-structured-clone': 'error',
+      'unicorn/prefer-ternary': ['error'],
+      'unicorn/prefer-url-can-parse': 'error',
+      'unicorn/prefer-while-loop-condition': 'error',
+      'unicorn/filename-case': [
+        'error',
+        {
+          case: 'camelCase',
+          // v68 added directory-name checks; preserve prior file-only behavior
+          checkDirectories: false
+        }
+      ],
+      'header/header': [
+        'error',
+        'block',
+        [
+          '',
+          {
+            pattern: ` \\* Copyright \\(c\\) ${currentYear}, salesforce\\.com, inc\\.`,
+            template: ` * Copyright (c) ${currentYear}, salesforce.com, inc.`
+          },
+          ' * All rights reserved.',
+          ' * Licensed under the BSD 3-Clause license.',
+          ' * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause',
+          ' '
+        ]
+      ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true
+        }
+      ],
+      '@typescript-eslint/adjacent-overload-signatures': 'error',
+      '@typescript-eslint/class-literal-property-style': 'error',
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
+      '@typescript-eslint/no-restricted-types': [
+        'warn',
+        {
+          types: {
+            Object: { message: 'Avoid using the `Object` type. Did you mean `object`?' },
+            Function: {
+              message: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`.'
+            },
+            Boolean: { message: 'Avoid using the `Boolean` type. Did you mean `boolean`?' },
+            Number: { message: 'Avoid using the `Number` type. Did you mean `number`?' },
+            String: { message: 'Avoid using the `String` type. Did you mean `string`?' },
+            Symbol: { message: 'Avoid using the `Symbol` type. Did you mean `symbol`?' }
+          }
+        }
+      ],
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/no-misused-spread': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/prefer-for-of': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
+      'prefer-arrow/prefer-arrow-functions': ['error', {}],
+      '@typescript-eslint/consistent-type-definitions': 'off',
+      '@typescript-eslint/dot-notation': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        { accessibility: 'explicit', overrides: { constructors: 'no-public' } }
+      ],
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@stylistic/eslint-plugin-ts/member-delimiter-style': [
+        'error',
+        {
+          multiline: {
+            delimiter: 'semi',
+            requireLast: true
+          },
+          singleline: {
+            delimiter: 'semi',
+            requireLast: false
+          }
+        }
+      ],
+      '@typescript-eslint/member-ordering': 'off',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'typeLike',
+          format: ['PascalCase']
+        },
+        {
+          selector: 'function',
+          format: ['camelCase']
+        },
+        {
+          selector: 'method',
+          format: ['camelCase'],
+          // Only enforce for class/interface methods, not object literal methods
+          modifiers: ['public', 'protected', 'private']
+        },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          leadingUnderscore: 'allow'
+        },
+        {
+          selector: 'property',
+          format: null,
+          // Properties are very permissive due to external APIs, i18n keys, HTTP headers, etc.
+          // We'll rely on code review for property naming
+          leadingUnderscore: 'allow'
+        }
+      ],
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-empty-interface': 'error',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-misused-new': 'error',
+      '@typescript-eslint/no-namespace': 'off',
+      '@typescript-eslint/no-parameter-properties': 'off',
+      '@typescript-eslint/no-shadow': [
+        'error',
+        {
+          hoist: 'all'
+        }
+      ],
+      '@typescript-eslint/no-use-before-define': 'off',
+      '@typescript-eslint/no-var-requires': 'error',
+      '@typescript-eslint/prefer-function-type': 'error',
+      '@typescript-eslint/prefer-namespace-keyword': 'error',
+      '@stylistic/eslint-plugin-ts/quotes': [
+        'error',
+        'single',
+        {
+          avoidEscape: true
+        }
+      ],
+      '@stylistic/eslint-plugin-ts/semi': ['error', 'always'],
+      '@typescript-eslint/triple-slash-reference': [
+        'error',
+        {
+          path: 'always',
+          types: 'prefer-import',
+          lib: 'always'
+        }
+      ],
+      '@typescript-eslint/typedef': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/unified-signatures': 'error',
+      '@typescript-eslint/restrict-template-expressions': [
+        'warn',
+        {
+          allowNumber: true,
+          allowBoolean: true,
+          allowAny: false,
+          allowNullish: true
+        }
+      ],
+      'arrow-body-style': ['error', 'as-needed'],
+      'arrow-parens': ['error', 'as-needed'],
+      'comma-dangle': 'error',
+      complexity: 'off',
+      'constructor-super': 'error',
+      curly: ['error', 'multi-line'],
+      'dot-notation': 'off',
+      eqeqeq: ['error', 'smart'],
+      'guard-for-in': 'error',
+      'id-denylist': 'error',
+      'id-match': 'error',
+      'import/no-empty-named-blocks': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-cycle': 'error',
+      'import/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'] }
+      ],
+      'import/order': [
+        'error',
+        {
+          alphabetize: {
+            caseInsensitive: true,
+            order: 'asc'
+          },
+          'newlines-between': 'ignore',
+          groups: [['builtin', 'external', 'internal', 'unknown', 'object', 'type'], 'parent', ['sibling', 'index']],
+          distinctGroup: false,
+          pathGroupsExcludedImportTypes: [],
+          pathGroups: [
+            {
+              pattern: './',
+              patternOptions: {
+                nocomment: true,
+                dot: true
+              },
+              group: 'sibling',
+              position: 'before'
+            },
+            {
+              pattern: '.',
+              patternOptions: {
+                nocomment: true,
+                dot: true
+              },
+              group: 'sibling',
+              position: 'before'
+            },
+            {
+              pattern: '..',
+              patternOptions: {
+                nocomment: true,
+                dot: true
+              },
+              group: 'parent',
+              position: 'before'
+            },
+            {
+              pattern: '../',
+              patternOptions: {
+                nocomment: true,
+                dot: true
+              },
+              group: 'parent',
+              position: 'before'
+            }
+          ]
+        }
+      ],
+      'import/no-self-import': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@effect/platform',
+              message:
+                'Import from a submodule (e.g. @effect/platform/FetchHttpClient) instead of the barrel. The barrel pulls in HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake — it bloats bundles ~5.5MB and trips ClamAV scanners, silently breaking OpenVSX publish. See docs/Build.md.'
+            }
+          ],
+          patterns: [
+            {
+              group: ['node:fs', 'fs-extra'],
+              message:
+                "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
+            }
+          ]
+        }
+      ],
+      'jsdoc/check-alignment': 'error',
+      'jsdoc/check-indentation': 'error',
+      'jsdoc/newline-after-description': 'off',
+      'max-classes-per-file': 'off',
+      'max-len': 'off',
+      'new-parens': 'error',
+      'no-bitwise': 'off',
+      'no-caller': 'error',
+      'no-cond-assign': 'error',
+      'no-console': 'off',
+      'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
+      'no-empty': 'off',
+      'no-empty-function': 'off',
+      'no-eval': 'error',
+      'no-fallthrough': 'off',
+      'no-invalid-this': 'off',
+      'no-new-wrappers': 'error',
+      'no-param-reassign': 'error',
+      'no-restricted-syntax': ['error', noHrtime],
+      'no-shadow': 'off',
+      'no-self-assign': 'error',
+      'no-self-compare': 'error',
+      'no-throw-literal': 'error',
+      'no-trailing-spaces': 'error',
+      'no-undef-init': 'error',
+      'no-underscore-dangle': 'off',
+      'no-unsafe-finally': 'error',
+      'no-unused-expressions': 'off',
+      'no-unused-labels': 'error',
+      'no-use-before-define': 'off',
+      'no-useless-catch': 'error',
+      'no-useless-computed-key': 'error',
+      'no-useless-constructor': 'off',
+      'no-useless-return': 'error',
+      '@typescript-eslint/no-useless-constructor': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'one-var': ['error', 'never'],
+      'prefer-arrow/prefer-arrow-functions': ['warn', {}],
+      'prefer-const': 'error',
+      'prefer-object-spread': 'error',
+      'prefer-template': 'error',
+      'quote-props': ['error', 'as-needed'],
+      quotes: 'off',
+      radix: 'error',
+      semi: 'off',
+      'spaced-comment': [
+        'off',
+        'always',
+        {
+          markers: ['/']
+        }
+      ],
+      'use-isnan': 'error',
+      'valid-typeof': 'off'
+    }
+  },
+  {
+    // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
+    // isUndefined/isNull/isNullable guard, all from effect/Predicate.
+    // Scoped to effect-enabled packages only — non-effect packages can't import
+    // effect/Predicate, so applying it there would point at an unimportable API.
+    files: [
+      'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
+      'packages/salesforcedx-lightning-lsp-common/**/*.ts',
+      'packages/salesforcedx-utils-vscode/**/*.ts',
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/**/*.ts',
+      'packages/salesforcedx-vscode-lwc/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services-types/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-builder-ui/**/*.ts',
+      'packages/drivable-vscode/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/**/*.ts'
+    ],
+    ignores: [
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
+      'packages/**/*.spec.ts',
+      'packages/**/*.test.ts',
+      'packages/**/playwright*.ts'
+    ],
+    rules: {
+      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
+    }
+  },
+  {
+    rules: {
+      'guard-for-in': 'warn',
+      'no-prototype-builtins': 'warn',
+      'no-useless-escape': 'warn'
+    }
+  },
+  {
+    files: [
+      'packages/salesforcedx**/test/jest/**/*',
+      'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx**/src/**/__tests__/**/*',
+      'packages/salesforcedx**/src/**/*.spec.ts',
+      'packages/salesforcedx**/src/**/*.test.ts',
+      'packages/salesforcedx**/test/web/**/*',
+      'packages/salesforcedx**/test/playwright/**/*',
+      'packages/salesforcedx-aura-language-server/test/**/*',
+      'packages/salesforcedx-lwc-language-server/test/**/*',
+      'packages/salesforcedx-lightning-lsp-common/test/**/*',
+      'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
+      'packages/soql-model/test/**/*',
+      'packages/salesforcedx-apex/test/**/*',
+      'packages/effect-ext-utils/test/**/*',
+      'packages/effect-octokit/test/**/*',
+      'packages/playwright-vscode-ext/**/*.ts'
+    ],
+    ignores: ['**/locators.ts'],
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      jest: eslintPluginJest,
+      local: localPlugin
+    },
+    rules: {
+      'unicorn/filename-case': 'off',
+      'unicorn/consistent-function-scoping': 'off',
+
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unused-expressions': ['warn', {}],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '.*Mock$|.*Stub$|.*Spy$',
+          args: 'none',
+          argsIgnorePattern: '.*',
+          ignoreRestSiblings: true
+        }
+      ],
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
+      'jest/no-deprecated-functions': 'error',
+      'jest/no-focused-tests': 'error',
+      'jest/prefer-to-have-length': 'error',
+      'jest/no-standalone-expect': 'error',
+      'jest/valid-describe-callback': 'error',
+      'jest/prefer-to-be': 'error',
+      'jest/prefer-to-contain': 'error',
+      'jest/no-test-prefixes': 'error',
+      'jest/no-identical-title': 'error',
+      '@typescript-eslint/no-var-requires': 'off',
+      'no-useless-constructor': 'off',
+      'no-restricted-imports': 'off',
+      'no-param-reassign': 'off',
+      'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    // Playwright tests run in the test-runner/browser, not the extension host, so the
+    // `vscode` module is absent and a runtime import fails. Scoped to playwright-only
+    // dirs (jest/unit tests in the block above legitimately import vscode at runtime).
+    files: ['packages/salesforcedx**/test/playwright/**/*', 'packages/playwright-vscode-ext/**/*.ts'],
+    ignores: ['**/locators.ts'],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-runtime-vscode-import': 'error'
+    }
+  },
+  {
+    // these have extensive copy-paste from an old version of msft language server
+    // this rule requires strict null checks to be enabled and that code does not support it
+    // Also disable for packages that don't have strictNullChecks enabled
+    files: [
+      'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-apex-replay-debugger/**',
+      'packages/salesforcedx-vscode-soql/**',
+      'packages/soql-model/**'
+    ],
+    rules: {
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
+    }
+  },
+  {
+    // history-preserving import of forcedotcom/salesforcedx-apex: the upstream
+    // published library predates the monorepo's stricter style rules. Single
+    // exemption block for the whole package src (test/** relaxed separately above).
+    // Surface shrinks as later refactors (methods->functions, Effect) land.
+    files: ['packages/salesforcedx-apex/**/*.ts'],
+    rules: {
+      // upstream style: avoid restyling imported, history-tracked code
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/no-shadow': 'off',
+      'no-param-reassign': 'off',
+      'no-restricted-imports': 'off',
+      'unicorn/no-array-sort': 'off',
+      'unicorn/prefer-single-call': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'header/header': 'off',
+      'barrel-files/avoid-barrel-files': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      // unfixed type-safety debt: to be resolved by later refactors, not upstream style
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-restricted-types': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-misused-promises': 'off'
+    }
+  },
+  {
+    // Override header rules
+    files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
+    rules: {
+      'header/header': 'off'
+    }
+  },
+  {
+    // Effect-specific rules for new Effect services-based packages
+    // apex-testing is folded in here (8.13 / W-23354498): the same functional set now applies to its src,
+    // and no-loop-statements (below) is enforced across the package.
+    files: [
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
+      'packages/drivable-vscode/**/*.ts',
+      'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
+      'packages/soql-builder-ui/src/domain.ts',
+      'packages/soql-builder-ui/src/effect/**/*.ts',
+      'packages/soql-builder-ui/src/testing/**/*.ts',
+      'packages/salesforcedx-vscode-soql/src/soql-builder-ui/lit/**/*.ts'
+    ],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
+      'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
+      'functional/no-let': 'error',
+      'functional/no-loop-statements': 'error',
+      'functional/prefer-property-signatures': 'error',
+      // let Effect figure it out.  This is especially helpful for Error typings
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
+      'local/no-successive-annotate-current-span': 'error',
+
+      // Effect code should always handle promises properly
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      'class-methods-use-this': 'error',
+      // Effect encourages immutability
+      'prefer-const': 'error',
+      'no-param-reassign': 'error',
+
+      // Allow Effect imports and prefer non-bundled @salesforce/core
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: ['**/test/**', '**/__tests__/**', '**/scripts/**'],
+          // Allow Effect and core Salesforce dependencies
+          optionalDependencies: false
+        }
+      ],
+
+      // Effect code tends to use functional patterns
+      'prefer-arrow/prefer-arrow-functions': [
+        'error',
+        {
+          disallowPrototype: true,
+          singleReturnOnly: false,
+          classPropertiesAllowed: false
+        }
+      ],
+      '@typescript-eslint/no-explicit-any': 'error',
+
+      // Effect uses generators extensively - allow yield*
+      '@typescript-eslint/require-await': 'off',
+
+      // Effect service patterns
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
+    // Only this rule — those packages aren't ready for the full functional/* set above.
+    // The extension-owned LWC source under salesforcedx-vscode-soql/src/soql-builder-ui is globally ignored,
+    // while the independent packages/soql-builder-ui workspace is intentionally enforced here.
+    files: [
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-builder-ui/**/*.ts'
+    ],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
+    }
+  },
+  {
+    // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
+    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-utils (inline to avoid no-duplicate-imports; W-23371027)
+    files: ['packages/salesforcedx-utils/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371047)
+    files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-visualforce (inline to avoid no-duplicate-imports; W-23371049)
+    files: ['packages/salesforcedx-vscode-visualforce/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
+    files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
+    files: ['packages/playwright-vscode-ext/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // class-methods-use-this for packages not yet using Effect
+    // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
+    rules: {
+      'class-methods-use-this': 'error',
+      'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
+      'local/no-successive-annotate-current-span': 'error'
+    }
+  },
+  {
+    // @ExportTaggedError is only for suppressing knip false-positives in packages that don't export errors externally.
+    // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
+    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-export-tagged-error-in-services': 'error',
+      'local/no-vscode-show-text-document': 'off'
+    }
+  },
+  {
+    // Allow top-level src/index.ts files as barrel files (public API exports),
+    // including export-* aggregation of a package's public surface.
+    files: ['packages/**/src/index.ts'],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off'
+    }
+  },
+  {
+    // Legacy packages with pre-existing sub-directory barrels (out of scope for
+    // the no-barrel-files rollout in W-23031858). avoid-re-export-all stays ON.
+    // Cleaning up these barrels is a separate WI.
+    files: [
+      'packages/salesforcedx-apex-debugger/**/*.ts',
+      'packages/salesforcedx-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts'
+    ],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off'
+    }
+  },
+  {
+    // Prevent direct imports from services extension (except in services package itself)
+    // Only applies to src directories, not test directories
+    files: ['packages/**/src/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
+    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
+    // Before the test override so packages/**/test/**/*.ts stays off.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'functional/no-throw-statements': 'error'
+    }
+  },
+  {
+    // Relaxed rules for test files
+    files: [
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
+      'packages/salesforcedx-vscode-services/playwright*.ts',
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts',
+      'packages/salesforcedx-vscode-metadata/playwright*.ts',
+      'packages/salesforcedx-vscode-apex-log/playwright*.ts',
+      'packages/salesforcedx-vscode-lwc/playwright*.ts',
+      'packages/salesforcedx-vscode-core/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-core/playwright*.ts',
+      'packages/salesforcedx-vscode-org/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-org/playwright*.ts',
+      'packages/salesforcedx-vscode-soql/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-soql/playwright*.ts',
+      'packages/salesforcedx-vscode-visualforce/test/playwright/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/playwright*.ts'
+    ],
+    rules: {
+      'local/no-vscode-show-text-document': 'off',
+      // Tests set/delete/save-restore process.env.ESBUILD_PLATFORM as jest setup/teardown plumbing
+      'local/no-inline-esbuild-platform': 'off',
+      // Deactivate import-order for tests to allow for mock-before-import
+      'effect/no-import-from-barrel-package': ['off'],
+
+      // Tests may re-export fixtures / aggregate helpers
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off',
+
+      'import/order': 'off',
+      'functional/no-throw-statements': 'off',
+      'functional/no-try-statements': 'off',
+      'functional/no-let': 'off',
+      'functional/no-loop-statements': 'off',
+      'functional/prefer-property-signatures': 'off',
+      'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/array-type': 'off'
+    }
+  },
+  // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary
+  {
+    files: ['packages/salesforcedx-vscode-i18n/src/hover/**/*.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/array-type': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
+    rules: {
+      'no-restricted-imports': 'off'
+    }
+  },
+  {
+    files: ['scripts/manualTestPlan/test/**/*.mts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off'
+    }
+  },
+  // ESLint plugin rules for eslint-local-rules package only
+  {
+    files: ['packages/eslint-local-rules/src/**/*.ts'],
+    plugins: {
+      'eslint-plugin': eslintPluginEslintPlugin
+    },
+    rules: {
+      ...eslintPluginEslintPlugin.configs.recommended.rules,
+      // Allow node:fs in ESLint plugin (needed for reading i18n files at lint time)
+      'no-restricted-imports': 'off',
+      // Allow type assertions for parser compatibility
+      '@typescript-eslint/consistent-type-assertions': 'off'
+    }
+  },
+  // Ignore test files for eslint-local-rules
+  {
+    ignores: ['packages/eslint-local-rules/test/**']
+  },
+  // Register JSON plugin
+  {
+    plugins: {
+      json: jsonPlugin
+    }
+  },
+  // JSON linting for package.json files
+  {
+    files: ['packages/*/package.json'],
+    language: 'json/json',
+    plugins: {
+      json: jsonPlugin,
+      local: localPlugin
+    },
+    rules: {
+      ...jsonPlugin.configs.recommended.rules,
+      'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
+      'local/package-json-icon-paths': 'error',
+      'local/package-json-command-refs': 'error',
+      'local/package-json-no-default-true': 'error',
+      'local/package-json-no-services-dependency': 'error',
+      'local/package-json-require-root-install': 'error',
+      'local/package-json-view-refs': 'error',
+      'local/package-json-salesforce-dep-versions': 'error'
+    }
+  },
+  {
+    files: ['packages/*/.vscodeignore'],
+    ignores: [],
+    plugins: {
+      local: localPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error',
+      'local/vscodeignore-contributes-conflict': 'error'
+    }
+  },
+  // Core i18n: tighten unused-key detection by clearing the default dynamic-key
+  // pattern (^[A-Z][a-zA-Z0-9]*$). Core has no dynamic key lookup, so any
+  // PascalCase key (e.g., metadata-type labels) added here would be dead.
+  {
+    files: [
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ts',
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ja.ts'
+    ],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-unused-i18n-messages': ['error', { dynamicKeyPatterns: [] }]
+    }
+  },
+  // SOQL Builder LWC templates: unknown i18n.* keys vs querybuilder/messages/i18n.ts (SOQL package only)
+  {
+    ...htmlEslintPlugin.configs['flat/recommended'],
+    files: ['packages/salesforcedx-vscode-soql/src/soql-builder-ui/**/*.html'],
+    plugins: {
+      ...htmlEslintPlugin.configs['flat/recommended'].plugins,
+      local: localPlugin
+    },
+    rules: {
+      'local/query-builder-html-i18n-keys': 'error'
+    }
+  },
+  {
+    // Register eslint-plugin-playwright for the e2e specs. Individual playwright/*
+    // rules are turned on (and their violations fixed) one rule at a time.
+    files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
+    plugins: { playwright: eslintPluginPlaywright },
+    rules: {
+      'playwright/no-force-option': 'error',
+      'playwright/no-conditional-expect': 'error',
+      // Helpers that assert or throw outside test() and do not match the prefix pattern.
+      'playwright/expect-expect': [
+        'error',
+        {
+          assertFunctionPatterns: ['^(assert|expect|verify)'],
+          assertFunctionNames: [
+            'continueDebugSession',
+            'createAuraTemplate',
+            'createVisualforceTemplate',
+            'runRefreshAndVerify',
+            'upsertSettings',
+            'waitForEsrFile',
+            'waitForItem',
+            'waitForJestResults',
+            'waitForLwcLspReady',
+            'waitForNotification',
+            'waitForOutputChannelText',
+            'waitForTab'
+          ]
+        }
+      ]
+    }
+  },
+  eslintConfigPrettier
+];
