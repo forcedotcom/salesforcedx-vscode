@@ -87,9 +87,8 @@ const git = (cwd: string, args: readonly string[]) => {
 const initRepo = (skill: boolean) => {
   const remote = mkdtempSync(join(tmpdir(), 'manual-test-plan-remote-'));
   const cwd = mkdtempSync(join(tmpdir(), 'manual-test-plan-repo-'));
-  git(remote, ['init', '--bare']);
-  git(cwd, ['init']);
-  git(cwd, ['checkout', '-b', 'develop']);
+  git(remote, ['init', '--bare', '-b', 'develop']);
+  git(cwd, ['init', '-b', 'develop']);
   if (skill) {
     const skillDir = join(cwd, '.cursor', 'skills', 'manual-test-plan-judgment');
     mkdirSync(skillDir, { recursive: true });
