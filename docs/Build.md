@@ -1,0 +1,143 @@
+# Build
+
+## Open Source
+
+You should plan to publish your extension in a public, OSS repo. Remember `.vsix` format is basically a zip file and people can inspect your code (and un-minify it) whether it's in a public repo or not, so no secrets are possible.
+
+## Conventions
+
+follow the code structure of this repo
+
+- /src (.ts)
+- /out (compiled source, .js and .d.ts)
+- /dist (bundled source)
+
+Pipeline: src → out (tsc) → dist (esbuild). Shared configs: [scripts/bundling/](../scripts/bundling/).
+
+## Monorepo Management
+
+This repo uses [pnpm](./adr/0022-pnpm-cutover.md) workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
+
+## Versioning
+
+This repo has a consistent version across all extensions and packages. You don't need to do that, we probably stop doing that eventually.
+
+## Bundling
+
+VSCode strongly recommends bundling your code (taking tons of js files and node_modules and outputting a single minified file). This repo uses [esbuild](https://esbuild.github.io/) and you probably should too.
+
+Bundle from compiled (`out/`), not source. Shared configs: [node.mjs](../scripts/bundling/node.mjs), [web.mjs](../scripts/bundling/web.mjs). Desktop: `dist/index.js`. **Web:** `dist/web/index.js`; use `commonConfigBrowser` from web.mjs.
+
+**Effect imports:** Prefer deep namespace imports from `@effect/platform` (e.g., `import * as FetchHttpClient from '@effect/platform/FetchHttpClient'`) over barrel imports (`import { FetchHttpClient } from '@effect/platform'`). Barrel imports bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake, bloating bundles ~5.5MB. See [effect-best-practices skill](../.claude/skills/effect-best-practices/SKILL.md).
+
+When you add a dependency, run the bundling process to make sure that your dep is bundleable. If your extension is desktop-only, you **can** put unbundleable dependencies in `external` property of the esbuild config which tells esbuild to not bundle that (ship it "as is" in node_modules). This can make extensions really big, and **is not possible at all on the web.** If you want your extension to work on the web, you'll have to bundle all the dependencies.
+
+**Web only:** `external: ['vscode']` — no other externals; web cannot ship unbundled node_modules.
+
+**Web:** [esbuild-plugin-copy](https://www.npmjs.com/package/esbuild-plugin-copy) for static assets; `globbyOptions: { dot: true }` when copying templates with dot files.
+
+**Web:** Manifest for extension assets — `vscode.workspace.fs.readDirectory` unsupported on HTTPS extension URIs. Build-time manifest (e.g. services `generateTemplatesManifest`) + runtime `readFile` per path. Services manifest is filtered to web-creatable template categories (apexclass, apextrigger, lightningcomponent/lwc, analytics, visualforcepage, visualforcecomponent; desktop ignores manifest and reads all ~435 files from disk). File copy runs concurrently (`Stream.mapEffect` `{ concurrency }`). Template hydration runs once on success and concurrent callers await it (1-permit semaphore + `Ref` flag, so a failure retries); templates root memoized (`Effect.cached`). See [templateService.ts](../packages/salesforcedx-vscode-services/src/core/templateService.ts).
+
+**ESBUILD_PLATFORM:** Bundle-time define (web.mjs injects `'web'` or `'node'`). Not a runtime check — value baked in at bundle; dead *calls* fold. tsc's top-level CJS `require` of a static import survives (`spans.ts` → `spansNode`). Node-only modules: `import()` inside the node branch so web never follows them (`servicesLayers.ts` → `crossSpawnCommandExecutor`; LWC testSupport; visualforce javascriptMode). Node esbuild: `supported['dynamic-import']` (lwcServer, services). Examples: [connectionService](../packages/salesforcedx-vscode-services/src/core/connectionService.ts), [templateService](../packages/salesforcedx-vscode-services/src/core/templateService.ts), [soql LSP client](../packages/salesforcedx-vscode-soql/src/lspClient/client.ts).
+
+You can do this in libraries, too, to have their bundled version add or drop web-specific code. Example: [sfdx-core fs.ts](https://github.com/forcedotcom/sfdx-core/blob/main/src/fs/fs.ts) (web vs node branching), [scripts/build.mjs](https://github.com/forcedotcom/sfdx-core/blob/main/scripts/build.mjs) (bundle-time `define`).
+
+**Polyfills:** [web.mjs](../scripts/bundling/web.mjs) provides process, buffer, fs, path, crypto, etc. Prefer existing polyfills. If new deps need polyfills, add in your esbuild config.
+
+## package.json
+
+**Entry points**
+
+- `main`: desktop, `dist/index.js`
+- `browser`: **web only**, `dist/web/index.js` — VSCode web host uses this instead of main. See [VSCode web extensions](https://code.visualstudio.com/api/extension-guides/web-extensions).
+- `types`: when another package/extension has this as a devDependency and imports its API, point to `out/src/index.d.ts` so TypeScript can resolve types
+
+**activationEvents**
+
+Prefer specific over greedy (`*`). **Web/virtual FS:** `workspaceContains:sfdx-project.json` does not trigger for memfs workspaces even after fs init. Add `onFileSystem:memfs` for web. Example: metadata uses both.
+
+**run:web script**
+
+Invokes `vscode-test-web` with `extensionDevelopmentPath` and `extensionPath`. Both load from built `dist/` (not vsix). Use --watch for hot reload (will restart server).
+
+- `extensionDevelopmentPath`: the one extension you're developing — gets debug.
+- `extensionPath`: extension dependencies — loaded as installed extensions. Only one dev extension; the rest go here.
+- Each package's run:web differs by which extension is dev vs path (e.g. org-browser: dev=self, path=services,metadata).
+- `vscode:bundle:local` (used by run:web): injects settings/org credentials. See [QA](./QA.md).
+
+**Adding run:web to a package**
+
+1. Add `"run:web": "wireit"` to scripts.
+2. Add wireit config. Example (org-browser developing self, services + metadata as deps):
+
+```json
+"run:web": {
+  "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+  "service": true,
+  "dependencies": [
+    "vscode:bundle:local",
+    "../salesforcedx-vscode-services:vscode:bundle:local",
+    "../salesforcedx-vscode-metadata:vscode:bundle:local"
+  ],
+  "files": []
+}
+```
+
+- `extensionDevelopmentPath .` = this package (dev). Paths relative to package dir.
+- `--extensionPath ../pkg-name` — repeat for each extension dependency. Order can matter for activation.
+- Wireit deps: `vscode:bundle:local` for self + each extension in extensionPath (enables settings/org injection).
+
+**commonConfigBrowser usage**
+
+Import and spread in esbuild config. Override entryPoints, outdir, plugins as needed:
+
+```javascript
+import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+
+const browserBuild = await build({
+  ...commonConfigBrowser,
+  external: ['vscode'],
+  entryPoints: ['./out/src/index.js'],
+  outdir: './dist/web',
+  metafile: true // hand this file to https://esbuild.github.io/analyze/ to check your bundling
+});
+```
+
+Examples: [org-browser](../packages/salesforcedx-vscode-org-browser/esbuild.config.mjs), [services](../packages/salesforcedx-vscode-services/esbuild.config.mjs).
+
+## Package
+
+You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
+
+**.vscodeignore:** exclude out/, src/, test/, **/\*.map, build configs, `../../**`, `../\*\*`. **Web extensions** require `scripts/**` and `docs/**` patterns. For `node_modules` handling, follow each package's lint/profile configuration (including any ESLint exceptions) instead of forcing one pattern across all extensions. Examples: [services](../packages/salesforcedx-vscode-services/.vscodeignore), [soql](../packages/salesforcedx-vscode-soql/.vscodeignore), [lwc](../packages/salesforcedx-vscode-lwc/.vscodeignore).
+
+**Resources (principle):** Anchor all runtime resource resolution at the extension root (where package.json lives). Use `extensionContext.extensionUri` + `Utils.joinPath` — never `__dirname` or paths relative to the entry file. That way it doesn't matter whether the entry is `dist/index.js` or `dist/web/index.js`; the extension root is the same. `asAbsolutePath` for Node-only paths (e.g. LSP server module) — **desktop only.**
+
+**Webview resources:** HTML in webviews must use `webview.asWebviewUri()` for script/style/img; CSP meta with `webview.cspSource`. Other dist assets (Worker, workspace.fs) don't need this.
+
+**vscode:package**
+
+**Good:** `vsce package --allow-package-all-secrets --no-dependencies`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
+
+- downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
+
+**Legacy:** `ts-node scripts/vsce-bundled-extension.ts`; uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Logs vsce commands (only public flags, no tokens/secrets); Example: [core](../packages/salesforcedx-vscode-core/package.json).
+
+Prefer the modern approach: parallel execution, no package-time mutation, simplicity.
+
+This will generate vsix. Use those for manual QA and for your end-to-end tests to prevent "works on my machine" but some bundling/packaging configuration messes it up.
+
+## Checksums & Artifacts
+
+**Checksum generation:** The shared `vscode-publish-extensions.yml` workflow generates MD5 checksums for vsix files and publishes them to GitHub releases (via `SHA256.md` and `SHA256` files). JSON construction uses `jq` with proper error handling — if `jq` fails, workflow exits with error rather than silently continuing.
+
+**Artifact retention:** Nightly builds retain artifacts for 30 days (vs. 5 days for PR builds). Raises retention to allow prerelease promotion workflows to access the build artifacts for stability verification.
+
+## Publish
+
+To publish, you'll need a publish token shared with your repo. At a minimum, you'll want to publish your extension to Microsoft's vscode marketplace. We also publish extensions to the [openVsx](https://open-vsx.org/) registry.
+
+## See Also
+
+- [Testing](./Testing.md) - use vsix packages for e2e tests
+- [contributing/publishing.md](../contributing/publishing.md) - detailed publishing process for this repo

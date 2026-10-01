@@ -1,0 +1,900 @@
+{
+  "name": "salesforcedx-vscode-metadata",
+  "private": true,
+  "displayName": "Salesforce Metadata",
+  "description": "Metadata operations for Salesforce development",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeBundle.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "67.27.0",
+  "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
+  "productFeatureId": "aJCEE0000000mLm4AI",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "effect": "^3.21.2",
+    "@salesforce/vscode-i18n": "*",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/templates": "^66.14.0",
+    "@salesforce/source-deploy-retrieve": "^13.2.0",
+    "@salesforce/source-tracking": "^8.0.0",
+    "@salesforce/types": "^1.8.0",
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-services": "*"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "vscode:bundle": "wireit",
+    "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:conflicts": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:web --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-metadata test:desktop --debug",
+    "test:desktop:conflicts": "wireit",
+    "test:e2e": "wireit",
+    "vscode:package": "wireit",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "check:circular-deps": "wireit",
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "test": "wireit",
+    "test:compile": "wireit",
+    "vscode:package:prerelease": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json",
+        "package.nls*.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "package.json"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle:local",
+        "../salesforcedx-vscode-apex-log:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "out/**",
+        "package.json"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        ".vscodeignore"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls.json",
+        "package.nls.ja.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "test:web": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts --project=parallel",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts --project=parallel",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-lwc:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:web:conflicts": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts --project=conflicts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:desktop:conflicts": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts --project=conflicts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web",
+        "test:desktop"
+      ]
+    },
+    "run:web": {
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle:local",
+        "../salesforcedx-vscode-org-browser:vscode:bundle:local",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "test/playwright/**/*.ts"
+      ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls.json",
+        "package.nls.ja.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    }
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "onFileSystem:memfs"
+  ],
+  "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforce-conflicts",
+          "title": "%conflicts_view_title_text%",
+          "icon": "resources/issues.svg"
+        }
+      ]
+    },
+    "views": {
+      "salesforce-conflicts": [
+        {
+          "id": "conflicts",
+          "name": "%conflicts_view_title_text%",
+          "when": "sf:project_opened && sf:has_target_org"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "conflicts",
+        "contents": "%conflicts_view_welcome_message%"
+      }
+    ],
+    "languages": [
+      {
+        "id": "forcesourcemanifest",
+        "aliases": [
+          "ForceSourceManifest",
+          "forcesourcemanifest"
+        ],
+        "filenamePatterns": [
+          "**/manifest/**/*.xml",
+          "**/*[Pp]ackage.xml"
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": {
+          "type": "boolean",
+          "default": false,
+          "description": "%ignore_conflicts_on_push_description%"
+        },
+        "salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve": {
+          "type": "boolean",
+          "default": false,
+          "description": "%conflict_detection_enabled_description%"
+        },
+        "salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "%source_tracking_enable_conflict_detection_description%"
+        },
+        "salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "description": "%source_tracking_polling_interval_description%"
+        },
+        "salesforcedx-vscode-metadata.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-metadata.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SFDX: Deploy This Source to Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_deploy_this_source_description%"
+            },
+            "SFDX: Retrieve This Source from Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_retrieve_this_source_description%"
+            },
+            "SFDX: Push Source to Default Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_push_source_description%"
+            },
+            "SFDX: Pull Source from Default Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_pull_source_description%"
+            },
+            "SFDX: Deploy Source in Manifest to Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_deploy_source_in_manifest_description%"
+            },
+            "SFDX: Retrieve Source in Manifest from Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_retrieve_source_in_manifest_description%"
+            },
+            "SFDX: Delete from Project and Org": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_delete_from_project_and_org_description%"
+            },
+            "SFDX: Diff Source Against Org": {
+              "type": "string",
+              "enum": [
+                "progressToast",
+                "progressStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
+              ],
+              "description": "%notifications_diff_source_description%"
+            },
+            "Deploy on Save": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_deploy_on_save_description%"
+            },
+            "SFDX: Install Package": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_install_package_description%"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.conflict.diff",
+          "when": "never"
+        },
+        {
+          "command": "sf.conflict.open",
+          "when": "never"
+        },
+        {
+          "command": "sf.project.generate",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.agent.generate.project",
+          "when": "false"
+        },
+        {
+          "command": "sf.nativemobile.generate.project",
+          "when": "false"
+        },
+        {
+          "command": "sf.project.generate.with.manifest",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.internal.refreshsobjects",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.metadata.source.diff",
+          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        },
+        {
+          "command": "sf.metadata.project.deploy.start",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.project.deploy.start.ignore.conflicts",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.project.retrieve.start",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.view.all.changes",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.view.conflicts",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.view.local.changes",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.view.remote.changes",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.source.tracking.reset.remote",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.delete.source",
+          "when": "never"
+        },
+        {
+          "command": "sf.metadata.delete.source.current.file",
+          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.source.path",
+          "when": "never"
+        },
+        {
+          "command": "sf.metadata.deploy.active.editor",
+          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.retrieve.start.ignore.conflicts",
+          "when": "sf:target_org_has_change_tracking"
+        },
+        {
+          "command": "sf.metadata.retrieve.source.path",
+          "when": "never"
+        },
+        {
+          "command": "sf.metadata.retrieve.current.source.file",
+          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        },
+        {
+          "command": "sf.metadata.retrieve.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.generate.manifest",
+          "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.analytics.generate.template",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.metadata.project.info",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.package.install",
+          "when": "sf:project_opened && sf:has_target_org"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.metadata.delete.source",
+          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.source.path",
+          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.retrieve.source.path",
+          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        },
+        {
+          "command": "sf.metadata.retrieve.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.generate.manifest",
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.source.diff",
+          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.metadata.delete.source",
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.source.path",
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+        },
+        {
+          "command": "sf.metadata.deploy.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.retrieve.source.path",
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.retrieve.in.manifest",
+          "when": "sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.project.generate.manifest",
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.metadata.source.diff",
+          "when": "sf:has_target_org && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.analytics.generate.template",
+          "when": "explorerResourceIsFolder && resourcePath =~ /waveTemplates/ && sf:project_opened"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sf.conflict.diff",
+          "when": "view == conflicts && viewItem == conflict-actions",
+          "group": "inline"
+        },
+        {
+          "command": "sf.conflict.open",
+          "when": "view == conflicts && viewItem == conflict-actions",
+          "group": "inline"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sf.metadata.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
+      },
+      {
+        "command": "sf.metadata.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
+      },
+      {
+        "command": "sf.metadata.project.retrieve.start",
+        "title": "%project_retrieve_start_default_org_text%"
+      },
+      {
+        "command": "sf.conflict.diff",
+        "title": "%conflict_detect_diff_command_title%"
+      },
+      {
+        "command": "sf.conflict.open",
+        "title": "%conflict_detect_open_file%",
+        "icon": {
+          "light": "resources/light/go-to-file.svg",
+          "dark": "resources/dark/go-to-file.svg"
+        }
+      },
+      {
+        "command": "sf.project.generate",
+        "title": "%project_generate_text%"
+      },
+      {
+        "command": "sf.agent.generate.project",
+        "title": "%agent_generate_project_text%"
+      },
+      {
+        "command": "sf.nativemobile.generate.project",
+        "title": "%nativemobile_generate_project_text%"
+      },
+      {
+        "command": "sf.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
+      },
+      {
+        "command": "sf.metadata.view.all.changes",
+        "title": "%view_all_changes_text%"
+      },
+      {
+        "command": "sf.metadata.view.conflicts",
+        "title": "%conflicts_view_title_text%"
+      },
+      {
+        "command": "sf.metadata.view.local.changes",
+        "title": "%view_local_changes_text%"
+      },
+      {
+        "command": "sf.metadata.view.remote.changes",
+        "title": "%view_remote_changes_text%"
+      },
+      {
+        "command": "sf.metadata.source.tracking.reset.remote",
+        "title": "%reset_remote_tracking_text%"
+      },
+      {
+        "command": "sf.metadata.delete.source",
+        "title": "%delete_source_text%"
+      },
+      {
+        "command": "sf.metadata.delete.source.current.file",
+        "title": "%delete_source_text%"
+      },
+      {
+        "command": "sf.metadata.deploy.source.path",
+        "title": "%deploy_this_source_text%"
+      },
+      {
+        "command": "sf.metadata.deploy.in.manifest",
+        "title": "%deploy_in_manifest_text%"
+      },
+      {
+        "command": "sf.metadata.deploy.active.editor",
+        "title": "%deploy_this_source_text%"
+      },
+      {
+        "command": "sf.metadata.project.retrieve.start.ignore.conflicts",
+        "title": "%project_retrieve_start_ignore_conflicts_default_org_text%"
+      },
+      {
+        "command": "sf.metadata.retrieve.source.path",
+        "title": "%retrieve_this_source_text%"
+      },
+      {
+        "command": "sf.metadata.retrieve.current.source.file",
+        "title": "%retrieve_this_source_text%"
+      },
+      {
+        "command": "sf.metadata.retrieve.in.manifest",
+        "title": "%retrieve_in_manifest_text%"
+      },
+      {
+        "command": "sf.metadata.project.generate.manifest",
+        "title": "%project_generate_manifest_text%"
+      },
+      {
+        "command": "sf.analytics.generate.template",
+        "title": "%analytics_generate_template_text%"
+      },
+      {
+        "command": "sf.metadata.source.diff",
+        "title": "%diff_source_against_org_text%"
+      },
+      {
+        "command": "sf.internal.refreshsobjects",
+        "title": "%sobjects_refresh%"
+      },
+      {
+        "command": "sf.metadata.project.info",
+        "title": "%project_info_text%"
+      },
+      {
+        "command": "sf.package.install",
+        "title": "%package_install_text%"
+      }
+    ]
+  }
+}

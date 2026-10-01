@@ -1,0 +1,163 @@
+{
+  "version": "2.0.0",
+  "problemMatcher": "$tsc-watch",
+  "tasks": [
+    {
+      "label": "Bootstrap",
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "shared"
+      },
+      "args": ["run", "bootstrap"],
+      "isBackground": false
+    },
+    {
+      "label": "Clean",
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "shared"
+      },
+      "args": ["run", "clean"],
+      "isBackground": false
+    },
+    {
+      "label": "Commit",
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": true,
+        "panel": "shared"
+      },
+      "args": ["run", "commit"],
+      "isBackground": false
+    },
+    {
+      "label": "Compile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "compile"],
+      "isBackground": false,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 2,
+          "line": 3,
+          "severity": 5,
+          "code": 6,
+          "message": 7
+        }
+      }
+    },
+    {
+      "label": "Compile and Bundle",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "pnpm",
+      "type": "shell",
+      "options": {
+        "env": {
+          "DEBUG_BUNDLE": "1"
+        }
+      },
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "vscode:bundle"],
+      "isBackground": false,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 2,
+          "line": 3,
+          "severity": 5,
+          "code": 6,
+          "message": 7
+        }
+      }
+    },
+    {
+      "label": "Lint",
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "lint"],
+      "isBackground": false
+    },
+    {
+      "label": "Build Language Server Jar (Jorje)",
+      "command": "./scripts/build-jorje.js",
+      "type": "shell",
+      "args": ["${input:needSigning}"]
+    },
+    {
+      "label": "Update Change Log",
+      "command": "pnpm changelog ${input:releaseOverride}",
+      "type": "shell"
+    },
+    {
+      "label": "Watch",
+      "command": "pnpm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "watch"],
+      "isBackground": false,
+      "problemMatcher": "$tsc-watch"
+    },
+    {
+      "label": "Start Grafana LGTM",
+      "type": "shell",
+      "command": "docker inspect --format='{{.State.Running}}' lgtm 2>/dev/null | grep -q true || docker start lgtm 2>/dev/null || docker run -d --name lgtm -p 3000:3000 -p 3100:3100 -p 3200:3200 -p 4317:4317 -p 4318:4318 grafana/otel-lgtm",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Grafana and Bundle",
+      "dependsOn": ["Start Grafana LGTM", "Compile and Bundle"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "needSigning",
+      "type": "pickString",
+      "description": "Are you publishing Jorje changes? (Need Signed Jar)",
+      "options": ["false", "true"],
+      "default": "false"
+    },
+    {
+      "id": "releaseOverride",
+      "type": "promptString",
+      "description": "(Optional) Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 57.13.1)"
+    }
+  ]
+}

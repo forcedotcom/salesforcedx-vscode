@@ -1,0 +1,61 @@
+<!--
+  Copyright (c) 2020, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ -->
+
+<template>
+  <div class="section-container">
+    <div class="section_label-container">
+      <label
+        >{i18n.label_order_by}
+        <template if:true={hasError}
+          ><span class="text-color-required" data-el-has-error
+            >*</span
+          ></template
+        ></label
+      >
+    </div>
+    <div class="section_selection-container">
+      <querybuilder-custom-select
+        is-loading={isLoading}
+        all-options={orderByFields}
+        placeholder-text={selectPlaceHolderText}
+      ></querybuilder-custom-select>
+      <div class="group-orderby-modifiers">
+        <span class="group-orderby-order">
+          <select id="orderby-order" name="orderby-order" data-el-orderby-order>
+            <option value="" class="placeholder" selected>{i18n.placeholder_direction}</option>
+            <option value="ASC">{i18n.label_ascending}</option>
+            <option value="DESC">{i18n.label_descending}</option>
+          </select></span
+        >
+        <span class="group-orderby-nulls">
+          <select id="orderby-nulls" name="orderby-nulls" data-el-orderby-nulls>
+            <option value="" class="placeholder" selected>{i18n.placeholder_nulls}</option>
+            <option value="NULLS FIRST">{i18n.label_nulls_first}</option>
+            <option value="NULLS LAST">{i18n.label_nulls_last}</option>
+          </select>
+        </span>
+        <button onclick={handleOrderBySelected} data-el-add-button>{i18n.action_add}</button>
+      </div>
+
+      <div class="selected-fields-container">
+        <template for:each={selectedOrderByFields} for:item="field">
+          <div class="selected-field" key={field.field}>
+            {field.field} {field.order} {field.nulls}
+            <span
+              class="pointer delete-trigger"
+              onclick={handleOrderByRemoved}
+              data-field={field.field}
+            >
+              X
+            </span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
