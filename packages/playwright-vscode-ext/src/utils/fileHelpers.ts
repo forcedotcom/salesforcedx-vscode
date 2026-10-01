@@ -1,0 +1,485 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { expect, type Page } from '@playwright/test';
+import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
+import { createLogoutTestOrg, createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
+import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
+import {
+  focusOnFilesExplorer,
+  goToFile,
+  goToLineColumn,
+  newUntitledTextFile,
+  saveFile,
+  selectAll
+} from '../pages/nativeCommands';
+import {
+  clearOutputChannel,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText
+} from '../pages/outputChannel';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
+import { saveScreenshot } from '../shared/screenshotUtils';
+import { focusMonacoInput } from './focusMonacoInput';
+import {
+  closeSettingsTab,
+  closeWelcomeTabs,
+  escapeRegExp,
+  isDesktop,
+  selectFirstQuickInputOption,
+  waitForVSCodeWorkbench,
+  waitForQuickInputFirstOption
+} from './helpers';
+import {
+  DIRTY_EDITOR,
+  EDITOR_WITH_URI,
+  NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
+  WORKBENCH
+} from './locators';
+import { activeQuickInputWidget, waitForActiveQuickInputTextField } from './quickInput';
+import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
+
+/** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
+const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
+
+/**
+ * Creates a new untitled file with contents.
+ * NOTE: This creates an UNTITLED file that is NOT saved to disk.
+ * For tests that need actual files on disk, use createApexClass or similar extension commands.
+ * The filePath parameter is currently unused - file remains as Untitled-N.
+ */
+export const createFileWithContents = async (page: Page, _filePath: string, contents: string): Promise<void> => {
+  await page.locator(WORKBENCH).click();
+
+  // Create a new untitled file
+  await newUntitledTextFile(page);
+
+  // Wait for command palette to close first
+  const widget = activeQuickInputWidget(page);
+  await widget.waitFor({ state: 'hidden', timeout: 5000 });
+
+  // Wait for the editor to open - wait for attachment first, then visibility
+  // Use expect().toBeAttached() for better error messages and retry logic
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await expect(editor).toBeAttached({ timeout: 15_000 });
+  await expect(editor).toBeVisible({ timeout: 15_000 });
+  await editor.click();
+
+  // Type the file contents
+  await page.keyboard.type(contents);
+
+  // Note: We don't save the file to avoid filesystem/native dialog issues in web
+  // The file remains as an untitled file which works identically in web and desktop
+};
+
+/** Creates a new Apex class using the SFDX: Create Apex Class command */
+export const createApexClass = async (page: Page, className: string, content?: string): Promise<void> => {
+  // Close Settings tab to avoid focus issues
+  await closeSettingsTab(page);
+  await closeWelcomeTabs(page);
+
+  // Wait for the extension to load and register the command
+  await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+
+  await executeCommandWithCommandPalette(page, 'SFDX: Create Apex Class');
+
+  // First prompt: Quick Pick to select template (DefaultApexClass).
+  // selectFirstQuickInputOption handles the cross-platform commit flakiness (see helper docs).
+  // confirmCommitted waits for the next prompt; helper falls back to Enter if not committed.
+  const quickInput = activeQuickInputWidget(page);
+  const classNamePrompt = quickInput.getByText(/Enter Apex class name/i);
+  await selectFirstQuickInputOption(page, {
+    confirmCommitted: () =>
+      classNamePrompt
+        .isVisible()
+        .then(v => v)
+        .catch(() => false)
+  });
+  await classNamePrompt.waitFor({ state: 'visible', timeout: 30_000 });
+  await page.keyboard.type(className);
+  await page.keyboard.press('Enter');
+
+  // Third prompt: Quick Pick to select output directory (default dir is first).
+  // Use the editor opening as the commit signal (extension writes a template and opens it).
+  // Target by filename: .first() can select the wrong tab when multiple editors are open (e.g. create
+  // ExampleApexClass then ExampleApexClassTest — leftmost tab stays first, so we'd paste into wrong file).
+  const fileName = `${className}.cls`;
+  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
+  await selectFirstQuickInputOption(page, {
+    confirmCommitted: () =>
+      editor
+        .first()
+        .isVisible()
+        .then(v => v)
+        .catch(() => false),
+    commitTimeout: 5000
+  });
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+
+  // If content is provided, replace the template with it and save (so the file is on disk and deployable)
+  if (content !== undefined && content.length > 0) {
+    // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
+    await ensureSecondarySideBarHidden(page);
+    await disableMonacoAutoClosing(page);
+
+    // Click activates this editor group so Select All hits this file, not Output or the Test Explorer filter.
+    // Do not focus again after Select All — a second focus collapses the selection.
+    await editor.click();
+    await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+    await focusMonacoInput(editor);
+
+    // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
+    await selectAll(page);
+    await page.keyboard.press('Delete');
+    // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
+    await page.keyboard.insertText(content);
+    const marker =
+      content
+        .split('\n')
+        .map(line => line.trim())
+        .find(line => line.length > 0 && !line.startsWith('public with sharing class ') && line !== '}') ?? content;
+    await expect(editor.locator('.view-lines')).toContainText(marker);
+
+    // Save so the file is persisted and can be deployed / discovered by the test controller
+    await saveFile(page);
+    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+  }
+};
+
+/**
+ * Deploys the currently active editor (or selected source) to the org via "SFDX: Deploy This Source to Org".
+ * Waits for the deploy progress notification to appear. Completion: if waitViaOutputChannel is true (e.g. Apex
+ * testing), waits for "Deployed Source" in the Salesforce Metadata output channel; otherwise waits for the notification
+ * to disappear.
+ */
+export const deployCurrentSourceToOrg = async (
+  page: Page,
+  options?: { deployCompleteTimeoutMs?: number; waitViaOutputChannel?: boolean }
+): Promise<void> => {
+  const deployCompleteTimeoutMs = options?.deployCompleteTimeoutMs ?? DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS;
+  const waitViaOutputChannel = options?.waitViaOutputChannel ?? false;
+
+  await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 30_000);
+  await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
+
+  const deployingNotification = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: /Deploying/i })
+    .first();
+
+  if (waitViaOutputChannel) {
+    // The "Deploying" toast can flash and dismiss too quickly to catch reliably (especially on
+    // fast deploys / CI). When we have a deterministic completion signal in the output channel,
+    // skip the strict notification wait and just rely on "Deployed Source".
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
+    await waitForOutputChannelText(page, {
+      expectedText: 'Deployed Source',
+      timeout: deployCompleteTimeoutMs
+    });
+  } else {
+    await expect(deployingNotification, 'Deploy progress notification should appear').toBeVisible({
+      timeout: 30_000
+    });
+    await expect(deployingNotification).not.toBeVisible({
+      timeout: deployCompleteTimeoutMs
+    });
+  }
+};
+
+/**
+ * Open a file by clicking its entry in the Files Explorer tree. Works on both desktop and web
+ * when a workspace folder is mounted.
+ *
+ * Use this when {@link openFileByName} (Quick Open) won't work — notably on VS Code Web where
+ * the `vscode-test-web` file system provider doesn't implement `provideFileSearch`, so Quick
+ * Open returns "No matching results" for files that haven't been opened yet.
+ *
+ * Intermediate folders are auto-expanded when needed. Compact folders (VS Code's default) are
+ * handled transparently. If the user has disabled compact folders, pass `parentFolders` to
+ * expand each segment individually.
+ *
+ * @param page Playwright page
+ * @param fileName File name to open (must be unique within the Explorer — pass `parentFolders` to disambiguate when needed).
+ * @param parentFolders Optional parent-folder names in order to expand before locating the file. Safe to pass even when compact folders are enabled; expansion is a no-op if already open or if the folder row isn't present (compact-folder merge).
+ */
+export const openFileFromExplorerTree = async (
+  page: Page,
+  fileName: string,
+  parentFolders: readonly string[] = []
+): Promise<void> => {
+  // Focus the Files Explorer view; palette avoids keybinding conflicts
+  await focusOnFilesExplorer(page);
+  const tree = page.getByRole('tree', { name: /Files Explorer/i }).first();
+  await tree.waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Expand each parent folder if it's actually present as its own row. Compact folders merge
+  // multiple levels into one row, so some segments may not exist as separate treeitems — that's
+  // fine: the leaf file will still be reachable once any ancestor compact row is expanded.
+  for (const folderName of parentFolders) {
+    const folderItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(folderName)}\\b`) }).first();
+    if (!(await folderItem.isVisible({ timeout: 5000 }).catch(() => false))) continue;
+    const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
+    if (expanded) continue;
+    // Single click expands a folder; double-click expands then immediately collapses (two toggles).
+    await folderItem.click({ timeout: 5000 }).catch(() => {});
+    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
+  }
+
+  const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
+  // Wait for the item to be in the DOM first (virtual scrolling: item may be attached but off-screen).
+  // Then scroll it into view before waiting for visibility.
+  await fileItem.waitFor({ state: 'attached', timeout: 15_000 });
+  await fileItem.scrollIntoViewIfNeeded().catch(() => {});
+  await fileItem.waitFor({ state: 'visible', timeout: 5000 });
+  // Double-click to ensure the file opens as a non-preview tab and gains focus; single click
+  // sometimes opens in preview mode that subsequent Explorer clicks replace.
+  await fileItem.dblclick({ timeout: 5000 });
+
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+};
+
+/**
+ * Open a file using Quick Open.
+ * Big caveat: on the web, this'll only work with files that have already been opened, in the editor (not just call didOpen on it!)
+ * that's a limitation of web fs on vscode because search/find files doesn't work yet.
+ */
+export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
+  const widget = activeQuickInputWidget(page);
+
+  if (isDesktop()) {
+    // On macOS desktop, Control+P doesn't work reliably, use command palette instead
+    await goToFile(page);
+
+    // Wait for Quick Open widget to be visible and ready
+    await expect(widget).toBeVisible({ timeout: 10_000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
+
+    // Clear any existing text and ensure input is focused
+    await page.keyboard.press('Control+a');
+    await page.keyboard.press('Delete');
+  } else {
+    // On web Control+P works fine as long as file has been opened in the editor first
+    await page.locator(WORKBENCH).click();
+    await page.keyboard.press('Control+p');
+    await widget.waitFor({ state: 'visible', timeout: 10_000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
+  }
+
+  // Type the filename
+  await page.keyboard.type(fileName);
+
+  // Wait for search results to populate and stabilize
+  await waitForQuickInputFirstOption(page);
+  // Wait for results to be stable (no new results appearing)
+  await activeQuickInputWidget(page).waitFor({ state: 'visible', timeout: 1000 });
+
+  // Find the result that matches the filename
+  const results = activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW);
+  const matchesFileName = (resultText: string): boolean =>
+    resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName);
+
+  await expect
+    .poll(async () => (await results.allTextContents()).some(matchesFileName), { timeout: 10_000 })
+    .toBe(true);
+
+  const resultTexts = await results.allTextContents();
+  const matchingIndex = resultTexts.findIndex(matchesFileName);
+
+  if (matchingIndex < 0) {
+    // Log all available results for debugging
+    const allResults = resultTexts.slice(0, 10).map(text => text.trim());
+    // Check if Quick Open might be showing command palette results instead of files
+    const firstResult = allResults[0] || '';
+    if (firstResult.toLowerCase().includes('similar commands') || firstResult.toLowerCase().includes('no matching')) {
+      throw new Error(
+        `Quick Open appears to be showing command palette results instead of files. Found ${resultTexts.length} results. First few: ${allResults.join(' | ')}`
+      );
+    }
+    throw new Error(
+      `No exact match found for "${fileName}" in Quick Open. Found ${resultTexts.length} results. First few: ${allResults.join(' | ')}`
+    );
+  }
+
+  // Click the matching row directly. Keyboard indexes are unstable while Quick Open streams results.
+  const matchingText = resultTexts[matchingIndex];
+  const matchingResult = results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
+  await expect(matchingResult).toBeVisible({ timeout: 5000 });
+  await expect(matchingResult).toBeEnabled({ timeout: 5000 });
+  await matchingResult.click();
+
+  // Wait for editor to open with the file
+  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+
+  // If a diff editor (or other custom editor) for this file is currently active, Quick Open + Enter
+  // may leave focus on the previously-active tab instead of switching to the plain-source tab.
+  // Subsequent command-palette invocations would then evaluate `when` clauses against the wrong
+  // resource (e.g. the remote-side of a diff editor is NOT `isFileSystemResource`, so
+  // "SFDX: Deploy This Source to Org" / "SFDX: Retrieve This Source from Org" get filtered out).
+  // Explicitly activate the source tab so the active editor matches the requested file.
+  const sourceTab = page.getByRole('tab', { name: fileName, exact: true }).first();
+  if (await sourceTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
+    if (selected !== 'true') {
+      await sourceTab.click({ timeout: 5000 }).catch(() => {});
+      await expect(sourceTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    }
+  }
+};
+
+/**
+ * Replace the entire contents of `lineNumber` (1-based) in the active editor with `newText` and save.
+ * Uses `Go to Line/Column...` palette command to position the caret, then selects the line via
+ * `Home` + `Shift+End` and types the replacement.
+ */
+export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newText: string): Promise<void> => {
+  const editor = page.locator(`${EDITOR_WITH_URI}:not([data-uri^="testing:"]):not([data-uri^="output-"])`).first();
+  await editor.waitFor({ state: 'visible' });
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+  await editor.click();
+
+  // Open Go to Line/Column palette, type the line number, confirm
+  await goToLineColumn(page);
+  await page.keyboard.type(String(lineNumber));
+  await page.keyboard.press('Enter');
+
+  // Select entire line and replace.
+  // VS Code's `Home` is "smart Home": first press moves to first non-whitespace, second press
+  // moves to column 0. Press twice so the selection covers leading whitespace too — otherwise
+  // typing `\t\t\t...` would double-indent.
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Shift+End');
+  await page.keyboard.press('Delete');
+  await page.keyboard.type(newText);
+
+  await saveFile(page);
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
+/**
+ * Moves the editor cursor to a specific line and column using the Go to Line/Column command.
+ * Line and column are both 1-indexed.
+ */
+export const goToLineCol = async (page: Page, line: number, col: number): Promise<void> => {
+  await goToLineColumn(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  await widget.waitFor({ state: 'visible', timeout: 5000 });
+  await page.keyboard.type(`${line}:${col}`);
+  await page.keyboard.press('Enter');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 });
+};
+
+/** Edit the currently open file by adding a comment at the top */
+export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
+  // Exclude internal Monaco editors (e.g. Test Explorer filter at data-uri="testing:filter",
+  // output channels at "output-*"). When the Test Explorer is open, plain `.monaco-editor[data-uri]`
+  // matches the filter first and keyboard input lands there instead of the source file.
+  const editor = page.locator(`${EDITOR_WITH_URI}:not([data-uri^="testing:"]):not([data-uri^="output-"])`).first();
+  await editor.waitFor({ state: 'visible' });
+
+  // Wait for editor content to render (at least one line visible)
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+
+  // Click the editor container first to ensure it's focused
+  // This is needed on all platforms to activate the editor
+  await editor.click();
+
+  // Go to end of first line (class declaration)
+  await page.keyboard.press('Control+Home');
+  await page.keyboard.press('End');
+
+  // Insert new line below and type comment
+  await page.keyboard.press('Enter');
+  await page.keyboard.type(`// ${comment}`);
+
+  // Save file
+  await saveFile(page);
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
+const finishOrgAndAuthSetup = async (
+  page: Page,
+  createResult: Awaited<ReturnType<typeof createMinimalOrg>>,
+  checkWelcomeTabs: boolean
+): Promise<void> => {
+  if (checkWelcomeTabs) {
+    // On web the Welcome tab always appears at startup — wait for it before closing so we don't
+    // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
+    // suppresses the tab, so skip the wait.
+    if (!isDesktop()) {
+      await page
+        .getByRole('tab', { name: /Welcome|Walkthrough/i })
+        .first()
+        .waitFor({ state: 'visible', timeout: 10_000 });
+    }
+    await closeWelcomeTabs(page);
+  }
+  await saveScreenshot(page, 'setup.after-workbench.png');
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  await saveScreenshot(page, 'setup.after-auth-fields.png');
+};
+
+/**
+ * Setup minimal org + auth with workbench loading in parallel.
+ * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
+ * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
+ * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
+ */
+export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/**
+ * Setup non-tracking org + auth with workbench loading in parallel. Use for tests that exercise
+ * deploy/retrieve but never need source-tracking commands (Push/Pull) — eliminates the
+ * "Override Conflicts and Deploy" modal that source-tracked orgs surface on rerun.
+ */
+export const setupNonTrackingOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createNonTrackingOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/**
+ * Like `setupNonTrackingOrgAndAuth` but uses the dedicated `LOGOUT_TEST_ORG_ALIAS` org. Use for tests
+ * that LOG OUT of / delete their default org so they destroy a dedicated org (re-created on the next run)
+ * instead of the shared `nonTrackingTestOrg`. The fixture must set `orgAlias: LOGOUT_TEST_ORG_ALIAS` so
+ * this org is the workspace default and deploy commands enable.
+ */
+export const setupLogoutTestOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createLogoutTestOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/** Create an Apex test class and deploy it to the org. */
+export const createAndDeployApexTestClass = async (page: Page, className: string, content: string): Promise<void> => {
+  await createApexClass(page, className, content);
+
+  // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion
+  // On desktop, we need to explicitly deploy
+  if (isDesktop()) {
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  }
+  // Web: wait for auto-deploy to complete by checking output channel.
+  // Use className (unique per deploy) instead of "2 components deployed" so we don't match the previous deploy's output.
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, 'Salesforce Metadata', DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS);
+  await waitForOutputChannelText(page, {
+    expectedText: className,
+    timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
+  });
+
+  await saveScreenshot(page, 'setup.apex-test-class-created.png');
+  await clearOutputChannel(page);
+};

@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import {
+  ApplyWorkspaceEditRequest,
+  handleApplyEditWithFs
+} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import type { URI } from 'vscode-uri';
+import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
+
+export const createLanguageClient = (
+  serverPath: string,
+  initializationOptions: LwcInitializationOptions,
+  packageDirectoryUris?: URI[]
+): LanguageClient => {
+  // Setup the language server
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
+  // If the extension is launched in debug mode then the debug server options are used
+  // Otherwise the run options are used
+  const serverOptions: ServerOptions = {
+    run: { module: serverPath, transport: TransportKind.ipc },
+    debug: {
+      module: serverPath,
+      transport: TransportKind.ipc,
+      options: debugOptions
+    }
+  };
+
+  const clientOptions: LanguageClientOptions = {
+    ...getBaseClientOptions(initializationOptions, packageDirectoryUris),
+    documentSelector: buildDocumentSelector(['file'])
+  };
+
+  const client = new LanguageClient('lwcLanguageServer', 'LWC Language Server', serverOptions, clientOptions);
+
+  // Handle workspace/applyEdit by writing via workspace.fs (no IDE open);
+  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
+
+  return client;
+};
