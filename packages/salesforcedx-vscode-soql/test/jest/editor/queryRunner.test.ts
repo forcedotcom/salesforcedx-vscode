@@ -14,7 +14,7 @@ describe('runQuery ALL ROWS handling', () => {
   const run = (queryText: string) => {
     const query = jest.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
     return Effect.runPromise(
-      runQuery(queryText, { showErrors: false }).pipe(
+      runQuery(queryText).pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
             services: { QueryService: Effect.succeed({ query }) }

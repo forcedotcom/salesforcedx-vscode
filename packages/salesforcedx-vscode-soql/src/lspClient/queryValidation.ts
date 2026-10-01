@@ -47,7 +47,7 @@ const handleRunQuery = Effect.fn('queryValidation.handleRunQuery')(function* (qu
   );
 
   return enabled
-    ? yield* runQuery(queryText, { showErrors: false }).pipe(
+    ? yield* runQuery(queryText).pipe(
         Effect.mapError(soqlQueryRequestError),
         Effect.match({
           // NOTE: The return value must be serializable, for JSON-RPC.
