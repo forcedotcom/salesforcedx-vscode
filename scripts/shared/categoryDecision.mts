@@ -8,8 +8,6 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
-export const MODEL = 'grok-4.7-xhigh';
-
 export const categoryIdsFromPolicy = (markdown: string) =>
   [...markdown.matchAll(/^### ([a-z0-9-]+)\s*$/gm)].map(match => match[1] ?? '');
 

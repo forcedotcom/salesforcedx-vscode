@@ -20,10 +20,12 @@ import { isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { MODEL, buildPrompt, categoryIdsFromPolicy, parseAgentResult } from './shared/categoryDecision.mts';
+import { buildPrompt, categoryIdsFromPolicy, parseAgentResult } from './shared/categoryDecision.mts';
 import { BOT_LOGIN, type Decision, type Facts, decideCategoryApprove } from './shared/categoryGates.mts';
 import { categoryPullNumbers, createCategoryReads, readCategoryFacts } from './shared/categoryReads.mts';
 import { AgentError, GitError } from './shared/scriptErrors.mts';
+
+const MODEL = 'grok-4.7-xhigh';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
 const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
