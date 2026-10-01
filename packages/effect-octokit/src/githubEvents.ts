@@ -11,20 +11,25 @@ const PullRequestNumber = Schema.Struct({
   number: Schema.Number.pipe(Schema.int())
 });
 
-const CheckPayload = Schema.Struct({
+const CheckRunPayload = Schema.Struct({
   name: Schema.optional(Schema.String),
   head_sha: Schema.optional(Schema.String),
-  pull_requests: Schema.optional(Schema.Array(PullRequestNumber))
+  pull_requests: PullRequestNumber.pipe(Schema.Array, Schema.optional)
+});
+
+const CheckSuitePayload = Schema.Struct({
+  head_sha: Schema.optional(Schema.String),
+  pull_requests: PullRequestNumber.pipe(Schema.Array, Schema.optional)
 });
 
 export const CheckRunEvent = Schema.Struct({
   action: Schema.Literal('completed'),
-  check_run: CheckPayload
+  check_run: CheckRunPayload
 });
 
 export const CheckSuiteEvent = Schema.Struct({
   action: Schema.Literal('completed'),
-  check_suite: CheckPayload
+  check_suite: CheckSuitePayload
 });
 
 export const PullRequestEvent = Schema.Struct({
