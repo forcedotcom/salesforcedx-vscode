@@ -78,7 +78,7 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   const resolvedSourceUri =
     sourceUri ??
     (yield* api.services.EditorService.getActiveEditorUri().pipe(
-      Effect.catchTag('NoActiveEditorError', () => Effect.succeed(undefined))
+      Effect.catchTag('NoActiveEditorError', () => Effect.void)
     ));
 
   const resolvedUris = resolvedSourceUri ? [resolvedSourceUri, ...(uris ?? [])] : [];
