@@ -1,7 +1,0 @@
-node_modules
-out
-dist
-coverage
-.wireit
-.eslintcache
-*.tsbuildinfo
