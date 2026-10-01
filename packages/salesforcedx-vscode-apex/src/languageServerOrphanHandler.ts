@@ -1,0 +1,335 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import {
+  annotateRootSpan,
+  type Column,
+  createTable,
+  ExtensionProviderService,
+  type Row
+} from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schedule from 'effect/Schedule';
+import * as Schema from 'effect/Schema';
+import * as vscode from 'vscode';
+import { APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, UBER_JAR_NAME } from './constants';
+import { nls } from './messages';
+
+// these messages contain replaceable parameters, cannot localize yet
+
+/** Internal-only; handled via catchTag here. */
+class ProcessTerminationError extends Schema.TaggedError<ProcessTerminationError>()('ProcessTerminationError', {
+  pid: Schema.Number,
+  message: Schema.String
+}) {}
+
+const ProcessDetailSchema = Schema.Struct({
+  pid: Schema.Number,
+  ppid: Schema.Number,
+  command: Schema.String,
+  orphaned: Schema.Boolean
+});
+
+type ProcessDetail = typeof ProcessDetailSchema.Type;
+
+const isWindows = process.platform === 'win32';
+
+const listProcessesCmd: { executable: string; args: readonly string[] } = isWindows
+  ? {
+      executable: 'powershell.exe',
+      args: [
+        '-command',
+        'Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders'
+      ]
+    }
+  : { executable: 'ps', args: ['-e', '-o', 'pid,ppid,command'] };
+
+const parentCheckCmd = (ppid: number): { executable: string; args: readonly string[] } =>
+  isWindows
+    ? {
+        executable: 'powershell.exe',
+        args: ['-command', `Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'`]
+      }
+    : { executable: 'ps', args: ['-p', String(ppid)] };
+
+const decodeProcessList = Schema.decodeSync(Schema.mutable(Schema.Array(ProcessDetailSchema)));
+
+// stdout already trimmed by simpleExec
+const parseProcessList = (stdout: string): ProcessDetail[] =>
+  decodeProcessList(
+    stdout
+      .split(/\r?\n/g)
+      .map(line => {
+        const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
+        return {
+          pid: parseInt(pidStr, 10),
+          ppid: parseInt(ppidStr, 10),
+          command: commandParts.join(' '),
+          orphaned: false
+        };
+      })
+      .filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
+      .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME))
+  );
+
+const getChannel = Effect.fn('apex.orphan.getChannel')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ChannelService;
+});
+
+/** Find Apex Language Server processes whose parent no longer exists. */
+const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const terminal = yield* api.services.TerminalService;
+
+  // Windows-only guard: powershell must be present to list processes.
+  if (isWindows) {
+    const hasPowershell = yield* terminal
+      .simpleExec({ executable: 'where', args: ['powershell'], parse: stdout => stdout.length > 0 })
+      .pipe(
+        Effect.catchTag('TerminalServiceError', e =>
+          annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as(false))
+        )
+      );
+    if (!hasPowershell) {
+      return [];
+    }
+  }
+
+  // Web (or any exec failure listing processes) → no orphan work.
+  const candidates = yield* terminal
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: Duration.millis(60_000) })
+    .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
+
+  const checkParent = (processInfo: ProcessDetail) =>
+    !isWindows && processInfo.ppid === 1
+      ? Effect.succeed({ ...processInfo, orphaned: true })
+      : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
+          Effect.as(processInfo),
+          Effect.catchTag('TerminalServiceError', e =>
+            annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as({ ...processInfo, orphaned: true }))
+          )
+        );
+
+  return (yield* Effect.forEach(candidates, checkParent, { concurrency: 1 })).filter(
+    processInfo => processInfo.orphaned
+  );
+});
+
+const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: ProcessDetail) {
+  yield* Effect.try({
+    try: () => process.kill(processInfo.pid, 'SIGKILL'),
+    catch: e =>
+      new ProcessTerminationError({
+        pid: processInfo.pid,
+        message: isError(e) ? e.message : 'unknown'
+      })
+  }).pipe(
+    Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),
+    Effect.withSpan('apex.orphan.killOne.succeeded', { attributes: { pid: processInfo.pid } }),
+    Effect.tap(() => showProcessTerminated(processInfo)),
+    Effect.catchTag('ProcessTerminationError', error =>
+      showTerminationFailed(processInfo, error.message).pipe(
+        Effect.andThen(annotateRootSpan('orphanKillError', error.message))
+      )
+    )
+  );
+});
+
+const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(function* () {
+  return yield* findOrphanedProcesses().pipe(
+    Effect.catchTags({
+      ServicesExtensionNotFoundError: e =>
+        annotateRootSpan('orphanCheckError', String(e)).pipe(Effect.as<ProcessDetail[]>([])),
+      InvalidServicesApiError: e =>
+        annotateRootSpan('orphanCheckError', e.cause?.message ?? String(e)).pipe(Effect.as<ProcessDetail[]>([]))
+    })
+  );
+});
+
+/** Auto-terminate setting; read/services failure → false. */
+const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
+  function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* (yield* api.services.SettingsService).getValueOrElse(
+      APEX_SETTINGS_SECTION,
+      AUTO_TERMINATE_KEY,
+      false
+    );
+  },
+  Effect.catchTags({
+    MissingSettingsError: () => Effect.succeed(false),
+    ServicesExtensionNotFoundError: () => Effect.succeed(false),
+    InvalidServicesApiError: () => Effect.succeed(false)
+  })
+);
+
+export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
+  numTries = 3,
+  delayBetweenTries: Duration.DurationInput = Duration.seconds(2)
+) {
+  // Check up to numTries times, pausing between checks: a process may self-exit between checks
+  // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
+  // or more). The delay gives that shutdown time to finish so an already-exiting server isn't
+  // mistaken for a confirmed orphan. Runs on a background fiber, so the wait never blocks activation.
+  let confirmedOrphans: ProcessDetail[] = [];
+  for (let i = 1; i <= numTries; i++) {
+    if (i > 1) {
+      yield* Effect.sleep(delayBetweenTries);
+    }
+    confirmedOrphans = yield* findOrphanedProcessesSafe();
+    if (confirmedOrphans.length === 0) {
+      yield* annotateRootSpan('orphanCount', 0);
+      return;
+    }
+  }
+  yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
+
+  // When auto-terminate is enabled, kill silently; otherwise ask the user.
+  const shouldTerminate = (yield* isAutoTerminateEnabled())
+    ? true
+    : yield* getResolutionForOrphanProcesses(confirmedOrphans).pipe(
+        Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
+      );
+
+  yield* annotateRootSpan('didTerminate', shouldTerminate ? 1 : 0);
+
+  if (shouldTerminate) {
+    yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
+  }
+});
+
+/** 'continue' = re-prompt (user asked to view the process table); boolean = terminal decision */
+type Resolution = 'continue' | boolean;
+
+/** Prompt once. Fails with UserCancellationError on dismissal. */
+const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProcesses: ProcessDetail[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const orphanedCount = orphanedProcesses.length;
+
+  const choice = yield* Effect.promise(() =>
+    vscode.window.showWarningMessage(
+      nls.localize('terminate_orphaned_language_server_instances', orphanedCount),
+      nls.localize('terminate_processes'),
+      nls.localize('terminate_show_processes'),
+      nls.localize('always_auto_terminate')
+    )
+  ).pipe(Effect.flatMap((yield* api.services.PromptService).considerUndefinedAsCancellation));
+
+  if (requestsTermination(choice)) {
+    return yield* terminationConfirmation(orphanedCount);
+  }
+  if (showProcesses(choice)) {
+    yield* showOrphansInChannel(orphanedProcesses);
+    return 'continue';
+  }
+  if (requestsAlwaysAutoTerminate(choice)) {
+    return yield* alwaysAutoTerminateConfirmation();
+  }
+  return false;
+});
+
+/**
+ * Ask the user how to resolve found orphaned language server instances.
+ * Re-prompts while the user views the process table; fails with `UserCancellationError` on dismissal.
+ */
+const getResolutionForOrphanProcesses = Effect.fn('apex.orphan.getResolution')(function* (
+  orphanedProcesses: ProcessDetail[]
+) {
+  const initialState: Resolution = 'continue';
+  return (
+    (yield* Effect.iterate(initialState, {
+      while: state => state === 'continue',
+      body: () => promptOnce(orphanedProcesses)
+    })) === true
+  );
+});
+
+const showOrphansInChannel = Effect.fn('apex.orphan.showOrphansInChannel')(function* (
+  orphanedProcesses: ProcessDetail[]
+) {
+  const columns: Column[] = [
+    { key: 'pid', label: nls.localize('process_id') },
+    { key: 'ppid', label: nls.localize('parent_process_id') },
+    { key: 'command', label: nls.localize('process_command') }
+  ];
+
+  const rows: Row[] = orphanedProcesses.map(processInfo => ({
+    pid: processInfo.pid.toString(),
+    ppid: processInfo.ppid.toString(),
+    // split command into equal chunks no more than 70 characters long
+    command:
+      processInfo.command.length <= 70 ? processInfo.command : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
+  }));
+
+  const tableString = createTable(rows, columns);
+
+  const channel = yield* getChannel();
+  yield* channel.showChannel;
+  yield* channel.appendToChannel(nls.localize('orphan_process_advice'));
+  yield* channel.appendToChannel('');
+  yield* channel.appendToChannel(tableString);
+});
+
+const terminationConfirmation = Effect.fn('apex.orphan.terminationConfirmation')(function* (orphanedCount: number) {
+  const choice = yield* Effect.promise(() =>
+    // modal: VS Code adds Cancel automatically; blocks until the user makes a destructive-action decision
+    vscode.window.showWarningMessage(
+      nls.localize('terminate_processes_confirm', orphanedCount),
+      { modal: true },
+      nls.localize('yes')
+    )
+  );
+  return choice === nls.localize('yes');
+});
+
+const requestsTermination = (choice: string): boolean => choice === nls.localize('terminate_processes');
+
+const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
+
+const requestsAlwaysAutoTerminate = (choice: string): boolean => choice === nls.localize('always_auto_terminate');
+
+/** Show modal confirming auto-terminate; on Confirm persist setting + return true (kill). */
+const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTerminateConfirmation')(function* () {
+  const choice = yield* Effect.promise(() =>
+    vscode.window.showWarningMessage(
+      nls.localize('always_auto_terminate_modal_title'),
+      { modal: true, detail: nls.localize('auto_terminate_confirm_modal') },
+      nls.localize('confirm')
+    )
+  );
+  if (choice !== nls.localize('confirm')) {
+    return false;
+  }
+  // Persist the setting, then kill. Any failure — write error or services unavailable — is recorded
+  // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
+    Effect.catchTags({
+      MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
+      ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),
+      InvalidServicesApiError: e => annotateRootSpan('settingsWriteError', e.cause?.message ?? String(e))
+    })
+  );
+  return true;
+});
+
+const showProcessTerminated = Effect.fn('apex.orphan.showProcessTerminated')(function* (processDetail: ProcessDetail) {
+  const channel = yield* getChannel();
+  yield* channel.appendToChannel(nls.localize('terminated_orphaned_process', processDetail.pid));
+});
+
+const showTerminationFailed = Effect.fn('apex.orphan.showTerminationFailed')(function* (
+  processInfo: ProcessDetail,
+  message: string
+) {
+  const channel = yield* getChannel();
+  yield* channel.appendToChannel(nls.localize('terminate_failed', processInfo.pid, message));
+});

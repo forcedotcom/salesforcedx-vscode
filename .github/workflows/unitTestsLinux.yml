@@ -1,0 +1,31 @@
+name: Unit Tests Linux
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
+
+jobs:
+  linux-unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
+      - uses: google/wireit@setup-github-actions-caching/v2
+      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
+      - run: pnpm compile
+      - run: pnpm test
+        env:
+          WIREIT_PARALLEL: 1
+
