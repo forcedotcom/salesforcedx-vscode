@@ -1,5 +1,0 @@
-.wireit/**
-.circular-deps.json
-.eslintcache
-images/**/*
-!images/VSCodeBundle.png
