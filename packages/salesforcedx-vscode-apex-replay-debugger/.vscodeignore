@@ -1,0 +1,24 @@
+.gitignore
+.circular-deps.json
+.eslintcache
+.eslint.json
+.vscode/**
+.vscode-test/**
+.wireit/**
+*.xml
+*.vsix
+test/**
+src/**
+**/*.map
+**/*.ts
+**/tsconfig.json
+test/**
+src/**
+tsconfig.json
+coverage
+esbuild.config.mjs
+jest.config.js
+node_modules
+# do not reach outside the package
+../../**
+../**

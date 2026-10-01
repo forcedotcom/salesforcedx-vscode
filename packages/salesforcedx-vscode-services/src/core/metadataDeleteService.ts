@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import {
+  ComponentSet,
+  DestructiveChangesType,
+  SourceComponent,
+  type MetadataComponent
+} from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import { FsService } from '../vscode/fsService';
+import { MetadataRegistryService } from './metadataRegistryService';
+import { isSourceComponent } from './sdrGuards';
+
+export class MetadataDeleteError extends Schema.TaggedError<MetadataDeleteError>()('MetadataDeleteError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
+const isNonDecomposedCustomLabel = (component: MetadataComponent): boolean =>
+  component.type.name === 'CustomLabel' && !component.type.strategies?.adapter;
+
+export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>()('MetadataDeleteService', {
+  accessors: true,
+  dependencies: [FsService.Default, MetadataRegistryService.Default],
+  effect: Effect.gen(function* () {
+    const registryService = yield* MetadataRegistryService;
+    const fsService = yield* FsService;
+
+    const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
+      componentSet: ComponentSet
+    ) {
+      const deleteSet = new ComponentSet([], yield* registryService.getRegistryAccess());
+
+      componentSet
+        .toArray()
+        .map(c => (isSourceComponent(c) ? c : new SourceComponent({ name: c.fullName, type: c.type })))
+        .map(c => {
+          deleteSet.add(c, DestructiveChangesType.POST);
+        });
+
+      // transfer the props from the original
+      deleteSet.projectDirectory = componentSet.projectDirectory;
+      deleteSet.apiVersion = componentSet.apiVersion;
+      deleteSet.sourceApiVersion = componentSet.sourceApiVersion;
+      yield* Effect.annotateCurrentSpan({ componentCount: deleteSet.size });
+      return deleteSet;
+    });
+
+    const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
+      componentSet: ComponentSet
+    ) {
+      const components = componentSet.getSourceComponents().toArray();
+
+      // Handle custom labels specially
+      const customLabels = components.filter(isNonDecomposedCustomLabel);
+      if (customLabels.length > 0 && isSourceComponent(customLabels[0]) && customLabels[0].xml) {
+        const { deleteCustomLabels } = yield* Effect.promise(() => import('@salesforce/source-tracking'));
+        yield* Effect.tryPromise({
+          try: () => deleteCustomLabels(customLabels[0].xml!, customLabels.filter(isSourceComponent)),
+          catch: error =>
+            new MetadataDeleteError({
+              message: `Failed to delete custom labels: ${isError(error) ? error.message : String(error)}`,
+              cause: error
+            })
+        });
+      }
+
+      // Delete other files
+      // Use safeDelete to handle cases where files might not exist (already deleted, wrong paths, etc.)
+      yield* Effect.all(
+        components
+          .filter(isSourceComponent)
+          .flatMap(c => [
+            ...(c.content ? [fsService.safeDelete(c.content, { recursive: true })] : []),
+            ...(c.xml && !isNonDecomposedCustomLabel(c) ? [fsService.safeDelete(c.xml)] : [])
+          ]),
+        { concurrency: 'unbounded' }
+      );
+    });
+
+    return {
+      /** Mark components for deletion */
+      markComponentsForDeletion,
+
+      /** Delete local files after successful deploy */
+      deleteLocalFiles
+    };
+  })
+}) {}
