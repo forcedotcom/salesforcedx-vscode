@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import {
+  closeAllEditors,
+  closeWelcomeTabs,
+  clearOutputChannel,
+  createMinimalOrg,
+  ensureSecondarySideBarHidden,
+  executeCommandById,
+  selectOutputChannel,
+  upsertScratchOrgAuthFieldsToSettings,
+  verifyCommandExists,
+  waitForOutputChannelText,
+  waitForVSCodeWorkbench
+} from '@salesforce/playwright-vscode-ext';
+import packageNls from '../../../package.nls.json';
+import { messages } from '../../../src/messages/i18n';
+import { test } from '../fixtures';
+
+test('tagged command errors include the tag only in channel output', async ({ page }) => {
+  test.setTimeout(120_000);
+  const createResult = await createMinimalOrg();
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  await verifyCommandExists(page, packageNls.project_info_text, 60_000);
+  await closeAllEditors(page);
+
+  await selectOutputChannel(page, 'Salesforce Metadata');
+  await clearOutputChannel(page);
+
+  const expectedText = `[ManifestSelectionRequiredError] ${messages.deploy_select_manifest}`;
+  await executeCommandById(page, 'sf.metadata.deploy.in.manifest', {
+    timeout: 90_000,
+    verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 15_000 })
+  });
+});
