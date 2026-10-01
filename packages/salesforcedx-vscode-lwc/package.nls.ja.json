@@ -1,0 +1,15 @@
+{
+  "lightning_lwc_debugger": "Debug: LWC Jest Tests",
+  "lightning_lwc_debugger_desc": "Debug configuration for running LWC jest tests in VSCode.",
+  "lightning_lwc_preferences": "Salesforce Lightning Web Components",
+  "lightning_lwc_test_case_debug_text": "SFDX: Lightning Web コンポーネントのテストケースをデバッグ",
+  "lightning_lwc_test_case_run_text": "SFDX: Lightning Web コンポーネントのテストケースを実行",
+  "lightning_lwc_test_debug_current_file_text": "SFDX: 現在の Lightning Web コンポーネントのテストファイルをデバッグ",
+  "lightning_lwc_test_file_debug_text": "SFDX: Lightning Web コンポーネントのテストファイルをデバッグ",
+  "lightning_lwc_test_file_run_text": "SFDX: Lightning Web コンポーネントのテストファイルを実行",
+  "lightning_lwc_test_run_current_file_text": "SFDX: 現在の Lightning Web コンポーネントのテストファイルを実行",
+  "lightning_lwc_test_start_watching_text": "SFDX: Lightning Web コンポーネントのテストのウォッチを開始",
+  "lightning_lwc_test_stop_watching_all_tests_text": "SFDX: すべての Lightning Web コンポーネントのテストのウォッチを停止",
+  "lightning_lwc_test_stop_watching_text": "SFDX: Lightning Web コンポーネントのテストのウォッチを停止",
+  "rename_lightning_component_text": "SFDX: Rename Component"
+}

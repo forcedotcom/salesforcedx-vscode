@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out",
+    "types": ["jest", "node", "vscode"]
+  },
+  "include": ["src/**/*.ts"]
+}
