@@ -1,0 +1,52 @@
+name: Category Approve
+
+on:
+  check_run:
+    types: [completed]
+  pull_request:
+    types: [opened, ready_for_review, reopened, edited]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: category-approve-${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  category-approve:
+    # Own check runs and fork PRs must not start a run (forks have no IDEE_GH_TOKEN).
+    # Title/body edits and comment-only reviews do not change a skip gate.
+    if: >-
+      (github.event_name == 'check_run' && github.event.check_run.name != 'category-approve' &&
+      (github.event.check_run.pull_requests[0].head.repo.full_name == github.repository || github.event.check_run.pull_requests[0] == null)) ||
+      (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false &&
+      ((github.event_name == 'pull_request' && (github.event.action != 'edited' || github.event.changes.base.ref.from)) ||
+      (github.event_name == 'pull_request_review' && (github.event.action == 'dismissed' ||
+      github.event.review.state == 'APPROVED' || github.event.review.state == 'approved'))))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: 24
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
+      - name: Install Cursor CLI
+        run: curl https://cursor.com/install -fsS | bash
+      - name: Decide and approve
+        env:
+          IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/category-approve.ts

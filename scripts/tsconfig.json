@@ -13,5 +13,6 @@
     "lib": ["ES2023", "DOM"],
     "types": ["node"]
   },
-  "include": ["*.ts"]
+  "include": ["*.ts"],
+  "exclude": ["category-approve.ts"]
 }

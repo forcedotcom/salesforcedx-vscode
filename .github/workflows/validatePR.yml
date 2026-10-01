@@ -3,15 +3,6 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
     branches: [develop]
-    paths-ignore:
-      - CONTEXT.md
-      - CONTEXT-MAP.md
-      - '**/CONTEXT.md'
-      - 'docs/**.md'
-      - '**/docs/**.md'
-      - '.claude/**.md'
-      - 'plans/**.md'
-      - '.cursor/**.md'
 
 jobs:
   pr-validation:

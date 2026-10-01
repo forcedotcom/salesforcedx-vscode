@@ -48,7 +48,7 @@ const WRAPPER = [
   'set -e',
   'if [[ -s "$log" ]]; then',
   "  printf '%s\\n' 'GH_INVOKED=yes'",
-  "  sed 's/^/GH_CALL /' \"$log\"",
+  '  sed \'s/^/GH_CALL /\' "$log"',
   'else',
   "  printf '%s\\n' 'GH_INVOKED=no'",
   'fi',
