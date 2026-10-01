@@ -11,7 +11,7 @@ import { fromSelect, mountBuilder, selectValue } from './helpers.js';
 test('cancels a latent action when the component disconnects', async ({ page }) => {
   await test.step('starts a latent dispatch that stays in flight', async () => {
     await mountBuilder(page);
-    await page.evaluate(() => window.soqlBuilderHarness.setDispatchLatency(60_000));
+    await page.evaluate(() => window.soqlBuilderHarness.setDispatchLatency(window.soqlBuilderDuration.millis(60_000)));
     await selectValue(fromSelect(page), 'Account');
     await expect
       .poll(() => page.evaluate(() => window.soqlBuilderHarness.stats()))

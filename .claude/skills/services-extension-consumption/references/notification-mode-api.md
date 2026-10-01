@@ -101,6 +101,7 @@ Resource Lifecycle section.
 ```typescript
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { EXTENSION_NAME } from '../constants';
 
 const deployCommand = Effect.fn('deploy')(function* () {
   const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -121,7 +122,7 @@ const deployCommand = Effect.fn('deploy')(function* () {
 // In extension activate():
 const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
 const layer = extensionApi.services.NotificationModeService.Default(
-  'salesforcedx-vscode-metadata',
+  EXTENSION_NAME,
   'metadata.deploy.progress',
   'Metadata Deployment'
 );

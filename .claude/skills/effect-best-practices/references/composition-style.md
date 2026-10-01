@@ -1,8 +1,8 @@
 # Effect Composition Style
 
-How effects read, compose, and execute. Style preferences, not safety rules —
-but they keep call sites flat and intent obvious. From real review decisions in
-this repo.
+How effects read, compose, and execute. SKILL.md Composition row is `must`
+(`const` only if read ≥2×); LS-enforced shapes annotated below. Rest is style.
+From real review decisions in this repo.
 
 ## Core principle: an effect is a value you build flat, then run
 
@@ -21,9 +21,8 @@ call site:
    seed a standalone `pipe(value, …)`. The nested-call-arg half (`f(g(x))`) is
    config-enforced by `missedPipeableOpportunity`, which fires at ≥2 pipeable
    call-kind transformations; judgment remains for what the pipe's subject should
-   be — hoist a named `const` over inverting a reused schema combinator
-   (`Schema.optional(Schema.Array(x))` stays a call; the repo has 0
-   `X.pipe(Schema.optional)` sites).
+   be — nested Schema combinators invert to pipe (`Schema.String.pipe(Schema.NullOr,
+   Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)`).
 
 Rest is application of these to specific combinators.
 
@@ -95,9 +94,9 @@ return yield* runApexTests({ /* ... */ }).pipe(
   Effect.tap(() => channelService.showChannel),
   Effect.tap(result =>
     Effect.sync(() => {
-      (result === undefined
-        ? notificationService.showFailedExecution
-        : notificationService.showSuccessfulExecution)(executionName);
+      void (result === undefined
+        ? vscode.window.showErrorMessage
+        : vscode.window.showInformationMessage)(executionName);
     })
   )
 );
@@ -126,6 +125,10 @@ never fires on cancellation, all while staying in the pipe.
 Effect chosen among 3+ cases → nested ternary nests visually. Build with
 `Match.value(...).pipe(Match.when(...), Match.orElse(...))` — each case one flat
 line, then continue the same pipe into tap/ignore/run.
+
+Enforced by `local/no-nested-effect-ternary` (`**/*.ts`, type-aware). Flags nested
+ternaries (3+ branches) typed as `Effect`. Non-Effect nested ternaries and a single
+Effect ternary stay allowed.
 
 ```typescript
 await Match.value(single.id).pipe(
@@ -161,7 +164,8 @@ Bail conditions (`if (isDebug || !single) return;`) aren't dispatch dimensions.
    two.
 
 Pattern: short-circuit prerequisites up top, matcher handles real variance on
-proven-good input.
+proven-good input. Expected skip (missing optional plugin, incompatible version):
+nls write on that guard — not `fail`+`catchTag` whose only arm prints `message`.
 
 ## Linear body → point-free pipe, not a generator
 
@@ -193,21 +197,17 @@ export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
     )
 );
 
-// GENERATOR — yield* to resolve a dependency, then run the stream pipe
+// GENERATOR — plain array seeds a pipe; the grouped chunk pipes toArray then the query
 export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
   logFileContents: string
 ) {
-  // dependent yield*: resolve conn from ExtensionProviderService, then pipe
-  const conn = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.ConnectionService.getConnection())
-  );
   return yield* pipe(
     extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)),
     Arr.map(entry => entry.heapDumpId),
     Arr.dedupe,
     Stream.fromIterable,
-    Stream.grouped(MAX_BATCH_SIZE),
-    Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
+    Stream.grouped(MAX_QUERY_IDS),
+    Stream.mapEffect(chunk => chunk.pipe(Chunk.toArray, runOverlayQuery), { concurrency: QUERY_CONCURRENCY }),
     Stream.flattenIterables,
     Stream.runCollect,
     Effect.map(Chunk.toArray)
@@ -266,18 +266,72 @@ not a scatter of single-use helpers above it. And don't touch genuine multi-step
 composition — a `Stream` inside `mapConcatEffect`, a branch with its own chain.
 Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
+## Attach recovery to a subsequence — pipe from the first Effect
+
+Inside an already-running gen, recover a span of yields by piping from that span's first Effect. Nested `Effect.gen` is a wrapper around a sequence combinators already cover.
+
+```typescript
+// PREFERRED — seed at the first recovered Effect
+yield* api.services.QueryService.pipe(
+  Effect.flatMap(qs =>
+    qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
+  ),
+  Effect.map(({ totalSize }) => totalSize),
+  Effect.orElseSucceed(() => 'query failed')
+)
+
+// AVOID — nested gen whose only job is to make the sequence pipeable
+yield* Effect.gen(function* () {
+  const qs = yield* api.services.QueryService
+  const { totalSize } = yield* qs.query(
+    { soql: 'SELECT COUNT() FROM SourceMember', tooling: true },
+    Schema.Unknown
+  )
+  return totalSize
+}).pipe(Effect.orElseSucceed(() => 'query failed'))
+```
+
+`unnecessaryEffectGen` misses this (1 `yield* X` only). 2+ yields + trailing recovery still need this rewrite. `orElseSucceed` / `catchAllCause` stay judgment.
+
+Keep recovery on the recovered subject. A nested pipe over a *different* subject is load-bearing when the inner chain has its own recovery. Hoisting `catchAllCause` / `orElseSucceed` onto an outer lookup pipe changes which failures recover.
+
+```typescript
+// PREFERRED — only the query recovers; getServicesApi / getValue still fail
+getServicesApi.pipe(
+  Effect.flatMap(api =>
+    Effect.flatMap(api.services.SettingsService, settings =>
+      settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
+    )
+  ),
+  Effect.flatMap(maxRows =>
+    runBuilderQueryEffect(maxRows).pipe(Effect.catchAllCause(recover))
+  )
+)
+
+// AVOID — lookup failure now takes the recover path
+getServicesApi.pipe(
+  Effect.flatMap(api =>
+    Effect.flatMap(api.services.SettingsService, settings =>
+      settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
+    )
+  ),
+  Effect.flatMap(maxRows => runBuilderQueryEffect(maxRows)),
+  Effect.catchAllCause(recover)
+)
+```
+
 ## Quick reference
 
 | Situation | Do | Don't |
 | --- | --- | --- |
 | Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)` |
 | Run a built effect / any nested `f(g(pipeable))` | `pipeable.pipe(g, f)` — inner-first, terminal step last; config-enforced by `missedPipeableOpportunity` at ≥2 pipeable transformations | wrap whole expr in `runPromise(effect.pipe(...))` |
-| Nested reused schema combinator (`Schema.optional(Schema.Array(x))`) | hoist a named `const` for the inner schema | invert to `x.pipe(Schema.Array, Schema.optional)` — 0 repo precedent |
+| Nested Schema combinators (`Schema.optional(Schema.NullOr(Schema.String))`, `Schema.optional(Schema.Array(x))`) | `Schema.String.pipe(Schema.NullOr, Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)` | nested `Schema.optional(Schema.NullOr/Array(...))` calls |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |
 | Return the run's value | `return yield* effect.pipe(...)`; config-enforced by `returnEffectInGen` for a raw `return effect` (missing `yield*`). Binding the *yielded* value and returning it stays judgment (return expression isn't an Effect, so no rule fires); returning a local that still holds an un-run Effect does fire | bind to a local just to `return` it |
-| 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
+| 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)`; enforced by `local/no-nested-effect-ternary` (typed `Effect` only; a 2-branch Effect ternary and non-Effect nested ternaries stay allowed) | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
@@ -289,3 +343,5 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 | Single-use inner pipe / payload | inline it in the one pipe (goal: one large pipe, no intermediate vars) | extract a single-use `const`/helper just to shorten the pipe |
 | Nested pipe that only sequences steps | flatten to sibling steps | leave nesting that adds no branching |
 | Nested pipe with real branching or its own `Stream`/sub-chain | keep nested — it's genuine composition | flatten mechanically and lose the structure |
+| Recovery around a subsequence of an outer gen | pipe from first Effect; recovery as sibling. `catchTags` inside `Effect.fn`: `local/no-nested-effect-gen-catch-tags` | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchAllCause / catchTags)` |
+| Inner chain has its own recovery | keep the nested pipe on that subject | hoist `catchAllCause` / `orElseSucceed` onto an outer lookup pipe |

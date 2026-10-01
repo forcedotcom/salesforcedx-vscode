@@ -23,14 +23,14 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { noOrgTest } from '../fixtures';
 
-test('Apex Generate Trigger: creates new Apex trigger via command palette', async ({ page }) => {
+noOrgTest('Apex Generate Trigger: creates new Apex trigger via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
   const triggerName = `GenerateTriggerTest${Date.now()}`;
 
-  await test.step('setup with no org', async () => {
+  await noOrgTest.step('setup with no org', async () => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
@@ -38,11 +38,39 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'setup.after-workbench.png');
   });
 
-  await test.step('command is present', async () => {
+  await noOrgTest.step('command is present', async () => {
     await verifyCommandExists(page, packageNls.apex_generate_trigger_text, 120_000);
   });
 
-  await test.step('create Apex trigger via command palette', async () => {
+  await noOrgTest.step('cancel trigger name input', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+    await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.press('Escape');
+    await expect(quickInput).not.toBeVisible({ timeout: 5000 });
+    await expect(
+      page.locator('[role="tab"]').filter({ hasText: new RegExp(`${triggerName}\\.trigger$`, 'i') })
+    ).not.toBeVisible();
+  });
+
+  await noOrgTest.step('cancel trigger sObject input', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+    await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.type(`  ${triggerName}  `);
+    await page.keyboard.press('Enter');
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.apex_trigger_sobject_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.press('Escape');
+    await expect(quickInput).not.toBeVisible({ timeout: 5000 });
+    await expect(
+      page.locator('[role="tab"]').filter({ hasText: new RegExp(`${triggerName}\\.trigger$`, 'i') })
+    ).not.toBeVisible();
+  });
+
+  await noOrgTest.step('create Apex trigger via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_generate_trigger_text);
     await saveScreenshot(page, 'step1.after-command.png');
 
@@ -51,14 +79,14 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await quickInput.waitFor({ state: 'visible', timeout: 5000 });
     await quickInput.getByText(messages.apex_trigger_name_prompt).waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.name-prompt-visible.png');
-    await page.keyboard.type(triggerName);
+    await page.keyboard.type(`  ${triggerName}  `);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'step1.after-type-name.png');
 
     // Select sObject — QuickPick when org is connected, text input fallback otherwise
     await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
     await saveScreenshot(page, 'step1.sobject-prompt-visible.png');
-    await page.keyboard.type('Case');
+    await page.keyboard.type('  Case  ');
     const hasSObjectList = await page.locator('.quick-input-list').isVisible();
     if (hasSObjectList) {
       await waitForQuickInputFirstOption(page);
@@ -98,8 +126,8 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'step1.editor-opened.png');
   });
 
-  await test.step('verify trigger was created correctly', async () => {
-    const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${triggerName}\\.trigger`, 'i') });
+  await noOrgTest.step('verify trigger was created correctly', async () => {
+    const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${triggerName}\\.trigger$`, 'i') });
     await expect(editorTab).toBeVisible({ timeout: 1000 });
     await saveScreenshot(page, 'step2.tab-visible.png');
 
@@ -122,5 +150,5 @@ test('Apex Generate Trigger: creates new Apex trigger via command palette', asyn
     await saveScreenshot(page, 'step2.trigger-content-verified.png');
   });
 
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  await validateNoCriticalErrors(noOrgTest, consoleErrors, networkErrors);
 });

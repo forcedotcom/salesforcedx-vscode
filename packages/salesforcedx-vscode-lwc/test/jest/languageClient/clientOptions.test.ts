@@ -90,14 +90,10 @@ describe('clientOptions', () => {
         onDidDelete: jest.fn(),
         dispose: jest.fn()
       } as unknown as vscode.FileSystemWatcher;
-      const workspaceUri = URI.file('/workspace');
-      const packageUri = URI.file('/workspace/packages/force-app');
-      const originalWorkspaceFolders = vscode.workspace.workspaceFolders;
-
-      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
-        configurable: true,
-        value: [{ uri: workspaceUri, name: 'workspace', index: 0 }]
-      });
+      const packageUris = [
+        URI.parse('memfs:/workspace/packages/force-app'),
+        URI.parse('vscode-remote://ssh-remote+host/home/project/packages/shared')
+      ];
       const relativePatternMock = jest.fn((baseUri: URI, pattern: string) => ({ baseUri, pattern }));
       Object.defineProperty(vscode, 'RelativePattern', {
         configurable: true,
@@ -113,19 +109,23 @@ describe('clientOptions', () => {
             workspaceType: 'SFDX',
             sfdxTypingsDir: '/path/to/typings'
           },
-          ['packages\\force-app']
+          packageUris
         );
 
-        expect(options.synchronize?.fileEvents).toHaveLength(9);
-        expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/lwc/*/*.js');
-        expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/*.js-meta.xml');
-        expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/');
+        expect(options.synchronize?.fileEvents).toHaveLength(18);
+        expect(relativePatternMock.mock.calls).toHaveLength(18);
+        packageUris.forEach(packageUri => {
+          expect(relativePatternMock.mock.calls.filter(([baseUri]) => baseUri === packageUri)).toHaveLength(9);
+          expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/lwc/*/*.js');
+          expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/*.js-meta.xml');
+          expect(relativePatternMock).toHaveBeenCalledWith(packageUri, '**/');
+        });
 
         const directoryCall = createFileSystemWatcherSpy.mock.calls.find(
-          ([pattern]) => typeof pattern !== 'string' && pattern.pattern === '**/'
+          ([pattern]) => typeof pattern !== 'string' && pattern.baseUri === packageUris[0] && pattern.pattern === '**/'
         );
         expect(directoryCall).toEqual([
-          expect.objectContaining({ baseUri: packageUri, pattern: '**/' }),
+          expect.objectContaining({ baseUri: packageUris[0], pattern: '**/' }),
           true, // ignoreCreateEvents: true - .js-meta.xml watcher handles needed creates
           true,
           false
@@ -133,10 +133,6 @@ describe('clientOptions', () => {
       } finally {
         createFileSystemWatcherSpy.mockRestore();
         Reflect.deleteProperty(vscode, 'RelativePattern');
-        Object.defineProperty(vscode.workspace, 'workspaceFolders', {
-          configurable: true,
-          value: originalWorkspaceFolders
-        });
       }
     });
   });

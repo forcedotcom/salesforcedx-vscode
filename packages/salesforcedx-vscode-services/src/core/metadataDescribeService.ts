@@ -24,6 +24,7 @@ import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { orgIdFromConnection } from './schemas/authFields';
 import { FilePropertiesByFullName, FilePropertiesSchema } from './schemas/fileProperties';
 import { unknownToErrorCause } from './shared';
 
@@ -88,12 +89,16 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       if (orgId) return orgId;
       const connection = yield* connectionService.getConnection();
-      const connectionOrgId = connection.getAuthInfoFields().orgId;
-      if (connectionOrgId) return connectionOrgId;
-      return yield* new MetadataDescribeError({
-        cause: new Error('No orgId found in connection'),
-        function: 'resolveOrgId',
-        message: 'Failed to resolve metadata operation org: No orgId found in connection'
+      return yield* Option.match(orgIdFromConnection(connection), {
+        onNone: () =>
+          Effect.fail(
+            new MetadataDescribeError({
+              cause: new Error('No orgId found in connection'),
+              function: 'resolveOrgId',
+              message: 'Failed to resolve metadata operation org: No orgId found in connection'
+            })
+          ),
+        onSome: Effect.succeed
       });
     });
 
@@ -222,9 +227,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           });
         }
       }).pipe(
-        Effect.tap(result => Effect.annotateCurrentSpan({ result })),
-        Effect.withSpan('listMetadata (API call)'),
         Effect.map(ensureArray),
+        Effect.tap(items => Effect.annotateCurrentSpan({ resultCount: items.length })),
+        Effect.withSpan('listMetadata (API call)'),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
         Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
         Effect.map(Arr.dedupeAdjacentWith(FilePropertiesByFullName)),

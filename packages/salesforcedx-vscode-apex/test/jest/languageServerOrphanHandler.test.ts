@@ -21,17 +21,28 @@ const HEALTHY_LIST = `1234 5678 java -jar ${UBER_JAR_NAME}`;
 
 type ExecResult = string | { fail: string };
 
-/** Build a stub TerminalService.simpleExec that returns canned stdout (or a TerminalServiceError) per matched command substring. */
+/** Build a stub TerminalService.simpleExec that returns canned stdout (or a TerminalServiceError) per matched command substring.
+ * Rebuild a display string from executable + args so the substring matchers still work. */
 const makeSimpleExec =
   (responses: { match: string; result: ExecResult }[]) =>
-  ({ command, parse = s => s }: { command: string; parse?: (stdout: string) => string; timeout?: unknown }) => {
+  ({
+    executable,
+    args,
+    parse = s => s
+  }: {
+    executable: string;
+    args: readonly string[];
+    parse?: (stdout: string) => string;
+    timeout?: unknown;
+  }) => {
+    const command = [executable, ...args].join(' ');
     const hit = responses.find(r => command.includes(r.match));
     if (!hit) {
       return Effect.die(new Error(`unexpected command: ${command}`));
     }
     return typeof hit.result === 'string'
       ? Effect.succeed(parse(hit.result.trim()))
-      : Effect.fail({ _tag: 'TerminalServiceError', message: hit.result.fail, command });
+      : Effect.fail({ _tag: 'TerminalServiceError', message: hit.result.fail });
   };
 
 type Choices = {
@@ -63,7 +74,7 @@ const makeSettingsStub = (opts: { getValueResult?: unknown; setValueFail?: boole
 });
 
 const makeSettingsService = (stub: SettingsStub) => ({
-  getValue: (section: string, key: string, defaultValue?: unknown) => {
+  getValueOrElse: (section: string, key: string, defaultValue?: unknown) => {
     stub.getValueCalls.push({ section, key, defaultValue });
     return Effect.succeed(stub.getValueResult);
   },
@@ -147,7 +158,7 @@ const run = (
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
     (
-      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+      checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
         provide(Provider, responses, settingsStub)
       ) as Effect.Effect<void>
     ).pipe(captureRoot(holder))
@@ -176,7 +187,7 @@ const runWithClock = (
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
       const fiber = yield* Effect.fork(
-        checkAndResolveOrphanedLanguageServers(3, 0).pipe(provide(Provider, responses, settingsStub))
+        checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(provide(Provider, responses, settingsStub))
       );
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
@@ -242,13 +253,16 @@ describe('languageServerOrphanHandler', () => {
     let psCallCount = 0;
     const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
     const statefulSimpleExec = ({
-      command,
+      executable,
+      args,
       parse = (s: string) => s
     }: {
-      command: string;
+      executable: string;
+      args: readonly string[];
       parse?: (stdout: string) => unknown;
       timeout?: unknown;
     }) => {
+      const command = [executable, ...args].join(' ');
       if (command.includes('ps -e')) {
         psCallCount++;
         const stdout = psCallCount === 1 ? ORPHAN_LIST : '';
@@ -270,7 +284,7 @@ describe('languageServerOrphanHandler', () => {
       }
     };
     await Effect.runPromise(
-      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+      checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
         Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
       ) as Effect.Effect<void>
     );

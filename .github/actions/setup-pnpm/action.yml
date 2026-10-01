@@ -1,0 +1,27 @@
+name: Setup pnpm
+description: Set up Node.js, pnpm caching, and workspace dependencies
+inputs:
+  node-version:
+    description: Node.js version
+    required: false
+    default: lts/*
+  install:
+    description: Install workspace dependencies
+    required: false
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Install dependencies
+      if: inputs.install == 'true'
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        command: pnpm install --frozen-lockfile

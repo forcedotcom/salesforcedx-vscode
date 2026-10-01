@@ -49,9 +49,8 @@ export const resolveRunInputs = <E, R>(
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const settings = yield* api.services.SettingsService;
-    const codeCoverage =
-      (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
-    const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
+    const codeCoverage = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false);
+    const concise = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false);
     const resolved = yield* Effect.all(
       {
         payload: api.services.ConnectionService.getConnection().pipe(
@@ -124,11 +123,16 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // Generate and open test report
   const settings = yield* api.services.SettingsService;
-  const outputFormat =
-    (yield* settings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ?? 'markdown';
-  const sortOrder =
-    (yield* settings.getValue<'runtime' | 'coverage' | 'severity'>(APEX_TESTING_SECTION, 'testSortOrder', 'runtime')) ??
-    'runtime';
+  const outputFormat = yield* settings.getValueOrElse<'markdown' | 'text'>(
+    APEX_TESTING_SECTION,
+    'outputFormat',
+    'markdown'
+  );
+  const sortOrder = yield* settings.getValueOrElse<'runtime' | 'coverage' | 'severity'>(
+    APEX_TESTING_SECTION,
+    'testSortOrder',
+    'runtime'
+  );
   const channelService = yield* api.services.ChannelService;
   const reportUri = yield* writeAndOpenTestReport(
     result,

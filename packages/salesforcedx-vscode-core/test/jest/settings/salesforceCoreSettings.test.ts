@@ -4,23 +4,35 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { ALL_EXCEPTION_CATCHER_ENABLED } from '../../../src/constants';
-import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
+import { getEnableAllExceptionCatcher } from '../../../src/settings/salesforceCoreSettings';
 
-describe('salesforceCoreSettings', () => {
-  let getConfigValueSpy: jest.SpyInstance;
+describe('getEnableAllExceptionCatcher', () => {
+  const getValueOrElse = jest.fn();
+  const run = () =>
+    Effect.runPromise(
+      getEnableAllExceptionCatcher().pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: { SettingsService }
+          } as never)
+        }),
+        Effect.provideService(SettingsService, SettingsService.make({ getValueOrElse } as never))
+      )
+    );
+
   beforeEach(() => {
-    getConfigValueSpy = jest.spyOn((SalesforceCoreSettings as any).prototype, 'getConfigValue');
+    getValueOrElse.mockReset();
   });
-  describe('getEnableAllExceptionCatcher', () => {
-    it('should set the default value for enable all exception catching to be false.', () => {
-      getConfigValueSpy.mockReturnValue(false);
-      const salesforceCoreSettingsInstance = SalesforceCoreSettings.getInstance();
-      const defaultValue = salesforceCoreSettingsInstance.getEnableAllExceptionCatcher();
-      expect(salesforceCoreSettingsInstance).toBeInstanceOf(SalesforceCoreSettings);
-      expect(getConfigValueSpy).toHaveBeenCalled();
-      expect(getConfigValueSpy).toHaveBeenCalledWith(ALL_EXCEPTION_CATCHER_ENABLED, false);
-      expect(defaultValue).toBe(false);
-    });
+
+  it('reads allExceptionCatcherEnabled with default false', async () => {
+    getValueOrElse.mockReturnValue(Effect.succeed(false));
+
+    expect(await run()).toBe(false);
+    expect(getValueOrElse).toHaveBeenCalledWith(SFDX_CORE_CONFIGURATION_NAME, ALL_EXCEPTION_CATCHER_ENABLED, false);
   });
 });

@@ -21,17 +21,16 @@
     "@effect/platform": "^0.96.1",
     "@salesforce/core": "^9.1.9",
     "@salesforce/kit": "^4.0.0",
+    "effect": "^3.21.2",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",
-    "effect": "^3.21.2",
     "json-stream-stringify": "^3.1.7"
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
-    "@salesforce/ts-types": "^3.0.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",

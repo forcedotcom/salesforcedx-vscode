@@ -25,6 +25,7 @@
   // which aborts the rest of the IIFE (message listeners, save-button handlers,
   // and the `activate` postMessage all fail to register).
   let mainTable;
+  let mainTableReady = false;
 
   // load previous state if webview was moved from background.
   function loadState() {
@@ -36,16 +37,16 @@
 
   function adjustContainerHeight() {
     var tEl = document.querySelector('#data-table');
-    if (!tEl || !mainTable) {
+    if (!tEl || !mainTable || !mainTableReady) {
       return;
     }
     var pageHeader = document.querySelector('header');
     var pageHeaderH = pageHeader ? pageHeader.offsetHeight : 0;
     var colHeaderEl = tEl.querySelector('.tabulator-header');
     var colHeaderH = colHeaderEl ? Math.max(colHeaderEl.offsetHeight, colHeaderEl.scrollHeight) : 0;
-    var rowsH = (tEl.querySelector('.tabulator-tableHolder .tabulator-table') || {}).offsetHeight || 0;
+    var rowsH = (tEl.querySelector('.tabulator-tableholder .tabulator-table') || {}).offsetHeight || 0;
     var footerH = (tEl.querySelector('.tabulator-footer') || {}).offsetHeight || 0;
-    var tableHolder = tEl.querySelector('.tabulator-tableHolder');
+    var tableHolder = tEl.querySelector('.tabulator-tableholder');
     var hScrollbarH = tableHolder ? Math.max(0, tableHolder.offsetHeight - tableHolder.clientHeight) : 0;
     var contentH = colHeaderH + rowsH + hScrollbarH + footerH + 2;
     var maxH = window.innerHeight - pageHeaderH - 20;
@@ -92,32 +93,35 @@
 
   function renderTableWith(tableData) {
     if (mainTable) {
+      mainTableReady = false;
       mainTable.destroy();
       mainTable = undefined;
     }
 
     var fg = tableData.flattenedGrid;
     if (fg && Array.isArray(fg.fields) && fg.fields.length > 0 && Array.isArray(fg.rowData)) {
-      mainTable = new Tabulator('#data-table', {
+      createMainTable({
         data: fg.rowData,
-        pagination: 'local',
+        pagination: true,
+        paginationMode: 'local',
         paginationSize: 50,
         layout: 'fitColumns',
         height: '100%',
-        virtualDom: false,
+        renderVertical: 'basic',
+        nestedFieldSeparator: false,
         columns: getFlattenedGridColumns(fg.fields)
       });
-      adjustContainerHeight();
       return;
     }
 
-    mainTable = new Tabulator('#data-table', {
+    createMainTable({
       data: tableData.records,
-      pagination: 'local',
+      pagination: true,
+      paginationMode: 'local',
       paginationSize: 50,
       layout: 'fitColumns',
       height: '100%',
-      virtualDom: false,
+      renderVertical: 'basic',
       columns: getColumns(tableData, tableData.columnData),
       rowFormatter: row => {
         tableData.columnData.subTables.forEach(subTable => {
@@ -142,7 +146,7 @@
             try {
               new Tabulator(tableEl, {
                 layout: 'fitColumns',
-                virtualDom: false,
+                renderVertical: 'basic',
                 data: data.records,
                 columns: getColumns(data, subTable)
               });
@@ -153,7 +157,18 @@
         });
       }
     });
-    adjustContainerHeight();
+  }
+
+  function createMainTable(options) {
+    var table = new Tabulator('#data-table', options);
+    mainTable = table;
+    mainTableReady = false;
+    table.on('tableBuilt', function () {
+      if (mainTable === table) {
+        mainTableReady = true;
+        adjustContainerHeight();
+      }
+    });
   }
 
   function getFlattenedGridColumns(fields) {
@@ -180,7 +195,7 @@
         current = current.groups[segment];
       }
       var leafTitle = parts[parts.length - 1];
-      current.leaves.push(createFlattenedLeafColumn(fieldName, leafTitle));
+      current.leaves.push({ title: leafTitle, field: fieldName });
     });
 
     return buildGroupedColumns(root);
@@ -195,19 +210,6 @@
       });
     });
     return columns;
-  }
-
-  function createFlattenedLeafColumn(fieldName, title) {
-    // Tabulator (v4.x) treats dots in `field` as nested paths (row.Contacts.Id).
-    // Flattened SOQL rows use one object key per column, e.g. row["Contacts.Id"].
-    return {
-      title: title,
-      field: fieldName,
-      formatter: function (cell) {
-        var v = cell.getRow().getData()[fieldName];
-        return v === undefined || v === null ? '' : String(v);
-      }
-    };
   }
 
   // getColumns uses ColumnData to match QueryResult fields to columns.

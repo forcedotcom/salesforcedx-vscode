@@ -227,6 +227,13 @@ describe('Extension', () => {
     ];
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = jest.fn();
+    // resetMocks clears the vscode stub, and ChannelDisposalLayer calls dispose() on every cached channel.
+    vscode.window.createOutputChannel = jest.fn(() => ({
+      clear: jest.fn(),
+      appendLine: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn()
+    }));
   });
 
   it('activates with shared services and an external span SDK', async () => {
@@ -255,6 +262,15 @@ describe('Extension', () => {
     const services = api.services.prebuiltServicesDependencies;
     Context.get(services, ConfigService);
     Context.get(services, ConnectionService);
+    const consoleLog = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    Effect.runSync(
+      Effect.logInfo('api layer 00D000000000000!api-layer-secret').pipe(
+        Effect.provide(api.services.prebuiltServicesLayer)
+      )
+    );
+    expect(String(consoleLog.mock.calls[0][0])).toContain('<REDACTED ACCESS TOKEN>');
+    expect(String(consoleLog.mock.calls[0][0])).not.toContain('api-layer-secret');
+    consoleLog.mockRestore();
     const externalSdkContext = await Effect.runPromise(
       Layer.buildWithScope(api.services.SdkLayerFor(context), Effect.runSync(getExtensionScope()))
     );

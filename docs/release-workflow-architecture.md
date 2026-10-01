@@ -1,6 +1,13 @@
 # Release Workflow Architecture
 
-> **Status:** `createReleaseBranch.yml` deprecated, scheduled for deletion after proven stability (W-23988524).
+> **Status:** Legacy release-branch automation removed after the mid-September 2026 wait and 2 successful stable-mode replacement builds (W-23988524).
+
+Retirement evidence:
+
+- [`v67.18.0` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/34322271715): scheduled replacement workflow completed successfully on September 9, 2026 and created tag [`v67.18.0`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.0).
+- [`v67.18.2` build](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/35029771847): replacement workflow completed successfully on September 15, 2026 and created tag [`v67.18.2`](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v67.18.2), later promoted to a full release.
+
+The old workflow names below remain only as historical timeline labels.
 
 ## Workflow Overview
 
@@ -24,15 +31,23 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
          │                                                   │
          ▼                                                   │
 ┌─────────────────────────────────────────────────────────────────┐
-│  promote-nightly-to-prerelease.yml (AUTOMATED CRON)             │
+│  promote-to-prerelease.yml (AUTOMATED CRON)                     │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ ✓ Finds most recent nightly (min-tag-age: 0 days)            │
 │  │ ✓ Gate-checks: nightly build/release success                 │
 │  │   (not unit-tests; those ran on PR before merge to develop)  │
+│  │ ✓ Computes changelog range (prev prerelease tag or latest v*) │
+│  │ ✓ Generates polished changelog via AI (removes GUS refs,     │
+│  │   rewrites sentences, dedupes packages, consolidates Under-  │
+│  │   the-Hood) using .github/workflows/changelog-body.yml       │
+│  │ ✓ Writes polished changelog to CHANGELOG.md + root           │
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
+│  │ ✓ Tags nightly release title with " - published" suffix      │
+│  │   (visible at-a-glance on Releases page which nightly went   │
+│  │    out as that week's marketplace pre-release)               │
 │  │ ✓ Zero manual intervention                                   │
 │  │                                                              │
 │  │ WHY IT MATTERS:                                              │
@@ -51,10 +66,11 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
          │                                                                │
          ▼                                                                │
 ┌─────────────────────────────────────────────────────────────────┐
-│  build-release.yml (AUTOMATED CRON)                             │
+│  build-github-release.yml (AUTOMATED CRON)                      │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │
+│  │    (loops through tags newest-first, resolves first match)   │
 │  │    (previous Wednesday's promoted build that customer tested)│
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
@@ -112,14 +128,16 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            │                                                       │      │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐        │      │
-   │ Step 1: build-release.yml                            │        │      │
-   │ -f publishAsPrerelease=true                          │        │      │
+   │ Step 1: build-github-release.yml                     │        │      │
+   │ -f emergencyPrerelease=true                          │        │      │
    │ -f startFromRef=hotfix/critical-bug                  │        │      │
    │ (~3 minutes)                                         │        │      │
    │ ┌────────────────────────────────────────────────────┤        │      │
-   │ │ • Uses version from source's package.json (must    │        │      │
-   │ │   be unique, not already published to marketplace) │        │      │
-   │ │ • No automated version bump or branch creation     │        │      │
+   │ │ • Auto-calculates patch from higher of             │        │      │
+   │ │   Marketplace/Open VSX published versions          │        │      │
+   │ │ • Or use -f releaseVersion=X.Y.Z for manual        │        │      │
+   │ │   version override (e.g., source's package.json)   │        │      │
+   │ │ • Registries can drift; takes max + bumps patch    │        │      │
    │ │ • Builds VSIXs from exact ref                      │        │      │
    │ │ • Creates GitHub pre-release with nightly tag      │        │      │
    │ └────────────────────────────────────────────────────┤        │      │
@@ -127,10 +145,13 @@ EMERGENCY PRE-RELEASE PATH (5 minutes to marketplace) - NEW!             │
            │                                                       │      │
            ▼                                                       │      │
    ┌──────────────────────────────────────────────────────┐
-   │ Step 2: promote-nightly-to-prerelease.yml            │
+   │ Step 2: promote-to-prerelease.yml                    │
    │ -f releaseTag=v67.13.7-nightly.develop.20260821      │
+   │ -f isHotfix=true                                     │
    │ (~2 minutes)                                         │
    │ ┌────────────────────────────────────────────────────┤
+   │ │ • Skips nightly-pipeline gate-check (doesn't exist)│
+   │ │ • Tests hotfix commit directly (compile + test)    │
    │ │ • Publishes to VS Code Marketplace                 │
    │ │ • Publishes to Open VSX                            │
    │ │ • Available to all users immediately               │
@@ -163,14 +184,28 @@ EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!               │
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ build-and-release-patch-branch.yml                              │
+   │ build-and-release-patch-branch.yml                   │
    │ • Auto-increments (v67.12.0 → v67.12.1)              │
-   │ • Builds VSIXs                                       │
+   │ • Builds VSIXs (no automated test gate - manual QA   │
+   │   in step 5 below is the only validation)            │
    └───────┬──────────────────────────────────────────────┘
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ publishVSCode.yml → Marketplace                      │
+   │ Manual QA: download + install VSIXs, smoke test      │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ publishVSCode.yml + publishOpenVSX.yml               │
+   │ Both dispatched with -f isHotfix=true, release-tag   │
+   │ • Test patch commit (compile + test)                 │
+   │ • Publish stable to VS Code Marketplace & Open VSX   │
+   └───────┬──────────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ LIVE ON BOTH REGISTRIES (as stable)                  │
    └──────────────────────────────────────────────────────┘
                                                                   │       │
 ═══════════════════════════════════════════════════════════════════════════
@@ -230,18 +265,19 @@ Emergency Path: ❌ None (wait 7+ days)
 ```
 WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ promote-nightly-to-prerelease.yml (AUTOMATED 8 AM UTC)
+                              ├─ promote-to-prerelease.yml (AUTOMATED 8 AM UTC)
                               │    • Finds most recent nightly (min-tag-age: 0 days)
                               │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
+                              │    • Tags nightly release title with " - published" suffix
                               │    ✓ Real users test in production
                               │
                               │    [7 DAYS OF CUSTOMER TESTING]
                               │
 WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ build-release.yml (AUTOMATED 7 AM UTC)
+                              ├─ build-github-release.yml (AUTOMATED 7 AM UTC)
                               │    • Finds previous Wed's marketplace-prerelease-* tag
                               │    • Creates ephemeral staging branch
                               │    • Builds stable VSIXs

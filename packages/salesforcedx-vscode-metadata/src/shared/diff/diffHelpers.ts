@@ -76,8 +76,7 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
 
   yield* Effect.annotateCurrentSpan({
     projectComponentCount: allProjectComponents.length,
-    selectedProjectComponentCount: projectComponents.length,
-    projectComponents: projectComponents.map(c => `${c.type.name}:${c.fullName}`)
+    selectedProjectComponentCount: projectComponents.length
   });
 
   if (projectComponents.length === 0) return HashSet.empty<DiffFilePair>();

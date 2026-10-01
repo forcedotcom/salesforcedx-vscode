@@ -79,6 +79,11 @@ export const trackingConflictTest = createDesktopTest({
     ...playwrightDialogSettings
   }
 }).extend<{ helperProject: HelperProject; statusBarPage: SourceTrackingStatusBarPage }>({
+  // Match web template: ignore profiles before SourceTracking caches .forceignore (Apex deploy updates Profile: Admin).
+  workspaceDir: async ({ workspaceDir }: { workspaceDir: string }, use: (dir: string) => Promise<void>) => {
+    await fs.appendFile(path.join(workspaceDir, '.forceignore'), '\n# Profiles\n**/profiles/**\n');
+    await use(workspaceDir);
+  },
   helperProject: async ({}: any, use: any) => {
     const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${randomUUID()}`);
 

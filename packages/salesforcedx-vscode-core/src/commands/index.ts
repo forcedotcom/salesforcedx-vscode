@@ -6,4 +6,4 @@
  */
 export { configListCommand } from './configList';
 export { initSObjectDefinitions } from './refreshSObjects';
-export { openDocumentation } from './openDocumentation';
+export { openDocumentationCommand } from './openDocumentation';

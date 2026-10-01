@@ -12,9 +12,13 @@ import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
+import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
+import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
+import { noNestedEffectTernary } from './noNestedEffectTernary';
+import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
@@ -31,6 +35,7 @@ import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
 import { packageJsonNoDefaultTrue } from './packageJsonNoDefaultTrue';
+import { packageJsonNoServicesDependency } from './packageJsonNoServicesDependency';
 import { packageJsonRequireRootInstall } from './packageJsonRequireRootInstall';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
@@ -57,8 +62,12 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-runtime-vscode-import': noRuntimeVscodeImport,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
+    'no-effect-service-promise-return': noEffectServicePromiseReturn,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
+    'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
+    'no-nested-effect-ternary': noNestedEffectTernary,
+    'no-raw-duration': noRawDuration,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
@@ -72,6 +81,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
     'package-json-no-default-true': packageJsonNoDefaultTrue,
+    'package-json-no-services-dependency': packageJsonNoServicesDependency,
     'package-json-require-root-install': packageJsonRequireRootInstall,
     'package-json-salesforce-dep-versions': packageJsonSalesforceDepVersions,
     'package-json-view-refs': packageJsonViewRefs,

@@ -233,20 +233,80 @@ const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
     const root = gitRoot(target, run);
     return !root || hasDependencies(root)
       ? undefined
-      : `node_modules missing at ${root} — local lint/compile hooks can't run, so a push would ship unverified code. Run 'npm install' at the repo root, then push.`;
+      : `node_modules missing at ${root} — local lint/compile hooks can't run, so a push would ship unverified code. Run 'pnpm install' at the repo root, then push.`;
   });
   return result.reason;
 };
 
+const argumentsBeforeDoubleDash = arguments_ => {
+  const doubleDash = arguments_.indexOf('--');
+  return doubleDash < 0 ? arguments_ : arguments_.slice(0, doubleDash);
+};
+
+const hasShortOption = (arguments_, options) =>
+  argumentsBeforeDoubleDash(arguments_).some(
+    argument =>
+      argument.startsWith('-') &&
+      !argument.startsWith('--') &&
+      [...argument.slice(1)].some(option => options.includes(option))
+  );
+
+const hasLongOption = (arguments_, option) =>
+  argumentsBeforeDoubleDash(arguments_).some(argument => argument === option || argument.startsWith(`${option}=`));
+
+const effectiveTracking = arguments_ =>
+  argumentsBeforeDoubleDash(arguments_).reduce((tracking, argument) => {
+    if (argument === '--no-track') return false;
+    return argument === '--track' || argument.startsWith('--track=') || hasShortOption([argument], 't')
+      ? true
+      : tracking;
+  }, undefined);
+
+const branchDoesNotCreate = arguments_ =>
+  hasShortOption(arguments_, 'alrvdDmMcCu') ||
+  [
+    '--all',
+    '--remotes',
+    '--delete',
+    '--move',
+    '--copy',
+    '--list',
+    '--show-current',
+    '--edit-description',
+    '--set-upstream-to',
+    '--unset-upstream',
+    '--contains',
+    '--no-contains',
+    '--merged',
+    '--no-merged',
+    '--points-at',
+    '--column',
+    '--sort',
+    '--format'
+  ].some(option => hasLongOption(arguments_, option));
+
 const trackedBaseBranchDenial = ({ command, cwd }) =>
   inspectCommand(command, cwd, tokens => {
     const git = gitCommand(tokens);
-    if (!git || git.arguments.includes('--no-track')) return undefined;
-    const namesRemoteBase = git.arguments.some(argument => argument === 'origin/develop' || argument === 'origin/main');
+    if (!git) return undefined;
+    const arguments_ = git.subcommand === 'checkout' ? argumentsBeforeDoubleDash(git.arguments) : git.arguments;
+    const remoteBaseIndex = arguments_.findIndex(
+      argument => argument === 'origin/develop' || argument === 'origin/main'
+    );
+    const namesBranchBeforeRemoteBase = arguments_
+      .slice(0, remoteBaseIndex)
+      .some(argument => !argument.startsWith('-'));
+    const tracking = effectiveTracking(git.arguments);
     const createsBranch =
       (git.subcommand === 'worktree' && git.arguments[0] === 'add') ||
-      (git.subcommand === 'checkout' && git.arguments.includes('-b'));
-    return namesRemoteBase && createsBranch ? TRACKED_BASE_BRANCH_REASON : undefined;
+      (git.subcommand === 'checkout' && (hasShortOption(git.arguments, 'bB') || tracking === true)) ||
+      (git.subcommand === 'switch' &&
+        (hasShortOption(git.arguments, 'cC') ||
+          hasLongOption(git.arguments, '--create') ||
+          hasLongOption(git.arguments, '--force-create') ||
+          tracking === true)) ||
+      (git.subcommand === 'branch' && !branchDoesNotCreate(git.arguments) && namesBranchBeforeRemoteBase);
+    return remoteBaseIndex >= 0 && tracking !== false && createsBranch ? TRACKED_BASE_BRANCH_REASON : undefined;
   }).reason;
 
 export const commandDenial = (input, policy = 'all') =>
@@ -278,7 +338,7 @@ const effectDiagnostics = ({ root, file, run, requireExecutable = false }) => {
   const executable = resolve(root, 'node_modules/.bin/effect-language-service');
   if (!existsSync(executable)) {
     return requireExecutable
-      ? failure('effect LS', `${executable} not found — run npm install`)
+      ? failure('effect LS', `${executable} not found — run pnpm install`)
       : { ok: true, step: `effect LS (${file})` };
   }
   const result = run({
@@ -297,7 +357,7 @@ const effectDiagnosticsAsync = async ({ root, file, run, requireExecutable = fal
   const executable = resolve(root, 'node_modules/.bin/effect-language-service');
   if (!existsSync(executable)) {
     return requireExecutable
-      ? failure('effect LS', `${executable} not found — run npm install`)
+      ? failure('effect LS', `${executable} not found — run pnpm install`)
       : { ok: true, step: `effect LS (${file})` };
   }
   const result = await run({ command: executable, args: ['diagnostics', '--file', file], cwd: root });
@@ -312,8 +372,8 @@ export const verifyEdit = ({ root, files, run = defaultRun }) => {
   const compile = runStep({
     root,
     step: 'compile',
-    command: 'npm',
-    args: ['run', 'compile'],
+    command: 'pnpm',
+    args: ['compile'],
     run
   });
   if (!compile.ok) return compile;
@@ -332,8 +392,8 @@ export const verifyEditAsync = async ({ root, files, run = defaultRunAsync }) =>
   const compile = await runStepAsync({
     root,
     step: 'compile',
-    command: 'npm',
-    args: ['run', 'compile'],
+    command: 'pnpm',
+    args: ['compile'],
     run
   });
   if (!compile.ok) return compile;
@@ -381,28 +441,28 @@ const changedTypescriptFilesAsync = async ({ root, run }) => {
 
 export const verifyCompletion = ({ root, run = defaultRun }) => {
   const steps = [
-    () => runStep({ root, step: 'compile', command: 'npm', args: ['run', 'compile'], run }),
-    () => runStep({ root, step: 'lint', command: 'npm', args: ['run', 'lint'], run }),
+    () => runStep({ root, step: 'compile', command: 'pnpm', args: ['compile'], run }),
+    () => runStep({ root, step: 'lint', command: 'pnpm', args: ['lint'], run }),
     ...changedTypescriptFiles({ root, run }).map(
       file => () => effectDiagnostics({ root, file, run, requireExecutable: true })
     ),
-    () => runStep({ root, step: 'test', command: 'npm', args: ['run', 'test'], run }),
-    () => runStep({ root, step: 'vscode:bundle', command: 'npm', args: ['run', 'vscode:bundle'], run }),
-    () => runStep({ root, step: 'knip', command: 'npm', args: ['run', 'check:knip'], run })
+    () => runStep({ root, step: 'test', command: 'pnpm', args: ['test'], run }),
+    () => runStep({ root, step: 'vscode:bundle', command: 'pnpm', args: ['vscode:bundle'], run }),
+    () => runStep({ root, step: 'knip', command: 'pnpm', args: ['check:knip'], run })
   ];
   return steps.reduce((result, step) => (result.ok ? step() : result), { ok: true, step: 'completion verification' });
 };
 
 export const verifyCompletionAsync = async ({ root, run = defaultRunAsync }) => {
   const steps = [
-    () => runStepAsync({ root, step: 'compile', command: 'npm', args: ['run', 'compile'], run }),
-    () => runStepAsync({ root, step: 'lint', command: 'npm', args: ['run', 'lint'], run }),
+    () => runStepAsync({ root, step: 'compile', command: 'pnpm', args: ['compile'], run }),
+    () => runStepAsync({ root, step: 'lint', command: 'pnpm', args: ['lint'], run }),
     ...(await changedTypescriptFilesAsync({ root, run })).map(
       file => () => effectDiagnosticsAsync({ root, file, run, requireExecutable: true })
     ),
-    () => runStepAsync({ root, step: 'test', command: 'npm', args: ['run', 'test'], run }),
-    () => runStepAsync({ root, step: 'vscode:bundle', command: 'npm', args: ['run', 'vscode:bundle'], run }),
-    () => runStepAsync({ root, step: 'knip', command: 'npm', args: ['run', 'check:knip'], run })
+    () => runStepAsync({ root, step: 'test', command: 'pnpm', args: ['test'], run }),
+    () => runStepAsync({ root, step: 'vscode:bundle', command: 'pnpm', args: ['vscode:bundle'], run }),
+    () => runStepAsync({ root, step: 'knip', command: 'pnpm', args: ['check:knip'], run })
   ];
   for (const step of steps) {
     const result = await step();

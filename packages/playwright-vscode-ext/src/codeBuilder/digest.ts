@@ -20,6 +20,7 @@
  * misses a bundle-only change; the bundle digest catches it.
  */
 
+import { isNull } from 'effect/Predicate';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
@@ -155,6 +156,6 @@ export const computeExtensionDigest = (dir: string, rawPkgJson?: string): Extens
   const pkgJsonDigest = sha256(canonicalPackageJson(raw));
   const { main } = JSON.parse(raw) as { main?: string };
   const entry = resolveEntrypointFromMain(root, main);
-  const bundleDigest = entry === null ? null : sha256(readFileSync(entry));
+  const bundleDigest = isNull(entry) ? null : sha256(readFileSync(entry));
   return { pkgJsonDigest, bundleDigest };
 };

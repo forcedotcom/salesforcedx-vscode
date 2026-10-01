@@ -9,6 +9,7 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
+import { isNotNull, isNull } from 'effect/Predicate';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
@@ -108,7 +109,7 @@ const forceKillProcessGroup = (proc: ChildProcess): void => {
 /** Resolve once `proc` exits (via the given event) or after `timeoutMs`, whichever comes first. */
 const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close' | 'exit'; timeoutMs: number }): Promise<void> =>
   new Promise<void>(resolve => {
-    if (proc.exitCode !== null) {
+    if (isNotNull(proc.exitCode)) {
       resolve();
       return;
     }
@@ -129,6 +130,11 @@ type CreateDesktopTestOptions = {
   testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
+  /**
+   * Omit the fixture package (`--extensionDevelopmentPath` and VSIX cache). Marketplace ids still install.
+   * Set `disableOtherExtensions: false`; `--disable-extensions` blocks that install.
+   */
+  skipCurrentPackage?: boolean;
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -179,6 +185,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     testExtensionPaths = [],
     marketplaceExtensions = [],
+    skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
     beforeLaunch
@@ -213,7 +220,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const { extensionsDir } = await prepareVsixExtensions({
           repoRoot,
-          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs],
+          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs].filter(
+            dir => !(skipCurrentPackage && dir === packageDir)
+          ),
           vscodeExecutable,
           marketplaceExtensions
         });
@@ -318,7 +327,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
-            packageRoot,
+            ...(skipCurrentPackage ? [] : [packageRoot]),
             ...additionalExtensionDirs
               .concat(['salesforcedx-vscode-services'])
               .map(dir => path.resolve(packageRoot, '..', dir))
@@ -375,7 +384,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             ]);
           } catch {}
           // Force-kill if close didn't work (Windows timeout fallback)
-          if (proc?.exitCode === null && process.platform === 'win32') {
+          if (isNull(proc?.exitCode) && process.platform === 'win32') {
             try {
               process.kill(proc.pid!, 'SIGKILL');
             } catch {}

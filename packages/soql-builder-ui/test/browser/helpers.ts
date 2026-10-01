@@ -25,6 +25,10 @@ export const fieldsSelect = (page: Page): Locator => builder(page).locator('vsco
 
 export const countCheckbox = (page: Page): Locator => builder(page).locator('vscode-checkbox[name="count"]');
 
+export const limitTextfield = (page: Page): Locator => builder(page).locator('vscode-textfield[name="limit"]');
+
+export const allRowsCheckbox = (page: Page): Locator => builder(page).locator('vscode-checkbox[name="allRows"]');
+
 export const clearAllFieldsButton = (page: Page): Locator =>
   builder(page).locator('vscode-button').filter({ hasText: 'Clear All' });
 
@@ -61,6 +65,29 @@ export const selectValue = async (control: Locator, value: string | readonly str
   }, value);
 };
 
+export const setTextfieldValue = async (
+  control: Locator,
+  value: string,
+  eventType: 'change' | 'input'
+): Promise<void> => {
+  await control.evaluate(
+    (node, next) => {
+      if (!('value' in node)) throw new Error('Expected a VSCode Elements control with a public value property');
+      node.value = next.value;
+      node.dispatchEvent(new Event(next.eventType, { bubbles: true, composed: true }));
+    },
+    { eventType, value }
+  );
+};
+
+export const setCheckboxChecked = async (control: Locator, checked: boolean): Promise<void> => {
+  await control.evaluate((node, nextChecked) => {
+    if (!('checked' in node)) throw new Error('Expected a VSCode Elements checkbox with a public checked property');
+    node.checked = nextChecked;
+    node.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+  }, checked);
+};
+
 /**
  * The only intentional shadow-root traversal in the harness. It verifies VSCode Elements' ElementInternals-backed
  * form association, which is not observable through an accessibility locator or the host element's attributes.
@@ -71,13 +98,19 @@ export const expectFormAssociation = async (page: Page): Promise<void> => {
     const form = root?.querySelector<HTMLFormElement>('form');
     const object = root?.querySelector<HTMLElement & { form: HTMLFormElement | null }>('vscode-single-select');
     const fields = root?.querySelector<HTMLElement & { form: HTMLFormElement | null }>('vscode-multi-select');
+    const limit = root?.querySelector<HTMLElement & { form: HTMLFormElement | null }>('vscode-textfield');
+    const allRows = root?.querySelector<HTMLElement & { form: HTMLFormElement | null }>(
+      'vscode-checkbox[name="allRows"]'
+    );
     return {
+      allRowsForm: allRows?.form === form,
       fieldsForm: fields?.form === form,
+      limitForm: limit?.form === form,
       objectForm: object?.form === form
     };
   });
 
-  expect(association).toEqual({ fieldsForm: true, objectForm: true });
+  expect(association).toEqual({ allRowsForm: true, fieldsForm: true, limitForm: true, objectForm: true });
 };
 
 export const emitState = (page: Page, overrides: StateOverrides): Promise<void> =>

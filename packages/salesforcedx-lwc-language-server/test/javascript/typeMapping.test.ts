@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { collectBundleMetadata, BundleConfig, type ScriptFile } from '@lwc/metadata';
-import { transform } from '@lwc/old-compiler';
-
-import { CompilerOptions as OldCompilerOptions } from '@lwc/old-compiler/dist/types/compiler/options';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -37,18 +34,7 @@ it('can map new metadata to old metadata', async () => {
   const modernMetadata = collectBundleMetadata(newMetadataOpts);
   const scriptFile = modernMetadata.files.find(isScriptFile);
   expect(scriptFile).toBeDefined();
-  const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
-
-  const oldTransformOpts: OldCompilerOptions = {
-    name: 'metadata',
-    namespace: 'x',
-    files: {}
-  };
-  const transformerResult = await transform(content, 'metadata.js', oldTransformOpts);
-  const oldMetadata = transformerResult.metadata;
-  expect(oldMetadata).toBeDefined();
-
-  expect(derivedMetadata).toEqual(oldMetadata);
+  expect(mapLwcMetadataToInternal(scriptFile!)).toMatchSnapshot();
 });
 
 it('Should handle mapping when there is a property with only a setter', async () => {
@@ -73,16 +59,5 @@ it('Should handle mapping when there is a property with only a setter', async ()
   const modernMetadata = collectBundleMetadata(newMetadataOpts);
   const scriptFile = modernMetadata.files.find(isScriptFile);
   expect(scriptFile).toBeDefined();
-  const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
-
-  const oldTransformOpts: OldCompilerOptions = {
-    name: 'metadata',
-    namespace: 'x',
-    files: {}
-  };
-  const transformerResult = await transform(content, 'nogetter.js', oldTransformOpts);
-  const oldMetadata = transformerResult.metadata;
-  expect(oldMetadata).toBeDefined();
-
-  expect(derivedMetadata).toEqual(oldMetadata);
+  expect(mapLwcMetadataToInternal(scriptFile!)).toMatchSnapshot();
 });

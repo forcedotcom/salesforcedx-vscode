@@ -16,6 +16,7 @@ import {
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
+import { isNotNull } from 'effect/Predicate';
 import * as path from 'node:path';
 import { Connection, DocumentUri } from 'vscode-languageserver';
 import { URI, Utils } from 'vscode-uri';
@@ -403,7 +404,7 @@ export default class ComponentIndexer {
       return tag;
     });
     (await Promise.all(promises))
-      .filter((tag): tag is Tag => tag !== null)
+      .filter((tag): tag is Tag => isNotNull(tag))
       .forEach(tag => this.tags.set(getTagName(tag), tag));
 
     (await this.getStaleTags()).forEach(tag => this.tags.delete(getTagName(tag)));

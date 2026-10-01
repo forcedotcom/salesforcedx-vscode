@@ -16,7 +16,7 @@ Pipeline: src → out (tsc) → dist (esbuild). Shared configs: [scripts/bundlin
 
 ## Monorepo Management
 
-This repo uses npm workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
+This repo uses [pnpm](./adr/0022-pnpm-cutover.md) workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
 
 ## Versioning
 
@@ -38,7 +38,7 @@ When you add a dependency, run the bundling process to make sure that your dep i
 
 **Web:** Manifest for extension assets — `vscode.workspace.fs.readDirectory` unsupported on HTTPS extension URIs. Build-time manifest (e.g. services `generateTemplatesManifest`) + runtime `readFile` per path. Services manifest is filtered to web-creatable template categories (apexclass, apextrigger, lightningcomponent/lwc, analytics, visualforcepage, visualforcecomponent; desktop ignores manifest and reads all ~435 files from disk). File copy runs concurrently (`Stream.mapEffect` `{ concurrency }`). Template hydration runs once on success and concurrent callers await it (1-permit semaphore + `Ref` flag, so a failure retries); templates root memoized (`Effect.cached`). See [templateService.ts](../packages/salesforcedx-vscode-services/src/core/templateService.ts).
 
-**ESBUILD_PLATFORM:** Bundle-time define (web.mjs injects `'web'` or `'node'`). Not a runtime check — value baked in at bundle; dead branches tree-shaken. Examples: [connectionService](../packages/salesforcedx-vscode-services/src/core/connectionService.ts), [templateService](../packages/salesforcedx-vscode-services/src/core/templateService.ts), [soql LSP client](../packages/salesforcedx-vscode-soql/src/lspClient/client.ts).
+**ESBUILD_PLATFORM:** Bundle-time define (web.mjs injects `'web'` or `'node'`). Not a runtime check — value baked in at bundle; dead *calls* fold. tsc's top-level CJS `require` of a static import survives (`spans.ts` → `spansNode`). Node-only modules: `import()` inside the node branch so web never follows them (`servicesLayers.ts` → `crossSpawnCommandExecutor`; LWC testSupport; visualforce javascriptMode). Node esbuild: `supported['dynamic-import']` (lwcServer, services). Examples: [connectionService](../packages/salesforcedx-vscode-services/src/core/connectionService.ts), [templateService](../packages/salesforcedx-vscode-services/src/core/templateService.ts), [soql LSP client](../packages/salesforcedx-vscode-soql/src/lspClient/client.ts).
 
 You can do this in libraries, too, to have their bundled version add or drop web-specific code. Example: [sfdx-core fs.ts](https://github.com/forcedotcom/sfdx-core/blob/main/src/fs/fs.ts) (web vs node branching), [scripts/build.mjs](https://github.com/forcedotcom/sfdx-core/blob/main/scripts/build.mjs) (bundle-time `define`).
 
@@ -117,7 +117,7 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 
 **vscode:package**
 
-**Good:** `vsce package --allow-package-all-secrets`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
+**Good:** `vsce package --allow-package-all-secrets --no-dependencies`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
 
 - downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 

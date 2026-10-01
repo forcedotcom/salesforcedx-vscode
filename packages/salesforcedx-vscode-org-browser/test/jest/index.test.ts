@@ -50,6 +50,7 @@ import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
+import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
@@ -85,7 +86,7 @@ const mockOutputChannel = createMockOutputChannel();
 mockOutputChannel.appendLine = mockAppendLine;
 
 // 2. ChannelService mock
-const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
+const MockChannelServiceLayer = (_: string) =>
   Layer.succeed(
     ChannelService,
     new ChannelService({
@@ -144,6 +145,12 @@ const MockSettingsServiceLayer = Layer.succeed(
         catch: () =>
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
+    getValueOrElse: <T>(_section: string, _key: string, defaultValue: T) =>
+      Effect.try({
+        try: () => defaultValue,
+        catch: () =>
+          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
+      }),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,
@@ -151,7 +158,7 @@ const MockSettingsServiceLayer = Layer.succeed(
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
-    getAccessToken: () => Effect.succeed('mock-token'),
+    getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
@@ -204,25 +211,19 @@ const MockErrorHandlerServiceLayer = Layer.succeed(
 );
 
 // 9. Mock ProjectService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockProjectServiceLayer = ProjectService.Default as any as Layer.Layer<ProjectService>;
 
 // 10. Mock MetadataRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockMetadataRetrieveServiceLayer = MetadataRetrieveService.Default as any as Layer.Layer<MetadataRetrieveService>;
 
 // 11. Mock MetadataRegistryService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockMetadataRegistryServiceLayer = MetadataRegistryService.Default as any as Layer.Layer<MetadataRegistryService>;
 
 // 12. Mock SourceTrackingService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockSourceTrackingServiceLayer = SourceTrackingService.Default as any as Layer.Layer<SourceTrackingService>;
 
 // 13. Mock OrgBrowserRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-
 const MockOrgBrowserRetrieveServiceLayer =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
 
 // 14. ExtensionProviderService mock

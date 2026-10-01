@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.17.8",
+  "version": "67.27.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -39,10 +39,11 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "*",
+    "@playwright/test": "1.60.0",
     "@salesforce/core": "^9.1.9",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-apex-testing": "*",
     "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -164,7 +165,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -210,7 +211,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -230,9 +231,8 @@
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
+    "onDebugResolve:apex-replay",
     "onCommand:sf.launch.replay.debugger.logfile",
-    "onCommand:sf.launch.replay.debugger.logfile.path",
     "onCommand:sf.anon.apex.debug.delegate",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
@@ -370,9 +370,6 @@
         "languages": [
           "apex"
         ],
-        "variables": {
-          "AskForLogFileName": "extension.replay-debugger.getLogFileName"
-        },
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",

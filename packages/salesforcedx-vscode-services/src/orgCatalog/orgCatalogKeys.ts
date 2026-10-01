@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalogInternalEntry, OrgMetadataPresence } from './orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogInternalEntry } from './orgMetadataCatalogTypes';
+import * as HashMap from 'effect/HashMap';
+import * as Option from 'effect/Option';
 import {
   artifactIdentitiesEqual,
   artifactIdentityKey,
@@ -13,8 +15,6 @@ import {
   type MetadataComponentArtifactIdentity
 } from '../core/artifactIdentity';
 import { isOrgMetadataComponentReference, type OrgMetadataComponentReference } from './orgMetadataReference';
-
-export const emptyPresence = (): OrgMetadataPresence => ({ inOrg: false, inWorkspace: false });
 
 const metadataComponentArtifactIdentity = (
   reference: OrgMetadataComponentReference,
@@ -37,14 +37,15 @@ export const componentIdentity = (
  * The fallback preserves existing catalog APIs until their request references carry required-null namespace identity.
  */
 export const findInventoryComponent = (
-  components: ReadonlyMap<string, OrgMetadataCatalogInternalEntry>,
+  components: HashMap.HashMap<string, OrgMetadataCatalogInternalEntry>,
   reference: OrgMetadataComponentReference,
   namespace?: ArtifactNamespace
 ): OrgMetadataCatalogInternalEntry | undefined => {
-  if (namespace !== undefined) return components.get(componentIdentity(reference, namespace));
-  const globalMatch = components.get(componentIdentity(reference));
-  if (globalMatch) return globalMatch;
-  return [...components.values()].find(
+  if (namespace !== undefined)
+    return Option.getOrUndefined(HashMap.get(components, componentIdentity(reference, namespace)));
+  const globalMatch = HashMap.get(components, componentIdentity(reference));
+  if (Option.isSome(globalMatch)) return globalMatch.value;
+  return [...HashMap.values(components)].find(
     entry =>
       isOrgMetadataComponentReference(entry.reference) &&
       artifactIdentitiesEqual(

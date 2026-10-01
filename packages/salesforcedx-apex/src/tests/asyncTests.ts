@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import { isNotNull, isNull } from 'effect/Predicate';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -38,7 +39,7 @@ import {
   FlowTestResult,
   ApexTestResultRecord
 } from './types';
-import { calculatePercentage, getJsonIndent, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
+import { calculatePercentage, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
 
 /**
  * Standalone function for writing async test results to file - easier to test
@@ -47,7 +48,7 @@ export const writeAsyncResultsToFile = async (formattedResults: TestResult, runI
   const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
   await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
   const writeStream = createWriteStream(path.join(os.tmpdir(), runId, 'rawResults.json'));
-  const stringifyStream = new JsonStreamStringify(formattedResults, undefined, getJsonIndent());
+  const stringifyStream = new JsonStreamStringify(formattedResults);
   return await pipeline(stringifyStream, writeStream);
 };
 
@@ -608,7 +609,7 @@ export class AsyncTests {
       const testRunApexIdResults = await this.connection.tooling.query<ApexTestQueueItemRecord>(
         `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
       );
-      return testRunApexIdResults.records.some(record => record.ApexClassId === null);
+      return testRunApexIdResults.records.some(record => isNull(record.ApexClassId));
     } catch {
       return false;
     }
@@ -661,8 +662,8 @@ export class AsyncTests {
       return { apexTestIds: [], flowTestIds: [] };
     }
     return {
-      apexTestIds: records.filter(r => r.ApexClassId !== null).map(r => r.Id),
-      flowTestIds: records.filter(r => r.ApexClassId === null).map(r => r.Id)
+      apexTestIds: records.filter(r => isNotNull(r.ApexClassId)).map(r => r.Id),
+      flowTestIds: records.filter(r => isNull(r.ApexClassId)).map(r => r.Id)
     };
   }
 

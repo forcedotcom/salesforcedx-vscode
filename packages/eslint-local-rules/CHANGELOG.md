@@ -1,4 +1,13 @@
-# [65.13.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.12.2...eslint-plugin-vscode-extensions-v65.13.0) (2026-08-29)
+## [65.13.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.13.0...eslint-plugin-vscode-extensions-v65.13.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **security:** execute CLI commands shell-free to prevent OS command injection - W-24161260 ([#8184](https://github.com/forcedotcom/salesforcedx-vscode/issues/8184)) ([001cc96](https://github.com/forcedotcom/salesforcedx-vscode/commit/001cc96f4b8466fe413cd25b65487a92046dea43)), closes [#8187](https://github.com/forcedotcom/salesforcedx-vscode/issues/8187)
+
+
+
+# 65.13.0 (2026-08-29)
 
 
 ### Features

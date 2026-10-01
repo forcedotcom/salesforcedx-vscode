@@ -20,20 +20,14 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-apexTestingE2E
@@ -43,6 +37,23 @@ jobs:
   e2e-web:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      matrix:
+        lane: [ org-wide, class-scoped, ride-along ]
+        include:
+          - lane: org-wide
+            npm_script: test:web:org-wide
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: class-scoped
+            npm_script: test:web:class-scoped
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: ride-along
+            npm_script: test:web:ride-along
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
+            scratch_delete: 'sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt'
+      fail-fast: false
     env:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       MINIMAL_ORG_ALIAS: minimalTestOrg
@@ -58,25 +69,19 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
       - name: Compile shared Playwright utilities
-        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
+        run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -87,7 +92,11 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing
+          pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }}
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -98,7 +107,7 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Install Playwright and create scratch orgs
+      - name: Install Playwright and create scratch org
         if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
@@ -123,15 +132,14 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
             sf project generate -n non-tracking-project
             retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
             cd non-tracking-project
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+            ${{ matrix.scratch_create }}
           ) &
           scratch_org_setup_pid=$!
 
@@ -149,26 +157,16 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing
+          pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }}
 
-      - name: Recreate non-tracking scratch org before retry
+      - name: Recreate scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
           'failure'
         continue-on-error: true
         shell: bash
         run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
-
-      - name: Recreate source-tracking scratch org before retry
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ${{ matrix.scratch_delete }} 2>/dev/null || true
+          ${{ matrix.scratch_create }}
         working-directory: non-tracking-project
 
       - name: Retry failed tests (sequential)
@@ -180,7 +178,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed
+          pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }} -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -193,7 +191,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-apex-testing-web
+          name: playwright-report-apex-testing-web-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
           retention-days: 14
@@ -202,7 +200,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-apex-testing-web
+          name: playwright-test-results-apex-testing-web-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
           retention-days: 14
@@ -211,8 +209,7 @@ jobs:
         if: always() && steps.try-run.outcome == 'failure'
         continue-on-error: true
         run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
-          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          ${{ matrix.scratch_delete }} || true
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -220,9 +217,22 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
+        lane: [ org-wide, class-scoped, ride-along ]
         include:
           - os: ubuntu-latest
             test_runner_prefix: 'xvfb-run -a '
+          - lane: org-wide
+            npm_script: test:desktop:org-wide
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: class-scoped
+            npm_script: test:desktop:class-scoped
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source'
+            scratch_delete: 'sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt'
+          - lane: ride-along
+            npm_script: test:desktop:ride-along
+            scratch_create: 'sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30'
+            scratch_delete: 'sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt'
       fail-fast: false
 
     env:
@@ -246,25 +256,19 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Playwright loads this workspace package before it can discover tests. Compile it directly so a
       # malformed Wireit cache entry cannot report success while leaving its required out/index.js absent.
       - name: Compile shared Playwright utilities
-        run: npm exec --workspace @salesforce/playwright-vscode-ext -- tsc --pretty
+        run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -275,7 +279,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }}
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -286,7 +290,7 @@ jobs:
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
-      - name: Install Playwright and create scratch orgs
+      - name: Install Playwright and create scratch org
         if: steps.try-run.outcome == 'failure'
         shell: bash
         run: |
@@ -311,15 +315,14 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
             sf project generate -n non-tracking-project
             retry 30 bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
             cd non-tracking-project
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+            ${{ matrix.scratch_create }}
           ) &
           scratch_org_setup_pid=$!
 
@@ -337,26 +340,16 @@ jobs:
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }}
 
-      - name: Recreate non-tracking scratch org before retry
+      - name: Recreate scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
           'failure'
         continue-on-error: true
         shell: bash
         run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
-
-      - name: Recreate source-tracking scratch org before retry
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+          ${{ matrix.scratch_delete }} 2>/dev/null || true
+          ${{ matrix.scratch_create }}
         working-directory: non-tracking-project
 
       - name: Retry failed tests (sequential)
@@ -368,7 +361,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex-testing ${{ matrix.npm_script }} -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -381,7 +374,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-apex-testing-desktop-${{ matrix.os }}
+          name: playwright-report-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
           retention-days: 14
@@ -390,7 +383,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}
+          name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
           retention-days: 14
@@ -400,5 +393,4 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
-          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          ${{ matrix.scratch_delete }} || true

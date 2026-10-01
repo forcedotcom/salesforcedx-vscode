@@ -20,20 +20,14 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-orgBrowserE2E
@@ -57,20 +51,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -80,7 +68,11 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser
+          pnpm --filter salesforcedx-vscode-org-browser test:web
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-web
@@ -128,7 +120,7 @@ jobs:
             return 1
           }
 
-          retry npx playwright install chromium --with-deps &
+          retry pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
           retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
           dreamhouse_pid=$!
@@ -156,7 +148,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser
+          pnpm --filter salesforcedx-vscode-org-browser test:web
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -166,7 +158,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed
+          pnpm --filter salesforcedx-vscode-org-browser test:web -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -220,20 +212,14 @@ jobs:
         shell: bash
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '22.22.3'
-          cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
-
-      - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -243,8 +229,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-org-browser test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -283,7 +268,7 @@ jobs:
             return 1
           }
 
-          retry npx playwright install chromium --with-deps &
+          retry pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
           retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
           dreamhouse_pid=$!
@@ -320,8 +305,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-org-browser test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -331,8 +315,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-org-browser test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

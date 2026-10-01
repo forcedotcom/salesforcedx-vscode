@@ -7,13 +7,17 @@
 
 import * as Effect from 'effect/Effect';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
+import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
+import { getRuntime } from '../../../src/services/runtime';
+import { retrieveEnableSyncInitJobs } from '../../../src/settings';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
 
 // Typed view of the private isRestarting flag, avoiding `as any` widening in each assertion.
@@ -26,6 +30,9 @@ const promptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
     value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
 };
+const mockGetSetting = jest.fn((_section: string, _key: string, defaultValue?: unknown) =>
+  Effect.succeed(defaultValue)
+);
 
 const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   const hit = mockRecordedSpans.find(s => s.name === name);
@@ -35,7 +42,13 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 // forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
 // on the calling stack (runSync) rather than detaching a fiber.
 jest.mock('../../../src/services/runtime', () =>
-  require('../testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true })
+  (require('../testUtils/recordingTracer') as typeof import('../testUtils/recordingTracer')).createRecordingRuntimeMock(
+    () => mockRecordedSpans,
+    {
+      forkSync: true,
+      settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
+    }
+  )
 );
 
 // Mock ApexLSPStatusBarItem class
@@ -47,6 +60,15 @@ jest.mock('../../../src/apexLspStatusBarItem', () => ({
     error: jest.fn(),
     restarting: jest.fn()
   }))
+}));
+
+jest.mock('../../../src/languageServer', () => ({
+  createLanguageServer: jest.fn()
+}));
+
+jest.mock('../../../src/settings', () => ({
+  ...(jest.requireActual('../../../src/settings') as typeof import('../../../src/settings')),
+  retrieveEnableSyncInitJobs: jest.fn()
 }));
 
 // Mock setTimeout and clearTimeout
@@ -145,6 +167,63 @@ describe('Language Client Manager', () => {
     });
   });
 
+  describe('Client Setup', () => {
+    let mockClient: ApexLanguageClient;
+    let mockContext: vscode.ExtensionContext;
+    let mockStatusBar: ApexLSPStatusBarItem;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRecordedSpans.length = 0;
+      const errorHandler = {
+        addListener: jest.fn(),
+        serviceHasStartedSuccessfully: jest.fn()
+      };
+      mockClient = {
+        errorHandler,
+        start: jest.fn().mockResolvedValue(undefined),
+        onNotification: jest.fn()
+      } as unknown as ApexLanguageClient;
+      mockContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
+      mockStatusBar = {
+        ready: jest.fn(),
+        error: jest.fn()
+      } as unknown as ApexLSPStatusBarItem;
+      (createLanguageServer as unknown as jest.Mock).mockReturnValue(Effect.succeed(mockClient));
+      (retrieveEnableSyncInitJobs as jest.Mock).mockReturnValue(Effect.succeed(true));
+      languageClientManager.setClientInstance(undefined);
+      languageClientManager.setStatus(ClientStatus.Unavailable, '');
+    });
+
+    it('keeps createLanguageClient as a Promise adapter', async () => {
+      const creation = languageClientManager.createLanguageClient(mockContext, mockStatusBar);
+
+      expect(creation).toBeInstanceOf(Promise);
+      await creation;
+
+      expect(mockClient.start).toHaveBeenCalledTimes(1);
+      expect(mockStatusBar.ready).toHaveBeenCalledTimes(1);
+      expect(languageClientManager.getStatus().isReady()).toBe(true);
+      expect(mockContext.subscriptions.push).toHaveBeenCalledWith(mockClient);
+    });
+
+    it('reports a typed client start failure through existing status UI', async () => {
+      (mockClient.start as jest.Mock).mockRejectedValue(new Error('start failed'));
+
+      await getRuntime().runPromise(languageClientManager.activateLanguageClient(mockContext, mockStatusBar));
+
+      expect(languageClientManager.getStatus().failedToInitialize()).toBe(true);
+      expect(languageClientManager.getStatus().getStatusMessage()).toBe('start failed');
+      expect(mockStatusBar.error).toHaveBeenCalledWith(
+        `${nls.localize('apex_language_server_failed_activate')} - start failed`
+      );
+      const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
+      expect(errSpan?.attributes.get('error')).toBe('Error: start failed');
+      expect(errSpan?.attributes.get('phase')).toBe('start');
+      expect(errSpan?.ended).toBe(true);
+    });
+  });
+
   describe('Restart Language Server', () => {
     let mockExtensionContext: vscode.ExtensionContext;
     let mockClient: ApexLanguageClient;
@@ -156,6 +235,7 @@ describe('Language Client Manager', () => {
       jest.clearAllMocks();
       jest.clearAllTimers();
       mockRecordedSpans.length = 0;
+      mockGetSetting.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
 
       // Setup setTimeout spy
       setTimeoutSpy = jest.spyOn(global, 'setTimeout');
@@ -185,6 +265,7 @@ describe('Language Client Manager', () => {
         exports: {
           services: {
             PromptService: Effect.succeed(promptService),
+            SettingsService,
             WorkspaceService: {
               getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
             }
@@ -279,6 +360,7 @@ describe('Language Client Manager', () => {
         exports: {
           services: {
             PromptService: Effect.succeed(promptService),
+            SettingsService,
             WorkspaceService: {
               getWorkspaceInfo: () =>
                 Effect.succeed({
@@ -337,11 +419,17 @@ describe('Language Client Manager', () => {
       });
 
       // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
+      const settingsApi = {
+        isActive: true,
+        exports: { services: { SettingsService } }
+      };
+      const promptApi = {
+        isActive: true,
+        exports: { services: { PromptService: Effect.succeed(promptService) } }
+      };
       (vscode.extensions.getExtension as jest.Mock)
-        .mockReturnValueOnce({
-          isActive: true,
-          exports: { services: { PromptService: Effect.succeed(promptService) } }
-        })
+        .mockReturnValueOnce(settingsApi)
+        .mockReturnValueOnce(promptApi)
         .mockReturnValue(undefined);
 
       // Mock createLanguageClient to resolve immediately
@@ -437,11 +525,7 @@ describe('Language Client Manager', () => {
       });
 
       it('should use restart behavior when configured', async () => {
-        // Mock getConfiguration to return 'restart' behavior
-        const mockGetConfiguration = jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue('restart')
-        });
-        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+        mockGetSetting.mockReturnValue(Effect.succeed('restart'));
 
         // Mock createLanguageClient to resolve immediately
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
@@ -462,11 +546,7 @@ describe('Language Client Manager', () => {
       });
 
       it('should use reset behavior when configured', async () => {
-        // Mock getConfiguration to return 'reset' behavior
-        const mockGetConfiguration = jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue('reset')
-        });
-        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+        mockGetSetting.mockReturnValue(Effect.succeed('reset'));
 
         // Mock showQuickPick to return the reset option
         (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as Duration from 'effect/Duration';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { SoqlBuilderApplication } from '../../src/application.js';
 import { SoqlBuilderElement } from '../../src/components/soqlBuilderElement.js';
@@ -128,6 +128,7 @@ const unmount = async (): Promise<void> => {
   await waitForFinalizers();
 };
 
+window.soqlBuilderDuration = Duration;
 window.soqlBuilderHarness = {
   connectAgain: () => application?.connect(),
   emit: async overrides => {
@@ -163,11 +164,15 @@ window.soqlBuilderHarness = {
     fake = Effect.runSync(makeFakeSoqlBuilderService(latestState));
     element = document.createElement('soql-builder-app');
     element.labels = {
+      allRows: 'Include deleted/archived records',
       clearAllFields: 'Clear All',
       count: 'COUNT()',
       fields: 'Fields',
       from: 'From',
       inputs: 'Query inputs',
+      invalidLimit: 'Enter a whole number greater than or equal to 0.',
+      limit: 'Limit',
+      limitPlaceholder: 'Limit...',
       loading: 'Loading...',
       noDefaultOrg: 'No default org',
       noResults: 'No results found.',
@@ -196,6 +201,7 @@ window.soqlBuilderHarness = {
 
 declare global {
   interface Window {
+    soqlBuilderDuration: typeof Duration;
     soqlBuilderHarness: SoqlBuilderBrowserHarness;
   }
 }

@@ -100,7 +100,12 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
   return yield* buildRequests(sourceUri).pipe(
     Effect.map(requests => ({ payload: requests })),
     Effect.flatMap(eligibilityDelegate),
-    Effect.tap(responses => Effect.annotateCurrentSpan({ eligibleResponses: JSON.stringify(responses) })),
+    Effect.tap(responses =>
+      Effect.annotateCurrentSpan({
+        eligibleResponseCount: responses.length,
+        apexOasEligibleCount: responses.filter(response => response.isApexOasEligible).length
+      })
+    ),
     Effect.map(Arr.head),
     Effect.flatMap(
       Option.match({
@@ -147,8 +152,16 @@ export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(functio
         () => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') })
       )
     ));
+  if (Array.isArray(uri)) {
+    return yield* new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') });
+  }
   return yield* ApexMetadataService.gatherOpenAPIContext(uri).pipe(
     Effect.mapError(cause => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context'), cause })),
-    Effect.tap(response => Effect.annotateCurrentSpan({ context: JSON.stringify(response) }))
+    Effect.tap(response =>
+      Effect.annotateCurrentSpan({
+        methodCount: response.methods.length,
+        propertyCount: response.properties.length
+      })
+    )
   );
 });

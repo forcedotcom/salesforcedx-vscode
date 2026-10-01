@@ -17,10 +17,8 @@ const COMMAND: ProgressOnlyCommandKey = messages.org_login_web_authorize_org_tex
 /**
  * Effect command for `sf.org.login.web`: gather alias + login URL, then run `sf org login web`.
  *
- * The command string is built from the
- * gathered alias + instance URL; the shared executeOrgLoginWeb runs it (simpleExec injects
- * SF_JSON_TO_STDOUT + FORCE_COLOR=0 for the `sf ` prefix), handling verification code, cancellable
- * progress, port-conflict, and config refresh.
+ * Shared executeOrgLoginWeb runs the CLI (simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for `sf`),
+ * handling verification code, cancellable progress, port-conflict, and config refresh.
  */
 export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
   instanceUrl?: string,
@@ -34,13 +32,8 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
 
   const { alias, loginUrl } = yield* gatherAuthParams({ instanceUrl, reauthAliasOrUsername });
 
-  // quote alias + url so spaces/special chars in the alias don't split the shell command. Note: double
-  // quotes do NOT neutralize $, backticks, or an embedded " under /bin/sh -c; real-world risk is low
-  // (alias is locally user-typed, loginUrl is validateUrl-checked) but this is not full shell escaping.
-  const command = `sf org login web --alias "${alias}" --instance-url "${loginUrl}" --set-default --json`;
-
   yield* executeOrgLoginWeb({
-    command,
+    args: ['org', 'login', 'web', '--alias', alias, '--instance-url', loginUrl, '--set-default', '--json'],
     progressMessage: nls.localize('org_login_web_progress'),
     notificationCommand: COMMAND
   });

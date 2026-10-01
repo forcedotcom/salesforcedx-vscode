@@ -26,7 +26,7 @@ const themes = [
   }
 ] as const;
 
-test('uses VS Code theme tokens in light, dark, and high-contrast themes', async ({ page }) => {
+test('uses VS Code validation theme tokens in light, dark, and high-contrast themes', async ({ page }) => {
   await mountBuilder(page, {
     metadata: { objects: [] },
     query: {
@@ -36,6 +36,12 @@ test('uses VS Code theme tokens in light, dark, and high-contrast themes', async
           lineNumber: 1,
           message: 'Expected an object after FROM',
           type: 'INCOMPLETEFROM'
+        },
+        {
+          charInLine: 20,
+          lineNumber: 1,
+          message: 'Expected a number after LIMIT',
+          type: 'INCOMPLETELIMIT'
         }
       ]
     }
@@ -61,6 +67,13 @@ test('uses VS Code theme tokens in light, dark, and high-contrast themes', async
         .poll(() =>
           builder(page)
             .locator('soql-builder-from .required')
+            .evaluate(node => getComputedStyle(node).color)
+        )
+        .toBe(theme.error);
+      await expect
+        .poll(() =>
+          builder(page)
+            .locator('soql-builder-limit .validation-error')
             .evaluate(node => getComputedStyle(node).color)
         )
         .toBe(theme.error);

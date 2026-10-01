@@ -2,9 +2,9 @@
  * Single-page metadata scraper for debugging
  *
  * Usage:
- *   npm run scrape:single:page -- <URL>
- *   npm run scrape:single:page -- <URL> --visible
- *   npm run scrape:single:page -- https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
+ *   pnpm scrape:single:page <URL>
+ *   pnpm scrape:single:page <URL> --visible
+ *   pnpm scrape:single:page https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
  */
 
 import { chromium, Browser, BrowserContext } from 'playwright';
@@ -21,12 +21,12 @@ const main = async () => {
 Single-Page Metadata Scraper
 
 Usage:
-  npm run scrape:single:page -- <URL>                   # Scrape a single page
-  npm run scrape:single:page -- <URL> --visible         # With visible browser
-  npm run scrape:single:page -- <URL> --output out.json # Custom output file
+  pnpm scrape:single:page <URL>                   # Scrape a single page
+  pnpm scrape:single:page <URL> --visible         # With visible browser
+  pnpm scrape:single:page <URL> --output out.json # Custom output file
 
 Example:
-  npm run scrape:single:page -- https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
+  pnpm scrape:single:page https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
 
 Options:
   --visible        Run with visible browser (useful for debugging)

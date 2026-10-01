@@ -18,16 +18,10 @@ jest.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => updateConfigAndStateAggregators()
 }));
 
-const getTargetDevHubOrAlias = jest.fn<Promise<string | undefined>, [boolean]>();
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  getTargetDevHubOrAlias: (...args: [boolean]) => getTargetDevHubOrAlias(...args),
-  // channels/index.ts calls these at module-load; the real Effect ChannelService is mocked in buildServices
   ChannelService: {
     getInstance: () => ({}),
     getChannel: () => ({})
-  },
-  notificationService: {
-    showSuccessfulExecution: () => Promise.resolve()
   }
 }));
 
@@ -116,14 +110,13 @@ describe('orgCreateCommand', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     updateConfigAndStateAggregators.mockResolvedValue(undefined);
-    getTargetDevHubOrAlias.mockResolvedValue(undefined);
     simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     appendToChannel = jest.fn();
     show = jest.fn();
     showQuickPick = vscode.window.showQuickPick as unknown as jest.Mock;
     showInputBox = vscode.window.showInputBox as unknown as jest.Mock;
     showErrorMessage = vscode.window.showErrorMessage as unknown as jest.Mock;
-    // handleSuccess wraps showInformationMessage in Effect.promise, so the mock must return a thenable
+    // the missing-Dev-Hub prompt awaits showInformationMessage, so the mock must return a thenable
     showInformationMessage = vscode.window.showInformationMessage as unknown as jest.Mock;
     showInformationMessage.mockResolvedValue(undefined);
     findFiles = vscode.workspace.findFiles as unknown as jest.Mock;
@@ -143,8 +136,20 @@ describe('orgCreateCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
-        command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myAlias" --duration-days 14 --set-default --json'
+        executable: 'sf',
+        args: [
+          'org',
+          'create',
+          'scratch',
+          '--definition-file',
+          '/repo/config/project-scratch-def.json',
+          '--alias',
+          'myAlias',
+          '--duration-days',
+          '14',
+          '--set-default',
+          '--json'
+        ]
       })
     );
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
@@ -187,8 +192,20 @@ describe('orgCreateCommand', () => {
     expect(showInputBox).toHaveBeenNthCalledWith(2, expect.objectContaining({ value: '7' }));
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
-        command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myproject" --duration-days 7 --set-default --json'
+        executable: 'sf',
+        args: [
+          'org',
+          'create',
+          'scratch',
+          '--definition-file',
+          '/repo/config/project-scratch-def.json',
+          '--alias',
+          'myproject',
+          '--duration-days',
+          '7',
+          '--set-default',
+          '--json'
+        ]
       })
     );
   });
@@ -248,11 +265,44 @@ describe('orgCreateCommand', () => {
     expect(simpleExec).not.toHaveBeenCalled();
   });
 
-  it('shows the no-devhub warning and cancels before any picker when no devhub is configured', async () => {
+  it('starts Dev Hub authorization without awaiting it, then cancels before any picker', async () => {
+    showInformationMessage.mockResolvedValueOnce(nls.localize('notification_make_default_dev'));
+    (vscode.commands.executeCommand as unknown as jest.Mock).mockReturnValueOnce(new Promise(() => undefined));
+
     const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
-    expect(getTargetDevHubOrAlias).toHaveBeenCalledWith(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(showInformationMessage).toHaveBeenCalledWith(
+      nls.localize('error_no_target_dev_hub'),
+      nls.localize('notification_make_default_dev')
+    );
+    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.org.login.web.dev.hub');
+    expect(findFiles).not.toHaveBeenCalled();
+    expect(simpleExec).not.toHaveBeenCalled();
+  });
+
+  it('shows an error when Dev Hub authorization cannot start', async () => {
+    showInformationMessage.mockResolvedValueOnce(nls.localize('notification_make_default_dev'));
+    (vscode.commands.executeCommand as unknown as jest.Mock).mockRejectedValueOnce(new Error('command failed'));
+
+    const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
+    await Effect.runPromise(Effect.yieldNow());
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(showErrorMessage).toHaveBeenCalledWith('Could not start SFDX: Authorize a Dev Hub. command failed');
+  });
+
+  it('cancels before any picker when the missing Dev Hub prompt is dismissed', async () => {
+    const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(showInformationMessage).toHaveBeenCalledWith(
+      nls.localize('error_no_target_dev_hub'),
+      nls.localize('notification_make_default_dev')
+    );
+    expect(vscode.commands.executeCommand).not.toHaveBeenCalled();
     expect(findFiles).not.toHaveBeenCalled();
     expect(simpleExec).not.toHaveBeenCalled();
   });

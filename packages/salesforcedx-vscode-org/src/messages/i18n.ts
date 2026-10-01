@@ -26,7 +26,10 @@ export const messages = {
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   missing_default_org: 'No Default Org Set',
+  notification_make_default_dev: 'Authorize a Dev Hub',
+  org_create_authorize_dev_hub_failed: 'Could not start SFDX: Authorize a Dev Hub. %s',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_progress: 'Creating default scratch org',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',

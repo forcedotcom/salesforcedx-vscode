@@ -1,15 +1,25 @@
 # SettingsService
 
-VS Code settings read/write. Accessor pattern: call methods directly.
+VS Code settings read/write. `getValue` and `getValueOrElse` are generic, so yield the service and call the instance method. Other methods use the generated accessor.
 
 ## Methods
 
 ### getValue
 
-Get a setting value:
+Unset → `T | undefined`.
 
 ```typescript
-const value = yield* api.services.SettingsService.getValue('section', 'key', defaultValue);
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValue<string>('section', 'key');
+```
+
+### getValueOrElse
+
+Unset or `null` → `defaultValue`. Success type is `T`.
+
+```typescript
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValueOrElse('section', 'key', false);
 ```
 
 ### setValue
@@ -31,7 +41,7 @@ const url = yield* api.services.SettingsService.getInstanceUrl();
 
 ### getAccessToken
 
-Get access token (web):
+Web access token as `Redacted.Redacted<string>` (`toString` → `<redacted>`). Unwrap with `Redacted.value` only for the connection cache key / Salesforce Core auth:
 
 ```typescript
 const token = yield* api.services.SettingsService.getAccessToken();
@@ -77,6 +87,14 @@ Get retrieve on load setting:
 const value = yield* api.services.SettingsService.getRetrieveOnLoad();
 ```
 
+### getInternalDev
+
+`salesforcedx-vscode-core.internal-development`. Unset/`null` → `false`.
+
+```typescript
+const internalDev = yield* api.services.SettingsService.getInternalDev();
+```
+
 ## Errors
 
 - `SettingsError` - Setting read/write failed
@@ -97,3 +115,4 @@ const apiVersion = yield* api.services.SettingsService.getApiVersion();
 - `setValue` defaults to `ConfigurationTarget.Global`; pass a `target` arg (e.g. `Workspace`) to override
 - Empty strings = missing for web settings
 - Default API version: '64.0'
+- `getAccessToken` Redacted vs span redaction: `packages/salesforcedx-vscode-services/CONTEXT.md` glossary

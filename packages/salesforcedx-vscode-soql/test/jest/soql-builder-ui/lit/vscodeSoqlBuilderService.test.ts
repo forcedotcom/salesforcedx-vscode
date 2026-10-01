@@ -20,6 +20,7 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import {
+  createSoqlBuilderTelemetry,
   parseSoqlBuilderQuery,
   serializeSoqlBuilderQuery
 } from '../../../../src/soql-builder-ui/lit/soqlBuilderModelAdapter';
@@ -115,6 +116,62 @@ describe('VscodeSoqlBuilderService', () => {
     expect(restored.orderBy).toEqual([{ field: 'Name', order: 'DESC', nulls: 'NULLS LAST' }]);
     expect(restored.limit).toEqual({ _tag: 'Valid', value: 10 });
     expect(restored.allRows).toBe(true);
+  });
+
+  it('publishes and saves Limit and All Rows changes without altering other clauses', async () => {
+    const harness = makeMessageHarness({
+      originalSoqlStatement: "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 10"
+    });
+
+    const state = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: true });
+
+        const withAllRows = yield* service.initialState;
+        expect(withAllRows.query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+          "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 25 ALL ROWS"
+        );
+
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: false });
+        return yield* service.initialState;
+      })
+    );
+
+    expect(state.query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+      "SELECT Name FROM Account WHERE Name = 'Acme' ORDER BY Name DESC LIMIT 25"
+    );
+    expect(state.query.limit).toEqual({ _tag: 'Valid', value: 25 });
+    expect(state.query.allRows).toBe(false);
+    expect(createSoqlBuilderTelemetry(state.query).limit).toBe(25);
+    expect(lastSavedState(harness.states)).toEqual(state);
+    expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(3);
+  });
+
+  it('defers publishing other clause changes while Limit input is invalid', async () => {
+    const originalSoqlStatement = 'SELECT Id FROM Account LIMIT 10';
+    const harness = makeMessageHarness({ originalSoqlStatement });
+
+    const invalidState = await runWithService(harness.layer, service =>
+      Effect.gen(function* () {
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Invalid', input: '-1' } });
+        yield* service.dispatch({ _tag: 'AllRowsChanged', allRows: true });
+
+        const invalid = yield* service.initialState;
+        expect(harness.messages.filter(message => message.type === MessageType.UI_SOQL_CHANGED)).toHaveLength(0);
+
+        yield* service.dispatch({ _tag: 'LimitChanged', limit: { _tag: 'Valid', value: 25 } });
+        return invalid;
+      })
+    );
+
+    expect(invalidState.query.limit).toEqual({ _tag: 'Invalid', input: '-1' });
+    expect(invalidState.query.allRows).toBe(true);
+    expect(invalidState.query.originalSoqlStatement).toBe(originalSoqlStatement);
+    expect(lastSavedState(harness.states).query.originalSoqlStatement?.replace(/\s+/gu, ' ').trim()).toBe(
+      'SELECT Id FROM Account LIMIT 25 ALL ROWS'
+    );
   });
 
   it('maps every public action to immutable state and the existing host messages', async () => {
