@@ -1027,9 +1027,15 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
     rules: {
       'no-restricted-imports': 'off'
+    }
+  },
+  {
+    files: ['scripts/manualTestPlan/test/**/*.mts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
