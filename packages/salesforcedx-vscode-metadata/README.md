@@ -1,0 +1,45 @@
+# Salesforce Metadata
+
+This extension provides metadata operations for Salesforce development in VS Code.
+
+## Features
+
+- Create Salesforce projects and projects with manifests
+- Deploy, retrieve, and diff source
+- Change tracking operations
+- Manifest generation and operations
+- Sample Analytics template generation
+- Generate Project Info report (`project-info.md`) with metadata type statistics and environment details
+
+## Requirements
+
+- VS Code 1.90.0 or higher
+- Salesforce CLI
+- Authenticated Salesforce org
+
+## Installation
+
+This extension is part of the Salesforce Extensions for VS Code package.
+
+## Settings
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `salesforcedx-vscode-core.push-or-deploy-on-save.enabled` | boolean | `false` | Specifies whether or not to automatically deploy when a local source file is saved. |
+| `salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush` | boolean | `false` | Specifies whether to always use --ignore-conflicts when deploy-on-save runs |
+| `salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve` | boolean | `false` | When enabled, the system will check for conflicts before deploying/retrieving. |
+| `salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds` | number | `60` | Interval in seconds to poll for remote source tracking changes. Set to 0 to disable polling. |
+| `salesforcedx-vscode-metadata.extensionLevelNotifications` | string | `"off"` | Controls notifications for all metadata commands. Options: `"off"`, `"statusBar"`, `"toast"`. |
+| `salesforcedx-vscode-metadata.commandLevelNotifications` | object | — | Per-command notification settings (deploy, retrieve, push, pull, delete, diff, install package, etc.). Overrides extension-level setting for specific commands. |
+
+## Usage
+
+Documentation coming soon.
+
+## Contributing
+
+Please see the [contributing guide](../../CONTRIBUTING.md) for details on how to contribute to this project.
+
+## License
+
+[BSD 3-Clause License](LICENSE.txt)
