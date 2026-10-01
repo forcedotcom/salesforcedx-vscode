@@ -133,7 +133,7 @@ jobs:
       nightly: true  # Skip marketplace publishing, use nightly versioning
       version-bump: 'auto'
       package-manager: pnpm
-      package-manager-version: '12'
+      package-manager-version: ''  # empty = auto-detect from package.json's "packageManager" field, avoiding ERR_PNPM_BAD_PM_VERSION
       cache-dependency-path: pnpm-lock.yaml
       install-command: pnpm install --frozen-lockfile
       package-command: pnpm run package:packages
