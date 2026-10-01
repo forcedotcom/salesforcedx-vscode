@@ -1,0 +1,6 @@
+*
+!out/**/*.d.ts
+!out/**/*.d.ts.map
+!package.json
+!README.md
+!LICENSE.txt

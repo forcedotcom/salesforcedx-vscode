@@ -1,0 +1,122 @@
+name: Close Pending Release Issues
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Publish in Microsoft Marketplace']
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+  discussions: write
+
+jobs:
+  close-pending-release-issues:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          VERSION=$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "::error::Invalid version extracted: '$VERSION'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Parse issues and discussions from changelog
+        id: parse
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Extract the changelog section for this version (between its heading and the next one)
+          CHANGELOG_SECTION=$(awk "
+            /^# ${VERSION}/{found=1; next}
+            found && /^# [0-9]/{exit}
+            found{print}
+          " packages/salesforcedx-vscode/CHANGELOG.md)
+
+          if [[ -z "$CHANGELOG_SECTION" ]]; then
+            echo "::warning::No changelog section found for version ${VERSION}"
+          fi
+
+          ISSUE_NUMBERS=$(echo "$CHANGELOG_SECTION" | grep -oP 'issues/\K[0-9]+' | sort -u | tr '\n' ' ')
+          DISCUSSION_NUMBERS=$(echo "$CHANGELOG_SECTION" | grep -oP 'discussions/\K[0-9]+' | sort -u | tr '\n' ' ')
+
+          echo "Issues referenced in changelog: ${ISSUE_NUMBERS:-none}"
+          echo "Discussions referenced in changelog: ${DISCUSSION_NUMBERS:-none}"
+
+          echo "issues=${ISSUE_NUMBERS}" >> "$GITHUB_OUTPUT"
+          echo "discussions=${DISCUSSION_NUMBERS}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on and close issues from changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ISSUE_NUMBERS: ${{ steps.parse.outputs.issues }}
+        run: |
+          for ISSUE in $ISSUE_NUMBERS; do
+            STATE=$(gh issue view "$ISSUE" --json state --jq '.state' 2>/dev/null || echo "NOT_FOUND")
+            if [[ "$STATE" == "NOT_FOUND" ]]; then
+              echo "::warning::Issue #$ISSUE not found, skipping"
+              continue
+            fi
+            gh issue comment "$ISSUE" --body "Released in v${VERSION} of the Salesforce Extensions for VSCode." \
+              || echo "::warning::Failed to comment on issue #$ISSUE"
+            if [[ "$STATE" == "OPEN" ]]; then
+              gh issue close "$ISSUE" \
+                && echo "✓ Closed issue #${ISSUE}" \
+                || echo "::warning::Failed to close issue #$ISSUE"
+            else
+              echo "Issue #${ISSUE} is already ${STATE} — comment posted, skipping close"
+            fi
+          done
+
+      - name: Comment on and close discussions from changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          DISCUSSION_NUMBERS: ${{ steps.parse.outputs.discussions }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          for DISC_NUM in $DISCUSSION_NUMBERS; do
+            DISC_DATA=$(gh api graphql -f query='
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  discussion(number: $number) {
+                    id
+                    closed
+                  }
+                }
+              }' -f owner="$REPO_OWNER" -f repo="$REPO_NAME" -F number="$DISC_NUM" 2>/dev/null || echo '{}')
+
+            DISC_ID=$(echo "$DISC_DATA" | jq -r '.data.repository.discussion.id // empty')
+            DISC_CLOSED=$(echo "$DISC_DATA" | jq -r '.data.repository.discussion.closed // "true"')
+
+            if [[ -z "$DISC_ID" ]]; then
+              echo "::warning::Discussion #$DISC_NUM not found or inaccessible, skipping"
+              continue
+            fi
+
+            gh discussion comment "$DISC_NUM" --body "Released in v${VERSION} of the Salesforce Extensions for VSCode." \
+              || echo "::warning::Failed to comment on discussion #$DISC_NUM"
+
+            if [[ "$DISC_CLOSED" == "false" ]]; then
+              gh api graphql -f query='
+                mutation($id: ID!) {
+                  closeDiscussion(input: {discussionId: $id}) { discussion { id } }
+                }' -f id="$DISC_ID" > /dev/null \
+                && echo "✓ Closed discussion #${DISC_NUM}" \
+                || echo "::warning::Failed to close discussion #$DISC_NUM"
+            else
+              echo "Discussion #${DISC_NUM} is already closed — comment posted, skipping close"
+            fi
+          done

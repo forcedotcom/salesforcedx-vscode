@@ -1,0 +1,94 @@
+{
+  "name": "@salesforce/salesforcedx-apex-replay-debugger",
+  "displayName": "Apex Replay Debug Adapter",
+  "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
+  "version": "65.7.0",
+  "publisher": "salesforce",
+  "preview": true,
+  "license": "BSD-3-Clause",
+  "main": "out/src",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
+    "@vscode/debugadapter": "1.68.0",
+    "effect": "^3.21.2",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/vscode-service-provider": "^1.5.0",
+    "@vscode/debugadapter-testsupport": "1.68.0",
+    "@vscode/debugprotocol": "1.68.0"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
+    "test": "wireit",
+    "test:compile": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest --forceExit",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
+      ],
+      "output": []
+    }
+  }
+}
