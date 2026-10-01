@@ -45,7 +45,7 @@ jobs:
       - name: Decide and approve
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
