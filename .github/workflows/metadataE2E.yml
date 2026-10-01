@@ -1,0 +1,664 @@
+name: Metadata E2E (Playwright)
+
+on:
+  workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
+          PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for E2E (e.g. 1.116.0). Empty uses repo variable
+          PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
+  push:
+    branches-ignore: [ main, develop ]
+    paths-ignore:
+      - CONTEXT.md
+      - CONTEXT-MAP.md
+      - '**/CONTEXT.md'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
+
+concurrency:
+  group: ci-${{ github.ref }}-metadataE2E
+  cancel-in-progress: true
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: hub
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+          retry_wait_seconds: 30
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
+            --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: Install Playwright and clone dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
+
+          retry pnpm exec playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
+
+      - name: create scratch org and set up dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+          sf project deploy start
+          sf org assign permset -n dreamhouse
+        working-directory: dreamhouse-lwc
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json  --wait 30
+        working-directory: minimal-project
+
+      - name: Run Metadata E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: hub
+          CI: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: hub
+          CI: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-web
+          path: packages/salesforcedx-vscode-metadata/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-web
+          path: packages/salesforcedx-vscode-metadata/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Cleanup scratch orgs
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
+      fail-fast: false
+
+    env:
+      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Log desktop VS Code version
+        shell: bash
+        run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
+
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          E2E_NO_RETRIES: 1
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+          retry_wait_seconds: 30
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
+            --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: Install Playwright and clone dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          retry() {
+            local attempt command_pid timeout_pid
+            for attempt in 1 2 3; do
+              "$@" &
+              command_pid=$!
+              (sleep 3600; kill -KILL "$command_pid" 2>/dev/null) &
+              timeout_pid=$!
+              if wait "$command_pid"; then
+                kill "$timeout_pid" 2>/dev/null || true
+                wait "$timeout_pid" 2>/dev/null || true
+                return 0
+              fi
+              kill "$timeout_pid" 2>/dev/null || true
+              wait "$timeout_pid" 2>/dev/null || true
+              if [ "$attempt" -lt 3 ]; then sleep 60; fi
+            done
+            return 1
+          }
+
+          retry pnpm exec playwright install chromium --with-deps &
+          playwright_pid=$!
+          retry git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc &
+          dreamhouse_pid=$!
+
+          failed=0
+          wait "$playwright_pid" || failed=1
+          wait "$dreamhouse_pid" || failed=1
+          exit "$failed"
+
+      - name: create scratch org and set up dreamhouse
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+          sf project deploy start
+          sf org assign permset -n dreamhouse
+        working-directory: dreamhouse-lwc
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      - name: Generate non-tracking project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n non-tracking-project
+
+      - name: create non-tracking scratch org
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+        working-directory: non-tracking-project
+
+      - name: Run Metadata E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          PLAYWRIGHT_WORKERS: 1
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-metadata/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-metadata/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Cleanup scratch orgs
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
+
+  e2e-conflicts-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Try E2E conflicts tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts
+
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: |
+          npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias
+          hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: pnpm exec playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Create tracking scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      - name: Run conflicts E2E tests (web)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts
+
+      - name: Retry failed conflicts tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        env:
+          CI: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: |
+          pnpm --filter salesforcedx-vscode-metadata test:web:conflicts -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-conflicts-web
+          path: packages/salesforcedx-vscode-metadata/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-conflicts-web
+          path: packages/salesforcedx-vscode-metadata/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Cleanup scratch orgs
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+
+  e2e-conflicts-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
+      fail-fast: false
+
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Log desktop VS Code version
+        shell: bash
+        run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
+
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      - name: Try E2E conflicts tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          E2E_NO_RETRIES: 1
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts
+
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        run: |
+          npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias
+          hub --sfdx-url-stdin
+        shell: bash
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: pnpm exec playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Create tracking scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: minimal-project
+
+      - name: Generate non-tracking project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n non-tracking-project
+
+      - name: Create non-tracking scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+        working-directory: non-tracking-project
+
+      - name: Run conflicts E2E tests (parallel)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts
+
+      - name: Retry failed conflicts tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          PLAYWRIGHT_WORKERS: 1
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-metadata test:desktop:conflicts -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-metadata/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-metadata/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-conflicts-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-metadata/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-conflicts-desktop-${{ matrix.os }}
+          path: packages/salesforcedx-vscode-metadata/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Cleanup scratch orgs
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
