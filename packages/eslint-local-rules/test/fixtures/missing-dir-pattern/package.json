@@ -1,4 +1,0 @@
-{
-  "name": "web-extension-fixture-missing-dir",
-  "browser": "./dist/web/index.js"
-}
