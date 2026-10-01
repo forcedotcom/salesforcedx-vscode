@@ -30,6 +30,15 @@ class SemanticArtifactPersistenceError extends Schema.TaggedError<SemanticArtifa
   { message: Schema.String, cause: Schema.optional(Schema.Unknown) }
 ) {}
 
+type PersistError =
+  | Effect.Effect.Error<ReturnType<OrgSemanticArtifactStore['save']>>
+  | Effect.Effect.Error<ReturnType<TransmogrifierService['toSemanticModel']>>
+  | SemanticArtifactPersistenceError;
+
+type HydrateError =
+  | Effect.Effect.Error<ReturnType<OrgSemanticArtifactStore['load']>>
+  | Effect.Effect.Error<ReturnType<TransmogrifierService['toSemanticModel']>>;
+
 const semanticArtifactKey = (
   input: SemanticArtifactPersistenceInput,
   model: SObjectSemanticModel
@@ -58,7 +67,7 @@ export class OrgSemanticArtifactPersistence extends Effect.Service<OrgSemanticAr
           readonly uri: URI;
           readonly model: SObjectSemanticModel;
         },
-        unknown
+        PersistError
       > = Effect.fn('OrgSemanticArtifactPersistence.persist')(function* (input: SemanticArtifactPersistenceInput) {
         const model = yield* transmogrifier.toSemanticModel(input);
         const key = semanticArtifactKey(input, model);
@@ -77,7 +86,7 @@ export class OrgSemanticArtifactPersistence extends Effect.Service<OrgSemanticAr
 
       const hydrate: (
         key: SObjectSemanticArtifactStoreKey
-      ) => Effect.Effect<SObjectSemanticModel | undefined, unknown> = Effect.fn(
+      ) => Effect.Effect<SObjectSemanticModel | undefined, HydrateError> = Effect.fn(
         'OrgSemanticArtifactPersistence.hydrate'
       )(function* (key: SObjectSemanticArtifactStoreKey) {
         const stored = yield* store.load(key);
