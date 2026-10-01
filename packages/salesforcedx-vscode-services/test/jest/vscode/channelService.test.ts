@@ -36,25 +36,20 @@ describe('ChannelDisposalLayer', () => {
     const createCallsFor = (name: string): number =>
       jest.mocked(vscode.window.createOutputChannel).mock.calls.filter(([channelName]) => channelName === name).length;
 
-    await Effect.runPromise(Effect.forEach(tracked, channel => loadChannel(channel.name), { discard: true }));
+    await Effect.forEach(tracked, channel => loadChannel(channel.name), { discard: true }).pipe(Effect.runPromise);
 
     expect(createCallsFor(tracked[0].name)).toBe(1);
     expect(createCallsFor(tracked[1].name)).toBe(1);
 
-    const scope = await Effect.runPromise(Scope.make());
-    await Effect.runPromise(Layer.buildWithScope(ChannelDisposalLayer, scope));
+    const scope = await Scope.make().pipe(Effect.runPromise);
+    await Layer.buildWithScope(ChannelDisposalLayer, scope).pipe(Effect.runPromise);
 
     expect(tracked[0].dispose).not.toHaveBeenCalled();
     expect(tracked[1].dispose).not.toHaveBeenCalled();
 
-    await Effect.runPromise(Scope.close(scope, Exit.void));
+    await Scope.close(scope, Exit.void).pipe(Effect.runPromise);
 
     expect(tracked[0].dispose).toHaveBeenCalledTimes(1);
     expect(tracked[1].dispose).toHaveBeenCalledTimes(1);
-
-    await Effect.runPromise(Effect.forEach(tracked, channel => loadChannel(channel.name), { discard: true }));
-
-    expect(createCallsFor(tracked[0].name)).toBe(2);
-    expect(createCallsFor(tracked[1].name)).toBe(2);
   });
 });

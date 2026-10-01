@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="164" failures="0" errors="0" time="2.307">
+  <testsuite name="SelectExprsImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.651" tests="3">
+    <testcase classname="SelectExprsImpl should store select expressions" name="SelectExprsImpl should store select expressions" time="0.064">
+    </testcase>
+    <testcase classname="SelectExprsImpl should return SELECT when there are no select expressions for toSoqlSyntax()" name="SelectExprsImpl should return SELECT when there are no select expressions for toSoqlSyntax()" time="0.001">
+    </testcase>
+    <testcase classname="SelectExprsImpl should return comma separated list of fields for toSoqlSyntax()" name="SelectExprsImpl should return comma separated list of fields for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="AndOrConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.654" tests="2">
+    <testcase classname="AndOrConditionImpl should store left and right conditions and the AndOr operator" name="AndOrConditionImpl should store left and right conditions and the AndOr operator" time="0.003">
+    </testcase>
+    <testcase classname="AndOrConditionImpl should return left condition followed by AndOr operator followed by right condition for toSoqlSyntax()" name="AndOrConditionImpl should return left condition followed by AndOr operator followed by right condition for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="NestedConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.074" tests="2">
+    <testcase classname="NestedConditionImpl should store condition" name="NestedConditionImpl should store condition" time="0.001">
+    </testcase>
+    <testcase classname="NestedConditionImpl should return nested condition in parentheses for toSoqlSyntax()" name="NestedConditionImpl should return nested condition in parentheses for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="FromImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.17" tests="3">
+    <testcase classname="FromImpl should store SObject name as a string" name="FromImpl should store SObject name as a string" time="0.001">
+    </testcase>
+    <testcase classname="FromImpl should store as and using clauses as unmodeled syntax" name="FromImpl should store as and using clauses as unmodeled syntax" time="0">
+    </testcase>
+    <testcase classname="FromImpl should return FROM sobject name followed by as and using clauses for toSoqlSyntax()" name="FromImpl should return FROM sobject name followed by as and using clauses for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="FieldSelectionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.638" tests="3">
+    <testcase classname="FieldSelectionImpl should store a field" name="FieldSelectionImpl should store a field" time="0.005">
+    </testcase>
+    <testcase classname="FieldSelectionImpl should store an unmodeled syntax object as the alias" name="FieldSelectionImpl should store an unmodeled syntax object as the alias" time="0.01">
+    </testcase>
+    <testcase classname="FieldSelectionImpl should return field name followed by alias for toSoqlSyntax()" name="FieldSelectionImpl should return field name followed by alias for toSoqlSyntax()" time="0.027">
+    </testcase>
+  </testsuite>
+  <testsuite name="NotConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.179" tests="2">
+    <testcase classname="NotConditionImpl should store condition" name="NotConditionImpl should store condition" time="0.001">
+    </testcase>
+    <testcase classname="NotConditionImpl should return condition preceded by NOT keyword for toSoqlSyntax()" name="NotConditionImpl should return condition preceded by NOT keyword for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="ModelSerializer should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.142" tests="2">
+    <testcase classname="ModelSerializer should transform model to SOQL syntax" name="ModelSerializer should transform model to SOQL syntax" time="0.09">
+    </testcase>
+    <testcase classname="ModelSerializer should transform model with comments to SOQL syntax" name="ModelSerializer should transform model with comments to SOQL syntax" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="InListConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.052" tests="2">
+    <testcase classname="InListConditionImpl should store field, operator, and values" name="InListConditionImpl should store field, operator, and values" time="0.001">
+    </testcase>
+    <testcase classname="InListConditionImpl should return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" name="InListConditionImpl should return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="DefaultValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.716" tests="7">
+    <testcase classname="DefaultValidator should return valid result" name="DefaultValidator should return valid result" time="0.003">
+    </testcase>
+    <testcase classname="OperatorValidator should return valid result for accepted operator" name="OperatorValidator should return valid result for accepted operator" time="0.001">
+    </testcase>
+    <testcase classname="OperatorValidator should return not valid result for not accepted operator" name="OperatorValidator should return not valid result for not accepted operator" time="0">
+    </testcase>
+    <testcase classname="OperatorValidator should return not valid result for unrecognized operator" name="OperatorValidator should return not valid result for unrecognized operator" time="0.001">
+    </testcase>
+    <testcase classname="MultipleInputValidator should return not valid result for empty input" name="MultipleInputValidator should return not valid result for empty input" time="0">
+    </testcase>
+    <testcase classname="MultipleInputValidator should return not valid result for invalid input for type" name="MultipleInputValidator should return not valid result for invalid input for type" time="0.001">
+    </testcase>
+    <testcase classname="MultipleInputValidator should return valid result for input that is valid as determined by delegate validator" name="MultipleInputValidator should return valid result for input that is valid as determined by delegate validator" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="IncludesConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.126" tests="2">
+    <testcase classname="IncludesConditionImpl should store field, operator, and values" name="IncludesConditionImpl should store field, operator, and values" time="0.001">
+    </testcase>
+    <testcase classname="IncludesConditionImpl should return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" name="IncludesConditionImpl should return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="WhereImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.059" tests="2">
+    <testcase classname="WhereImpl should store condition" name="WhereImpl should store condition" time="0.001">
+    </testcase>
+    <testcase classname="WhereImpl should return condition preceded by WHERE keyword for toSoqlSyntax()" name="WhereImpl should return condition preceded by WHERE keyword for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="FieldCompareConditionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.025" tests="2">
+    <testcase classname="FieldCompareConditionImpl should store field, operator, and value" name="FieldCompareConditionImpl should store field, operator, and value" time="0.002">
+    </testcase>
+    <testcase classname="FieldCompareConditionImpl should return field, operator, and value separated by spaces for toSoqlSyntax()" name="FieldCompareConditionImpl should return field, operator, and value separated by spaces for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="QueryImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.829" tests="4">
+    <testcase classname="QueryImpl should store query components as appropriate model objects" name="QueryImpl should store query components as appropriate model objects" time="0.004">
+    </testcase>
+    <testcase classname="QueryImpl should return query string, one line per clause with all but SELECT clause indented for toSoqlSyntax()" name="QueryImpl should return query string, one line per clause with all but SELECT clause indented for toSoqlSyntax()" time="0">
+    </testcase>
+    <testcase classname="QueryImpl should emit ALL ROWS as the last clause when allRows is set for toSoqlSyntax()" name="QueryImpl should emit ALL ROWS as the last clause when allRows is set for toSoqlSyntax()" time="0.001">
+    </testcase>
+    <testcase classname="QueryImpl should omit ALL ROWS when allRows is unset for toSoqlSyntax()" name="QueryImpl should omit ALL ROWS when allRows is unset for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="PicklistValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.782" tests="5">
+    <testcase classname="PicklistValidator should return valid result when input is contained in picklist vales" name="PicklistValidator should return valid result when input is contained in picklist vales" time="0.003">
+    </testcase>
+    <testcase classname="PicklistValidator should return valid result when picklist vales not defined" name="PicklistValidator should return valid result when picklist vales not defined" time="0.001">
+    </testcase>
+    <testcase classname="PicklistValidator should return not valid result when input not contained in picklist values" name="PicklistValidator should return not valid result when input not contained in picklist values" time="0">
+    </testcase>
+    <testcase classname="PicklistValidator should return valid for &quot;null&quot; when field is nillable" name="PicklistValidator should return valid for &quot;null&quot; when field is nillable" time="0.001">
+    </testcase>
+    <testcase classname="PicklistValidator should return not valid for &quot;null&quot; when field is NOT nillable" name="PicklistValidator should return not valid for &quot;null&quot; when field is NOT nillable" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="DateValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.749" tests="8">
+    <testcase classname="DateValidator should return valid result for date only patterns" name="DateValidator should return valid result for date only patterns" time="0.014">
+    </testcase>
+    <testcase classname="DateValidator should return valid result for date and time UTC patterns" name="DateValidator should return valid result for date and time UTC patterns" time="0">
+    </testcase>
+    <testcase classname="DateValidator should return valid result for date and time +- offset patterns" name="DateValidator should return valid result for date and time +- offset patterns" time="0.001">
+    </testcase>
+    <testcase classname="DateValidator should return not valid result for incorrect or incomplete date literal patterns" name="DateValidator should return not valid result for incorrect or incomplete date literal patterns" time="0">
+    </testcase>
+    <testcase classname="DateValidator should return valid result for date range literals" name="DateValidator should return valid result for date range literals" time="0.001">
+    </testcase>
+    <testcase classname="DateValidator should return not valid result for incorrect date range literals" name="DateValidator should return not valid result for incorrect date range literals" time="0">
+    </testcase>
+    <testcase classname="DateValidator should return true for parameterized date range literals" name="DateValidator should return true for parameterized date range literals" time="0.001">
+    </testcase>
+    <testcase classname="DateValidator should return not valid result for incorrect parameterized date range literals" name="DateValidator should return not valid result for incorrect parameterized date range literals" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="OrderByExpressionImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.035" tests="2">
+    <testcase classname="OrderByExpressionImpl should store order by expression components" name="OrderByExpressionImpl should store order by expression components" time="0.001">
+    </testcase>
+    <testcase classname="OrderByExpressionImpl should return field, order, and nulls order separated by spaces for toSoqlSyntax()" name="OrderByExpressionImpl should return field, order, and nulls order separated by spaces for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="FloatValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.052" tests="4">
+    <testcase classname="FloatValidator should return valid result for signed floating point input" name="FloatValidator should return valid result for signed floating point input" time="0.001">
+    </testcase>
+    <testcase classname="FloatValidator should return valid result for unsigned floating point input" name="FloatValidator should return valid result for unsigned floating point input" time="0">
+    </testcase>
+    <testcase classname="FloatValidator should return valid result for integer input" name="FloatValidator should return valid result for integer input" time="0">
+    </testcase>
+    <testcase classname="FloatValidator should return not valid result for non-numeric input" name="FloatValidator should return not valid result for non-numeric input" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="CurrencyValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.122" tests="3">
+    <testcase classname="CurrencyValidator should return valid result for floating point literals" name="CurrencyValidator should return valid result for floating point literals" time="0.001">
+    </testcase>
+    <testcase classname="CurrencyValidator should return valid result for correctly formatted currency literals" name="CurrencyValidator should return valid result for correctly formatted currency literals" time="0">
+    </testcase>
+    <testcase classname="CurrencyValidator should return not valid result for incorrectly formatted currency literals" name="CurrencyValidator should return not valid result for incorrectly formatted currency literals" time="0.046">
+    </testcase>
+  </testsuite>
+  <testsuite name="ValidatorFactory should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.97" tests="3">
+    <testcase classname="ValidatorFactory should return validators based on field type" name="ValidatorFactory should return validators based on field type" time="0.088">
+    </testcase>
+    <testcase classname="ValidatorFactory should return operator validator OperatorValidator regardless of field type" name="ValidatorFactory should return operator validator OperatorValidator regardless of field type" time="0.014">
+    </testcase>
+    <testcase classname="ValidatorFactory should return multi-input validator MultipleInputValidator regardless of field type" name="ValidatorFactory should return multi-input validator MultipleInputValidator regardless of field type" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="SoqlModelUtils should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.932" tests="14">
+    <testcase classname="SoqlModelUtils should isUnmodeledSyntax should return true if the model object is unmodeled syntax" name="SoqlModelUtils should isUnmodeledSyntax should return true if the model object is unmodeled syntax" time="0.003">
+    </testcase>
+    <testcase classname="SoqlModelUtils should isUnmodeledSyntax should return false if the model object is not unmodeled syntax, even if child objects are unmodeled" name="SoqlModelUtils should isUnmodeledSyntax should return false if the model object is not unmodeled syntax, even if child objects are unmodeled" time="0">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return true if SOQL query model contains unmodeled syntax" name="SoqlModelUtils should return true if SOQL query model contains unmodeled syntax" time="0.001">
+    </testcase>
+    <testcase classname="SoqlModelUtils should returns an array explaining what is unsupported" name="SoqlModelUtils should returns an array explaining what is unsupported" time="0">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return false if SOQL query model does not contain unmodeled syntax" name="SoqlModelUtils should return false if SOQL query model does not contain unmodeled syntax" time="0.023">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return true from isSimpleCondition for simple conditions" name="SoqlModelUtils should return true from isSimpleCondition for simple conditions" time="0.001">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return false from isSimpleCondition for non-simple conditions" name="SoqlModelUtils should return false from isSimpleCondition for non-simple conditions" time="0">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return true from isSimpleGroup for simple group of conditions" name="SoqlModelUtils should return true from isSimpleGroup for simple group of conditions" time="0">
+    </testcase>
+    <testcase classname="SoqlModelUtils should return false from isSimpleGroup for non-simple group of conditions" name="SoqlModelUtils should return false from isSimpleGroup for non-simple group of conditions" time="0.001">
+    </testcase>
+    <testcase classname="SoqlModelUtils should throws from simpleGroupToArray if condition not simple group" name="SoqlModelUtils should throws from simpleGroupToArray if condition not simple group" time="0.031">
+    </testcase>
+    <testcase classname="SoqlModelUtils should returns array and operator from simpleGroupToArray for simple group" name="SoqlModelUtils should returns array and operator from simpleGroupToArray for simple group" time="0.014">
+    </testcase>
+    <testcase classname="SoqlModelUtils should throws from arrayToSimpleGroup if conditions array empty" name="SoqlModelUtils should throws from arrayToSimpleGroup if conditions array empty" time="0.002">
+    </testcase>
+    <testcase classname="SoqlModelUtils should throws from arrayToSimpleGroup if &gt;1 condition and operator missing" name="SoqlModelUtils should throws from arrayToSimpleGroup if &gt;1 condition and operator missing" time="0.006">
+    </testcase>
+    <testcase classname="SoqlModelUtils should returns simple group condition from arrayToSimpleGroup" name="SoqlModelUtils should returns simple group condition from arrayToSimpleGroup" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="OrderByImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.106" tests="3">
+    <testcase classname="OrderByImpl should store ORDER BY expressions" name="OrderByImpl should store ORDER BY expressions" time="0">
+    </testcase>
+    <testcase classname="OrderByImpl should return &quot;ORDER BY &quot; for empty list of expressions for toSoqlSyntax()" name="OrderByImpl should return &quot;ORDER BY &quot; for empty list of expressions for toSoqlSyntax()" time="0.001">
+    </testcase>
+    <testcase classname="OrderByImpl should return comma separated list of fields for toSoqlSyntax()" name="OrderByImpl should return comma separated list of fields for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="StringValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.125" tests="4">
+    <testcase classname="StringValidator should return valid result for string in single quotes" name="StringValidator should return valid result for string in single quotes" time="0.001">
+    </testcase>
+    <testcase classname="StringValidator should return valid result when user input is NULL or null" name="StringValidator should return valid result when user input is NULL or null" time="0">
+    </testcase>
+    <testcase classname="StringValidator should return not valid result for non-string value" name="StringValidator should return not valid result for non-string value" time="0">
+    </testcase>
+    <testcase classname="StringValidator should return not valid result for string ending in escaped quote" name="StringValidator should return not valid result for string ending in escaped quote" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="HeaderCommentsImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.081" tests="3">
+    <testcase classname="HeaderCommentsImpl should store comments text" name="HeaderCommentsImpl should store comments text" time="0.001">
+    </testcase>
+    <testcase classname="HeaderCommentsImpl should return the comment string on toSoqlSyntax()" name="HeaderCommentsImpl should return the comment string on toSoqlSyntax()" time="0.001">
+    </testcase>
+    <testcase classname="HeaderCommentsImpl should return the empty string on toSoqlSyntax() when no comments" name="HeaderCommentsImpl should return the empty string on toSoqlSyntax() when no comments" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="IntegerValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.126" tests="4">
+    <testcase classname="IntegerValidator should return valid result for signed integer input" name="IntegerValidator should return valid result for signed integer input" time="0.001">
+    </testcase>
+    <testcase classname="IntegerValidator should return valid result for unsigned integer input" name="IntegerValidator should return valid result for unsigned integer input" time="0">
+    </testcase>
+    <testcase classname="IntegerValidator should return not valid result for floating point input" name="IntegerValidator should return not valid result for floating point input" time="0">
+    </testcase>
+    <testcase classname="IntegerValidator should return not valid result for non-numeric input" name="IntegerValidator should return not valid result for non-numeric input" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="FieldRefImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.025" tests="2">
+    <testcase classname="FieldRefImpl should store a string field name as fieldName" name="FieldRefImpl should store a string field name as fieldName" time="0.001">
+    </testcase>
+    <testcase classname="FieldRefImpl should return field name for toSoqlSyntax()" name="FieldRefImpl should return field name for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="LiteralImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.03" tests="2">
+    <testcase classname="LiteralImpl should store the literal type and value" name="LiteralImpl should store the literal type and value" time="0.002">
+    </testcase>
+    <testcase classname="LiteralImpl should return the value of the literal for toSoqlSyntax()" name="LiteralImpl should return the value of the literal for toSoqlSyntax()" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="splitMultiInputValues should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.059" tests="1">
+    <testcase classname="splitMultiInputValues should split input at comma" name="splitMultiInputValues should split input at comma" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="LimitImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.07" tests="2">
+    <testcase classname="LimitImpl should store limit value as a number" name="LimitImpl should store limit value as a number" time="0.001">
+    </testcase>
+    <testcase classname="LimitImpl should return &quot;LIMIT &lt;value&gt;&quot; for toSoqlSyntax()" name="LimitImpl should return &quot;LIMIT &lt;value&gt;&quot; for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="SelectCountImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.064" tests="1">
+    <testcase classname="SelectCountImpl should return &quot;SELECT COUNT()&quot; for toSoqlSyntax()" name="SelectCountImpl should return &quot;SELECT COUNT()&quot; for toSoqlSyntax()" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="BooleanValidator should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.11" tests="2">
+    <testcase classname="BooleanValidator should return valid result for TRUE or FALSE" name="BooleanValidator should return valid result for TRUE or FALSE" time="0.001">
+    </testcase>
+    <testcase classname="BooleanValidator should return not valid result for non-boolean value" name="BooleanValidator should return not valid result for non-boolean value" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="UnmodeledSyntaxImpl should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="0.126" tests="2">
+    <testcase classname="UnmodeledSyntaxImpl should store a string as unmodeledSyntax" name="UnmodeledSyntaxImpl should store a string as unmodeledSyntax" time="0.095">
+    </testcase>
+    <testcase classname="UnmodeledSyntaxImpl should return stored syntax for toSoqlSyntax()" name="UnmodeledSyntaxImpl should return stored syntax for toSoqlSyntax()" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="SelectAnalyzer should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="1.105" tests="5">
+    <testcase classname="SelectAnalyzer should identify simple selections" name="SelectAnalyzer should identify simple selections" time="0.111">
+    </testcase>
+    <testcase classname="SelectAnalyzer should identify related selections" name="SelectAnalyzer should identify related selections" time="0.002">
+    </testcase>
+    <testcase classname="SelectAnalyzer should identify inner query selections" name="SelectAnalyzer should identify inner query selections" time="0.002">
+    </testcase>
+    <testcase classname="SelectAnalyzer should identify aggregate function selections" name="SelectAnalyzer should identify aggregate function selections" time="0.009">
+    </testcase>
+    <testcase classname="SelectAnalyzer should identify aliased selections" name="SelectAnalyzer should identify aliased selections" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="deserialize should" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="1.546" tests="58">
+    <testcase classname="deserialize should model supported syntax as query objects" name="deserialize should model supported syntax as query objects" time="0.119">
+    </testcase>
+    <testcase classname="deserialize should model AS and USING FROM syntax as unmodeled syntax" name="deserialize should model AS and USING FROM syntax as unmodeled syntax" time="0.007">
+    </testcase>
+    <testcase classname="deserialize should model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax" name="deserialize should model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax" time="0.015">
+    </testcase>
+    <testcase classname="deserialize should identify SELECT COUNT() clause" name="deserialize should identify SELECT COUNT() clause" time="0">
+    </testcase>
+    <testcase classname="deserialize should model all unmodeled clauses as unmodeled syntax" name="deserialize should model all unmodeled clauses as unmodeled syntax" time="0.058">
+    </testcase>
+    <testcase classname="deserialize should model parse errors with partial parse results as ModelErrors within query" name="deserialize should model parse errors with partial parse results as ModelErrors within query" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify no selections error" name="deserialize should identify no selections error" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify no SELECT clause error" name="deserialize should identify no SELECT clause error" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete FROM clause error" name="deserialize should identify incomplete FROM clause error" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify no FROM clause error" name="deserialize should identify no FROM clause error" time="0.032">
+    </testcase>
+    <testcase classname="deserialize should identify empty statement error" name="deserialize should identify empty statement error" time="0.006">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete LIMIT clause error when number missing" name="deserialize should identify incomplete LIMIT clause error when number missing" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete LIMIT clause error when value is not a number" name="deserialize should identify incomplete LIMIT clause error when value is not a number" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify LIMIT 0 as valid limit clause" name="deserialize should identify LIMIT 0 as valid limit clause" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify string literals in condition" name="deserialize should identify string literals in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify date literals in condition" name="deserialize should identify date literals in condition" time="0.003">
+    </testcase>
+    <testcase classname="deserialize should identify TRUE literal in condition" name="deserialize should identify TRUE literal in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify FALSE literal in condition" name="deserialize should identify FALSE literal in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify number literals in condition" name="deserialize should identify number literals in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify null literals in condition" name="deserialize should identify null literals in condition" time="0.003">
+    </testcase>
+    <testcase classname="deserialize should identify currency literals in condition" name="deserialize should identify currency literals in condition" time="0.012">
+    </testcase>
+    <testcase classname="deserialize should identify = operator in condition" name="deserialize should identify = operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify != operator in condition" name="deserialize should identify != operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify &lt;&gt; operator in condition" name="deserialize should identify &lt;&gt; operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify &lt; operator in condition" name="deserialize should identify &lt; operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify &gt; operator in condition" name="deserialize should identify &gt; operator in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify &lt;= operator in condition" name="deserialize should identify &lt;= operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify &gt;= operator in condition" name="deserialize should identify &gt;= operator in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify LIKE operator in condition" name="deserialize should identify LIKE operator in condition" time="0.003">
+    </testcase>
+    <testcase classname="deserialize should identify INCLUDES operator in condition" name="deserialize should identify INCLUDES operator in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify EXCLUDES operator in condition" name="deserialize should identify EXCLUDES operator in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify IN operator in condition" name="deserialize should identify IN operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify NOT IN operator in condition" name="deserialize should identify NOT IN operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify includes condition as unmodeled syntax" name="deserialize should identify includes condition as unmodeled syntax" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify in-list condition as unmodeled syntax" name="deserialize should identify in-list condition as unmodeled syntax" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify calculated condition as unmodeled syntax" name="deserialize should identify calculated condition as unmodeled syntax" time="0.007">
+    </testcase>
+    <testcase classname="deserialize should identify distance condition as unmodeled syntax" name="deserialize should identify distance condition as unmodeled syntax" time="0.005">
+    </testcase>
+    <testcase classname="deserialize should identify IN semi-join condition as unmodeled syntax" name="deserialize should identify IN semi-join condition as unmodeled syntax" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify NOT condition as unmodeled" name="deserialize should identify NOT condition as unmodeled" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify complex condition as unmodeled" name="deserialize should identify complex condition as unmodeled" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify AND operator in condition" name="deserialize should identify AND operator in condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify OR operator in condition" name="deserialize should identify OR operator in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify nested conditions" name="deserialize should identify nested conditions" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify empty WHERE" name="deserialize should identify empty WHERE" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete nested WHERE condition" name="deserialize should identify incomplete nested WHERE condition" time="0.006">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete AND/OR condition" name="deserialize should identify incomplete AND/OR condition" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete NOT condition" name="deserialize should identify incomplete NOT condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify unrecognized literal value in condition" name="deserialize should identify unrecognized literal value in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify unrecognized compare operator in condition" name="deserialize should identify unrecognized compare operator in condition" time="0.017">
+    </testcase>
+    <testcase classname="deserialize should identify unrecognized compare field in condition" name="deserialize should identify unrecognized compare field in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify missing compare value in condition" name="deserialize should identify missing compare value in condition" time="0.002">
+    </testcase>
+    <testcase classname="deserialize should identify missing compare operator in condition" name="deserialize should identify missing compare operator in condition" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify incomplete multi-value list" name="deserialize should identify incomplete multi-value list" time="0.089">
+    </testcase>
+    <testcase classname="deserialize should Identify comments at the top of the file" name="deserialize should Identify comments at the top of the file" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should Identify comments at the top of the file, with parse errors" name="deserialize should Identify comments at the top of the file, with parse errors" time="0">
+    </testcase>
+    <testcase classname="deserialize should parse trailing ALL ROWS as allRows flag without parse errors" name="deserialize should parse trailing ALL ROWS as allRows flag without parse errors" time="0.001">
+    </testcase>
+    <testcase classname="deserialize should leave allRows falsy when ALL ROWS is absent" name="deserialize should leave allRows falsy when ALL ROWS is absent" time="0">
+    </testcase>
+    <testcase classname="deserialize should identify unexpected end of file" name="deserialize should identify unexpected end of file" time="0.004">
+    </testcase>
+  </testsuite>
+</testsuites>

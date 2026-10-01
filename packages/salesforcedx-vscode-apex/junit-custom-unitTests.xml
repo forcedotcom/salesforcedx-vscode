@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="115" failures="0" errors="0" time="1.34">
+  <testsuite name="rewriteNamespaceLens Unit Tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.35" tests="31">
+    <testcase classname="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should return lens unchanged" name="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should return lens unchanged" time="0.004">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should return lens with no project namespace" name="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should return lens with no project namespace" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should not rewrite arguments with different namespace than project namespace" name="rewriteNamespaceLens Unit Tests when the org has a namespace set in it should not rewrite arguments with different namespace than project namespace" time="0.009">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when command is undefined" name="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when command is undefined" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when title is empty string" name="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when title is empty string" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when namespaceFromProject is undefined" name="rewriteNamespaceLens Unit Tests when lens has no command or title should return lens unchanged when namespaceFromProject is undefined" time="0">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should rewrite namespace.class.method to class.method" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should rewrite namespace.class.method to class.method" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle multiple arguments" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle multiple arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should not modify arguments that do not match pattern" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should not modify arguments that do not match pattern" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle empty arguments array" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle empty arguments array" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle undefined arguments" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Run Test&quot; should handle undefined arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should rewrite namespace.class.method to class.method" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should rewrite namespace.class.method to class.method" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle multiple arguments" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle multiple arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should not modify arguments that do not match pattern" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should not modify arguments that do not match pattern" time="0.006">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle empty arguments array" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle empty arguments array" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle undefined arguments" name="rewriteNamespaceLens Unit Tests single test scenarios with title &quot;Debug Test&quot; should handle undefined arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should rewrite namespace.class to class" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should rewrite namespace.class to class" time="0">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle multiple arguments" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle multiple arguments" time="0.002">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should not modify arguments that do not match pattern" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should not modify arguments that do not match pattern" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle empty arguments array" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle empty arguments array" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle undefined arguments" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Run All Tests&quot; should handle undefined arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should rewrite namespace.class to class" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should rewrite namespace.class to class" time="0">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle multiple arguments" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle multiple arguments" time="0">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should not modify arguments that do not match pattern" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should not modify arguments that do not match pattern" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle empty arguments array" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle empty arguments array" time="0.004">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle undefined arguments" name="rewriteNamespaceLens Unit Tests all tests scenarios with title &quot;Debug All Tests&quot; should handle undefined arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests other should not modify lens with unrecognized title" name="rewriteNamespaceLens Unit Tests other should not modify lens with unrecognized title" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests other should preserve original lens properties" name="rewriteNamespaceLens Unit Tests other should preserve original lens properties" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests other should handle mixed matching and non-matching arguments" name="rewriteNamespaceLens Unit Tests other should handle mixed matching and non-matching arguments" time="0.001">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests other should handle different namespace names" name="rewriteNamespaceLens Unit Tests other should handle different namespace names" time="0">
+    </testcase>
+    <testcase classname="rewriteNamespaceLens Unit Tests other should work with both single and all test commands in sequence" name="rewriteNamespaceLens Unit Tests other should work with both single and all test commands in sequence" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="apexLspTelemetryAllowlist" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.353" tests="8">
+    <testcase classname="apexLspTelemetryAllowlist partitions every Jorje-sourced Feature into allowed xor blocked" name="apexLspTelemetryAllowlist partitions every Jorje-sourced Feature into allowed xor blocked" time="0.004">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist has no duplicate entries in JORJE inventory" name="apexLspTelemetryAllowlist has no duplicate entries in JORJE inventory" time="0">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist keeps allowed and blocked disjoint" name="apexLspTelemetryAllowlist keeps allowed and blocked disjoint" time="0.001">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist includes legacy aliases only in allowed (not in Jorje source list)" name="apexLspTelemetryAllowlist includes legacy aliases only in allowed (not in Jorje source list)" time="0">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist allows listed Feature values" name="apexLspTelemetryAllowlist allows listed Feature values" time="0.001">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist rejects blocked Feature values" name="apexLspTelemetryAllowlist rejects blocked Feature values" time="0.001">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist rejects unknown Feature values" name="apexLspTelemetryAllowlist rejects unknown Feature values" time="0">
+    </testcase>
+    <testcase classname="apexLspTelemetryAllowlist rejects missing or invalid Feature" name="apexLspTelemetryAllowlist rejects missing or invalid Feature" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="settings Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.372" tests="3">
+    <testcase classname="settings Unit Tests. Should be able to get retrieveEnableSyncInitJobs setting." name="settings Unit Tests. Should be able to get retrieveEnableSyncInitJobs setting." time="0.003">
+    </testcase>
+    <testcase classname="settings Unit Tests. Should be able to get retrieveAAMethodAnnotations setting." name="settings Unit Tests. Should be able to get retrieveAAMethodAnnotations setting." time="0.001">
+    </testcase>
+    <testcase classname="settings Unit Tests. Should be able to get lspParityCapabilities setting." name="settings Unit Tests. Should be able to get lspParityCapabilities setting." time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Apex Language Configuration" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.379" tests="3">
+    <testcase classname="Apex Language Configuration wordPattern should match valid Apex identifiers" name="Apex Language Configuration wordPattern should match valid Apex identifiers" time="0.002">
+    </testcase>
+    <testcase classname="Apex Language Configuration wordPattern should match decimal numbers" name="Apex Language Configuration wordPattern should match decimal numbers" time="0">
+    </testcase>
+    <testcase classname="Apex Language Configuration wordPattern should match parts of strings containing special characters" name="Apex Language Configuration wordPattern should match parts of strings containing special characters" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="services/runtime disposeRuntime" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.109" tests="2">
+    <testcase classname="services/runtime disposeRuntime is a no-op when the runtime was never created" name="services/runtime disposeRuntime is a no-op when the runtime was never created" time="0.001">
+    </testcase>
+    <testcase classname="services/runtime disposeRuntime disposes the created runtime and clears the memo so getRuntime rebuilds fresh" name="services/runtime disposeRuntime disposes the created runtime and clears the memo so getRuntime rebuilds fresh" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="Java Requirements Test" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.524" tests="9">
+    <testcase classname="Java Requirements Test Cross-platform tests Should allow valid java runtime path outside the project" name="Java Requirements Test Cross-platform tests Should allow valid java runtime path outside the project" time="0.006">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should reject when the configured java home path does not exist" name="Java Requirements Test Cross-platform tests Should reject when the configured java home path does not exist" time="0.001">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should treat a services-extension failure as a missing path (catchTags → false)" name="Java Requirements Test Cross-platform tests Should treat a services-extension failure as a missing path (catchTags → false)" time="0.049">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should not support Java 8" name="Java Requirements Test Cross-platform tests Should not support Java 8" time="0">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should support Java 11" name="Java Requirements Test Cross-platform tests Should support Java 11" time="0.001">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should support Java 17" name="Java Requirements Test Cross-platform tests Should support Java 17" time="0">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should support Java 21" name="Java Requirements Test Cross-platform tests Should support Java 21" time="0">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should support Java 23" name="Java Requirements Test Cross-platform tests Should support Java 23" time="0">
+    </testcase>
+    <testcase classname="Java Requirements Test Cross-platform tests Should reject java version check when execFile fails" name="Java Requirements Test Cross-platform tests Should reject java version check when execFile fails" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="ApexLSPStatusBarItem" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.486" tests="6">
+    <testcase classname="ApexLSPStatusBarItem initialization should create language status item and diagnostic collection" name="ApexLSPStatusBarItem initialization should create language status item and diagnostic collection" time="0.003">
+    </testcase>
+    <testcase classname="ApexLSPStatusBarItem error handling should set error message and diagnostic with correct severity" name="ApexLSPStatusBarItem error handling should set error message and diagnostic with correct severity" time="0.001">
+    </testcase>
+    <testcase classname="ApexLSPStatusBarItem status updates should update status when indexing" name="ApexLSPStatusBarItem status updates should update status when indexing" time="0">
+    </testcase>
+    <testcase classname="ApexLSPStatusBarItem status updates should update status when ready" name="ApexLSPStatusBarItem status updates should update status when ready" time="0.001">
+    </testcase>
+    <testcase classname="ApexLSPStatusBarItem status updates should update status when restarting" name="ApexLSPStatusBarItem status updates should update status when restarting" time="0">
+    </testcase>
+    <testcase classname="ApexLSPStatusBarItem disposal should dispose language status items" name="ApexLSPStatusBarItem disposal should dispose language status items" time="0.043">
+    </testcase>
+  </testsuite>
+  <testsuite name="languageServerScanConfig" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.515" tests="3">
+    <testcase classname="languageServerScanConfig deriveExcludedMetadataFolders excludes strict metadata directories that are not apex folders" name="languageServerScanConfig deriveExcludedMetadataFolders excludes strict metadata directories that are not apex folders" time="0.008">
+    </testcase>
+    <testcase classname="languageServerScanConfig deriveExcludedMetadataFolders normalizes folder names and filters empty values" name="languageServerScanConfig deriveExcludedMetadataFolders normalizes folder names and filters empty values" time="0">
+    </testcase>
+    <testcase classname="languageServerScanConfig deriveExcludedMetadataFolders returns empty list when strictDirectoryNames is missing" name="languageServerScanConfig deriveExcludedMetadataFolders returns empty list when strictDirectoryNames is missing" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="index tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.668" tests="11">
+    <testcase classname="index tests indexDoneHandler should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false" name="index tests indexDoneHandler should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false" time="0.004">
+    </testcase>
+    <testcase classname="index tests indexDoneHandler should call setClientReady when enableSyncInitJobs is true" name="index tests indexDoneHandler should call setClientReady when enableSyncInitJobs is true" time="0.001">
+    </testcase>
+    <testcase classname="index tests Settings Change Handler should execute restart command when lspParityCapabilities setting changes" name="index tests Settings Change Handler should execute restart command when lspParityCapabilities setting changes" time="0">
+    </testcase>
+    <testcase classname="index tests Settings Change Handler should not execute restart command when other settings change" name="index tests Settings Change Handler should not execute restart command when other settings change" time="0.001">
+    </testcase>
+    <testcase classname="index tests Settings Change Handler should check for the correct configuration key" name="index tests Settings Change Handler should check for the correct configuration key" time="0">
+    </testcase>
+    <testcase classname="index tests activate should throw error if no workspace folders exist" name="index tests activate should throw error if no workspace folders exist" time="0.031">
+    </testcase>
+    <testcase classname="index tests activate should not start the Apex language server in a non-Salesforce workspace" name="index tests activate should not start the Apex language server in a non-Salesforce workspace" time="0.001">
+    </testcase>
+    <testcase classname="index tests activate should start the Apex language server in a Salesforce workspace" name="index tests activate should start the Apex language server in a Salesforce workspace" time="0.001">
+    </testcase>
+    <testcase classname="index tests deactivate should call stop on the language client" name="index tests deactivate should call stop on the language client" time="0.001">
+    </testcase>
+    <testcase classname="index tests deactivate should handle case when client instance is null" name="index tests deactivate should handle case when client instance is null" time="0.001">
+    </testcase>
+    <testcase classname="index tests deactivate should still resolve when stop rejects (scope teardown/span flush not skipped)" name="index tests deactivate should still resolve when stop rejects (scope teardown/span flush not skipped)" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Language Client Manager" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.775" tests="20">
+    <testcase classname="Language Client Manager Client Status Management Should return correct initial status" name="Language Client Manager Client Status Management Should return correct initial status" time="0.002">
+    </testcase>
+    <testcase classname="Language Client Manager Client Status Management Should return ready status" name="Language Client Manager Client Status Management Should return ready status" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Client Status Management Should return indexing status" name="Language Client Manager Client Status Management Should return indexing status" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Client Status Management Should return error status" name="Language Client Manager Client Status Management Should return error status" time="0.002">
+    </testcase>
+    <testcase classname="Language Client Manager Client Status Management Should return unavailable status" name="Language Client Manager Client Status Management Should return unavailable status" time="0.001">
+    </testcase>
+    <testcase classname="Language Client Manager Client Instance Management Should manage client instance" name="Language Client Manager Client Instance Management Should manage client instance" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Client Instance Management Should manage status bar instance" name="Language Client Manager Client Instance Management Should manage status bar instance" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Client Instance Management Should maintain singleton instance" name="Language Client Manager Client Instance Management Should maintain singleton instance" time="0.001">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should show information message if already restarting" name="Language Client Manager Restart Language Server should show information message if already restarting" time="0.001">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should cancel operation if no option is selected" name="Language Client Manager Restart Language Server should cancel operation if no option is selected" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should restart without cleaning DB when restart only option is selected" name="Language Client Manager Restart Language Server should restart without cleaning DB when restart only option is selected" time="0.005">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should restart and clean DB when clean and restart option is selected" name="Language Client Manager Restart Language Server should restart and clean DB when clean and restart option is selected" time="0.005">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should complete restart without stranding isRestarting when services extension is unavailable" name="Language Client Manager Restart Language Server should complete restart without stranding isRestarting when services extension is unavailable" time="0.005">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should handle errors during client stop" name="Language Client Manager Restart Language Server should handle errors during client stop" time="0.001">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server should reset isRestarting flag if there is no client instance" name="Language Client Manager Restart Language Server should reset isRestarting flag if there is no client instance" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server Restart Behavior Setting should use prompt behavior by default" name="Language Client Manager Restart Language Server Restart Behavior Setting should use prompt behavior by default" time="0.002">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server Restart Behavior Setting should use restart behavior when configured" name="Language Client Manager Restart Language Server Restart Behavior Setting should use restart behavior when configured" time="0.001">
+    </testcase>
+    <testcase classname="Language Client Manager Restart Language Server Restart Behavior Setting should use reset behavior when configured" name="Language Client Manager Restart Language Server Restart Behavior Setting should use reset behavior when configured" time="0.002">
+    </testcase>
+    <testcase classname="Language Client Manager toolsDirsToDelete keeps only NNN-named directories" name="Language Client Manager toolsDirsToDelete keeps only NNN-named directories" time="0">
+    </testcase>
+    <testcase classname="Language Client Manager toolsDirsToDelete returns empty for no matches" name="Language Client Manager toolsDirsToDelete returns empty for no matches" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="languageServer client span" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.72" tests="5">
+    <testcase classname="languageServer client span opens exactly one apex.lsp.client root span per lifetime" name="languageServer client span opens exactly one apex.lsp.client root span per lifetime" time="0.008">
+    </testcase>
+    <testcase classname="languageServer client span onTelemetry writes allowlisted attrs onto the live client span" name="languageServer client span onTelemetry writes allowlisted attrs onto the live client span" time="0.004">
+    </testcase>
+    <testcase classname="languageServer client span a blocked telemetry feature is not written onto the client span" name="languageServer client span a blocked telemetry feature is not written onto the client span" time="0.003">
+    </testcase>
+    <testcase classname="languageServer client span records an errored apexLSPError span when createServer fails" name="languageServer client span records an errored apexLSPError span when createServer fails" time="0.009">
+    </testcase>
+    <testcase classname="languageServer client span restart ends the prior client span and opens exactly one new live span" name="languageServer client span restart ends the prior client span and opens exactly one new live span" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="languageServerOrphanHandler" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:35" time="0.978" tests="14">
+    <testcase classname="languageServerOrphanHandler no orphan processes → no prompt, no kill" name="languageServerOrphanHandler no orphan processes → no prompt, no kill" time="0.092">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler parent alive → not orphaned → no prompt" name="languageServerOrphanHandler parent alive → not orphaned → no prompt" time="0.02">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler orphan found + user confirms → kill called" name="languageServerOrphanHandler orphan found + user confirms → kill called" time="0.024">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler orphan disappears on re-check → no prompt, no kill" name="languageServerOrphanHandler orphan disappears on re-check → no prompt, no kill" time="0.018">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler user dismisses prompt → UserCancellationError caught → no kill" name="languageServerOrphanHandler user dismisses prompt → UserCancellationError caught → no kill" time="0.026">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler kill fails twice then succeeds → retry within bound" name="languageServerOrphanHandler kill fails twice then succeeds → retry within bound" time="0.047">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler kill fails all attempts → ProcessTerminationError caught internally + root-span annotation, never propagates" name="languageServerOrphanHandler kill fails all attempts → ProcessTerminationError caught internally + root-span annotation, never propagates" time="0.047">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler web platform → TerminalServiceError → empty result, no prompt" name="languageServerOrphanHandler web platform → TerminalServiceError → empty result, no prompt" time="0.017">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting true + orphans found → kills without prompt" name="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting true + orphans found → kills without prompt" time="0.021">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + user clicks &quot;Always Auto-Terminate&quot; + confirms modal → setValue called + kills" name="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + user clicks &quot;Always Auto-Terminate&quot; + confirms modal → setValue called + kills" time="0.019">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + user clicks &quot;Always Auto-Terminate&quot; + cancels modal → no kill, setValue not called" name="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + user clicks &quot;Always Auto-Terminate&quot; + cancels modal → no kill, setValue not called" time="0.016">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + existing flows unchanged (terminate, show, dismiss)" name="languageServerOrphanHandler autoTerminateOrphanedProcesses setting setting false + existing flows unchanged (terminate, show, dismiss)" time="0.02">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler autoTerminateOrphanedProcesses setting SettingsService.setValue failure → span annotation recorded, kill still proceeds" name="languageServerOrphanHandler autoTerminateOrphanedProcesses setting SettingsService.setValue failure → span annotation recorded, kill still proceeds" time="0.022">
+    </testcase>
+    <testcase classname="languageServerOrphanHandler (Windows powershell guard) where powershell fails → empty result + root-span annotation, no prompt" name="languageServerOrphanHandler (Windows powershell guard) where powershell fails → empty result + root-span annotation, no prompt" time="0.015">
+    </testcase>
+  </testsuite>
+</testsuites>

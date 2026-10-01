@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="290" failures="0" errors="0" time="2.457">
+  <testsuite name="PackageResolutionService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="0.576" tests="12">
+    <testcase classname="PackageResolutionService returns empty map for empty class IDs" name="PackageResolutionService returns empty map for empty class IDs" time="0.01">
+    </testcase>
+    <testcase classname="PackageResolutionService queries Package2Member by SubjectId and selects SubscriberPackageId (not MetadataComponentId/Package2Id)" name="PackageResolutionService queries Package2Member by SubjectId and selects SubscriberPackageId (not MetadataComponentId/Package2Id)" time="0.02">
+    </testcase>
+    <testcase classname="PackageResolutionService resolves 2GP package info via SubscriberPackageId join" name="PackageResolutionService resolves 2GP package info via SubscriberPackageId join" time="0.004">
+    </testcase>
+    <testcase classname="PackageResolutionService returns empty map (does not fail) when Package2Member query fails and no fallback namespace map" name="PackageResolutionService returns empty map (does not fail) when Package2Member query fails and no fallback namespace map" time="0.004">
+    </testcase>
+    <testcase classname="PackageResolutionService returns empty map (does not fail) when Package2 join query fails" name="PackageResolutionService returns empty map (does not fail) when Package2 join query fails" time="0.003">
+    </testcase>
+    <testcase classname="PackageResolutionService skips empty or invalid class IDs" name="PackageResolutionService skips empty or invalid class IDs" time="0.002">
+    </testcase>
+    <testcase classname="PackageResolutionService caches results for the same org (second call does not re-query)" name="PackageResolutionService caches results for the same org (second call does not re-query)" time="0.002">
+    </testcase>
+    <testcase classname="PackageResolutionService resolves package via enumeration fallback when direct query returns no rows" name="PackageResolutionService resolves package via enumeration fallback when direct query returns no rows" time="0.003">
+    </testcase>
+    <testcase classname="PackageResolutionService resolves from InstalledSubscriberPackage when Package2Member is unavailable and namespace map is provided" name="PackageResolutionService resolves from InstalledSubscriberPackage when Package2Member is unavailable and namespace map is provided" time="0.003">
+    </testcase>
+    <testcase classname="PackageResolutionService resolves no-namespace classes to the single no-namespace package (Skyline resolveNoNamespaceInstalledItem)" name="PackageResolutionService resolves no-namespace classes to the single no-namespace package (Skyline resolveNoNamespaceInstalledItem)" time="0.006">
+    </testcase>
+    <testcase classname="PackageResolutionService only resolves no-namespace classes with installed ManageableState (null/empty excluded)" name="PackageResolutionService only resolves no-namespace classes with installed ManageableState (null/empty excluded)" time="0.003">
+    </testcase>
+    <testcase classname="PackageResolutionService serves cached resolution and does not re-query once the org is marked unavailable" name="PackageResolutionService serves cached resolution and does not re-query once the org is marked unavailable" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="CodeCoverageHandler" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="0.718" tests="16">
+    <testcase classname="CodeCoverageHandler toggleCoverage when highlighting is enabled should turn off and clear decorations" name="CodeCoverageHandler toggleCoverage when highlighting is enabled should turn off and clear decorations" time="0.02">
+    </testcase>
+    <testcase classname="CodeCoverageHandler toggleCoverage when highlighting is disabled should turn on and apply coverage decorations" name="CodeCoverageHandler toggleCoverage when highlighting is disabled should turn on and apply coverage decorations" time="0.033">
+    </testcase>
+    <testcase classname="CodeCoverageService Ref state getRanges starts empty, reflects applyForEditor, then clear resets it" name="CodeCoverageService Ref state getRanges starts empty, reflects applyForEditor, then clear resets it" time="0.006">
+    </testcase>
+    <testcase classname="CodeCoverageService aggregation (restore-previous-results enabled by default) aggregates coverage from multiple recent files (most recent wins per class)" name="CodeCoverageService aggregation (restore-previous-results enabled by default) aggregates coverage from multiple recent files (most recent wins per class)" time="0.005">
+    </testcase>
+    <testcase classname="CodeCoverageService aggregation (restore-previous-results enabled by default) merges coverage from different classes across runs" name="CodeCoverageService aggregation (restore-previous-results enabled by default) merges coverage from different classes across runs" time="0.004">
+    </testcase>
+    <testcase classname="CodeCoverageService aggregation (restore-previous-results enabled by default) excludes files older than 24 hours" name="CodeCoverageService aggregation (restore-previous-results enabled by default) excludes files older than 24 hours" time="0.027">
+    </testcase>
+    <testcase classname="CodeCoverageService aggregation (restore-previous-results enabled by default) excludes -codecoverage.json files from aggregation" name="CodeCoverageService aggregation (restore-previous-results enabled by default) excludes -codecoverage.json files from aggregation" time="0.007">
+    </testcase>
+    <testcase classname="CodeCoverageService restore-previous-results disabled only reads the most recent file" name="CodeCoverageService restore-previous-results disabled only reads the most recent file" time="0.004">
+    </testcase>
+    <testcase classname="CodeCoverageService restore-previous-results disabled picks newest file by mtime when filenames are not chronologically sortable" name="CodeCoverageService restore-previous-results disabled picks newest file by mtime when filenames are not chronologically sortable" time="0.007">
+    </testcase>
+    <testcase classname="CodeCoverageService tagged-error paths NoCoverageOnProjectError when results directory is empty" name="CodeCoverageService tagged-error paths NoCoverageOnProjectError when results directory is empty" time="0.004">
+    </testcase>
+    <testcase classname="CodeCoverageService tagged-error paths NoCoverageOnProjectError when readDirectory fails" name="CodeCoverageService tagged-error paths NoCoverageOnProjectError when readDirectory fails" time="0.002">
+    </testcase>
+    <testcase classname="CodeCoverageService tagged-error paths StaleResultsError when files exist but none contain coverage keys" name="CodeCoverageService tagged-error paths StaleResultsError when files exist but none contain coverage keys" time="0.007">
+    </testcase>
+    <testcase classname="CodeCoverageService tagged-error paths NoCoverageForFileError when no coverage entry matches the current file" name="CodeCoverageService tagged-error paths NoCoverageForFileError when no coverage entry matches the current file" time="0.002">
+    </testcase>
+    <testcase classname="CodeCoverageService tagged-error paths OutOfSyncCoverageError when a coverage line is outside the document range" name="CodeCoverageService tagged-error paths OutOfSyncCoverageError when a coverage line is outside the document range" time="0.003">
+    </testcase>
+    <testcase classname="CodeCoverageService handleCoverageException routing appends to channel when disable-warnings is enabled" name="CodeCoverageService handleCoverageException routing appends to channel when disable-warnings is enabled" time="0.001">
+    </testcase>
+    <testcase classname="CodeCoverageService handleCoverageException routing shows a warning message when disable-warnings is disabled" name="CodeCoverageService handleCoverageException routing shows a warning message when disable-warnings is disabled" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="TestDiscovery" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.221" tests="10">
+    <testcase classname="TestDiscovery returns classes and methods from /tooling/tests endpoint" name="TestDiscovery returns classes and methods from /tooling/tests endpoint" time="0.058">
+    </testcase>
+    <testcase classname="TestDiscovery decodes wire &quot;&quot; sentinels to Option.none() and non-empty prefixes to Option.some()" name="TestDiscovery decodes wire &quot;&quot; sentinels to Option.none() and non-empty prefixes to Option.some()" time="0.002">
+    </testcase>
+    <testcase classname="TestDiscovery gracefully returns empty when API returns no classes" name="TestDiscovery gracefully returns empty when API returns no classes" time="0.001">
+    </testcase>
+    <testcase classname="TestDiscovery handles API errors" name="TestDiscovery handles API errors" time="0.04">
+    </testcase>
+    <testcase classname="TestDiscovery uses minimum API version 65.0 and sets showAllMethods=true below v68" name="TestDiscovery uses minimum API version 65.0 and sets showAllMethods=true below v68" time="0.002">
+    </testcase>
+    <testcase classname="TestDiscovery omits showAllMethods and sets testLevel=RunAllTestsInOrg on v68.0" name="TestDiscovery omits showAllMethods and sets testLevel=RunAllTestsInOrg on v68.0" time="0.002">
+    </testcase>
+    <testcase classname="TestDiscovery keeps showAllMethods=true just under the gate on v67.9" name="TestDiscovery keeps showAllMethods=true just under the gate on v67.9" time="0.001">
+    </testcase>
+    <testcase classname="TestDiscovery sets testLevel=RunAllTestsInOrg above the gate on v69.0 (&gt;=, not ==68)" name="TestDiscovery sets testLevel=RunAllTestsInOrg above the gate on v69.0 (&gt;=, not ==68)" time="0.002">
+    </testcase>
+    <testcase classname="TestDiscovery passes namespacePrefix when provided" name="TestDiscovery passes namespacePrefix when provided" time="0.001">
+    </testcase>
+    <testcase classname="TestDiscovery handles unexpected response shape without throwing" name="TestDiscovery handles unexpected response shape without throwing" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="sortNamespaceKeys" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.061" tests="17">
+    <testcase classname="sortNamespaceKeys places local namespace first when it is the only key" name="sortNamespaceKeys places local namespace first when it is the only key" time="0">
+    </testcase>
+    <testcase classname="sortNamespaceKeys places local namespace first regardless of alphabetical position" name="sortNamespaceKeys places local namespace first regardless of alphabetical position" time="0.006">
+    </testcase>
+    <testcase classname="sortNamespaceKeys sorts non-local namespaces alphabetically" name="sortNamespaceKeys sorts non-local namespaces alphabetically" time="0.001">
+    </testcase>
+    <testcase classname="sortNamespaceKeys handles a single non-local namespace" name="sortNamespaceKeys handles a single non-local namespace" time="0">
+    </testcase>
+    <testcase classname="getPackageKeysOrdered places unpackaged first in local namespace" name="getPackageKeysOrdered places unpackaged first in local namespace" time="0">
+    </testcase>
+    <testcase classname="getPackageKeysOrdered does not reorder when unpackaged is already first in local namespace" name="getPackageKeysOrdered does not reorder when unpackaged is already first in local namespace" time="0">
+    </testcase>
+    <testcase classname="getPackageKeysOrdered does not reorder for non-local namespaces" name="getPackageKeysOrdered does not reorder for non-local namespaces" time="0">
+    </testcase>
+    <testcase classname="getPackageKeysOrdered returns keys unchanged when unpackaged is absent from local namespace" name="getPackageKeysOrdered returns keys unchanged when unpackaged is absent from local namespace" time="0">
+    </testcase>
+    <testcase classname="getPackageLabelAndId returns localized label and fixed ID for unpackaged metadata" name="getPackageLabelAndId returns localized label and fixed ID for unpackaged metadata" time="0">
+    </testcase>
+    <testcase classname="getPackageLabelAndId returns 1GP label with namespace name" name="getPackageLabelAndId returns 1GP label with namespace name" time="0.001">
+    </testcase>
+    <testcase classname="getPackageLabelAndId returns unlocked package label with suffix" name="getPackageLabelAndId returns unlocked package label with suffix" time="0">
+    </testcase>
+    <testcase classname="getPackageLabelAndId returns managed package label with suffix" name="getPackageLabelAndId returns managed package label with suffix" time="0">
+    </testcase>
+    <testcase classname="getPackageLabelAndId falls back to baseName with no suffix when containerOptions is absent" name="getPackageLabelAndId falls back to baseName with no suffix when containerOptions is absent" time="0">
+    </testcase>
+    <testcase classname="getPackageLabelAndId falls back to pkgKey when class has no ID" name="getPackageLabelAndId falls back to pkgKey when class has no ID" time="0">
+    </testcase>
+    <testcase classname="buildNamespacePackageStructure groups a Flow class under its FlowTesting namespace key and an Apex default-ns class under LOCAL_NAMESPACE_KEY" name="buildNamespacePackageStructure groups a Flow class under its FlowTesting namespace key and an Apex default-ns class under LOCAL_NAMESPACE_KEY" time="0.001">
+    </testcase>
+    <testcase classname="getNamespaceDisplayLabel returns localized label for local namespace" name="getNamespaceDisplayLabel returns localized label for local namespace" time="0">
+    </testcase>
+    <testcase classname="getNamespaceDisplayLabel returns the key as-is for non-local namespaces" name="getNamespaceDisplayLabel returns the key as-is for non-local namespaces" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="ApexTestController" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="0.998" tests="30">
+    <testcase classname="ApexTestController constructor should create a test controller" name="ApexTestController constructor should create a test controller" time="0.018">
+    </testcase>
+    <testcase classname="ApexTestController constructor should register workspace-first run as default and org-wide run as secondary (no profile tags)" name="ApexTestController constructor should register workspace-first run as default and org-wide run as secondary (no profile tags)" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController constructor should set up refresh handler" name="ApexTestController constructor should set up refresh handler" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController run profile handlers (workspace-first vs all-org) workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered" name="ApexTestController run profile handlers (workspace-first vs all-org) workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered" time="0.08">
+    </testcase>
+    <testcase classname="ApexTestController run profile handlers (workspace-first vs all-org) all-org implicit full run uses RunAllTestsInOrg" name="ApexTestController run profile handlers (workspace-first vs all-org) all-org implicit full run uses RunAllTestsInOrg" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestController run profile handlers (workspace-first vs all-org) workspace-first run does not strip tests when request.include is non-empty (explicit or filter-driven selection)" name="ApexTestController run profile handlers (workspace-first vs all-org) workspace-first run does not strip tests when request.include is non-empty (explicit or filter-driven selection)" time="0.009">
+    </testcase>
+    <testcase classname="ApexTestController discoverTests should discover tests and populate test items" name="ApexTestController discoverTests should discover tests and populate test items" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestController discoverTests should handle errors during discovery" name="ApexTestController discoverTests should handle errors during discovery" time="0.009">
+    </testcase>
+    <testcase classname="ApexTestController discoverTests should tag tests that exist in org but not in local workspace" name="ApexTestController discoverTests should tag tests that exist in org but not in local workspace" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestController openOrgOnlyTest should open org-only class test" name="ApexTestController openOrgOnlyTest should open org-only class test" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController openOrgOnlyTest should open org-only method test and navigate to position" name="ApexTestController openOrgOnlyTest should open org-only method test and navigate to position" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestController refresh should clear and rediscover tests" name="ApexTestController refresh should clear and rediscover tests" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController retrieveOrgOnlyClass retrieves org-only class for apex-testing class items" name="ApexTestController retrieveOrgOnlyClass retrieves org-only class for apex-testing class items" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestController retrieveOrgOnlyClass shows the canceled notification when retrieve is cancelled (UserCancellationError)" name="ApexTestController retrieveOrgOnlyClass shows the canceled notification when retrieve is cancelled (UserCancellationError)" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestController retrieveOrgOnlyClass shows failed-execution when retrieve fails (MetadataRetrieveError)" name="ApexTestController retrieveOrgOnlyClass shows failed-execution when retrieve fails (MetadataRetrieveError)" time="0.013">
+    </testcase>
+    <testcase classname="ApexTestController retrieveOrgOnlyClass does not retrieve for local class items" name="ApexTestController retrieveOrgOnlyClass does not retrieve for local class items" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController retrieveOrgOnlyClass does not retrieve a virtual class from an inactive org" name="ApexTestController retrieveOrgOnlyClass does not retrieve a virtual class from an inactive org" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController resolveHandler should request document symbols for class methods with default range" name="ApexTestController resolveHandler should request document symbols for class methods with default range" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController onResultFileCreate should update test results from file" name="ApexTestController onResultFileCreate should update test results from file" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestController runTests should execute tests and update results" name="ApexTestController runTests should execute tests and update results" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController getController should return the test controller" name="ApexTestController getController should return the test controller" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController dispose should dispose the controller" name="ApexTestController dispose should dispose the controller" time="0">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should not call testing.clearTestResults" name="ApexTestController incrementalUpdate should not call testing.clearTestResults" time="0.005">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should not replace controller items" name="ApexTestController incrementalUpdate should not replace controller items" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should skip API call for pure deletions" name="ApexTestController incrementalUpdate should skip API call for pure deletions" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should call discoverTests for created changes" name="ApexTestController incrementalUpdate should call discoverTests for created changes" time="0">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should call discoverTests for changed changes" name="ApexTestController incrementalUpdate should call discoverTests for changed changes" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should fall back to full discoverTests on error" name="ApexTestController incrementalUpdate should fall back to full discoverTests on error" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestController incrementalUpdate should refresh suite items when includesSuiteChange is true" name="ApexTestController incrementalUpdate should refresh suite items when includesSuiteChange is true" time="0.001">
+    </testcase>
+    <testcase classname="getTestController should return singleton instance" name="getTestController should return singleton instance" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="toUserFriendlyApexTestError" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.038" tests="8">
+    <testcase classname="toUserFriendlyApexTestError should map UNKNOWN_EXCEPTION to user-friendly message" name="toUserFriendlyApexTestError should map UNKNOWN_EXCEPTION to user-friendly message" time="0.001">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should map auth-related errors to user-friendly message" name="toUserFriendlyApexTestError should map auth-related errors to user-friendly message" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should map connection/network errors to user-friendly message" name="toUserFriendlyApexTestError should map connection/network errors to user-friendly message" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should map resource not found to user-friendly message" name="toUserFriendlyApexTestError should map resource not found to user-friendly message" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should map deleted/unreachable org (HTML response, 420) to resource-not-found message" name="toUserFriendlyApexTestError should map deleted/unreachable org (HTML response, 420) to resource-not-found message" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should return descriptive message unchanged when long enough" name="toUserFriendlyApexTestError should return descriptive message unchanged when long enough" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should extract message from error-like object with body array" name="toUserFriendlyApexTestError should extract message from error-like object with body array" time="0">
+    </testcase>
+    <testcase classname="toUserFriendlyApexTestError should handle string errors" name="toUserFriendlyApexTestError should handle string errors" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="StatusBarToggle" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.032" tests="5">
+    <testcase classname="StatusBarToggle should create status bar item with toggle command and show icon" name="StatusBarToggle should create status bar item with toggle command and show icon" time="0">
+    </testcase>
+    <testcase classname="StatusBarToggle should report highlighting disabled initially" name="StatusBarToggle should report highlighting disabled initially" time="0">
+    </testcase>
+    <testcase classname="StatusBarToggle should update state and icon when toggled on" name="StatusBarToggle should update state and icon when toggled on" time="0">
+    </testcase>
+    <testcase classname="StatusBarToggle should update state and icon when toggled off" name="StatusBarToggle should update state and icon when toggled off" time="0">
+    </testcase>
+    <testcase classname="StatusBarToggle should dispose status bar item on dispose" name="StatusBarToggle should dispose status bar item on dispose" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="sortByMtimeAscending" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.027" tests="2">
+    <testcase classname="sortByMtimeAscending orders by mtime so the newest run is applied last (most recent result wins)" name="sortByMtimeAscending orders by mtime so the newest run is applied last (most recent result wins)" time="0.004">
+    </testcase>
+    <testcase classname="sortByMtimeAscending does not mutate the input array" name="sortByMtimeAscending does not mutate the input array" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgOnlyRetrieveCodeLensProvider" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.036" tests="2">
+    <testcase classname="orgOnlyRetrieveCodeLensProvider provides a retrieve codelens for org metadata documents" name="orgOnlyRetrieveCodeLensProvider provides a retrieve codelens for org metadata documents" time="0.002">
+    </testcase>
+    <testcase classname="orgOnlyRetrieveCodeLensProvider registers codelens provider with the org metadata apex selector" name="orgOnlyRetrieveCodeLensProvider registers codelens provider with the org metadata apex selector" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="newlineUtils" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.031" tests="3">
+    <testcase classname="newlineUtils should normalize CRLF split across chunk boundary to a single LF" name="newlineUtils should normalize CRLF split across chunk boundary to a single LF" time="0.001">
+    </testcase>
+    <testcase classname="newlineUtils should convert a trailing CR at end of stream into LF on next (empty) chunk" name="newlineUtils should convert a trailing CR at end of stream into LF on next (empty) chunk" time="0">
+    </testcase>
+    <testcase classname="newlineUtils should normalize mixed newline styles within a single chunk" name="newlineUtils should normalize mixed newline styles within a single chunk" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="testItemUtils" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="0.872" tests="50">
+    <testcase classname="testItemUtils parseTestId should parse suite ID" name="testItemUtils parseTestId should parse suite ID" time="0.003">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should parse class ID" name="testItemUtils parseTestId should parse class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should parse method ID" name="testItemUtils parseTestId should parse method ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should parse suite-class ID" name="testItemUtils parseTestId should parse suite-class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should return unknown for invalid ID" name="testItemUtils parseTestId should return unknown for invalid ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should parse namespace ID" name="testItemUtils parseTestId should parse namespace ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils parseTestId should parse package ID" name="testItemUtils parseTestId should parse package ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isSuite should return true for suite ID" name="testItemUtils isSuite should return true for suite ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isSuite should return false for non-suite ID" name="testItemUtils isSuite should return false for non-suite ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isClass should return true for class ID" name="testItemUtils isClass should return true for class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isClass should return false for non-class ID" name="testItemUtils isClass should return false for non-class ID" time="0.021">
+    </testcase>
+    <testcase classname="testItemUtils isMethod should return true for method ID" name="testItemUtils isMethod should return true for method ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils isMethod should return false for non-method ID" name="testItemUtils isMethod should return false for non-method ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isSuiteClass should return true for suite-class ID" name="testItemUtils isSuiteClass should return true for suite-class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isSuiteClass should return false for non-suite-class ID" name="testItemUtils isSuiteClass should return false for non-suite-class ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils isNamespace should return true for namespace ID" name="testItemUtils isNamespace should return true for namespace ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils isNamespace should return false for non-namespace ID" name="testItemUtils isNamespace should return false for non-namespace ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isPackage should return true for package ID" name="testItemUtils isPackage should return true for package ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils isPackage should return false for non-package ID" name="testItemUtils isPackage should return false for non-package ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils getTestName should extract name from suite TestItem" name="testItemUtils getTestName should extract name from suite TestItem" time="0">
+    </testcase>
+    <testcase classname="testItemUtils getTestName should extract name from class TestItem" name="testItemUtils getTestName should extract name from class TestItem" time="0.005">
+    </testcase>
+    <testcase classname="testItemUtils getTestName should extract name from method TestItem" name="testItemUtils getTestName should extract name from method TestItem" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils createSuiteId should create suite ID" name="testItemUtils createSuiteId should create suite ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils createClassId should create class ID" name="testItemUtils createClassId should create class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils createMethodId should create method ID" name="testItemUtils createMethodId should create method ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils createSuiteClassId should create suite-class ID" name="testItemUtils createSuiteClassId should create suite-class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils createNamespaceId should create namespace ID" name="testItemUtils createNamespaceId should create namespace ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils createPackageId should create package ID" name="testItemUtils createPackageId should create package ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils extractSuiteName should extract suite name from suite ID" name="testItemUtils extractSuiteName should extract suite name from suite ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractSuiteName should extract suite name from suite-class ID" name="testItemUtils extractSuiteName should extract suite name from suite-class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractSuiteName should return undefined for non-suite ID" name="testItemUtils extractSuiteName should return undefined for non-suite ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractClassName should extract class name from class ID" name="testItemUtils extractClassName should extract class name from class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractClassName should extract class name from method ID" name="testItemUtils extractClassName should extract class name from method ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractClassName should extract class name from suite-class ID" name="testItemUtils extractClassName should extract class name from suite-class ID" time="0">
+    </testcase>
+    <testcase classname="testItemUtils extractClassName should return undefined for non-class ID" name="testItemUtils extractClassName should return undefined for non-class ID" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should gather suite items" name="testItemUtils gatherTests should gather suite items" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should gather class items" name="testItemUtils gatherTests should gather class items" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should expand class to methods" name="testItemUtils gatherTests should expand class to methods" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should gather method items directly" name="testItemUtils gatherTests should gather method items directly" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should expand suite-class placeholder to parent suite" name="testItemUtils gatherTests should expand suite-class placeholder to parent suite" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should skip suite-class placeholder if parent suite not found" name="testItemUtils gatherTests should skip suite-class placeholder if parent suite not found" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should expand suite parent to its children" name="testItemUtils gatherTests should expand suite parent to its children" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should exclude items when exclude is provided" name="testItemUtils gatherTests should exclude items when exclude is provided" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should exclude a class node and all expanded methods (VS Code filter uses parent in exclude)" name="testItemUtils gatherTests should exclude a class node and all expanded methods (VS Code filter uses parent in exclude)" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should gather all items when include is not provided" name="testItemUtils gatherTests should gather all items when include is not provided" time="0.001">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should handle empty include array" name="testItemUtils gatherTests should handle empty include array" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should handle nested class expansion" name="testItemUtils gatherTests should handle nested class expansion" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should recurse through namespace and package nodes without adding them" name="testItemUtils gatherTests should recurse through namespace and package nodes without adding them" time="0">
+    </testcase>
+    <testcase classname="testItemUtils gatherTests should recurse through package node and collect class methods" name="testItemUtils gatherTests should recurse through package node and collect class methods" time="0">
+    </testcase>
+    <testcase classname="testItemUtils filterTestItemsByRequestExclude removes methods when their class subtree is in exclude (simulates post–suite-expansion re-add)" name="testItemUtils filterTestItemsByRequestExclude removes methods when their class subtree is in exclude (simulates post–suite-expansion re-add)" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="codecoverage decorations" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.024" tests="1">
+    <testcase classname="codecoverage decorations should export covered and uncovered decoration types" name="codecoverage decorations should export covered and uncovered decoration types" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="isFlowTest" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.042" tests="6">
+    <testcase classname="isFlowTest is true for a bare FlowTesting namespace" name="isFlowTest is true for a bare FlowTesting namespace" time="0.001">
+    </testcase>
+    <testcase classname="isFlowTest is true for a FlowTesting.&lt;Namespace&gt; prefix" name="isFlowTest is true for a FlowTesting.&lt;Namespace&gt; prefix" time="0.001">
+    </testcase>
+    <testcase classname="isFlowTest is false for a non-flow Apex namespace" name="isFlowTest is false for a non-flow Apex namespace" time="0">
+    </testcase>
+    <testcase classname="isFlowTest is false for a default Apex namespace (absent, post-normalization)" name="isFlowTest is false for a default Apex namespace (absent, post-normalization)" time="0">
+    </testcase>
+    <testcase classname="getFullClassName prefixes the namespace when present" name="getFullClassName prefixes the namespace when present" time="0">
+    </testcase>
+    <testcase classname="getFullClassName returns the bare class name when the namespace is absent" name="getFullClassName returns the bare class name when the namespace is absent" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="ApexTestExecutionService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.172" tests="15">
+    <testcase classname="ApexTestExecutionService executeTests emits the run-path sentinel once when tests ran" name="ApexTestExecutionService executeTests emits the run-path sentinel once when tests ran" time="0.015">
+    </testcase>
+    <testcase classname="ApexTestExecutionService executeTests uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg" name="ApexTestExecutionService executeTests uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg" time="0.005">
+    </testcase>
+    <testcase classname="ApexTestExecutionService executeTests records lastProcessedResultFile so the watcher dedupes the same URI" name="ApexTestExecutionService executeTests records lastProcessedResultFile so the watcher dedupes the same URI" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestExecutionService executeTests clears the stale tag from the run methods" name="ApexTestExecutionService executeTests clears the stale tag from the run methods" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestExecutionService executeTests fails with PayloadBuildError when no payload is produced" name="ApexTestExecutionService executeTests fails with PayloadBuildError when no payload is produced" time="0.018">
+    </testcase>
+    <testcase classname="ApexTestExecutionService debugTests errors org-only tests and does not delegate them to the debug command" name="ApexTestExecutionService debugTests errors org-only tests and does not delegate them to the debug command" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestExecutionService debugTests does NOT emit a channel sentinel on the debug path" name="ApexTestExecutionService debugTests does NOT emit a channel sentinel on the debug path" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestExecutionService debugTests errors the item with the failed-debug message when the debug command rejects" name="ApexTestExecutionService debugTests errors the item with the failed-debug message when the debug command rejects" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestExecutionService debugTests skips method-level debug dispatch for a class already selected at class level" name="ApexTestExecutionService debugTests skips method-level debug dispatch for a class already selected at class level" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestExecutionService debugTests errors a suite item with the not-supported message and does not dispatch it" name="ApexTestExecutionService debugTests errors a suite item with the not-supported message and does not dispatch it" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestExecutionService runTests surfaces a run failure on every test via run.errored (run still ends)" name="ApexTestExecutionService runTests surfaces a run failure on every test via run.errored (run still ends)" time="0.018">
+    </testcase>
+    <testcase classname="ApexTestExecutionService runTests errors the run with TestTempFolderError when the results folder cannot be resolved" name="ApexTestExecutionService runTests errors the run with TestTempFolderError when the results folder cannot be resolved" time="0.004">
+    </testcase>
+    <testcase classname="ApexTestExecutionService runTests errors empty suites and ends without running when nothing remains" name="ApexTestExecutionService runTests errors empty suites and ends without running when nothing remains" time="0.051">
+    </testcase>
+    <testcase classname="ApexTestExecutionService runTests rejects an explicit mix of suites and individual tests without running anything" name="ApexTestExecutionService runTests rejects an explicit mix of suites and individual tests without running anything" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestExecutionService onResultFileCreate applies results for the expected file and dedupes a repeat for the same URI" name="ApexTestExecutionService onResultFileCreate applies results for the expected file and dedupes a repeat for the same URI" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="testUtils" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:34" time="0.499" tests="9">
+    <testcase classname="testUtils findMethodInSymbols should find a method in top-level symbols" name="testUtils findMethodInSymbols should find a method in top-level symbols" time="0.001">
+    </testcase>
+    <testcase classname="testUtils findMethodInSymbols should find a method in nested class symbols" name="testUtils findMethodInSymbols should find a method in nested class symbols" time="0">
+    </testcase>
+    <testcase classname="testUtils findMethodInSymbols should return undefined if method is not found" name="testUtils findMethodInSymbols should return undefined if method is not found" time="0">
+    </testcase>
+    <testcase classname="testUtils findMethodInSymbols should ignore non-method symbols" name="testUtils findMethodInSymbols should ignore non-method symbols" time="0.001">
+    </testcase>
+    <testcase classname="testUtils getMethodLocationsFromSymbols should return an empty map when document symbols are not available" name="testUtils getMethodLocationsFromSymbols should return an empty map when document symbols are not available" time="0">
+    </testcase>
+    <testcase classname="testUtils getMethodLocationsFromSymbols should return an empty map when executeCommand returns undefined" name="testUtils getMethodLocationsFromSymbols should return an empty map when executeCommand returns undefined" time="0">
+    </testcase>
+    <testcase classname="testUtils getMethodLocationsFromSymbols should return a map of method locations when symbols are available" name="testUtils getMethodLocationsFromSymbols should return a map of method locations when symbols are available" time="0.001">
+    </testcase>
+    <testcase classname="testUtils getMethodLocationsFromSymbols should only return locations for methods that exist in symbols" name="testUtils getMethodLocationsFromSymbols should only return locations for methods that exist in symbols" time="0">
+    </testcase>
+    <testcase classname="testUtils getMethodLocationsFromSymbols should not duplicate method locations" name="testUtils getMethodLocationsFromSymbols should not duplicate method locations" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="testResultProcessor" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.479" tests="25">
+    <testcase classname="testResultProcessor parseStackTrace should parse valid stack trace with line number and class" name="testResultProcessor parseStackTrace should parse valid stack trace with line number and class" time="0.005">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should return undefined if line number not found" name="testResultProcessor parseStackTrace should return undefined if line number not found" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should return undefined if class not found in stack trace" name="testResultProcessor parseStackTrace should return undefined if class not found in stack trace" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should return undefined if class item not found in map" name="testResultProcessor parseStackTrace should return undefined if class item not found in map" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should handle stack trace with namespace" name="testResultProcessor parseStackTrace should handle stack trace with namespace" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should handle stack trace with namespace when class item has full namespace" name="testResultProcessor parseStackTrace should handle stack trace with namespace when class item has full namespace" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor parseStackTrace should handle multiple line numbers in stack trace" name="testResultProcessor parseStackTrace should handle multiple line numbers in stack trace" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should update passed test results" name="testResultProcessor updateTestRunResults should update passed test results" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should update failed test results with error message" name="testResultProcessor updateTestRunResults should update failed test results with error message" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should update failed test results with stack trace location" name="testResultProcessor updateTestRunResults should update failed test results with stack trace location" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should update skipped test results" name="testResultProcessor updateTestRunResults should update skipped test results" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle tests with namespace prefix" name="testResultProcessor updateTestRunResults should handle tests with namespace prefix" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle tests from testsToRun parameter" name="testResultProcessor updateTestRunResults should handle tests from testsToRun parameter" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle tests not found in test map" name="testResultProcessor updateTestRunResults should handle tests not found in test map" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should add HumanReporter output" name="testResultProcessor updateTestRunResults should add HumanReporter output" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle empty HumanReporter output" name="testResultProcessor updateTestRunResults should handle empty HumanReporter output" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle code coverage parameter" name="testResultProcessor updateTestRunResults should handle code coverage parameter" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle multiple test results" name="testResultProcessor updateTestRunResults should handle multiple test results" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should combine error message and stack trace for failed tests" name="testResultProcessor updateTestRunResults should combine error message and stack trace for failed tests" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should update class items when class is in testsToRun" name="testResultProcessor updateTestRunResults should update class items when class is in testsToRun" time="0">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should recursively collect methods under suite and update class children" name="testResultProcessor updateTestRunResults should recursively collect methods under suite and update class children" time="0.005">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle suite with mixed pass/fail results and update class children correctly" name="testResultProcessor updateTestRunResults should handle suite with mixed pass/fail results and update class children correctly" time="0.003">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle class with methods not in methodItems but found recursively" name="testResultProcessor updateTestRunResults should handle class with methods not in methodItems but found recursively" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should handle suite with namespaced classes correctly" name="testResultProcessor updateTestRunResults should handle suite with namespaced classes correctly" time="0.001">
+    </testcase>
+    <testcase classname="testResultProcessor updateTestRunResults should mark only the failing suite as failed when running multiple suites" name="testResultProcessor updateTestRunResults should mark only the failing suite as failed when running multiple suites" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="initializeTestDiscovery" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.355" tests="7">
+    <testcase classname="initializeTestDiscovery refreshes once for the initial org" name="initializeTestDiscovery refreshes once for the initial org" time="0.088">
+    </testcase>
+    <testcase classname="initializeTestDiscovery clears the tree when the org transitions to undefined" name="initializeTestDiscovery clears the tree when the org transitions to undefined" time="0.039">
+    </testcase>
+    <testcase classname="initializeTestDiscovery refreshes again when the org returns after being undefined" name="initializeTestDiscovery refreshes again when the org returns after being undefined" time="0.06">
+    </testcase>
+    <testcase classname="initializeTestDiscovery incrementally updates when an Apex class is created or deleted in the workspace" name="initializeTestDiscovery incrementally updates when an Apex class is created or deleted in the workspace" time="0.022">
+    </testcase>
+    <testcase classname="initializeTestDiscovery coalesces relevant workspace events into one targeted update" name="initializeTestDiscovery coalesces relevant workspace events into one targeted update" time="0.027">
+    </testcase>
+    <testcase classname="initializeTestDiscovery reconciles Apex class presence when only its sidecar notification is observed" name="initializeTestDiscovery reconciles Apex class presence when only its sidecar notification is observed" time="0.018">
+    </testcase>
+    <testcase classname="initializeTestDiscovery does not update for workspace changes that cannot alter Apex class presence" name="initializeTestDiscovery does not update for workspace changes that cannot alter Apex class presence" time="0.017">
+    </testcase>
+  </testsuite>
+  <testsuite name="payloadBuilder" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.541" tests="14">
+    <testcase classname="payloadBuilder buildTestPayload should build payload for suite" name="payloadBuilder buildTestPayload should build payload for suite" time="0.005">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for single class" name="payloadBuilder buildTestPayload should build payload for single class" time="0">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for methods from same class" name="payloadBuilder buildTestPayload should build payload for methods from same class" time="0">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for methods from different classes" name="payloadBuilder buildTestPayload should build payload for methods from different classes" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should handle code coverage enabled" name="payloadBuilder buildTestPayload should handle code coverage enabled" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for multiple suites" name="payloadBuilder buildTestPayload should build payload for multiple suites" time="0">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should throw error if suite name cannot be determined" name="payloadBuilder buildTestPayload should throw error if suite name cannot be determined" time="0.034">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should throw error if payload is not built" name="payloadBuilder buildTestPayload should throw error if payload is not built" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should throw error when mixing suite and class without methods" name="payloadBuilder buildTestPayload should throw error when mixing suite and class without methods" time="0.003">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should handle empty test names array" name="payloadBuilder buildTestPayload should handle empty test names array" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should handle mixed class and method names" name="payloadBuilder buildTestPayload should handle mixed class and method names" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for namespaced methods" name="payloadBuilder buildTestPayload should build payload for namespaced methods" time="0">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for mixed namespaced and non-namespaced methods" name="payloadBuilder buildTestPayload should build payload for mixed namespaced and non-namespaced methods" time="0.001">
+    </testcase>
+    <testcase classname="payloadBuilder buildTestPayload should build payload for multiple classes" name="payloadBuilder buildTestPayload should build payload for multiple classes" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="testReportGenerator" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.671" tests="27">
+    <testcase classname="testReportGenerator generateMarkdownReport should generate markdown report with correct structure" name="testReportGenerator generateMarkdownReport should generate markdown report with correct structure" time="0.015">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should include failures section with error message and stack trace" name="testReportGenerator generateMarkdownReport should include failures section with error message and stack trace" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should include passed tests section" name="testReportGenerator generateMarkdownReport should include passed tests section" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should escape markdown special characters in test names" name="testReportGenerator generateMarkdownReport should escape markdown special characters in test names" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should handle namespace prefix in class names" name="testReportGenerator generateMarkdownReport should handle namespace prefix in class names" time="0.005">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should handle skipped tests" name="testReportGenerator generateMarkdownReport should handle skipped tests" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should format duration correctly" name="testReportGenerator generateMarkdownReport should format duration correctly" time="0.003">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should highlight poorly performing tests" name="testReportGenerator generateMarkdownReport should highlight poorly performing tests" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should highlight poorly covered tests" name="testReportGenerator generateMarkdownReport should highlight poorly covered tests" time="0.002">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should highlight tests with both poor performance and poor coverage" name="testReportGenerator generateMarkdownReport should highlight tests with both poor performance and poor coverage" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should highlight poorly performing tests in passed tests section" name="testReportGenerator generateMarkdownReport should highlight poorly performing tests in passed tests section" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should highlight poorly covered tests in passed tests section" name="testReportGenerator generateMarkdownReport should highlight poorly covered tests in passed tests section" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should not show warnings section when no issues" name="testReportGenerator generateMarkdownReport should not show warnings section when no issues" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should sort poorly performing tests from worst to best" name="testReportGenerator generateMarkdownReport should sort poorly performing tests from worst to best" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should sort poorly covered tests from worst to best" name="testReportGenerator generateMarkdownReport should sort poorly covered tests from worst to best" time="0.004">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should sort test results table by severity (worst first)" name="testReportGenerator generateMarkdownReport should sort test results table by severity (worst first)" time="0.007">
+    </testcase>
+    <testcase classname="testReportGenerator generateMarkdownReport should sort passed tests by runtime (slowest first)" name="testReportGenerator generateMarkdownReport should sort passed tests by runtime (slowest first)" time="0.002">
+    </testcase>
+    <testcase classname="testReportGenerator generateTextReport should generate text report with correct structure" name="testReportGenerator generateTextReport should generate text report with correct structure" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator generateTextReport should include failures section in text format" name="testReportGenerator generateTextReport should include failures section in text format" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator generateTextReport should include passed tests section in text format" name="testReportGenerator generateTextReport should include passed tests section in text format" time="0">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should write markdown report and notify without opening by default" name="testReportGenerator writeAndOpenTestReport should write markdown report and notify without opening by default" time="0.014">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should open markdown preview when user selects Open Report" name="testReportGenerator writeAndOpenTestReport should open markdown preview when user selects Open Report" time="0.059">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should write text report and notify without opening by default" name="testReportGenerator writeAndOpenTestReport should write text report and notify without opening by default" time="0.003">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should open text report when user selects Open Report" name="testReportGenerator writeAndOpenTestReport should open text report when user selects Open Report" time="0.054">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should write report path and markdown tip to output channel for markdown format" name="testReportGenerator writeAndOpenTestReport should write report path and markdown tip to output channel for markdown format" time="0.002">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should encode content as UTF-8" name="testReportGenerator writeAndOpenTestReport should encode content as UTF-8" time="0.001">
+    </testcase>
+    <testcase classname="testReportGenerator writeAndOpenTestReport should use library filename format: test-result-{testRunId}.md" name="testReportGenerator writeAndOpenTestReport should use library filename format: test-result-{testRunId}.md" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="ApexTestTreeService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.738" tests="22">
+    <testcase classname="ApexTestTreeService reset clears all tree maps in place (stable object identity for shared holders)" name="ApexTestTreeService reset clears all tree maps in place (stable object identity for shared holders)" time="0.012">
+    </testcase>
+    <testcase classname="ApexTestTreeService discover dedup runs the body once when two callers overlap; the second awaits the same in-flight run" name="ApexTestTreeService discover dedup runs the body once when two callers overlap; the second awaits the same in-flight run" time="0.005">
+    </testcase>
+    <testcase classname="ApexTestTreeService discover dedup re-runs on a subsequent discover (single-shot, not memoized)" name="ApexTestTreeService discover dedup re-runs on a subsequent discover (single-shot, not memoized)" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService discover failure notification shows an error message when discovery fails with a generic message" name="ApexTestTreeService discover failure notification shows an error message when discovery fails with a generic message" time="0.015">
+    </testcase>
+    <testcase classname="ApexTestTreeService discover failure notification shows a warning (not error) when discovery fails with the partial-discovery message" name="ApexTestTreeService discover failure notification shows a warning (not error) when discovery fails with the partial-discovery message" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService restorePreviousResults test-and-set only one of two concurrent restores proceeds past the isRestoringResults guard" name="ApexTestTreeService restorePreviousResults test-and-set only one of two concurrent restores proceeds past the isRestoringResults guard" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService restorePreviousResults test-and-set proceeds and resets the flag when no restore is in flight" name="ApexTestTreeService restorePreviousResults test-and-set proceeds and resets the flag when no restore is in flight" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService restore apply-loop per-item failure surfaces the offending URI and preserves oldest-first ordering" name="ApexTestTreeService restore apply-loop per-item failure surfaces the offending URI and preserves oldest-first ordering" time="0.005">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff adds a newly-created class under its namespace/package node" name="ApexTestTreeService incrementalUpdate diff adds a newly-created class under its namespace/package node" time="0.005">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff replaces an org-only class when download creates its local source" name="ApexTestTreeService incrementalUpdate diff replaces an org-only class when download creates its local source" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff replaces a local class with an org-only class when its workspace source is deleted" name="ApexTestTreeService incrementalUpdate diff replaces a local class with an org-only class when its workspace source is deleted" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff diffs a changed class (invalidates results, replaces method children)" name="ApexTestTreeService incrementalUpdate diff diffs a changed class (invalidates results, replaces method children)" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff removes a deleted class and prunes empty ancestor nodes" name="ApexTestTreeService incrementalUpdate diff removes a deleted class and prunes empty ancestor nodes" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff skips the diff when there is no default org" name="ApexTestTreeService incrementalUpdate diff skips the diff when there is no default org" time="0.037">
+    </testcase>
+    <testcase classname="ApexTestTreeService incrementalUpdate diff removes the suite parent and clears state when includesSuiteChange is true" name="ApexTestTreeService incrementalUpdate diff removes the suite parent and clears state when includesSuiteChange is true" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref records the suite→classes mapping and adds placeholder child items" name="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref records the suite→classes mapping and adds placeholder child items" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref fails with ResolveSuiteChildrenError when the tooling query throws" name="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref fails with ResolveSuiteChildrenError when the tooling query throws" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref reset clears the suiteToClasses Ref (live map, stable identity)" name="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref reset clears the suiteToClasses Ref (live map, stable identity)" time="0.001">
+    </testcase>
+    <testcase classname="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref fresh layer isolates the suiteToClasses Ref across runs" name="ApexTestTreeService resolveSuiteChildren + suiteToClasses Ref fresh layer isolates the suiteToClasses Ref across runs" time="0.003">
+    </testcase>
+    <testcase classname="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) parses Class.method ids from the result JSON and marks them stale" name="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) parses Class.method ids from the result JSON and marks them stale" time="0.009">
+    </testcase>
+    <testcase classname="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) recovers a corrupt/truncated result file to an empty id set instead of failing the restore" name="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) recovers a corrupt/truncated result file to an empty id set instead of failing the restore" time="0.002">
+    </testcase>
+    <testcase classname="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) disables restore via the Workspace configuration target when the user picks &quot;Don&apos;t Restore Again&quot;" name="ApexTestTreeService getMethodIdsFromResultFile (via restore scan) disables restore via the Workspace configuration target when the user picks &quot;Don&apos;t Restore Again&quot;" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="setupApexMetadataChangeWatcher" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:33" time="1.807" tests="9">
+    <testcase classname="setupApexMetadataChangeWatcher calls incrementalUpdate with changes map after debounce when an apex test event arrives" name="setupApexMetadataChangeWatcher calls incrementalUpdate with changes map after debounce when an apex test event arrives" time="0.051">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher does not call incrementalUpdate for non-apex metadata types" name="setupApexMetadataChangeWatcher does not call incrementalUpdate for non-apex metadata types" time="0.019">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher does not call incrementalUpdate for non-apex change types" name="setupApexMetadataChangeWatcher does not call incrementalUpdate for non-apex change types" time="0.013">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher does not read files for deleted events but still triggers incrementalUpdate" name="setupApexMetadataChangeWatcher does not read files for deleted events but still triggers incrementalUpdate" time="0.018">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher does not read files for ApexTestSuite events and passes hasSuite=true" name="setupApexMetadataChangeWatcher does not read files for ApexTestSuite events and passes hasSuite=true" time="0.019">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher skips file reads after first passing event in a burst but accumulates all names" name="setupApexMetadataChangeWatcher skips file reads after first passing event in a burst but accumulates all names" time="0.023">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher resets state after update so subsequent bursts are processed" name="setupApexMetadataChangeWatcher resets state after update so subsequent bursts are processed" time="0.025">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher does not call incrementalUpdate when no events pass the apex test filter" name="setupApexMetadataChangeWatcher does not call incrementalUpdate when no events pass the apex test filter" time="0.014">
+    </testcase>
+    <testcase classname="setupApexMetadataChangeWatcher accumulates multiple class names with their respective change types" name="setupApexMetadataChangeWatcher accumulates multiple class names with their respective change types" time="0.025">
+    </testcase>
+  </testsuite>
+</testsuites>

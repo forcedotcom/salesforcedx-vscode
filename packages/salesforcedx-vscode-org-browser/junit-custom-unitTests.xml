@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="27" failures="0" errors="0" time="2.277">
+  <testsuite name="isMemberPresentInProject" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.515" tests="3">
+    <testcase classname="isMemberPresentInProject uses ComponentSet membership when available" name="isMemberPresentInProject uses ComponentSet membership when available" time="0.002">
+    </testcase>
+    <testcase classname="isMemberPresentInProject detects decomposed metadata through the filename index" name="isMemberPresentInProject detects decomposed metadata through the filename index" time="0">
+    </testcase>
+    <testcase classname="isMemberPresentInProject returns false when neither index contains the member" name="isMemberPresentInProject returns false when neither index contains the member" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="shouldRefreshTreeForCatalogChange" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:52" time="0.801" tests="5">
+    <testcase classname="shouldRefreshTreeForCatalogChange does not duplicate the retrieve command tree update" name="shouldRefreshTreeForCatalogChange does not duplicate the retrieve command tree update" time="0.003">
+    </testcase>
+    <testcase classname="shouldRefreshTreeForCatalogChange refreshes after a deploy operation" name="shouldRefreshTreeForCatalogChange refreshes after a deploy operation" time="0">
+    </testcase>
+    <testcase classname="shouldRefreshTreeForCatalogChange refreshes after a delete operation" name="shouldRefreshTreeForCatalogChange refreshes after a delete operation" time="0.001">
+    </testcase>
+    <testcase classname="shouldRefreshTreeForCatalogChange refreshes for non-operation catalog changes" name="shouldRefreshTreeForCatalogChange refreshes for non-operation catalog changes" time="0">
+    </testcase>
+    <testcase classname="shouldRefreshTreeForCatalogChange coalesces a burst of catalog changes into one tree refresh" name="shouldRefreshTreeForCatalogChange coalesces a burst of catalog changes into one tree refresh" time="0.011">
+    </testcase>
+  </testsuite>
+  <testsuite name="hasRetrieveTreeItem" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.954" tests="1">
+    <testcase classname="hasRetrieveTreeItem rejects a missing inline-action argument" name="hasRetrieveTreeItem rejects a missing inline-action argument" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="passesTypeFilter" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:52" time="1.147" tests="16">
+    <testcase classname="passesTypeFilter passes everything when no type filter is set" name="passesTypeFilter passes everything when no type filter is set" time="0.003">
+    </testcase>
+    <testcase classname="passesTypeFilter exact-matches (case-insensitive) without wildcards" name="passesTypeFilter exact-matches (case-insensitive) without wildcards" time="0">
+    </testcase>
+    <testcase classname="passesTypeFilter wildcard-matches when * is present" name="passesTypeFilter wildcard-matches when * is present" time="0.001">
+    </testcase>
+    <testcase classname="passesTypeFilter regex-matches when isRegex flag is true" name="passesTypeFilter regex-matches when isRegex flag is true" time="0">
+    </testcase>
+    <testcase classname="passesTypeFilter regex alternation works" name="passesTypeFilter regex alternation works" time="0.001">
+    </testcase>
+    <testcase classname="passesTypeFilter invalid regex returns no match" name="passesTypeFilter invalid regex returns no match" time="0">
+    </testcase>
+    <testcase classname="MetadataTypeTreeProvider text filter state defaults to no text filter" name="MetadataTypeTreeProvider text filter state defaults to no text filter" time="0">
+    </testcase>
+    <testcase classname="MetadataTypeTreeProvider text filter state setTextFilter stores both values and fires a change event" name="MetadataTypeTreeProvider text filter state setTextFilter stores both values and fires a change event" time="0.001">
+    </testcase>
+    <testcase classname="MetadataTypeTreeProvider text filter state clearTextFilter resets both values and fires a change event" name="MetadataTypeTreeProvider text filter state clearTextFilter resets both values and fires a change event" time="0">
+    </testcase>
+    <testcase classname="MetadataTypeTreeProvider root node identity reuses the same root element for a metadata type across refresh projections" name="MetadataTypeTreeProvider root node identity reuses the same root element for a metadata type across refresh projections" time="0.001">
+    </testcase>
+    <testcase classname="MetadataTypeTreeProvider empty-tree context updates the context only when the empty state changes" name="MetadataTypeTreeProvider empty-tree context updates the context only when the empty state changes" time="0.003">
+    </testcase>
+    <testcase classname="superseded org requests discards children from an acquisition tied to the former org" name="superseded org requests discards children from an acquisition tied to the former org" time="0.002">
+    </testcase>
+    <testcase classname="applyViewModeChildFilter with component filter passes all nodes when componentFilter is undefined" name="applyViewModeChildFilter with component filter passes all nodes when componentFilter is undefined" time="0">
+    </testcase>
+    <testcase classname="applyViewModeChildFilter with component filter exact-matches componentName case-insensitively when componentFilter is set without wildcards" name="applyViewModeChildFilter with component filter exact-matches componentName case-insensitively when componentFilter is set without wildcards" time="0">
+    </testcase>
+    <testcase classname="applyViewModeChildFilter with component filter wildcard-matches componentName when componentFilter contains *" name="applyViewModeChildFilter with component filter wildcard-matches componentName when componentFilter contains *" time="0.001">
+    </testcase>
+    <testcase classname="applyViewModeChildFilter with component filter treats an empty componentFilter as a no-op (colon typed, nothing after it yet)" name="applyViewModeChildFilter with component filter treats an empty componentFilter as a no-op (colon typed, nothing after it yet)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Extension" errors="0" failures="0" skipped="2" timestamp="2026-09-30T22:33:52" time="1.917" tests="2">
+    <testcase classname="Extension should activate successfully" name="Extension should activate successfully" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Extension should deactivate successfully" name="Extension should deactivate successfully" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>

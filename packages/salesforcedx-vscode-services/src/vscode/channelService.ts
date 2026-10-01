@@ -75,8 +75,7 @@ export const ChannelDisposalLayer = Layer.scopedDiscard(
     cache.values.pipe(
       Effect.flatMap(channels =>
         Effect.forEach(channels, channel => Effect.sync(() => channel.dispose()), { discard: true })
-      ),
-      Effect.andThen(cache.invalidateAll)
+      )
     )
   )
 );

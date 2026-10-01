@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="84" failures="0" errors="0" time="1.45">
+  <testsuite name="matchJestStackTraceLocation" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.411" tests="7">
+    <testcase classname="matchJestStackTraceLocation extracts location from a frame with a function name" name="matchJestStackTraceLocation extracts location from a frame with a function name" time="0.003">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation extracts location from a bare frame with no function name" name="matchJestStackTraceLocation extracts location from a bare frame with no function name" time="0">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation captures the full path when a bare frame contains literal parentheses" name="matchJestStackTraceLocation captures the full path when a bare frame contains literal parentheses" time="0.001">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation captures the full path when a named frame contains literal parentheses" name="matchJestStackTraceLocation captures the full path when a named frame contains literal parentheses" time="0">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation extracts a Windows drive-letter path containing literal parentheses" name="matchJestStackTraceLocation extracts a Windows drive-letter path containing literal parentheses" time="0.001">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation picks the first stack frame out of a multi-line message" name="matchJestStackTraceLocation picks the first stack frame out of a multi-line message" time="0">
+    </testcase>
+    <testcase classname="matchJestStackTraceLocation returns undefined when there is no stack frame" name="matchJestStackTraceLocation returns undefined when there is no stack frame" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="lwcTestRunAction routes through the controller" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.428" tests="3">
+    <testcase classname="lwcTestRunAction routes through the controller lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false" name="lwcTestRunAction routes through the controller lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false" time="0.003">
+    </testcase>
+    <testcase classname="lwcTestRunAction routes through the controller lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false" name="lwcTestRunAction routes through the controller lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false" time="0.001">
+    </testcase>
+    <testcase classname="lwcTestRunAction routes through the controller lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false" name="lwcTestRunAction routes through the controller lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="LwcLspStatusBarItem" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.471" tests="5">
+    <testcase classname="LwcLspStatusBarItem initialization should create language status item scoped to LWC file patterns" name="LwcLspStatusBarItem initialization should create language status item scoped to LWC file patterns" time="0.003">
+    </testcase>
+    <testcase classname="LwcLspStatusBarItem initialization should set indexing status on creation" name="LwcLspStatusBarItem initialization should set indexing status on creation" time="0.001">
+    </testcase>
+    <testcase classname="LwcLspStatusBarItem status updates should update status when indexing" name="LwcLspStatusBarItem status updates should update status when indexing" time="0">
+    </testcase>
+    <testcase classname="LwcLspStatusBarItem status updates should update status when ready" name="LwcLspStatusBarItem status updates should update status when ready" time="0.001">
+    </testcase>
+    <testcase classname="LwcLspStatusBarItem disposal should dispose language status item" name="LwcLspStatusBarItem disposal should dispose language status item" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="LwcTestCodeLensProvider notification logic" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.51" tests="6">
+    <testcase classname="LwcTestCodeLensProvider notification logic should show notification when Jest Runner is active, lenses returned, and flag is unset" name="LwcTestCodeLensProvider notification logic should show notification when Jest Runner is active, lenses returned, and flag is unset" time="0.014">
+    </testcase>
+    <testcase classname="LwcTestCodeLensProvider notification logic should NOT show notification when Jest Runner is not active" name="LwcTestCodeLensProvider notification logic should NOT show notification when Jest Runner is not active" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestCodeLensProvider notification logic should NOT show notification when globalState flag is already set" name="LwcTestCodeLensProvider notification logic should NOT show notification when globalState flag is already set" time="0">
+    </testcase>
+    <testcase classname="LwcTestCodeLensProvider notification logic should NOT show notification when no lenses are returned" name="LwcTestCodeLensProvider notification logic should NOT show notification when no lenses are returned" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestCodeLensProvider notification logic should update globalState when user clicks &quot;Don&apos;t show again&quot;" name="LwcTestCodeLensProvider notification logic should update globalState when user clicks &quot;Don&apos;t show again&quot;" time="0.005">
+    </testcase>
+    <testcase classname="LwcTestCodeLensProvider notification logic should only show notification once per session" name="LwcTestCodeLensProvider notification logic should only show notification once per session" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="testResultsOutput.fileBadge" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.512" tests="6">
+    <testcase classname="testResultsOutput.fileBadge returns the PASS badge when Jest reports the file as passed and no assertions failed" name="testResultsOutput.fileBadge returns the PASS badge when Jest reports the file as passed and no assertions failed" time="0.002">
+    </testcase>
+    <testcase classname="testResultsOutput.fileBadge returns the FAIL badge when Jest reports the file as failed" name="testResultsOutput.fileBadge returns the FAIL badge when Jest reports the file as failed" time="0">
+    </testcase>
+    <testcase classname="testResultsOutput.fileBadge returns the FAIL badge when any assertion failed even if the file status is not explicitly &quot;failed&quot;" name="testResultsOutput.fileBadge returns the FAIL badge when any assertion failed even if the file status is not explicitly &quot;failed&quot;" time="0.001">
+    </testcase>
+    <testcase classname="testResultsOutput.fileBadge returns the PASS badge when a single test passed and the rest are skipped (filtered via --testNamePattern)" name="testResultsOutput.fileBadge returns the PASS badge when a single test passed and the rest are skipped (filtered via --testNamePattern)" time="0">
+    </testcase>
+    <testcase classname="testResultsOutput.fileBadge returns the PASS badge when every assertion is skipped/pending and no test actually failed" name="testResultsOutput.fileBadge returns the PASS badge when every assertion is skipped/pending and no test actually failed" time="0">
+    </testcase>
+    <testcase classname="testResultsOutput.fileBadge handles missing assertionResults gracefully and treats an unknown non-failed status as PASS" name="testResultsOutput.fileBadge handles missing assertionResults gracefully and treats an unknown non-failed status as PASS" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="JestPseudoterminal" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.536" tests="24">
+    <testcase classname="JestPseudoterminal open spawns process with shell: true on non-Windows platforms" name="JestPseudoterminal open spawns process with shell: true on non-Windows platforms" time="0.006">
+    </testcase>
+    <testcase classname="JestPseudoterminal open spawns process with cmd.exe on Windows when shellOptions provided" name="JestPseudoterminal open spawns process with cmd.exe on Windows when shellOptions provided" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal open spawns process with shell: false on Windows (bypasses Git Bash)" name="JestPseudoterminal open spawns process with shell: false on Windows (bypasses Git Bash)" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal open captures stdout output" name="JestPseudoterminal open captures stdout output" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal open captures stderr output" name="JestPseudoterminal open captures stderr output" time="0.004">
+    </testcase>
+    <testcase classname="JestPseudoterminal open captures combined stdout and stderr in order" name="JestPseudoterminal open captures combined stdout and stderr in order" time="0.004">
+    </testcase>
+    <testcase classname="JestPseudoterminal open fires onDidClose with exit code when process exits" name="JestPseudoterminal open fires onDidClose with exit code when process exits" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal open fires onDidClose with error exit code" name="JestPseudoterminal open fires onDidClose with error exit code" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal open fires onDidClose with exit code 1 on spawn error" name="JestPseudoterminal open fires onDidClose with exit code 1 on spawn error" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal close kills the process if not already killed" name="JestPseudoterminal close kills the process if not already killed" time="0.002">
+    </testcase>
+    <testcase classname="JestPseudoterminal close does not kill if process already killed" name="JestPseudoterminal close does not kill if process already killed" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary extracts TypeError with stack trace" name="JestPseudoterminal extractErrorSummary extracts TypeError with stack trace" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary extracts ReferenceError with stack trace" name="JestPseudoterminal extractErrorSummary extracts ReferenceError with stack trace" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary extracts SyntaxError with stack trace" name="JestPseudoterminal extractErrorSummary extracts SyntaxError with stack trace" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary extracts FAIL line with error details" name="JestPseudoterminal extractErrorSummary extracts FAIL line with error details" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary stops at Jest summary section" name="JestPseudoterminal extractErrorSummary stops at Jest summary section" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary stops at 2 consecutive blank lines" name="JestPseudoterminal extractErrorSummary stops at 2 consecutive blank lines" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary returns last 10 non-empty lines when no error pattern found" name="JestPseudoterminal extractErrorSummary returns last 10 non-empty lines when no error pattern found" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary returns empty string when no output captured" name="JestPseudoterminal extractErrorSummary returns empty string when no output captured" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary extracts error from stderr" name="JestPseudoterminal extractErrorSummary extracts error from stderr" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal extractErrorSummary limits stack trace to 30 lines" name="JestPseudoterminal extractErrorSummary limits stack trace to 30 lines" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal getCapturedOutput returns all captured output" name="JestPseudoterminal getCapturedOutput returns all captured output" time="0">
+    </testcase>
+    <testcase classname="JestPseudoterminal getCapturedOutput returns empty string when no output captured" name="JestPseudoterminal getCapturedOutput returns empty string when no output captured" time="0.001">
+    </testcase>
+    <testcase classname="JestPseudoterminal getCapturedOutput bounds multibyte output while preserving error context at both ends" name="JestPseudoterminal getCapturedOutput bounds multibyte output while preserving error context at both ends" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="test support types Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.067" tests="2">
+    <testcase classname="test support types Unit Tests. test isTestCase Should return true for a TestCase" name="test support types Unit Tests. test isTestCase Should return true for a TestCase" time="0.001">
+    </testcase>
+    <testcase classname="test support types Unit Tests. test isTestCase Should return false for a TestFile" name="test support types Unit Tests. test isTestCase Should return false for a TestFile" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="lwcTestDebugAction routes through the controller" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.618" tests="3">
+    <testcase classname="lwcTestDebugAction routes through the controller lwcTestFileDebug calls controller.runByExecutionInfo with isDebug=true" name="lwcTestDebugAction routes through the controller lwcTestFileDebug calls controller.runByExecutionInfo with isDebug=true" time="0.003">
+    </testcase>
+    <testcase classname="lwcTestDebugAction routes through the controller lwcTestCaseDebug calls controller.runByExecutionInfo with isDebug=true" name="lwcTestDebugAction routes through the controller lwcTestCaseDebug calls controller.runByExecutionInfo with isDebug=true" time="0">
+    </testcase>
+    <testcase classname="lwcTestDebugAction routes through the controller lwcTestDebugActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=true" name="lwcTestDebugAction routes through the controller lwcTestDebugActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=true" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="TaskService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.699" tests="1">
+    <testcase classname="TaskService createTask creates a task with a hidden, shared, reused terminal presentation" name="TaskService createTask creates a task with a hidden, shared, reused terminal presentation" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="appendToChannel" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.208" tests="1">
+    <testcase classname="appendToChannel does not throw when the services runtime/layer is not yet available" name="appendToChannel does not throw when the services runtime/layer is not yet available" time="0.028">
+    </testcase>
+  </testsuite>
+  <testsuite name="provideLwcTestCodeLens" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.738" tests="6">
+    <testcase classname="provideLwcTestCodeLens should provide code lens for both describe blocks and it blocks" name="provideLwcTestCodeLens should provide code lens for both describe blocks and it blocks" time="0.008">
+    </testcase>
+    <testcase classname="provideLwcTestCodeLens should provide code lens for nested describe blocks" name="provideLwcTestCodeLens should provide code lens for nested describe blocks" time="0.001">
+    </testcase>
+    <testcase classname="provideLwcTestCodeLens should handle empty test file" name="provideLwcTestCodeLens should handle empty test file" time="0.001">
+    </testcase>
+    <testcase classname="provideLwcTestCodeLens should return code lenses EVEN WHEN Jest Runner extension is present (deferral removed)" name="provideLwcTestCodeLens should return code lenses EVEN WHEN Jest Runner extension is present (deferral removed)" time="0.001">
+    </testcase>
+    <testcase classname="provideLwcTestCodeLens should return code lenses regardless of Jest Runner extension presence" name="provideLwcTestCodeLens should return code lenses regardless of Jest Runner extension presence" time="0.001">
+    </testcase>
+    <testcase classname="provideLwcTestCodeLens should include (LWC) suffix in all code lens titles" name="provideLwcTestCodeLens should include (LWC) suffix in all code lens titles" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="LwcTestController test item tags" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:26" time="0.884" tests="14">
+    <testcase classname="LwcTestController test item tags tags discovered file items and resolved case items with the in-workspace tag" name="LwcTestController test item tags tags discovered file items and resolved case items with the in-workspace tag" time="0.007">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo resolves a file item and starts a test run" name="LwcTestController public run API runByExecutionInfo resolves a file item and starts a test run" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestController public run API runActiveEditorFile no-ops when there is no active editor" name="LwcTestController public run API runActiveEditorFile no-ops when there is no active editor" time="0">
+    </testcase>
+    <testcase classname="LwcTestController public run API runActiveEditorFile no-ops when the active editor is not an LWC jest test" name="LwcTestController public run API runActiveEditorFile no-ops when the active editor is not an LWC jest test" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo runs the resolved case item when a matching case is found" name="LwcTestController public run API runByExecutionInfo runs the resolved case item when a matching case is found" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo preserves testName when no matching case item is found (execOverride path)" name="LwcTestController public run API runByExecutionInfo preserves testName when no matching case item is found (execOverride path)" time="0">
+    </testcase>
+    <testcase classname="LwcTestController public run API URI normalization (macOS /private) runByExecutionInfo normalizes URI when resolving test item so tree item receives run updates" name="LwcTestController public run API URI normalization (macOS /private) runByExecutionInfo normalizes URI when resolving test item so tree item receives run updates" time="0">
+    </testcase>
+    <testcase classname="LwcTestController public run API applyResults marks the discovery file item passed when jest reports an aliased (long) path" name="LwcTestController public run API applyResults marks the discovery file item passed when jest reports an aliased (long) path" time="0.006">
+    </testcase>
+    <testcase classname="LwcTestController public run API reports a run-all crash and bounds result polling when no source item exists" name="LwcTestController public run API reports a run-all crash and bounds result polling when no source item exists" time="0.04">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo sets error location on crash message when pseudoterminal captures a stack trace" name="LwcTestController public run API runByExecutionInfo sets error location on crash message when pseudoterminal captures a stack trace" time="0.003">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo preserves crash-extracted error when results file exists after crash" name="LwcTestController public run API runByExecutionInfo preserves crash-extracted error when results file exists after crash" time="0.002">
+    </testcase>
+    <testcase classname="LwcTestController public run API preserves a case-level crash error when the fallback resolves without an exit code and partial results exist" name="LwcTestController public run API preserves a case-level crash error when the fallback resolves without an exit code and partial results exist" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo reveals Test Results panel when starting a run" name="LwcTestController public run API runByExecutionInfo reveals Test Results panel when starting a run" time="0.001">
+    </testcase>
+    <testcase classname="LwcTestController public run API runByExecutionInfo reveals Test Results panel when starting a debug run" name="LwcTestController public run API runByExecutionInfo reveals Test Results panel when starting a debug run" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="testRunner Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.496" tests="3">
+    <testcase classname="testRunner Unit Tests. test getTestNamePatternArgs Should return testNamePattern if flag is included" name="testRunner Unit Tests. test getTestNamePatternArgs Should return testNamePattern if flag is included" time="0.002">
+    </testcase>
+    <testcase classname="testRunner Unit Tests. test getTestNamePatternArgs Should escape certain symbols if testNamePattern is included" name="testRunner Unit Tests. test getTestNamePatternArgs Should escape certain symbols if testNamePattern is included" time="0">
+    </testcase>
+    <testcase classname="testRunner Unit Tests. test getTestNamePatternArgs Should not escape certain symbols if testNamePattern is included" name="testRunner Unit Tests. test getTestNamePatternArgs Should not escape certain symbols if testNamePattern is included" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="issue #4690 repro - LWC debug test with long output" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:27" time="0.905" tests="3">
+    <testcase classname="issue #4690 repro - LWC debug test with long output does not wrap the testNamePattern value in surrounding quotes (PR #4688 root-cause fix)" name="issue #4690 repro - LWC debug test with long output does not wrap the testNamePattern value in surrounding quotes (PR #4688 root-cause fix)" time="0.003">
+    </testcase>
+    <testcase classname="issue #4690 repro - LWC debug test with long output keeps testNamePattern as a discrete array arg even for very long test names (no 1024 char shell limit)" name="issue #4690 repro - LWC debug test with long output keeps testNamePattern as a discrete array arg even for very long test names (no 1024 char shell limit)" time="0">
+    </testcase>
+    <testcase classname="issue #4690 repro - LWC debug test with long output still escapes regex symbols in the test name (regression guard)" name="issue #4690 repro - LWC debug test with long output still escapes regex symbols in the test name (regression guard)" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>

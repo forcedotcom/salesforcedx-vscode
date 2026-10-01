@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="26" failures="0" errors="0" time="0.999">
+  <testsuite name="resolveReference (document link resolution)" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:55" time="0.245" tests="7">
+    <testcase classname="resolveReference (document link resolution) resolves a RELATIVE base href, then ref (legacy url.resolve two-step)" name="resolveReference (document link resolution) resolves a RELATIVE base href, then ref (legacy url.resolve two-step)" time="0.003">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) resolves an ABSOLUTE base href" name="resolveReference (document link resolution) resolves an ABSOLUTE base href" time="0">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) resolves a root-relative ref against workspacePath via Utils.joinPath" name="resolveReference (document link resolution) resolves a root-relative ref against workspacePath via Utils.joinPath" time="0.001">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) routes a base-resolved root-relative ref through workspacePath (not escaping to fs root)" name="resolveReference (document link resolution) routes a base-resolved root-relative ref through workspacePath (not escaping to fs root)" time="0">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) resolves a doc-relative ref (no base, no workspacePath)" name="resolveReference (document link resolution) resolves a doc-relative ref (no base, no workspacePath)" time="0.001">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) resolves against a memfs:// / web-scheme documentUri" name="resolveReference (document link resolution) resolves against a memfs:// / web-scheme documentUri" time="0">
+    </testcase>
+    <testcase classname="resolveReference (document link resolution) falls back to ref-against-documentUri when base is unparseable (does not throw)" name="resolveReference (document link resolution) falls back to ref-against-documentUri when base is unparseable (does not throw)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Words" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:55" time="0.241" tests="2">
+    <testcase classname="Words Should handle basic words" name="Words Should handle basic words" time="0.003">
+    </testcase>
+    <testcase classname="Words Should handle multiline" name="Words Should handle multiline" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="HTML Embedded Support" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:55" time="0.343" tests="7">
+    <testcase classname="HTML Embedded Support Should handle styles tag" name="HTML Embedded Support Should handle styles tag" time="0.003">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle styles tag for incomplete HTML" name="HTML Embedded Support Should handle styles tag for incomplete HTML" time="0">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle style tag in attribute" name="HTML Embedded Support Should handle style tag in attribute" time="0.001">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle embedded styles" name="HTML Embedded Support Should handle embedded styles" time="0.002">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle script tag" name="HTML Embedded Support Should handle script tag" time="0.001">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle script tag in attribute" name="HTML Embedded Support Should handle script tag in attribute" time="0">
+    </testcase>
+    <testcase classname="HTML Embedded Support Should handle script content" name="HTML Embedded Support Should handle script content" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="HTML Embedded Formatting" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:55" time="0.574" tests="9">
+    <testcase classname="HTML Embedded Formatting Should handle HTML only" name="HTML Embedded Formatting Should handle HTML only" time="0.097">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle HTML &amp; Scripts" name="HTML Embedded Formatting Should handle HTML &amp; Scripts" time="0.025">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting HTML &amp; Scripts - Fixtures" name="HTML Embedded Formatting HTML &amp; Scripts - Fixtures" time="0.011">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle script end tag" name="HTML Embedded Formatting Should handle script end tag" time="0.001">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle HTML &amp; multiple scripts" name="HTML Embedded Formatting Should handle HTML &amp; multiple scripts" time="0.003">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle HTML &amp; styles" name="HTML Embedded Formatting Should handle HTML &amp; styles" time="0.001">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle EndWithNewline" name="HTML Embedded Formatting Should handle EndWithNewline" time="0.002">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle inside script" name="HTML Embedded Formatting Should handle inside script" time="0.001">
+    </testcase>
+    <testcase classname="HTML Embedded Formatting Should handle range after new line" name="HTML Embedded Formatting Should handle range after new line" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="HTML Javascript Support" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:55" time="0.63" tests="1">
+    <testcase classname="HTML Javascript Support Should display completions" name="HTML Javascript Support Should display completions" time="0.248">
+    </testcase>
+  </testsuite>
+</testsuites>

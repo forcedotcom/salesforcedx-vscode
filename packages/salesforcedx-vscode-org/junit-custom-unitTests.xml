@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="184" failures="0" errors="0" time="2.033">
+  <testsuite name="orgLoginWebDevHubCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="0.881" tests="7">
+    <testcase classname="orgLoginWebDevHubCommand runs `sf org login web --alias &lt;alias&gt; --set-default-dev-hub` (env injected by simpleExec)" name="orgLoginWebDevHubCommand runs `sf org login web --alias &lt;alias&gt; --set-default-dev-hub` (env injected by simpleExec)" time="0.006">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand defaults the alias to DEFAULT_ALIAS on empty-string input" name="orgLoginWebDevHubCommand defaults the alias to DEFAULT_ALIAS on empty-string input" time="0.001">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand cancels (UserCancellationError) and does not exec when the alias prompt is dismissed (undefined)" name="orgLoginWebDevHubCommand cancels (UserCancellationError) and does not exec when the alias prompt is dismissed (undefined)" time="0.009">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand fails (getSfProject) and does not exec when not in a project" name="orgLoginWebDevHubCommand fails (getSfProject) and does not exec when not in a project" time="0.004">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand appends output + refreshes aggregators on success" name="orgLoginWebDevHubCommand appends output + refreshes aggregators on success" time="0.001">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand does not update the config/state aggregators when the exec fails" name="orgLoginWebDevHubCommand does not update the config/state aggregators when the exec fails" time="0.002">
+    </testcase>
+    <testcase classname="orgLoginWebDevHubCommand maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (shared executor)" name="orgLoginWebDevHubCommand maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (shared executor)" time="0.012">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgLoginWebCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="0.963" tests="6">
+    <testcase classname="orgLoginWebCommand runs `sf org login web` with alias + --instance-url + --set-default flags" name="orgLoginWebCommand runs `sf org login web` with alias + --instance-url + --set-default flags" time="0.021">
+    </testcase>
+    <testcase classname="orgLoginWebCommand appends the output + success message, shows the channel, and refreshes aggregators on success" name="orgLoginWebCommand appends the output + success message, shows the channel, and refreshes aggregators on success" time="0.002">
+    </testcase>
+    <testcase classname="orgLoginWebCommand does not exec when not in a project (getSfProject precondition fails)" name="orgLoginWebCommand does not exec when not in a project (getSfProject precondition fails)" time="0.011">
+    </testcase>
+    <testcase classname="orgLoginWebCommand maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (not the generic handler)" name="orgLoginWebCommand maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (not the generic handler)" time="0.001">
+    </testcase>
+    <testcase classname="orgLoginWebCommand does not reveal the channel when the port-conflict notification is dismissed" name="orgLoginWebCommand does not reveal the channel when the port-conflict notification is dismissed" time="0.001">
+    </testcase>
+    <testcase classname="orgLoginWebCommand rethrows a non-conflict TerminalServiceError to the generic handler" name="orgLoginWebCommand rethrows a non-conflict TerminalServiceError to the generic handler" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgDeleteDefaultCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.03" tests="9">
+    <testcase classname="orgDeleteDefaultCommand runs `sf org delete scratch` for a scratch default org" name="orgDeleteDefaultCommand runs `sf org delete scratch` for a scratch default org" time="0.006">
+    </testcase>
+    <testcase classname="orgDeleteDefaultCommand runs `sf org delete sandbox` for a sandbox default org" name="orgDeleteDefaultCommand runs `sf org delete sandbox` for a sandbox default org" time="0.001">
+    </testcase>
+    <testcase classname="orgDeleteDefaultCommand passes --target-org so delete does not depend on the extension-host cwd" name="orgDeleteDefaultCommand passes --target-org so delete does not depend on the extension-host cwd" time="0.001">
+    </testcase>
+    <testcase classname="orgDeleteDefaultCommand fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org" name="orgDeleteDefaultCommand fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org" time="0.054">
+    </testcase>
+    <testcase classname="orgDeleteDefaultCommand fails with UserCancellationError and does not exec when the user declines" name="orgDeleteDefaultCommand fails with UserCancellationError and does not exec when the user declines" time="0.001">
+    </testcase>
+    <testcase classname="orgDeleteUsernameCommand deletes each picked org with the right scratch/sandbox subcommand and --target-org" name="orgDeleteUsernameCommand deletes each picked org with the right scratch/sandbox subcommand and --target-org" time="0.003">
+    </testcase>
+    <testcase classname="orgDeleteUsernameCommand continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall" name="orgDeleteUsernameCommand continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall" time="0.015">
+    </testcase>
+    <testcase classname="orgDeleteUsernameCommand aborts the loop on cancellation (interrupt is not bucketed by partition)" name="orgDeleteUsernameCommand aborts the loop on cancellation (interrupt is not bucketed by partition)" time="0.001">
+    </testcase>
+    <testcase classname="orgDeleteUsernameCommand does not delete or flush when the picker cancels" name="orgDeleteUsernameCommand does not delete or flush when the picker cancels" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgCreateCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="0.888" tests="11">
+    <testcase classname="orgCreateCommand runs `sf org create scratch ... --set-default --json`, refreshes aggregators, reports to channel" name="orgCreateCommand runs `sf org create scratch ... --set-default --json`, refreshes aggregators, reports to channel" time="0.01">
+    </testcase>
+    <testcase classname="orgCreateCommand appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)" name="orgCreateCommand appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)" time="0.002">
+    </testcase>
+    <testcase classname="orgCreateCommand prefills the alias/days input boxes with the defaults (folder name, 7) and uses them in the command" name="orgCreateCommand prefills the alias/days input boxes with the defaults (folder name, 7) and uses them in the command" time="0.002">
+    </testcase>
+    <testcase classname="orgCreateCommand wires alias validateInput that accepts hyphens/alphanumerics and rejects shell metachars" name="orgCreateCommand wires alias validateInput that accepts hyphens/alphanumerics and rejects shell metachars" time="0.001">
+    </testcase>
+    <testcase classname="orgCreateCommand validates expiration-day boundaries and NumberFromString forms" name="orgCreateCommand validates expiration-day boundaries and NumberFromString forms" time="0.003">
+    </testcase>
+    <testcase classname="orgCreateCommand cancels (no exec) when the def-file picker is dismissed" name="orgCreateCommand cancels (no exec) when the def-file picker is dismissed" time="0.008">
+    </testcase>
+    <testcase classname="orgCreateCommand cancels (no exec) when the alias input box is dismissed (Esc)" name="orgCreateCommand cancels (no exec) when the alias input box is dismissed (Esc)" time="0.001">
+    </testcase>
+    <testcase classname="orgCreateCommand shows the no-scratch-def error and cancels when no def files match" name="orgCreateCommand shows the no-scratch-def error and cancels when no def files match" time="0.028">
+    </testcase>
+    <testcase classname="orgCreateCommand shows the no-devhub warning and cancels before any picker when no devhub is configured" name="orgCreateCommand shows the no-devhub warning and cancels before any picker when no devhub is configured" time="0.003">
+    </testcase>
+    <testcase classname="orgCreateCommand fails (getSfProject) without exec when not in a project" name="orgCreateCommand fails (getSfProject) without exec when not in a project" time="0.001">
+    </testcase>
+    <testcase classname="orgCreateCommand fails with OrgCreateParseError on malformed stdout and does not refresh aggregators" name="orgCreateCommand fails with OrgCreateParseError on malformed stdout and does not refresh aggregators" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="generateVerificationCode" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.028" tests="5">
+    <testcase classname="generateVerificationCode should return cc0a for test_token (matches server-side test vector)" name="generateVerificationCode should return cc0a for test_token (matches server-side test vector)" time="0">
+    </testcase>
+    <testcase classname="generateVerificationCode should return 4 lowercase hex characters" name="generateVerificationCode should return 4 lowercase hex characters" time="0">
+    </testcase>
+    <testcase classname="generateVerificationCode should be deterministic" name="generateVerificationCode should be deterministic" time="0">
+    </testcase>
+    <testcase classname="showVerificationCodeIfNeeded should show modal information message when CODE_BUILDER_STATE is set" name="showVerificationCodeIfNeeded should show modal information message when CODE_BUILDER_STATE is set" time="0.001">
+    </testcase>
+    <testcase classname="showVerificationCodeIfNeeded should not show message when CODE_BUILDER_STATE is not set" name="showVerificationCodeIfNeeded should not show message when CODE_BUILDER_STATE is not set" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgList command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.107" tests="25">
+    <testcase classname="orgList command determineConnectedStatusForNonScratchOrg should return undefined for scratch orgs" name="orgList command determineConnectedStatusForNonScratchOrg should return undefined for scratch orgs" time="0.006">
+    </testcase>
+    <testcase classname="orgList command determineConnectedStatusForNonScratchOrg should return Connected for valid non-scratch org" name="orgList command determineConnectedStatusForNonScratchOrg should return Connected for valid non-scratch org" time="0.001">
+    </testcase>
+    <testcase classname="orgList command determineConnectedStatusForNonScratchOrg should handle refreshAuth live-probe errors" name="orgList command determineConnectedStatusForNonScratchOrg should handle refreshAuth live-probe errors" time="0.002">
+    </testcase>
+    <testcase classname="orgList command determineConnectedStatusForNonScratchOrg should classify a removable getConnection failure via the distinct tag (not a generic collapse)" name="orgList command determineConnectedStatusForNonScratchOrg should classify a removable getConnection failure via the distinct tag (not a generic collapse)" time="0">
+    </testcase>
+    <testcase classname="orgList command determineConnectedStatusForNonScratchOrg should fall through to the raw message for a non-removable getConnection failure" name="orgList command determineConnectedStatusForNonScratchOrg should fall through to the raw message for a non-removable getConnection failure" time="0">
+    </testcase>
+    <testcase classname="orgList command shouldRemoveOrg should return true for invalid_login errors" name="orgList command shouldRemoveOrg should return true for invalid_login errors" time="0">
+    </testcase>
+    <testcase classname="orgList command shouldRemoveOrg should return true for no such org errors" name="orgList command shouldRemoveOrg should return true for no such org errors" time="0">
+    </testcase>
+    <testcase classname="orgList command shouldRemoveOrg should return true for NamedOrgNotFound errors" name="orgList command shouldRemoveOrg should return true for NamedOrgNotFound errors" time="0">
+    </testcase>
+    <testcase classname="orgList command shouldRemoveOrg should return true for NoAuthInfoFound errors" name="orgList command shouldRemoveOrg should return true for NoAuthInfoFound errors" time="0">
+    </testcase>
+    <testcase classname="orgList command shouldRemoveOrg should return false for other errors" name="orgList command shouldRemoveOrg should return false for other errors" time="0">
+    </testcase>
+    <testcase classname="orgList command getConnectionStatusFromError should return specific message for expired access token" name="orgList command getConnectionStatusFromError should return specific message for expired access token" time="0">
+    </testcase>
+    <testcase classname="orgList command getConnectionStatusFromError should return maintenance message" name="orgList command getConnectionStatusFromError should return maintenance message" time="0.017">
+    </testcase>
+    <testcase classname="orgList command getConnectionStatusFromError should return invalid org message for removable errors" name="orgList command getConnectionStatusFromError should return invalid org message for removable errors" time="0">
+    </testcase>
+    <testcase classname="orgList command getConnectionStatusFromError should return original message for unknown errors" name="orgList command getConnectionStatusFromError should return original message for unknown errors" time="0">
+    </testcase>
+    <testcase classname="orgList command getConnectionStatusFromError should handle string errors" name="orgList command getConnectionStatusFromError should handle string errors" time="0.001">
+    </testcase>
+    <testcase classname="orgList command findRemovableOrgs should skip dev hubs" name="orgList command findRemovableOrgs should skip dev hubs" time="0.004">
+    </testcase>
+    <testcase classname="orgList command findRemovableOrgs should classify expired orgs as removable without removing them" name="orgList command findRemovableOrgs should classify expired orgs as removable without removing them" time="0.009">
+    </testcase>
+    <testcase classname="orgList command findRemovableOrgs should not classify orgs when getAuthFieldsFor fails with a non-removable error" name="orgList command findRemovableOrgs should not classify orgs when getAuthFieldsFor fails with a non-removable error" time="0.003">
+    </testcase>
+    <testcase classname="orgList command removeExpiredAndDeletedOrgs should remove each given org and return removed usernames" name="orgList command removeExpiredAndDeletedOrgs should remove each given org and return removed usernames" time="0.005">
+    </testcase>
+    <testcase classname="orgList command removeExpiredAndDeletedOrgs should keep removing after a removal failure and exclude the failed org" name="orgList command removeExpiredAndDeletedOrgs should keep removing after a removal failure and exclude the failed org" time="0.019">
+    </testcase>
+    <testcase classname="orgList command displayRemainingOrgs should display message when no orgs found" name="orgList command displayRemainingOrgs should display message when no orgs found" time="0.003">
+    </testcase>
+    <testcase classname="orgList command displayRemainingOrgs should create and display table for orgs" name="orgList command displayRemainingOrgs should create and display table for orgs" time="0.001">
+    </testcase>
+    <testcase classname="orgList command displayRemainingOrgs should add legend for emoji markers" name="orgList command displayRemainingOrgs should add legend for emoji markers" time="0.001">
+    </testcase>
+    <testcase classname="orgList command displayRemainingOrgs should handle errors gracefully" name="orgList command displayRemainingOrgs should handle errors gracefully" time="0.013">
+    </testcase>
+    <testcase classname="orgList command displayRemainingOrgs should not skip a non-scratch org whose isExpired is &quot;unknown&quot;" name="orgList command displayRemainingOrgs should not skip a non-scratch org whose isExpired is &quot;unknown&quot;" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgDisplayDefaultCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.076" tests="14">
+    <testcase classname="orgDisplayDefaultCommand runs `sf org display --target-org &quot;&lt;default&gt;&quot; --json` and writes the table to the channel" name="orgDisplayDefaultCommand runs `sf org display --target-org &quot;&lt;default&gt;&quot; --json` and writes the table to the channel" time="0.029">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand wraps the sf round-trip in a cancellable progress notification" name="orgDisplayDefaultCommand wraps the sf round-trip in a cancellable progress notification" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand omits --target-org (sf resolves its own default) when no default-org username is tracked" name="orgDisplayDefaultCommand omits --target-org (sf resolves its own default) when no default-org username is tracked" time="0.1">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand renders the non-scratch table (connectedStatus, no scratch block)" name="orgDisplayDefaultCommand renders the non-scratch table (connectedStatus, no scratch block)" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand fails (getSfProject) without exec when not in a project" name="orgDisplayDefaultCommand fails (getSfProject) without exec when not in a project" time="0.008">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand appends the failure message when sf returns a non-zero status (proves Match.tag dispatch)" name="orgDisplayDefaultCommand appends the failure message when sf returns a non-zero status (proves Match.tag dispatch)" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload" name="orgDisplayDefaultCommand recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)" name="orgDisplayDefaultCommand propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand renders the table when stdout is prefixed with a CLI warning line" name="orgDisplayDefaultCommand renders the table when stdout is prefixed with a CLI warning line" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayDefaultCommand fails with OrgDisplayParseError on malformed stdout and writes nothing" name="orgDisplayDefaultCommand fails with OrgDisplayParseError on malformed stdout and writes nothing" time="0.018">
+    </testcase>
+    <testcase classname="orgDisplayUsernameCommand runs `sf org display --target-org &quot;&lt;picked&gt;&quot; --json` for the picked org and writes the table" name="orgDisplayUsernameCommand runs `sf org display --target-org &quot;&lt;picked&gt;&quot; --json` for the picked org and writes the table" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayUsernameCommand quotes the picked username so a value with spaces survives /bin/sh -c word splitting" name="orgDisplayUsernameCommand quotes the picked username so a value with spaces survives /bin/sh -c word splitting" time="0.001">
+    </testcase>
+    <testcase classname="orgDisplayUsernameCommand propagates UserCancellationError (no exec, no channel writes) when the picker is cancelled" name="orgDisplayUsernameCommand propagates UserCancellationError (no exec, no channel writes) when the picker is cancelled" time="0">
+    </testcase>
+    <testcase classname="orgDisplayUsernameCommand fails the precondition (getSfProject) and never pickers when there is no project" name="orgDisplayUsernameCommand fails the precondition (getSfProject) and never pickers when there is no project" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgOpenCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.031" tests="8">
+    <testcase classname="orgOpenCommand runs `sf org open --url-only --json` with --target-org (env injected by simpleExec)" name="orgOpenCommand runs `sf org open --url-only --json` with --target-org (env injected by simpleExec)" time="0.008">
+    </testcase>
+    <testcase classname="orgOpenCommand opens the url, appends the access message, and shows the channel on success" name="orgOpenCommand opens the url, appends the access message, and shows the channel on success" time="0.012">
+    </testcase>
+    <testcase classname="orgOpenCommand omits --target-org when there is no default-org username" name="orgOpenCommand omits --target-org when there is no default-org username" time="0.098">
+    </testcase>
+    <testcase classname="orgOpenCommand fails (getSfProject) and does not exec or open when not in a project" name="orgOpenCommand fails (getSfProject) and does not exec or open when not in a project" time="0.008">
+    </testcase>
+    <testcase classname="orgOpenCommand appends the failure message and does not open when sf returns a failure result" name="orgOpenCommand appends the failure message and does not open when sf returns a failure result" time="0.001">
+    </testcase>
+    <testcase classname="orgOpenCommand surfaces the message for a non-1 failure status (e.g. NoDefaultEnvError status 68)" name="orgOpenCommand surfaces the message for a non-1 failure status (e.g. NoDefaultEnvError status 68)" time="0.001">
+    </testcase>
+    <testcase classname="orgOpenCommand opens the url when stdout is prefixed with a CLI warning (expiration notice)" name="orgOpenCommand opens the url when stdout is prefixed with a CLI warning (expiration notice)" time="0.001">
+    </testcase>
+    <testcase classname="orgOpenCommand fails with OrgOpenParseError on malformed stdout and does not open" name="orgOpenCommand fails with OrgOpenParseError on malformed stdout and does not open" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="authErrorParser" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.042" tests="4">
+    <testcase classname="authErrorParser detects the CLI message about killing process on port 1717" name="authErrorParser detects the CLI message about killing process on port 1717" time="0.001">
+    </testcase>
+    <testcase classname="authErrorParser detects port already in use errors for 1717" name="authErrorParser detects port already in use errors for 1717" time="0.004">
+    </testcase>
+    <testcase classname="authErrorParser does not flag unrelated auth failures as port conflict" name="authErrorParser does not flag unrelated auth failures as port conflict" time="0">
+    </testcase>
+    <testcase classname="authErrorParser returns platform-specific port kill instructions" name="authErrorParser returns platform-specific port kill instructions" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgLoginAccessTokenCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.24" tests="2">
+    <testcase classname="orgLoginAccessTokenCommand execs the CLI with instance-url, quoted alias, set-default, no-prompt; token rides env not argv" name="orgLoginAccessTokenCommand execs the CLI with instance-url, quoted alias, set-default, no-prompt; token rides env not argv" time="0.002">
+    </testcase>
+    <testcase classname="orgLoginAccessTokenCommand surfaces UserCancellationError untransformed when the gatherer cancels" name="orgLoginAccessTokenCommand surfaces UserCancellationError untransformed when the gatherer cancels" time="0.016">
+    </testcase>
+  </testsuite>
+  <testsuite name="aliasListCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.218" tests="1">
+    <testcase classname="aliasListCommand writes the Alias/Username table to the channel and shows it" name="aliasListCommand writes the Alias/Username table to the channel and shows it" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="isValidOrgAlias" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.226" tests="32">
+    <testcase classname="isValidOrgAlias accepts &quot;MyOrg&quot;" name="isValidOrgAlias accepts &quot;MyOrg&quot;" time="0.001">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;org123&quot;" name="isValidOrgAlias accepts &quot;org123&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;my org&quot;" name="isValidOrgAlias accepts &quot;my org&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;snake_case&quot;" name="isValidOrgAlias accepts &quot;snake_case&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;a b c&quot;" name="isValidOrgAlias accepts &quot;a b c&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;Org_1 Org_2&quot;" name="isValidOrgAlias accepts &quot;Org_1 Org_2&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;my-org&quot;" name="isValidOrgAlias accepts &quot;my-org&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;my-scratch-org&quot;" name="isValidOrgAlias accepts &quot;my-scratch-org&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias accepts &quot;a-b c-d&quot;" name="isValidOrgAlias accepts &quot;a-b c-d&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;my;org&quot;" name="isValidOrgAlias rejects &quot;my;org&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;a|b&quot;" name="isValidOrgAlias rejects &quot;a|b&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;x&amp;y&quot;" name="isValidOrgAlias rejects &quot;x&amp;y&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;cost$&quot;" name="isValidOrgAlias rejects &quot;cost$&quot;" time="0.001">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;`x`&quot;" name="isValidOrgAlias rejects &quot;`x`&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;\&quot;q\&quot;&quot;" name="isValidOrgAlias rejects &quot;\&quot;q\&quot;&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;$(x)&quot;" name="isValidOrgAlias rejects &quot;$(x)&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot;&quot;" name="isValidOrgAlias rejects &quot;&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects &quot; leading&quot;" name="isValidOrgAlias rejects &quot; leading&quot;" time="0">
+    </testcase>
+    <testcase classname="isValidOrgAlias rejects undefined" name="isValidOrgAlias rejects undefined" time="0.002">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;MyOrg&quot;" name="validateAliasInput returns undefined (valid) for &quot;MyOrg&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;org123&quot;" name="validateAliasInput returns undefined (valid) for &quot;org123&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;my org&quot;" name="validateAliasInput returns undefined (valid) for &quot;my org&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;snake_case&quot;" name="validateAliasInput returns undefined (valid) for &quot;snake_case&quot;" time="0.001">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;my-org&quot;" name="validateAliasInput returns undefined (valid) for &quot;my-org&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;my-scratch-org&quot;" name="validateAliasInput returns undefined (valid) for &quot;my-scratch-org&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns undefined (valid) for &quot;&quot;" name="validateAliasInput returns undefined (valid) for &quot;&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;my;org&quot;" name="validateAliasInput returns an error message for &quot;my;org&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;a|b&quot;" name="validateAliasInput returns an error message for &quot;a|b&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;x&amp;y&quot;" name="validateAliasInput returns an error message for &quot;x&amp;y&quot;" time="0.001">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;cost$&quot;" name="validateAliasInput returns an error message for &quot;cost$&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;`x`&quot;" name="validateAliasInput returns an error message for &quot;`x`&quot;" time="0">
+    </testcase>
+    <testcase classname="validateAliasInput returns an error message for &quot;$(x)&quot;" name="validateAliasInput returns an error message for &quot;$(x)&quot;" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgLogoutAllCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.337" tests="7">
+    <testcase classname="orgLogoutAllCommand logs out each selected org and refreshes config/state" name="orgLogoutAllCommand logs out each selected org and refreshes config/state" time="0.008">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand cancels (no removeAuth, no refresh) when nothing is selected" name="orgLogoutAllCommand cancels (no removeAuth, no refresh) when nothing is selected" time="0.009">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand logs out a scratch org after the scratch confirm prompt is accepted" name="orgLogoutAllCommand logs out a scratch org after the scratch confirm prompt is accepted" time="0.001">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand short-circuits on the first removeAuth failure (fail-fast, no refresh)" name="orgLogoutAllCommand short-circuits on the first removeAuth failure (fail-fast, no refresh)" time="0.002">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand cancels (no removeAuth, no refresh) when the confirm modal is declined" name="orgLogoutAllCommand cancels (no removeAuth, no refresh) when the confirm modal is declined" time="0.001">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand fails the precondition (no removeAuth) when not in a project" name="orgLogoutAllCommand fails the precondition (no removeAuth) when not in a project" time="0.001">
+    </testcase>
+    <testcase classname="orgLogoutAllCommand fails with OrgLogoutError when removeAuth rejects" name="orgLogoutAllCommand fails with OrgLogoutError when removeAuth rejects" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgUtil tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.443" tests="8">
+    <testcase classname="orgUtil tests should not display a notification when no orgs are present" name="orgUtil tests should not display a notification when no orgs are present" time="0.022">
+    </testcase>
+    <testcase classname="orgUtil tests should not display a notification when dev hubs are present" name="orgUtil tests should not display a notification when dev hubs are present" time="0.004">
+    </testcase>
+    <testcase classname="orgUtil tests should display a notification when the scratch org has already expired" name="orgUtil tests should display a notification when the scratch org has already expired" time="0.004">
+    </testcase>
+    <testcase classname="orgUtil tests reveals the Output panel only when the user clicks Show Output on the expiry warning" name="orgUtil tests reveals the Output panel only when the user clicks Show Output on the expiry warning" time="0.003">
+    </testcase>
+    <testcase classname="orgUtil tests should display multiple orgs in the output when there are several scratch orgs about to expire" name="orgUtil tests should display multiple orgs in the output when there are several scratch orgs about to expire" time="0.003">
+    </testcase>
+    <testcase classname="orgUtil tests should display notifications for both an expired org and an org about to expire" name="orgUtil tests should display notifications for both an expired org and an org about to expire" time="0.003">
+    </testcase>
+    <testcase classname="updateConfigAndStateAggregators should call getConnection after invalidating caches to refresh TargetOrgRef" name="updateConfigAndStateAggregators should call getConnection after invalidating caches to refresh TargetOrgRef" time="0.001">
+    </testcase>
+    <testcase classname="updateConfigAndStateAggregators should not throw when getConnection fails" name="updateConfigAndStateAggregators should not throw when getConnection fails" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="OrgList tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.654" tests="23">
+    <testcase classname="OrgList tests mocks isOrgExpired tests should return true when org expiration date is in the past" name="OrgList tests mocks isOrgExpired tests should return true when org expiration date is in the past" time="0.004">
+    </testcase>
+    <testcase classname="OrgList tests mocks isOrgExpired tests should return false when org expiration date is in the future" name="OrgList tests mocks isOrgExpired tests should return false when org expiration date is in the future" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks isOrgExpired tests should return false when org has no expiration date" name="OrgList tests mocks isOrgExpired tests should return false when org has no expiration date" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login web authorization selection" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login web authorization selection" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login web dev hub authorization selection" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login web dev hub authorization selection" time="0.002">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle create default scratch org selection" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle create default scratch org selection" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login access token selection" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org login access token selection" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org list clean selection" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands should handle org list clean selection" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands fails with UserCancellationError when no selection is made" name="OrgList tests mocks setDefaultOrg tests Org picker SFDX commands fails with UserCancellationError when no selection is made" time="0.009">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests org selection (data-loading path via ConnectionService) lists the seeded org from ConnectionService in the picker" name="OrgList tests mocks setDefaultOrg tests org selection (data-loading path via ConnectionService) lists the seeded org from ConnectionService in the picker" time="0.003">
+    </testcase>
+    <testcase classname="OrgList tests mocks setDefaultOrg tests org selection (data-loading path via ConnectionService) sets the picked org as default via ConfigService.setTargetOrg then refreshes the connection" name="OrgList tests mocks setDefaultOrg tests org selection (data-loading path via ConnectionService) sets the picked org as default via ConfigService.setTargetOrg then refreshes the connection" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems sort/filter tests filters out expired orgs" name="OrgList tests authorizationsToQuickPickItems sort/filter tests filters out expired orgs" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems sort/filter tests sorts orgs: Scratch, Sandbox, Other, DevHub, Defaults; alphabetical within each" name="OrgList tests authorizationsToQuickPickItems sort/filter tests sorts orgs: Scratch, Sandbox, Other, DevHub, Defaults; alphabetical within each" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems sort/filter tests puts orgs with aliases before those without within each type" name="OrgList tests authorizationsToQuickPickItems sort/filter tests puts orgs with aliases before those without within each type" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests no alias: label, orgAlias undefined, setTargetOrg receives orgUsername" name="OrgList tests authorizationsToQuickPickItems snapshot tests no alias: label, orgAlias undefined, setTargetOrg receives orgUsername" time="0.001">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests simple alias: label, setTargetOrg receives orgAlias" name="OrgList tests authorizationsToQuickPickItems snapshot tests simple alias: label, setTargetOrg receives orgAlias" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests alias with dashes: label, setTargetOrg receives orgAlias" name="OrgList tests authorizationsToQuickPickItems snapshot tests alias with dashes: label, setTargetOrg receives orgAlias" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests alias with multiple dashes (DevHub): label, setTargetOrg receives orgAlias" name="OrgList tests authorizationsToQuickPickItems snapshot tests alias with multiple dashes (DevHub): label, setTargetOrg receives orgAlias" time="0.002">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests default org with alias: description has username then default suffix" name="OrgList tests authorizationsToQuickPickItems snapshot tests default org with alias: description has username then default suffix" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests default devhub with alias: description has username then default suffix" name="OrgList tests authorizationsToQuickPickItems snapshot tests default devhub with alias: description has username then default suffix" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests default org without alias: description is just default suffix" name="OrgList tests authorizationsToQuickPickItems snapshot tests default org without alias: description is just default suffix" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests org that is both default org and default devhub gets combined description" name="OrgList tests authorizationsToQuickPickItems snapshot tests org that is both default org and default devhub gets combined description" time="0">
+    </testcase>
+    <testcase classname="OrgList tests authorizationsToQuickPickItems snapshot tests comma-separated aliases: label, orgAlias first, setTargetOrg receives orgAlias" name="OrgList tests authorizationsToQuickPickItems snapshot tests comma-separated aliases: label, orgAlias first, setTargetOrg receives orgAlias" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="AuthParamsGatherer" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:19" time="1.531" tests="15">
+    <testcase classname="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) uses reauthAliasOrUsername for --alias when provided" name="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) uses reauthAliasOrUsername for --alias when provided" time="0.006">
+    </testcase>
+    <testcase classname="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) trims reauthAliasOrUsername" name="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) trims reauthAliasOrUsername" time="0.002">
+    </testcase>
+    <testcase classname="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted" name="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank" name="AuthParamsGatherer programmatic instance URL (access-token re-auth flow) falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL normalizes a valid https://example.com project URL" name="AuthParamsGatherer project default instance URL normalizes a valid https://example.com project URL" time="0.002">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL normalizes a valid http://example.com:8080/login project URL" name="AuthParamsGatherer project default instance URL normalizes a valid http://example.com:8080/login project URL" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: not a URL" name="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: not a URL" time="0.002">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: ftp://example.com" name="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: ftp://example.com" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: https://example.com; touch /tmp/pwned" name="AuthParamsGatherer project default instance URL warns and omits an invalid project URL: https://example.com; touch /tmp/pwned" time="0.002">
+    </testcase>
+    <testcase classname="AuthParamsGatherer project default instance URL offers safe choices without warning when sfdcLoginUrl is absent" name="AuthParamsGatherer project default instance URL offers safe choices without warning when sfdcLoginUrl is absent" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer AccessTokenParamsGatherer CONTINUE happy path with explicit alias" name="AuthParamsGatherer AccessTokenParamsGatherer CONTINUE happy path with explicit alias" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer AccessTokenParamsGatherer empty-string alias defaults to DEFAULT_ALIAS" name="AuthParamsGatherer AccessTokenParamsGatherer empty-string alias defaults to DEFAULT_ALIAS" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer AccessTokenParamsGatherer cancels with UserCancellationError when instance URL prompt is dismissed (undefined)" name="AuthParamsGatherer AccessTokenParamsGatherer cancels with UserCancellationError when instance URL prompt is dismissed (undefined)" time="0.01">
+    </testcase>
+    <testcase classname="AuthParamsGatherer AccessTokenParamsGatherer cancels with UserCancellationError when alias prompt is dismissed (undefined)" name="AuthParamsGatherer AccessTokenParamsGatherer cancels with UserCancellationError when alias prompt is dismissed (undefined)" time="0.001">
+    </testcase>
+    <testcase classname="AuthParamsGatherer AccessTokenParamsGatherer wires validateInput on the instance-url and alias prompts" name="AuthParamsGatherer AccessTokenParamsGatherer wires validateInput on the instance-url and alias prompts" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="orgLogoutDefaultCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:20" time="0.606" tests="7">
+    <testcase classname="orgLogoutDefaultCommand logs out a non-scratch default org, refreshes, and clears the target-org ref" name="orgLogoutDefaultCommand logs out a non-scratch default org, refreshes, and clears the target-org ref" time="0.002">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand does not clear the ref when the logged-out org was not the current target" name="orgLogoutDefaultCommand does not clear the ref when the logged-out org was not the current target" time="0.001">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand logs out a scratch default org after the confirm prompt is accepted" name="orgLogoutDefaultCommand logs out a scratch default org after the confirm prompt is accepted" time="0.002">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand cancels (no removeAuth/refresh/ref-clear) when the scratch confirm modal is declined" name="orgLogoutDefaultCommand cancels (no removeAuth/refresh/ref-clear) when the scratch confirm modal is declined" time="0.001">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand shows an info message (no removeAuth/refresh/ref-clear) when there is no default org" name="orgLogoutDefaultCommand shows an info message (no removeAuth/refresh/ref-clear) when there is no default org" time="0.004">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand fails the precondition (no removeAuth) when not in a project" name="orgLogoutDefaultCommand fails the precondition (no removeAuth) when not in a project" time="0.009">
+    </testcase>
+    <testcase classname="orgLogoutDefaultCommand fails with OrgLogoutError (no refresh/ref-clear) when removeAuth rejects" name="orgLogoutDefaultCommand fails with OrgLogoutError (no refresh/ref-clear) when removeAuth rejects" time="0.002">
+    </testcase>
+  </testsuite>
+</testsuites>

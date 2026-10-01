@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="12" failures="0" errors="0" time="0.95">
+  <testsuite name="ArtifactService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:03" time="0.357" tests="1">
+    <testcase classname="ArtifactService writes JSONL plus typed finding and summary deliverables" name="ArtifactService writes JSONL plus typed finding and summary deliverables" time="0.024">
+    </testcase>
+  </testsuite>
+  <testsuite name="drivable VS Code contracts" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:03" time="0.33" tests="7">
+    <testcase classname="drivable VS Code contracts retains the canonical 15 extension inventory" name="drivable VS Code contracts retains the canonical 15 extension inventory" time="0.003">
+    </testcase>
+    <testcase classname="drivable VS Code contracts decodes MCP inputs through canonical Effect schemas" name="drivable VS Code contracts decodes MCP inputs through canonical Effect schemas" time="0.014">
+    </testcase>
+    <testcase classname="drivable VS Code contracts rejects stale action sequences at the schema boundary" name="drivable VS Code contracts rejects stale action sequences at the schema boundary" time="0.001">
+    </testcase>
+    <testcase classname="drivable VS Code contracts validates persisted artifact contracts" name="drivable VS Code contracts validates persisted artifact contracts" time="0.005">
+    </testcase>
+    <testcase classname="drivable VS Code contracts attempts every release when releases fail" name="drivable VS Code contracts attempts every release when releases fail" time="0.003">
+    </testcase>
+    <testcase classname="drivable VS Code contracts attempts every scope finalizer and reports their failures" name="drivable VS Code contracts attempts every scope finalizer and reports their failures" time="0">
+    </testcase>
+    <testcase classname="drivable VS Code contracts drains queued console entries in order before stopping" name="drivable VS Code contracts drains queued console entries in order before stopping" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="drivable VS Code MCP server" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:03" time="0.639" tests="4">
+    <testcase classname="drivable VS Code MCP server initializes with tool capability and publishes six Effect-generated input schemas" name="drivable VS Code MCP server initializes with tool capability and publishes six Effect-generated input schemas" time="0.006">
+    </testcase>
+    <testcase classname="drivable VS Code MCP server calls tools through the Effect runtime and preserves text and image results" name="drivable VS Code MCP server calls tools through the Effect runtime and preserves text and image results" time="0.005">
+    </testcase>
+    <testcase classname="drivable VS Code MCP server returns a tool error when Effect Schema rejects call arguments" name="drivable VS Code MCP server returns a tool error when Effect Schema rejects call arguments" time="0.004">
+    </testcase>
+    <testcase classname="drivable VS Code MCP server shutdown interrupts active handlers before finishing and closing" name="drivable VS Code MCP server shutdown interrupts active handlers before finishing and closing" time="0.015">
+    </testcase>
+  </testsuite>
+</testsuites>

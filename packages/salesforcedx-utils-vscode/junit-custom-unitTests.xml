@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="180" failures="0" errors="0" time="10.632">
+  <testsuite name="TelemetryReporterConfig" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="4.153" tests="15">
+    <testcase classname="TelemetryReporterConfig config should be an object following TelemetryReporterConfig interface" name="TelemetryReporterConfig config should be an object following TelemetryReporterConfig interface" time="0.003">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have extName property of type string" name="TelemetryReporterConfig config should have extName property of type string" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have version property of type string" name="TelemetryReporterConfig config should have version property of type string" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have aiKey property of type string" name="TelemetryReporterConfig config should have aiKey property of type string" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have userId property of type string" name="TelemetryReporterConfig config should have userId property of type string" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have reporterName property of type string" name="TelemetryReporterConfig config should have reporterName property of type string" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have isDevMode property of type boolean" name="TelemetryReporterConfig config should have isDevMode property of type boolean" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the correct extension name" name="TelemetryReporterConfig should have the correct extension name" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the correct version" name="TelemetryReporterConfig should have the correct version" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the correct AI key" name="TelemetryReporterConfig should have the correct AI key" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the correct user ID" name="TelemetryReporterConfig should have the correct user ID" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have isDevMode false" name="TelemetryReporterConfig should have isDevMode false" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the updated isDevMode flag" name="TelemetryReporterConfig should have the updated isDevMode flag" time="0">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig config should have webUserId property of type string" name="TelemetryReporterConfig config should have webUserId property of type string" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryReporterConfig should have the correct webUserId field" name="TelemetryReporterConfig should have the correct webUserId field" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="getSalesforceVSCodeOrgExtension" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:46" time="0.525" tests="4">
+    <testcase classname="getSalesforceVSCodeOrgExtension returns undefined when the org extension is not installed" name="getSalesforceVSCodeOrgExtension returns undefined when the org extension is not installed" time="0.001">
+    </testcase>
+    <testcase classname="getSalesforceVSCodeOrgExtension returns the extension when already active" name="getSalesforceVSCodeOrgExtension returns the extension when already active" time="0">
+    </testcase>
+    <testcase classname="getSalesforceVSCodeOrgExtension activates when inactive and returns the extension" name="getSalesforceVSCodeOrgExtension activates when inactive and returns the extension" time="0">
+    </testcase>
+    <testcase classname="getSalesforceVSCodeOrgExtension returns undefined when activation fails" name="getSalesforceVSCodeOrgExtension returns undefined when activation fails" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="LogStreamConfig" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:46" time="0.484" tests="5">
+    <testcase classname="LogStreamConfig logFilePath should return the value of VSCODE_LOGS environment variable" name="LogStreamConfig logFilePath should return the value of VSCODE_LOGS environment variable" time="0.001">
+    </testcase>
+    <testcase classname="LogStreamConfig logFilePath should return an empty string if VSCODE_LOGS environment variable is not set" name="LogStreamConfig logFilePath should return an empty string if VSCODE_LOGS environment variable is not set" time="0">
+    </testcase>
+    <testcase classname="LogStreamConfig isEnabled should return false if VSCODE_LOGS is not set" name="LogStreamConfig isEnabled should return false if VSCODE_LOGS is not set" time="0">
+    </testcase>
+    <testcase classname="LogStreamConfig isEnabled should return false if VSCODE_LOG_LEVEL is not set to trace" name="LogStreamConfig isEnabled should return false if VSCODE_LOG_LEVEL is not set to trace" time="0.001">
+    </testcase>
+    <testcase classname="LogStreamConfig isEnabled should return true if VSCODE_LOGS is provided and VSCODE_LOG_LEVEL is set to trace" name="LogStreamConfig isEnabled should return true if VSCODE_LOGS is provided and VSCODE_LOG_LEVEL is set to trace" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Telemetry" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="5.644" tests="37">
+    <testcase classname="Telemetry Telemetry Service Provider getInstance should return a TelemetryService instance for core extension when no name is provided" name="Telemetry Telemetry Service Provider getInstance should return a TelemetryService instance for core extension when no name is provided" time="0.003">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service Provider getInstance should return the same TelemetryService instance for core extension on subsequent calls" name="Telemetry Telemetry Service Provider getInstance should return the same TelemetryService instance for core extension on subsequent calls" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service Provider getInstance should return a TelemetryService instance for a named extension" name="Telemetry Telemetry Service Provider getInstance should return a TelemetryService instance for a named extension" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service Provider getInstance should return the same TelemetryService instance for a named extension on subsequent calls" name="Telemetry Telemetry Service Provider getInstance should return the same TelemetryService instance for a named extension on subsequent calls" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service Provider getInstance should return different instances for different extension names" name="Telemetry Telemetry Service Provider getInstance should return different instances for different extension names" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - getInstance getInstance should return the core instance if no extension name provided" name="Telemetry Telemetry Service - getInstance getInstance should return the core instance if no extension name provided" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - getInstance getInstance should return the same TelemetryService instance for a named extension on subsequent calls" name="Telemetry Telemetry Service - getInstance getInstance should return the same TelemetryService instance for a named extension on subsequent calls" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" name="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" name="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is true" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" name="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is all and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" name="Telemetry Telemetry Service - isTelemetryExtensionConfigurationEnabled should return true if telemetryLevel is off and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is false" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return true when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are true" name="Telemetry Telemetry Service - isTelemetryEnabled should return true when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are true" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are false" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are false" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelmetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelmetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelmetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when isTelmetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return true when internal user" name="Telemetry Telemetry Service - isTelemetryEnabled should return true when internal user" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return true when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is true" name="Telemetry Telemetry Service - isTelemetryEnabled should return true when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is true" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is false" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is false" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is false and checkCliTelemetry is true" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" name="Telemetry Telemetry Service - isTelemetryEnabled should return false when not internal user, isTelemetryExtensionConfigurationEnabled is true and checkCliTelemetry is false" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with number startTime (new format)" name="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with number startTime (new format)" time="0.002">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with hrtime tuple startTime (legacy format)" name="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with hrtime tuple startTime (legacy format)" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with undefined startTime" name="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should work with undefined startTime" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should use markEndTime when provided, regardless of startTime format" name="Telemetry Telemetry Service - Backwards Compatibility sendExtensionActivationEvent timing parameter compatibility should use markEndTime when provided, regardless of startTime format" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with number startTime (new format)" name="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with number startTime (new format)" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with hrtime tuple startTime (legacy format)" name="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with hrtime tuple startTime (legacy format)" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with undefined startTime" name="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should work with undefined startTime" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should include measurements when provided with timing" name="Telemetry Telemetry Service - Backwards Compatibility sendCommandEvent timing parameter compatibility should include measurements when provided with timing" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility updateReporters caches org identity sets orgIdentity on every reporter class" name="Telemetry Telemetry Service - Backwards Compatibility updateReporters caches org identity sets orgIdentity on every reporter class" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary dispatches production telemetry when a local reporter throws" name="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary dispatches production telemetry when a local reporter throws" time="0.003">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary captures a complete immutable envelope identity at send time" name="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary captures a complete immutable envelope identity at send time" time="0.004">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary retains invocation identity during Gov to nonGov delayed enablement" name="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary retains invocation identity during Gov to nonGov delayed enablement" time="0.005">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary retains invocation identity during nonGov to Gov delayed enablement" name="Telemetry Telemetry Service - Backwards Compatibility governed production telemetry boundary retains invocation identity during nonGov to Gov delayed enablement" time="0.011">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility lifecycle registers the service once and direct disposal remains idempotent" name="Telemetry Telemetry Service - Backwards Compatibility lifecycle registers the service once and direct disposal remains idempotent" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should convert number correctly" name="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should convert number correctly" time="0">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should convert hrtime tuple correctly" name="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should convert hrtime tuple correctly" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should handle undefined by defaulting to [0, 0]" name="Telemetry Telemetry Service - Backwards Compatibility hrTimeToMilliseconds helper method should handle undefined by defaulting to [0, 0]" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="errorUtils" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="0.878" tests="6">
+    <testcase classname="errorUtils errorToString should handle Error objects" name="errorUtils errorToString should handle Error objects" time="0">
+    </testcase>
+    <testcase classname="errorUtils errorToString should handle Error objects without message" name="errorUtils errorToString should handle Error objects without message" time="0">
+    </testcase>
+    <testcase classname="errorUtils errorToString should handle string errors" name="errorUtils errorToString should handle string errors" time="0">
+    </testcase>
+    <testcase classname="errorUtils errorToString should handle objects with toString method" name="errorUtils errorToString should handle objects with toString method" time="0">
+    </testcase>
+    <testcase classname="errorUtils errorToString should handle null and undefined" name="errorUtils errorToString should handle null and undefined" time="0">
+    </testcase>
+    <testcase classname="errorUtils errorToString should handle numbers and other primitives" name="errorUtils errorToString should handle numbers and other primitives" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="SettingsService" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:47" time="1.456" tests="1">
+    <testcase classname="SettingsService getEnableClearOutputBeforeEachCommand should return the value of SETTING_CLEAR_OUTPUT_TAB from SFDX_CORE_CONFIGURATION_NAME configuration" name="SettingsService getEnableClearOutputBeforeEachCommand should return the value of SETTING_CLEAR_OUTPUT_TAB from SFDX_CORE_CONFIGURATION_NAME configuration" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="shapeFrom" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:48" time="1.332" tests="6">
+    <testcase classname="shapeFrom returns Scratch when isScratch true" name="shapeFrom returns Scratch when isScratch true" time="0">
+    </testcase>
+    <testcase classname="shapeFrom returns Sandbox when isSandbox true and isScratch false" name="shapeFrom returns Sandbox when isSandbox true and isScratch false" time="0.001">
+    </testcase>
+    <testcase classname="shapeFrom prefers Scratch over Sandbox when both flags set (precedence)" name="shapeFrom prefers Scratch over Sandbox when both flags set (precedence)" time="0">
+    </testcase>
+    <testcase classname="shapeFrom returns Production when alias is set" name="shapeFrom returns Production when alias is set" time="0">
+    </testcase>
+    <testcase classname="shapeFrom returns Production when only username is set" name="shapeFrom returns Production when only username is set" time="0">
+    </testcase>
+    <testcase classname="shapeFrom returns Undefined when nothing is populated" name="shapeFrom returns Undefined when nothing is populated" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Telemetry internal user check" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:49" time="1.164" tests="3">
+    <testcase classname="Telemetry internal user check should return true if internal user" name="Telemetry internal user check should return true if internal user" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry internal user check should return false if not an internal user" name="Telemetry internal user check should return false if not an internal user" time="0">
+    </testcase>
+    <testcase classname="Telemetry internal user check should return false if hostname is undefined" name="Telemetry internal user check should return false if hostname is undefined" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="isLocalLogging" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:49" time="1.2" tests="2">
+    <testcase classname="isLocalLogging returns true when local logging is enabled" name="isLocalLogging returns true when local logging is enabled" time="0.001">
+    </testcase>
+    <testcase classname="isLocalLogging returns false when local logging is disabled" name="isLocalLogging returns false when local logging is disabled" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="AppInsights" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="8.959" tests="15">
+    <testcase classname="AppInsights sendTelemetryEvent and sendExceptionEvent should send telemetry data to appInsightsClient.trackEvent" name="AppInsights sendTelemetryEvent and sendExceptionEvent should send telemetry data to appInsightsClient.trackEvent" time="0.004">
+    </testcase>
+    <testcase classname="AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId to appInsightsClient.trackException" name="AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId to appInsightsClient.trackException" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights sendTelemetryEvent and sendExceptionEvent should omit org properties when orgIdentity is unset" name="AppInsights sendTelemetryEvent and sendExceptionEvent should omit org properties when orgIdentity is unset" time="0.007">
+    </testcase>
+    <testcase classname="AppInsights sendTelemetryEvent and sendExceptionEvent should include orgEdition in event properties when available" name="AppInsights sendTelemetryEvent and sendExceptionEvent should include orgEdition in event properties when available" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights dispose should flush events to appInsightsClient and resolve" name="AppInsights dispose should flush events to appInsightsClient and resolve" time="0.002">
+    </testcase>
+    <testcase classname="AppInsights dispose should resolve immediately if appInsightsClient is undefined" name="AppInsights dispose should resolve immediately if appInsightsClient is undefined" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getCommonProperties should return common system properties" name="AppInsights AppInsights - getCommonProperties should return common system properties" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getCommonProperties should return extname that was passed in params" name="AppInsights AppInsights - getCommonProperties should return extname that was passed in params" time="0">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getCommonProperties should return extVersion passed in params" name="AppInsights AppInsights - getCommonProperties should return extVersion passed in params" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getInternalProperties should return internal properties" name="AppInsights AppInsights - getInternalProperties should return internal properties" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getInternalProperties should return hostname" name="AppInsights AppInsights - getInternalProperties should return hostname" time="0">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - getInternalProperties should return username" name="AppInsights AppInsights - getInternalProperties should return username" time="0">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - aggregateLoggingProperties should return properties" name="AppInsights AppInsights - aggregateLoggingProperties should return properties" time="0">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - aggregateLoggingProperties should return common and internal properties when is internal user" name="AppInsights AppInsights - aggregateLoggingProperties should return common and internal properties when is internal user" time="0.001">
+    </testcase>
+    <testcase classname="AppInsights AppInsights - aggregateLoggingProperties should return common properties when is not internal user" name="AppInsights AppInsights - aggregateLoggingProperties should return common properties when is not internal user" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="TelemetryFile" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:42" time="8.914" tests="5">
+    <testcase classname="TelemetryFile should append the telemetry event to the telemetry file." name="TelemetryFile should append the telemetry event to the telemetry file." time="0.017">
+    </testcase>
+    <testcase classname="TelemetryFile should merge cached orgIdentity props into the telemetry event" name="TelemetryFile should merge cached orgIdentity props into the telemetry event" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryFile should append the exception event to the telemetry file" name="TelemetryFile should append the exception event to the telemetry file" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryFile should dispose" name="TelemetryFile should dispose" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryFile writeToFile should append data to the telemetry file" name="TelemetryFile writeToFile should append data to the telemetry file" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="LogStream" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="9.189" tests="4">
+    <testcase classname="LogStream should write the telemetry event to the file" name="LogStream should write the telemetry event to the file" time="0.009">
+    </testcase>
+    <testcase classname="LogStream should write the exception event to the file" name="LogStream should write the exception event to the file" time="0.001">
+    </testcase>
+    <testcase classname="LogStream should emit cached orgIdentity props on the telemetry event" name="LogStream should emit cached orgIdentity props on the telemetry event" time="0.001">
+    </testcase>
+    <testcase classname="LogStream should emit cached orgIdentity props on the exception event" name="LogStream should emit cached orgIdentity props on the exception event" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="O11yReporter" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:42" time="9.243" tests="13">
+    <testcase classname="O11yReporter initialize should call o11yService.initialize with extensionName, endpoint, and getConnection" name="O11yReporter initialize should call o11yService.initialize with extensionName, endpoint, and getConnection" time="0.003">
+    </testcase>
+    <testcase classname="O11yReporter initialize getConnection thunk re-resolves current org per call" name="O11yReporter initialize getConnection thunk re-resolves current org per call" time="0.011">
+    </testcase>
+    <testcase classname="O11yReporter sendTelemetryEvent should send telemetry event with properties and measurements" name="O11yReporter sendTelemetryEvent should send telemetry event with properties and measurements" time="0.007">
+    </testcase>
+    <testcase classname="O11yReporter sendTelemetryEvent should not send telemetry if userOptIn is false" name="O11yReporter sendTelemetryEvent should not send telemetry if userOptIn is false" time="0.002">
+    </testcase>
+    <testcase classname="O11yReporter sendTelemetryEvent should not throw when logEvent fails" name="O11yReporter sendTelemetryEvent should not throw when logEvent fails" time="0.001">
+    </testcase>
+    <testcase classname="O11yReporter sendTelemetryEvent should contain PFT event failures" name="O11yReporter sendTelemetryEvent should contain PFT event failures" time="0.002">
+    </testcase>
+    <testcase classname="O11yReporter sendExceptionEvent should send exception telemetry with properties and measurements" name="O11yReporter sendExceptionEvent should send exception telemetry with properties and measurements" time="0.001">
+    </testcase>
+    <testcase classname="O11yReporter sendExceptionEvent should not send exception if userOptIn is false" name="O11yReporter sendExceptionEvent should not send exception if userOptIn is false" time="0">
+    </testcase>
+    <testcase classname="O11yReporter sendExceptionEvent should not throw when logEvent fails" name="O11yReporter sendExceptionEvent should not throw when logEvent fails" time="0.001">
+    </testcase>
+    <testcase classname="O11yReporter dispose should resolve without errors" name="O11yReporter dispose should resolve without errors" time="0.001">
+    </testcase>
+    <testcase classname="O11yReporter dispose should resolve when forceFlush fails" name="O11yReporter dispose should resolve when forceFlush fails" time="0.002">
+    </testcase>
+    <testcase classname="O11yReporter telemetryTag handling should include telemetryTag in sent properties" name="O11yReporter telemetryTag handling should include telemetryTag in sent properties" time="0.002">
+    </testcase>
+    <testcase classname="O11yReporter telemetryTag handling should not include telemetryTag if not set" name="O11yReporter telemetryTag handling should not include telemetryTag if not set" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="file system utilities" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="9.512" tests="13">
+    <testcase classname="file system utilities readFile should read file content successfully" name="file system utilities readFile should read file content successfully" time="0.003">
+    </testcase>
+    <testcase classname="file system utilities readFile should throw error when read fails" name="file system utilities readFile should throw error when read fails" time="0.005">
+    </testcase>
+    <testcase classname="file system utilities writeFile should write file content successfully" name="file system utilities writeFile should write file content successfully" time="0.001">
+    </testcase>
+    <testcase classname="file system utilities writeFile should create directory if it does not exist" name="file system utilities writeFile should create directory if it does not exist" time="0">
+    </testcase>
+    <testcase classname="file system utilities writeFile should throw error when write fails" name="file system utilities writeFile should throw error when write fails" time="0.001">
+    </testcase>
+    <testcase classname="file system utilities fileOrFolderExists should return true when file exists" name="file system utilities fileOrFolderExists should return true when file exists" time="0">
+    </testcase>
+    <testcase classname="file system utilities fileOrFolderExists should return false when file does not exist" name="file system utilities fileOrFolderExists should return false when file does not exist" time="0.003">
+    </testcase>
+    <testcase classname="file system utilities createDirectory should create directory if it does not exist" name="file system utilities createDirectory should create directory if it does not exist" time="0">
+    </testcase>
+    <testcase classname="file system utilities createDirectory should do nothing if directory already exists" name="file system utilities createDirectory should do nothing if directory already exists" time="0.001">
+    </testcase>
+    <testcase classname="file system utilities createDirectory should create parent directories as needed" name="file system utilities createDirectory should create parent directories as needed" time="0">
+    </testcase>
+    <testcase classname="file system utilities createDirectory should throw error when creation fails" name="file system utilities createDirectory should throw error when creation fails" time="0">
+    </testcase>
+    <testcase classname="file system utilities safeDelete should delete file if it exists" name="file system utilities safeDelete should delete file if it exists" time="0">
+    </testcase>
+    <testcase classname="file system utilities safeDelete should do nothing if file does not exist" name="file system utilities safeDelete should do nothing if file does not exist" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="TelemetryService.getIdentityFromServices" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="9.526" tests="7">
+    <testcase classname="TelemetryService.getIdentityFromServices returns identity from defaultOrgRef on happy path" name="TelemetryService.getIdentityFromServices returns identity from defaultOrgRef on happy path" time="0.003">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices derives orgShape Production from alias via shapeFrom wiring" name="TelemetryService.getIdentityFromServices derives orgShape Production from alias via shapeFrom wiring" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices derives orgShape Scratch and propagates org fields through the bridge" name="TelemetryService.getIdentityFromServices derives orgShape Scratch and propagates org fields through the bridge" time="0">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices falls back webUserId to UNAUTHENTICATED_USER when missing" name="TelemetryService.getIdentityFromServices falls back webUserId to UNAUTHENTICATED_USER when missing" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices rejects when the services extension is missing" name="TelemetryService.getIdentityFromServices rejects when the services extension is missing" time="0.001">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices rejects when the services API is invalid" name="TelemetryService.getIdentityFromServices rejects when the services API is invalid" time="0.004">
+    </testcase>
+    <testcase classname="TelemetryService.getIdentityFromServices runtime error tag classes are referenced" name="TelemetryService.getIdentityFromServices runtime error tag classes are referenced" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="determineReporters" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:42" time="9.437" tests="13">
+    <testcase classname="determineReporters should return an array" name="determineReporters should return an array" time="0.044">
+    </testcase>
+    <testcase classname="determineReporters in dev mode should return no reporters" name="determineReporters in dev mode should return no reporters" time="0.001">
+    </testcase>
+    <testcase classname="determineReporters in dev mode should return TelemetryFile reporter when local logging is enabled" name="determineReporters in dev mode should return TelemetryFile reporter when local logging is enabled" time="0.001">
+    </testcase>
+    <testcase classname="determineReporters in dev mode should return empty reporters when O11Y_ENDPOINT is set but O11yReporter not initialized" name="determineReporters in dev mode should return empty reporters when O11Y_ENDPOINT is set but O11yReporter not initialized" time="0">
+    </testcase>
+    <testcase classname="determineReporters not in dev mode should return AppInsights reporter when log stream is disabled" name="determineReporters not in dev mode should return AppInsights reporter when log stream is disabled" time="0.001">
+    </testcase>
+    <testcase classname="determineReporters not in dev mode should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled" name="determineReporters not in dev mode should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled" time="0.001">
+    </testcase>
+    <testcase classname="determineReporters keeps local reporters independent from production reporters" name="determineReporters keeps local reporters independent from production reporters" time="0.001">
+    </testcase>
+    <testcase classname="initializeO11yReporter should initialize and add an O11yReporter instance" name="initializeO11yReporter should initialize and add an O11yReporter instance" time="0.01">
+    </testcase>
+    <testcase classname="initializeO11yReporter should not re-initialize if already initialized" name="initializeO11yReporter should not re-initialize if already initialized" time="0.01">
+    </testcase>
+    <testcase classname="initializeO11yReporter should wait for in-progress initialization if called concurrently" name="initializeO11yReporter should wait for in-progress initialization if called concurrently" time="0.018">
+    </testcase>
+    <testcase classname="initializeO11yReporter should clean up if initialization fails" name="initializeO11yReporter should clean up if initialization fails" time="0.008">
+    </testcase>
+    <testcase classname="initializeO11yReporter should add O11yReporter to reporters if initialized" name="initializeO11yReporter should add O11yReporter to reporters if initialized" time="0.01">
+    </testcase>
+    <testcase classname="initializeO11yReporter should include the initialized O11yReporter in dev mode when O11Y_ENDPOINT is set" name="initializeO11yReporter should include the initialized O11yReporter in dev mode when O11Y_ENDPOINT is set" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="ConfigUtil" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="9.609" tests="14">
+    <testcase classname="ConfigUtil getTargetOrgOrAlias should return target org when set" name="ConfigUtil getTargetOrgOrAlias should return target org when set" time="0.003">
+    </testcase>
+    <testcase classname="ConfigUtil getTargetOrgOrAlias should return undefined when not set" name="ConfigUtil getTargetOrgOrAlias should return undefined when not set" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil isGlobalTargetOrg should return true when target org is global" name="ConfigUtil isGlobalTargetOrg should return true when target org is global" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil isGlobalTargetOrg should return false when target org is local" name="ConfigUtil isGlobalTargetOrg should return false when target org is local" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil isTelemetryDisabled should return true when telemetry is disabled" name="ConfigUtil isTelemetryDisabled should return true when telemetry is disabled" time="0.001">
+    </testcase>
+    <testcase classname="ConfigUtil isTelemetryDisabled should return false when telemetry is enabled" name="ConfigUtil isTelemetryDisabled should return false when telemetry is enabled" time="0.001">
+    </testcase>
+    <testcase classname="ConfigUtil getTargetDevHubOrAlias should return dev hub when set" name="ConfigUtil getTargetDevHubOrAlias should return dev hub when set" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil getTargetDevHubOrAlias should return undefined when not set" name="ConfigUtil getTargetDevHubOrAlias should return undefined when not set" time="0.001">
+    </testcase>
+    <testcase classname="ConfigUtil getGlobalTargetDevHubOrAlias should return global dev hub when set" name="ConfigUtil getGlobalTargetDevHubOrAlias should return global dev hub when set" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil getGlobalTargetDevHubOrAlias should return undefined when not set" name="ConfigUtil getGlobalTargetDevHubOrAlias should return undefined when not set" time="0.001">
+    </testcase>
+    <testcase classname="ConfigUtil getUsernameFor should return username when alias exists" name="ConfigUtil getUsernameFor should return username when alias exists" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil getUsernameFor should return input when no alias found" name="ConfigUtil getUsernameFor should return input when no alias found" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil getUsername should return username when target org is set" name="ConfigUtil getUsername should return username when target org is set" time="0">
+    </testcase>
+    <testcase classname="ConfigUtil getUsername should return undefined when target org is not set" name="ConfigUtil getUsername should return undefined when target org is not set" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="WorkspaceContextUtil" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:41" time="10.06" tests="17">
+    <testcase classname="WorkspaceContextUtil test for the constructor" name="WorkspaceContextUtil test for the constructor" time="0.003">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil watches sfdx-config.json in the workspace state folder" name="WorkspaceContextUtil watches sfdx-config.json in the workspace state folder" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should return workspace context util instance" name="WorkspaceContextUtil should return workspace context util instance" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should return the value of devHubId and orgShape as is set" name="WorkspaceContextUtil should return the value of devHubId and orgShape as is set" time="0.023">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should load the target org, alias, and orgId and clear the cache of the core types upon initialization" name="WorkspaceContextUtil should load the target org, alias, and orgId and clear the cache of the core types upon initialization" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should populate orgEdition from auth fields when available" name="WorkspaceContextUtil should populate orgEdition from auth fields when available" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should leave orgEdition undefined when not in auth fields" name="WorkspaceContextUtil should leave orgEdition undefined when not in auth fields" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should reset orgEdition to undefined when no target org" name="WorkspaceContextUtil should reset orgEdition to undefined when no target org" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should set _orgId to an empty string and log a message if there was a problem getting the connection" name="WorkspaceContextUtil should set _orgId to an empty string and log a message if there was a problem getting the connection" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should update target org, alias, and orgId and clear the cache of the core types upon config change" name="WorkspaceContextUtil should update target org, alias, and orgId and clear the cache of the core types upon config change" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should update target org to undefined if username is not set" name="WorkspaceContextUtil should update target org to undefined if username is not set" time="0.001">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should update target org and alias to undefined if alias is not set" name="WorkspaceContextUtil should update target org and alias to undefined if alias is not set" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should notify subscribers that the default org may have changed" name="WorkspaceContextUtil should notify subscribers that the default org may have changed" time="0.003">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil should return the _orgId property" name="WorkspaceContextUtil should return the _orgId property" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil getConnection should delegate to ConnectionService.getConnection (which validates the token internally)" name="WorkspaceContextUtil getConnection should delegate to ConnectionService.getConnection (which validates the token internally)" time="0.003">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil getConnection should not throw error if there is a username set" name="WorkspaceContextUtil getConnection should not throw error if there is a username set" time="0">
+    </testcase>
+    <testcase classname="WorkspaceContextUtil getConnection should throw error if there is no username set" name="WorkspaceContextUtil getConnection should throw error if there is no username set" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>

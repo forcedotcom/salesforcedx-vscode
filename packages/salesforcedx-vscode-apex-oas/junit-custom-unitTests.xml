@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="161" failures="0" errors="0" time="3.184">
+  <testsuite name="oasReorderStep" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="0.594" tests="5">
+    <testcase classname="oasReorderStep reorders info section attributes" name="oasReorderStep reorders info section attributes" time="0.005">
+    </testcase>
+    <testcase classname="oasReorderStep reorders operation-level attributes" name="oasReorderStep reorders operation-level attributes" time="0.001">
+    </testcase>
+    <testcase classname="oasReorderStep reorders path-level attributes" name="oasReorderStep reorders path-level attributes" time="0">
+    </testcase>
+    <testcase classname="oasReorderStep does not modify paths without description" name="oasReorderStep does not modify paths without description" time="0.001">
+    </testcase>
+    <testcase classname="oasReorderStep handles empty paths gracefully" name="oasReorderStep handles empty paths gracefully" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="probeReady" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:14" time="0.61" tests="4">
+    <testcase classname="probeReady succeeds with the client when the LS is ready" name="probeReady succeeds with the client when the LS is ready" time="0.004">
+    </testcase>
+    <testcase classname="probeReady fails with ApexLspNotReady (retryable) while still indexing" name="probeReady fails with ApexLspNotReady (retryable) while still indexing" time="0.002">
+    </testcase>
+    <testcase classname="probeReady fails with ApexLspNotReady when no client instance exists yet" name="probeReady fails with ApexLspNotReady when no client instance exists yet" time="0">
+    </testcase>
+    <testcase classname="probeReady fails fast with ApexLspRequestFailed (non-retryable) when init failed" name="probeReady fails fast with ApexLspRequestFailed (non-retryable) when init failed" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="OAS Extension Activation" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:14" time="0.092" tests="2">
+    <testcase classname="OAS Extension Activation module loads without error" name="OAS Extension Activation module loads without error" time="0">
+    </testcase>
+    <testcase classname="package.json settings contributes enableRestOASGen as a boolean defaulting to false (REST path blocked by default)" name="package.json settings contributes enableRestOASGen as a boolean defaulting to false (REST path blocked by default)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="getMethodImplementation" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:14" time="0.717" tests="12">
+    <testcase classname="getMethodImplementation should return the correct method implementation" name="getMethodImplementation should return the correct method implementation" time="0.004">
+    </testcase>
+    <testcase classname="getMethodImplementation should fail if the method is not found" name="getMethodImplementation should fail if the method is not found" time="0.044">
+    </testcase>
+    <testcase classname="getAnnotationsWithParameters should return the correct string with one annotation" name="getAnnotationsWithParameters should return the correct string with one annotation" time="0">
+    </testcase>
+    <testcase classname="getAnnotationsWithParameters should return the correct string with multiple annotations" name="getAnnotationsWithParameters should return the correct string with multiple annotations" time="0">
+    </testcase>
+    <testcase classname="getAnnotationsWithParameters should return the correct string with no annotations" name="getAnnotationsWithParameters should return the correct string with no annotations" time="0.001">
+    </testcase>
+    <testcase classname="buildClassPrompt should build the correct class prompt" name="buildClassPrompt should build the correct class prompt" time="0">
+    </testcase>
+    <testcase classname="buildClassPrompt should build the correct class prompt with RestResource annotation" name="buildClassPrompt should build the correct class prompt with RestResource annotation" time="0">
+    </testcase>
+    <testcase classname="getPromptForMethodContext should return the correct prompt for HttpGet annotation" name="getPromptForMethodContext should return the correct prompt for HttpGet annotation" time="0.001">
+    </testcase>
+    <testcase classname="getPromptForMethodContext should return the correct prompt for HttpPost annotation" name="getPromptForMethodContext should return the correct prompt for HttpPost annotation" time="0">
+    </testcase>
+    <testcase classname="getPromptForMethodContext should return the correct prompt for HttpPut annotation" name="getPromptForMethodContext should return the correct prompt for HttpPut annotation" time="0">
+    </testcase>
+    <testcase classname="getPromptForMethodContext should return the correct prompt for HttpPatch annotation" name="getPromptForMethodContext should return the correct prompt for HttpPatch annotation" time="0.001">
+    </testcase>
+    <testcase classname="getPromptForMethodContext should return the correct prompt for HttpDelete annotation" name="getPromptForMethodContext should return the correct prompt for HttpDelete annotation" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="propertyCorrectionStep" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="0.773" tests="6">
+    <testcase classname="propertyCorrectionStep ensures info version is present" name="propertyCorrectionStep ensures info version is present" time="0.005">
+    </testcase>
+    <testcase classname="propertyCorrectionStep ensures servers are present" name="propertyCorrectionStep ensures servers are present" time="0.001">
+    </testcase>
+    <testcase classname="propertyCorrectionStep preserves existing response descriptions" name="propertyCorrectionStep preserves existing response descriptions" time="0.002">
+    </testcase>
+    <testcase classname="propertyCorrectionStep fills empty parameter descriptions with default" name="propertyCorrectionStep fills empty parameter descriptions with default" time="0.001">
+    </testcase>
+    <testcase classname="propertyCorrectionStep fills missing request body descriptions with default" name="propertyCorrectionStep fills missing request body descriptions with default" time="0.002">
+    </testcase>
+    <testcase classname="propertyCorrectionStep removes security sections at root and within methods" name="propertyCorrectionStep removes security sections at root and within methods" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="hasValidRestAnnotations" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="0.822" tests="36">
+    <testcase classname="hasValidRestAnnotations should return true when class has RestResource annotation and methods have HTTP REST annotations" name="hasValidRestAnnotations should return true when class has RestResource annotation and methods have HTTP REST annotations" time="0.003">
+    </testcase>
+    <testcase classname="hasValidRestAnnotations should return false when class has no RestResource annotation" name="hasValidRestAnnotations should return false when class has no RestResource annotation" time="0">
+    </testcase>
+    <testcase classname="hasValidRestAnnotations should return false when class has RestResource annotation but no methods have HTTP REST annotations" name="hasValidRestAnnotations should return false when class has RestResource annotation but no methods have HTTP REST annotations" time="0">
+    </testcase>
+    <testcase classname="hasValidRestAnnotations should return true when class has RestResource annotation and at least one method has HTTP REST annotation" name="hasValidRestAnnotations should return true when class has RestResource annotation and at least one method has HTTP REST annotation" time="0.001">
+    </testcase>
+    <testcase classname="hasValidRestAnnotations should handle empty methods array" name="hasValidRestAnnotations should handle empty methods array" time="0">
+    </testcase>
+    <testcase classname="hasValidRestAnnotations should work with various HTTP REST annotations" name="hasValidRestAnnotations should work with various HTTP REST annotations" time="0">
+    </testcase>
+    <testcase classname="hasAuraFrameworkCapability should return true when class has no annotations and methods have AuraEnabled annotations" name="hasAuraFrameworkCapability should return true when class has no annotations and methods have AuraEnabled annotations" time="0.001">
+    </testcase>
+    <testcase classname="hasAuraFrameworkCapability should return false when class has annotations even if methods have AuraEnabled annotations" name="hasAuraFrameworkCapability should return false when class has annotations even if methods have AuraEnabled annotations" time="0.005">
+    </testcase>
+    <testcase classname="hasAuraFrameworkCapability should return false when class has no annotations but methods have no AuraEnabled annotations" name="hasAuraFrameworkCapability should return false when class has no annotations but methods have no AuraEnabled annotations" time="0">
+    </testcase>
+    <testcase classname="hasAuraFrameworkCapability should return true when class has no annotations and at least one method has AuraEnabled annotation" name="hasAuraFrameworkCapability should return true when class has no annotations and at least one method has AuraEnabled annotation" time="0">
+    </testcase>
+    <testcase classname="hasAuraFrameworkCapability should return false when class has no annotations but methods array is empty" name="hasAuraFrameworkCapability should return false when class has no annotations but methods array is empty" time="0.002">
+    </testcase>
+    <testcase classname="hasMixedFrameworks should return true when class has RestResource and methods have AuraEnabled" name="hasMixedFrameworks should return true when class has RestResource and methods have AuraEnabled" time="0">
+    </testcase>
+    <testcase classname="hasMixedFrameworks should return true when class has HTTP annotations and methods have AuraEnabled" name="hasMixedFrameworks should return true when class has HTTP annotations and methods have AuraEnabled" time="0">
+    </testcase>
+    <testcase classname="hasMixedFrameworks should return false when class has only RestResource and methods have only HTTP annotations" name="hasMixedFrameworks should return false when class has only RestResource and methods have only HTTP annotations" time="0.001">
+    </testcase>
+    <testcase classname="isValidRegistrationProviderType should return true for valid provider types" name="isValidRegistrationProviderType should return true for valid provider types" time="0">
+    </testcase>
+    <testcase classname="isValidRegistrationProviderType should return false for invalid provider types" name="isValidRegistrationProviderType should return false for invalid provider types" time="0">
+    </testcase>
+    <testcase classname="isValidRegistrationProviderType should return false for undefined input" name="isValidRegistrationProviderType should return false for undefined input" time="0.001">
+    </testcase>
+    <testcase classname="hasNoClassAnnotations should return true when class has no annotations" name="hasNoClassAnnotations should return true when class has no annotations" time="0">
+    </testcase>
+    <testcase classname="hasNoClassAnnotations should return false when class has annotations" name="hasNoClassAnnotations should return false when class has annotations" time="0">
+    </testcase>
+    <testcase classname="summarizeDiagnostics should correctly count diagnostics by severity" name="summarizeDiagnostics should correctly count diagnostics by severity" time="0">
+    </testcase>
+    <testcase classname="summarizeDiagnostics should handle empty diagnostics array" name="summarizeDiagnostics should handle empty diagnostics array" time="0.001">
+    </testcase>
+    <testcase classname="getCurrentTimestamp should return timestamp in correct format" name="getCurrentTimestamp should return timestamp in correct format" time="0.002">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should extract JSON string from valid JSON object" name="cleanupGeneratedDoc should extract JSON string from valid JSON object" time="0.002">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should fail for invalid JSON object" name="cleanupGeneratedDoc should fail for invalid JSON object" time="0.033">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should strip markdown code fences with json language identifier" name="cleanupGeneratedDoc should strip markdown code fences with json language identifier" time="0">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should strip markdown code fences without language identifier" name="cleanupGeneratedDoc should strip markdown code fences without language identifier" time="0.001">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should strip markdown code fences with extra whitespace" name="cleanupGeneratedDoc should strip markdown code fences with extra whitespace" time="0">
+    </testcase>
+    <testcase classname="cleanupGeneratedDoc should handle markdown wrapped multi-line JSON" name="cleanupGeneratedDoc should handle markdown wrapped multi-line JSON" time="0">
+    </testcase>
+    <testcase classname="parseOASDocFromJson should parse valid JSON string" name="parseOASDocFromJson should parse valid JSON string" time="0">
+    </testcase>
+    <testcase classname="parseOASDocFromJson should throw error for invalid JSON" name="parseOASDocFromJson should throw error for invalid JSON" time="0.001">
+    </testcase>
+    <testcase classname="parseOASDocFromYaml should parse valid YAML string" name="parseOASDocFromYaml should parse valid YAML string" time="0.012">
+    </testcase>
+    <testcase classname="parseOASDocFromYaml should throw error for invalid YAML" name="parseOASDocFromYaml should throw error for invalid YAML" time="0.002">
+    </testcase>
+    <testcase classname="diagnoseIneligibility explains @RestResource class with no HTTP-verb method" name="diagnoseIneligibility explains @RestResource class with no HTTP-verb method" time="0">
+    </testcase>
+    <testcase classname="diagnoseIneligibility explains HTTP-verb methods on a class missing @RestResource" name="diagnoseIneligibility explains HTTP-verb methods on a class missing @RestResource" time="0">
+    </testcase>
+    <testcase classname="diagnoseIneligibility explains @AuraEnabled methods blocked by class-level annotations" name="diagnoseIneligibility explains @AuraEnabled methods blocked by class-level annotations" time="0">
+    </testcase>
+    <testcase classname="diagnoseIneligibility explains a class with no OpenAPI-relevant annotations at all" name="diagnoseIneligibility explains a class with no OpenAPI-relevant annotations at all" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="externalServiceRegistrationManager" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="0.888" tests="17">
+    <testcase classname="externalServiceRegistrationManager handleExistingESR returns the warning message selection" name="externalServiceRegistrationManager handleExistingESR returns the warning message selection" time="0.003">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getFolderForArtifact returns the selected folder path" name="externalServiceRegistrationManager getFolderForArtifact returns the selected folder path" time="0.015">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getFolderForArtifact returns undefined if no folder is selected" name="externalServiceRegistrationManager getFolderForArtifact returns undefined if no folder is selected" time="0.003">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getFolderForArtifact throws if registry access fails" name="externalServiceRegistrationManager getFolderForArtifact throws if registry access fails" time="0.038">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager replaceXmlToYaml swaps the extension" name="externalServiceRegistrationManager replaceXmlToYaml swaps the extension" time="0.003">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager extractInfoProperties returns the description from info" name="externalServiceRegistrationManager extractInfoProperties returns the description from info" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager extractInfoProperties returns empty string when description is missing" name="externalServiceRegistrationManager extractInfoProperties returns empty string when description is missing" time="0">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getOperationsFromYaml extracts active operations from paths" name="externalServiceRegistrationManager getOperationsFromYaml extracts active operations from paths" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getOperationsFromYaml returns empty array when paths is missing" name="externalServiceRegistrationManager getOperationsFromYaml returns empty array when paths is missing" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager getOperationsFromYaml skips operations without operationId" name="externalServiceRegistrationManager getOperationsFromYaml skips operations without operationId" time="0">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager createESRObject embeds the schema in composed mode" name="externalServiceRegistrationManager createESRObject embeds the schema in composed mode" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager createESRObject omits schema in decomposed mode" name="externalServiceRegistrationManager createESRObject omits schema in decomposed mode" time="0">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager buildESRXml produces XML with the OAS metadata for new files" name="externalServiceRegistrationManager buildESRXml produces XML with the OAS metadata for new files" time="0.008">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager buildESRXml adds operations when merging into existing XML" name="externalServiceRegistrationManager buildESRXml adds operations when merging into existing XML" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager buildESRXml preserves the existing schema when present" name="externalServiceRegistrationManager buildESRXml preserves the existing schema when present" time="0">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager buildESRXml strips merge timestamp suffix from className" name="externalServiceRegistrationManager buildESRXml strips merge timestamp suffix from className" time="0.001">
+    </testcase>
+    <testcase classname="externalServiceRegistrationManager buildESRYaml writes YAML alongside the ESR XML via the FsService" name="externalServiceRegistrationManager buildESRYaml writes YAML alongside the ESR XML via the FsService" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="formatUrlPath" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="0.853" tests="20">
+    <testcase classname="formatUrlPath should format the URL path correctly with parameters" name="formatUrlPath should format the URL path correctly with parameters" time="0.002">
+    </testcase>
+    <testcase classname="formatUrlPath should format the URL path correctly without trailing slash or asterisk" name="formatUrlPath should format the URL path correctly without trailing slash or asterisk" time="0">
+    </testcase>
+    <testcase classname="formatUrlPath should return root path if urlMapping is empty" name="formatUrlPath should return root path if urlMapping is empty" time="0.003">
+    </testcase>
+    <testcase classname="formatUrlPath should handle urlMapping with only asterisk" name="formatUrlPath should handle urlMapping with only asterisk" time="0.001">
+    </testcase>
+    <testcase classname="formatUrlPath should handle urlMapping with only slash" name="formatUrlPath should handle urlMapping with only slash" time="0">
+    </testcase>
+    <testcase classname="formatUrlPath should handle urlMapping with only slash without params" name="formatUrlPath should handle urlMapping with only slash without params" time="0">
+    </testcase>
+    <testcase classname="extractParametersInPath should extract parameters in path correctly" name="extractParametersInPath should extract parameters in path correctly" time="0.002">
+    </testcase>
+    <testcase classname="extractParametersInPath should sort parameters correctly" name="extractParametersInPath should sort parameters correctly" time="0">
+    </testcase>
+    <testcase classname="extractParametersInPath should return empty array if no parameters in path" name="extractParametersInPath should return empty array if no parameters in path" time="0">
+    </testcase>
+    <testcase classname="extractParametersInPath should handle invalid OAS structure gracefully" name="extractParametersInPath should handle invalid OAS structure gracefully" time="0">
+    </testcase>
+    <testcase classname="excludeNon2xxResponses should exclude non-2xx responses" name="excludeNon2xxResponses should exclude non-2xx responses" time="0.001">
+    </testcase>
+    <testcase classname="excludeNon2xxResponses should handle empty responses gracefully" name="excludeNon2xxResponses should handle empty responses gracefully" time="0">
+    </testcase>
+    <testcase classname="excludeNon2xxResponses should handle invalid OAS structure gracefully" name="excludeNon2xxResponses should handle invalid OAS structure gracefully" time="0">
+    </testcase>
+    <testcase classname="getMethodTypeFromAnnotation should return the correct HTTP method for a valid annotation" name="getMethodTypeFromAnnotation should return the correct HTTP method for a valid annotation" time="0.002">
+    </testcase>
+    <testcase classname="getMethodTypeFromAnnotation should fail with MethodNotFoundInDocSymbols for an invalid annotation" name="getMethodTypeFromAnnotation should fail with MethodNotFoundInDocSymbols for an invalid annotation" time="0.054">
+    </testcase>
+    <testcase classname="excludeUnrelatedMethods should exclude unrelated methods" name="excludeUnrelatedMethods should exclude unrelated methods" time="0.001">
+    </testcase>
+    <testcase classname="excludeUnrelatedMethods should handle empty OAS gracefully" name="excludeUnrelatedMethods should handle empty OAS gracefully" time="0">
+    </testcase>
+    <testcase classname="updateOperationIds should update operation IDs correctly" name="updateOperationIds should update operation IDs correctly" time="0.004">
+    </testcase>
+    <testcase classname="updateOperationIds should handle empty OAS gracefully" name="updateOperationIds should handle empty OAS gracefully" time="0">
+    </testcase>
+    <testcase classname="combineYamlByMethod should combine YAML content correctly" name="combineYamlByMethod should combine YAML content correctly" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="promptGenerationOrchestrator pure helpers" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:14" time="0.847" tests="12">
+    <testcase classname="promptGenerationOrchestrator pure helpers getLeastCallsStrategy returns strategy with minimum calls excluding zero" name="promptGenerationOrchestrator pure helpers getLeastCallsStrategy returns strategy with minimum calls excluding zero" time="0.004">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers getLeastCallsStrategy returns first strategy when multiple share min" name="promptGenerationOrchestrator pure helpers getLeastCallsStrategy returns first strategy when multiple share min" time="0.001">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers getLeastCallsStrategy fails when all zero" name="promptGenerationOrchestrator pure helpers getLeastCallsStrategy fails when all zero" time="0.038">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers getLeastCallsStrategy fails for empty bids" name="promptGenerationOrchestrator pure helpers getLeastCallsStrategy fails for empty bids" time="0.001">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers getMostCallsStrategy returns strategy with highest calls" name="promptGenerationOrchestrator pure helpers getMostCallsStrategy returns strategy with highest calls" time="0.001">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers getMostCallsStrategy fails when all zero" name="promptGenerationOrchestrator pure helpers getMostCallsStrategy fails when all zero" time="0.001">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers applyRule applies LEAST_CALLS" name="promptGenerationOrchestrator pure helpers applyRule applies LEAST_CALLS" time="0">
+    </testcase>
+    <testcase classname="promptGenerationOrchestrator pure helpers applyRule applies MOST_CALLS" name="promptGenerationOrchestrator pure helpers applyRule applies MOST_CALLS" time="0.001">
+    </testcase>
+    <testcase classname="selectStrategyByBidRule returns the strategy chosen by LEAST_CALLS" name="selectStrategyByBidRule returns the strategy chosen by LEAST_CALLS" time="0.001">
+    </testcase>
+    <testcase classname="selectStrategyByBidRule returns the strategy chosen by MOST_CALLS" name="selectStrategyByBidRule returns the strategy chosen by MOST_CALLS" time="0.002">
+    </testcase>
+    <testcase classname="selectStrategyByBidRule fails when all bids are zero" name="selectStrategyByBidRule fails when all bids are zero" time="0.002">
+    </testcase>
+    <testcase classname="selectStrategyByBidRule fails when the chosen strategy is missing from the strategies map" name="selectStrategyByBidRule fails when the chosen strategy is missing from the strategies map" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="callLLMWithRetry" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:14" time="0.932" tests="5">
+    <testcase classname="callLLMWithRetry returns the response when the first call is non-empty" name="callLLMWithRetry returns the response when the first call is non-empty" time="0.064">
+    </testcase>
+    <testcase classname="callLLMWithRetry retries on an empty response and returns the first non-empty result" name="callLLMWithRetry retries on an empty response and returns the first non-empty result" time="0.033">
+    </testcase>
+    <testcase classname="callLLMWithRetry fails with LLMRetriesExhausted when every attempt is empty" name="callLLMWithRetry fails with LLMRetriesExhausted when every attempt is empty" time="0.069">
+    </testcase>
+    <testcase classname="callLLMWithRetry retries a connection error (transient) and exhausts to LLMRetriesExhausted, preserving the reason" name="callLLMWithRetry retries a connection error (transient) and exhausts to LLMRetriesExhausted, preserving the reason" time="0.035">
+    </testcase>
+    <testcase classname="callLLMWithRetry invokes the onAttempt callback once per attempt" name="callLLMWithRetry invokes the onAttempt callback once per attempt" time="0.018">
+    </testcase>
+  </testsuite>
+  <testsuite name="ruleset" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="1.542" tests="35">
+    <testcase classname="ruleset open api version must be 3.0.0" name="ruleset open api version must be 3.0.0" time="0.083">
+    </testcase>
+    <testcase classname="ruleset servers url should be present" name="ruleset servers url should be present" time="0.045">
+    </testcase>
+    <testcase classname="ruleset apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer, at global level" name="ruleset apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer, at global level" time="0.021">
+    </testcase>
+    <testcase classname="ruleset paths.&lt;method&gt;.description is required" name="ruleset paths.&lt;method&gt;.description is required" time="0.017">
+    </testcase>
+    <testcase classname="ruleset paths.&lt;method&gt;.servers should not be present" name="ruleset paths.&lt;method&gt;.servers should not be present" time="0.019">
+    </testcase>
+    <testcase classname="ruleset paths.&lt;method&gt;.options should not be present" name="ruleset paths.&lt;method&gt;.options should not be present" time="0.014">
+    </testcase>
+    <testcase classname="ruleset paths.&lt;method&gt;.head should not be present" name="ruleset paths.&lt;method&gt;.head should not be present" time="0.014">
+    </testcase>
+    <testcase classname="ruleset paths.&lt;method&gt;.trace should not be present" name="ruleset paths.&lt;method&gt;.trace should not be present" time="0.014">
+    </testcase>
+    <testcase classname="ruleset info.description is required" name="ruleset info.description is required" time="0.017">
+    </testcase>
+    <testcase classname="ruleset operations-description is required" name="ruleset operations-description is required" time="0.019">
+    </testcase>
+    <testcase classname="ruleset operations-callbacks should not be present" name="ruleset operations-callbacks should not be present" time="0.023">
+    </testcase>
+    <testcase classname="ruleset operations-deprecated should not be present" name="ruleset operations-deprecated should not be present" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations-security should not be present" name="ruleset operations-security should not be present" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations-servers should not be present" name="ruleset operations-servers should not be present" time="0.016">
+    </testcase>
+    <testcase classname="ruleset request body description is required" name="ruleset request body description is required" time="0.018">
+    </testcase>
+    <testcase classname="ruleset requestBody content must be /application/json" name="ruleset requestBody content must be /application/json" time="0.017">
+    </testcase>
+    <testcase classname="ruleset paths.parameters in `cookie` is not allowed" name="ruleset paths.parameters in `cookie` is not allowed" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.parameters in `cookie` is not allowed" name="ruleset operations.parameters in `cookie` is not allowed" time="0.017">
+    </testcase>
+    <testcase classname="ruleset paths.parameters description is required" name="ruleset paths.parameters description is required" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.parameters description is required" name="ruleset operations.parameters description is required" time="0.015">
+    </testcase>
+    <testcase classname="ruleset paths.parameters deprecated is not allowed" name="ruleset paths.parameters deprecated is not allowed" time="0.015">
+    </testcase>
+    <testcase classname="ruleset operations.parameters deprecated is not allowed" name="ruleset operations.parameters deprecated is not allowed" time="0.016">
+    </testcase>
+    <testcase classname="ruleset paths.parameters explode should be false" name="ruleset paths.parameters explode should be false" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.parameters explode should be false" name="ruleset operations.parameters explode should be false" time="0.015">
+    </testcase>
+    <testcase classname="ruleset paths.parameters allowReserved should be false" name="ruleset paths.parameters allowReserved should be false" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.parameters allowReserved should be false" name="ruleset operations.parameters allowReserved should be false" time="0.016">
+    </testcase>
+    <testcase classname="ruleset paths.parameters content should be `application/json`" name="ruleset paths.parameters content should be `application/json`" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.parameters content should be `application/json`" name="ruleset operations.parameters content should be `application/json`" time="0.015">
+    </testcase>
+    <testcase classname="ruleset operations.responses.headers are not allowed" name="ruleset operations.responses.headers are not allowed" time="0.016">
+    </testcase>
+    <testcase classname="ruleset operations.responses.content should be application/json" name="ruleset operations.responses.content should be application/json" time="0.016">
+    </testcase>
+    <testcase classname="ruleset request-media-encoding is not allowed" name="ruleset request-media-encoding is not allowed" time="0.015">
+    </testcase>
+    <testcase classname="ruleset response-media-encoding is not allowed" name="ruleset response-media-encoding is not allowed" time="0.016">
+    </testcase>
+    <testcase classname="ruleset should not log errors when all rules are met" name="ruleset should not log errors when all rules are met" time="0.017">
+    </testcase>
+    <testcase classname=" should not throw false positives when `parameters` property is missing" name=" should not throw false positives when `parameters` property is missing" time="0.015">
+    </testcase>
+    <testcase classname=" should not log info-contact &amp; operation-tag-defined" name=" should not log info-contact &amp; operation-tag-defined" time="0.019">
+    </testcase>
+  </testsuite>
+  <testsuite name="LLMService.ensureAvailable" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:13" time="2.778" tests="7">
+    <testcase classname="LLMService.ensureAvailable succeeds when the service is obtainable on the first try" name="LLMService.ensureAvailable succeeds when the service is obtainable on the first try" time="0.038">
+    </testcase>
+    <testcase classname="LLMService.ensureAvailable retries the obtain and succeeds once the provider registers the service" name="LLMService.ensureAvailable retries the obtain and succeeds once the provider registers the service" time="0.206">
+    </testcase>
+    <testcase classname="LLMService.ensureAvailable fails with a user-actionable LLMCallFailed when the service never appears, raw detail kept as cause" name="LLMService.ensureAvailable fails with a user-actionable LLMCallFailed when the service never appears, raw detail kept as cause" time="0.648">
+    </testcase>
+    <testcase classname="LLMService.ensureAvailable appends the v3 workaround hint when the GPT extension is installed at v4.x" name="LLMService.ensureAvailable appends the v3 workaround hint when the GPT extension is installed at v4.x" time="0.614">
+    </testcase>
+    <testcase classname="LLMService.ensureAvailable omits the v4 hint when the GPT extension is a different major (or absent)" name="LLMService.ensureAvailable omits the v4 hint when the GPT extension is a different major (or absent)" time="0.613">
+    </testcase>
+    <testcase classname="LLMService.callLLM error classification maps a ModelApiRequestError connection failure to LLMConnectionFailed with guidance" name="LLMService.callLLM error classification maps a ModelApiRequestError connection failure to LLMConnectionFailed with guidance" time="0.007">
+    </testcase>
+    <testcase classname="LLMService.callLLM error classification maps an ordinary failure to LLMCallFailed" name="LLMService.callLLM error classification maps an ordinary failure to LLMCallFailed" time="0.006">
+    </testcase>
+  </testsuite>
+</testsuites>

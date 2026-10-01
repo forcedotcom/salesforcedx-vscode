@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="5" failures="0" errors="0" time="0.272">
+  <testsuite name="AuraLspStatusBarItem" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:26" time="0.158" tests="5">
+    <testcase classname="AuraLspStatusBarItem initialization should create language status item scoped to Aura file patterns" name="AuraLspStatusBarItem initialization should create language status item scoped to Aura file patterns" time="0.002">
+    </testcase>
+    <testcase classname="AuraLspStatusBarItem initialization should set indexing status on creation" name="AuraLspStatusBarItem initialization should set indexing status on creation" time="0">
+    </testcase>
+    <testcase classname="AuraLspStatusBarItem status updates should update status when indexing" name="AuraLspStatusBarItem status updates should update status when indexing" time="0.001">
+    </testcase>
+    <testcase classname="AuraLspStatusBarItem status updates should update status when ready" name="AuraLspStatusBarItem status updates should update status when ready" time="0">
+    </testcase>
+    <testcase classname="AuraLspStatusBarItem disposal should dispose language status item" name="AuraLspStatusBarItem disposal should dispose language status item" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>

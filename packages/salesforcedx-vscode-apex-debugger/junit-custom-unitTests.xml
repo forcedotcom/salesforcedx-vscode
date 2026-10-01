@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="10" failures="0" errors="0" time="0.938">
+  <testsuite name="isvDebugBootstrap pure helpers" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:22" time="0.381" tests="5">
+    <testcase classname="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns the NamespacePrefix from the first record" name="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns the NamespacePrefix from the first record" time="0.002">
+    </testcase>
+    <testcase classname="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns empty string when NamespacePrefix is null" name="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns empty string when NamespacePrefix is null" time="0">
+    </testcase>
+    <testcase classname="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns empty string when there are no records" name="isvDebugBootstrap pure helpers parseOrgNamespaceQueryResultJson returns empty string when there are no records" time="0.001">
+    </testcase>
+    <testcase classname="isvDebugBootstrap pure helpers parsePackageInstalledListJson maps subscriber-package fields into installed-package descriptors" name="isvDebugBootstrap pure helpers parsePackageInstalledListJson maps subscriber-package fields into installed-package descriptors" time="0">
+    </testcase>
+    <testcase classname="isvDebugBootstrap pure helpers parsePackageInstalledListJson returns an empty array when no packages are installed" name="isvDebugBootstrap pure helpers parsePackageInstalledListJson returns an empty array when no packages are installed" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="debuggerStop" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:22" time="0.406" tests="4">
+    <testcase classname="debuggerStop shows &quot;none found&quot; and does NOT update when the query returns 0 records" name="debuggerStop shows &quot;none found&quot; and does NOT update when the query returns 0 records" time="0.007">
+    </testcase>
+    <testcase classname="debuggerStop detaches the session and shows the success toast when the query returns a record" name="debuggerStop detaches the session and shows the success toast when the query returns a record" time="0.002">
+    </testcase>
+    <testcase classname="debuggerStop surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects" name="debuggerStop surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects" time="0.009">
+    </testcase>
+    <testcase classname="debuggerStop builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org" name="debuggerStop builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="activateEffect" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:31:22" time="0.603" tests="1">
+    <testcase classname="activateEffect registers the Effect-based commands" name="activateEffect registers the Effect-based commands" time="0.007">
+    </testcase>
+  </testsuite>
+</testsuites>

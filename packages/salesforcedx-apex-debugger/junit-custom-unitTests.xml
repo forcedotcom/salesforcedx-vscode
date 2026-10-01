@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="241" failures="0" errors="0" time="2.559">
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.672" tests="7">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.003">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0.001">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0">
+    </testcase>
+    <testcase classname="Step commands Step Into command should have proper request url" name="Step commands Step Into command should have proper request url" time="0.001">
+    </testcase>
+    <testcase classname="Step commands Step Out command should have proper request url" name="Step commands Step Out command should have proper request url" time="0">
+    </testcase>
+    <testcase classname="Step commands Step Over command should have proper request url" name="Step commands Step Over command should have proper request url" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="CliCommandExecution Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.71" tests="9">
+    <testcase classname="CliCommandExecution Unit Tests. Should be able to create an instance." name="CliCommandExecution Unit Tests. Should be able to create an instance." time="0.005">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Should be able to create an instance with cancelation token." name="CliCommandExecution Unit Tests. Should be able to create an instance with cancelation token." time="0.001">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Subscribe handlers. Should call timer unsubscribe on exit." name="CliCommandExecution Unit Tests. Subscribe handlers. Should call timer unsubscribe on exit." time="0.001">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Subscribe handlers. Should call timer unsubscribe on error." name="CliCommandExecution Unit Tests. Subscribe handlers. Should call timer unsubscribe on error." time="0">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no pid." name="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no pid." time="0.007">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no stdout." name="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no stdout." time="0">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no stderr." name="CliCommandExecution Unit Tests. Verify child process. Should fail to create if child has no stderr." time="0.001">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. kill on timeout. Should be able to successfully kill child process." name="CliCommandExecution Unit Tests. kill on timeout. Should be able to successfully kill child process." time="0">
+    </testcase>
+    <testcase classname="CliCommandExecution Unit Tests. kill on timeout. Should log if fails to kill child process." name="CliCommandExecution Unit Tests. kill on timeout. Should log if fails to kill child process." time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.727" tests="4">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.004">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0.007">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="CliCommandExecutor Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.758" tests="2">
+    <testcase classname="CliCommandExecutor Unit Tests. Should be able to create an instance with the env patched." name="CliCommandExecutor Unit Tests. Should be able to create an instance with the env patched." time="0.004">
+    </testcase>
+    <testcase classname="CliCommandExecutor Unit Tests. Should be able to execute the command." name="CliCommandExecutor Unit Tests. Should be able to execute the command." time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.658" tests="5">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.004">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0.001">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0.001">
+    </testcase>
+    <testcase classname="References command Should build request" name="References command Should build request" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.666" tests="6">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.003">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0.001">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0">
+    </testcase>
+    <testcase classname="State command Should build request" name="State command Should build request" time="0.027">
+    </testcase>
+    <testcase classname="State command Should handle run command error" name="State command Should handle run command error" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="RequestService unit tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.715" tests="9">
+    <testcase classname="RequestService unit tests. should be able to create an instance." name="RequestService unit tests. should be able to create an instance." time="0.003">
+    </testcase>
+    <testcase classname="RequestService unit tests. Should have default timeout." name="RequestService unit tests. Should have default timeout." time="0.001">
+    </testcase>
+    <testcase classname="RequestService unit tests. getEnvVars() should not include request specific properties if not set." name="RequestService unit tests. getEnvVars() should not include request specific properties if not set." time="0">
+    </testcase>
+    <testcase classname="RequestService unit tests. getEnvVars() Should include request specific properties if defined." name="RequestService unit tests. getEnvVars() Should include request specific properties if defined." time="0.001">
+    </testcase>
+    <testcase classname="RequestService unit tests. execute() Should include proxy info if defined." name="RequestService unit tests. execute() Should include proxy info if defined." time="0.014">
+    </testcase>
+    <testcase classname="RequestService unit tests. execute() Should include proxy authorization info if defined." name="RequestService unit tests. execute() Should include proxy authorization info if defined." time="0.002">
+    </testcase>
+    <testcase classname="RequestService unit tests. execute() Should include query string if defined." name="RequestService unit tests. execute() Should include query string if defined." time="0.007">
+    </testcase>
+    <testcase classname="RequestService unit tests. execute() Should reject on error." name="RequestService unit tests. execute() Should reject on error." time="0">
+    </testcase>
+    <testcase classname="RequestService unit tests. sendRequest() Should make the xhr call on sendRequest." name="RequestService unit tests. sendRequest() Should make the xhr call on sendRequest." time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="extractJsonObject unit tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.048" tests="2">
+    <testcase classname="extractJsonObject unit tests Should be able to parse a json string." name="extractJsonObject unit tests Should be able to parse a json string." time="0.001">
+    </testcase>
+    <testcase classname="extractJsonObject unit tests Should throw if JSON fails to parse." name="extractJsonObject unit tests Should throw if JSON fails to parse." time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.058" tests="5">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.011">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0">
+    </testcase>
+    <testcase classname="Frame command Should build request" name="Frame command Should build request" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base command" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.055" tests="5">
+    <testcase classname="Base command Should build request without query string" name="Base command Should build request without query string" time="0.001">
+    </testcase>
+    <testcase classname="Base command Should build request with query string" name="Base command Should build request with query string" time="0.001">
+    </testcase>
+    <testcase classname="Base command Should build request with body" name="Base command Should build request with body" time="0">
+    </testcase>
+    <testcase classname="Base command Should handle command error" name="Base command Should handle command error" time="0.005">
+    </testcase>
+    <testcase classname="Run command Should have proper request path" name="Run command Should have proper request path" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="breakpointService Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.854" tests="36">
+    <testcase classname="breakpointService Unit Tests. Should be able to construct an instance." name="breakpointService Unit Tests. Should be able to construct an instance." time="0.003">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. Should be able to call setValidLines." name="breakpointService Unit Tests. Should be able to call setValidLines." time="0.011">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. Should return false if hasLineNumberMapping is empty." name="breakpointService Unit Tests. Should return false if hasLineNumberMapping is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return false if isApexDebuggerBreakpointId is empty." name="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return false if isApexDebuggerBreakpointId is empty." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return false if isApexDebuggerBreakpointId is not the debugger id." name="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return false if isApexDebuggerBreakpointId is not the debugger id." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return true if isApexDebuggerBreakpointId is not value." name="breakpointService Unit Tests. isApexDebuggerBreakpointId() Should return true if isApexDebuggerBreakpointId is not value." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getTyperefFor() Should return undefined if getTyperefFor is empty." name="breakpointService Unit Tests. getTyperefFor() Should return undefined if getTyperefFor is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getTyperefFor() Should return undefined if the line is not found." name="breakpointService Unit Tests. getTyperefFor() Should return undefined if the line is not found." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getTyperefFor() Should return the typeref if the line is found." name="breakpointService Unit Tests. getTyperefFor() Should return the typeref if the line is found." time="0.028">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getSourcePathFromTyperef() Should return undefined if getSourcePathFromTyperef is empty." name="breakpointService Unit Tests. getSourcePathFromTyperef() Should return undefined if getSourcePathFromTyperef is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getSourcePathFromTyperef() Should return typeref if getSourcePathFromTyperef is not empty." name="breakpointService Unit Tests. getSourcePathFromTyperef() Should return typeref if getSourcePathFromTyperef is not empty." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getSourcePathFromPartialTyperef() Should return undefined if getSourcePathFromPartialTyperef is empty." name="breakpointService Unit Tests. getSourcePathFromPartialTyperef() Should return undefined if getSourcePathFromPartialTyperef is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getSourcePathFromPartialTyperef() Should return typeref if getSourcePathFromPartialTyperef is not empty." name="breakpointService Unit Tests. getSourcePathFromPartialTyperef() Should return typeref if getSourcePathFromPartialTyperef is not empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. cacheLineBreakpoint() Should return undefined if cacheLineBreakpoint is empty." name="breakpointService Unit Tests. cacheLineBreakpoint() Should return undefined if cacheLineBreakpoint is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. cacheLineBreakpoint() Should add a new line breakpoint to the cache." name="breakpointService Unit Tests. cacheLineBreakpoint() Should add a new line breakpoint to the cache." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getBreakpointsFor() Should return undefined if getBreakpointsFor is empty." name="breakpointService Unit Tests. getBreakpointsFor() Should return undefined if getBreakpointsFor is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getBreakpointsFor() Should return a set of breakpoints." name="breakpointService Unit Tests. getBreakpointsFor() Should return a set of breakpoints." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getExceptionBreakpointCache() Should return undefined if getExceptionBreakpointCache is empty." name="breakpointService Unit Tests. getExceptionBreakpointCache() Should return undefined if getExceptionBreakpointCache is empty." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getExceptionBreakpointCache() Should return a set of breakpoints." name="breakpointService Unit Tests. getExceptionBreakpointCache() Should return a set of breakpoints." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getLineBreakpointCache() Should return undefined if getLineBreakpointCache is empty." name="breakpointService Unit Tests. getLineBreakpointCache() Should return undefined if getLineBreakpointCache is empty." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getLineBreakpointCache() Should return a set of breakpoints." name="breakpointService Unit Tests. getLineBreakpointCache() Should return a set of breakpoints." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getBreakpointsFor() cache Should return undefined if cache is empty." name="breakpointService Unit Tests. getBreakpointsFor() cache Should return undefined if cache is empty." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. getBreakpointsFor() cache Should return a breakpoint." name="breakpointService Unit Tests. getBreakpointsFor() cache Should return a breakpoint." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createLineBreakpoint() Should resolve to breakpointId if found." name="breakpointService Unit Tests. createLineBreakpoint() Should resolve to breakpointId if found." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createLineBreakpoint() Should reject with result if not a breakpoint id." name="breakpointService Unit Tests. createLineBreakpoint() Should reject with result if not a breakpoint id." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createLineBreakpoint() Should reject with result if not able to parse." name="breakpointService Unit Tests. createLineBreakpoint() Should reject with result if not able to parse." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. deleteBreakpoint() Should resolve to breakpointId if deleted." name="breakpointService Unit Tests. deleteBreakpoint() Should resolve to breakpointId if deleted." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. deleteBreakpoint() Should reject with result if not a breakpoint id." name="breakpointService Unit Tests. deleteBreakpoint() Should reject with result if not a breakpoint id." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. deleteBreakpoint() Should reject with result if not able to parse." name="breakpointService Unit Tests. deleteBreakpoint() Should reject with result if not able to parse." time="0.006">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. reconcileLineBreakpoints() Should delete breakpoint if known and not in clientLines." name="breakpointService Unit Tests. reconcileLineBreakpoints() Should delete breakpoint if known and not in clientLines." time="0.002">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. reconcileLineBreakpoints() Should create a breakpoint if typeref is found ." name="breakpointService Unit Tests. reconcileLineBreakpoints() Should create a breakpoint if typeref is found ." time="0.008">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createExceptionBreakpoint() Should resolve to breakpointId if deleted." name="breakpointService Unit Tests. createExceptionBreakpoint() Should resolve to breakpointId if deleted." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createExceptionBreakpoint() Should reject with result if not a breakpoint id." name="breakpointService Unit Tests. createExceptionBreakpoint() Should reject with result if not a breakpoint id." time="0">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. createExceptionBreakpoint() Should reject with result if not able to parse." name="breakpointService Unit Tests. createExceptionBreakpoint() Should reject with result if not able to parse." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. reconcileExceptionBreakpoints() Should delete breakpoint if known and never." name="breakpointService Unit Tests. reconcileExceptionBreakpoints() Should delete breakpoint if known and never." time="0.001">
+    </testcase>
+    <testcase classname="breakpointService Unit Tests. reconcileExceptionBreakpoints() Should create breakpoint if not known and always." name="breakpointService Unit Tests. reconcileExceptionBreakpoints() Should create breakpoint if not known and always." time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Debugger streaming client" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="0.904" tests="2">
+    <testcase classname="Debugger streaming client Helpers Should set &amp; get replay ID" name="Debugger streaming client Helpers Should set &amp; get replay ID" time="0.003">
+    </testcase>
+    <testcase classname="Debugger streaming client Faye Should set headers" name="Debugger streaming client Faye Should set headers" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Debugger adapter variable handling - unit" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="1.25" tests="37">
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should use proper values from Value" name="Debugger adapter variable handling - unit ApexVariable Should use proper values from Value" time="0.003">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should set slot to MAX integer for non local value" name="Debugger adapter variable handling - unit ApexVariable Should set slot to MAX integer for non local value" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should set slot to specific value for LocalValue" name="Debugger adapter variable handling - unit ApexVariable Should set slot to specific value for LocalValue" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print null string as &quot;null&quot;" name="Debugger adapter variable handling - unit ApexVariable Should correctly print null string as &quot;null&quot;" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print empty string" name="Debugger adapter variable handling - unit ApexVariable Should correctly print empty string" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print string" name="Debugger adapter variable handling - unit ApexVariable Should correctly print string" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print value" name="Debugger adapter variable handling - unit ApexVariable Should correctly print value" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print null" name="Debugger adapter variable handling - unit ApexVariable Should correctly print null" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with undefined value as its type label" name="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with undefined value as its type label" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with non-string value as its type label" name="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with non-string value as its type label" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should preserve reference-backed collection string summary" name="Debugger adapter variable handling - unit ApexVariable Should preserve reference-backed collection string summary" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should expose variablesReference for reference-backed values (expansion preserved)" name="Debugger adapter variable handling - unit ApexVariable Should expose variablesReference for reference-backed values (expansion preserved)" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare Value of different kinds" name="Debugger adapter variable handling - unit ApexVariable Should compare Value of different kinds" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare Value of same kinds" name="Debugger adapter variable handling - unit ApexVariable Should compare Value of same kinds" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Local" name="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Local" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Field" name="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Field" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on name for others" name="Debugger adapter variable handling - unit ApexVariable Should compare based on name for others" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on numbered name (eg. array index)" name="Debugger adapter variable handling - unit ApexVariable Should compare based on numbered name (eg. array index)" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare numbered name with string" name="Debugger adapter variable handling - unit ApexVariable Should compare numbered name with string" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand object correctly" name="Debugger adapter variable handling - unit populateReferences Should expand object correctly" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand list correctly" name="Debugger adapter variable handling - unit populateReferences Should expand list correctly" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand set correctly" name="Debugger adapter variable handling - unit populateReferences Should expand set correctly" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand map correctly" name="Debugger adapter variable handling - unit populateReferences Should expand map correctly" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should not expand unknown reference type" name="Debugger adapter variable handling - unit populateReferences Should not expand unknown reference type" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should handle undefined input" name="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should handle undefined input" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should call fetchReferences for unknown input" name="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should call fetchReferences for unknown input" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest with variables info" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest with variables info" time="0.002">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest without variables info" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest without variables info" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should populate as part of fetchFrameVariables" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should populate as part of fetchFrameVariables" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should return no scopes for unknown frameId" name="Debugger adapter variable handling - unit scopesRequest Should return no scopes for unknown frameId" time="0.002">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should return three scopes for known frameId" name="Debugger adapter variable handling - unit scopesRequest Should return three scopes for known frameId" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand local scope" name="Debugger adapter variable handling - unit scopesRequest Should expand local scope" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand static scope" name="Debugger adapter variable handling - unit scopesRequest Should expand static scope" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand global scope" name="Debugger adapter variable handling - unit scopesRequest Should expand global scope" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return no variables for unknown variablesReference" name="Debugger adapter variable handling - unit variablesRequest Should return no variables for unknown variablesReference" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return variables for known variablesReference" name="Debugger adapter variable handling - unit variablesRequest Should return variables for known variablesReference" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return no variables when expand errors out" name="Debugger adapter variable handling - unit variablesRequest Should return no variables when expand errors out" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Debugger adapter variable handling - unit" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:53" time="1.456" tests="112">
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should use proper values from Value" name="Debugger adapter variable handling - unit ApexVariable Should use proper values from Value" time="0.003">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should set slot to MAX integer for non local value" name="Debugger adapter variable handling - unit ApexVariable Should set slot to MAX integer for non local value" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should set slot to specific value for LocalValue" name="Debugger adapter variable handling - unit ApexVariable Should set slot to specific value for LocalValue" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print null string as &quot;null&quot;" name="Debugger adapter variable handling - unit ApexVariable Should correctly print null string as &quot;null&quot;" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print empty string" name="Debugger adapter variable handling - unit ApexVariable Should correctly print empty string" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print string" name="Debugger adapter variable handling - unit ApexVariable Should correctly print string" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print value" name="Debugger adapter variable handling - unit ApexVariable Should correctly print value" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should correctly print null" name="Debugger adapter variable handling - unit ApexVariable Should correctly print null" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with undefined value as its type label" name="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with undefined value as its type label" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with non-string value as its type label" name="Debugger adapter variable handling - unit ApexVariable Should summarize reference-backed SObject field with non-string value as its type label" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should preserve reference-backed collection string summary" name="Debugger adapter variable handling - unit ApexVariable Should preserve reference-backed collection string summary" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should expose variablesReference for reference-backed values (expansion preserved)" name="Debugger adapter variable handling - unit ApexVariable Should expose variablesReference for reference-backed values (expansion preserved)" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare Value of different kinds" name="Debugger adapter variable handling - unit ApexVariable Should compare Value of different kinds" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare Value of same kinds" name="Debugger adapter variable handling - unit ApexVariable Should compare Value of same kinds" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Local" name="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Local" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Field" name="Debugger adapter variable handling - unit ApexVariable Should compare based on slot for Field" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on name for others" name="Debugger adapter variable handling - unit ApexVariable Should compare based on name for others" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare based on numbered name (eg. array index)" name="Debugger adapter variable handling - unit ApexVariable Should compare based on numbered name (eg. array index)" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexVariable Should compare numbered name with string" name="Debugger adapter variable handling - unit ApexVariable Should compare numbered name with string" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand object correctly" name="Debugger adapter variable handling - unit populateReferences Should expand object correctly" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand list correctly" name="Debugger adapter variable handling - unit populateReferences Should expand list correctly" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand set correctly" name="Debugger adapter variable handling - unit populateReferences Should expand set correctly" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should expand map correctly" name="Debugger adapter variable handling - unit populateReferences Should expand map correctly" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit populateReferences Should not expand unknown reference type" name="Debugger adapter variable handling - unit populateReferences Should not expand unknown reference type" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should handle undefined input" name="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should handle undefined input" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should call fetchReferences for unknown input" name="Debugger adapter variable handling - unit resolveApexIdToVariableReference Should call fetchReferences for unknown input" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest with variables info" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest with variables info" time="0.002">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest without variables info" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should create as part of stackTraceRequest without variables info" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should populate as part of fetchFrameVariables" name="Debugger adapter variable handling - unit ApexDebugStackFrameInfo Should populate as part of fetchFrameVariables" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should return no scopes for unknown frameId" name="Debugger adapter variable handling - unit scopesRequest Should return no scopes for unknown frameId" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should return three scopes for known frameId" name="Debugger adapter variable handling - unit scopesRequest Should return three scopes for known frameId" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand local scope" name="Debugger adapter variable handling - unit scopesRequest Should expand local scope" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand static scope" name="Debugger adapter variable handling - unit scopesRequest Should expand static scope" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit scopesRequest Should expand global scope" name="Debugger adapter variable handling - unit scopesRequest Should expand global scope" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return no variables for unknown variablesReference" name="Debugger adapter variable handling - unit variablesRequest Should return no variables for unknown variablesReference" time="0">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return variables for known variablesReference" name="Debugger adapter variable handling - unit variablesRequest Should return variables for known variablesReference" time="0.001">
+    </testcase>
+    <testcase classname="Debugger adapter variable handling - unit variablesRequest Should return no variables when expand errors out" name="Debugger adapter variable handling - unit variablesRequest Should return no variables when expand errors out" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Attach Should not attach" name="Interactive debugger adapter - unit Attach Should not attach" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should launch successfully (interactive debugger)" name="Interactive debugger adapter - unit Launch Should launch successfully (interactive debugger)" time="0.002">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should not launch if ApexDebuggerSession object is not accessible" name="Interactive debugger adapter - unit Launch Should not launch if ApexDebuggerSession object is not accessible" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should not launch if streaming service errors out" name="Interactive debugger adapter - unit Launch Should not launch if streaming service errors out" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should not launch without line number mapping" name="Interactive debugger adapter - unit Launch Should not launch without line number mapping" time="0.002">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should launch successfully for ISV project (ISV debugger)" name="Interactive debugger adapter - unit Launch Should launch successfully for ISV project (ISV debugger)" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)" name="Interactive debugger adapter - unit Launch Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should configure tracing with boolean" name="Interactive debugger adapter - unit Launch Should configure tracing with boolean" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should not do any tracing by default" name="Interactive debugger adapter - unit Launch Should not do any tracing by default" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should configure tracing for specific category only" name="Interactive debugger adapter - unit Launch Should configure tracing for specific category only" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should configure tracing for all categories" name="Interactive debugger adapter - unit Launch Should configure tracing for all categories" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should return empty string with null launch array" name="Interactive debugger adapter - unit Launch Should return empty string with null launch array" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Launch Should return empty string with empty launch array" name="Interactive debugger adapter - unit Launch Should return empty string with empty launch array" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Workspace settings Should save proxy settings" name="Interactive debugger adapter - unit Workspace settings Should save proxy settings" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Workspace settings Should save connection settings" name="Interactive debugger adapter - unit Workspace settings Should save connection settings" time="0.229">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Line breakpoint info Should not save line number mapping" name="Interactive debugger adapter - unit Line breakpoint info Should not save line number mapping" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Line breakpoint info Should save line number mapping" name="Interactive debugger adapter - unit Line breakpoint info Should save line number mapping" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Idle session Should clear idle timers" name="Interactive debugger adapter - unit Idle session Should clear idle timers" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Idle session Should create idle timers" name="Interactive debugger adapter - unit Idle session Should create idle timers" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Disconnect Should not use session service if not connected" name="Interactive debugger adapter - unit Disconnect Should not use session service if not connected" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Disconnect Should try to disconnect and stop" name="Interactive debugger adapter - unit Disconnect Should try to disconnect and stop" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Disconnect Should try to disconnect and not stop" name="Interactive debugger adapter - unit Disconnect Should try to disconnect and not stop" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Line breakpoint request Should create breakpoint" name="Interactive debugger adapter - unit Line breakpoint request Should create breakpoint" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Line breakpoint request Should not create breakpoint without source argument" name="Interactive debugger adapter - unit Line breakpoint request Should not create breakpoint without source argument" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Line breakpoint request Should not create breakpoint without lines argument" name="Interactive debugger adapter - unit Line breakpoint request Should not create breakpoint without lines argument" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Continue request Should continue successfully" name="Interactive debugger adapter - unit Continue request Should continue successfully" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Continue request Should not continue unknown thread" name="Interactive debugger adapter - unit Continue request Should not continue unknown thread" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Continue request Should handle run command error response" name="Interactive debugger adapter - unit Continue request Should handle run command error response" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stepping Step into should call proper command" name="Interactive debugger adapter - unit Stepping Step into should call proper command" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stepping Step out should send proper command" name="Interactive debugger adapter - unit Stepping Step out should send proper command" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stepping Step over should send proper command" name="Interactive debugger adapter - unit Stepping Step over should send proper command" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Threads request Should return known debugged requests" name="Interactive debugger adapter - unit Threads request Should return known debugged requests" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Threads request Should not return any debugged requests" name="Interactive debugger adapter - unit Threads request Should not return any debugged requests" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stacktrace request Should not get state of unknown thread" name="Interactive debugger adapter - unit Stacktrace request Should not get state of unknown thread" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stacktrace request Should return response with empty stackframes" name="Interactive debugger adapter - unit Stacktrace request Should return response with empty stackframes" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stacktrace request Should process stack frame with local source" name="Interactive debugger adapter - unit Stacktrace request Should process stack frame with local source" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stacktrace request Should process stack frame with unknown source" name="Interactive debugger adapter - unit Stacktrace request Should process stack frame with unknown source" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Stacktrace request Should handle state command error response" name="Interactive debugger adapter - unit Stacktrace request Should handle state command error response" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Hotswap warning Should log warning to debug console" name="Interactive debugger adapter - unit Custom request Hotswap warning Should log warning to debug console" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Exception breakpoint request Should create exception breakpoint" name="Interactive debugger adapter - unit Custom request Exception breakpoint request Should create exception breakpoint" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Exception breakpoint request Should remove exception breakpoint" name="Interactive debugger adapter - unit Custom request Exception breakpoint request Should remove exception breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Exception breakpoint request Should ignore unknown break mode" name="Interactive debugger adapter - unit Custom request Exception breakpoint request Should ignore unknown break mode" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Exception breakpoint request Should not call breakpoint service with undefined request args" name="Interactive debugger adapter - unit Custom request Exception breakpoint request Should not call breakpoint service with undefined request args" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request Exception breakpoint request Should not call breakpoint service with undefined exception info" name="Interactive debugger adapter - unit Custom request Exception breakpoint request Should not call breakpoint service with undefined exception info" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Custom request List exception breakpoints Should return list of breakpoint typerefs" name="Interactive debugger adapter - unit Custom request List exception breakpoints Should return list of breakpoint typerefs" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Logging Should not log without an error" name="Interactive debugger adapter - unit Logging Should not log without an error" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Logging Should not log error without an error message" name="Interactive debugger adapter - unit Logging Should not log error without an error message" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Logging Should error to console with unexpected error schema" name="Interactive debugger adapter - unit Logging Should error to console with unexpected error schema" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Logging Should error to console with non JSON" name="Interactive debugger adapter - unit Logging Should error to console with non JSON" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Logging Should log debugger event to console" name="Interactive debugger adapter - unit Logging Should log debugger event to console" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Streaming Should call streaming service subscribe" name="Interactive debugger adapter - unit Streaming Should call streaming service subscribe" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should stop session service" name="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should stop session service" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should not stop session service if session IDs do not match" name="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should not stop session service if session IDs do not match" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should not stop session service if it is not connected" name="Interactive debugger adapter - unit Debugger events [SessionTerminated] - Should not stop session service if it is not connected" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [RequestStarted] - Should create new request thread" name="Interactive debugger adapter - unit Debugger events [RequestStarted] - Should create new request thread" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should delete request thread" name="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should delete request thread" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should not handle unknown request" name="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should not handle unknown request" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should clear variable handles" name="Interactive debugger adapter - unit Debugger events [RequestFinished] - Should clear variable handles" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Resumed] - Should send continued event" name="Interactive debugger adapter - unit Debugger events [Resumed] - Should send continued event" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Resumed] - Should not handle unknown request" name="Interactive debugger adapter - unit Debugger events [Resumed] - Should not handle unknown request" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should send breakpoint stopped event" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should send breakpoint stopped event" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception type when stopped on exception breakpoint" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception type when stopped on exception breakpoint" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced orgs" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced orgs" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced org with exception as inner class" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced org with exception as inner class" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced org with exception as inner class in a trigger" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should display exception for namespaced org with exception as inner class in a trigger" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should send stepping stopped event" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should send stepping stopped event" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should not handle without request ID" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should not handle without request ID" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Stopped] - Should not clear variable handles" name="Interactive debugger adapter - unit Debugger events [Stopped] - Should not clear variable handles" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SystemWarning] - Should send events with description" name="Interactive debugger adapter - unit Debugger events [SystemWarning] - Should send events with description" time="0.001">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SystemWarning] - Should not send event without description" name="Interactive debugger adapter - unit Debugger events [SystemWarning] - Should not send event without description" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SystemGack] - Should send events with description" name="Interactive debugger adapter - unit Debugger events [SystemGack] - Should send events with description" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SystemGack] - Should not send event without description" name="Interactive debugger adapter - unit Debugger events [SystemGack] - Should not send event without description" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [ApexException] - Should log event" name="Interactive debugger adapter - unit Debugger events [ApexException] - Should log event" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [Debug] - Should log event" name="Interactive debugger adapter - unit Debugger events [Debug] - Should log event" time="0">
+    </testcase>
+    <testcase classname="Interactive debugger adapter - unit Debugger events [SystemInfo] - Should log event" name="Interactive debugger adapter - unit Debugger events [SystemInfo] - Should log event" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>

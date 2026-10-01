@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="4" failures="0" errors="0" time="1.45">
+  <testsuite name="ChannelDisposalLayer" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:22:31" time="0.261" tests="1">
+    <testcase classname="ChannelDisposalLayer disposes each cached output channel when its scope closes" name="ChannelDisposalLayer disposes each cached output channel when its scope closes" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="Extension" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:22:31" time="1.139" tests="3">
+    <testcase classname="Extension activates with one default-org ref shared by policy, snapshot, and span SDKs" name="Extension activates with one default-org ref shared by policy, snapshot, and span SDKs" time="0.147">
+    </testcase>
+    <testcase classname="Extension should deactivate successfully" name="Extension should deactivate successfully" time="0.048">
+    </testcase>
+    <testcase classname="Extension cleans up the runtime and extension scope when activation fails after acquisition" name="Extension cleans up the runtime and extension scope when activation fails after acquisition" time="0.136">
+    </testcase>
+  </testsuite>
+</testsuites>

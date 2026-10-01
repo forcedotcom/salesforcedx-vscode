@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="59" failures="0" errors="0" time="0.606">
+  <testsuite name="Message Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:35:32" time="0.257" tests="18">
+    <testcase classname="Message Unit Tests. Should be able to create an instance." name="Message Unit Tests. Should be able to create an instance." time="0.003">
+    </testcase>
+    <testcase classname="Message Unit Tests. Should find the label in the primary messageBundle." name="Message Unit Tests. Should find the label in the primary messageBundle." time="0.004">
+    </testcase>
+    <testcase classname="Message Unit Tests. Should find the label in the delegate messageBundle." name="Message Unit Tests. Should find the label in the delegate messageBundle." time="0.001">
+    </testcase>
+    <testcase classname="Message Unit Tests. label not found Should return error label if not found in either bundle." name="Message Unit Tests. label not found Should return error label if not found in either bundle." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. label not found Should return error label with args if not found in either bundle." name="Message Unit Tests. label not found Should return error label with args if not found in either bundle." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. label not found Should return error label if no delegate and no lable found." name="Message Unit Tests. label not found Should return error label if no delegate and no lable found." time="0.001">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments Should correctly populate args." name="Message Unit Tests. passing arguments Should correctly populate args." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments Should ignore extra args." name="Message Unit Tests. passing arguments Should ignore extra args." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments Should only partially populate if too few args are passed." name="Message Unit Tests. passing arguments Should only partially populate if too few args are passed." time="0.001">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle %i (integer) format specifier." name="Message Unit Tests. passing arguments format specifiers Should handle %i (integer) format specifier." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle %d (decimal) format specifier." name="Message Unit Tests. passing arguments format specifiers Should handle %d (decimal) format specifier." time="0.001">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle %f (float) format specifier." name="Message Unit Tests. passing arguments format specifiers Should handle %f (float) format specifier." time="0.001">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle %j (JSON) format specifier." name="Message Unit Tests. passing arguments format specifiers Should handle %j (JSON) format specifier." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle mixed format specifiers." name="Message Unit Tests. passing arguments format specifiers Should handle mixed format specifiers." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle %% (literal percent) without consuming arguments." name="Message Unit Tests. passing arguments format specifiers Should handle %% (literal percent) without consuming arguments." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle all format specifiers together." name="Message Unit Tests. passing arguments format specifiers Should handle all format specifiers together." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should count format specifiers correctly and ignore %%." name="Message Unit Tests. passing arguments format specifiers Should count format specifiers correctly and ignore %%." time="0">
+    </testcase>
+    <testcase classname="Message Unit Tests. passing arguments format specifiers Should handle partial population with mixed format specifiers." name="Message Unit Tests. passing arguments format specifiers Should handle partial population with mixed format specifiers." time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="createNls locale resolution" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:35:32" time="0.257" tests="5">
+    <testcase classname="createNls locale resolution serves JA when locale param is ja" name="createNls locale resolution serves JA when locale param is ja" time="0.003">
+    </testcase>
+    <testcase classname="createNls locale resolution serves base when locale param is unsupported and no env" name="createNls locale resolution serves base when locale param is unsupported and no env" time="0">
+    </testcase>
+    <testcase classname="createNls locale resolution serves base when no locale param and no env" name="createNls locale resolution serves base when no locale param and no env" time="0">
+    </testcase>
+    <testcase classname="createNls locale resolution resolves JA from VSCODE_NLS_CONFIG env when no param (node path)" name="createNls locale resolution resolves JA from VSCODE_NLS_CONFIG env when no param (node path)" time="0.001">
+    </testcase>
+    <testcase classname="createNls locale resolution locale param wins over env" name="createNls locale resolution locale param wins over env" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Advanced Localization Unit Tests" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:35:32" time="0.285" tests="27">
+    <testcase classname="Advanced Localization Unit Tests LocalizationConfig should create a singleton instance" name="Advanced Localization Unit Tests LocalizationConfig should create a singleton instance" time="0.003">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationConfig should recognize supported locales" name="Advanced Localization Unit Tests LocalizationConfig should recognize supported locales" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationConfig should handle non-string locale values" name="Advanced Localization Unit Tests LocalizationConfig should handle non-string locale values" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationConfig should return the default locale" name="Advanced Localization Unit Tests LocalizationConfig should return the default locale" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should create separate instances for different instance names" name="Advanced Localization Unit Tests MessageBundleManager should create separate instances for different instance names" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should return the same instance for the same instance name" name="Advanced Localization Unit Tests MessageBundleManager should return the same instance for the same instance name" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should register and load base message bundles" name="Advanced Localization Unit Tests MessageBundleManager should register and load base message bundles" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should handle locale-specific message bundles" name="Advanced Localization Unit Tests MessageBundleManager should handle locale-specific message bundles" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should fall back to base messages for unsupported locales" name="Advanced Localization Unit Tests MessageBundleManager should fall back to base messages for unsupported locales" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should fall back to locale from _locale key when locale property is not provided" name="Advanced Localization Unit Tests MessageBundleManager should fall back to locale from _locale key when locale property is not provided" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should throw error when no base messages are registered" name="Advanced Localization Unit Tests MessageBundleManager should throw error when no base messages are registered" time="0.008">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests MessageBundleManager should handle multiple locale bundles" name="Advanced Localization Unit Tests MessageBundleManager should handle multiple locale bundles" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should create separate instances for different instance names" name="Advanced Localization Unit Tests LocalizationService should create separate instances for different instance names" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should return the same instance for the same instance name" name="Advanced Localization Unit Tests LocalizationService should return the same instance for the same instance name" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should provide access to message bundle manager" name="Advanced Localization Unit Tests LocalizationService should provide access to message bundle manager" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should localize messages after registering bundles" name="Advanced Localization Unit Tests LocalizationService should localize messages after registering bundles" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should handle fallback localization when no messages are registered" name="Advanced Localization Unit Tests LocalizationService should handle fallback localization when no messages are registered" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should refresh localization when bundles are updated" name="Advanced Localization Unit Tests LocalizationService should refresh localization when bundles are updated" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should handle locale-specific localization" name="Advanced Localization Unit Tests LocalizationService should handle locale-specific localization" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should access nls property lazily" name="Advanced Localization Unit Tests LocalizationService should access nls property lazily" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService serves JA when constructed with locale ja" name="Advanced Localization Unit Tests LocalizationService serves JA when constructed with locale ja" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService serves base (en) when constructed without locale" name="Advanced Localization Unit Tests LocalizationService serves base (en) when constructed without locale" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService first getInstance wins: later locale arg is ignored" name="Advanced Localization Unit Tests LocalizationService first getInstance wins: later locale arg is ignored" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests LocalizationService should refresh localization and reinitialize nls" name="Advanced Localization Unit Tests LocalizationService should refresh localization and reinitialize nls" time="0.001">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests Integration Tests should handle complete localization workflow" name="Advanced Localization Unit Tests Integration Tests should handle complete localization workflow" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests Integration Tests should handle message bundle manager and service interaction" name="Advanced Localization Unit Tests Integration Tests should handle message bundle manager and service interaction" time="0">
+    </testcase>
+    <testcase classname="Advanced Localization Unit Tests Integration Tests should handle multiple services with different bundles" name="Advanced Localization Unit Tests Integration Tests should handle multiple services with different bundles" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="parseNlsLocale" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:35:32" time="0.242" tests="7">
+    <testcase classname="parseNlsLocale returns ja for a supported locale" name="parseNlsLocale returns ja for a supported locale" time="0.002">
+    </testcase>
+    <testcase classname="parseNlsLocale lowercases before matching" name="parseNlsLocale lowercases before matching" time="0">
+    </testcase>
+    <testcase classname="parseNlsLocale returns undefined for an unsupported locale" name="parseNlsLocale returns undefined for an unsupported locale" time="0">
+    </testcase>
+    <testcase classname="parseNlsLocale returns undefined when the locale field is missing" name="parseNlsLocale returns undefined when the locale field is missing" time="0.001">
+    </testcase>
+    <testcase classname="parseNlsLocale returns undefined for undefined input" name="parseNlsLocale returns undefined for undefined input" time="0">
+    </testcase>
+    <testcase classname="parseNlsLocale returns undefined for malformed JSON (no throw)" name="parseNlsLocale returns undefined for malformed JSON (no throw)" time="0">
+    </testcase>
+    <testcase classname="parseNlsLocale returns undefined when locale is not a string" name="parseNlsLocale returns undefined when locale is not a string" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Localization Unit Tests." errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:35:32" time="0.249" tests="2">
+    <testcase classname="Localization Unit Tests. Should be able to create an instance." name="Localization Unit Tests. Should be able to create an instance." time="0.003">
+    </testcase>
+    <testcase classname="Localization Unit Tests. Should call though localize calls to delegate." name="Localization Unit Tests. Should call though localize calls to delegate." time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>

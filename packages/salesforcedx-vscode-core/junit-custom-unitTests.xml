@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="85" failures="0" errors="0" time="1.49">
+  <testsuite name="CommandEventDispatcher" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.334" tests="4">
+    <testcase classname="CommandEventDispatcher getInstance should return the instance of CommandEventDispatcher" name="CommandEventDispatcher getInstance should return the instance of CommandEventDispatcher" time="0.002">
+    </testcase>
+    <testcase classname="CommandEventDispatcher getInstance should return the same instance of CommandEventDispatcher" name="CommandEventDispatcher getInstance should return the same instance of CommandEventDispatcher" time="0.001">
+    </testcase>
+    <testcase classname="CommandEventDispatcher onRefreshSObjectsCommandCompletion should subscribe to the completion event without throwing" name="CommandEventDispatcher onRefreshSObjectsCommandCompletion should subscribe to the completion event without throwing" time="0">
+    </testcase>
+    <testcase classname="CommandEventDispatcher dispose should not throw when disposed" name="CommandEventDispatcher dispose should not throw when disposed" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="MetadataXmlSupport — showSchemaDocumentationType suppression" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.39" tests="18">
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when doNotSuppressRedhatSchemaDocumentation is true" name="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when doNotSuppressRedhatSchemaDocumentation is true" time="0.003">
+    </testcase>
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression writes none when doNotSuppress is false and no value is set at any scope" name="MetadataXmlSupport — showSchemaDocumentationType suppression writes none when doNotSuppress is false and no value is set at any scope" time="0.001">
+    </testcase>
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a globalValue" name="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a globalValue" time="0">
+    </testcase>
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a workspaceValue" name="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a workspaceValue" time="0.001">
+    </testcase>
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a globalLanguageValue via [xml] block" name="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a globalLanguageValue via [xml] block" time="0">
+    </testcase>
+    <testcase classname="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a workspaceLanguageValue via [xml] block" name="MetadataXmlSupport — showSchemaDocumentationType suppression skips the write when user has set a workspaceLanguageValue via [xml] block" time="0.001">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when vmargs is absent or empty returns -Xmx1024M for undefined" name="ensureMinXmlHeap when vmargs is absent or empty returns -Xmx1024M for undefined" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when vmargs is absent or empty returns -Xmx1024M for empty string" name="ensureMinXmlHeap when vmargs is absent or empty returns -Xmx1024M for empty string" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when vmargs is absent or empty appends -Xmx1024M when other args are present but no -Xmx" name="ensureMinXmlHeap when vmargs is absent or empty appends -Xmx1024M when other args are present but no -Xmx" time="0.001">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx512M with -Xmx1024M" name="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx512M with -Xmx1024M" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is below 1024 MB replaces lowercase -Xmx512m" name="ensureMinXmlHeap when -Xmx is below 1024 MB replaces lowercase -Xmx512m" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx256M preserving surrounding args" name="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx256M preserving surrounding args" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx1G (1024 MB == threshold, no change needed)" name="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx1G (1024 MB == threshold, no change needed)" time="0.001">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx512k (very small, kilobytes)" name="ensureMinXmlHeap when -Xmx is below 1024 MB replaces -Xmx512k (very small, kilobytes)" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx1024M (already at minimum)" name="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx1024M (already at minimum)" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx2048M" name="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx2048M" time="0">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx2G" name="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx2G" time="0.001">
+    </testcase>
+    <testcase classname="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx4g (lowercase G)" name="ensureMinXmlHeap when -Xmx is at or above 1024 MB returns undefined for -Xmx4g (lowercase G)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Telemetry Messages" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.411" tests="4">
+    <testcase classname="Telemetry Messages internalTelemetryMessage should display the internal telemetry message" name="Telemetry Messages internalTelemetryMessage should display the internal telemetry message" time="0.003">
+    </testcase>
+    <testcase classname="Telemetry Messages telemetryWithOptOutMessage should display the telemetry message with opt-out link" name="Telemetry Messages telemetryWithOptOutMessage should display the telemetry message with opt-out link" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Messages telemetryWithOptOutMessage should open the disable telemetry link when the opt-out button is clicked" name="Telemetry Messages telemetryWithOptOutMessage should open the disable telemetry link when the opt-out button is clicked" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry Messages telemetryWithOptOutMessage should not open the disable telemetry link if opt-out link is not clicked" name="Telemetry Messages telemetryWithOptOutMessage should not open the disable telemetry link if opt-out link is not clicked" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="salesforceCoreSettings" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.802" tests="1">
+    <testcase classname="salesforceCoreSettings getEnableAllExceptionCatcher should set the default value for enable all exception catching to be false." name="salesforceCoreSettings getEnableAllExceptionCatcher should set the default value for enable all exception catching to be false." time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="getOrgShape" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.821" tests="3">
+    <testcase classname="getOrgShape returns Undefined when there is no root workspace (org info not read)" name="getOrgShape returns Undefined when there is no root workspace (org info not read)" time="0.004">
+    </testcase>
+    <testcase classname="getOrgShape maps the resolved DefaultOrgInfo through shapeFrom (Sandbox)" name="getOrgShape maps the resolved DefaultOrgInfo through shapeFrom (Sandbox)" time="0">
+    </testcase>
+    <testcase classname="getOrgShape falls back to Undefined when reading org info fails (catchAll path)" name="getOrgShape falls back to Undefined when reading org info fails (catchAll path)" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="MetadataHoverProvider" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.874" tests="30">
+    <testcase classname="MetadataHoverProvider isMetadataFile should identify metadata files correctly" name="MetadataHoverProvider isMetadataFile should identify metadata files correctly" time="0.003">
+    </testcase>
+    <testcase classname="MetadataHoverProvider isMetadataFile should identify XML files with metadata namespace" name="MetadataHoverProvider isMetadataFile should identify XML files with metadata namespace" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractMetadataType should extract metadata type from XML element" name="MetadataHoverProvider extractMetadataType should extract metadata type from XML element" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractMetadataType should handle namespaced elements" name="MetadataHoverProvider extractMetadataType should handle namespaced elements" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractMetadataType should return null for non-metadata elements" name="MetadataHoverProvider extractMetadataType should return null for non-metadata elements" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover should return null for non-metadata files" name="MetadataHoverProvider provideHover should return null for non-metadata files" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover should return null when no word at position" name="MetadataHoverProvider provideHover should return null when no word at position" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should extract field information for internal fields within CustomObject" name="MetadataHoverProvider extractFieldInfo should extract field information for internal fields within CustomObject" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should extract field information for common fields" name="MetadataHoverProvider extractFieldInfo should extract field information for common fields" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should handle namespaced field elements" name="MetadataHoverProvider extractFieldInfo should handle namespaced field elements" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should return null for metadata type elements (not fields)" name="MetadataHoverProvider extractFieldInfo should return null for metadata type elements (not fields)" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should handle nested field structures" name="MetadataHoverProvider extractFieldInfo should handle nested field structures" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider extractFieldInfo should handle opening tag on a different line than closing tag" name="MetadataHoverProvider extractFieldInfo should handle opening tag on a different line than closing tag" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider findParentMetadataTypeWithLayers should handle multiline XML elements where closing bracket is on next line" name="MetadataHoverProvider findParentMetadataTypeWithLayers should handle multiline XML elements where closing bracket is on next line" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for common field &quot;fullName&quot;" name="MetadataHoverProvider provideHover for internal fields should provide hover for common field &quot;fullName&quot;" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for CustomObject specific field &quot;enableActivities&quot;" name="MetadataHoverProvider provideHover for internal fields should provide hover for CustomObject specific field &quot;enableActivities&quot;" time="0.003">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for ApexClass specific field with valid values" name="MetadataHoverProvider provideHover for internal fields should provide hover for ApexClass specific field with valid values" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for Flow field with valid values" name="MetadataHoverProvider provideHover for internal fields should provide hover for Flow field with valid values" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for nested Prompt field" name="MetadataHoverProvider provideHover for internal fields should provide hover for nested Prompt field" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should return null when field documentation is not available" name="MetadataHoverProvider provideHover for internal fields should return null when field documentation is not available" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should handle self-closing field elements" name="MetadataHoverProvider provideHover for internal fields should handle self-closing field elements" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (enable* pattern)" name="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (enable* pattern)" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (is* pattern)" name="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (is* pattern)" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (*Name pattern)" name="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (*Name pattern)" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (*Label pattern)" name="MetadataHoverProvider provideHover for internal fields should provide hover for fields with pattern-based documentation (*Label pattern)" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider edge cases for internal fields should handle fields within deeply nested structures" name="MetadataHoverProvider edge cases for internal fields should handle fields within deeply nested structures" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider edge cases for internal fields should handle mixed-case field names" name="MetadataHoverProvider edge cases for internal fields should handle mixed-case field names" time="0.001">
+    </testcase>
+    <testcase classname="MetadataHoverProvider edge cases for internal fields should handle fields with attributes" name="MetadataHoverProvider edge cases for internal fields should handle fields with attributes" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider edge cases for internal fields should handle empty field elements" name="MetadataHoverProvider edge cases for internal fields should handle empty field elements" time="0">
+    </testcase>
+    <testcase classname="MetadataHoverProvider edge cases for internal fields should handle multi-line XML elements where closing &gt; is on next line" name="MetadataHoverProvider edge cases for internal fields should handle multi-line XML elements where closing &gt; is on next line" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Telemetry" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.892" tests="4">
+    <testcase classname="Telemetry showTelemetryMessage should show telemetry opt-out info message only when user is external" name="Telemetry showTelemetryMessage should show telemetry opt-out info message only when user is external" time="0.004">
+    </testcase>
+    <testcase classname="Telemetry showTelemetryMessage should not show telemetry info opt-out message nor internal message" name="Telemetry showTelemetryMessage should not show telemetry info opt-out message nor internal message" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry showTelemetryMessage should show internal info message and telemetry opt-out message" name="Telemetry showTelemetryMessage should show internal info message and telemetry opt-out message" time="0.001">
+    </testcase>
+    <testcase classname="Telemetry showTelemetryMessage should show internal info message and not telemetry opt-out message" name="Telemetry showTelemetryMessage should show internal info message and not telemetry opt-out message" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="extractErrorMessage" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="0.898" tests="8">
+    <testcase classname="extractErrorMessage returns the message of an Error instance" name="extractErrorMessage returns the message of an Error instance" time="0.003">
+    </testcase>
+    <testcase classname="extractErrorMessage returns the nested error message from { error: Error }" name="extractErrorMessage returns the nested error message from { error: Error }" time="0">
+    </testcase>
+    <testcase classname="extractErrorMessage returns the message from { message: string }" name="extractErrorMessage returns the message from { message: string }" time="0">
+    </testcase>
+    <testcase classname="extractErrorMessage does not treat an array as a record (array-exclusion) and falls through to String()" name="extractErrorMessage does not treat an array as a record (array-exclusion) and falls through to String()" time="0.001">
+    </testcase>
+    <testcase classname="extractErrorMessage stringifies a string primitive" name="extractErrorMessage stringifies a string primitive" time="0">
+    </testcase>
+    <testcase classname="extractErrorMessage stringifies a number primitive" name="extractErrorMessage stringifies a number primitive" time="0.001">
+    </testcase>
+    <testcase classname="extractErrorMessage stringifies undefined" name="extractErrorMessage stringifies undefined" time="0">
+    </testcase>
+    <testcase classname="extractErrorMessage stringifies null" name="extractErrorMessage stringifies null" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="WorkspaceContext" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:25:20" time="1.16" tests="13">
+    <testcase classname="WorkspaceContext seeds synchronous getters from the initial snapshot without firing an event" name="WorkspaceContext seeds synchronous getters from the initial snapshot without firing an event" time="0.024">
+    </testcase>
+    <testcase classname="WorkspaceContext does not require a connection to initialize from an empty target-org snapshot" name="WorkspaceContext does not require a connection to initialize from an empty target-org snapshot" time="0.008">
+    </testcase>
+    <testcase classname="WorkspaceContext initializes from orgId before username enrichment without emitting setup changes" name="WorkspaceContext initializes from orgId before username enrichment without emitting setup changes" time="0.009">
+    </testcase>
+    <testcase classname="WorkspaceContext fires once per distinct identity after updating getters and refreshes telemetry" name="WorkspaceContext fires once per distinct identity after updating getters and refreshes telemetry" time="0.015">
+    </testcase>
+    <testcase classname="WorkspaceContext serializes telemetry refreshes across target-org changes" name="WorkspaceContext serializes telemetry refreshes across target-org changes" time="0.007">
+    </testcase>
+    <testcase classname="WorkspaceContext fires when orgId changes and suppresses an exact duplicate snapshot" name="WorkspaceContext fires when orgId changes and suppresses an exact duplicate snapshot" time="0.006">
+    </testcase>
+    <testcase classname="WorkspaceContext fires when only the configured alias changes" name="WorkspaceContext fires when only the configured alias changes" time="0.005">
+    </testcase>
+    <testcase classname="WorkspaceContext normalizes no-org values to undefined" name="WorkspaceContext normalizes no-org values to undefined" time="0.007">
+    </testcase>
+    <testcase classname="WorkspaceContext initializes once and keeps connection delegation unchanged" name="WorkspaceContext initializes once and keeps connection delegation unchanged" time="0.006">
+    </testcase>
+    <testcase classname="WorkspaceContext initializes with empty identity when no target org is configured" name="WorkspaceContext initializes with empty identity when no target org is configured" time="0.005">
+    </testcase>
+    <testcase classname="WorkspaceContext keeps retained facades live when the singleton reference is replaced" name="WorkspaceContext keeps retained facades live when the singleton reference is replaced" time="0.005">
+    </testcase>
+    <testcase classname="WorkspaceContext disposes shared facade state with the singleton" name="WorkspaceContext disposes shared facade state with the singleton" time="0.007">
+    </testcase>
+    <testcase classname="WorkspaceContext stops org-change processing when the extension scope closes" name="WorkspaceContext stops org-change processing when the extension scope closes" time="0.005">
+    </testcase>
+  </testsuite>
+</testsuites>

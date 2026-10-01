@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="29" failures="0" errors="0" time="1.453">
+  <testsuite name="isTraceFlagActive" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="0.354" tests="3">
+    <testcase classname="isTraceFlagActive returns false for an expired item" name="isTraceFlagActive returns false for an expired item" time="0.003">
+    </testcase>
+    <testcase classname="isTraceFlagActive returns true for a future item" name="isTraceFlagActive returns true for a future item" time="0">
+    </testcase>
+    <testcase classname="isTraceFlagActive returns false at the expiry boundary (expirationDate === now)" name="isTraceFlagActive returns false at the expiry boundary (expirationDate === now)" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="selectCurrentUserFlag" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="0.461" tests="6">
+    <testcase classname="selectCurrentUserFlag returns undefined when records are empty" name="selectCurrentUserFlag returns undefined when records are empty" time="0.003">
+    </testcase>
+    <testcase classname="selectCurrentUserFlag returns the DEVELOPER_LOG flag for the current user" name="selectCurrentUserFlag returns the DEVELOPER_LOG flag for the current user" time="0">
+    </testcase>
+    <testcase classname="selectCurrentUserFlag ignores DEVELOPER_LOG flags belonging to another user" name="selectCurrentUserFlag ignores DEVELOPER_LOG flags belonging to another user" time="0.001">
+    </testcase>
+    <testcase classname="selectCurrentUserFlag returns USER_DEBUG flags for the current user" name="selectCurrentUserFlag returns USER_DEBUG flags for the current user" time="0">
+    </testcase>
+    <testcase classname="selectCurrentUserFlag returns current user flag even when another user has one with a later expiry" name="selectCurrentUserFlag returns current user flag even when another user has one with a later expiry" time="0">
+    </testcase>
+    <testcase classname="selectCurrentUserFlag returns current user USER_DEBUG flag even when another user has DEVELOPER_LOG" name="selectCurrentUserFlag returns current user USER_DEBUG flag even when another user has DEVELOPER_LOG" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="pickDebugLevelToRemove" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="0.553" tests="3">
+    <testcase classname="pickDebugLevelToRemove calls showQuickPick with all levels and resolves the picked debugLevelId" name="pickDebugLevelToRemove calls showQuickPick with all levels and resolves the picked debugLevelId" time="0.006">
+    </testcase>
+    <testcase classname="pickDebugLevelToRemove fails with UserCancellationError when the user dismisses the QuickPick" name="pickDebugLevelToRemove fails with UserCancellationError when the user dismisses the QuickPick" time="0.008">
+    </testcase>
+    <testcase classname="pickDebugLevelToRemove uses masterLabel as the QuickPick label and developerName as the detail" name="pickDebugLevelToRemove uses masterLabel as the QuickPick label and developerName as the detail" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="pickTraceFlag" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="0.617" tests="5">
+    <testcase classname="pickTraceFlag calls showQuickPick with the given flags and resolves the picked traceFlagId" name="pickTraceFlag calls showQuickPick with the given flags and resolves the picked traceFlagId" time="0.019">
+    </testcase>
+    <testcase classname="pickTraceFlag fails with UserCancellationError when the user dismisses the QuickPick" name="pickTraceFlag fails with UserCancellationError when the user dismisses the QuickPick" time="0.009">
+    </testcase>
+    <testcase classname="pickTraceFlag labels the item with tracedEntityName" name="pickTraceFlag labels the item with tracedEntityName" time="0.001">
+    </testcase>
+    <testcase classname="pickTraceFlag labels the item with tracedEntityId when name absent" name="pickTraceFlag labels the item with tracedEntityId when name absent" time="0.001">
+    </testcase>
+    <testcase classname="pickTraceFlag labels the item with tf.id when name and entityId absent" name="pickTraceFlag labels the item with tf.id when name and entityId absent" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="enrichTraceFlags" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="0.682" tests="11">
+    <testcase classname="enrichTraceFlags uses debugLevelName from the trace flag (relationship join) when present" name="enrichTraceFlags uses debugLevelName from the trace flag (relationship join) when present" time="0.002">
+    </testcase>
+    <testcase classname="enrichTraceFlags falls back to the debugLevels lookup when the join name is absent" name="enrichTraceFlags falls back to the debugLevels lookup when the join name is absent" time="0.001">
+    </testcase>
+    <testcase classname="enrichTraceFlags does not throw and reports an orphan when the debug level cannot be resolved (issue #7528)" name="enrichTraceFlags does not throw and reports an orphan when the debug level cannot be resolved (issue #7528)" time="0.001">
+    </testcase>
+    <testcase classname="enrichTraceFlags leaves debugLevelName undefined for a flag with no debugLevelId, no orphan" name="enrichTraceFlags leaves debugLevelName undefined for a flag with no debugLevelId, no orphan" time="0">
+    </testcase>
+    <testcase classname="enrichTraceFlags renders resolvable flags even when another flag in the batch is orphaned" name="enrichTraceFlags renders resolvable flags even when another flag in the batch is orphaned" time="0">
+    </testcase>
+    <testcase classname="isOrphanedTraceFlag is true when debugLevelId is set but debugLevelName is unresolved" name="isOrphanedTraceFlag is true when debugLevelId is set but debugLevelName is unresolved" time="0.001">
+    </testcase>
+    <testcase classname="isOrphanedTraceFlag is false when the debug level resolved to a name" name="isOrphanedTraceFlag is false when the debug level resolved to a name" time="0">
+    </testcase>
+    <testcase classname="isOrphanedTraceFlag is false when the flag has no debugLevelId at all" name="isOrphanedTraceFlag is false when the flag has no debugLevelId at all" time="0">
+    </testcase>
+    <testcase classname="orphanLensTargets returns one target per orphaned active flag, carrying its id and missing debugLevelId" name="orphanLensTargets returns one target per orphaned active flag, carrying its id and missing debugLevelId" time="0">
+    </testcase>
+    <testcase classname="orphanLensTargets returns no targets when every flag resolved a debug level name" name="orphanLensTargets returns no targets when every flag resolved a debug level name" time="0">
+    </testcase>
+    <testcase classname="orphanLensTargets ignores inactive flags even when orphaned" name="orphanLensTargets ignores inactive flags even when orphaned" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="logGetCommand" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:28" time="1.026" tests="1">
+    <testcase classname="logGetCommand fails early when no logs exist" name="logGetCommand fails early when no logs exist" time="0.013">
+    </testcase>
+  </testsuite>
+</testsuites>

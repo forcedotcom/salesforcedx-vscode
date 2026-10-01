@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="231" failures="0" errors="0" time="1.26">
+  <testsuite name="Log context utilities" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.266" tests="10">
+    <testcase classname="Log context utilities Read log file from contents Should return empty array with empty contents" name="Log context utilities Read log file from contents Should return empty array with empty contents" time="0.003">
+    </testcase>
+    <testcase classname="Log context utilities Read log file from contents Should return array of log lines from contents" name="Log context utilities Read log file from contents Should return array of log lines from contents" time="0.001">
+    </testcase>
+    <testcase classname="Log context utilities Read log file from contents Should handle Windows line endings" name="Log context utilities Read log file from contents Should handle Windows line endings" time="0">
+    </testcase>
+    <testcase classname="Log context utilities Read log file from contents Should trim whitespace" name="Log context utilities Read log file from contents Should trim whitespace" time="0.001">
+    </testcase>
+    <testcase classname="Log context utilities Read log file from contents Should get file size from contents" name="Log context utilities Read log file from contents Should get file size from contents" time="0">
+    </testcase>
+    <testcase classname="Log context utilities Read log file from contents Should strip brackets" name="Log context utilities Read log file from contents Should strip brackets" time="0.001">
+    </testcase>
+    <testcase classname="Log context utilities extractAnonApexSource Should return undefined for a log with no Execute Anonymous headers" name="Log context utilities extractAnonApexSource Should return undefined for a log with no Execute Anonymous headers" time="0">
+    </testcase>
+    <testcase classname="Log context utilities extractAnonApexSource Should extract source lines from Execute Anonymous headers" name="Log context utilities extractAnonApexSource Should extract source lines from Execute Anonymous headers" time="0">
+    </testcase>
+    <testcase classname="Log context utilities extractAnonApexSource Should handle Windows line endings in the log" name="Log context utilities extractAnonApexSource Should handle Windows line endings in the log" time="0.001">
+    </testcase>
+    <testcase classname="Log context utilities extractAnonApexSource Should stop collecting at the first non-header line after headers begin" name="Log context utilities extractAnonApexSource Should stop collecting at the first non-header line after headers begin" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="User debug event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.47" tests="3">
+    <testcase classname="User debug event Should not print without any frames" name="User debug event Should not print without any frames" time="0.004">
+    </testcase>
+    <testcase classname="User debug event Should link to anonymous specific frame" name="User debug event Should link to anonymous specific frame" time="0.001">
+    </testcase>
+    <testcase classname="User debug event Should use line number in log line" name="User debug event Should use line number in log line" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Variable begin scope event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.458" tests="3">
+    <testcase classname="Variable begin scope event Should add static variable to frame" name="Variable begin scope event Should add static variable to frame" time="0.005">
+    </testcase>
+    <testcase classname="Variable begin scope event Should add local variable to frame" name="Variable begin scope event Should add local variable to frame" time="0.002">
+    </testcase>
+    <testcase classname="Variable begin scope event Should create class entry in static variable map when class has not been seen before" name="Variable begin scope event Should create class entry in static variable map when class has not been seen before" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Statement execute event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.204" tests="5">
+    <testcase classname="Statement execute event Should not update frame without any frames" name="Statement execute event Should not update frame without any frames" time="0.001">
+    </testcase>
+    <testcase classname="Statement execute event Should update top frame" name="Statement execute event Should update top frame" time="0">
+    </testcase>
+    <testcase classname="Statement execute event Should update execute anonymous specific frame using log line position when no apex file path" name="Statement execute event Should update execute anonymous specific frame using log line position when no apex file path" time="0">
+    </testcase>
+    <testcase classname="Statement execute event Should update execute anonymous frame using script line directly when apex file path is set" name="Statement execute event Should update execute anonymous frame using script line directly when apex file path is set" time="0.016">
+    </testcase>
+    <testcase classname="Statement execute event Should offset execute anonymous frame line by anonApexLineOffset when set" name="Statement execute event Should offset execute anonymous frame line by anonApexLineOffset when set" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Frame entry event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.453" tests="3">
+    <testcase classname="Frame entry event Should add a frame" name="Frame entry event Should add a frame" time="0.004">
+    </testcase>
+    <testcase classname="Frame entry event Should parse the class name from method signature and add it to static variable map" name="Frame entry event Should parse the class name from method signature and add it to static variable map" time="0.001">
+    </testcase>
+    <testcase classname="Frame entry event Should use existing static variables when the entry is for a class that was seen earlier" name="Frame entry event Should use existing static variables when the entry is for a class that was seen earlier" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="LogEntry event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.031" tests="1">
+    <testcase classname="LogEntry event Should handle event" name="LogEntry event Should handle event" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="ApexVariableContainer" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.031" tests="2">
+    <testcase classname="ApexVariableContainer getAllVariables sorts variables with `this` first, then alphabetically, case-insensitively, with natural numeric ordering" name="ApexVariableContainer getAllVariables sorts variables with `this` first, then alphabetically, case-insensitively, with natural numeric ordering" time="0.009">
+    </testcase>
+    <testcase classname="ApexVariableContainer getAllVariables places `this` variable first regardless of alphabetical order" name="ApexVariableContainer getAllVariables places `this` variable first regardless of alphabetical order" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Frame exit event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.043" tests="4">
+    <testcase classname="Frame exit event Should not remove anything if there are no frames" name="Frame exit event Should not remove anything if there are no frames" time="0.001">
+    </testcase>
+    <testcase classname="Frame exit event Should not remove if signature does not match top frame" name="Frame exit event Should not remove if signature does not match top frame" time="0">
+    </testcase>
+    <testcase classname="Frame exit event Should remove if signature matches top frame exactly" name="Frame exit event Should remove if signature matches top frame exactly" time="0">
+    </testcase>
+    <testcase classname="Frame exit event Should remove if signature matches top frame partially" name="Frame exit event Should remove if signature matches top frame partially" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="NoOp event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.039" tests="1">
+    <testcase classname="NoOp event Should handle event" name="NoOp event Should handle event" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Frame state utilities" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.574" tests="20">
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_STARTED only strips trigger prefix" name="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_STARTED only strips trigger prefix" time="0.003">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_FINISHED only strips trigger prefix" name="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_FINISHED only strips trigger prefix" time="0.001">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_STARTED nothing parsed if non-trigger" name="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_STARTED nothing parsed if non-trigger" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_FINISHED nothing parsed if non-trigger" name="Frame state utilities Verify frame name generation EVENT_CODE_UNIT_FINISHED nothing parsed if non-trigger" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_ENTRY simple class" name="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_ENTRY simple class" time="0.001">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_EXIT simple class" name="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_EXIT simple class" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_ENTRY inner class" name="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_ENTRY inner class" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_EXIT inner class" name="Frame state utilities Verify frame name generation EVENT_CONSTRUCTOR_EXIT inner class" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_START parse method name from invoke" name="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_START parse method name from invoke" time="0.001">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_END parse method name from invoke" name="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_END parse method name from invoke" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_START nothing parsed if not invoke" name="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_START nothing parsed if not invoke" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_END nothing parsed if not invoke" name="Frame state utilities Verify frame name generation EVENT_VF_APEX_CALL_END nothing parsed if not invoke" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Bare Minimum Get Match returns true" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Bare Minimum Get Match returns true" time="0.001">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Bare Minimum Set Match returns true" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Bare Minimum Set Match returns true" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-invoke Get should return true" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-invoke Get should return true" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-invoke Set should return true" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-invoke Set should return true" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Malformed set returns false" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Malformed set returns false" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Malformed get returns false" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Malformed get returns false" time="0">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Anything not Get/Set should return false" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Anything not Get/Set should return false" time="0.001">
+    </testcase>
+    <testcase classname="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-Get/Set should return false" name="Frame state utilities Verify isExtraneousVFGetterOrSetterLogLine only matches the extraneous get/set log lines Non-Get/Set should return false" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Breakpoint utilities" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.519" tests="4">
+    <testcase classname="Breakpoint utilities Should not have line number mapping" name="Breakpoint utilities Should not have line number mapping" time="0.002">
+    </testcase>
+    <testcase classname="Breakpoint utilities Should return line number mapping" name="Breakpoint utilities Should return line number mapping" time="0">
+    </testcase>
+    <testcase classname="Breakpoint utilities Should verify line breakpoint" name="Breakpoint utilities Should verify line breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Breakpoint utilities Should return top level typeRef for URI" name="Breakpoint utilities Should return top level typeRef for URI" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Variable assignment event" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.715" tests="25">
+    <testcase classname="Variable assignment event Primitive assignment Should not stop the debugger when entering the frame" name="Variable assignment event Primitive assignment Should not stop the debugger when entering the frame" time="0.032">
+    </testcase>
+    <testcase classname="Variable assignment event Primitive assignment Should assign static variable for class" name="Variable assignment event Primitive assignment Should assign static variable for class" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Primitive assignment Should add local variable to frame" name="Variable assignment event Primitive assignment Should add local variable to frame" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should not stop the debugger when entering the frame" name="Variable assignment event Local nested assignment Should not stop the debugger when entering the frame" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should create a nested variable for an empty object" name="Variable assignment event Local nested assignment Should create a nested variable for an empty object" time="0.015">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should update variable to a nested variable if assigning to inner value" name="Variable assignment event Local nested assignment Should update variable to a nested variable if assigning to inner value" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should update variable to a nested variable if json assignment" name="Variable assignment event Local nested assignment Should update variable to a nested variable if json assignment" time="0.003">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should update variable to a nested variable holding another nested variable if assigning json to inner value" name="Variable assignment event Local nested assignment Should update variable to a nested variable holding another nested variable if assigning json to inner value" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Local nested assignment Should not overwrite the this variable once assigned" name="Variable assignment event Local nested assignment Should not overwrite the this variable once assigned" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Static nested assignment Should not stop the debugger when entering the frame" name="Variable assignment event Static nested assignment Should not stop the debugger when entering the frame" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Static nested assignment Should create a nested variable for an empty object" name="Variable assignment event Static nested assignment Should create a nested variable for an empty object" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Static nested assignment Should update variable to a nested variable if json assignment" name="Variable assignment event Static nested assignment Should update variable to a nested variable if json assignment" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Static nested assignment Should update variable if inner variable assigned" name="Variable assignment event Static nested assignment Should update variable if inner variable assigned" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Static nested assignment Should update variable if reassigned to newly created reference" name="Variable assignment event Static nested assignment Should update variable if reassigned to newly created reference" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Find references in reference map Should not stop the debugger when entering the frame" name="Variable assignment event Find references in reference map Should not stop the debugger when entering the frame" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Find references in reference map Should be able to pull reference values from json in assignments" name="Variable assignment event Find references in reference map Should be able to pull reference values from json in assignments" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Find references in reference map Should be able to pull reference from assignment value" name="Variable assignment event Find references in reference map Should be able to pull reference from assignment value" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Find references in reference map Should change both variable containers if they share a common reference" name="Variable assignment event Find references in reference map Should change both variable containers if they share a common reference" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Collections Should not stop the debugger when entering the frame" name="Variable assignment event Collections Should not stop the debugger when entering the frame" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Collections Should not created a nested ref for maps" name="Variable assignment event Collections Should not created a nested ref for maps" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Collections Should not created a nested ref for lists" name="Variable assignment event Collections Should not created a nested ref for lists" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Collections Should not created a nested ref for sets" name="Variable assignment event Collections Should not created a nested ref for sets" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Nested related-object expansion Should expand a multi-level parent hierarchy without [object Object]" name="Variable assignment event Nested related-object expansion Should expand a multi-level parent hierarchy without [object Object]" time="0">
+    </testcase>
+    <testcase classname="Variable assignment event Nested related-object expansion Should expand a child subquery records array keyed by index" name="Variable assignment event Nested related-object expansion Should expand a child subquery records array keyed by index" time="0.001">
+    </testcase>
+    <testcase classname="Variable assignment event Nested related-object expansion Should not re-quote already-quoted inner strings (parse-once regression guard)" name="Variable assignment event Nested related-object expansion Should not re-quote already-quoted inner strings (parse-once regression guard)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Replay debugger adapter - unit" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.8" tests="27">
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when there are no log lines" name="Replay debugger adapter - unit Launch Should return error when there are no log lines" time="0.03">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" name="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should send response" name="Replay debugger adapter - unit Launch Should send response" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" name="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should send stopped event" name="Replay debugger adapter - unit Configuration done Should send stopped event" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" name="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Disconnect Should disconnect" name="Replay debugger adapter - unit Disconnect Should disconnect" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Threads Should always return one thread" name="Replay debugger adapter - unit Threads Should always return one thread" time="0.006">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stacktrace Should return stackframes" name="Replay debugger adapter - unit Stacktrace Should return stackframes" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should terminate session" name="Replay debugger adapter - unit Continue/run Should terminate session" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should hit breakpoint" name="Replay debugger adapter - unit Continue/run Should hit breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should not hit breakpoint" name="Replay debugger adapter - unit Continue/run Should not hit breakpoint" time="0.003">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should handle errors during step execution" name="Replay debugger adapter - unit Continue/run Should handle errors during step execution" time="0.002">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step over" name="Replay debugger adapter - unit Stepping Should send step over" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step in" name="Replay debugger adapter - unit Stepping Should send step in" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step out" name="Replay debugger adapter - unit Stepping Should send step out" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" name="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should return breakpoints" name="Replay debugger adapter - unit Breakpoints Should return breakpoints" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" time="0.016">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" name="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="LogContext" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:34:00" time="0.588" tests="42">
+    <testcase classname="LogContext Should return array of log lines" name="LogContext Should return array of log lines" time="0.004">
+    </testcase>
+    <testcase classname="LogContext Should return log size" name="LogContext Should return log size" time="0">
+    </testcase>
+    <testcase classname="LogContext Should have log lines" name="LogContext Should have log lines" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Should not have log lines" name="LogContext Should not have log lines" time="0">
+    </testcase>
+    <testcase classname="LogContext Should detect log level requirements" name="LogContext Should detect log level requirements" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Should return log file name" name="LogContext Should return log file name" time="0">
+    </testcase>
+    <testcase classname="LogContext Should return log file path" name="LogContext Should return log file path" time="0">
+    </testcase>
+    <testcase classname="LogContext Should have starting log line position" name="LogContext Should have starting log line position" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Should start with empty array of stackframes" name="LogContext Should start with empty array of stackframes" time="0">
+    </testcase>
+    <testcase classname="LogContext Should start with no state" name="LogContext Should start with no state" time="0.002">
+    </testcase>
+    <testcase classname="LogContext Should handle undefined log event" name="LogContext Should handle undefined log event" time="0">
+    </testcase>
+    <testcase classname="LogContext Should continue handling until the end of log file" name="LogContext Should continue handling until the end of log file" time="0">
+    </testcase>
+    <testcase classname="LogContext Should pause parsing the log" name="LogContext Should pause parsing the log" time="0.008">
+    </testcase>
+    <testcase classname="LogContext Should revert state if there is a heapdump" name="LogContext Should revert state if there is a heapdump" time="0">
+    </testcase>
+    <testcase classname="LogContext Should not revert state if there is no heapdump" name="LogContext Should not revert state if there is no heapdump" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Should detect and parse HEAP_DUMP log entries" name="LogContext Should detect and parse HEAP_DUMP log entries" time="0">
+    </testcase>
+    <testcase classname="LogContext Should not find heapdump with incorrect line" name="LogContext Should not find heapdump with incorrect line" time="0">
+    </testcase>
+    <testcase classname="LogContext Should not find heapdump with incorrect class name" name="LogContext Should not find heapdump with incorrect class name" time="0">
+    </testcase>
+    <testcase classname="LogContext Should have heapdump for top frame" name="LogContext Should have heapdump for top frame" time="0">
+    </testcase>
+    <testcase classname="LogContext Should not have heapdump for top frame" name="LogContext Should not have heapdump for top frame" time="0">
+    </testcase>
+    <testcase classname="LogContext setHeapDumpResults Should apply a success result onto the matching heap dump by id" name="LogContext setHeapDumpResults Should apply a success result onto the matching heap dump by id" time="0">
+    </testcase>
+    <testcase classname="LogContext setHeapDumpResults Should apply results for every heap dump (multi-dump regression)" name="LogContext setHeapDumpResults Should apply results for every heap dump (multi-dump regression)" time="0">
+    </testcase>
+    <testcase classname="LogContext setHeapDumpResults Should send an error entry to the debug console" name="LogContext setHeapDumpResults Should send an error entry to the debug console" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect LogEntry as the first state" name="LogContext Log event parser Should detect LogEntry as the first state" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect NoOp with empty log line" name="LogContext Log event parser Should detect NoOp with empty log line" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect NoOp with unexpected number of fields" name="LogContext Log event parser Should detect NoOp with unexpected number of fields" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect NoOp with unknown event" name="LogContext Log event parser Should detect NoOp with unknown event" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect execute anonymous script line" name="LogContext Log event parser Should detect execute anonymous script line" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameEntry with CODE_UNIT_STARTED" name="LogContext Log event parser Should detect FrameEntry with CODE_UNIT_STARTED" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameEntry with CONSTRUCTOR_ENTRY" name="LogContext Log event parser Should detect FrameEntry with CONSTRUCTOR_ENTRY" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameEntry with METHOD_ENTRY" name="LogContext Log event parser Should detect FrameEntry with METHOD_ENTRY" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameEntry with VF_APEX_CALL_START" name="LogContext Log event parser Should detect FrameEntry with VF_APEX_CALL_START" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameExit with CODE_UNIT_FINISHED" name="LogContext Log event parser Should detect FrameExit with CODE_UNIT_FINISHED" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameExit with CONSTRUCTOR_EXIT" name="LogContext Log event parser Should detect FrameExit with CONSTRUCTOR_EXIT" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameExit with METHOD_EXIT" name="LogContext Log event parser Should detect FrameExit with METHOD_EXIT" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect FrameExit with VF_APEX_CALL_END" name="LogContext Log event parser Should detect FrameExit with VF_APEX_CALL_END" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect StatementExecute with STATEMENT_EXECUTE" name="LogContext Log event parser Should detect StatementExecute with STATEMENT_EXECUTE" time="0">
+    </testcase>
+    <testcase classname="LogContext Log event parser Should detect UserDebug with USER_DEBUG" name="LogContext Log event parser Should detect UserDebug with USER_DEBUG" time="0.001">
+    </testcase>
+    <testcase classname="LogContext Signature-to-URI Should return debug log fs path for execute anonymous signature when no apex file path set" name="LogContext Signature-to-URI Should return debug log fs path for execute anonymous signature when no apex file path set" time="0">
+    </testcase>
+    <testcase classname="LogContext Signature-to-URI Should return apex file path for execute anonymous signature when anonApexFilePath is set" name="LogContext Signature-to-URI Should return apex file path for execute anonymous signature when anonApexFilePath is set" time="0">
+    </testcase>
+    <testcase classname="LogContext Signature-to-URI Should return URI for inner class" name="LogContext Signature-to-URI Should return URI for inner class" time="0">
+    </testcase>
+    <testcase classname="LogContext Signature-to-URI Should return URI for trigger" name="LogContext Signature-to-URI Should return URI for trigger" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Replay debugger adapter - unit" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.715" tests="37">
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when there are no log lines" name="Replay debugger adapter - unit Launch Should return error when there are no log lines" time="0.019">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" name="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should send response" name="Replay debugger adapter - unit Launch Should send response" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" time="0.005">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" name="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should send stopped event" name="Replay debugger adapter - unit Configuration done Should send stopped event" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" name="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Disconnect Should disconnect" name="Replay debugger adapter - unit Disconnect Should disconnect" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Threads Should always return one thread" name="Replay debugger adapter - unit Threads Should always return one thread" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stacktrace Should return stackframes" name="Replay debugger adapter - unit Stacktrace Should return stackframes" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should terminate session" name="Replay debugger adapter - unit Continue/run Should terminate session" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should hit breakpoint" name="Replay debugger adapter - unit Continue/run Should hit breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should not hit breakpoint" name="Replay debugger adapter - unit Continue/run Should not hit breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should handle errors during step execution" name="Replay debugger adapter - unit Continue/run Should handle errors during step execution" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step over" name="Replay debugger adapter - unit Stepping Should send step over" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step in" name="Replay debugger adapter - unit Stepping Should send step in" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step out" name="Replay debugger adapter - unit Stepping Should send step out" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" name="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should return breakpoints" name="Replay debugger adapter - unit Breakpoints Should return breakpoints" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" time="0.012">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" name="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" time="0.001">
+    </testcase>
+    <testcase classname="Debug console Logger Should accept boolean true" name="Debug console Logger Should accept boolean true" time="0.001">
+    </testcase>
+    <testcase classname="Debug console Logger Should accept boolean false" name="Debug console Logger Should accept boolean false" time="0.001">
+    </testcase>
+    <testcase classname="Debug console Logger Should accept multiple trace categories" name="Debug console Logger Should accept multiple trace categories" time="0">
+    </testcase>
+    <testcase classname="Debug console Logger Should accept logfile category" name="Debug console Logger Should accept logfile category" time="0">
+    </testcase>
+    <testcase classname="Debug console Print Should not print is message is empty" name="Debug console Print Should not print is message is empty" time="0">
+    </testcase>
+    <testcase classname="Debug console Print Should send Output event" name="Debug console Print Should send Output event" time="0.001">
+    </testcase>
+    <testcase classname="Debug console Warn Should not warn is message is empty" name="Debug console Warn Should not warn is message is empty" time="0">
+    </testcase>
+    <testcase classname="Debug console Warn Should send Output event" name="Debug console Warn Should send Output event" time="0">
+    </testcase>
+    <testcase classname="Debug console Error Should not error is message is empty" name="Debug console Error Should not error is message is empty" time="0">
+    </testcase>
+    <testcase classname="Debug console Error Should send Output event" name="Debug console Error Should send Output event" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Replay debugger adapter - unit" errors="0" failures="0" skipped="0" timestamp="2026-09-30T22:33:59" time="0.833" tests="44">
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when there are no log lines" name="Replay debugger adapter - unit Launch Should return error when there are no log lines" time="0.018">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" name="Replay debugger adapter - unit Launch Should return error when log levels are incorrect" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should send response" name="Replay debugger adapter - unit Launch Should send response" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should not apply heap dump results if no heap dumps are found in the logs" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" name="Replay debugger adapter - unit Launch Should apply heap dump results if heap dumps are found in the logs" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" name="Replay debugger adapter - unit Launch Should report a wrap up error if any heap dump result carries an error" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should send stopped event" name="Replay debugger adapter - unit Configuration done Should send stopped event" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" name="Replay debugger adapter - unit Configuration done Should continue until next breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Disconnect Should disconnect" name="Replay debugger adapter - unit Disconnect Should disconnect" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Threads Should always return one thread" name="Replay debugger adapter - unit Threads Should always return one thread" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stacktrace Should return stackframes" name="Replay debugger adapter - unit Stacktrace Should return stackframes" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should terminate session" name="Replay debugger adapter - unit Continue/run Should terminate session" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should hit breakpoint" name="Replay debugger adapter - unit Continue/run Should hit breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should not hit breakpoint" name="Replay debugger adapter - unit Continue/run Should not hit breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Continue/run Should handle errors during step execution" name="Replay debugger adapter - unit Continue/run Should handle errors during step execution" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step over" name="Replay debugger adapter - unit Stepping Should send step over" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step in" name="Replay debugger adapter - unit Stepping Should send step in" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Stepping Should send step out" name="Replay debugger adapter - unit Stepping Should send step out" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should stop for breakpoint" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" name="Replay debugger adapter - unit Breakpoints Should not stop for breakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when path argument is invalid" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" name="Replay debugger adapter - unit Breakpoints Should not return breakpoints when line argument is invalid" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" name="Replay debugger adapter - unit Breakpoints Should verify all breakpoints for .apex files without calling canSetLineBreakpoint" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Breakpoints Should return breakpoints" name="Replay debugger adapter - unit Breakpoints Should return breakpoints" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle undefined args" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" name="Replay debugger adapter - unit Launch request Line breakpoint info Should handle empty line breakpoint info" time="0.012">
+    </testcase>
+    <testcase classname="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" name="Replay debugger adapter - unit Launch request Line breakpoint info Should save line number mapping" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Scopes request Should return no scopes for unknown frame" name="Replay debugger adapter variable handling - unit Scopes request Should return no scopes for unknown frame" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Scopes request Should return local, static, and global scopes" name="Replay debugger adapter variable handling - unit Scopes request Should return local, static, and global scopes" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Scopes request Should replace with heapdump variables" name="Replay debugger adapter variable handling - unit Scopes request Should replace with heapdump variables" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Variables request Should return no variables for unknown scope" name="Replay debugger adapter variable handling - unit Variables request Should return no variables for unknown scope" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Variables request Should collect variables from scope container" name="Replay debugger adapter variable handling - unit Variables request Should collect variables from scope container" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not switch variables without a heapdump for current location" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not switch variables without a heapdump for current location" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not switch variables without a successful heapdump for current location" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not switch variables without a successful heapdump for current location" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not create string refs if there are not any in the heapdump" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not create string refs if there are not any in the heapdump" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should only create string refs if there are not any in the heapdump" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should only create string refs if there are not any in the heapdump" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should create string refs if there are any in the heapdump" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should create string refs if there are any in the heapdump" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not follow reference chain when creating leaf variables except strings" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should not follow reference chain when creating leaf variables except strings" time="0.002">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should follow reference chain when creating instance variables from references" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should follow reference chain when creating instance variables from references" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should update a non-reference variable" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should update a non-reference variable" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should update a non-reference static variable" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should update a non-reference static variable" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should correctly deal with circular references and variable values" name="Replay debugger adapter variable handling - unit Heapdump replaceVariablesWithHeapDump Should correctly deal with circular references and variable values" time="0.001">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump heapDumpTriggerContextVariables Should not create global trigger variables if not processing a trigger heapdump" name="Replay debugger adapter variable handling - unit Heapdump heapDumpTriggerContextVariables Should not create global trigger variables if not processing a trigger heapdump" time="0">
+    </testcase>
+    <testcase classname="Replay debugger adapter variable handling - unit Heapdump heapDumpTriggerContextVariables Should create trigger variables if processing a trigger heapdump" name="Replay debugger adapter variable handling - unit Heapdump heapDumpTriggerContextVariables Should create trigger variables if processing a trigger heapdump" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>
