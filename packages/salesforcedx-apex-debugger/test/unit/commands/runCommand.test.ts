@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { XHROptions, XHRResponse } from 'request-light';
+import { RunCommand } from '../../../src/commands';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
+import { RequestService } from '../../../src/requestService/requestService';
+import { getDefaultHeaders } from './baseDebuggerCommand.test';
+
+describe('Run command', () => {
+  let sendRequestSpy: jest.SpyInstance;
+  let runCommand: RunCommand;
+  const requestService = new RequestService();
+
+  beforeEach(() => {
+    requestService.instanceUrl = 'https://www.salesforce.com';
+    requestService.accessToken = '123';
+    runCommand = new RunCommand('07cFAKE');
+  });
+
+  it('Should have proper request path', async () => {
+    sendRequestSpy = jest
+      .spyOn(RequestService.prototype, 'sendRequest')
+      .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
+    const expectedOptions: XHROptions = {
+      type: 'POST',
+      url: 'https://www.salesforce.com/services/debug/v41.0/run/07cFAKE',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
+      headers: getDefaultHeaders(0),
+      data: undefined
+    };
+
+    await requestService.execute(runCommand);
+
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
+  });
+});

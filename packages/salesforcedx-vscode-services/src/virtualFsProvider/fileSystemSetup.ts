@@ -1,0 +1,84 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as Data from 'effect/Data';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { CODE_BUILDER_WEB_SECTION, sampleProjectName } from '../constants';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { SettingsService } from '../vscode/settingsService';
+import { fsPrefix } from './constants';
+import { FsProvider } from './fileSystemProvider';
+import { fsProviderRef } from './fsProviderRef';
+import { IndexedDBStorageService } from './indexedDbStorage';
+import { startWatch } from './memfsWatcher';
+import { projectFiles } from './projectInit';
+
+class WorkspaceFoldersNotAvailableError extends Data.TaggedError('WorkspaceFoldersNotAvailableError')<{}> {}
+
+/** Wait for workspace folders to be available (async operation after updateWorkspaceFolders) */
+const waitForWorkspaceFolders = () =>
+  Effect.tryPromise({
+    try: async () => {
+      const folders = vscode.workspace.workspaceFolders;
+      return folders?.length && folders.length > 0 ? folders : Promise.reject(new WorkspaceFoldersNotAvailableError());
+    },
+    catch: () => new WorkspaceFoldersNotAvailableError()
+  }).pipe(
+    Effect.retry({
+      schedule: Schedule.fixed(Duration.millis(500)).pipe(Schedule.compose(Schedule.recurs(60))),
+      while: error => error instanceof WorkspaceFoldersNotAvailableError
+    })
+  );
+
+/** Sets up the virtual file system for the extension */
+export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: vscode.ExtensionContext) {
+  const fsProvider = new FsProvider();
+  fsProviderRef.current = fsProvider;
+
+  // Load state from IndexedDB first
+  yield* (yield* IndexedDBStorageService).loadState();
+
+  // Register the file system provider
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
+      isCaseSensitive: true
+    })
+  );
+
+  // Only inject the memfs sample project when the user hasn't already opened a workspace folder.
+  // If a folder is already open (e.g. the Code Builder Web host booting `memfs:/<sampleProjectName>`
+  // via its workspaceProvider, a real project loaded via `?folder=` in web, a `--folder` arg, or a
+  // Playwright-E2E vscode-test-web mount), prepending a synthetic sample would hide that folder's
+  // Explorer contents behind the memfs tree and break file lookups/search.
+  // No `name` override: the Explorer root derives from the folder URI basename, so standalone and
+  // host-opened windows both show `sampleProjectName`.
+  const hasExistingWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+  if (!hasExistingWorkspace) {
+    vscode.workspace.updateWorkspaceFolders(0, 0, {
+      uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
+    });
+  }
+
+  yield* startWatch();
+  yield* projectFiles(fsProvider);
+  if (!hasExistingWorkspace) {
+    yield* waitForWorkspaceFolders();
+  }
+
+  const settingsService = yield* SettingsService;
+
+  if (yield* settingsService.getValueOrElse(CODE_BUILDER_WEB_SECTION, 'protectedOrg', false)) {
+    vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
+    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
+    // protected org: make apex read only
+    fsProvider.readOnly = [registryAccess.getTypeByName('ApexClass'), registryAccess.getTypeByName('ApexTrigger')];
+  }
+});

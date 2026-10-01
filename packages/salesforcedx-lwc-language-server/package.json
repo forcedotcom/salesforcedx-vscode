@@ -1,0 +1,110 @@
+{
+  "name": "@salesforce/salesforcedx-lwc-language-server",
+  "displayName": "LWC Language Server",
+  "version": "64.16.1",
+  "description": "Language server for Lightning Web Components.",
+  "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "out/src/server.js",
+  "typings": "out/src/server.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./out/src/server.d.ts",
+      "import": "./out/src/server.js",
+      "require": "./out/src/server.js"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bin": {
+    "lwc-language-server": "./bin/lwc-language-server.js"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "compile": "wireit",
+    "test": "wireit",
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*",
+        "jest.config.js",
+        "../../config/jest.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    }
+  },
+  "dependencies": {
+    "@lwc/compiler": "9.0.3",
+    "@lwc/errors": "9.0.3",
+    "@lwc/metadata": "13.3.30",
+    "@lwc/template-compiler": "9.3.4",
+    "@salesforce/apex": "^0.0.21",
+    "@salesforce/label": "^0.0.21",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/schema": "^0.0.21",
+    "@salesforce/vscode-i18n": "*",
+    "babel-types": "^6.26.0",
+    "change-case": "^4.1.1",
+    "comment-parser": "^0.7.6",
+    "effect": "^3.21.2",
+    "ejs": "^3.1.10",
+    "minimatch": "^10.2.6",
+    "vscode-html-languageservice": "^5.5.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "vscode-uri": "^3.1.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/babel-types": "^7.0.8",
+    "@types/ejs": "^3.1.5",
+    "colormin": "1.1.2",
+    "jest-extended": "^0.11.5",
+    "js-base64": "3.7.8",
+    "num2fraction": "1.2.2"
+  }
+}

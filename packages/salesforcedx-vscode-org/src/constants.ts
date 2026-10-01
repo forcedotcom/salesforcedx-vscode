@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+// Commands
+export const ORG_OPEN_COMMAND = 'sf.org.open';
+export const ORG_LOGOUT_ALL_COMMAND = 'sf.org.logout.all';
+export const ORG_LOGOUT_DEFAULT_COMMAND = 'sf.org.logout.default';
+export const ORG_LOGIN_WEB_COMMAND = 'sf.org.login.web';
+export const ORG_DISPLAY_DEFAULT_COMMAND = 'sf.org.display.default';
+export const ORG_LOGIN_ACCESS_TOKEN_COMMAND = 'sf.org.login.access.token';
+export const ORG_DISPLAY_USERNAME_COMMAND = 'sf.org.display.username';
+export const ORG_LOGIN_WEB_DEV_HUB = 'sf.org.login.web.dev.hub';

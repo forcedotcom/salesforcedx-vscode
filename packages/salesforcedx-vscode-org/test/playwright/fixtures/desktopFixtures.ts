@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+
+/** `sfdx-project.json` workspace, no `.sfdx/config.json` — palette assertions do not need a real org */
+export const orgDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core']
+});
+
+/** Isolates extension-host Salesforce config so no user or CI target Dev Hub is visible. */
+export const orgDesktopMissingDevHubTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  testExtensionPaths: ['test/playwright/fixtureExtensions/missingDevHub']
+});
+
+/** Same workspace with the minimal scratch org set as default (`.sfdx/config.json` target-org),
+ * so default-org context keys (e.g. `sf:default_org_deletable`) are populated.
+ * `window.dialogStyle: custom` routes the logout confirm modal through VS Code's DOM renderer so
+ * the real-logout step can click its confirm button (the cancel steps only press Escape). */
+export const orgDesktopMinimalDefaultTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  orgAlias: MINIMAL_ORG_ALIAS,
+  userSettings: { 'window.dialogStyle': 'custom' }
+});
+
+/** Minimal-scratch-default fixture that also routes `showWarningMessage({ modal: true })` through VS Code's
+ * DOM (`.monaco-dialog-box`) so Playwright can click/dismiss the `PromptService.confirmOrThrow` modal
+ * (org list clean). Native Electron dialogs are inaccessible to Playwright. */
+export const orgDesktopMinimalDefaultCustomDialogTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  orgAlias: MINIMAL_ORG_ALIAS,
+  userSettings: {
+    'window.dialogStyle': 'custom'
+  }
+});
