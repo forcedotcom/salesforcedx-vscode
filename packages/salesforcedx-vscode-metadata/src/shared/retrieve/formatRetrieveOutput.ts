@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { FileResponse, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
+import { URI } from 'vscode-uri';
+
+/** Format retrieve results for output. `result` is optional for deletes-only cases. */
+export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (
+  result: RetrieveResult | undefined,
+  fileResponsesFromDelete: FileResponse[] = []
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { isSDRSuccess, isSDRFailure } = yield* api.services.ComponentSetService;
+  const fileResponses = result?.getFileResponses() ?? [];
+  const succeeded = [...fileResponses.filter(isSDRSuccess), ...fileResponsesFromDelete];
+  const failed = fileResponses.filter(isSDRFailure);
+
+  const successSection =
+    succeeded.length > 0
+      ? `\n=== Retrieved Source (${succeeded.length}) ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.filePath ? URI.file(r.filePath).toString() : r.fullName}`).join('\n')}\n`
+      : '';
+
+  const failureSection =
+    failed.length > 0
+      ? `\n=== Retrieve Errors (${failed.length}) ===\n${failed
+          .map(r => {
+            const error = 'error' in r ? r.error : 'Unknown error';
+            return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
+          })
+          .join('\n')}\n`
+      : '';
+
+  return successSection + failureSection;
+});
