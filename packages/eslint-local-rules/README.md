@@ -137,6 +137,35 @@ const effect = Match.value(kind).pipe(
 
 This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
 
+### no-raw-duration
+
+Disallows a numeric literal or `number`-typed argument or object property whose contextual type includes Effect's `Duration` or `Duration.DurationInput`, including an optional `DurationInput`. A bare `number` in that position is milliseconds. Wrap it with `Duration.millis`. A parameter whose declared type is plain `number` or `number | undefined` stays allowed, so `Duration.millis(5000)` and a `factor?: number` argument are not flagged. Still-legal `DurationInput` values the rule does not cover: `bigint` nanos (`Effect.sleep(1n)`) and template-string inputs (`Effect.sleep("2 seconds")`).
+
+**Bad:**
+
+```typescript
+Effect.sleep(30_000);
+
+const ms: number = 30_000;
+Effect.sleep(ms);
+
+const opts: { timeout?: Duration.DurationInput } = { timeout: 1 };
+```
+
+**Good:**
+
+```typescript
+Effect.sleep(Duration.millis(30_000));
+
+Duration.millis(5000);
+
+const opts: { timeout: number } = { timeout: 30_000 };
+
+Schedule.exponential(Duration.seconds(1), 2);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
+
 ### no-effect-service-promise-return
 
 Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.

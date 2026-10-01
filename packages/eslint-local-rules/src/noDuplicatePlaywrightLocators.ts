@@ -10,6 +10,7 @@ import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { readJsonRecord } from './packageJsonUtils';
 
 type LocatorMap = Map<string, string>; // selector value -> constant name
 
@@ -28,17 +29,10 @@ const findRepoRoot = (filePath: string): string | undefined => {
     const packageJsonPath = path.join(current, 'package.json');
     const gitPath = path.join(current, '.git');
 
-    if (fs.existsSync(packageJsonPath)) {
-      try {
-        const content = fs.readFileSync(packageJsonPath, 'utf8');
-        const pkg = JSON.parse(content);
-        // Check if this is the root package.json (has workspaces or is the main repo)
-        if (pkg.workspaces || pkg.name === 'salesforcedx-vscode') {
-          return current;
-        }
-      } catch {
-        // Continue searching
-      }
+    const pkg = readJsonRecord(packageJsonPath);
+    // Check if this is the root package.json (has workspaces or is the main repo)
+    if (pkg !== undefined && (Boolean(pkg.workspaces) || pkg.name === 'salesforcedx-vscode')) {
+      return current;
     }
 
     if (fs.existsSync(gitPath)) {

@@ -18,6 +18,7 @@ import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
+import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
@@ -66,6 +67,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
+    'no-raw-duration': noRawDuration,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,

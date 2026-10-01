@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
@@ -234,7 +235,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
         yield* svc.getTraceFlags();
         yield* setOrg({ orgId: ORG_B, username: 'b@example.com' });
         // Yield once to let the org-change subscription fiber process the invalidation.
-        yield* Effect.sleep(0);
+        yield* Effect.sleep(Duration.millis(0));
         return yield* svc.getTraceFlags();
       }),
       layer
@@ -258,7 +259,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
         yield* setOrg({ orgId: ORG_A, username: 'a@example.com', alias: 'changed-alias' });
-        yield* Effect.sleep(0);
+        yield* Effect.sleep(Duration.millis(0));
         return yield* svc.getTraceFlags();
       }),
       layer
