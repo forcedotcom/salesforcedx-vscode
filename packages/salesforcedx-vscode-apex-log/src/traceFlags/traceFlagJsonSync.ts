@@ -1,0 +1,273 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Deferred from 'effect/Deferred';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Order from 'effect/Order';
+import * as Queue from 'effect/Queue';
+import * as Ref from 'effect/Ref';
+import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
+import { APEX_LOG_SETTINGS_SECTION } from '../constants';
+import { nls } from '../messages';
+import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
+
+export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const settings = yield* api.services.SettingsService;
+  const val = yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'traceFlagsDefaultDurationMinutes', 30);
+  return val > 0 ? val : 30;
+});
+
+export const refreshTraceFlagsView = Effect.fn('ApexLog.refreshTraceFlagsView')(function* (orgId: string) {
+  const { refresh } = yield* TraceFlagsContentProviderService;
+  yield* Effect.sync(() => refresh(orgId));
+});
+
+type UserRecord = { Id: string; FirstName: string; LastName: string; Username: string; UserType: string };
+
+type UserQuickPickItem = vscode.QuickPickItem & { userId: string };
+
+const USER_TYPE_GROUPS: readonly (readonly string[])[] = [
+  ['Standard'],
+  ['AutomatedProcess'],
+  ['PowerPartner'],
+  ['PowerCustomerSuccess', 'CustomerSuccess', 'CsnOnly', 'CspLitePortal', 'SelfService'],
+  ['Guest']
+];
+
+const userTypeGroup = (record: UserRecord): number => {
+  const group = USER_TYPE_GROUPS.findIndex(userTypes => userTypes.includes(record.UserType));
+  return group === -1 ? USER_TYPE_GROUPS.length : group;
+};
+
+const userOrder = Order.combineAll([
+  Order.mapInput(Order.number, userTypeGroup),
+  Order.mapInput(Order.string, (record: UserRecord) => record.LastName),
+  Order.mapInput(Order.string, (record: UserRecord) => record.FirstName)
+]);
+
+const SOSL_DEBOUNCE_MS = 300;
+const SOSL_MIN_CHARS = 2;
+
+const buildUserQuickPickItems = (records: UserRecord[], excludeUserId: string): UserQuickPickItem[] =>
+  records
+    .filter(r => r.Id !== excludeUserId)
+    .toSorted(userOrder)
+    .map(record => ({
+      label: `${record.FirstName ?? ''} ${record.LastName ?? ''}`.trim(),
+      description: `${record.Username}  (${record.UserType})`,
+      userId: record.Id
+    }));
+
+const isUserQuickPickItem = (item: vscode.QuickPickItem | undefined): item is UserQuickPickItem =>
+  item !== undefined && 'userId' in item;
+
+/** Coerce jsforce search records (untyped) to UserRecord[]. */
+const toUserRecords = (searchRecords: { [field: string]: unknown }[]): UserRecord[] =>
+  searchRecords.map(r => ({
+    Id: String(r.Id ?? ''),
+    FirstName: String(r.FirstName ?? ''),
+    LastName: String(r.LastName ?? ''),
+    Username: String(r.Username ?? ''),
+    UserType: String(r.UserType ?? '')
+  }));
+
+type ConnectionLike = { search: (sosl: string) => Promise<{ searchRecords: { [field: string]: unknown }[] }> };
+
+class UserSearchError extends Schema.TaggedError<UserSearchError>()('UserSearchError', {
+  message: Schema.String
+}) {}
+
+/** Run SOSL search and update picker items. Ignore failures so user can keep typing. */
+const searchUsersEffect = (
+  term: string,
+  picker: vscode.QuickPick<vscode.QuickPickItem>,
+  conn: ConnectionLike,
+  currentUserId: string
+) =>
+  Effect.gen(function* () {
+    yield* Effect.sync(() => {
+      picker.busy = true;
+    });
+    const escaped = term.replaceAll(/['"\\]/g, '');
+    const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
+    const { searchRecords } = yield* Effect.tryPromise({
+      try: () => conn.search(sosl),
+      catch: () => new UserSearchError({ message: 'search failed' })
+    });
+    yield* Effect.sync(() => {
+      picker.items = buildUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
+      picker.busy = false;
+    });
+  }).pipe(
+    // Ignore search failures so user can keep typing and retry
+    Effect.catchTag('UserSearchError', () =>
+      Effect.sync(() => {
+        picker.busy = false;
+      })
+    )
+  );
+
+/** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
+export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUserId: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const conn = yield* (yield* api.services.ConnectionService).getConnection();
+  const runtime = yield* Effect.runtime();
+  const run = Runtime.runFork(runtime);
+
+  const queue = yield* Queue.unbounded<string>();
+  const deferred = yield* Deferred.make<UserQuickPickItem | undefined>();
+  const acceptedRef = yield* Ref.make(false);
+
+  const picker = vscode.window.createQuickPick<vscode.QuickPickItem>();
+  picker.placeholder = nls.localize('trace_flag_pick_user');
+  picker.matchOnDescription = true;
+  picker.items = [];
+
+  const accept = (item: UserQuickPickItem | undefined) =>
+    Runtime.runCallback(runtime)(
+      Ref.modify(acceptedRef, (a: boolean) => [a, true]),
+      {
+        onExit: (exit: Exit.Exit<boolean, never>) => {
+          if (Exit.isSuccess(exit) && !exit.value) {
+            run(
+              Effect.gen(function* () {
+                yield* Queue.shutdown(queue);
+                yield* Deferred.succeed(deferred, item);
+              })
+            );
+          }
+          picker.dispose();
+        }
+      }
+    )();
+
+  picker.onDidChangeValue(value => {
+    value.length < SOSL_MIN_CHARS ? (picker.items = []) : run(Queue.offer(queue, value));
+  });
+  picker.onDidChangeSelection(items => accept(isUserQuickPickItem(items[0]) ? items[0] : undefined));
+  picker.onDidAccept(() => accept(isUserQuickPickItem(picker.activeItems[0]) ? picker.activeItems[0] : undefined));
+  picker.onDidHide(() => accept(undefined));
+
+  yield* Stream.fromQueue(queue).pipe(
+    Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
+    Stream.filter(s => s.length >= SOSL_MIN_CHARS),
+    Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId)),
+    Effect.fork
+  );
+  picker.show();
+
+  return yield* Deferred.await(deferred);
+});
+
+type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
+
+/** Show a QuickPick of the given DebugLevels; resolves to the picked item's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+const debugLevelPicker = (spanName: string, placeHolderKey: Parameters<typeof nls.localize>[0]) =>
+  Effect.fn(spanName)(function* (items: DebugLevelItem[]) {
+    const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+    return yield* Effect.promise(() =>
+      vscode.window.showQuickPick<DebugLevelQuickPickItem>(
+        items.map(dl => ({
+          label: dl.masterLabel,
+          description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
+          detail: dl.developerName,
+          debugLevelId: dl.id
+        })),
+        { placeHolder: nls.localize(placeHolderKey), matchOnDescription: true, matchOnDetail: true }
+      )
+    ).pipe(
+      Effect.flatMap(promptService.considerUndefinedAsCancellation),
+      Effect.map(picked => picked.debugLevelId)
+    );
+  });
+
+export const pickDebugLevel = debugLevelPicker('ApexLog.pickDebugLevel', 'trace_flag_pick_debug_level');
+export const pickDebugLevelToRemove = debugLevelPicker(
+  'ApexLog.pickDebugLevelToRemove',
+  'trace_flag_pick_debug_level_to_remove'
+);
+
+export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
+
+/** Show a QuickPick of the given (already active) trace flags; resolves to the picked flag's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickTraceFlag = Effect.fn('ApexLog.pickTraceFlag')(function* (active: TraceFlagItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<TraceFlagQuickPickItem>(
+      active.map(tf => ({
+        label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
+        description: tf.logType,
+        detail: `Expires ${tf.expirationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        traceFlagId: tf.id
+      })),
+      { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.traceFlagId)
+  );
+});
+
+type LogCategoryLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'FINE' | 'FINER' | 'FINEST';
+
+type DebugLevelCategory = {
+  key: keyof Pick<
+    Record<string, LogCategoryLevel>,
+    | 'apexCode'
+    | 'apexProfiling'
+    | 'callout'
+    | 'database'
+    | 'nba'
+    | 'system'
+    | 'validation'
+    | 'visualforce'
+    | 'wave'
+    | 'workflow'
+  >;
+  label: string;
+  default: LogCategoryLevel;
+};
+
+const LOG_LEVELS: LogCategoryLevel[] = ['NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST'];
+
+export const sanitizeDeveloperName = (s: string): string =>
+  s.replaceAll(/\W+/g, '_').replaceAll(/^_|_$/g, '').toUpperCase() || 'DebugLevel';
+
+export const pickLogLevel = async (
+  category: DebugLevelCategory,
+  defaultValue: LogCategoryLevel
+): Promise<LogCategoryLevel | undefined> => {
+  const items = LOG_LEVELS.map(l => ({ label: l, level: l }));
+  const defaultItem = items.find(i => i.level === defaultValue);
+  return new Promise<LogCategoryLevel | undefined>(resolve => {
+    const picker = vscode.window.createQuickPick<{ label: string; level: LogCategoryLevel }>();
+    picker.items = items;
+    picker.activeItems = defaultItem ? [defaultItem] : [];
+    picker.placeholder = nls.localize('trace_flag_create_log_level_pick', category.label);
+    picker.title = category.label;
+    picker.onDidAccept(() => {
+      const selected = picker.activeItems[0];
+      resolve(selected?.level);
+      picker.dispose();
+    });
+    picker.onDidHide(() => {
+      picker.dispose();
+      resolve(undefined);
+    });
+    picker.show();
+  });
+};
