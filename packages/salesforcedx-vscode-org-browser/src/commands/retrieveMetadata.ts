@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
+import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { preventOrgChanges } from '../services/extensionProvider';
+import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
+import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
+import { isMemberPresentInProject } from './componentPresence';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_metadata_text;
+
+export const hasRetrieveTreeItem = (node: OrgBrowserTreeItem | undefined): node is OrgBrowserTreeItem =>
+  isNotUndefined(node);
+
+export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
+  node: OrgBrowserTreeItem | undefined,
+  treeProvider: MetadataTypeTreeProvider
+) {
+  if (!hasRetrieveTreeItem(node)) {
+    yield* Effect.logWarning('Retrieve Metadata was invoked without an Org Browser tree item');
+    return yield* Effect.void;
+  }
+  const members = yield* getRetrieveMembers(node, treeProvider);
+  if (members.length === 0) return yield* Effect.void;
+
+  yield* Effect.annotateCurrentSpan({ memberCount: members.length });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  yield* confirmOverwrite(yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories(), members);
+
+  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
+    progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
+  }).pipe(
+    Effect.tap(() =>
+      Match.value(node.kind).pipe(
+        Match.whenOr('component', 'customObject', () =>
+          Effect.sync(() => {
+            node.iconPath = getIconPath(true);
+            treeProvider.fireChangeEvent(node);
+          })
+        ),
+        Match.orElse(() => Effect.promise(() => treeProvider.refreshType(node)))
+      )
+    ),
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text'))
+      )
+    )
+  );
+}, preventOrgChanges);
+
+const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataTypeTreeProvider) =>
+  Match.value(node).pipe(
+    Match.when(
+      (n): n is OrgBrowserTreeItem & { componentName: string } =>
+        (n.kind === 'component' || n.kind === 'customObject') && isNotUndefined(n.componentName),
+      n => Effect.succeed([{ type: n.xmlName, fullName: n.componentName }])
+    ),
+    Match.when({ kind: 'type' }, n =>
+      Effect.promise(() => treeProvider.getChildren(n)).pipe(
+        Effect.map(children =>
+          children
+            .filter((c): c is OrgBrowserTreeItem & { componentName: string } => Boolean(c.componentName))
+            .map(c => ({ type: n.xmlName, fullName: c.componentName }))
+        )
+      )
+    ),
+    Match.orElse(() => Effect.succeed([]))
+  );
+
+const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
+  members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
+
+const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
+  projectComponentSet: ComponentSet,
+  members: MetadataMember[]
+) {
+  const overwriteCount = getOverwriteCount(projectComponentSet, members);
+  if (overwriteCount === 0) return;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const typeName = members[0]?.type ?? 'Unknown';
+  yield* (yield* api.services.PromptService).confirmOrThrow({
+    message: nls.localize('confirm_overwrite', String(overwriteCount), typeName),
+    confirmLabel: nls.localize('yes_button')
+  });
+});
