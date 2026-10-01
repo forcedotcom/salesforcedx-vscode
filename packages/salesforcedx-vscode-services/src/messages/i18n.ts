@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * Conventions:
+ * _message: is for unformatted text that will be shown as-is to
+ * the user.
+ * _text: is for text that will appear in the UI, possibly with
+ * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
+ * be localized
+ *
+ * If omitted, we will assume _message.
+ */
+export const messages = {
+  deploying_one_component: 'Deploying 1 component',
+  deploying_n_components: 'Deploying %d components',
+  deleting_one_component: 'Deleting 1 component',
+  deleting_n_components: 'Deleting %d components',
+  retrieve_on_load_failed: 'Retrieve on load failed: %s',
+  view_suggestions: 'View Suggestions',
+  // Media/icon descriptions (accessibility)
+  icon_sf_default_org: 'Default Scratch Org',
+  icon_sf_default_hub: 'Default Dev Hub',
+  icon_org_type_devhub: 'Dev Hub',
+  icon_org_type_sandbox: 'Sandbox',
+  icon_org_type_scratch: 'Scratch',
+  icon_org_type_org: 'Production',
+  icon_add: 'Run Command',
+  icon_browser: 'Open Org in Browser',
+  icon_warning: 'Expired',
+  metadata_overwrite_confirmation: '"%s" already exists. Do you want to overwrite it?',
+  overwrite_button: 'Overwrite',
+  choose_different_folder: 'Choose a different folder...',
+  select_folder: 'Select',
+  template_service_extension_context_not_available: 'Extension context not available',
+  template_service_manifest_load_failed:
+    'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
+  template_service_manifest_parse_failed: 'Failed to parse templates manifest from extension assets.',
+  template_service_file_copy_failed: 'Failed to copy template file "%s" to memfs. (%s)',
+  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined',
+  error_access_token_expired: 'Access token expired or invalid.',
+  error_access_token_expired_detail:
+    'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
+  error_access_token_expired_login_button: 'Login',
+  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.',
+  org_metadata_catalog_no_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.',
+  org_metadata_catalog_state_missing:
+    'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
+  org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s',
+  org_operation_target_changed: "The active org changed while an operation for '%s' was in progress.",
+  org_operation_superseded: 'The active org changed before this operation finished. Run it again for the current org.'
+} as const;
+
+export type MessageKey = keyof typeof messages;

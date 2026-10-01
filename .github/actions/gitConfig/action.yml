@@ -1,0 +1,17 @@
+name: gitConfig
+description: "Sets git username/email and push behavior"
+
+inputs:
+  email:
+    description: 'Email to set for config'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: git config --global push.default current
+      shell: bash
+    - run: git config --global user.email ${{ inputs.email }}
+      shell: bash
+    - run: git config user.name 'Release Bot'
+      shell: bash

@@ -1,0 +1,3 @@
+# Distribute via extension packs; activate in stages
+
+Functionality ships as separate extensions bundled into extension packs (the standard `salesforcedx-vscode` pack and `salesforcedx-vscode-expanded`) so customers install a set in one step. Activation is staged to protect startup performance: `salesforcedx-vscode-core` starts on any dx project (it is a runtime dependency of the others) and `salesforcedx-vscode-apex` starts eagerly only because Jorje is slow to boot; everything else activates on-demand (command run, matching file opened, or `workspaceContains`). See [ExtensionPacks.md](../architecture/ExtensionPacks.md) and [ADR-0016](./0016-defer-extension-activation.md).

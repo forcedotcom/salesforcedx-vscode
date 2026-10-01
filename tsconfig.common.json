@@ -1,0 +1,44 @@
+// https://www.typescriptlang.org/tsconfig#extends
+// The configuration from this file is loaded first, then overridden by those in the inheriting config file. But path-based compiler options (outDir, outFile, rootDir, include, exclude, files) are resolved from the config file they're found in. They cannot be extended (https://github.com/microsoft/TypeScript/issues/29172).
+// Config ref: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
+{
+  // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["es2023", "dom", "es2024.collection", "es2024.object", "es2024.promise", "esnext.collection"],
+    "module": "node16",
+    "moduleResolution": "Node16",
+    "esModuleInterop": false,
+    "ignoreDeprecations": "6.0",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "types": ["jest", "node"],
+    "declaration": true,
+    "declarationMap": true,
+    "isolatedModules": true,
+    "paths": {
+      "salesforcedx-vscode-services": ["./packages/salesforcedx-vscode-services/out/src/index.d.ts"]
+    },
+    "noImplicitAny": true,
+    // TODO: cleanup unknown usage in catch blocks and remove below setting
+    "useUnknownInCatchVariables": false,
+    "noUnusedLocals": true,
+    "allowSyntheticDefaultImports": true,
+    // Rules listed in diagnosticSeverity are enabled/pinned at "error" — most default to "off" upstream, so they report nothing until pinned. The build gate is config/effect-diagnostics.json enforcedRules.
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          "floatingEffect": "error",
+          "globalRandom": "error",
+          "globalRandomInEffect": "error",
+          "globalFetchInEffect": "error",
+          "globalTimersInEffect": "error",
+          "missedPipeableOpportunity": "error"
+        }
+      },
+      { "name": "@salesforce/vscode-i18n/tsPlugin" }
+    ]
+  }
+}

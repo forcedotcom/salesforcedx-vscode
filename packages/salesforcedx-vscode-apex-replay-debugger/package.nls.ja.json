@@ -1,0 +1,17 @@
+{
+  "view_checkpoints": "チェックポイント",
+  "launch_snippet_label_text": "Apex Replay Debugger: 起動",
+  "launch_snippet_description_text": "Apex Replay Debugger を起動するための新しい構成",
+  "launch_snippet_name": "Apex Replay Debugger を起動",
+  "launch_from_last_log_file": "SFDX: 最新のログファイルで Apex Replay Debugger を起動",
+  "launch_apex_replay_debugger_with_selected_file": "SFDX: 選択されたファイルで Apex リプレイデバッガを起動",
+  "apex_debug_document_text": "SFDX: エディタの選択したテキストで Anonymous Apex をデバッグ",
+  "logfile_text": "ワークスペースフォルダ内の Apex デバッグログファイル(*.log) のパス。",
+  "stop_on_entry_text": "起動後にデバッガを停止する。もし false に設定した場合、デバッガはブレークポイントにヒットするまで実行されます。",
+  "trace_text": "診断出力を生成します。これを true、false、またはカンマで区切った 1 つ以上のセレクタに設定できます。セレクタには、'all' (非常に詳細な出力。true と同等)、'protocol'、'logfile'、'launch'、'breakpoints' があります。",
+  "sf_update_checkpoints_in_org": "SFDX: 組織のチェックポイントをアップデート",
+  "sf_toggle_checkpoint": "SFDX: チェックポイントを切り替え",
+  "run_tests_and_debug": "テストをデバッグ",
+  "run_single_test_and_debug": "1 つのテストをデバッグ",
+  "debug_test_success": "テストが正常に実行されました"
+}
