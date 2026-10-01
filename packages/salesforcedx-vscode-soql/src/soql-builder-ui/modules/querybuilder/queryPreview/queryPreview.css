@@ -1,0 +1,28 @@
+/*
+ *  Copyright (c) 2020, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+.query-preview-container {
+  border: 1px solid
+    var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
+  border-radius: 3px;
+}
+.query-preview-container .header {
+  padding: 5px;
+  font-size: 90%;
+  border-bottom: 1px solid
+    var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
+}
+.query-preview-container .query {
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+}
+
+pre {
+  margin: 1em;
+  white-space: pre-wrap;
+}
