@@ -17,7 +17,6 @@ const CheckPayload = Schema.Struct({
   pull_requests: Schema.optional(Schema.Array(PullRequestNumber))
 });
 
-/** GitHub Actions event payload variants supported by this package. See GitHub's webhook payload docs and add variants as consumers need them. */
 export const CheckRunEvent = Schema.Struct({
   action: Schema.Literal('completed'),
   check_run: CheckPayload
@@ -39,7 +38,10 @@ export const PullRequestReviewEvent = Schema.Struct({
   review: Schema.Struct({ state: Schema.String })
 });
 
-/** Add a schema to this union when a consumer needs another GitHub event type. */
+/**
+ * Supported GitHub Actions event payloads. Add variants as consumers need them.
+ * https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads
+ */
 export const GitHubEvent = Schema.Union(CheckRunEvent, CheckSuiteEvent, PullRequestEvent, PullRequestReviewEvent);
 
-export type GitHubEvent = Schema.Schema.Type<typeof GitHubEvent>;
+export type GitHubEventType = Schema.Schema.Type<typeof GitHubEvent>;
