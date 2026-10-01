@@ -1,33 +1,29 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import * as Config from 'effect/Config';
+import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isNumber, isUndefined } from 'effect/Predicate';
+import { isUndefined } from 'effect/Predicate';
+import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
-import { AgentError, GitError } from './shared/scriptErrors.ts';
-import {
-  BASE_BRANCH,
-  BOT_LOGIN,
-  MODEL,
-  TEAM_ORG,
-  TEAM_SLUG,
-  type Decision,
-  type Facts,
-  buildPrompt,
-  categoryIdsFromPolicy,
-  decideCategoryApprove,
-  parseAgentResult,
-  withoutOwnRun
-} from './shared/categoryDecision.ts';
+import { MODEL, buildPrompt, categoryIdsFromPolicy, parseAgentResult } from './shared/categoryDecision.mts';
+import { BOT_LOGIN, type Decision, type Facts, decideCategoryApprove } from './shared/categoryGates.mts';
+import { categoryPullNumbers, createCategoryReads, readCategoryFacts } from './shared/categoryReads.mts';
+import { AgentError, GitError } from './shared/scriptErrors.mts';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
 const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
@@ -51,7 +47,7 @@ const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (comm
   );
 });
 
-const gitText = (args: ReadonlyArray<string>) =>
+const gitText = (args: readonly string[]) =>
   commandOutput(Command.make('git', ...args)).pipe(
     Effect.scoped,
     Effect.filterOrFail(
@@ -77,20 +73,6 @@ const CheckEvent = Schema.Struct({
   check_run: Schema.optional(CheckPayload),
   check_suite: Schema.optional(CheckPayload),
   pull_request: Schema.optional(PullRequestNumber)
-});
-
-const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
-  owner: string,
-  repo: string,
-  headSha: string,
-  runId: string
-) {
-  const github = yield* GitHub;
-  const [status, runs] = yield* Effect.all(
-    [github.combinedStatus(owner, repo, headSha), github.checkRuns(owner, repo, headSha)],
-    { concurrency: 'unbounded' }
-  );
-  return { statuses: status.statuses, checkRuns: withoutOwnRun(runs, runId) };
 });
 
 const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
@@ -126,7 +108,7 @@ const approve = Effect.fn('categoryApprove.approve')(function* (
   repo: string,
   pullNumber: number,
   headSha: string,
-  categories: ReadonlyArray<string>
+  categories: readonly string[]
 ) {
   yield* GitHub.pipe(
     Effect.flatMap(github =>
@@ -191,34 +173,17 @@ const act = (
   );
 
 const onePull = Effect.fn('categoryApprove.onePull')(function* (
+  reads: ReturnType<typeof createCategoryReads>,
   owner: string,
   repo: string,
   pullNumber: number,
   runId: string
 ) {
-  const github = yield* GitHub;
-  const pull = yield* github.pullRequest(owner, repo, pullNumber);
-  const headSha = pull?.headRefOid ?? '';
-  const authorLogin = pull?.author?.login;
-  const [files, reviews, checks, membership] = yield* Effect.all(
-    [
-      github.pullFiles(owner, repo, pullNumber),
-      github.pullReviews(owner, repo, pullNumber),
-      listChecks(owner, repo, headSha, runId),
-      isUndefined(authorLogin) ? Effect.succeed('none') : github.teamMembership(TEAM_ORG, TEAM_SLUG, authorLogin)
-    ],
-    { concurrency: 'unbounded' }
+  const { facts, decision: gated } = yield* Effect.promise(() =>
+    readCategoryFacts(reads, owner, repo, pullNumber, runId)
   );
-  const facts = {
-    pull,
-    files,
-    statuses: checks.statuses,
-    checkRuns: checks.checkRuns,
-    reviews,
-    teamMembershipState: membership,
-    botLogin: BOT_LOGIN
-  };
-  const gated = decideCategoryApprove(facts);
+  const { pull, reviews } = facts;
+  const headSha = pull?.headRefOid ?? '';
   if (gated._tag !== 'Classify' || isUndefined(pull))
     return yield* act(gated, owner, repo, pullNumber, headSha, reviews);
   yield* act(gated, owner, repo, pullNumber, headSha, reviews);
@@ -229,7 +194,7 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
     Effect.flatMap(diff => writeDiff(policy, diff)),
     Effect.scoped,
     Effect.flatMap(categories =>
-      listChecks(owner, repo, headSha, runId).pipe(
+      Effect.promise(() => reads.checks(owner, repo, headSha, runId)).pipe(
         Effect.map(freshChecks =>
           decideCategoryApprove({
             ...facts,
@@ -245,33 +210,10 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   );
 });
 
-const pullActions = new Set(['opened', 'ready_for_review', 'reopened', 'edited', 'submitted', 'dismissed']);
-
-const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
-  owner: string,
-  repo: string,
-  event: typeof CheckEvent.Type
-) {
-  if (!isUndefined(event.pull_request) && !isUndefined(event.action) && pullActions.has(event.action)) {
-    return [event.pull_request.number];
-  }
-  const listed = (event.check_run?.pull_requests ?? event.check_suite?.pull_requests ?? []).map(pull => pull.number);
-  if (listed.length > 0) return listed;
-  const sha = event.check_run?.head_sha ?? event.check_suite?.head_sha;
-  if (isUndefined(sha)) return [];
-  return yield* GitHub.pipe(
-    Effect.flatMap(github => github.pullsForCommit(owner, repo, sha)),
-    Effect.map(pulls =>
-      pulls
-        .filter(pull => pull.base?.ref === BASE_BRANCH && pull.state === 'open')
-        .map(pull => pull.number)
-        .filter(isNumber)
-    )
-  );
-});
-
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
   const env = yield* actionsEnvironment;
+  const token = yield* Config.redacted('IDEE_GH_TOKEN').pipe(Config.orElse(() => Config.redacted('GITHUB_TOKEN')));
+  const reads = createCategoryReads(Redacted.value(token));
   const event = yield* FileSystem.FileSystem.pipe(
     Effect.flatMap(fs => fs.readFileString(env.eventPath)),
     Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(CheckEvent)))
@@ -280,12 +222,12 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
     yield* Effect.log('skip: own check run');
     return;
   }
-  const numbers = yield* pullNumbers(env.owner, env.repo, event);
+  const numbers = yield* Effect.promise(() => categoryPullNumbers(reads, event, env.owner, env.repo));
   if (numbers.length === 0) {
     yield* Effect.log('skip: no pull request for this check suite');
     return;
   }
-  yield* Effect.forEach(numbers, number => onePull(env.owner, env.repo, number, String(env.runId)), {
+  yield* Effect.forEach(numbers, number => onePull(reads, env.owner, env.repo, number, String(env.runId)), {
     discard: true
   });
 });

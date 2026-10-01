@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { parse } from 'yaml';
+import { preflight } from '../scripts/category-approve-preflight.mjs';
+import { buildPrompt, categoryIdsFromPolicy, parseAgentResult } from '../scripts/shared/categoryDecision.mts';
 import {
+  BASE_BRANCH,
   BOT_LOGIN,
-  buildPrompt,
-  categoryIdsFromPolicy,
   decideCategoryApprove,
   deniedFile,
-  parseAgentResult,
   withoutOwnRun
-} from '../scripts/shared/categoryDecision.ts';
+} from '../scripts/shared/categoryGates.mts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const allowed = categoryIdsFromPolicy(policy);
@@ -153,4 +154,171 @@ test('parses categories from the agent json envelope', () => {
   const stdout = JSON.stringify({ result: 'looks fine\n{"categories":["prose","lockfile"]}\n' });
   assert.deepEqual(parseAgentResult(stdout), ['prose', 'lockfile']);
   assert.equal(parseAgentResult('not json'), undefined);
+});
+
+test('preflight uses the same gates before installing dependencies', async t => {
+  const event = { action: 'submitted', pull_request: { number: 8314 } };
+  const scenarios = [
+    { name: 'denylisted file', files: [{ filename: '.github/workflows/apexLspE2E.yml' }], expected: false },
+    { name: 'unsettled check', runs: [{ status: 'in_progress', conclusion: null }], expected: false },
+    {
+      name: 'bot approval on head',
+      reviews: [{ user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: 'abc123' }],
+      expected: false
+    },
+    {
+      name: 'own running check is ignored',
+      runs: [
+        green,
+        {
+          status: 'in_progress',
+          conclusion: null,
+          details_url: 'https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/9/job/1'
+        }
+      ],
+      expected: true
+    },
+    { name: 'classification', expected: true },
+    {
+      name: 'dismissal',
+      reviews: [{ user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: 'abc123' }],
+      runs: [{ status: 'completed', conclusion: 'failure' }],
+      expected: true
+    }
+  ];
+  for (const scenario of scenarios) {
+    await t.test(scenario.name, async t => {
+      const requests: string[] = [];
+      t.mock.method(globalThis, 'fetch', async (url: string) => {
+        const path = new URL(url).pathname;
+        requests.push(path);
+        if (path === '/graphql') return Response.json({ data: { repository: { pullRequest: pull } } });
+        if (path.endsWith('/files')) return Response.json(scenario.files ?? [{ filename: 'README.md' }]);
+        if (path.endsWith('/reviews')) return Response.json(scenario.reviews ?? []);
+        if (path.endsWith('/status')) return Response.json({ statuses: [] });
+        if (path.endsWith('/check-runs')) return Response.json({ check_runs: scenario.runs ?? [green] });
+        if (path.endsWith('/memberships/mshanemc')) return Response.json({ state: 'active' });
+        throw new Error(`unexpected request: ${url}`);
+      });
+      assert.equal(await preflight(event, 'forcedotcom', 'salesforcedx-vscode', 'token', '9'), scenario.expected);
+      assert.ok(requests.includes('/repos/forcedotcom/salesforcedx-vscode/pulls/8314/files'));
+    });
+  }
+});
+
+test('preflight handles check runs without listed pull requests', async t => {
+  const event = { check_run: { head_sha: 'abc123', pull_requests: [] } };
+  t.mock.method(globalThis, 'fetch', async (url: string) => {
+    const path = new URL(url).pathname;
+    if (path.endsWith('/commits/abc123/pulls')) {
+      return Response.json([{ number: 8314, base: { ref: BASE_BRANCH }, state: 'open' }]);
+    }
+    if (path === '/graphql') return Response.json({ data: { repository: { pullRequest: pull } } });
+    if (path.endsWith('/files')) return Response.json([{ filename: '.github/workflows/apexLspE2E.yml' }]);
+    if (path.endsWith('/reviews')) return Response.json([]);
+    if (path.endsWith('/status')) return Response.json({ statuses: [] });
+    if (path.endsWith('/check-runs')) return Response.json({ check_runs: [green] });
+    if (path.endsWith('/memberships/mshanemc')) return Response.json({ state: 'active' });
+    throw new Error(`unexpected request: ${url}`);
+  });
+  assert.equal(await preflight(event, 'forcedotcom', 'salesforcedx-vscode', 'token', '9'), false);
+});
+
+test('preflight checks all pages of changed files for denylisted paths', async t => {
+  const requests: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (url: string) => {
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    requests.push(path);
+    if (path === '/graphql') return Response.json({ data: { repository: { pullRequest: pull } } });
+    if (path.endsWith('/files') && parsed.searchParams.has('page')) {
+      return Response.json([{ filename: '.github/workflows/apexLspE2E.yml' }]);
+    }
+    if (path.endsWith('/files')) {
+      return Response.json([{ filename: 'README.md' }], {
+        headers: { Link: `<https://api.github.com${path}?per_page=100&page=2>; rel="next"` }
+      });
+    }
+    if (path.endsWith('/reviews')) return Response.json([]);
+    if (path.endsWith('/status') || path.endsWith('/check-runs') || path.endsWith('/memberships/mshanemc')) {
+      return Response.json({ message: 'unavailable' }, { status: 503 });
+    }
+    throw new Error(`unexpected request: ${url}`);
+  });
+  assert.equal(
+    await preflight(
+      { action: 'opened', pull_request: { number: 8314 } },
+      'forcedotcom',
+      'salesforcedx-vscode',
+      'token',
+      '9'
+    ),
+    false
+  );
+  assert.deepEqual(requests, [
+    '/graphql',
+    '/repos/forcedotcom/salesforcedx-vscode/pulls/8314/files',
+    '/repos/forcedotcom/salesforcedx-vscode/pulls/8314/files'
+  ]);
+});
+
+test('preflight skips a pull request with no head sha before querying checks', async t => {
+  const requests: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (url: string) => {
+    const path = new URL(url).pathname;
+    requests.push(path);
+    if (path === '/graphql') {
+      return Response.json({ data: { repository: { pullRequest: { ...pull, headRefOid: '' } } } });
+    }
+    throw new Error(`unexpected request: ${url}`);
+  });
+  assert.equal(
+    await preflight(
+      { action: 'opened', pull_request: { number: 8314 } },
+      'forcedotcom',
+      'salesforcedx-vscode',
+      'token',
+      '9'
+    ),
+    false
+  );
+  assert.deepEqual(requests, ['/graphql']);
+});
+
+test('preflight retries a GitHub rate limit response', async t => {
+  let requests = 0;
+  t.mock.method(globalThis, 'fetch', async (url: string) => {
+    assert.equal(new URL(url).pathname, '/graphql');
+    requests++;
+    return requests === 1
+      ? Response.json({ message: 'rate limited' }, { status: 429, headers: { 'retry-after': '0' } })
+      : Response.json({ data: { repository: { pullRequest: { ...pull, isDraft: true } } } });
+  });
+  assert.equal(
+    await preflight(
+      { action: 'opened', pull_request: { number: 8314 } },
+      'forcedotcom',
+      'salesforcedx-vscode',
+      'token',
+      '9'
+    ),
+    false
+  );
+  assert.equal(requests, 2);
+});
+
+test('workflow excludes bot approval and gates installation on preflight', () => {
+  const workflow = parse(readFileSync(new URL('../.github/workflows/categoryApprove.yml', import.meta.url), 'utf8'));
+  const job = workflow.jobs['category-approve'];
+  assert.match(job.if, /github\.event\.review\.user\.login != 'svc-idee-bot'/);
+  const steps = job.steps;
+  assert.equal(steps[0].with.ref, '${{ github.workflow_sha }}');
+  assert.ok(steps.find(step => step.id === 'preflight'));
+  const prCheckout = steps[3];
+  assert.equal(prCheckout.with.ref, '${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}');
+  assert.equal(prCheckout.with.path, 'pr');
+  assert.ok(steps.slice(3).every(step => step.if === "steps.preflight.outputs.run == 'true'"));
+  assert.equal(steps.at(-1)['working-directory'], 'pr');
+  assert.equal(steps.at(-1).run, 'node ../scripts/categoryApprove.mts');
+  assert.ok(steps.indexOf(prCheckout) < steps.findIndex(step => step.name === 'Decide and approve'));
 });
