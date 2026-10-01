@@ -1,0 +1,27 @@
+{
+  "name": "test-notification-slot-fixture",
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "test-ext.commandLevelNotifications": {
+          "properties": {
+            "My Success Command": {
+              "enum": ["successToast", "successStatusBar", "successOff"]
+            },
+            "My Progress Command": {
+              "enum": ["progressToast", "progressStatusBar"]
+            },
+            "My PAS Command": {
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
