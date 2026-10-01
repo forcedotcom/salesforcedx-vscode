@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -24,8 +25,8 @@ import { salesforceApexExtension } from './apexExtension';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfCreateCheckpoints,
-  sfToggleCheckpoint
+  sfCreateCheckpointsCommand,
+  sfToggleCheckpointCommand
 } from './breakpoints/checkpointService';
 import { getDebuggerOutputChannel } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
@@ -66,9 +67,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     }
   );
 
-  const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
-  const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
-
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
 
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
@@ -79,8 +77,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   return vscode.Disposable.from(
     launchFromLogFileCmd,
     launchFromLastLogFileCmd,
-    sfCreateCheckpointsCmd,
-    sfToggleCheckpointCmd,
     anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
@@ -136,6 +132,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
+  const registerCommand = (yield* (yield* ExtensionProviderService).getServicesApi).services.registerCommandWithRuntime(
+    getRuntime()
+  );
+  yield* registerCommand('sf.create.checkpoints', sfCreateCheckpointsCommand);
+  yield* registerCommand('sf.toggle.checkpoint', sfToggleCheckpointCommand);
+
   const commands = registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
