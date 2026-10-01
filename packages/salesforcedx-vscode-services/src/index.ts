@@ -531,7 +531,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       onSome: otelTracer =>
         OtelTracer.layerWithoutOtelTracer.pipe(Layer.provide(Layer.succeed(OtelTracer.OtelTracer, otelTracer)))
     });
-    const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
+    // Same policy as effect-ext-utils suppressVersionMismatchWarning; services cannot import effect-ext-utils.
+    const runtime = ManagedRuntime.make(
+      Layer.mergeAll(prebuiltServicesLayer, tracerFiberRefLayer, Layer.setVersionMismatchErrorLogLevel(Option.none()))
+    );
     setServicesRuntime(runtime);
 
     await activationEffect(context).pipe(
