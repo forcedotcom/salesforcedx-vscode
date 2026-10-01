@@ -1,0 +1,155 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+'use strict';
+
+import { type LanguageSettings } from 'vscode-css-languageservice';
+import { type DocumentContext } from 'vscode-html-languageservice';
+import { type ColorInformation, type ColorPresentation } from 'vscode-languageserver-protocol';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
+import {
+  type CompletionItem,
+  type CompletionList,
+  type Definition,
+  type Diagnostic,
+  type DocumentHighlight,
+  type DocumentLink,
+  type FormattingOptions,
+  type Hover,
+  type Location,
+  type Position,
+  type Range,
+  type SignatureHelp,
+  type SymbolInformation,
+  type TextEdit
+} from 'vscode-languageserver-types';
+import { getLanguageModelCache, type LanguageModelCache } from '../languageModelCache';
+import { getCSSMode } from './cssMode';
+import { getDocumentRegions, type HTMLDocumentRegions } from './embeddedSupport';
+import { getHTMLMode } from './htmlMode';
+import { getVisualforceHtmlLanguageService } from './visualforceHtmlLanguageService';
+
+export type Settings = LanguageSettings & {
+  css?: any;
+  visualforce?: any;
+  javascript?: any;
+};
+
+export type LanguageMode = {
+  configure?: (options: Settings) => void;
+  doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
+  doComplete?: (document: TextDocument, position: Position, settings?: Settings) => CompletionList;
+  doResolve?: (document: TextDocument, item: CompletionItem) => CompletionItem;
+  doHover?: (document: TextDocument, position: Position) => Hover;
+  doSignatureHelp?: (document: TextDocument, position: Position) => SignatureHelp;
+  findDocumentHighlight?: (document: TextDocument, position: Position) => DocumentHighlight[];
+  findDocumentSymbols?: (document: TextDocument) => SymbolInformation[];
+  findDocumentLinks?: (document: TextDocument, documentContext: DocumentContext) => DocumentLink[];
+  findDefinition?: (document: TextDocument, position: Position) => Definition;
+  findReferences?: (document: TextDocument, position: Position) => Location[];
+  format?: (document: TextDocument, range: Range, options: FormattingOptions, settings: Settings) => TextEdit[];
+  findDocumentColors?: (document: TextDocument) => ColorInformation[];
+  getColorPresentations?: (document: TextDocument, colorInfo: ColorInformation) => ColorPresentation[];
+  doAutoClose?: (document: TextDocument, position: Position) => string;
+  getId();
+  dispose(): void;
+  onDocumentRemoved(document: TextDocument): void;
+};
+
+export type LanguageModes = {
+  getModeAtPosition(document: TextDocument, position: Position): LanguageMode;
+  getModesInRange(document: TextDocument, range: Range): LanguageModeRange[];
+  getAllModes(): LanguageMode[];
+  getAllModesInDocument(document: TextDocument): LanguageMode[];
+  getMode(languageId: string): LanguageMode;
+  onDocumentRemoved(document: TextDocument): void;
+  dispose(): void;
+};
+
+type LanguageModeRange = Range & {
+  mode: LanguageMode;
+  attributeValue?: boolean;
+};
+
+export const getLanguageModes = async (supportedLanguages: {
+  [languageId: string]: boolean;
+}): Promise<LanguageModes> => {
+  const htmlLanguageService = getVisualforceHtmlLanguageService();
+  const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
+    getDocumentRegions(htmlLanguageService, document)
+  );
+
+  let modelCaches: LanguageModelCache<any>[] = [documentRegions];
+
+  let modes: Record<string, LanguageMode> = {
+    html: getHTMLMode(htmlLanguageService)
+  };
+  if (supportedLanguages['css']) {
+    modes['css'] = getCSSMode(documentRegions);
+  }
+  // Build-time gate: `process.env.ESBUILD_PLATFORM !== 'web'` is replaced by esbuild's `define`, so the web
+  // bundle collapses this branch to dead code and tree-shakes javascriptMode + its static `typescript` import
+  // (typescript uses node fs and breaks in the browser). Node build keeps JS mode (literal true).
+  if (supportedLanguages['javascript'] && process.env.ESBUILD_PLATFORM !== 'web') {
+    const { getJavascriptMode } = await import('./javascriptMode.js');
+    modes['javascript'] = getJavascriptMode(documentRegions);
+  }
+  return {
+    getModeAtPosition: (document: TextDocument, position: Position): LanguageMode => {
+      const languageId = documentRegions.get(document).getLanguageAtPosition(position);
+      if (languageId) {
+        return modes[languageId];
+      }
+      return null;
+    },
+    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] =>
+      documentRegions
+        .get(document)
+        .getLanguageRanges(range)
+        .map(r => ({
+          start: r.start,
+          end: r.end,
+          mode: modes[r.languageId],
+          attributeValue: r.attributeValue
+        })),
+    getAllModesInDocument: (document: TextDocument): LanguageMode[] => {
+      const result = [];
+      for (const languageId of documentRegions.get(document).getLanguagesInDocument()) {
+        const mode = modes[languageId];
+        if (mode) {
+          result.push(mode);
+        }
+      }
+      return result;
+    },
+    getAllModes: (): LanguageMode[] => {
+      const result = [];
+      for (const languageId in modes) {
+        const mode = modes[languageId];
+        if (mode) {
+          result.push(mode);
+        }
+      }
+      return result;
+    },
+    getMode: (languageId: string): LanguageMode => modes[languageId],
+    onDocumentRemoved: (document: TextDocument) => {
+      modelCaches.forEach(mc => mc.onDocumentRemoved(document));
+      for (const mode in modes) {
+        modes[mode].onDocumentRemoved(document);
+      }
+    },
+    dispose: (): void => {
+      modelCaches.forEach(mc => mc.dispose());
+      modelCaches = [];
+      for (const mode in modes) {
+        modes[mode].dispose();
+      }
+      modes = {};
+    }
+  };
+};
+
+export { ColorInformation } from 'vscode-languageserver-protocol';

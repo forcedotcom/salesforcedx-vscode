@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { test } from '../fixtures';
+import {
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  createMinimalOrg,
+  upsertScratchOrgAuthFieldsToSettings,
+  createApexClass,
+  executeCommandWithCommandPalette,
+  verifyCommandExists,
+  saveScreenshot,
+  validateNoCriticalErrors,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  clearOutputChannel,
+  waitForOutputChannelText,
+  ensureSecondarySideBarHidden
+} from '@salesforce/playwright-vscode-ext';
+import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
+
+test.setTimeout(DEPLOY_TIMEOUT);
+test('Project Deploy Start: deploys source to org', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+
+  let statusBarPage: SourceTrackingStatusBarPage;
+  let className: string;
+
+  await test.step('setup minimal org', async () => {
+    const createResult = await createMinimalOrg();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    await saveScreenshot(page, 'setup.after-workbench.png');
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await saveScreenshot(page, 'setup.after-auth-fields.png');
+
+    statusBarPage = new SourceTrackingStatusBarPage(page);
+    await statusBarPage.waitForVisible(120_000);
+    await saveScreenshot(page, 'setup.after-status-bar-visible.png');
+
+    // Wait for core commands to be available
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+
+    await saveScreenshot(page, 'setup.complete.png');
+  });
+
+  await test.step('create local change and deploy to org', async () => {
+    // Create a new Apex class to deploy
+    className = `ProjectDeployTest${Date.now()}`;
+    await createApexClass(page, className);
+    await saveScreenshot(page, 'step1.after-create-class.png');
+
+    // Get initial counts
+    const initialCounts = await statusBarPage.getCounts();
+    await saveScreenshot(
+      page,
+      `step1.initial-counts-${initialCounts.local}-${initialCounts.remote}-${initialCounts.conflicts}.png`
+    );
+
+    // Prepare output channel before triggering command
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+
+    // Execute deploy via command palette
+    await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_default_org_text);
+    await saveScreenshot(page, 'step1.after-command-palette.png');
+
+    // Verify deploy starts and completes via output channel
+    // Source tracking counts may not update reliably in web mode, so use output verification
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await saveScreenshot(page, 'step1.deploy-started.png');
+
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+    await saveScreenshot(page, 'step1.deploy-complete.png');
+
+    // Deploy operation completed successfully (verified via output channel)
+    await saveScreenshot(page, 'step1.final-state.png');
+  });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+});
