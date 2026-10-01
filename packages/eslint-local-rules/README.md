@@ -1,0 +1,451 @@
+# @salesforce/eslint-plugin-vscode-extensions
+
+Custom ESLint rules for Salesforce VSCode extensions.
+
+## Rules
+
+### no-duplicate-i18n-values
+
+Disallows English text in translation files that should be localized. This rule checks i18n locale files (e.g., `i18n.ja.ts`) and flags any translations that appear to be in English or duplicate the English source text.
+
+### no-vscode-message-literals
+
+Enforces that `vscode.window.show*Message` calls use localized strings via `nls.localize()` or variables, not string literals.
+
+**Bad:**
+
+```typescript
+vscode.window.showErrorMessage('An error occurred');
+vscode.window.showWarningMessage(`Failed: ${error}`);
+```
+
+**Good:**
+
+```typescript
+vscode.window.showErrorMessage(nls.localize('error_message'));
+const msg = nls.localize('error_with_details', error);
+vscode.window.showWarningMessage(msg);
+vscode.window.showErrorMessage(`${nls.localize('prefix')} - ${details}`);
+```
+
+The rule allows template literals that contain `nls.localize()` calls.
+
+### no-inline-esbuild-platform
+
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and the dead *call* folds ([ADR 0013](../../docs/adr/0013-dual-target-bundle-time-split.md)); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the fold and leaves the node call live in the web bundle.
+
+**Bad:**
+
+```typescript
+const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
+const { ESBUILD_PLATFORM } = process.env;
+doThing(process.env.ESBUILD_PLATFORM);
+if (process.env.ESBUILD_PLATFORM === someVar) { ... }
+```
+
+**Good:**
+
+```typescript
+if (process.env.ESBUILD_PLATFORM === 'web') { ... }
+const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;
+```
+
+Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
+
+### no-effect-fn-wrapper
+
+Enforces that an arrow function wrapping an `Effect.fn` call hoists its params into the generator, where they become typed arguments instead of closure captures. The wrapper arrow then disappears.
+
+**Bad:**
+
+```typescript
+// params on wrapper arrow, generator has none (closure capture)
+const findById = (id: UserId) =>
+  Effect.fn('UserService.findById')(function* () {
+    yield* repo.findById(id); // id from closure
+  });
+```
+
+**Good:**
+
+```typescript
+const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
+  yield* repo.findById(id);
+});
+```
+
+Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
+
+### no-nested-effect-gen-catch-tags
+
+Inside an `Effect.fn` generator, do not wrap a span in `Effect.gen` just so `.pipe` can attach `Effect.catchTags`. Pipe from that span's first Effect and keep `catchTags` on that pipe. `catchTags` after other `.pipe` steps is the same shape. An `Effect.gen` service body, an `Effect.gen` inside `Effect.fn` with no `catchTags`, and `Effect.catchTags` on a non-`Effect.gen` receiver stay allowed. The rule is AST-only: it matches an `Effect` identifier, the same way `no-effect-fn-wrapper` does.
+
+**Bad:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* (yield* api.services.SettingsService).setValue('section', 'key', true);
+  }).pipe(
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+**Good:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue('section', 'key', true)),
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
+
+### no-nested-effect-ternary
+
+Disallows nested ternaries (three or more branches) whose type is Effect's `Effect`. Use `Match.value`, `Match.when`, and `Match.orElse` instead. A single Effect ternary stays allowed, and so do nested ternaries that do not produce an `Effect`. For a no-op branch, use `Match.orElse(() => Effect.void)`.
+
+The rule is type-aware. It reports only when the conditional expression's type is `Effect` (including a union or intersection that is entirely `Effect`).
+
+**Bad:**
+
+```typescript
+const effect =
+  kind === 'a' ? doA : kind === 'b' ? doB : Effect.void;
+```
+
+**Good:**
+
+```typescript
+const effect = Match.value(kind).pipe(
+  Match.when('a', () => doA),
+  Match.when('b', () => doB),
+  Match.orElse(() => Effect.void)
+);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
+
+### no-raw-duration
+
+Disallows a numeric literal or `number`-typed argument or object property whose contextual type includes Effect's `Duration` or `Duration.DurationInput`, including an optional `DurationInput`. A bare `number` in that position is milliseconds. Wrap it with `Duration.millis`. A parameter whose declared type is plain `number` or `number | undefined` stays allowed, so `Duration.millis(5000)` and a `factor?: number` argument are not flagged. Still-legal `DurationInput` values the rule does not cover: `bigint` nanos (`Effect.sleep(1n)`) and template-string inputs (`Effect.sleep("2 seconds")`).
+
+**Bad:**
+
+```typescript
+Effect.sleep(30_000);
+
+const ms: number = 30_000;
+Effect.sleep(ms);
+
+const opts: { timeout?: Duration.DurationInput } = { timeout: 1 };
+```
+
+**Good:**
+
+```typescript
+Effect.sleep(Duration.millis(30_000));
+
+Duration.millis(5000);
+
+const opts: { timeout: number } = { timeout: 30_000 };
+
+Schedule.exponential(Duration.seconds(1), 2);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
+
+### no-effect-service-promise-return
+
+Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.
+
+The rule is type-aware. It reports when a method on that returned object has a call signature whose return type is `Promise` (including a union or intersection that contains `Promise`).
+
+**Bad:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = async (id: string): Promise<string> => id;
+    return { findById };
+  })
+}) {}
+```
+
+**Good:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = Effect.fn('UserService.findById')(function* (id: string) {
+      return id;
+    });
+    return { findById };
+  })
+}) {}
+```
+
+This monorepo enables the rule as `error` in `eslint.config.mjs`, in the same two blocks as `local/no-effect-service-accessor-calls`: the Effect-services files list, and the apex / soql / soql-common / soql-model files list.
+
+### notification-slot-matches-package-json
+
+Enforces that `SuccessOnlyCommandKey` and `ProgressOnlyCommandKey` type alias literals in notificationMode.ts files match their slot's enum shape defined in package.json commandLevelNotifications. The rule validates that:
+
+- Each key exists in the package.json commandLevelNotifications properties
+- The key's enum values match the expected notification slot type:
+  - `SuccessOnlyCommandKey`: must have enum containing only `['successToast', 'successStatusBar', 'successOff']` values (may omit any)
+  - `ProgressOnlyCommandKey`: must have enum `['progressToast', 'progressStatusBar']`
+
+**Bad:**
+
+```typescript
+// SuccessOnlyCommandKey lists a ProgressOnly command
+export type SuccessOnlyCommandKey = 'My Progress Command';
+
+// ProgressOnlyCommandKey lists a SuccessOnly command
+export type ProgressOnlyCommandKey = 'My Success Command';
+
+// Key doesn't exist in package.json
+export type SuccessOnlyCommandKey = 'Nonexistent Command';
+```
+
+**Good:**
+
+```typescript
+export type SuccessOnlyCommandKey = 'My Success Command';
+export type ProgressOnlyCommandKey = 'My Progress Command';
+```
+
+This rule requires files using these type aliases to be near a package.json that defines the commandLevelNotifications configuration.
+
+### no-successive-annotate-current-span
+
+Enforces that back-to-back `Effect.annotateCurrentSpan` calls are merged into a single call. Each call opens and annotates the current span independently, so two or more adjacent calls do redundant work that a single object-argument call expresses more cheaply. The rule detects two forms: consecutive `yield* Effect.annotateCurrentSpan(...)` statements inside a generator, and consecutive `Effect.tap(x => Effect.annotateCurrentSpan(...))` arguments inside one `.pipe(...)` chain. Any intervening statement or non-annotate `.tap` breaks the run, so only genuinely successive calls are flagged. Array forms (`Effect.all`/`forEach`) and `andThen` chains are out of scope.
+
+The autofix merges the calls into one `Effect.annotateCurrentSpan({ ... })`: the `(key, value)` form becomes `key: value` (computed `[key]: value` when the key is not a string literal), and the single-object form is spread (`...obj`). When the merged calls set the same key more than once the rule reports `duplicateKey` and the autofix keeps the last value (object-literal later-wins semantics).
+
+**Bad:**
+
+```typescript
+yield* Effect.annotateCurrentSpan('fileName', fileName);
+yield* Effect.annotateCurrentSpan('workspacePath', workspacePath.toString());
+```
+
+**Good:**
+
+```typescript
+yield* Effect.annotateCurrentSpan({ fileName, workspacePath: workspacePath.toString() });
+```
+
+### package-json-i18n-descriptions
+
+Enforces that user-facing strings in `package.json` `contributes` sections use i18n placeholders (`%key%`) and that those keys exist in the sibling `package.nls.json` file.
+
+### package-json-extension-icon
+
+Validates published VS Code extensions (packages with `name` starting with `salesforcedx-vscode`):
+
+- Must have top-level `icon` field
+- Icon path must exist on disk when specified
+
+### package-json-icon-paths
+
+Validates icon paths in `package.json` `contributes` sections:
+
+- Icon objects must have both `light` and `dark` properties (or neither)
+- Referenced icon files must exist on disk
+
+### package-json-command-refs
+
+Validates command references in `package.json`:
+
+- Commands referenced in menus must be defined in `contributes.commands`
+- Warns about orphaned commands (defined but never referenced)
+
+### package-json-view-refs
+
+Validates view ID references in `package.json`:
+
+- View IDs in `when` clauses must match defined views in `contributes.views`
+- View IDs in `viewsWelcome` must reference defined views
+
+### vscodeignore-required-patterns
+
+Validates `.vscodeignore` required patterns for web extensions (`package.json` contains a `browser` field):
+
+- Enforces a baseline set of required ignore patterns
+- Enforces `scripts/**` and `docs/**` when those directories exist in the package
+
+**Note:** The `package-json-*` rules require `@eslint/json` to be installed and configured.
+
+## Usage
+
+### Installation
+
+```bash
+npm install --save-dev @salesforce/eslint-plugin-vscode-extensions @eslint/json
+```
+
+### Configuration
+
+In your `eslint.config.mjs` (or `eslint.config.js`):
+
+```javascript
+import jsonPlugin from '@eslint/json';
+import localRulesPlugin from '@salesforce/eslint-plugin-vscode-extensions';
+
+export default [
+  // Register JSON plugin
+  {
+    plugins: {
+      json: jsonPlugin
+    }
+  },
+  // Enable JSON linting for package.json files
+  {
+    files: ['**/package.json'],
+    language: 'json/json',
+    plugins: {
+      json: jsonPlugin,
+      local: localRulesPlugin
+    },
+    rules: {
+      'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-extension-icon': 'error',
+      'local/package-json-icon-paths': 'error',
+      'local/package-json-command-refs': 'error',
+      'local/package-json-view-refs': 'error'
+    }
+  },
+  // Enable TypeScript linting for notificationMode.ts files
+  {
+    files: ['**/notificationMode.ts'],
+    plugins: {
+      local: localRulesPlugin
+    },
+    rules: {
+      'local/notification-slot-matches-package-json': 'error'
+    }
+  },
+  // Enable .vscodeignore linting for extension package folders
+  {
+    files: ['packages/*/.vscodeignore'],
+    plugins: {
+      local: localRulesPlugin
+    },
+    processor: 'local/vscodeignoreText',
+    rules: {
+      'local/vscodeignore-required-patterns': 'error'
+    }
+  }
+];
+```
+
+**Why `@eslint/json` is a peerDependency:**
+
+The rule itself doesn't import `@eslint/json` - it only works with AST nodes that ESLint provides. However, `@eslint/json` is required in your ESLint configuration to:
+
+1. Register the JSON language parser
+2. Enable ESLint to parse JSON files
+
+This is a peerDependency (not a regular dependency) because:
+
+- The rule doesn't directly import it
+- Users need to configure it in their ESLint config
+- It allows users to control the version they use
+- npm will warn if it's missing during installation
+
+This package is also used internally in the Salesforce VSCode Extensions monorepo via `eslint.config.mjs`.
+
+## Writing JSON Rules
+
+When writing custom ESLint rules for JSON files using `@eslint/json`, be aware that the AST structure differs from JavaScript/TypeScript.
+
+### Root Node Type
+
+The `@eslint/json` plugin uses `Document` as the root AST node type, **not** `Program`. Your rule visitor must use `Document:exit` (or `Document`):
+
+```typescript
+// ❌ WRONG - Program is never called for JSON files
+'Program:exit': (node) => { ... }
+
+// ✅ CORRECT - Document is the root node for JSON
+'Document:exit': (node) => {
+  const ast = node?.body; // The actual JSON content
+  ...
+}
+```
+
+### AST Structure
+
+The JSON AST uses [@humanwhocodes/momoa](https://github.com/humanwhocodes/momoa) node types:
+
+- `Document` - Root node, contains `body` (the JSON value)
+- `Object` - JSON object `{}`
+- `Array` - JSON array `[]`
+- `String`, `Number`, `Boolean`, `Null` - Primitive values
+- `Member` - Key-value pair in an object (has `name` and `value`)
+- `Element` - Item in an array (has `value`)
+
+Example traversal:
+
+```typescript
+const findNodeAtPath = (node: ValueNode, pathSegments: string[]): ValueNode[] => {
+  if (pathSegments.length === 0) return [node];
+  const [key, ...rest] = pathSegments;
+
+  if (node.type === 'Object') {
+    const member = node.members.find(m => m.name.value === key);
+    return member ? findNodeAtPath(member.value, rest) : [];
+  }
+
+  if (node.type === 'Array' && key === '*') {
+    return node.elements.flatMap(el => findNodeAtPath(el.value, rest));
+  }
+
+  return [];
+};
+```
+
+### Testing JSON Rules
+
+JSON rules can be unit tested using ESLint's `Linter` class with flat config:
+
+```typescript
+import { Linter } from 'eslint';
+import * as json from '@eslint/json';
+import { myJsonRule } from '../src/myJsonRule';
+
+const linter = new Linter({ configType: 'flat' });
+
+const lintJson = (code: string, filename = 'packages/test/package.json') => {
+  const config = [
+    {
+      files: ['**/*.json'],
+      plugins: {
+        // IMPORTANT: include both rules AND languages from @eslint/json
+        json: { rules: json.rules, languages: json.languages },
+        local: { rules: { 'my-json-rule': myJsonRule } }
+      },
+      language: 'json/json',
+      rules: { 'local/my-json-rule': 'error' }
+    }
+  ];
+  return linter.verify(code, config, { filename });
+};
+
+// Use in tests:
+const messages = lintJson('{"invalid": "json"}');
+expect(messages).toHaveLength(1);
+```

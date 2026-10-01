@@ -1,0 +1,100 @@
+/*
+ *  Copyright (c) 2020, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+@import 'querybuilder/cssCommon';
+
+section.modifier__group-container {
+  margin-top: 5px;
+  border: 1px solid
+    var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
+  border-radius: 3px;
+  background-color: var(
+    --vscode-list-inactiveSelectionBackground,
+    var(--soql-color-medium-grey)
+  );
+  padding: 4px 4px 2px 4px;
+}
+
+header.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.header__labels {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 5px;
+}
+
+.header__labels p {
+  margin: 0;
+}
+/* better align labels with correct elements below */
+.header__labels p.header__label__field {
+  margin-left: 1rem;
+}
+.header__labels p.header__label__operator {
+  margin-right: 0.5rem;
+}
+.header__labels p.header__label__value {
+  margin-right: 2.75rem;
+}
+
+.header__btn--group {
+  align-self: flex-start;
+}
+
+.header__btn {
+  height: 1.5em;
+  border: 1px solid;
+  border-color: var(--vscode-button-background, var(--soql-color-medium-blue));
+  color: var(
+    --vscode-list-inactiveSelectionBackground,
+    var(--soql-color-medium-grey)
+  );
+  background-color: var(
+    --vscode-button-secondaryBackground,
+    var(--soql-color-dark-blue)
+  );
+  cursor: pointer;
+  box-shadow: inset 0 0 1em 0em #454444;
+}
+.header__btn:hover {
+  color: var(--vscode-button-foreground, var(--soql-white));
+}
+/* Only curve the outside corners */
+.header__btn--and {
+  border-right-width: 0px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 0;
+}
+.header__btn--or {
+  border-left-width: 0px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 3px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 3px;
+}
+
+.header__btn--selected {
+  background-color: var(
+    --vscode-button-background,
+    var(--soql-color-medium-blue)
+  );
+  color: var(--vscode-button-foreground, var(--soql-white));
+  box-shadow: 0 0 0.5em 0em #454444;
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
