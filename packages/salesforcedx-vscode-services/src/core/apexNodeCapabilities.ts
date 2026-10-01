@@ -20,7 +20,6 @@ const connectionError = (cause: unknown): ApexConnectionError =>
 export const ApexNodeConnectionProviderLayer = Layer.effect(
   ApexConnectionProvider,
   Effect.map(ConnectionService, connectionService => ({
-    getConnection: connectionService.getConnection().pipe(Effect.mapError(connectionError)),
-    getConnectionForOrg: orgId => connectionService.getConnectionForOrg(orgId).pipe(Effect.mapError(connectionError))
+    getConnection: connectionService.getConnection().pipe(Effect.mapError(connectionError))
   }))
 );
