@@ -43,21 +43,29 @@ test.describe('Apex LSP restart', () => {
       const consoleErrors = setupConsoleMonitoring(page);
       const networkErrors = setupNetworkMonitoring(page);
 
+      const releaseBefore = findReleaseDir(workspaceDir);
+      const stdLibBefore = path.join(workspaceDir, '.sfdx', 'tools', releaseBefore, 'StandardApexLibrary');
       if (cleanDb) {
-        const releaseBefore = findReleaseDir(workspaceDir);
-        const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseBefore, 'StandardApexLibrary');
-        await fs.rm(stdLibDir, { recursive: true, force: true });
-        expect(existsSync(stdLibDir), 'StandardApexLibrary should be removed before restart').toBe(false);
+        await fs.rm(stdLibBefore, { recursive: true, force: true });
       }
+      expect(
+        existsSync(stdLibBefore),
+        cleanDb
+          ? 'StandardApexLibrary should be removed before restart'
+          : 'StandardApexLibrary should exist before restart'
+      ).toBe(!cleanDb);
 
       const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via });
       await saveScreenshot(page, `step.restart-${via}-${cleanDb ? 'cleandb' : 'only'}.png`);
 
-      if (cleanDb) {
-        const stdLibDir = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
-        // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
-        expect(existsSync(stdLibDir), 'StandardApexLibrary should be re-created after clean restart').toBe(true);
-      }
+      const stdLibAfter = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');
+      // waitForApexLspReady (called from triggerLspRestart) already polls for this — assert here for explicitness.
+      expect(
+        existsSync(stdLibAfter),
+        cleanDb
+          ? 'StandardApexLibrary should be re-created after clean restart'
+          : 'StandardApexLibrary should exist after restart'
+      ).toBe(true);
 
       await validateNoCriticalErrors(test, consoleErrors, networkErrors);
     });

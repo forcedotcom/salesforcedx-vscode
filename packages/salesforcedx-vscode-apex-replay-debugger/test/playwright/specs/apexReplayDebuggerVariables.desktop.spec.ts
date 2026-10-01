@@ -146,9 +146,7 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
     const firstCollapsed = variablesView.locator('.monaco-list-row[aria-expanded="false"]').first();
     await expect(async () => {
       if (await firstCollapsed.isVisible()) {
-        const scopeTwistie = firstCollapsed.locator('.monaco-tl-twistie');
-        await expect(scopeTwistie).toBeVisible();
-        await scopeTwistie.click();
+        await firstCollapsed.locator('.monaco-tl-twistie').click();
       }
       await expect(firstCollapsed).toBeHidden();
     }).toPass({ timeout: 30_000 });

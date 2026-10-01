@@ -1123,6 +1123,7 @@ export default [
     plugins: { playwright: eslintPluginPlaywright },
     rules: {
       'playwright/no-force-option': 'error',
+      'playwright/no-conditional-expect': 'error',
       // Helpers that assert or throw outside test() and do not match the prefix pattern.
       'playwright/expect-expect': [
         'error',

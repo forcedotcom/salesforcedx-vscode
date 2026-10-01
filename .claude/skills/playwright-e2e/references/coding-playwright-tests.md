@@ -85,6 +85,7 @@ await page.keyboard.press('Escape');
 - Prefer `aria` (getByRole) over css selectors
 - `expect` assertions need clear error messages. Import `expect` from playwright
 - `playwright/expect-expect` error (`eslint.config.mjs`) — `test()`: `assert*`/`expect*`/`verify*` or a named helper. outer-helper `expect`: ignored
+- `playwright/no-conditional-expect` error — `expect` outside `if` / `catch` / `?:` / `&&` / `||` / `??` / `switch`, off `.catch()`. assert outcome
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 

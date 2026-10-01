@@ -153,9 +153,9 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
   expect(afterCount).toBeGreaterThanOrEqual(1);
 
   // Virtualized trees may retain rows outside the current model. Assert only rendered rows.
-  for (const item of await items.all()) {
-    if (await item.isVisible()) await expect(item).toHaveAccessibleName(/^Apex/);
-  }
+  await Promise.all(
+    (await items.filter({ visible: true }).all()).map(item => expect(item).toHaveAccessibleName(/^Apex/))
+  );
 });
 
 test('Org Browser - text filter: wildcard component pattern *Test* filters children', async ({ page }) => {
