@@ -1,0 +1,17 @@
+---
+description: Delegate to doc-maintenance subagent when code/config/scripts change; catches code→doc drift
+globs:
+  - '**/*.ts'
+  - '**/*.tsx'
+  - '**/package.json'
+  - '**/esbuild.config.*'
+  - 'scripts/**'
+  - '**/.vscodeignore'
+  - '**/.vscode/**'
+  - '**/tsconfig*.json'
+  - '.esbuild-web-extra-settings.json'
+  - '.github/**'
+alwaysApply: false
+---
+
+When agent edits code (or has code changes in context), delegate to doc-maintenance subagent (@.claude/agents/doc-maintenance.md) with `run_in_background: true`. Subagent fixes docs directly; no need to report back for parent to fix.

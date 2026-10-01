@@ -1,0 +1,18 @@
+{
+  "apex_code_completion_stats_description": "Allow the Apex Language Server to collect telemetry on code completion usage",
+  "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when Apex test coverage is missing.",
+  "apex_language_server_restart": "SFDX: Apex 言語サーバを再起動",
+  "apex_language_server_restart_behavior_description": "Apex 言語サーバの再起動コマンドの動作を制御します。",
+  "apex_language_server_restart_behavior_prompt_description": "シンプルな再起動またはデータベースをリセットしたクリーンな再起動を選択するダイアログを表示します。",
+  "apex_language_server_restart_behavior_restart_description": "データベースをクリーンアップせずに Apex 言語サーバを単純に再起動します。",
+  "apex_language_server_restart_behavior_reset_description": "Apex 言語サーバをクリーンに再起動し、データベースをリセットします。",
+  "apex_messages_level_trace_description": "Only output high-level messages of notifications and responses received by the client, and requests sent by the server.",
+  "apex_off_level_trace_description": "Don't generate any output. Turn off all tracing.",
+  "apex_semantic_errors_description": "Apex 言語サーバがセマンティックエラーを表示することを許可します。",
+  "apex_trace_server_description": "Controls the level of detail for trace logs in the Apex Language Server",
+  "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
+  "configuration_title": "Salesforce Apex Configuration",
+  "enable-apex-ls-error-to-telemetry": "Allow the Apex Language Server to collect telemetry of errors",
+  "java_home_description": "Specifies the folder path to the Java runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped. Java versions 11 or higher are supported.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`",
+  "auto_terminate_orphaned_processes_description": "有効にすると、アクティベーション時に孤立した Apex 言語サーバプロセスをプロンプトなしで自動的に終了します。"
+}
