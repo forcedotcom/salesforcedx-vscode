@@ -104,7 +104,7 @@ jobs:
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
       packageManager: pnpm
-      packageManagerVersion: 12.0.0
+      packageManagerVersion: 12.8.2
       cacheDependencyPath: pnpm-lock.yaml
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/playwright-vscode-ext
