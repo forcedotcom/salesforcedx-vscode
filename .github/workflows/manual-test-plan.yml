@@ -41,17 +41,15 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      - name: Install manual test plan dependencies
-        working-directory: scripts/manualTestPlan
-        run: npm ci
+          node-version: 24
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Write manual test plan
         env:
           CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: node scripts/manualTestPlan/manualTestPlan.mts

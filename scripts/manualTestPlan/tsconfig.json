@@ -23,5 +23,5 @@
       }
     ]
   },
-  "include": ["*.mts"]
+  "include": ["*.mts", "test/**/*.mts"]
 }
