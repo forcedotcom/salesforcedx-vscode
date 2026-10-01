@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { open } from '@vscode/test-web';
+import { open, type GalleryExtension } from '@vscode/test-web';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '../utils/repoRoot';
 
@@ -16,6 +16,16 @@ type HeadlessServerOptions = {
   callerDirname: string;
   /** Additional extension directory names to load (services is always included automatically) */
   additionalExtensionDirs?: string[];
+  /**
+   * Marketplace extensions (`publisher.name`) passed to `@vscode/test-web` `open()` as `extensionIds`.
+   * Unversioned ids install the current gallery release.
+   */
+  extensionIds?: readonly GalleryExtension[];
+  /**
+   * Omit the caller's package as `extensionDevelopmentPath` so it does not activate.
+   * Gallery language server under test belongs in {@link extensionIds}.
+   */
+  skipExtensionDevelopmentPath?: boolean;
   /**
    * Local folder to mount as the VS Code Web workspace (`vscode-test-web://mount`).
    * Use with {@link createTestWorkspace} so tests see `sfdx-project.json` and project files.
@@ -37,15 +47,21 @@ type HeadlessServerOptions = {
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
     // callerDirname is '<pkg>/test/playwright/web' (tsx) -> go up three levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..');
+    const packageRoot = path.resolve(options.callerDirname, '..', '..', '..');
+    const extensionDevelopmentPath = options.skipExtensionDevelopmentPath ? undefined : packageRoot;
 
     // Collect all extension paths: services + any additional
     const extensionPaths = (options.additionalExtensionDirs ?? [])
       .concat(['salesforcedx-vscode-services'])
-      .map(dir => path.resolve(extensionDevelopmentPath, '..', dir));
+      .map(dir => path.resolve(packageRoot, '..', dir));
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
-    console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
+    if (extensionDevelopmentPath !== undefined) {
+      console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
+    }
     console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
+    if (options.extensionIds !== undefined) {
+      console.log(`🏪 Marketplace extensions: ${options.extensionIds.map(extension => extension.id).join(', ')}`);
+    }
     if (options.folderPath !== undefined) {
       console.log(`📂 Workspace folderPath (virtual mount): ${options.folderPath}`);
     }
@@ -66,8 +82,9 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       port: Number(process.env.PORT) || 3001,
       printServerLog: true,
       verbose: true,
-      extensionDevelopmentPath,
+      ...(extensionDevelopmentPath !== undefined ? { extensionDevelopmentPath } : {}),
       extensionPaths,
+      ...(options.extensionIds !== undefined ? { extensionIds: [...options.extensionIds] } : {}),
       testRunnerDataDir,
       ...(options.folderUri !== undefined ? { folderUri: options.folderUri } : {}),
       ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}),
