@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.common.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "rootDir": ".",
-    "outDir": "out"
-  },
-  "include": ["src/**/*.ts", "test/browser/**/*.ts"]
-}
