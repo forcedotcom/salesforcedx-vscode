@@ -1,0 +1,28 @@
+{
+  "name": "salesforcedx-vscode-missing-dev-hub-playwright",
+  "displayName": "Missing Dev Hub Playwright",
+  "publisher": "salesforce",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sf.internal.orgCreate.isolateSfHome",
+        "title": "%missing_dev_hub_isolate_sf_home_test_text%"
+      },
+      {
+        "command": "sf.internal.orgCreate.restoreSfHome",
+        "title": "%missing_dev_hub_restore_sf_home_test_text%"
+      }
+    ]
+  }
+}
