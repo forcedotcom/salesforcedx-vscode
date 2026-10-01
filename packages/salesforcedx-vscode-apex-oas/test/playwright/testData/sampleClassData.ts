@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+export const caseManagerClassText = [
+  "@RestResource(urlMapping='/apex-rest-examples/v1/Cases/*')",
+  'global with sharing class CaseManager {',
+  '  @HttpPost',
+  '  global static ID createCase(String subject, String status,',
+  '    String origin, String priority) {',
+  '    Case thisCase = new Case(',
+  '      Subject=subject,',
+  '      Status=status,',
+  '      Origin=origin,',
+  '      Priority=priority);',
+  '    insert thisCase;',
+  '    return thisCase.Id;',
+  '  }',
+  '}'
+].join('\n');
+
+export const simpleAccountResourceClassText = [
+  "@RestResource(urlMapping='/apex-rest-examples/v1/*')",
+  'global with sharing class SimpleAccountResource {',
+  '  @HttpGet',
+  '  global static Account getAccount() {',
+  '    RestRequest req = RestContext.request;',
+  '    RestResponse res = RestContext.response;',
+  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
+  '    Account result = [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
+  '    return result;',
+  '  }',
+  '}'
+].join('\n');
+
+export const ineligibleApexClassText = [
+  'public with sharing class IneligibleApexClass {',
+  '  public IneligibleApexClass() {}',
+  '}'
+].join('\n');
+
+// Has @RestResource but no @Http___ method and no @AuraEnabled — passes eligibility + mixed-frameworks
+// checks but no generation strategy qualifies, so it must fail early with strategy_not_qualified.
+export const restResourceNoHttpMethodClassText = [
+  "@RestResource(urlMapping='/apex-rest-examples/v1/noHttp/*')",
+  'global with sharing class RestResourceNoHttpMethod {',
+  '  global static Account getAccount(Id accountId) {',
+  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
+  '  }',
+  '}'
+].join('\n');
+
+// Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method — not allowed for OAS generation.
+export const mixedFrameworksClassText = [
+  "@RestResource(urlMapping='/apex-rest-examples/v1/mixed/*')",
+  'global with sharing class MixedFrameworksClass {',
+  '  @HttpGet',
+  '  global static Account getAccount() {',
+  '    RestRequest req = RestContext.request;',
+  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
+  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
+  '  }',
+  '',
+  '  @AuraEnabled',
+  '  public static Account getAccountForAura(Id accountId) {',
+  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
+  '  }',
+  '}'
+].join('\n');

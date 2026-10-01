@@ -1,0 +1,16 @@
+{
+  // See https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions
+  // for the documentation about the extensions.json format
+  "recommendations": [
+    // Git
+    "eamodio.gitlens",
+    "donjayamanne.githistory",
+    // Linter
+    "dbaeumer.vscode-eslint",
+    // Formatting
+    "esbenp.prettier-vscode",
+    "stkb.rewrap",
+    // Testing
+    "spoonscen.es6-mocha-snippets"
+  ]
+}
