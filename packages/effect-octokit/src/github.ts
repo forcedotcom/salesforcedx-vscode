@@ -18,6 +18,8 @@ import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
 export { actionsEnvironment } from './actionsEnvironment.js';
+export { CheckRunEvent, CheckSuiteEvent, GitHubEvent, PullRequestEvent, PullRequestReviewEvent } from './githubEvents.js';
+export type { GitHubEvent } from './githubEvents.js';
 
 const PaginatedOctokit = Octokit.plugin(paginateRest);
 const requestTimeout = Duration.toMillis(Duration.seconds(30));

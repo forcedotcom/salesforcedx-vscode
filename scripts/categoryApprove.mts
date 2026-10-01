@@ -9,7 +9,7 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, GitHubEvent } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
@@ -59,23 +59,6 @@ const gitText = (args: readonly string[]) =>
     ),
     Effect.map(([stdout]) => stdout)
   );
-
-const PullRequestNumber = Schema.Struct({
-  number: Schema.Number
-});
-
-const CheckPayload = Schema.Struct({
-  name: Schema.optional(Schema.String),
-  head_sha: Schema.optional(Schema.String),
-  pull_requests: Schema.optional(Schema.Array(PullRequestNumber))
-});
-
-const CheckEvent = Schema.Struct({
-  action: Schema.optional(Schema.String),
-  check_run: Schema.optional(CheckPayload),
-  check_suite: Schema.optional(CheckPayload),
-  pull_request: Schema.optional(PullRequestNumber)
-});
 
 const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
   return yield* Effect.all([Config.string('CURSOR_API_KEY'), Config.string('PATH'), Config.string('HOME')], {
@@ -218,9 +201,9 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
   const reads = createCategoryReads(Redacted.value(token));
   const event = yield* FileSystem.FileSystem.pipe(
     Effect.flatMap(fs => fs.readFileString(env.eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(CheckEvent)))
+    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(GitHubEvent)))
   );
-  if (event.check_run?.name === 'category-approve') {
+  if ('check_run' in event && event.check_run.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
     return;
   }

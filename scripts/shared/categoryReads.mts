@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { GitHub, PullRequest } from '@salesforce/effect-octokit';
+import type { GitHub, GitHubEvent, PullRequest } from '@salesforce/effect-octokit';
 import type * as Effect from 'effect/Effect';
 import {
   BASE_BRANCH,
@@ -22,20 +22,6 @@ import {
 type GitHubService = typeof GitHub.Service;
 type Result<K extends 'pullsForCommit' | 'pullFiles' | 'pullReviews' | 'checkRuns' | 'combinedStatus'> =
   Effect.Effect.Success<ReturnType<GitHubService[K]>>;
-type CheckEvent = {
-  readonly action?: string;
-  readonly pull_request?: { readonly number: number };
-  readonly check_run?: {
-    readonly name?: string;
-    readonly head_sha?: string;
-    readonly pull_requests?: readonly { readonly number: number }[];
-  };
-  readonly check_suite?: {
-    readonly head_sha?: string;
-    readonly pull_requests?: readonly { readonly number: number }[];
-  };
-};
-
 const pullQuery = `query($owner:String!,$name:String!,$number:Int!){
   repository(owner:$owner,name:$name){
     pullRequest(number:$number){
@@ -139,16 +125,14 @@ export const createCategoryReads = (token: string) => {
 
 type CategoryReads = ReturnType<typeof createCategoryReads>;
 
-export const categoryPullNumbers = async (reads: CategoryReads, event: CheckEvent, owner: string, repo: string) => {
-  if (
-    event.pull_request &&
-    ['opened', 'ready_for_review', 'reopened', 'edited', 'submitted', 'dismissed'].includes(event.action ?? '')
-  ) {
+export const categoryPullNumbers = async (reads: CategoryReads, event: GitHubEvent, owner: string, repo: string) => {
+  if ('pull_request' in event) {
     return [event.pull_request.number];
   }
-  const listed = (event.check_run?.pull_requests ?? event.check_suite?.pull_requests ?? []).map(pull => pull.number);
+  const checks = 'check_run' in event ? event.check_run : event.check_suite;
+  const listed = (checks.pull_requests ?? []).map(pull => pull.number);
   if (listed.length > 0) return listed;
-  const sha = event.check_run?.head_sha ?? event.check_suite?.head_sha;
+  const sha = checks.head_sha;
   if (sha === undefined) return [];
   return (await reads.pullsForCommit(owner, repo, sha))
     .filter(pull => pull.base?.ref === BASE_BRANCH && pull.state === 'open')
