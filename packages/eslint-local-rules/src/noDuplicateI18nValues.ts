@@ -1,0 +1,152 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as tsParser from '@typescript-eslint/parser';
+import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
+import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import { extractKey, extractMessagesObject, extractValue, type MessagesObject } from './i18nUtils';
+
+const isEnglishMessage = (text: string): boolean => {
+  if (!text || typeof text !== 'string') {
+    return false;
+  }
+
+  // URLs should not be considered as needing translation
+  if (/^https?:\/\//.test(text.trim())) {
+    return false;
+  }
+
+  // Remove all technical patterns and clean up extra whitespace
+  const cleanedText = technicalPatterns
+    .reduce((acc, pattern) => acc.replaceAll(pattern, ''), text)
+    .replaceAll(/\s+/g, ' ')
+    .trim();
+
+  // If nothing left after removing technical elements, consider it technical-only
+  if (!cleanedText) {
+    return false; // Pure technical string, don't flag as English
+  }
+
+  // Check if remaining content is English (including common technical characters)
+  const englishRegex = /^[A-Za-z0-9\s.,!?;:'"()\\-–—/_]*$/;
+  return englishRegex.test(cleanedText);
+};
+
+export const noDuplicateI18nValues = RuleCreator.withoutDocs({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Disallow English text in translation files that should be localized'
+    },
+    schema: [],
+    fixable: 'code',
+    messages: {
+      duplicateValue: 'Translation for "{{key}}" duplicates the English value and should be localized.',
+      englishValue: 'Translation for "{{key}}" appears to be in English and should be localized.'
+    }
+  },
+  defaultOptions: [],
+  create: context => {
+    const filename = context.filename;
+    // Check if this is a translation file (not the base i18n.ts)
+    if (!filename.match(/i18n\.[a-z]{2}\.ts$/)) {
+      return {};
+    }
+
+    const enPath = path.resolve(path.dirname(filename), 'i18n.ts');
+
+    let enSource: string;
+    try {
+      enSource = fs.readFileSync(enPath, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to read base i18n file at ${enPath}`, { cause: error });
+    }
+
+    let enAst: TSESTree.Program;
+    try {
+      enAst = tsParser.parse(enSource, {
+        sourceType: 'module',
+        ecmaVersion: 2020
+      }) as unknown as TSESTree.Program;
+    } catch (error) {
+      throw new Error(`Failed to parse base i18n file at ${enPath}`, { cause: error });
+    }
+
+    const enMessages: MessagesObject = extractMessagesObject(enAst);
+
+    const unwrapAsExpression = (node: TSESTree.Expression): TSESTree.Expression =>
+      node.type === AST_NODE_TYPES.TSAsExpression ? unwrapAsExpression(node.expression) : node;
+
+    let messagesObject: TSESTree.ObjectExpression | null = null;
+
+    return {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+        if (node.id.type === AST_NODE_TYPES.Identifier && node.id.name === 'messages' && node.init) {
+          const init = unwrapAsExpression(node.init);
+          if (init.type === AST_NODE_TYPES.ObjectExpression) {
+            messagesObject = init;
+          }
+        }
+      },
+
+      Property: (node: TSESTree.Property): void => {
+        if (!messagesObject || node.parent !== messagesObject) {
+          return;
+        }
+
+        const key = extractKey(node);
+        const translationValue = extractValue(node);
+        const enValue = enMessages[key];
+
+        // Check if the translation value appears to be English
+        if (isEnglishMessage(translationValue)) {
+          const isDuplicate = enValue === translationValue;
+
+          context.report({
+            node,
+            messageId: isDuplicate ? 'duplicateValue' : 'englishValue',
+            data: { key },
+            fix: fixer => {
+              // If it's a duplicate, remove it; otherwise, just flag it for manual review
+              if (!isDuplicate) return null;
+
+              const sourceCode = context.sourceCode;
+              const nextToken = sourceCode.getTokenAfter(node);
+              const prevToken = sourceCode.getTokenBefore(node);
+
+              if (!node.range) return null;
+
+              if (nextToken?.value === ',' && nextToken.range) {
+                return fixer.removeRange([node.range[0], nextToken.range[1]]);
+              }
+
+              if (prevToken?.value === ',' && prevToken.range) {
+                return fixer.removeRange([prevToken.range[0], node.range[1]]);
+              }
+
+              return fixer.remove(node);
+            }
+          });
+        }
+      }
+    };
+  }
+});
+
+// Remove all technical elements that are language-neutral
+const technicalPatterns = [
+  /%[sdifjoO%]/g, // util.format: %s, %d, %i, %f, %j, %o, %O, %%
+  /\$\([^)]+\)/g, // codicons: $(icon-name)
+  /\{\d+\}/g, // numbered placeholders: {0}, {1}
+  /\{[a-zA-Z0-9_]+\}/g, // named placeholders: {name}, {count}
+  /\[[^\]]*\]/g, // bracketed technical terms: [DEBUG]
+  /https?:\/\/[^\s]+/g, // URLs
+  /[A-Z_]{3,}/g // ALL_CAPS constants (optional)
+];
