@@ -10,16 +10,13 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import * as vscode from 'vscode';
 import { JsonObject } from '../json';
-import { nls } from '../messages';
 import { stripAllRows } from './allRows';
 
 export const runQuery = Effect.fn('runQuery')(function* (
   queryText: string,
-  options?: { readonly showErrors?: boolean; readonly maxRows?: number }
+  options?: { readonly maxRows?: number }
 ) {
   const maxRows = options?.maxRows ?? 50_000;
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
@@ -43,16 +40,6 @@ export const runQuery = Effect.fn('runQuery')(function* (
           })
         )
       )
-    ),
-    Effect.tapErrorTag('SoqlError', error =>
-      isUndefined(options) || options.showErrors === true
-        ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
-        : Effect.void
-    ),
-    Effect.tapErrorTag('FieldError', error =>
-      isUndefined(options) || options.showErrors === true
-        ? Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_run_soql_query', error.message)))
-        : Effect.void
     )
   );
 });

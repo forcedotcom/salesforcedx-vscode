@@ -6,6 +6,7 @@
  */
 
 import { SfProject } from '@salesforce/core';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -56,10 +57,10 @@ const runWatcherTest = (publishUri: string, workspaceFsPath = WORKSPACE_DIR) => 
       );
 
       // Yield to allow the forked fiber to subscribe before we publish
-      yield* Effect.sleep(0);
+      yield* Effect.sleep(Duration.millis(0));
 
       yield* PubSub.publish(fileChangePubSub, { type: 'change' as const, uri: URI.file(publishUri) });
-      yield* Effect.sleep(200);
+      yield* Effect.sleep(Duration.millis(200));
 
       yield* Fiber.interrupt(fiber);
       yield* Fiber.interrupt(notificationFiber);
