@@ -12,6 +12,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
   saveFile,
   saveScreenshot,
   selectOutputChannel,
@@ -24,29 +25,43 @@ import {
   waitForOutputChannelText,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 
 // "Query plan retrieved successfully" comes from i18n key query_plan_complete
 const PLAN_COMPLETE_TEXT = 'Query plan retrieved successfully';
 const SOQL_CHANNEL = 'SOQL';
-const SOQL_FILE = 'MySoqlQueryPlanFile';
+// Unique per run so container's shared, persistent workbench never collides across specs or retries.
+const SOQL_FILE = `MySoqlQueryPlanFile${Date.now()}`;
 const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
 // executeQueryPlan calls vscChannel.show() in its finally block — the Output panel opens automatically.
 // Waiting for it directly avoids racing with ensureOutputPanelOpen.
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
 
+// Shared persistent workbench in container mode: reset editors + notifications between specs.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
 test('SOQL Query Plan: code lens, current file, selected text via command palette', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(5 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup workbench', async () => {
-    await setupMinimalOrgAndAuth(page);
-    await waitForExtensionsActivated(page);
-    await ensureSecondarySideBarHidden(page);
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await ensureSecondarySideBarHidden(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+      await waitForExtensionsActivated(page);
+      await ensureSecondarySideBarHidden(page);
+    }
     await saveScreenshot(page, 'setup.complete.png');
-    await verifyCommandExists(page, packageNls.soql_open_new_text_editor);
+    await verifyCommandExists(page, packageNls.soql_open_new_text_editor, 120_000);
   });
 
   await test.step('create SOQL file via text editor command', async () => {
