@@ -5,4 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { desktopTest as test, snippetDesktopTest as snippetTest } from './desktopFixtures';
+import { containerTest } from './containerFixtures';
+import { desktopTest, snippetDesktopTest } from './desktopFixtures';
+
+// Unchanged from before: every existing desktop-only spec imports this, typed purely as the desktop
+// test (which has desktop-only fixtures like `workspaceDir` that `containerTest` doesn't declare).
+// Widening this to a union would break those specs' types, so specs shared with container use the
+// separately-typed exports below instead.
+export { desktopTest as test } from './desktopFixtures';
+
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
+
+/** For specs shared with container mode only (no `workspaceDir`, so not the plain `test` above). */
+export const sharedTest = isContainer ? containerTest : desktopTest;
+
+/** Same as `sharedTest`, but for the snippets spec's marketplace-extension desktop fixture. */
+export const sharedSnippetTest = isContainer ? containerTest : snippetDesktopTest;
