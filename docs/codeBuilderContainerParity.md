@@ -27,6 +27,21 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
+**Two implementation patterns.** A container spec is either:
+
+1. **Merged (preferred)** — folded into its `.headless`/`.desktop` twin as an `isContainer` branch
+   (`isDesktop ? desktopTest : isContainer ? containerTest : webTest`), so the shared body and the
+   container-specific steps live in ONE file. Use this whenever the container and desktop/web runs
+   cover the same scenario closely enough to share a body.
+2. **Standalone** — a separate `specs/container/<name>.container.spec.ts` file importing `containerTest`
+   directly. Reserved for specs with no desktop/web counterpart at all, or a hard technical constraint
+   that rules out sharing a body (e.g. the `workspaceDir` fixture, used for on-disk assertions, doesn't
+   exist on `containerTest`).
+
+Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
+81 of the original 108 container specs have been merged this way; 27 remain standalone. See "Adding a
+container suite to a package" below for both patterns.
+
 ## Coverage summary — 102 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
@@ -37,7 +52,10 @@ orchestrator re-seed phases that boot a different workspace shape at a phase bou
 re-run after each restart): **no-project** (phase 2), **no-folder** (phase 3), **multi-package** (phase
 4), and **no-org** (phase 5, an org-less container boot). All verified green.
 
-Count is container spec **files**: 100 active + 2 `test.fixme`.
+Count is container-covered **specs** (scenarios), not separate files: 100 active + 2 `test.fixme`. Most
+of these now live merged into their desktop/web twin rather than as a standalone file — see "Two
+implementation patterns" above; the spec names/counts below are unaffected by which pattern a given
+spec uses.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
@@ -305,6 +323,25 @@ New env vars: `CB_FIXTURE_HOST_DIR` (host path of the DX fixture bind mount, for
 config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when present).
 
 ## Adding a container suite to a package
+
+**Preferred — merge into the existing `.headless`/`.desktop` spec:**
+
+1. `test/playwright/fixtures/index.ts` → add `isContainer = process.env.VSCODE_CONTAINER === '1'` and
+   export a `sharedTest` that's the three-way ternary `isDesktop ? desktopTest : isContainer ?
+   containerTest : webTest` (never the two-way `isContainer ? containerTest : desktopTest` — that drops
+   the plain-browser `webTest` fallback and breaks `test:web`).
+2. In the target spec, branch each step on `isContainer` for the container-specific setup/assertions
+   (boot org instead of a freshly created one, output-channel waits instead of toasts, etc.), keeping
+   the shared assertions unbranched. Use `test.fixme(isContainer, reason)` for a documented,
+   container-only, product-limitation skip.
+3. `test/playwright/playwright.config.container.ts` → the override pattern: `testDir: './specs'` +
+   an explicit `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts` filenames (see
+   e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({ testDir:
+   './specs/container' })`.
+4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block.
+
+Only fall back to a **standalone** `*.container.spec.ts` file when there's no desktop/web counterpart,
+or a hard constraint (e.g. no `workspaceDir` fixture on `containerTest`) rules out a shared body:
 
 **Phase 1 (standard DX-project fixture):**
 

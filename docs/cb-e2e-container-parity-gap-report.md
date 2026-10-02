@@ -2,6 +2,7 @@
 
 **Generated:** 2026-09-09
 **Updated:** 2026-09-10 — REVIEW items in categories **A**, **B**, and **C.9** have been addressed. See the status tags in the **Consolidated REVIEW items** section below. All applied fixes were validated **15/15 green** in CB e2e run `34427132932`; C.9 was confirmed **not-workable** (packaging gap) with evidence.
+**Superseded (partially):** 2026-10-02 — per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234), every container spec that was a near-duplicate of its desktop/web twin has been merged into ONE file branched on `isContainer`, eliminating the standalone `*.container.spec.ts` file this report analyzes for most packages. `salesforcedx-vscode-apex-debugger`, `-lightning`, `-lwc`, `-soql`, and `-visualforce` are now **fully merged** (zero standalone container files remain); the other 10 packages are **partially merged** — only the files still listed under `specs/container/` in each package today are current. The per-file `[ENV]`/`[INTENTIONAL-GAP]`/`[REVIEW]` analysis below remains a correct **historical record** of the design decisions (why a gap exists, which commit fixed a REVIEW item) even where the file itself has since moved; it is not a live ledger — see [`codeBuilderContainerParity.md`](../codeBuilderContainerParity.md) for current, accurate coverage.
 **Branch:** `jh/W-23898517-cb-e2e-verify-gate` (parity work on `jh/W-23898526-cb-e2e-parity`, PR #8102)
 **Scope:** Every `*.container.spec.ts` under `packages/*/test/playwright/specs/container/` compared against the origin Playwright spec (`.headless.spec.ts` / `.desktop.spec.ts`) it was ported from.
 
@@ -126,7 +127,9 @@ Origin twin: `apexSnippets.desktop.spec.ts`. Header names the twin (lines 8-22).
 
 ## salesforcedx-vscode-apex-debugger
 
-**Summary:** 1 container spec, 1 with a named twin, 1 REVIEW item (a low-severity twin-naming divergence, not a coverage gap).
+**Status (updated 2026-10-02):** the 1 container spec has been **merged** into its headless twin — `debuggerStop.container.spec.ts` → `debuggerStop.headless.spec.ts`, branched on `isContainer` (imported from `../fixtures`). No standalone container files remain in this package.
+
+**Summary (pre-merge):** 1 container spec, 1 with a named twin, 1 REVIEW item (a low-severity twin-naming divergence, not a coverage gap).
 
 ### debuggerStop.container.spec.ts
 
@@ -348,7 +351,9 @@ None. All gaps are documented ENV differences or the intentional container-only 
 
 ## salesforcedx-vscode-lightning
 
-**Summary:** 4 container specs, 4 twins (all `*.desktop.spec.ts`, matched by base name + header comment), 0 REVIEW items. Every container spec preserves all origin assertions; all diffs are container-infrastructure (ENV). No `test.fixme`/`test.skip` anywhere.
+**Status (updated 2026-10-02):** all 4 container specs have been **merged** into their desktop twins — auraLspAutocompletion, auraLspGoToDefinition, auraRename, and auraTemplates, each branched on `isContainer`. No standalone container files remain in this package.
+
+**Summary (pre-merge):** 4 container specs, 4 twins (all `*.desktop.spec.ts`, matched by base name + header comment), 0 REVIEW items. Every container spec preserves all origin assertions; all diffs are container-infrastructure (ENV). No `test.fixme`/`test.skip` anywhere.
 
 ### auraLspAutocompletion.container.spec.ts
 Twin: `auraLspAutocompletion.desktop.spec.ts` (named in header comment L9-10).
@@ -629,7 +634,9 @@ none. The dropped positive-retrieve coverage is explicitly justified in the cont
 
 ## salesforcedx-vscode-soql
 
-Summary: 2 container specs, 2 origin twins, 1 REVIEW item. `soqlQueryPlan.container.spec.ts` is a faithful port (all 3 sub-flows preserved). `soqlRunQuery.container.spec.ts` keeps only 1 of the origin's 5 execution flows — dropping command-palette current-file/selected-text, Tooling API, and the ALL ROWS → /queryAll routing verification.
+**Status (updated 2026-10-02):** both container specs have been **merged** into their shared twins — soqlQueryPlan and soqlRunQuery, each branched on `isContainer`. No standalone container files remain in this package. The merge also **resolved** the REVIEW item below: `soql-run-query.spec.ts` now runs its full 5-flow body (code lens, current-file palette, selected-text palette, Tooling API, ALL ROWS routing) unconditionally for both container and desktop/web — none of those steps are container-gated — so the container run no longer drops the 4 flows the old standalone file omitted.
+
+**Summary (pre-merge):** 2 container specs, 2 origin twins, 1 REVIEW item. `soqlQueryPlan.container.spec.ts` is a faithful port (all 3 sub-flows preserved). `soqlRunQuery.container.spec.ts` keeps only 1 of the origin's 5 execution flows — dropping command-palette current-file/selected-text, Tooling API, and the ALL ROWS → /queryAll routing verification.
 
 ### soqlQueryPlan.container.spec.ts
 Twin: `packages/salesforcedx-vscode-soql/test/playwright/specs/soql-query-plan.spec.ts`
@@ -664,7 +671,9 @@ Twin: `packages/salesforcedx-vscode-soql/test/playwright/specs/soql-run-query.sp
 
 ## salesforcedx-vscode-visualforce
 
-Summary: 2 container specs, 2 headless twins (both matched by base name + header comment), 1 REVIEW item — the container LSP spec ports only the completion test and silently drops the hover test that its headless twin covers.
+**Status (updated 2026-10-02):** both container specs have been **merged** into their headless twins — visualforceLsp and visualforceTemplates, via the shared isContainer-aware test fixture (no in-body branching needed, since both run the same steps either way). No standalone container files remain in this package. The merge also **resolved** the REVIEW item below: `visualforceLsp.headless.spec.ts` now contains both the completion test AND the `provides hover for mixed-case apex tags` test, and the whole file runs for the container too, so the container run no longer drops hover coverage.
+
+**Summary (pre-merge):** 2 container specs, 2 headless twins (both matched by base name + header comment), 1 REVIEW item — the container LSP spec ports only the completion test and silently drops the hover test that its headless twin covers.
 
 ### visualforceLsp.container.spec.ts
 
