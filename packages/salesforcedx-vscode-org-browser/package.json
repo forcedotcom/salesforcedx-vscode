@@ -214,6 +214,7 @@
     "test:container": {
       "command": "playwright test --config=test/playwright/playwright.config.container.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
           "external": true
         }

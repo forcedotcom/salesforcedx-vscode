@@ -4,29 +4,44 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
-import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import { OrgBrowserPage } from '../pages/orgBrowserPage';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { normalizeOrgBrowserFilters } from './container/containerHelpers';
 
 test.setTimeout(600_000);
 
 test.beforeEach(async ({ page }) => {
-  const createResult = await createDreamhouseOrg();
-  await waitForVSCodeWorkbench(page);
-  await closeWelcomeTabs(page);
   const orgBrowserPage = new OrgBrowserPage(page);
-  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
-  await ensureSecondarySideBarHidden(page);
+  if (isContainer) {
+    // Shared, persistent workbench: reset editors, notifications, and the persisted Org Browser
+    // filter state rather than assuming a clean slate. No per-test org setup — the container's
+    // boot-authed org is shared across the whole spec file.
+    await resetContainerWorkbench(page);
+    await normalizeOrgBrowserFilters(orgBrowserPage);
+  } else {
+    const createResult = await createDreamhouseOrg();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+    await ensureSecondarySideBarHidden(page);
+  }
 });
 
 test('Org Browser - filter toggles: toolbar buttons visible with correct icons', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -42,9 +57,13 @@ test('Org Browser - filter toggles: toolbar buttons visible with correct icons',
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -60,9 +79,13 @@ test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
     const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - filter toggles: org toggle works before any type is expanded', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -76,9 +99,13 @@ test('Org Browser - filter toggles: org toggle works before any type is expanded
     const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - filter toggles: both toggles work independently', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -119,9 +146,13 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
     await expect(showOrgButton).toBeVisible();
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -143,13 +174,16 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
     // orgOnly mode: root shows all types (they all exist in org), child-level shows all org components
     await orgBrowserPage.waitForRootTypeCount(beforeCount);
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // Skipped: the e2e workspace's force-app is created empty by createTestWorkspace() (see
 // packages/playwright-vscode-ext/src/fixtures/desktopWorkspace.ts) — the org has Dreamhouse
 // metadata deployed to it, but nothing ever copies local source files into the opened
 // workspace, so localOnly mode has no non-empty case to verify here. Re-enable once the
-// workspace is seeded with local files that overlap the org's metadata.
+// workspace is seeded with local files that overlap the org's metadata. Same story on the
+// container's shared workspace, whose local shape isn't a stable contract for this assertion.
 test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
   page
 }) => {
@@ -181,6 +215,8 @@ test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only
 test('Org Browser - filter toggles: legacy viewMode migration', async ({ page }) => {
   // This test verifies the migration path works by checking that after activation
   // with new boolean keys, the tree renders correctly and toggle buttons are functional
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser and verify tree renders with defaults', async () => {
@@ -196,4 +232,6 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
     const count = await orgBrowserPage.getStableRootTypeCount();
     expect(count).toBeGreaterThan(0);
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
