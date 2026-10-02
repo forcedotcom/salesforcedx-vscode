@@ -934,11 +934,7 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
 
-  packages/salesforcedx-utils:
-    devDependencies:
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
+  packages/salesforcedx-utils: {}
 
   packages/salesforcedx-utils-vscode:
     dependencies:

@@ -72,13 +72,18 @@ const config = ConfigProvider.fromMap(
   )
 );
 
-const gitEnv = {
+const gitEnv: NodeJS.ProcessEnv = {
   ...process.env,
   GIT_AUTHOR_NAME: 'test',
   GIT_AUTHOR_EMAIL: 'test@example.com',
   GIT_COMMITTER_NAME: 'test',
   GIT_COMMITTER_EMAIL: 'test@example.com'
 };
+// Git exports repository-local variables to hooks. Without clearing them, a
+// pre-push test run can commit to the real worktree instead of this fixture.
+for (const name of execFileSync('git', ['rev-parse', '--local-env-vars'], { encoding: 'utf8' }).trim().split('\n')) {
+  delete gitEnv[name];
+}
 
 const git = (cwd: string, args: readonly string[]) => {
   execFileSync('git', args, { cwd, env: gitEnv, stdio: 'ignore' });
@@ -189,6 +194,34 @@ test('missing skill ref leaves the body unchanged', async () => {
   assert.deepEqual(outcome, { edited: false });
   assert.equal(calls.n, 0);
   assert.deepEqual(state.writes, []);
+});
+
+test('inherited pre-push Git variables cannot redirect fixture Git commands', () => {
+  const hookRepo = mkdtempSync(join(tmpdir(), 'manual-test-plan-hook-'));
+  git(hookRepo, ['init', '-b', 'test']);
+  git(hookRepo, ['commit', '--allow-empty', '-m', 'fixture']);
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' });
+  const childEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    GIT_DIR: join(hookRepo, '.git'),
+    GIT_WORK_TREE: hookRepo,
+    GIT_INDEX_FILE: join(hookRepo, '.git', 'index')
+  };
+  delete childEnv.NODE_TEST_CONTEXT;
+
+  const output = execFileSync(
+    process.execPath,
+    ['--test', '--test-name-pattern', '^missing skill ref leaves the body unchanged$', import.meta.filename],
+    {
+      cwd: repoRoot,
+      env: childEnv,
+      encoding: 'utf8'
+    }
+  );
+
+  assert.match(output, /pass 1/);
+  assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), head);
+  assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
 test('a cursor failure does not retry', async () => {
