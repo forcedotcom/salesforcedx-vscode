@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import * as rxjs from 'rxjs';
 import * as kill from 'tree-kill';
+import type { CancellationToken } from '../../../src/types/cancellationToken';
+import type { Command } from '../../../src/types/command';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,

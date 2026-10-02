@@ -90,6 +90,7 @@
       ],
       "files": [
         "test/**/*.ts",
+        "test/**/*.snap",
         "jest.config.js",
         "../../config/jest.base.config.js"
       ],
