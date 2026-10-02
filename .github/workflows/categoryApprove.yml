@@ -35,6 +35,17 @@ jobs:
         with:
           ref: ${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}
           fetch-depth: 0
+      # The approver must run from the trusted base branch, not the PR head.
+      # PR branches predate approver fixes (e.g. --trust for Cursor workspace
+      # trust), so old PRs would keep failing on the stale copy. A PR must
+      # also not be able to rewrite its own approver to self-approve.
+      # The diff under review still comes from the PR head (see the git
+      # fetch/diff inside scripts/category-approve.ts); only the approver
+      # code below is pinned to develop.
+      - name: Use trusted approver from develop
+        run: |
+          git fetch origin develop --depth 1
+          git checkout origin/develop -- scripts/category-approve.ts scripts/shared/categoryDecision.ts scripts/shared/scriptErrors.ts packages/effect-octokit
       - uses: ./.github/actions/setup-pnpm
         with:
           node-version: 24
