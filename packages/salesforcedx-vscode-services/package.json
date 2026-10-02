@@ -244,6 +244,7 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
+        "test/playwright/licenseFixtures/**",
         "package*.json",
         "../../.github/**"
       ],

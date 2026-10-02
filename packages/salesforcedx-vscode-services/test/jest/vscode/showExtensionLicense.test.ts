@@ -33,12 +33,17 @@ describe('showExtensionLicense', () => {
     jest.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([]);
   });
 
-  it('notifies when only Salesforce extensions are installed', async () => {
-    installedExtensions = [makeExtension('salesforce.first'), makeExtension('Salesforce.second')];
+  it('notifies when only excluded publishers are installed', async () => {
+    installedExtensions = [
+      makeExtension('salesforce.first'),
+      makeExtension('Salesforce.second'),
+      makeExtension('vscode.git'),
+      makeExtension('TypeScriptTeam.jsts-chat-features')
+    ];
 
     await runLicenseCommand();
 
-    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('No non-Salesforce extensions are available.');
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('No third-party extensions are available.');
     expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
     expect(vscode.workspace.fs.readDirectory).not.toHaveBeenCalled();
   });
@@ -61,7 +66,13 @@ describe('showExtensionLicense', () => {
   it('offers only third-party extensions and opens the selected packaged license', async () => {
     const acme = makeExtension('Acme.widget');
     const zed = makeExtension('Zed.tool');
-    installedExtensions = [zed, makeExtension('salesforce.services'), acme];
+    installedExtensions = [
+      zed,
+      makeExtension('salesforce.services'),
+      makeExtension('Vscode.git'),
+      makeExtension('TypeScriptTeam.jsts-chat-features'),
+      acme
+    ];
     const selected = { label: 'Acme.widget', description: acme.id, extension: acme };
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(selected);
     jest.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([['LICENSE.md', vscode.FileType.File]]);

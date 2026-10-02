@@ -115,7 +115,9 @@ const showSelectedLicense = (extension: vscode.Extension<unknown>) =>
 
 /** Show the selected installed extension's license in Web Console. */
 export const showExtensionLicense = Effect.fn('showExtensionLicense')(function* () {
-  const extensions = vscode.extensions.all.filter(extension => !extension.id.toLowerCase().startsWith('salesforce.'));
+  const extensions = vscode.extensions.all.filter(
+    extension => !['salesforce', 'vscode', 'typescriptteam'].includes(extension.id.split('.')[0].toLowerCase())
+  );
   if (extensions.length === 0) {
     yield* Effect.sync(() => {
       void vscode.window.showInformationMessage(nls.localize('no_extension_licenses_available'));

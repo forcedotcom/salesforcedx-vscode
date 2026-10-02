@@ -8,6 +8,13 @@
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
 if (require.main === module) {
-  void createHeadlessServer({ extensionName: 'Services', callerDirname: __dirname });
+  void createHeadlessServer({
+    extensionName: 'Services',
+    callerDirname: __dirname,
+    additionalExtensionDirs: [
+      'salesforcedx-vscode-services/test/playwright/licenseFixtures/acme-license',
+      'salesforcedx-vscode-services/test/playwright/licenseFixtures/zed-license'
+    ]
+  });
   setupSignalHandlers();
 }

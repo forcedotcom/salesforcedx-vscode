@@ -16,8 +16,13 @@ test('license picker shows installed third-party extensions', async ({ page }) =
 
   const picker = page.getByRole('textbox', { name: 'Select an extension to view its license' });
   await expect(picker).toBeVisible();
-  await expect(page.getByRole('option').first()).toBeVisible();
+  await expect(page.getByRole('option').filter({ hasText: 'acme.license-fixture' })).toBeVisible();
+  await expect(page.getByRole('option').filter({ hasText: 'zed.license-fixture' })).toBeVisible();
 
   await picker.fill('salesforcedx-vscode-services');
   await expect(page.getByRole('option').filter({ hasText: 'salesforce.salesforcedx-vscode-services' })).toHaveCount(0);
+  await picker.fill('vscode.git');
+  await expect(page.getByRole('option').filter({ hasText: 'vscode.git' })).toHaveCount(0);
+  await picker.fill('TypeScriptTeam.jsts-chat-features');
+  await expect(page.getByRole('option').filter({ hasText: 'TypeScriptTeam.jsts-chat-features' })).toHaveCount(0);
 });

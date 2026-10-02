@@ -1,0 +1,9 @@
+{
+  "name": "license-fixture",
+  "displayName": "Acme License Fixture",
+  "publisher": "acme",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.90.0"
+  }
+}
