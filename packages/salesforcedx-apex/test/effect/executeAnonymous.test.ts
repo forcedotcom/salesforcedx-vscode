@@ -92,6 +92,35 @@ describe('executeAnonymous', () => {
     expect(request.mock.calls[2][0].body).toContain('00D-org!new-token');
   });
 
+  it('retries an expired session only once', async () => {
+    const expired = new Error('INVALID_SESSION_ID');
+    expired.name = 'ERROR_HTTP_500';
+    const request = jest
+      .fn()
+      .mockRejectedValueOnce(expired)
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(expired)
+      .mockResolvedValueOnce({});
+
+    await expect(
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'System.debug(1);' })))
+    ).resolves.toMatchObject({ _tag: 'ApexOperationError', message: 'Authentication for anonymous Apex failed' });
+    expect(request).toHaveBeenCalledTimes(4);
+  });
+
+  it('rejects inconsistent success and compilation flags', async () => {
+    const inconsistent = structuredClone(response);
+    inconsistent['soapenv:Envelope']!['soapenv:Body'].executeAnonymousResponse.result.compiled = 'false';
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(
+          executeAnonymous(makeConnection(jest.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' })
+        )
+      )
+    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
+  });
+
   it('reports malformed responses through the decode error channel', async () => {
     const connection = makeConnection(jest.fn().mockResolvedValue({}));
 
