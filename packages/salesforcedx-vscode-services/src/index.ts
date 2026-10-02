@@ -85,6 +85,7 @@ import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
+import { showExtensionLicense } from './vscode/showExtensionLicense';
 import { WorkspaceService } from './vscode/workspaceService';
 
 type PrebuiltServicesDependencies =
@@ -384,6 +385,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   }
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    if (process.env.CODE_BUILDER !== 'true') {
+      yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.showExtensionLicense', showExtensionLicense);
+    }
     // auth settings go before other things so retrieveOnLoad can use them
 
     yield* Effect.all(

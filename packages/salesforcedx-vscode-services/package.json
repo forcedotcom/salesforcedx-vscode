@@ -244,6 +244,7 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
+        "test/playwright/licenseFixtures/**",
         "package*.json",
         "../../.github/**"
       ],
@@ -413,6 +414,10 @@
       {
         "command": "sf.internal.showOrgMetadataCatalogState",
         "title": "%orgMetadataCatalog.showState%"
+      },
+      {
+        "command": "sf.showExtensionLicense",
+        "title": "%extensionLicense.view%"
       }
     ],
     "menus": {
@@ -420,6 +425,10 @@
         {
           "command": "sf.internal.showOrgMetadataCatalogState",
           "when": "sf:internal_dev"
+        },
+        {
+          "command": "sf.showExtensionLicense",
+          "when": "isWeb && !sf:code_builder_enabled"
         }
       ]
     },
