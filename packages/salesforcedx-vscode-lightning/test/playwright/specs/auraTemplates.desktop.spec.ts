@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  clearAllNotifications,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
@@ -24,14 +25,23 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
-test.describe('Aura Templates (Desktop Only)', () => {
+test.describe('Aura Templates', () => {
   test.beforeEach(async ({ page }) => {
+    if (isContainer) {
+      test.setTimeout(3 * 60 * 1000);
+    }
     setupConsoleMonitoring(page);
     setupNetworkMonitoring(page);
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (isContainer) {
+      // First container boot stacks telemetry/what's-new toasts that can cover the editor.
+      await clearAllNotifications(page);
+    } else {
+      await waitForWorkspaceReady(page);
+    }
   });
 
   const createAuraTemplate = async (

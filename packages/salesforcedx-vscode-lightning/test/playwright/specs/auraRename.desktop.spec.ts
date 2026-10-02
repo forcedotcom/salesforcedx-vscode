@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
+  clearAllNotifications,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
@@ -27,18 +28,27 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
-test.describe('Aura Rename (Desktop Only)', () => {
+test.describe('Aura Rename', () => {
   test('renames an existing Aura component bundle via explorer context menu', async ({ page }) => {
+    if (isContainer) {
+      test.setTimeout(3 * 60 * 1000);
+    }
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
     const oldName = `RenameAuraOld${Date.now()}`;
     const newName = `RenameAuraNew${Date.now()}`;
 
     await test.step('setup', async () => {
+      // No-op once ready (container's fixture already awaited it); the real wait on desktop.
       await waitForVSCodeWorkbench(page);
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
-      await waitForWorkspaceReady(page);
+      if (isContainer) {
+        // First container boot stacks telemetry/what's-new toasts that can cover the editor.
+        await clearAllNotifications(page);
+      } else {
+        await waitForWorkspaceReady(page);
+      }
     });
 
     await test.step('seed bundle via SFDX: Create Aura Component', async () => {
@@ -62,7 +72,8 @@ test.describe('Aura Rename (Desktop Only)', () => {
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'auraRename.menu-fired.png');
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-      await activeQuickInputTextField(page).fill(newName);
+      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
+      await activeQuickInputTextField(page).fill(newName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.entered-new-name.png');
     });
@@ -88,7 +99,8 @@ test.describe('Aura Rename (Desktop Only)', () => {
       await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-      await activeQuickInputTextField(page).fill(finalName);
+      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
+      await activeQuickInputTextField(page).fill(finalName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.editor-menu-fired.png');
     });
