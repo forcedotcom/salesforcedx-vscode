@@ -5,5 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ApexConnectionProvider, apexConnectionLayer, makeApexConnectionProvider } from './capabilities/connection';
-export { ApexConnectionError, ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousResultSchema, executeAnonymous } from './executeAnonymous';
+export type { ExecuteAnonymousOptions, ExecuteAnonymousResult } from './executeAnonymous';
+export { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';

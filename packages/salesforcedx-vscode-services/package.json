@@ -103,8 +103,8 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
-        "../salesforcedx-apex:compile",
         "generate-types",
+        "../salesforcedx-apex:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

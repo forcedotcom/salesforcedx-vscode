@@ -1625,9 +1625,6 @@ importers:
       '@opentelemetry/sdk-trace-web':
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
-      '@salesforce/apex-node':
-        specifier: '*'
-        version: link:../salesforcedx-apex
       '@salesforce/core':
         specifier: ^9.1.9
         version: 9.1.11

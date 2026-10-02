@@ -29,13 +29,12 @@ describe('@salesforce/apex-node public API', () => {
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
-      'ApexConnectionError',
-      'ApexConnectionProvider',
       'ApexOperationError',
       'ApexResponseDecodeError',
-      'apexConnectionLayer',
+      'ExecuteAnonymousOptionsSchema',
+      'ExecuteAnonymousResultSchema',
       'causeMessage',
-      'makeApexConnectionProvider'
+      'executeAnonymous'
     ]);
   });
 

@@ -45,7 +45,12 @@ import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
-import { ApexConnectionError, ApexOperationError, ApexResponseDecodeError } from '../src/effect';
+import {
+  ApexOperationError,
+  ApexResponseDecodeError,
+  ExecuteAnonymousOptionsSchema,
+  ExecuteAnonymousResultSchema
+} from '../src/effect';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -389,7 +394,6 @@ const ApexTestProgressValueSchema = Schema.Union(
 ).annotations({ identifier: 'ApexTestProgressValue' });
 
 const PublicApiSchema = Schema.Union(
-  ApexConnectionError,
   ApexCodeCoverageSchema,
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
@@ -412,6 +416,8 @@ const PublicApiSchema = Schema.Union(
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
+  ExecuteAnonymousOptionsSchema,
+  ExecuteAnonymousResultSchema,
   ExecuteAnonymousResponseSchema,
   LogLevelSchema,
   LogRecordSchema,

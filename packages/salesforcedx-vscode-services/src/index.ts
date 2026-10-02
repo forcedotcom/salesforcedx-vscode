@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
-import type { ApexConnectionProvider } from '@salesforce/apex-node/effect';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -21,7 +20,6 @@ import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef
 import { AliasService } from './core/alias';
 import { watchAliasFile } from './core/aliasFileWatcher';
 import { ApexLogService } from './core/apexLogService';
-import { ApexNodeConnectionProviderLayer } from './core/apexNodeCapabilities';
 import { ArtifactProjectionSchemas } from './core/artifactProjection';
 import { ComponentSetService } from './core/componentSetService';
 import { watchConfigFiles } from './core/configFileWatcher';
@@ -91,7 +89,6 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 type PrebuiltServicesDependencies =
   | AliasService
-  | ApexConnectionProvider
   | ApexLogService
   | ChannelService
   | ComponentSetService
@@ -132,7 +129,6 @@ export type SalesforceVSCodeServicesApi = {
     /** Shared service instances plus redacting-logger FiberRef. Not the OTEL tracer. */
     prebuiltServicesLayer: Layer.Layer<PrebuiltServicesDependencies>;
     ApexLogService: typeof ApexLogService;
-    ApexNodeConnectionProviderLayer: typeof ApexNodeConnectionProviderLayer;
     AliasService: typeof AliasService;
     ArtifactProjectionSchemas: typeof ArtifactProjectionSchemas;
     TemplateService: typeof TemplateService;
@@ -550,7 +546,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         prebuiltServicesDependencies: builtContext,
         prebuiltServicesLayer,
         ApexLogService,
-        ApexNodeConnectionProviderLayer,
         AliasService,
         ArtifactProjectionSchemas,
         TemplateService,

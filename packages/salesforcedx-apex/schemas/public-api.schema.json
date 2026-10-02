@@ -1,16 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$defs": {
-    "ApexConnectionError": {
-      "type": "object",
-      "required": ["message", "_tag"],
-      "properties": {
-        "message": { "type": "string" },
-        "cause": { "type": "string" },
-        "_tag": { "type": "string", "enum": ["ApexConnectionError"] }
-      },
-      "additionalProperties": false
-    },
     "ApexCodeCoverage": {
       "type": "object",
       "required": ["done", "totalSize", "records"],
@@ -491,6 +481,36 @@
       "properties": { "json": { "type": "boolean" }, "loglevel": { "$ref": "#/$defs/LogLevel" } },
       "additionalProperties": false
     },
+    "ExecuteAnonymousOptions": {
+      "type": "object",
+      "required": ["apexCode"],
+      "properties": { "apexCode": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "ExecuteAnonymousResult": {
+      "type": "object",
+      "required": [
+        "compiled",
+        "compileProblem",
+        "success",
+        "line",
+        "column",
+        "exceptionMessage",
+        "exceptionStackTrace",
+        "logBody"
+      ],
+      "properties": {
+        "compiled": { "type": "boolean" },
+        "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "success": { "type": "boolean" },
+        "line": { "type": "number" },
+        "column": { "type": "number" },
+        "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "logBody": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "ExecuteAnonymousResponse": {
       "type": "object",
       "required": ["compiled", "success"],
@@ -715,7 +735,6 @@
     }
   },
   "anyOf": [
-    { "$ref": "#/$defs/ApexConnectionError" },
     { "$ref": "#/$defs/ApexCodeCoverage" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
@@ -738,6 +757,8 @@
     { "$ref": "#/$defs/AsyncTestConfiguration" },
     { "$ref": "#/$defs/CodeCoverageResult" },
     { "$ref": "#/$defs/CommonOptions" },
+    { "$ref": "#/$defs/ExecuteAnonymousOptions" },
+    { "$ref": "#/$defs/ExecuteAnonymousResult" },
     { "$ref": "#/$defs/ExecuteAnonymousResponse" },
     { "$ref": "#/$defs/LogLevel" },
     { "$ref": "#/$defs/LogRecord" },

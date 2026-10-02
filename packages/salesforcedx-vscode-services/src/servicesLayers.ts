@@ -9,7 +9,6 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
-import { ApexNodeConnectionProviderLayer } from './core/apexNodeCapabilities';
 import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
@@ -104,4 +103,4 @@ const baseGlobalLayers = Layer.mergeAll(
   redactingConsoleLoggerLayer
 );
 
-export const globalLayers = ApexNodeConnectionProviderLayer.pipe(Layer.provideMerge(baseGlobalLayers));
+export const globalLayers = baseGlobalLayers;

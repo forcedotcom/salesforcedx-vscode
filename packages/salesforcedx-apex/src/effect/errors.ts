@@ -14,15 +14,6 @@ const OperationErrorFields = {
   cause: Schema.optional(Schema.String)
 };
 
-/** A Salesforce connection could not be supplied to an Apex operation. */
-export class ApexConnectionError extends Schema.TaggedError<ApexConnectionError>('ApexConnectionError')(
-  'ApexConnectionError',
-  {
-    message: Schema.String,
-    cause: Schema.optional(Schema.String)
-  }
-) {}
-
 /** A request made by an Apex operation failed. */
 export class ApexOperationError extends Schema.TaggedError<ApexOperationError>('ApexOperationError')(
   'ApexOperationError',

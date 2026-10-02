@@ -33,8 +33,8 @@ try {
   const effectEntry = join(consumerRoot, 'effect-consumer.mjs');
   writeFileSync(
     effectEntry,
-    "import { ApexConnectionProvider, ApexOperationError } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexEffectApi = { ApexConnectionProvider, ApexOperationError };\n'
+    "import { executeAnonymous, ApexOperationError } from '@salesforce/apex-node/effect';\n" +
+      'globalThis.apexEffectApi = { executeAnonymous, ApexOperationError };\n'
   );
   await build({
     entryPoints: [effectEntry],
@@ -49,8 +49,8 @@ try {
   writeFileSync(
     fullEntry,
     "import { TestService } from '@salesforce/apex-node';\n" +
-      "import { ApexConnectionProvider } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexNodeApi = { TestService, ApexConnectionProvider };\n'
+      "import { executeAnonymous } from '@salesforce/apex-node/effect';\n" +
+      'globalThis.apexNodeApi = { TestService, executeAnonymous };\n'
   );
   await build({
     ...commonConfigBrowser,
