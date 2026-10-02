@@ -9,6 +9,7 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
+  closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -29,8 +30,16 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForTraceFlagStatusBar } from '../helpers';
+
+// Self-clean the org-global trace flag this spec creates, even if a step above failed. Matters most
+// for container's one shared, persistent workbench, but harmless everywhere else.
+test.afterEach(async ({ page }) => {
+  await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']).catch(
+    () => {}
+  );
+});
 
 test('Log retrieval: get logs, open folder', async ({ page }) => {
   test.setTimeout(180_000);
@@ -39,8 +48,14 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
 
   const scriptName = `LogRetrieval${Date.now()}`;
 
-  await test.step('setup minimal org auth', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup org auth', async () => {
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await closeWelcomeTabs(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
     await removeAllDebugLevels(page);
   });
