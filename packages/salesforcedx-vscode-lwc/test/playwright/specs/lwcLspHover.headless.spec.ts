@@ -10,6 +10,10 @@
  * The JS hover test is skipped on web — TypeScript hover for LWC JS imports is not stable on VS Code for Web E2E
  * (same issue as lwcLspGoToDefinitionJs: cross-file TS on web / memfs handling).
  * The HTML hover test runs on both desktop and web since the LWC LSP handles it directly.
+ *
+ * Code Builder container: the Page is browser-flavored (`isDesktop()` is false), but the container runs the
+ * *desktop* LWC language server, so BOTH the HTML and JS hover tests run unconditionally there — the JS
+ * hover skip below is also exempted for the container.
  */
 import { expect } from '@playwright/test';
 import {
@@ -19,14 +23,18 @@ import {
   goToLineCol,
   isDesktop,
   setupConsoleMonitoring,
+  setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
 test.beforeEach(async ({ page }) => {
-  await waitForVSCodeWorkbench(page);
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 });
@@ -35,18 +43,23 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
+  // collide with a bundle another spec (or an earlier run) already created.
+  const componentName = isContainer ? `hoverHtmlComp${Date.now()}` : 'hoverHtmlComp';
+  const htmlFile = `${componentName}.html`;
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'hoverHtmlComp');
+    await createLwc(page, componentName);
   });
 
   await test.step('open HTML file and wait for LWC LSP to finish indexing', async () => {
-    await openLwcFile(page, 'hoverHtmlComp.html');
+    await openLwcFile(page, htmlFile);
     await waitForLwcLspReady(page);
   });
 
   await test.step('insert a lightning-accordion element into the template', async () => {
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="hoverHtmlComp.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${htmlFile}"]`);
     await editor.click();
     // Default template: line 1 "<template>", line 2 "</template>"
     await goToLineCol(page, 1, 11); // end of "<template>"
@@ -57,7 +70,7 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
   await test.step('hover over lightning-accordion tag and verify the LWC LSP hover card appears', async () => {
     // Re-position to line 2 col 2 so the cursor is on the tag name, not the '<' bracket.
     await goToLineCol(page, 2, 2);
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="hoverHtmlComp.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${htmlFile}"]`);
     // Find the tag-name token rendered by Monaco for "lightning-accordion"
     const tagToken = editor
       .locator('.view-lines span')
@@ -83,30 +96,39 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
     }).toPass({ timeout: 45_000 });
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('LWC LSP provides hover type information for LightningElement in JS files', async ({ page }) => {
-  test.skip(!isDesktop(), 'Desktop only — TypeScript hover for LWC JS imports is not stable on VS Code for Web E2E');
+  test.skip(
+    !isContainer && !isDesktop(),
+    'Desktop only — TypeScript hover for LWC JS imports is not stable on VS Code for Web E2E (container is exempt: it runs the desktop LWC language server)'
+  );
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
+  // collide with a bundle another spec (or an earlier run) already created.
+  const componentName = isContainer ? `hoverJsComp${Date.now()}` : 'hoverJsComp';
+  const htmlFile = `${componentName}.html`;
+  const jsFile = `${componentName}.js`;
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'hoverJsComp');
+    await createLwc(page, componentName);
   });
 
   await test.step('open HTML file and wait for LWC LSP to finish indexing, then switch to JS', async () => {
     // Open HTML first so the LWC language status item appears, then switch back to JS.
-    await openLwcFile(page, 'hoverJsComp.html');
+    await openLwcFile(page, htmlFile);
     await waitForLwcLspReady(page);
-    await openLwcFile(page, 'hoverJsComp.js');
+    await openLwcFile(page, jsFile);
   });
 
   await test.step('hover over LightningElement in the import statement and verify hover card', async () => {
     // Default SFDX template line 1: `import { LightningElement } from 'lwc';`
     // TypeScript language service resolves LightningElement from .sfdx/typings/lwc/engine.d.ts
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="hoverJsComp.js"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${jsFile}"]`);
     await editor.waitFor({ state: 'visible', timeout: 10_000 });
     const lightningToken = editor
       .locator('.view-lines span')
@@ -129,5 +151,5 @@ test('LWC LSP provides hover type information for LightningElement in JS files',
     }).toPass({ timeout: 45_000 });
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

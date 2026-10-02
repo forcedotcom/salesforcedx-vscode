@@ -13,17 +13,19 @@ import {
   goToLineCol,
   saveFile,
   setupConsoleMonitoring,
+  setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
-import { disableDeployOnSaveWeb } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {
-  await waitForVSCodeWorkbench(page);
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
   await closeWelcomeTabs(page);
-  await disableDeployOnSaveWeb(page);
   await ensureSecondarySideBarHidden(page);
 });
 
@@ -31,20 +33,25 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
+  // collide with a bundle another spec (or an earlier run) already created.
+  const componentName = isContainer ? `autoComp${Date.now()}` : 'autoComp';
+  const htmlFile = `${componentName}.html`;
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'autoComp');
+    await createLwc(page, componentName);
   });
 
   await test.step('wait for LWC LSP to finish indexing', async () => {
-    await openLwcFile(page, 'autoComp.html');
+    await openLwcFile(page, htmlFile);
     await waitForLwcLspReady(page);
   });
 
   await test.step('position cursor inside the template body to type a new element', async () => {
     // Default template: line 1 "<template>", line 2 "</template>"
     // Move to line 1 end and insert a new line to type in
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="autoComp.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${htmlFile}"]`);
     await editor.click();
     await goToLineCol(page, 1, 11); // end of "<template>"
     await page.keyboard.press('Enter');
@@ -86,9 +93,9 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
     });
 
     // The inserted line should contain the accepted component name
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="autoComp.html"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${htmlFile}"]`);
     await expect(editor).toContainText('lightning-accordion', { timeout: 5000 });
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

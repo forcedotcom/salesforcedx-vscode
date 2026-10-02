@@ -12,6 +12,10 @@
  * unreliable in headless web E2E even though typings exist in both hosts. Desktop matches typical local DX; see
  * https://github.com/microsoft/vscode/pull/169311 (cross-file TS on web) and memfs handling in
  * `salesforcedx-lwc-language-server` `componentIndexer`.
+ *
+ * Code Builder container: the Page is browser-flavored (`isDesktop()` is false), but the container runs the
+ * *desktop* LWC language server, so this navigation is expected to work and the skip below is also exempted
+ * for the container.
  */
 import { expect } from '@playwright/test';
 import {
@@ -22,41 +26,54 @@ import {
   ensureSecondarySideBarHidden,
   isDesktop,
   setupConsoleMonitoring,
+  setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
 test.beforeEach(async ({ page }) => {
-  await waitForVSCodeWorkbench(page);
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 });
 
 test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC module declaration', async ({ page }) => {
-  test.skip(!isDesktop(), 'Desktop only — see file comment: web TS/navigation to typings is not stable for this E2E');
+  test.skip(
+    !isContainer && !isDesktop(),
+    'Desktop only — see file comment: web TS/navigation to typings is not stable for this E2E (container is exempt: it runs the desktop LWC language server)'
+  );
 
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
+  // collide with a bundle another spec (or an earlier run) already created.
+  const componentName = isContainer ? `gtdJsComp${Date.now()}` : 'gtdJsComp';
+  const htmlFile = `${componentName}.html`;
+  const jsFile = `${componentName}.js`;
 
   await test.step('create Lightning Web Component', async () => {
-    await createLwc(page, 'gtdJsComp');
+    await createLwc(page, componentName);
   });
 
   await test.step('wait for LWC LSP to finish indexing', async () => {
     // Open the HTML file first so the status item appears, then switch back to JS
-    await openLwcFile(page, 'gtdJsComp.html');
+    await openLwcFile(page, htmlFile);
     await waitForLwcLspReady(page);
-    await openLwcFile(page, 'gtdJsComp.js');
+    await openLwcFile(page, jsFile);
   });
 
   await test.step('cmd+click LightningElement in the import binding to navigate to its declaration', async () => {
     // Default SFDX template line 1: `import { LightningElement } from 'lwc';`
     // Hover first so TypeScript computes the token's type info before cmd+clicking (mirrors manual test workflow).
     // Use `.first()` to select the import binding, not the extends clause occurrence.
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="gtdJsComp.js"]`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${jsFile}"]`);
     await editor.waitFor({ state: 'visible', timeout: 10_000 });
     const lightningToken = editor
       .locator('.view-lines span')
@@ -97,5 +114,5 @@ test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC modul
     });
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
