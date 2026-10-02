@@ -132,6 +132,12 @@ jobs:
       pre-release: 'true'
       nightly: true  # Skip marketplace publishing, use nightly versioning
       version-bump: 'auto'
+      package-manager: pnpm
+      package-manager-version: ''  # empty = auto-detect from package.json's "packageManager" field, avoiding ERR_PNPM_BAD_PM_VERSION
+      cache-dependency-path: pnpm-lock.yaml
+      install-command: pnpm install --frozen-lockfile
+      package-command: pnpm run package:packages
+      prerelease-package-command: pnpm run package:packages:prerelease
       dry-run: ${{ github.event.inputs.dry-run || false }}
       git-user-name: ${{ needs.get-git-identity.outputs.username }}
       git-user-email: ${{ needs.get-git-identity.outputs.email }}
