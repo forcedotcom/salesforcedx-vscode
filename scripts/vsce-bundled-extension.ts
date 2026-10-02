@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';
 
@@ -87,65 +87,12 @@ cpSync(directoryToConstruct, `${buildLocation}/extension`, { recursive: true });
 const cwd = `${buildLocation}/extension`;
 logger(`Now in ${cwd}`);
 
-// Copy workspace packages from monorepo packages directory before npm install
-const workspaceRoot = `${extensionDirectory}/../..`;
-const monorepoPackages = `${workspaceRoot}/packages`;
-const extensionNodeModules = `${cwd}/node_modules/@salesforce`;
-
-if (existsSync(monorepoPackages)) {
-  logger('Copying workspace packages from monorepo packages directory');
-  if (!existsSync(extensionNodeModules)) {
-    mkdirSync(extensionNodeModules, { recursive: true });
-  }
-  // Copy workspace packages that might be needed
-  const workspacePackages = [
-    { name: 'salesforcedx-lightning-lsp-common', dir: 'salesforcedx-lightning-lsp-common' },
-    { name: 'salesforcedx-lwc-language-server', dir: 'salesforcedx-lwc-language-server' },
-    { name: 'salesforcedx-aura-language-server', dir: 'salesforcedx-aura-language-server' }
-  ];
-  for (const pkg of workspacePackages) {
-    const src = `${monorepoPackages}/${pkg.dir}`;
-    const dest = `${extensionNodeModules}/${pkg.name}`;
-    if (existsSync(src)) {
-      logger(`Copying ${pkg.name} from ${src} to ${dest}`);
-      cpSync(src, dest, { recursive: true, dereference: true });
-    }
-  }
-}
-
-// Temporarily remove local workspace packages from dependencies
-// They're already copied to node_modules, so we don't need npm to install them
-// This prevents npm from trying to fetch them from the registry
-const packageJsonPath = `${cwd}/package.json`;
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-const originalDependencies = { ...packageJson.dependencies };
-
-// Remove workspace packages from dependencies temporarily
-const workspacePackageNames = [
-  '@salesforce/salesforcedx-lightning-lsp-common',
-  '@salesforce/salesforcedx-lwc-language-server',
-  '@salesforce/salesforcedx-aura-language-server'
-];
-
-const removedDependencies: Record<string, string> = {};
-for (const pkgName of workspacePackageNames) {
-  if (packageJson.dependencies[pkgName]) {
-    removedDependencies[pkgName] = packageJson.dependencies[pkgName];
-    delete packageJson.dependencies[pkgName];
-  }
-}
-
-writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf-8');
-
-// Run npm install (will install other dependencies, but skip the local ones)
+// packageUpdates.dependencies lists only registry packages. Do not copy pnpm
+// workspace node_modules here: npm and vsce cannot resolve those links.
 // --ignore-scripts skips preinstall/postinstall — they reference monorepo paths
 // (../../scripts/...) that don't exist in this temp build directory.
 logger('executing npm install');
 execSync('npm install --no-audit --no-fund --ignore-scripts', { stdio: 'inherit', cwd });
-
-// Don't restore workspace packages to dependencies - they're already in node_modules
-// This prevents npm prune (run by vsce package) from trying to validate them against the registry
-// The packages will still be available in node_modules for the extension to use
 
 // Clean up any existing VSIX files from previous builds
 logger('cleaning up existing VSIX files');
