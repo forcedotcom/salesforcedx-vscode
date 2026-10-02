@@ -52,7 +52,8 @@
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test:compile": "wireit",
-    "test": "wireit"
+    "test": "wireit",
+    "check:knip": "wireit"
   },
   "versionedIndependently": true,
   "wireit": {
@@ -148,6 +149,28 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/salesforcedx-apex --cache --cache-location ../../node_modules/.cache/knip-salesforcedx-apex --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../salesforcedx-vscode-apex/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex/.gitignore",
+        "../salesforcedx-vscode-apex-replay-debugger/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-replay-debugger/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-replay-debugger/.gitignore",
+        "../salesforcedx-vscode-apex-testing/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-testing/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-testing/.gitignore"
+      ],
+      "output": []
     }
   },
   "license": "BSD-3-Clause",

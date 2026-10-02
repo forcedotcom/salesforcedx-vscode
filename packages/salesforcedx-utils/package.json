@@ -12,7 +12,8 @@
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -80,6 +81,43 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/salesforcedx-utils --cache --cache-location ../../node_modules/.cache/knip-salesforcedx-utils --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-apex-debugger/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-apex-debugger/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-apex-debugger/.gitignore",
+        "../salesforcedx-apex-replay-debugger/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-apex-replay-debugger/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-apex-replay-debugger/.gitignore",
+        "../salesforcedx-aura-language-server/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-aura-language-server/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-aura-language-server/.gitignore",
+        "../salesforcedx-lightning-lsp-common/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-lightning-lsp-common/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-lightning-lsp-common/.gitignore",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../salesforcedx-utils-vscode/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-utils-vscode/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-utils-vscode/.gitignore",
+        "../salesforcedx-vscode-apex/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex/.gitignore",
+        "../salesforcedx-vscode-apex-replay-debugger/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-replay-debugger/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-apex-replay-debugger/.gitignore",
+        "../salesforcedx-vscode-services/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services/.gitignore"
+      ],
+      "output": []
     }
   }
 }

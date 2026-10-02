@@ -22,7 +22,8 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache .circular-deps.json",
     "lint": "wireit",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -92,6 +93,22 @@
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"
+      ],
+      "output": []
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/drivable-vscode --cache --cache-location ../../node_modules/.cache/knip-drivable-vscode --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../playwright-vscode-ext/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../playwright-vscode-ext/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../playwright-vscode-ext/.gitignore"
       ],
       "output": []
     }

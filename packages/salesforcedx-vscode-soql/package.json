@@ -105,7 +105,8 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "test:compile": "wireit",
-    "vscode:package:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -482,6 +483,46 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/salesforcedx-vscode-soql --cache --cache-location ../../node_modules/.cache/knip-salesforcedx-vscode-soql --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../effect-ext-utils/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../effect-ext-utils/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../effect-ext-utils/.gitignore",
+        "../playwright-vscode-ext/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../playwright-vscode-ext/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../playwright-vscode-ext/.gitignore",
+        "../salesforcedx-utils/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-utils/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-utils/.gitignore",
+        "../salesforcedx-vscode-i18n/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-i18n/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-i18n/.gitignore",
+        "../salesforcedx-vscode-services/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services/.gitignore",
+        "../salesforcedx-vscode-services-types/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services-types/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services-types/.gitignore",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../soql-builder-ui/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-builder-ui/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-builder-ui/.gitignore",
+        "../soql-common/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-common/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-common/.gitignore",
+        "../soql-model/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-model/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-model/.gitignore"
+      ],
+      "output": []
     }
   },
   "main": "dist/index.js",

@@ -54,7 +54,8 @@
     "test:browser": "wireit",
     "test:browser:bundle": "wireit",
     "test:browser:compile": "wireit",
-    "test:unit": "wireit"
+    "test:unit": "wireit",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -200,6 +201,25 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/soql-builder-ui --cache --cache-location ../../node_modules/.cache/knip-soql-builder-ui --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services-types/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services-types/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-services-types/.gitignore",
+        "../salesforcedx-vscode-soql/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-soql/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-soql/.gitignore",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore"
+      ],
+      "output": []
     }
   },
   "dependencies": {

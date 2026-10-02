@@ -22,7 +22,8 @@
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -75,6 +76,22 @@
         "../../eslint.config.mjs",
         "package.json",
         "package.nls.json"
+      ],
+      "output": []
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/salesforcedx-visualforce-language-server --cache --cache-location ../../node_modules/.cache/knip-salesforcedx-visualforce-language-server --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../salesforcedx-vscode-visualforce/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-visualforce/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-visualforce/.gitignore"
       ],
       "output": []
     }

@@ -476,19 +476,44 @@
       "output": []
     },
     "check:knip": {
-      "command": "pnpm exec knip --cache --include exports,types,nsExports,nsTypes --no-config-hints",
       "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "knip.json",
-        "package.json",
-        "packages/*/package.json",
-        "tsconfig*.json",
-        "packages/*/tsconfig*.json",
-        "packages/*/src/**/*.ts"
-      ],
-      "output": []
+        "./packages/drivable-vscode:check:knip",
+        "./packages/effect-ext-utils:check:knip",
+        "./packages/effect-octokit:check:knip",
+        "./packages/eslint-local-rules:check:knip",
+        "./packages/playwright-vscode-ext:check:knip",
+        "./packages/salesforcedx-apex:check:knip",
+        "./packages/salesforcedx-apex-debugger:check:knip",
+        "./packages/salesforcedx-apex-replay-debugger:check:knip",
+        "./packages/salesforcedx-aura-language-server:check:knip",
+        "./packages/salesforcedx-lightning-lsp-common:check:knip",
+        "./packages/salesforcedx-lwc-language-server:check:knip",
+        "./packages/salesforcedx-utils:check:knip",
+        "./packages/salesforcedx-utils-vscode:check:knip",
+        "./packages/salesforcedx-visualforce-language-server:check:knip",
+        "./packages/salesforcedx-vscode:check:knip",
+        "./packages/salesforcedx-vscode-apex:check:knip",
+        "./packages/salesforcedx-vscode-apex-debugger:check:knip",
+        "./packages/salesforcedx-vscode-apex-log:check:knip",
+        "./packages/salesforcedx-vscode-apex-oas:check:knip",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:check:knip",
+        "./packages/salesforcedx-vscode-apex-testing:check:knip",
+        "./packages/salesforcedx-vscode-core:check:knip",
+        "./packages/salesforcedx-vscode-expanded:check:knip",
+        "./packages/salesforcedx-vscode-i18n:check:knip",
+        "./packages/salesforcedx-vscode-lightning:check:knip",
+        "./packages/salesforcedx-vscode-lwc:check:knip",
+        "./packages/salesforcedx-vscode-metadata:check:knip",
+        "./packages/salesforcedx-vscode-org:check:knip",
+        "./packages/salesforcedx-vscode-org-browser:check:knip",
+        "./packages/salesforcedx-vscode-services:check:knip",
+        "./packages/salesforcedx-vscode-services-types:check:knip",
+        "./packages/salesforcedx-vscode-soql:check:knip",
+        "./packages/salesforcedx-vscode-visualforce:check:knip",
+        "./packages/soql-builder-ui:check:knip",
+        "./packages/soql-common:check:knip",
+        "./packages/soql-model:check:knip"
+      ]
     },
     "check:effect-diagnostics": {
       "command": "node scripts/effect-diagnostics.mjs",

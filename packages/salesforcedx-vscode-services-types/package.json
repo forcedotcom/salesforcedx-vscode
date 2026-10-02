@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "67.27.0",
+  "version": "67.27.1",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -32,7 +32,8 @@
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
     "compile": "wireit",
-    "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
+    "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
+    "check:knip": "wireit"
   },
   "wireit": {
     "generate-src": {
@@ -62,6 +63,28 @@
       "output": [
         "out/**"
       ]
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/salesforcedx-vscode-services-types --cache --cache-location ../../node_modules/.cache/knip-salesforcedx-vscode-services-types --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-org/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-org/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-org/.gitignore",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore",
+        "../salesforcedx-vscode-soql/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-soql/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../salesforcedx-vscode-soql/.gitignore",
+        "../soql-builder-ui/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-builder-ui/{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../soql-builder-ui/.gitignore"
+      ],
+      "output": []
     }
   },
   "dependencies": {

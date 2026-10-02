@@ -37,7 +37,8 @@
     "test": "wireit",
     "test:compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json"
+    "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json",
+    "check:knip": "wireit"
   },
   "wireit": {
     "compile": {
@@ -104,6 +105,19 @@
         "../../eslint.config.mjs",
         "package.json",
         "package.nls.json"
+      ],
+      "output": []
+    },
+    "check:knip": {
+      "command": "../../node_modules/.bin/knip --directory ../.. --workspace packages/eslint-local-rules --cache --cache-location ../../node_modules/.cache/knip-eslint-local-rules --include exports,types,nsExports,nsTypes --no-config-hints",
+      "files": [
+        "../../*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "../../.gitignore",
+        "../../.pnpmfile.cjs",
+        "../../{scripts,test,test-workspaces,config,.github,.opencode}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        "{src,test,typings,scripts,bin,jest,__mocks__,resources}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,yaml,yml}",
+        ".gitignore"
       ],
       "output": []
     }
