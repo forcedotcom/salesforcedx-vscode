@@ -8,33 +8,49 @@
 import {
   closeWelcomeTabs,
   createMinimalOrg,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
+  saveScreenshot,
   selectOutputChannel,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, sharedMinimalDefaultTest as test } from '../fixtures';
 
-// e2e-COVERED: SFDX: Display Org Details for Default Org against a real scratch default org.
-// Like orgOpen, this path shells out to `sf org display --target-org <default> --json` via
-// TerminalService.simpleExec, with the username coming from TargetOrgRef (seeded from the project
-// `.sfdx/config.json` the orgAlias fixture writes) — so a live, authed default org is required. The
-// table output proves the CLI round-trip + JSON decode + table render end-to-end; jest only covers
-// the dispatch/guards with mocks.
+const ORG_CHANNEL = 'Salesforce Org Management';
+
+// e2e-COVERED: SFDX: Display Org Details for Default Org against a live default org. This path
+// shells out to `sf org display --target-org <default> --json` via TerminalService.simpleExec, with
+// the username coming from TargetOrgRef — so a live, authed default org is required. The table output
+// proves the CLI round-trip + JSON decode + table render end-to-end; jest only covers the
+// dispatch/guards with mocks.
 test('org extension: SFDX: Display Org Details for Default Org logs the org table to the output channel', async ({
   page
 }) => {
   test.setTimeout(120_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup scratch default org', async () => {
-    // creates/reuses the minimalTestOrg so the alias in .sfdx/config.json resolves to a live org
-    await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // Shared, persistent workbench: reset editor + notification state rather than assuming a clean
+      // slate. No org creation — the container's boot org is the shared tracking scratch org.
+      await resetContainerWorkbench(page);
+    } else {
+      // creates/reuses the minimalTestOrg so the alias in .sfdx/config.json resolves to a live org
+      await createMinimalOrg();
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    await saveScreenshot(page, 'orgDisplay.01-ready.png');
   });
 
   // Gate on an always-present activation command so we don't get a false negative on slow startup.
@@ -47,9 +63,13 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
   });
 
   await test.step('assert org table in output channel', async () => {
-    await selectOutputChannel(page, 'Salesforce Org Management');
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, ORG_CHANNEL, 30_000);
     // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; its presence proves the
     // `sf org display --json` round-trip + table render completed against the live default org.
     await waitForOutputChannelText(page, { expectedText: 'Connected Status', timeout: 60_000 });
+    await saveScreenshot(page, 'orgDisplay.02-output-verified.png');
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
