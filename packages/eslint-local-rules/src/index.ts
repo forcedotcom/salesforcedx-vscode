@@ -11,12 +11,12 @@ import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
+import { noEffectGenPipeRecovery } from './noEffectGenPipeRecovery';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
-import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
@@ -65,7 +65,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-effect-service-promise-return': noEffectServicePromiseReturn,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
-    'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
+    'no-effect-gen-pipe-recovery': noEffectGenPipeRecovery,
     'no-nested-effect-ternary': noNestedEffectTernary,
     'no-raw-duration': noRawDuration,
     'no-unused-i18n-messages': noUnusedI18nMessages,

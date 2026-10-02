@@ -16,11 +16,10 @@ export const DEFAULT_AI_CONNECTION_STRING =
   'InstrumentationKey=f5cbbeba-e06b-4657-b99c-62024c9d36bf;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=1485438c-5495-43dc-8c0a-b51e860b6cba';
 
 const getExtensionMode = (): ExtensionMode | undefined =>
-  Effect.runSync(
-    Effect.gen(function* () {
-      const ctx = yield* getExtensionContext();
-      return ctx.extensionMode;
-    }).pipe(Effect.orElseSucceed(() => undefined))
+  getExtensionContext().pipe(
+    Effect.map(ctx => ctx.extensionMode),
+    Effect.orElseSucceed(() => undefined),
+    Effect.runSync
   );
 
 /**

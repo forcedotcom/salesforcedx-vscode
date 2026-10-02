@@ -212,39 +212,38 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
     Stream.filter(() => !!languageClient),
     Stream.debounce(Duration.millis(500)),
     Stream.runForEach(() =>
-      Effect.gen(function* () {
-        yield* channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server'));
-
+      channelSvc.appendToChannel(nls.localize('lwc_restarting_language_server')).pipe(
         // Fetch updated package directories
-        const packageDirectoryUris: URI[] | undefined = yield* projectService.getSfProject().pipe(
-          Effect.flatMap(project =>
-            Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
-          ),
-          Effect.orElseSucceed(() => undefined)
-        );
-
-        // Stop the current client
-        yield* Effect.tryPromise({
-          try: () => languageClient!.stop(),
-          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
-        });
-
-        // Create and start a new client with updated package directories
-        const newClient = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris);
-
+        Effect.andThen(
+          projectService.getSfProject().pipe(
+            Effect.flatMap(project =>
+              Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
+            ),
+            Effect.orElseSucceed(() => undefined)
+          )
+        ),
+        // Stop the current client, then create and start a new one
+        Effect.flatMap(packageDirectoryUris =>
+          Effect.tryPromise({
+            try: () => languageClient!.stop(),
+            catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+          }).pipe(Effect.andThen(createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris)))
+        ),
         // Register workspace read file handler before start
-        registerWorkspaceReadFileHandler(newClient, channelAdapter);
-
-        yield* Effect.tryPromise({
-          try: () => newClient.start(),
-          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
-        });
-
-        // Update the module-level reference
-        languageClient = newClient;
-
-        yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_restarted'));
-      }).pipe(
+        Effect.tap(newClient => Effect.sync(() => registerWorkspaceReadFileHandler(newClient, channelAdapter))),
+        Effect.tap(newClient =>
+          Effect.tryPromise({
+            try: () => newClient.start(),
+            catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+          })
+        ),
+        // Update the module-level reference only after start succeeds
+        Effect.tap(newClient =>
+          Effect.sync(() => {
+            languageClient = newClient;
+          })
+        ),
+        Effect.andThen(channelSvc.appendToChannel(nls.localize('lwc_language_server_restarted'))),
         Effect.catchAll(error =>
           channelSvc.appendToChannel(
             nls.localize('lwc_language_server_restart_failed', isError(error) ? error.message : String(error))

@@ -8,10 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 
-export const listSObjectNamesEffect = Effect.gen(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const metadataDescribe = yield* api.services.MetadataDescribeService;
-  return yield* metadataDescribe
-    .listSObjects()
-    .pipe(Effect.map(sobjects => sobjects.filter(s => s.queryable).map(s => s.name)));
-}).pipe(Effect.catchAll(() => Effect.succeed<string[]>([])));
+export const listSObjectNamesEffect = ExtensionProviderService.pipe(
+  Effect.flatMap(provider => provider.getServicesApi),
+  Effect.flatMap(api => api.services.MetadataDescribeService),
+  Effect.flatMap(metadataDescribe => metadataDescribe.listSObjects()),
+  Effect.map(sobjects => sobjects.filter(s => s.queryable).map(s => s.name)),
+  Effect.catchAll(() => Effect.succeed<string[]>([]))
+);

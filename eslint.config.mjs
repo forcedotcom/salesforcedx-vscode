@@ -177,7 +177,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
-      'local/no-nested-effect-gen-catch-tags': 'error',
+      'local/no-effect-gen-pipe-recovery': 'error',
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',

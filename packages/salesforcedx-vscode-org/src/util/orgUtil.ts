@@ -519,24 +519,25 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
 
   // Log-and-swallow ALL display failures (list auths, config aggregator, per-org processing) so a
   // display error after a successful clean never surfaces as an unrelated command error to the user.
-  yield* Effect.gen(function* () {
-    const orgAuthorizations = yield* listAllAuthorizationsEffect();
-    if (orgAuthorizations.length === 0) {
-      yield* channel.appendToChannel(`\n${nls.localize('org_list_no_orgs_found')}`);
-      return;
-    }
+  yield* listAllAuthorizationsEffect().pipe(
+    Effect.flatMap(orgAuthorizations => {
+      if (orgAuthorizations.length === 0) {
+        return channel.appendToChannel(`\n${nls.localize('org_list_no_orgs_found')}`);
+      }
 
-    // Get default org configuration
-    const defaultConfig = yield* getDefaultOrgConfigurationEffect();
-
-    // Process each org authorization into display data
-    const orgData = (yield* Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
-      concurrency: 'unbounded'
-    })).filter(isNotUndefined);
-
-    // Create and display the table
-    yield* createAndDisplayOrgTable(orgData);
-  }).pipe(
+      // Get default org configuration
+      return getDefaultOrgConfigurationEffect().pipe(
+        // Process each org authorization into display data
+        Effect.flatMap(defaultConfig =>
+          Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
+            concurrency: 'unbounded'
+          })
+        ),
+        Effect.map(orgData => orgData.filter(isNotUndefined)),
+        // Create and display the table
+        Effect.flatMap(createAndDisplayOrgTable)
+      );
+    }),
     Effect.catchAll(error =>
       channel.appendToChannel(
         `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`

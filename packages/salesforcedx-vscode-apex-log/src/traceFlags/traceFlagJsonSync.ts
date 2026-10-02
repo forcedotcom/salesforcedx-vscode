@@ -96,21 +96,25 @@ const searchUsersEffect = (
   conn: ConnectionLike,
   currentUserId: string
 ) =>
-  Effect.gen(function* () {
-    yield* Effect.sync(() => {
-      picker.busy = true;
-    });
-    const escaped = term.replaceAll(/['"\\]/g, '');
-    const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
-    const { searchRecords } = yield* Effect.tryPromise({
-      try: () => conn.search(sosl),
-      catch: () => new UserSearchError({ message: 'search failed' })
-    });
-    yield* Effect.sync(() => {
-      picker.items = buildUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
-      picker.busy = false;
-    });
+  Effect.sync(() => {
+    picker.busy = true;
   }).pipe(
+    Effect.andThen(
+      Effect.tryPromise({
+        try: () => {
+          const escaped = term.replaceAll(/['"\\]/g, '');
+          const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
+          return conn.search(sosl);
+        },
+        catch: () => new UserSearchError({ message: 'search failed' })
+      })
+    ),
+    Effect.flatMap(({ searchRecords }) =>
+      Effect.sync(() => {
+        picker.items = buildUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
+        picker.busy = false;
+      })
+    ),
     // Ignore search failures so user can keep typing and retry
     Effect.catchTag('UserSearchError', () =>
       Effect.sync(() => {
