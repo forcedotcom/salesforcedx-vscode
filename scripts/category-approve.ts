@@ -99,10 +99,16 @@ const classify = Effect.fn('categoryApprove.classify')(function* (policy: string
   }).pipe(
     Effect.flatMap(([apiKey, pathEnv, home]) =>
       commandOutput(
-        Command.make('agent', '-p', '--model', MODEL, '--output-format', 'json', buildPrompt(policy, diffPath)).pipe(
-          Command.env(agentEnvironment(home, pathEnv, apiKey)),
-          Command.stdin(Stream.empty)
-        )
+        Command.make(
+          'agent',
+          '--trust',
+          '-p',
+          '--model',
+          MODEL,
+          '--output-format',
+          'json',
+          buildPrompt(policy, diffPath)
+        ).pipe(Command.env(agentEnvironment(home, pathEnv, apiKey)), Command.stdin(Stream.empty))
       ).pipe(Effect.scoped)
     ),
     Effect.filterOrFail(
