@@ -215,7 +215,8 @@
         },
         "CB_GREP": {
           "external": true
-        }
+        },
+        "VSCODE_CONTAINER": "1"
       },
       "dependencies": [
         "../playwright-vscode-ext:compile"

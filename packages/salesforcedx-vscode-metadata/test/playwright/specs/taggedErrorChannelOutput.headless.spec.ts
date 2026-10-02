@@ -5,6 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/*
+ * Covers the tagged-error channel contract: running "SFDX: Deploy Source in Manifest to Org" with NO
+ * manifest selected surfaces the tagged [ManifestSelectionRequiredError] in the Salesforce Metadata
+ * output channel.
+ *
+ * Container: the error fires on the manifest-selection guard BEFORE any org round-trip, so this drops
+ * the createMinimalOrg / settings upsert and runs against the ambient boot org shape.
+ */
+
 import {
   closeAllEditors,
   closeWelcomeTabs,
@@ -13,22 +22,31 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandById,
   selectOutputChannel,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 test('tagged command errors include the tag only in channel output', async ({ page }) => {
   test.setTimeout(120_000);
-  const createResult = await createMinimalOrg();
-  await waitForVSCodeWorkbench(page);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+
+  if (!isContainer) {
+    const createResult = await createMinimalOrg();
+    await waitForVSCodeWorkbench(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  }
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
-  await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   await verifyCommandExists(page, packageNls.project_info_text, 60_000);
   await closeAllEditors(page);
 
@@ -40,4 +58,6 @@ test('tagged command errors include the tag only in channel output', async ({ pa
     timeout: 90_000,
     verifyExecution: () => waitForOutputChannelText(page, { expectedText, timeout: 15_000 })
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

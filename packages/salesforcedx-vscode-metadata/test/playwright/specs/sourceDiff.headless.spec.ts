@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+/*
+ * Covers diff-source-against-org reachable from the command palette and the explorer context menu.
+ * Creates a uniquely-named throwaway class, deploys it, edits it locally, then diffs it against the
+ * org, asserted from the "Diff completed for 1 file" output line and the diff editor tab.
+ *
+ * Container: runs against the container's boot-authed org instead of a freshly created minimal org.
+ */
+
 import { expect, Page } from '@playwright/test';
 import {
   clearOutputChannel,
@@ -20,6 +27,7 @@ import {
   executeExplorerContextMenuCommand,
   openFileByName,
   outputChannelContains,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -36,6 +44,7 @@ import { waitForDeployProgressNotificationToAppear } from '../pages/notification
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 const verifyDiffCompleted = async (page: Page, className: string, screenshotPrefix: string) => {
   // Wait for retrieving message
@@ -70,6 +79,12 @@ const verifyDiffCompleted = async (page: Page, className: string, screenshotPref
   await expect(diffTab, `Diff tab with title "${diffTabTitle}" should exist`).toBeVisible({ timeout: 10_000 });
 };
 
+if (isContainer) {
+  test.beforeEach(async ({ page }) => {
+    await resetContainerWorkbench(page);
+  });
+}
+
 test('Source Diff: diff shows diff editor', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -78,27 +93,36 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
   const classNamePalette = `SourceDiffTest${Date.now()}`;
   let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup minimal org and disable deploy-on-save', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // The containerTest fixture already awaited workbench readiness before handing over `page`.
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      await saveScreenshot(page, 'sourceDiff.01-ready.png');
+    } else {
+      const createResult = await createMinimalOrg();
+      await waitForVSCodeWorkbench(page);
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
-    statusBarPage = new SourceTrackingStatusBarPage(page);
-    await statusBarPage.waitForVisible(120_000);
+      statusBarPage = new SourceTrackingStatusBarPage(page);
+      await statusBarPage.waitForVisible(120_000);
 
-    // Wait for core commands to be available
-    await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
+      // Wait for core commands to be available
+      await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
 
-    // Disable deploy-on-save so test can control when deploys happen
-    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+      // Disable deploy-on-save so test can control when deploys happen
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    }
   });
 
   await test.step('create and deploy class for command palette diff', async () => {
     await createApexClass(page, classNamePalette);
 
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    if (!isContainer) {
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    }
 
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
 
@@ -109,11 +133,14 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
-
-    // The command can finish writing output before source tracking has applied the
-    // deploy result. Editing sooner lets that late update reset the new local
-    // change to zero, which is most visible on slower Windows runners.
-    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    if (isContainer) {
+      await saveScreenshot(page, 'sourceDiff.02-deployed.png');
+    } else {
+      // The command can finish writing output before source tracking has applied the
+      // deploy result. Editing sooner lets that late update reset the new local
+      // change to zero, which is most visible on slower Windows runners.
+      await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    }
   });
 
   await test.step('create local change and diff via command palette', async () => {
@@ -127,7 +154,9 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
 
     await editOpenFile(page, '// Local change for diff test');
 
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    if (!isContainer) {
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    }
 
     // Clear output and execute diff
     await ensureOutputPanelOpen(page);
@@ -136,7 +165,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
 
     await executeCommandWithCommandPalette(page, packageNls.diff_source_against_org_text);
 
-    await verifyDiffCompleted(page, classNamePalette, 'diff-palette');
+    await verifyDiffCompleted(page, classNamePalette, isContainer ? 'sourceDiff.diff-palette' : 'diff-palette');
   });
 
   await test.step('create local change and diff via explorer context menu', async () => {
@@ -150,7 +179,9 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
 
     await editOpenFile(page, '// Explorer context menu diff test');
 
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    if (!isContainer) {
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    }
 
     // Clear output and execute diff via explorer context menu
     await ensureOutputPanelOpen(page);
@@ -164,7 +195,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
       packageNls.diff_source_against_org_text
     );
 
-    await verifyDiffCompleted(page, classNamePalette, 'diff-explorer');
+    await verifyDiffCompleted(page, classNamePalette, isContainer ? 'sourceDiff.diff-explorer' : 'diff-explorer');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
