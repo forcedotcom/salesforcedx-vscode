@@ -27,7 +27,7 @@ VS Code Web (the Apex/Aura/LWC language servers, `child_process`, and the `sf` C
 so many specs that are `isDesktop()`-gated in the web suite run here — those gates are dropped in the
 container ports.
 
-## Coverage summary — 108 specs across 15 packages
+## Coverage summary — 102 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
@@ -37,7 +37,7 @@ orchestrator re-seed phases that boot a different workspace shape at a phase bou
 re-run after each restart): **no-project** (phase 2), **no-folder** (phase 3), **multi-package** (phase
 4), and **no-org** (phase 5, an org-less container boot). All verified green.
 
-Count is container spec **files**: 106 active + 2 `test.fixme`.
+Count is container spec **files**: 100 active + 2 `test.fixme`.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |

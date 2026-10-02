@@ -21,7 +21,7 @@ Methodology: one read-only review agent per package read both the container spec
 |---|---|---|---|
 | salesforcedx-vscode-apex | 4 | 3 | 🟡 1 fixed · 1 accepted gap (C.9) · 1 info (D) |
 | salesforcedx-vscode-apex-debugger | 1 | 1 | ⏸ not addressed (naming only) |
-| salesforcedx-vscode-apex-log | 8 | 2 | ✅ resolved |
+| salesforcedx-vscode-apex-log | 2 | 1 | ✅ resolved |
 | salesforcedx-vscode-apex-oas | 3 | 0 | ✅ clean |
 | salesforcedx-vscode-apex-replay-debugger | 1 | 0 | ✅ clean |
 | salesforcedx-vscode-apex-testing | 9 | 1 | ✅ resolved |
@@ -34,9 +34,9 @@ Methodology: one read-only review agent per package read both the container spec
 | salesforcedx-vscode-services | 1 | 0 | ✅ clean |
 | salesforcedx-vscode-soql | 2 | 1 | ✅ resolved |
 | salesforcedx-vscode-visualforce | 2 | 1 | ✅ resolved |
-| **Total** | **75** | **12** | **8 fixed · 1 not-workable · 3 out of scope** |
+| **Total** | **69** | **11** | **7 fixed · 1 not-workable · 3 out of scope** |
 
-**Headline:** 8 of 15 packages were clean 1:1 ports from the start (differences purely `[ENV]`). Of the 12 `[REVIEW]` items, the requested A/B/C.9 set — **8 items** — are now **fixed and CI-validated** (run `34427132932`, 15/15 green); **1** (C.9 apexSnippets) is confirmed **not-workable** (a Code Builder image packaging gap, evidence below); and **3** were outside the requested scope and remain as-is (C.10 packageInstall, D clean-DB branch, E debugger-twin naming). The dominant pattern in the clean packages is that container specs are *stricter* than their twins (they add console/network monitoring the desktop twins often lack).
+**Headline:** 8 of 15 packages were clean 1:1 ports from the start (differences purely `[ENV]`). Of the 11 `[REVIEW]` items, the requested A/B/C.9 set — **7 items** — are now **fixed and CI-validated** (run `34427132932`, 15/15 green; one further apex-log fix, the traceFlagsCrud debug-level preset, now lives inside a spec unified with its desktop/web twin rather than a standalone container file); **1** (C.9 apexSnippets) is confirmed **not-workable** (a Code Builder image packaging gap, evidence below); and **3** were outside the requested scope and remain as-is (C.10 packageInstall, D clean-DB branch, E debugger-twin naming). The dominant pattern in the clean packages is that container specs are *stricter* than their twins (they add console/network monitoring the desktop twins often lack).
 
 ## Consolidated REVIEW items — resolution status (2026-09-10)
 
@@ -149,7 +149,7 @@ Context (not a gap): `isvDebugBootstrap.desktop.spec.ts` is desktop-only with no
 
 ## salesforcedx-vscode-apex-log
 
-8 container specs, all with a matching-named `*.headless.spec.ts` twin (8 twins). 2 REVIEW items.
+2 container specs, all with a matching-named `*.headless.spec.ts` twin (2 twins). 1 REVIEW item.
 
 All container specs share the same structural deltas vs their headless twins, which are ENV and not repeated per-spec unless notable:
 - Import `containerTest` from `../../fixtures/containerFixtures` (shared persistent workbench + boot-authed org) instead of `test` from `../fixtures`.
@@ -159,22 +159,6 @@ All container specs share the same structural deltas vs their headless twins, wh
 - Extra/renamed screenshots (`*.container.NN-*.png`).
 
 ---
-
-### apexGenerateClass.container.spec.ts
-Twin: `apexGenerateClass.headless.spec.ts`
-- [ENV] Fixture/setup swap + `beforeEach` reset as above (`container` L34-41 vs `headless` L26,34-39).
-- Assertions are identical: editor opens by `.cls` URI, tab visible, explorer treeitem, and `public with sharing class <name>` body (`container` L88-100 == `headless` L72-84). No functional gap.
-
-### apexTestClassCreate.container.spec.ts
-Twin: `apexTestClassCreate.headless.spec.ts`
-- [ENV] Fixture/setup swap + `beforeEach` reset as above.
-- Assertions identical: `@isTest` + `private class <name>` body, tab, explorer item (`container` L90-103 == `headless` L74-87). No functional gap.
-
-### autoCollection.container.spec.ts
-Twin: `autoCollection.headless.spec.ts`
-- [ENV] Fixture swap; headless configures `describe` serial (`headless` L29), container relies on `workers:1` (documented in header).
-- [ENV] Container adds `afterEach` deleting the trace flag + restoring poll interval to `30` + closing settings (`container` L51-57); headless has no afterEach (fresh org per file).
-- Step-for-step parity otherwise: set poll interval 10, create trace flag (assert "Tracing until"), set poll 0, delete flag. Neither spec asserts a log was actually auto-collected, so no gap introduced. No functional gap.
 
 ### createApexTrigger.container.spec.ts
 Twin: `createApexTrigger.headless.spec.ts`
@@ -190,28 +174,10 @@ Twin: `executeAnonymous.headless.spec.ts`
 - [ENV] Container replaces the template body with `Control+A` + type (`container` L76-79); headless uses `selectAll` + `Delete` + type. Equivalent.
 - [ENV] Container has no `beforeEach`/`afterEach` (unlike sibling container specs); it does not reset editors. Low risk since it uses unique names, but noted.
 
-### logRetrieval.container.spec.ts
-Twin: `logRetrieval.headless.spec.ts`
-- [ENV] Fixture swap + `beforeEach` reset + `afterEach` trace-flag delete (`container` L46-56); headless has none.
-- Step-for-step parity: turn on trace flag, generate log via execute-anonymous (`System.debug('logtest')`), Open Log, `logGet` QuickPick, verify `.log` tab opens containing `logtest|USER_DEBUG|DEBUG`, open logs folder / explorer, turn off flag. Same selectors and timeouts. No functional gap.
-
-### traceFlagExpiry.container.spec.ts
-Twin: `traceFlagExpiry.headless.spec.ts`
-- [ENV] Fixture swap; headless `describe.configure` serial timeout 240s (`headless` L32), container `test.setTimeout(4*60*1000)` = 240s (`container` L66). Container adds `beforeEach`/`afterEach` (delete flag + restore duration to `30`) (`container` L44-57).
-- Identical logic and the same 150s expiry poll (`container` L107 == `headless` L75). No functional gap.
-
-### traceFlagsCrud.container.spec.ts
-Twin: `traceFlagsCrud.headless.spec.ts`
-- [REVIEW] Debug-level preset selection weakened. Headless selects the NAMED preset `selectQuickInputOption(page, 'Yes (Apex=DEBUG, VF=INFO, DB=INFO)', …)` (`headless` L126). Container uses `selectFirstQuickInputOption(page, { optionVisibleTimeout: 10_000 })` (`container` L156), picking whatever is first rather than asserting a specific debug-level config. No in-spec comment explains the change; if option ordering differs, the container could select a different preset than intended. Confirm this is deliberate (e.g., container QuickPick option text/order differs).
-- [ENV] Fixture swap + `beforeEach`/`afterEach` self-clean (`container` L69-80).
-- Otherwise identical: `findInEditor` / `openTraceFlagsAndExpectContent` helpers, `"traceFlags": {"` content check, `"DEVELOPER_LOG"` + `Remove` code-lens after create, debug-level label appears in virtual doc, cleanup. Same timeouts (240s). 
-
 ---
 
 ### REVIEW items (needs attention)
 - **executeAnonymous.container.spec.ts** — container keeps only execute-document; drops execute-selection, compile-error notification, and diagnostics-cleared (`expectProblemsCountAtLeast`) scenarios present in the headless twin (`headless` L93-172). Drop is undocumented — confirm intended narrowing to the org round-trip.
-- **traceFlagsCrud.container.spec.ts** (`container` L156) — debug-level preset selection weakened from the named `'Yes (Apex=DEBUG, VF=INFO, DB=INFO)'` option (`headless` L126) to `selectFirstQuickInputOption`. Confirm the first option is the intended preset in the container UI.
-
 
 ---
 
@@ -421,70 +387,27 @@ none
 
 ## salesforcedx-vscode-lwc
 
-**Summary:** 10 container specs, all with a headless/desktop twin (10 twin files); 0 REVIEW items. All ports are faithful. Differences are ENV robustness (unique per-run names for the shared persistent workbench, added `setupNetworkMonitoring`/screenshots, disk-reopen polling for the index, top-of-tree scroll for typings) plus two coverage EXPANSIONS: the container runs the JS Go-to-Definition and JS hover tests unconditionally, whereas the web twin `test.skip`s them.
+**Status (updated 2026-09-29):** 10 container specs **merged into unified files** — The 10 container-specific files have been unified with their `*.headless.spec.ts` twins. Container logic is now co-located, branched on `isContainer` (imported from `../fixtures`), running the same assertions in both modes.
 
-Test-block counts: container = 12 `test()` blocks across 10 files (hover x2, snippets x2, rest x1); twins = 12 blocks across 10 files.
+**Original summary (pre-merge):** All 10 ports were faithful. Differences were ENV robustness (unique per-run names for the shared persistent workbench, added `setupNetworkMonitoring`/screenshots, disk-reopen polling for the index, top-of-tree scroll for typings) plus two coverage EXPANSIONS: the container ran the JS Go-to-Definition and JS hover tests unconditionally, whereas the web twin `test.skip`s them.
 
-Origin matched by base name; each container header comment names its `*.headless.spec.ts` twin.
+**Merged specs (10 files)** — now in unified headless files:
+- lwcCustomComponentsIndex.container.spec.ts → lwcCustomComponentsIndex.headless.spec.ts
+- lwcGenerateComponent.container.spec.ts → lwcGenerateComponent.headless.spec.ts
+- lwcLspAutocompletion.container.spec.ts → lwcLspAutocompletion.headless.spec.ts
+- lwcLspGoToDefinitionHtml.container.spec.ts → lwcLspGoToDefinitionHtml.headless.spec.ts
+- lwcLspGoToDefinitionJs.container.spec.ts → lwcLspGoToDefinitionJs.headless.spec.ts
+- lwcLspHover.container.spec.ts → lwcLspHover.headless.spec.ts
+- lwcLspIndexing.container.spec.ts → lwcLspIndexing.headless.spec.ts
+- lwcLspSfdxTypings.container.spec.ts → lwcLspSfdxTypings.headless.spec.ts
+- lwcRename.container.spec.ts → lwcRename.headless.spec.ts
+- lwcSnippets.container.spec.ts → lwcSnippets.headless.spec.ts
 
-### lwcCustomComponentsIndex.container.spec.ts
-Twin: `specs/lwcCustomComponentsIndex.headless.spec.ts`
-- [ENV] Unique bundle name `idxCmp${Date.now()}` vs fixed `idxCmp` in twin (container:43 vs twin:29) — shared persistent workbench collision avoidance.
-- [ENV] Index verified via `assertOpenEditorContainsText(page, posix, openSfdxCustomComponentsJson)` Find-widget search with a reopen hook that reloads the file from disk each poll (container:66-67), vs twin's `.view-lines` `textContent()` `toPass` over posix|winish (twin:42-45). This is the disk-reopen polling robustness noted in the task; large virtualized index file + async LSP rewrite. No coverage loss.
-- [ENV] Container asserts only the posix path (Linux container) vs twin's posix||winish (container:66 vs twin:40-44). Correct for the container OS.
-- [ENV] Adds network monitoring + screenshots + explicit "workbench ready" step (fixture already awaited readiness).
+See [codeBuilderContainerParity.md](../codeBuilderContainerParity.md#coverage-summary) for post-merge coverage status.
 
-### lwcGenerateComponent.container.spec.ts
-Twin: `specs/lwcGenerateComponent.headless.spec.ts`
-- [ENV] Component name `cbLwc${Date.now()}` vs `generateLwcTest${Date.now()}` (container:37 vs twin:30) — cosmetic.
-- [ENV] Twin's `waitForWorkspaceReady` replaced by fixture-provided readiness + "workbench ready" step (container:39-44 vs twin:32-38).
-- [ENV] Assertion timeouts relaxed (editorTab 5000ms vs 1000ms; treeitems 5000ms vs 2000ms) (container:79,85-91 vs twin:80,98-104) — container/CI latency.
-- [INTENTIONAL-GAP] Twin also asserts an explorer folder treeitem whose name equals the component (twin:83-88) and an editor `[data-uri*="${name}.js"]` visible (twin:90-91); container omits both but still verifies the `.js` tab, `import { LightningElement }` content, and the `.html`/`.js-meta.xml`/`__tests__` sibling treeitems (container:78-91). Dropped checks are redundant with retained coverage — no meaningful loss.
+**Pre-merge parity analysis (historical record)** — All 10 specs were faithful ports from their headless twins with identical test-block counts (12 total). Origin parity tracked by base name; each container header comment named its `*.headless.spec.ts` twin.
 
-### lwcLspAutocompletion.container.spec.ts
-Twin: `specs/lwcLspAutocompletion.headless.spec.ts`
-- [ENV] Unique `autoComp${Date.now()}` vs fixed `autoComp` (container:41 vs twin:37).
-- [ENV] `beforeEach` (workbench/close/disableDeployOnSave/sidebar) inlined into a "workbench ready" step (container:44-50 vs twin:23-28).
-- [ENV] Adds network monitoring + screenshots. Assertion flow (type `<lightnin`, expect `lightning-accordion` suggestion, insert, save, editor contains text) is identical. No coverage loss.
-
-### lwcLspGoToDefinitionHtml.container.spec.ts
-Twin: `specs/lwcLspGoToDefinitionHtml.headless.spec.ts`
-- [ENV] Unique `gtdHtmlComp${Date.now()}` vs fixed `gtdHtmlComp` (container:42 vs twin) — prefix still triggers the greeting/{greeting} seed.
-- [ENV] Adds network monitoring + screenshots + "workbench ready" step. Cursor placement (line 2 col 10), `goToDefinition`, and JS-editor-or-tab assertion (15s) are identical. No coverage loss.
-
-### lwcLspGoToDefinitionJs.container.spec.ts
-Twin: `specs/lwcLspGoToDefinitionJs.headless.spec.ts`
-- [INTENTIONAL-GAP / EXPANSION] Twin `test.skip(!isDesktop(), ...)` — skipped on VS Code for Web because TS/JS navigation to typings on a virtual FS is unreliable (twin:38). Container runs UNCONDITIONALLY because the Code Builder image runs the desktop LWC LSP (container header:8-15). Container covers MORE than the web twin here.
-- [ENV] Unique `gtdJsComp${Date.now()}` vs fixed `gtdJsComp`. Adds network monitoring + screenshots. Hover-to-warm-TS then cmd+click flow and the byUri/byDeclaration/peek assertion (30s) are identical. No coverage loss.
-
-### lwcLspHover.container.spec.ts
-Twin: `specs/lwcLspHover.headless.spec.ts`
-- [INTENTIONAL-GAP / EXPANSION] Twin JS-hover test is `test.skip(!isDesktop(), ...)` (twin:90) — unstable on web. Container runs BOTH the HTML-hover and JS-hover tests unconditionally (container:30,99), so it covers more than the web twin.
-- [ENV] Unique `hoverHtmlComp${Date.now()}` / `hoverJsComp${Date.now()}` vs fixed names. Adds network monitoring + screenshots + "workbench ready" step. The cold-LSP re-hover poll (Escape + pointer move + hover, 45s `toPass`) and hover-card assertions (`View in Component Library` / `LightningElement`) are identical in both. No coverage loss.
-
-### lwcLspIndexing.container.spec.ts
-Twin: `specs/lwcLspIndexing.headless.spec.ts`
-- [ENV] Unique `indexComp${Date.now()}` vs fixed `indexComp`. Adds network monitoring + screenshots + "workbench ready" step. Create -> open HTML -> `waitForLwcLspReady` flow identical. No coverage loss.
-
-### lwcLspSfdxTypings.container.spec.ts
-Twin: `specs/lwcLspSfdxTypings.headless.spec.ts`
-- [ENV] Unique `typingsProbe${Date.now()}` vs fixed `typingsProbe`. Adds network monitoring + screenshots + "workbench ready" step.
-- [ENV] Both call the shared `assertLwcSfdxTypingsGenerated(page)` helper (container:54, twin:35); the top-of-tree scroll robustness noted in the task lives in `utils/lwcUtils.ts`, not the spec. Identical assertion surface. No coverage loss.
-
-### lwcRename.container.spec.ts
-Twin: `specs/lwcRename.headless.spec.ts`
-- [ENV] Twin's `waitForWorkspaceReady` replaced by fixture readiness + "workbench ready" step (container:42-47 vs twin:34-39). Adds network monitoring (twin already had it) — actually both already monitor network.
-- [ENV] Screenshot names differ (`lwcRename.container.0X-*` vs `rename.*`). Both cover: seed via SFDX create, explorer-context-menu rename + tree verify (new visible / old count 0, 20s polls), then editor-context-menu rename + verify. Flow is identical. No coverage loss.
-
-### lwcSnippets.container.spec.ts
-Twin: `specs/lwcSnippets.headless.spec.ts`
-- [ENV] Twin gates file-open on `isDesktop()` (Quick Open on desktop, Explorer tree on web) and seeds `snippetsE2E` on desktop; container drops `isDesktop()` entirely and always seeds via SFDX command + opens through the Explorer tree (container:47-50, header:15-18 vs twin:41-48,75,90-95). Correct — the container Page is browser-flavored.
-- [ENV] Unique `snippetsHtml${Date.now()}` / `snippetsJs${Date.now()}` vs twin's `snippets{Html,Js}${workerIndex}${Date.now()}` (no workerIndex — single sequential workbench).
-- [ENV] `collapseEditorWhitespace` uses a literal NBSP char in `replaceAll(' ', ' ')` (container:53) vs the explicit `' '` escape in the twin (twin:52). Functionally equivalent NBSP normalization; cosmetic.
-- Both tests assert the same snippet bodies (`<lightning-button` + `variant="base"` + `label="Button Label"` + `onclick={handleClick}` + `></lightning-button>`; and `this.dispatchEvent(new CustomEvent("event-name"));`). No coverage loss.
-
-### REVIEW items (needs attention)
-none
+**Pre-merge parity analysis** — *Detailed per-file breakdown omitted; see git history for the pre-merge state. With the 10 specs now merged and logic branched on `isContainer`, parity is reflected in the unified code.*
 
 
 ---
