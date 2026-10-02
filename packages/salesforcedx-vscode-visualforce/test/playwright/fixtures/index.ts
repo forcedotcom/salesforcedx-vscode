@@ -6,9 +6,11 @@
  */
 
 import { test as webTest } from '@playwright/test';
+import { containerTest } from './containerFixtures';
 import { desktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 // Keep the browser open on failure when debugging web runs.
 webTest.afterEach(async ({ page }, testInfo) => {
@@ -17,5 +19,6 @@ webTest.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-// `.headless.spec.ts` files run on both configs; the desktop config sets VSCODE_DESKTOP, web does not.
-export const test = isDesktop ? desktopTest : webTest;
+// `.headless.spec.ts` files run on desktop, web, AND container; the desktop config sets
+// VSCODE_DESKTOP, the container config sets VSCODE_CONTAINER, web sets neither.
+export const test = isDesktop ? desktopTest : isContainer ? containerTest : webTest;

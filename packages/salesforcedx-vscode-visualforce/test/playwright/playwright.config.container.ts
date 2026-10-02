@@ -5,6 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { defineConfig } from '@playwright/test';
 import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createContainerConfig({ testDir: './specs/container' });
+const baseConfig = createContainerConfig({ testDir: './specs' });
+const chromiumProject = baseConfig.projects?.[0];
+
+export default defineConfig({
+  ...baseConfig,
+  projects: chromiumProject
+    ? [
+        {
+          ...chromiumProject,
+          // Both specs are unified with desktop/web — they branch on VSCODE_CONTAINER in
+          // ../fixtures instead of a dedicated *.container.spec.ts file.
+          testMatch: ['visualforceLsp.headless.spec.ts', 'visualforceTemplates.headless.spec.ts']
+        }
+      ]
+    : []
+});
