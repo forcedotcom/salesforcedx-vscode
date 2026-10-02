@@ -72,13 +72,17 @@ const config = ConfigProvider.fromMap(
   )
 );
 
-const gitEnv = {
+const gitContextNames = ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX', 'GIT_COMMON_DIR'] as const;
+
+const gitEnv: NodeJS.ProcessEnv = {
   ...process.env,
   GIT_AUTHOR_NAME: 'test',
   GIT_AUTHOR_EMAIL: 'test@example.com',
   GIT_COMMITTER_NAME: 'test',
   GIT_COMMITTER_EMAIL: 'test@example.com'
 };
+
+for (const name of gitContextNames) delete gitEnv[name];
 
 const git = (cwd: string, args: readonly string[]) => {
   execFileSync('git', args, { cwd, env: gitEnv, stdio: 'ignore' });
@@ -101,21 +105,31 @@ const initRepo = (skill: boolean) => {
   return cwd;
 };
 
-const run = (
+const run = async (
   cwd: string,
   prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
   state: { body: string; writes: string[] }
-) =>
-  manualTestPlanProgram({
-    cwd,
-    prompt,
-    readBody: () => Effect.succeed(state.body),
-    writeBody: (_pr, body) =>
-      Effect.sync(() => {
-        state.body = body;
-        state.writes.push(body);
-      })
-  }).pipe(Effect.provide(NodeContext.layer), Effect.withConfigProvider(config), Effect.runPromise);
+) => {
+  const inheritedGitContext = gitContextNames.map(name => [name, process.env[name]] as const);
+  for (const name of gitContextNames) delete process.env[name];
+  try {
+    return await manualTestPlanProgram({
+      cwd,
+      prompt,
+      readBody: () => Effect.succeed(state.body),
+      writeBody: (_pr, body) =>
+        Effect.sync(() => {
+          state.body = body;
+          state.writes.push(body);
+        })
+    }).pipe(Effect.provide(NodeContext.layer), Effect.withConfigProvider(config), Effect.runPromise);
+  } finally {
+    for (const [name, value] of inheritedGitContext) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+};
 
 const replies =
   (lines: readonly string[]) =>
