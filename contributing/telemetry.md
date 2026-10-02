@@ -29,10 +29,9 @@ _Note_ for developers that are employed by Salesforce telemetry can not be disab
 
 ## Adding telemetry to an extension
 
-- Add `salesforce-vscode-core` as a extensionDependency in package.json
-- Create a telemetry service under src
-- Initialize the telemetry service on the extension's `activate` call and initialize it using `salesforce-vscode-core` telemetry service
-- Use the telemetry service where needed in the extension
+New code uses OTEL spans via the services extension (works on desktop and web). Wire `SdkLayerFor` into your `AllServicesLayer` — see [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md#putting-an-sdk-in-your-layer) and [.claude/skills/services-extension-consumption/SKILL.md](../.claude/skills/services-extension-consumption/SKILL.md). Use `Effect.fn` / `.withSpan` for commands and operations; top-level and command spans export to App Insights and o11y automatically.
+
+Legacy (do not copy): `salesforce-vscode-core` as an `extensionDependency` with `TelemetryService.getInstance(name)` + `initializeService(context)`. The core API is frozen (`docs/adr/0006-core-api-frozen-sunset.md`); use the services API for anything new.
 
 ## Live QA
 
