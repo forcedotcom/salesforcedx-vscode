@@ -2,6 +2,7 @@
 name: command-ui
 description: Command palette, CodeLens, context menus, package.nls titles, and NotificationModeService. Use when adding a command, editing package.nls command titles, wiring success/progress, or calling vscode.commands.registerCommand / vscode.window.withProgress / showInformationMessage for command UX.
 review: always
+diffReviewModel: medium
 ---
 
 # Command UI

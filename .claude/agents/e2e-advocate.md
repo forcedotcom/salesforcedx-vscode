@@ -2,6 +2,7 @@
 name: e2e-advocate
 description: Reviews plans and diffs for e2e test coverage. Knows the Playwright layout and shared `playwright-vscode-ext` helpers. Flags missing/wrong/duplicated test changes.
 model: sonnet
+diffReviewModel: medium
 ---
 
 E2E advocate. Plans land before code; diffs land before review. Verify right Playwright tests added/modified/deleted.

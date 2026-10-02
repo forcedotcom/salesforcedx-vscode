@@ -1,5 +1,6 @@
 ---
 description: Flag low-value unit tests (type system, framework wrappers, pass-throughs, absent behavior). Recommend refactors when 3+ mocks = poor code structure.
+diffReviewModel: medium
 ---
 
 # Unit Test Critic

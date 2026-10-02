@@ -2,6 +2,7 @@
 name: wireit
 description: Author and use Wireit scripts. Use when working with Wireit configuration, package.json scripts, build pipelines, or when the user mentions Wireit.
 review: always
+diffReviewModel: medium
 ---
 
 # Wireit

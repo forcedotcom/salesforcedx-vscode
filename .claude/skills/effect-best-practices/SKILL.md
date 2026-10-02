@@ -2,6 +2,7 @@
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Effect.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
 review: always
+diffReviewModel: high
 version: 1.6.1
 ---
 
