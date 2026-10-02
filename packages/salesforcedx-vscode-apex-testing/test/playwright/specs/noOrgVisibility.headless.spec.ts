@@ -14,9 +14,16 @@ import {
   isDesktop
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { noOrgTest } from '../fixtures';
+import { isContainer, sharedNoOrgTest as noOrgTest } from '../fixtures';
 
-(isDesktop() ? noOrgTest : noOrgTest.skip.bind(noOrgTest))(
+// The container's variant of this scenario (Code Builder) runs against the NO-ORG boot shape:
+// after the org-authed phases, the orchestrator re-boots the container org-less (no
+// SF_ACCESS_TOKEN/INSTANCE_URL, so the image authenticates no org), re-seeds the STANDARD DX
+// fixture, re-swaps the extensions, restarts, and re-runs the extension verify gate before this
+// suite (test:container:noorg). Reaching this spec therefore means the apex-testing extension IS
+// installed — an org-gated command missing from the palette is the no-org gate hiding it, not a
+// failure to load the extension.
+(isDesktop() || isContainer ? noOrgTest : noOrgTest.skip.bind(noOrgTest))(
   'Apex Testing commands visibility when project is open but no org is connected',
   async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);

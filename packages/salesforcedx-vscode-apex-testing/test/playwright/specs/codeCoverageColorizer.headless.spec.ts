@@ -7,6 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
+  clearOutputChannel,
   createApexClass,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
@@ -15,6 +16,7 @@ import {
   executeCommandWithCommandPalette,
   isDesktop,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -28,15 +30,18 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { COVERED_BG_RGBA, PINNED_THEME, TEST_RUN_TIMEOUT, UNCOVERED_BG_RGBA } from '../constants';
 
-// Runs desktop + web (apexTestingE2E.yml). UI-only (no Node fs / VS Code API) so behavior is
-// identical across platforms. The status-bar toggle is located by its tooltip via accessible
-// name — VS Code derives a status bar entry's aria-label from its tooltip (workbench.*.main.js
-// `ariaLabel: entry.tooltip || entry.label`), which holds for both Electron and web. Theme is
-// pinned (constants.ts PINNED_THEME) so the covered/uncovered RGBA constants resolve identically;
-// re-capture those RGBA values if PINNED_THEME ever changes.
+// Runs desktop + web (apexTestingE2E.yml) + container. UI-only (no Node fs / VS Code API) so
+// behavior is identical across platforms. The status-bar toggle is located by its tooltip via
+// accessible name — VS Code derives a status bar entry's aria-label from its tooltip
+// (workbench.*.main.js `ariaLabel: entry.tooltip || entry.label`), which holds across Electron,
+// web, and the container's desktop build. Theme is pinned (constants.ts PINNED_THEME) so the
+// covered/uncovered RGBA constants resolve identically; re-capture those RGBA values if
+// PINNED_THEME ever changes. This scenario needs a class with one covered and one uncovered
+// branch, so both desktop/web and container author uniquely-named classes rather than reusing the
+// seeded fixture classes.
 
 /**
  * Count `.view-overlays` decoration divs whose computed background-color exactly matches
@@ -51,6 +56,15 @@ const countOverlaysWithBg = async (editor: ReturnType<Page['locator']>, targetRg
     return Array.from(children).filter(child => getComputedStyle(child).backgroundColor === rgba).length;
   }, targetRgba);
 
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
+
 test('Code coverage colorizer: green covered + red uncovered lines, cleared on toggle-off', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -60,9 +74,22 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
   const testClassName = `ColorizerBranchTest${Date.now()}`;
   const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`).first();
 
-  await test.step('setup non-tracking org + pin theme + enable coverage retrieval', async () => {
-    await setupNonTrackingOrgAndAuth(page);
-    await ensureSecondarySideBarHidden(page);
+  // Deploy the currently open editor to the boot org, waiting on the Salesforce Metadata channel.
+  // Container-only helper: desktop/web deploy via the `isDesktop()` branch inline below instead.
+  const deployActiveEditor = async (): Promise<void> => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
+    await clearOutputChannel(page);
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  };
+
+  await test.step('setup: pin theme + enable coverage retrieval', async () => {
+    if (isContainer) {
+      await ensureSecondarySideBarHidden(page);
+    } else {
+      await setupNonTrackingOrgAndAuth(page);
+      await ensureSecondarySideBarHidden(page);
+    }
     await upsertSettings(page, {
       'workbench.colorTheme': PINNED_THEME,
       'salesforcedx-vscode-apex-testing.retrieve-test-code-coverage': 'true'
@@ -83,12 +110,16 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
       '}'
     ].join('\n');
     await createApexClass(page, className, branchContent);
-    if (isDesktop()) {
-      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+    if (isContainer) {
+      await deployActiveEditor();
+    } else {
+      if (isDesktop()) {
+        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+      }
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
+      await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });
     }
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
-    await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.branch-class-deployed.png');
   });
 
@@ -102,7 +133,12 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
       '    }',
       '}'
     ].join('\n');
-    await createAndDeployApexTestClass(page, testClassName, testContent);
+    if (isContainer) {
+      await createApexClass(page, testClassName, testContent);
+      await deployActiveEditor();
+    } else {
+      await createAndDeployApexTestClass(page, testClassName, testContent);
+    }
     await saveScreenshot(page, 'step.test-class-deployed.png');
   });
 

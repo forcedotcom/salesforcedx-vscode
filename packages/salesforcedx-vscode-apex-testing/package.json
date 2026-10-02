@@ -229,6 +229,7 @@
     "test:container": {
       "command": "playwright test --config=test/playwright/playwright.config.container.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
           "external": true
         },
@@ -248,6 +249,7 @@
     "test:container:noproject": {
       "command": "playwright test --config=test/playwright/playwright.config.container.noproject.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
           "external": true
         },
@@ -267,6 +269,7 @@
     "test:container:noorg": {
       "command": "playwright test --config=test/playwright/playwright.config.container.noorg.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
           "external": true
         },
