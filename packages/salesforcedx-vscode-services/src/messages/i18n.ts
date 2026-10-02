@@ -22,6 +22,11 @@ export const messages = {
   deleting_n_components: 'Deleting %d components',
   retrieve_on_load_failed: 'Retrieve on load failed: %s',
   view_suggestions: 'View Suggestions',
+  select_extension_license: 'Select an extension to view its license',
+  no_extension_licenses_available: 'No non-Salesforce extensions are available.',
+  extension_license_identifier: '%s declares its license as %s. No packaged license text could be opened.',
+  extension_license_missing: 'No license information was found for %s.',
+  extension_license_open_failed: 'Could not open the license for %s: %s',
   // Media/icon descriptions (accessibility)
   icon_sf_default_org: 'Default Scratch Org',
   icon_sf_default_hub: 'Default Dev Hub',
