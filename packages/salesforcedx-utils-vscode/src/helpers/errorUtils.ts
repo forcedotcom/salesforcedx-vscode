@@ -5,24 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/**
- * Safely converts any error-like value to a string for use in templates
- * Handles Error objects, strings, and unknown types
- */
-import { isError, isString } from 'effect/Predicate';
-
-export const errorToString = (error: unknown): string => {
-  if (isError(error)) {
-    if (error.message) {
-      return error.message;
-    }
-    return error.toString();
-  }
-  if (isString(error)) {
-    return error;
-  }
-  if (error && typeof error === 'object' && 'toString' in error) {
-    return error.toString();
-  }
-  return String(error);
-};
+export { errorToString } from '@salesforce/salesforcedx-utils';

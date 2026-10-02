@@ -1179,9 +1179,6 @@ importers:
       '@salesforce/salesforcedx-utils':
         specifier: '*'
         version: link:../salesforcedx-utils
-      '@salesforce/salesforcedx-utils-vscode':
-        specifier: '*'
-        version: link:../salesforcedx-utils-vscode
       '@salesforce/vscode-i18n':
         specifier: '*'
         version: link:../salesforcedx-vscode-i18n

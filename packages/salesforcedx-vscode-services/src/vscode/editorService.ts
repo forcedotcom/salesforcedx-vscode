@@ -49,7 +49,7 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         : editor.document.getText();
     });
 
-    /** Get text, URI, and optional selection range from active editor. Use selection=true to get selection + offset. */
+    /** Get text, URI, and optional selection/cursor range from active editor. Use selection=true to get the current offset. */
     const getActiveEditorContext = Effect.fn('EditorService.getActiveEditorContext')(function* (selection: boolean) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -60,7 +60,7 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       return {
         text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
         documentUri,
-        selectionRange: useSelection
+        selectionRange: selection
           ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
           : undefined
       };
