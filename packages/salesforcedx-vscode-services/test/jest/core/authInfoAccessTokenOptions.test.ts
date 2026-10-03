@@ -5,12 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { AuthInfo } from '@salesforce/core';
 
 describe('AuthInfo access token options', () => {
   it('skips the Dev Hub check when isDevHub is supplied', async () => {
-    jest.mocked(homedir).mockReturnValue(tmpdir());
+    const home = await mkdtemp(join(tmpdir(), 'auth-info-test-'));
+    await mkdir(join(home, '.sfdx'));
+    await writeFile(join(home, '.sfdx', 'alias.json'), '{"orgs":{}}');
+    jest.mocked(homedir).mockReturnValue(home);
     const determineIfDevHub = jest.spyOn(
       AuthInfo.prototype as unknown as {
         determineIfDevHub: (instanceUrl: string, accessToken: string) => Promise<boolean>;
@@ -37,6 +42,7 @@ describe('AuthInfo access token options', () => {
       expect(determineIfDevHub).not.toHaveBeenCalled();
     } finally {
       determineIfDevHub.mockRestore();
+      await rm(home, { recursive: true, force: true });
     }
   });
 });
