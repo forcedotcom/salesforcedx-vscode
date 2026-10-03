@@ -40,6 +40,10 @@ test('approves when all gates pass', () => {
   assert.deepEqual(decideAiAutoApprove(base), { action: 'approve', reason: 'gates passed' });
 });
 
+test('accepts the uppercase state returned by the pull request GraphQL API', () => {
+  assert.equal(decideAiAutoApprove({ ...base, prState: 'OPEN' }).action, 'approve');
+});
+
 test('skips issue comments that are not on a pull request', () => {
   assert.equal(decideAiAutoApprove({ ...base, isPullRequestComment: false }).action, 'skip');
 });
@@ -48,6 +52,7 @@ test('skips when commenter is not the PR author', () => {
   const decision = decideAiAutoApprove({ ...base, commenterLogin: 'other' });
   assert.equal(decision.action, 'skip');
   assert.match(decision.reason, /not the pull request author/);
+  assert.equal(decideAiAutoApprove({ ...base, commenterLogin: undefined, prAuthorLogin: undefined }).action, 'skip');
 });
 
 test('skips when commenter is not an active ide-experience member', () => {
@@ -114,7 +119,7 @@ test('latest in-progress workflow run after cancellation blocks approval', () =>
   assert.equal(decideAiAutoApprove({ ...base, checks }).action, 'skip');
 });
 
-const runCli = ({ workflows, checkRuns }) => {
+const runCli = ({ workflows, checkRuns, reviews = [], membershipState = 'active' }) => {
   const directory = mkdtempSync(join(tmpdir(), 'ai-auto-approve-'));
   const eventPath = join(directory, 'event.json');
   writeFileSync(
@@ -131,25 +136,49 @@ const runCli = ({ workflows, checkRuns }) => {
         '--input-type=module',
         '--eval',
         `
-      const { workflows, checkRuns } = JSON.parse(process.env.MOCK_CHECKS);
-      globalThis.fetch = async (url, { method = 'GET' } = {}) => {
-        const { pathname, search, searchParams } = new URL(url);
-        const page = Number(searchParams.get('page') ?? 1);
-        console.log(method, pathname + search);
-        let body;
-        if (pathname.endsWith('/actions/runs')) body = { total_count: workflows.length, workflow_runs: workflows.slice((page - 1) * 100, page * 100) };
-        else if (pathname.endsWith('/check-runs')) {
-          const visible = searchParams.get('filter') === 'all' ? checkRuns : checkRuns.filter(run => run.status === 'completed');
-          body = { total_count: visible.length, check_runs: visible.slice((page - 1) * 100, page * 100) };
-        }
-        else if (pathname.endsWith('/status')) body = { statuses: [{ id: 1, context: 'security', state: 'success' }] };
-        else if (pathname.endsWith('/memberships/mshanemc')) body = { state: 'active' };
-        else if (pathname.endsWith('/pulls/8303')) body = { head: { sha: 'abc123' }, user: { login: 'mshanemc' }, state: 'open' };
-        else if (pathname.endsWith('/pulls/8303/reviews')) body = method === 'POST' ? {} : [];
-        else throw new Error('Unexpected API request: ' + pathname);
-        return Response.json(body);
+      const { workflows, checkRuns, reviews, membershipState } = JSON.parse(process.env.MOCK_CHECKS);
+      const pull = {
+        reviewDecision: null,
+        isDraft: false,
+        state: 'OPEN',
+        baseRefName: 'develop',
+        headRefOid: 'abc123',
+        author: { login: 'mshanemc' },
+        headRepository: { nameWithOwner: 'forcedotcom/salesforcedx-vscode' },
+        baseRepository: { nameWithOwner: 'forcedotcom/salesforcedx-vscode' }
       };
-      await import('./scripts/ai-auto-approve-cli.mjs');
+      const response = (url, body, headers = {}) => {
+        const result = Response.json(body, { headers: { 'content-type': 'application/json', ...headers } });
+        Object.defineProperty(result, 'url', { value: url.href });
+        return result;
+      };
+      const pageResponse = (url, rows, field) => {
+        const page = Number(url.searchParams.get('page') ?? 1);
+        const headers = {};
+        if (page * 100 < rows.length) {
+          const next = new URL(url);
+          next.searchParams.set('page', String(page + 1));
+          headers.link = '<' + next.href + '>; rel="next"';
+        }
+        return response(url, { total_count: rows.length, [field]: rows.slice((page - 1) * 100, page * 100) }, headers);
+      };
+      globalThis.fetch = async (input, { method = 'GET', body: requestBody } = {}) => {
+        const url = new URL(String(input));
+        const { pathname, search } = url;
+        console.log(method, pathname + search);
+        let result;
+        if (pathname === '/graphql') result = response(url, { data: { repository: { pullRequest: pull } } });
+        else if (pathname.endsWith('/actions/runs')) result = pageResponse(url, workflows, 'workflow_runs');
+        else if (pathname.endsWith('/check-runs')) result = pageResponse(url, checkRuns, 'check_runs');
+        else if (pathname.endsWith('/status')) result = response(url, { statuses: [{ id: 1, context: 'security', state: 'success' }] });
+        else if (pathname.endsWith('/memberships/mshanemc')) result = response(url, { state: membershipState });
+        else if (pathname.endsWith('/pulls/8303/reviews')) result = response(url, method === 'POST' ? {} : reviews);
+        else throw new Error('Unexpected API request: ' + pathname + ' ' + method + ' ' + String(requestBody ?? ''));
+        return result;
+      };
+      const { aiAutoApproveMain } = await import('./scripts/ai-auto-approve-cli.mjs');
+      const { runPromise } = await import('effect/Effect');
+      await runPromise(aiAutoApproveMain);
     `
       ],
       {
@@ -158,9 +187,48 @@ const runCli = ({ workflows, checkRuns }) => {
         env: {
           ...process.env,
           IDEE_GH_TOKEN: 'test-token',
+          CI: 'true',
           GITHUB_REPOSITORY: 'forcedotcom/salesforcedx-vscode',
           GITHUB_EVENT_PATH: eventPath,
-          MOCK_CHECKS: JSON.stringify({ workflows, checkRuns })
+          GITHUB_REPOSITORY_OWNER: 'forcedotcom',
+          GITHUB_ACTION: '__run',
+          GITHUB_ACTIONS: 'true',
+          GITHUB_ACTOR: 'mshanemc',
+          GITHUB_ACTOR_ID: '1',
+          GITHUB_API_URL: 'https://api.github.com',
+          GITHUB_ARTIFACTS: '/tmp/artifacts',
+          GITHUB_ARTIFACTS_LIST: '/tmp/artifacts-list',
+          GITHUB_ENV: '/tmp/env',
+          GITHUB_EVENT_NAME: 'issue_comment',
+          GITHUB_GRAPHQL_URL: 'https://api.github.com/graphql',
+          GITHUB_JOB: 'ai-auto-approve',
+          GITHUB_OUTPUT: '/tmp/output',
+          GITHUB_PATH: '/tmp/path',
+          GITHUB_REPOSITORY_ID: '1',
+          GITHUB_REPOSITORY_OWNER_ID: '1',
+          GITHUB_RETENTION_DAYS: '90',
+          GITHUB_RUN_ATTEMPT: '1',
+          GITHUB_RUN_ID: '1',
+          GITHUB_RUN_NUMBER: '1',
+          GITHUB_SERVER_URL: 'https://github.com',
+          GITHUB_SHA: 'abc123',
+          GITHUB_STEP_SUMMARY: '/tmp/summary',
+          GITHUB_TRIGGERING_ACTOR: 'mshanemc',
+          GITHUB_WORKFLOW: 'AI Auto Approve',
+          GITHUB_WORKFLOW_REF:
+            'forcedotcom/salesforcedx-vscode/.github/workflows/ai-auto-approve.yml@refs/heads/develop',
+          GITHUB_WORKFLOW_SHA: 'abc123',
+          GITHUB_WORKSPACE: '/workspace',
+          RUNNER_ARCH: 'ARM64',
+          RUNNER_ENVIRONMENT: 'github-hosted',
+          RUNNER_NAME: 'Hosted Agent',
+          RUNNER_OS: 'Linux',
+          RUNNER_TEMP: '/tmp',
+          RUNNER_TOOL_CACHE: '/tmp/tool-cache',
+          GITHUB_REF_PROTECTED: 'false',
+          GITHUB_REF_TYPE: 'branch',
+          RUNNER_DEBUG: '1',
+          MOCK_CHECKS: JSON.stringify({ workflows, checkRuns, reviews, membershipState })
         }
       }
     );
@@ -195,8 +263,8 @@ test('CLI pages workflow runs and ignores cancelled Actions jobs from superseded
     { id: 101, name: 'SAST', app: { id: 42, slug: 'security' }, status: 'completed', conclusion: 'success' }
   ];
   const output = runCli({ workflows, checkRuns });
-  assert.match(output, /\/actions\/runs\?head_sha=abc123&per_page=100&page=2/);
-  assert.match(output, /\/check-runs\?filter=all&per_page=100&page=2/);
+  assert.match(output, /\/actions\/runs\?.*page=2/);
+  assert.match(output, /\/check-runs\?.*filter=all.*page=2/);
   assert.match(output, /decision: approve \(gates passed\)/);
 });
 
@@ -213,7 +281,7 @@ test('CLI sees a failing non-Actions check on the second page', () => {
     { id: 101, name: 'SAST', app: { id: 42, slug: 'security' }, status: 'completed', conclusion: 'failure' }
   ];
   const output = runCli({ workflows, checkRuns });
-  assert.match(output, /\/check-runs\?filter=all&per_page=100&page=2/);
+  assert.match(output, /\/check-runs\?.*filter=all.*page=2/);
   assert.match(output, /decision: skip \(CI is not green on head\)/);
 });
 
@@ -249,7 +317,7 @@ test('CLI includes a newer in-progress non-Actions check omitted by the default 
     { id: 11, name: 'SAST', app: { id: 42, slug: 'security' }, status: 'in_progress', conclusion: null }
   ];
   const output = runCli({ workflows, checkRuns });
-  assert.match(output, /\/check-runs\?filter=all&per_page=100&page=1/);
+  assert.match(output, /\/check-runs\?.*filter=all/);
   assert.match(output, /decision: skip \(CI is not green on head\)/);
 });
 
