@@ -7,8 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, extensions, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
 
@@ -187,6 +186,7 @@ describe('Telemetry', () => {
   describe('Telemetry Service - Backwards Compatibility', () => {
     let instance: TelemetryService;
     let senderMock: jest.Mock;
+    let preparedSenderMock: jest.Mock;
 
     beforeEach(() => {
       // Clear instances to get fresh instance
@@ -194,25 +194,14 @@ describe('Telemetry', () => {
       instance = TelemetryServiceProvider.getInstance() as TelemetryService;
 
       // Mock production sender to avoid actual telemetry sends
-      senderMock = jest.fn().mockResolvedValue(undefined);
+      preparedSenderMock = jest.fn().mockResolvedValue(undefined);
+      senderMock = jest.fn().mockReturnValue(preparedSenderMock);
       (instance as any).sendProductionTelemetry = senderMock;
 
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
 
-      jest.spyOn(extensions, 'getExtension').mockReturnValue({
-        isActive: true,
-        exports: {
-          services: {
-            TargetOrgRef: () => SubscriptionRef.make({ cliId: 'cli', webUserId: 'web' })
-          }
-        }
-      } as any);
-
-      // Enable telemetry for testing by mocking the validation method to call the callback directly
-      (instance as any).validateTelemetry = jest.fn((callback: () => void) => {
-        callback(); // Call immediately for testing
-      });
+      jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
     });
 
     afterEach(() => {
@@ -363,104 +352,40 @@ describe('Telemetry', () => {
       });
     });
 
-    describe('governed production telemetry boundary', () => {
-      const snapshot = jest.fn();
-
-      beforeEach(() => {
-        jest.spyOn(extensions, 'getExtension').mockReturnValue({
-          isActive: true,
-          exports: { services: { TargetOrgRef: () => SubscriptionRef.make(snapshot()) } }
-        } as any);
-        snapshot.mockReturnValue({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          isScratch: true,
-          devHubOrgId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          instanceName: 'usa9102'
-        });
-        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          orgShape: 'Scratch',
-          devHubId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          telemetryClassification: 'nonGov'
-        });
-      });
-
+    describe('production sender boundary', () => {
       it('dispatches production telemetry', async () => {
-        const sender = jest.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sender;
+        const send = jest.fn().mockResolvedValue(undefined);
+        const prepareSend = jest.fn(() => send);
+        (instance as any).sendProductionTelemetry = prepareSend;
 
         instance.sendEventData('event');
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(sender).toHaveBeenCalledTimes(1);
+        expect(prepareSend).toHaveBeenCalledTimes(1);
+        expect(send).toHaveBeenCalledTimes(1);
       });
 
-      it('captures a complete immutable envelope identity at send time', async () => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+      it('freezes the event and prepares identity before async telemetry gating', async () => {
+        const { promise: telemetryGate, resolve: enableTelemetry } = Promise.withResolvers<boolean>();
+        jest.spyOn(instance, 'isTelemetryEnabled').mockReturnValue(telemetryGate);
+        const send = jest.fn().mockResolvedValue(undefined);
+        const prepareSend = jest.fn((payload: unknown) => send);
+        (instance as any).sendProductionTelemetry = prepareSend;
         const properties = { key: 'before' };
 
         instance.sendEventData('event', properties);
         properties.key = 'after';
-        snapshot.mockReturnValue({ orgId: 'later', cliId: 'later-cli', webUserId: 'later-web' });
+        const submittedPayload = prepareSend.mock.calls[0]?.[0] as any;
+        expect(submittedPayload.properties).toEqual({ key: 'before' });
+        expect(Object.isFrozen(submittedPayload)).toBe(true);
+        expect(Object.isFrozen(submittedPayload.properties)).toBe(true);
+        expect(submittedPayload).not.toHaveProperty('identity');
+        expect(send).not.toHaveBeenCalled();
+
+        enableTelemetry(true);
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
-        expect(payload.identity).toEqual({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          orgShape: 'Scratch',
-          devHubId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          telemetryClassification: 'nonGov'
-        });
-        expect(payload.properties).toEqual({ key: 'before' });
-        expect(Object.isFrozen(payload)).toBe(true);
-        expect(Object.isFrozen(payload.identity)).toBe(true);
-        expect(Object.isFrozen(payload.properties)).toBe(true);
-      });
-
-      it.each([
-        ['Gov to nonGov delayed enablement', 'gov', 'nonGov'],
-        ['nonGov to Gov delayed enablement', 'nonGov', 'gov']
-      ])('retains invocation identity during %s', async (_case, invocationOrgId, laterOrgId) => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
-        snapshot.mockReturnValue({
-          cliId: `${invocationOrgId}-cli`,
-          webUserId: `${invocationOrgId}-web`,
-          orgId: invocationOrgId,
-          isSandbox: true,
-          devHubOrgId: `${invocationOrgId}-hub`,
-          orgEdition: `${invocationOrgId}-edition`,
-          instanceName: invocationOrgId === 'gov' ? 'stg9402s' : 'usa9102'
-        });
-
-        instance.sendEventData('switch');
-        snapshot.mockReturnValue({
-          cliId: `${laterOrgId}-cli`,
-          webUserId: `${laterOrgId}-web`,
-          orgId: laterOrgId
-        });
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        const submitted = sendProductionTelemetry.mock.calls[0]?.[0] as any;
-        expect(submitted.identity).toEqual({
-          cliId: `${invocationOrgId}-cli`,
-          webUserId: `${invocationOrgId}-web`,
-          orgId: invocationOrgId,
-          orgShape: 'Sandbox',
-          devHubId: `${invocationOrgId}-hub`,
-          orgEdition: `${invocationOrgId}-edition`,
-          telemetryClassification: invocationOrgId === 'gov' ? 'gov' : 'nonGov'
-        });
+        expect(send).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -507,7 +432,7 @@ describe('Telemetry', () => {
 
     describe('production sender contract', () => {
       it('commandExecution payload carries commandName for span attribute command', async () => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        const sendProductionTelemetry = jest.fn().mockReturnValue(jest.fn().mockResolvedValue(undefined));
         (instance as any).sendProductionTelemetry = sendProductionTelemetry;
         instance.sendCommandEvent('myCommand', undefined, { extra: 'x' });
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -519,7 +444,7 @@ describe('Telemetry', () => {
       });
 
       it('exception payload preserves name and message for span', async () => {
-        const sendProductionTelemetry = jest.fn().mockResolvedValue(undefined);
+        const sendProductionTelemetry = jest.fn().mockReturnValue(jest.fn().mockResolvedValue(undefined));
         (instance as any).sendProductionTelemetry = sendProductionTelemetry;
         instance.sendException('myError', 'boom');
         await new Promise(resolve => setTimeout(resolve, 0));

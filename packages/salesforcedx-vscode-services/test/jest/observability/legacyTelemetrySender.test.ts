@@ -4,10 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
 import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
+import { CliId } from '../../../src/observability/cliTelemetry';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
+import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { getSpanCreationIdentity, setSpanCreationIdentity } from '../../../src/observability/spanTransformProcessor';
 import {
   buildLegacySpanAttributes,
@@ -28,11 +33,12 @@ jest.mock('../../../src/observability/redactingConsoleLogger', () => ({
 }));
 
 const baseIdentity = {
-  cliId: 'cli-id',
+  cliId: 'cli-id' as CliId,
   webUserId: 'web-id',
-  orgId: '00Dxx0000000000',
-  devHubId: '00Dhub0000000000',
+  orgId: '00Dxx0000000000' as OrgId,
+  devHubId: '00Dhub0000000000' as OrgId,
   orgEdition: 'Developer Edition',
+  orgShape: 'Production' as const,
   telemetryClassification: 'nonGov' as const
 };
 
@@ -96,6 +102,15 @@ describe('setSpanCreationIdentity', () => {
   });
 });
 
+const captureOtelSpan = () => {
+  const attributes = new Map<string, string | number>();
+  const span = {
+    setAttribute: jest.fn((key: string, value: string | number) => attributes.set(key, value))
+  };
+  jest.replaceProperty(OtelTracer, 'currentOtelSpan', Effect.succeed(span as never));
+  return { span, attributes };
+};
+
 describe('createLegacyTelemetrySpan', () => {
   const senderConfig = {
     extensionName: 'test-ext',
@@ -104,15 +119,6 @@ describe('createLegacyTelemetrySpan', () => {
   };
 
   afterEach(() => jest.restoreAllMocks());
-
-  const captureOtelSpan = () => {
-    const attributes = new Map<string, string | number>();
-    const span = {
-      setAttribute: jest.fn((key: string, value: string | number) => attributes.set(key, value))
-    };
-    jest.replaceProperty(OtelTracer, 'currentOtelSpan', Effect.succeed(span as never));
-    return { span, attributes };
-  };
 
   it('stamps send-time identity on the current Effect span', async () => {
     const { span, attributes } = captureOtelSpan();
@@ -176,6 +182,45 @@ describe('createLegacyTelemetrySpan', () => {
 });
 
 describe('getLegacyTelemetrySender', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('snapshots DefaultOrgInfo before deferred send executes', async () => {
+    const context = {
+      extension: { packageJSON: { name: 'test-ext', version: '1.0.0' } },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+    const ref = await Effect.runPromise(getDefaultOrgRef());
+    await Effect.runPromise(
+      SubscriptionRef.set(ref, {
+        cliId: 'first-cli' as CliId,
+        webUserId: 'first-web',
+        orgId: '00Dxx0000000000' as OrgId,
+        isSandbox: true
+      })
+    );
+    const send = getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' });
+    await Effect.runPromise(
+      SubscriptionRef.set(ref, {
+        cliId: 'later-cli' as CliId,
+        webUserId: 'later-web',
+        orgId: '00Dxx0000000000' as OrgId,
+        isScratch: true
+      })
+    );
+    const { attributes } = captureOtelSpan();
+
+    try {
+      await send();
+
+      expect(attributes.get('cliId')).toBe('first-cli');
+      expect(attributes.get('userId')).toBe('first-cli');
+      expect(attributes.get('webUserId')).toBe('first-web');
+      expect(attributes.get('orgShape')).toBe('Sandbox');
+    } finally {
+      await Effect.runPromise(SubscriptionRef.set(ref, {}));
+    }
+  });
+
   it('does not use the process-global OTel tracer API', async () => {
     const getTracer = jest.spyOn(trace, 'getTracer');
     const context = {
@@ -183,7 +228,7 @@ describe('getLegacyTelemetrySender', () => {
       extensionMode: 1
     } as unknown as ExtensionContext;
 
-    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e', identity: baseIdentity });
+    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' });
 
     expect(getTracer).not.toHaveBeenCalled();
   });

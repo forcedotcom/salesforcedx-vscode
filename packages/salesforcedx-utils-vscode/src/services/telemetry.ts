@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { classifyOrgForTelemetry } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -15,54 +14,13 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, ExtensionMode, extensions, workspace } from 'vscode';
-import { ChannelService } from '../commands/channelService';
-import {
-  SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME,
-  SFDX_EXTENSION_PACK_NAME,
-  UNAUTHENTICATED_USER
-} from '../constants';
-import { shapeFrom } from '../context/workspaceOrgShape';
+import { isNotUndefined, isString } from 'effect/Predicate';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
 import { errorToString } from '../helpers/errorUtils';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { OrgIdentity } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-
-type IdentityFromServices = {
-  cliId: string | undefined;
-  webUserId: string;
-  telemetryClassification: 'gov' | 'nonGov' | 'unknown';
-} & OrgIdentity;
-
-type ServicesTargetOrgRef = Effect.Effect.Success<ReturnType<SalesforceVSCodeServicesApi['services']['TargetOrgRef']>>;
-type DefaultOrgInfo = ServicesTargetOrgRef extends SubscriptionRef.SubscriptionRef<infer Info> ? Info : never;
-
-const identityFromDefaultOrgInfo = ({ instanceName, ...identity }: DefaultOrgInfo): IdentityFromServices => ({
-  cliId: identity.cliId,
-  webUserId: identity.webUserId ?? UNAUTHENTICATED_USER,
-  orgId: identity.orgId,
-  orgShape: shapeFrom(identity),
-  devHubId: identity.devHubOrgId,
-  orgEdition: identity.orgEdition,
-  telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName)
-});
-
-const readIdentity = (api: SalesforceVSCodeServicesApi) =>
-  api.services.TargetOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.map(identityFromDefaultOrgInfo));
-
-const getIdentitySnapshotFromServices = (): IdentityFromServices => {
-  const extension = extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services');
-  if (!extension?.isActive) throw new Error('Salesforce VS Code Services extension is not active');
-  return Effect.runSync(readIdentity(extension.exports));
-};
-
-/** Pull telemetry identity from the services extension. */
-const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
-  Effect.runPromise(getServicesApi.pipe(Effect.flatMap(readIdentity)));
 
 type CommandMetric = {
   extensionName: string;
@@ -70,14 +28,8 @@ type CommandMetric = {
   executionTime?: string;
 };
 
-type TelemetryPayload = Readonly<{
-  kind: 'event' | 'exception';
-  name: string;
-  message?: string;
-  properties?: Readonly<Properties>;
-  measurements?: Readonly<Measurements>;
-  identity: Readonly<IdentityFromServices>;
-}>;
+type TelemetrySender = ReturnType<SalesforceVSCodeServicesApi['services']['getLegacyTelemetrySender']>;
+type TelemetryPayload = Parameters<TelemetrySender>[0];
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -95,7 +47,7 @@ export class TelemetryServiceProvider {
 }
 
 export class TelemetryService implements TelemetryServiceInterface {
-  private sendProductionTelemetry: ((payload: TelemetryPayload) => Promise<void>) | undefined;
+  private sendProductionTelemetry: TelemetrySender | undefined;
   private disposed = false;
   private pendingTelemetry = new Set<Promise<void>>();
   public isInternal: boolean = false;
@@ -139,20 +91,6 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   /**
-   * Fetch telemetry identity from the services extension.
-   * @internal Public only as a jest spy hook; do not invoke from outside this file.
-   */
-  public getIdentityFromServices(): Promise<IdentityFromServices> {
-    return fetchIdentityFromServices();
-  }
-
-  private warnDegradedSession(cliId: string | undefined): void {
-    if (isUndefined(cliId)) {
-      ChannelService.getInstance(this.extensionName).appendLine('telemetry seed missing — degraded session');
-    }
-  }
-
-  /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
    */
@@ -168,8 +106,6 @@ export class TelemetryService implements TelemetryServiceInterface {
     });
 
     if (!this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
-      const { cliId } = await this.getIdentityFromServices();
-      this.warnDegradedSession(cliId);
       // sender built once per instance from ExtensionContext, cached exporters live in services
       const api = await Effect.runPromise(getServicesApi);
       this.sendProductionTelemetry = api.services.getLegacyTelemetrySender(extensionContext);
@@ -331,17 +267,19 @@ export class TelemetryService implements TelemetryServiceInterface {
    *
    * @param callback function to call if telemetry is enabled
    */
-  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity'>): void {
-    const identity = getIdentitySnapshotFromServices();
+  private sendTelemetryItem(item: TelemetryPayload): void {
+    if (this.disposed || !this.sendProductionTelemetry) return;
     const payload: TelemetryPayload = Object.freeze({
       ...item,
       properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
-      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
-      identity: Object.freeze({ ...identity })
+      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined
     });
+    // Services captures its DefaultOrgInfo snapshot synchronously here, before
+    // telemetry opt-in checks can yield or the target org can change.
+    const send = this.sendProductionTelemetry(payload);
     const pending = Promise.resolve(
       this.validateTelemetry(async () => {
-        await this.sendProductionTelemetry?.(payload);
+        await send();
       })
     );
     this.pendingTelemetry.add(pending);
