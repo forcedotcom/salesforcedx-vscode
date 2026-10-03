@@ -14,10 +14,7 @@ import * as Stream from 'effect/Stream';
 import { JsonObject } from '../json';
 import { stripAllRows } from './allRows';
 
-export const runQuery = Effect.fn('runQuery')(function* (
-  queryText: string,
-  options?: { readonly maxRows?: number }
-) {
+export const runQuery = Effect.fn('runQuery')(function* (queryText: string, options?: { readonly maxRows?: number }) {
   const maxRows = options?.maxRows ?? 50_000;
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
     Effect.flatMap(api => api.services.QueryService),

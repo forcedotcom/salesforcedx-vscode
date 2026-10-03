@@ -19,11 +19,7 @@ const durationNames = new Set(['Duration', 'DurationInput']);
 const isDurationSymbol = (symbol: ts.Symbol | undefined): boolean => {
   const fileName = symbol?.getDeclarations()?.[0]?.getSourceFile().fileName.replaceAll('\\', '/');
   const name = symbol?.getName();
-  return (
-    name !== undefined &&
-    durationNames.has(name) &&
-    fileName?.endsWith('/effect/dist/dts/Duration.d.ts') === true
-  );
+  return name !== undefined && durationNames.has(name) && fileName?.endsWith('/effect/dist/dts/Duration.d.ts') === true;
 };
 
 const mentionsDuration = (type: ts.Type, seen: ReadonlySet<ts.Type> = new Set()): boolean =>
@@ -59,8 +55,7 @@ export const noRawDuration = RuleCreator.withoutDocs({
     },
     schema: [],
     messages: {
-      useMillis:
-        'Bare number in a Duration or DurationInput position is milliseconds. Wrap it with Duration.millis.'
+      useMillis: 'Bare number in a Duration or DurationInput position is milliseconds. Wrap it with Duration.millis.'
     }
   },
   defaultOptions: [],
