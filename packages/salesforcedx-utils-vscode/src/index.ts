@@ -13,4 +13,3 @@ export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export { errorToString } from './helpers/errorUtils';
-export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
