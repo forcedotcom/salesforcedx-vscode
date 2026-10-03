@@ -700,11 +700,11 @@
       "editor/context": [
         {
           "command": "sf.metadata.delete.source",
-          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.source.path",
-          "when": "!editorReadonly && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
+          "when": "!editorReadonly && isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && (!sf:protectedOrg || !(resource =~ /\\.(cls|cls-meta\\.xml|trigger|trigger-meta\\.xml)$/))"
         },
         {
           "command": "sf.metadata.deploy.in.manifest",
@@ -712,7 +712,7 @@
         },
         {
           "command": "sf.metadata.retrieve.source.path",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         },
         {
           "command": "sf.metadata.retrieve.in.manifest",
@@ -720,11 +720,11 @@
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.source.diff",
-          "when": "sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
+          "when": "isFileSystemResource && sf:has_target_org && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories"
         }
       ],
       "explorer/context": [
@@ -750,7 +750,7 @@
         },
         {
           "command": "sf.metadata.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "isFileSystemResource && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.metadata.source.diff",
