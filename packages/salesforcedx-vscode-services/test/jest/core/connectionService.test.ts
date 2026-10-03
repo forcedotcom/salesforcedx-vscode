@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { homedir, tmpdir } from 'node:os';
 import { AuthInfo, Connection, OrgConfigProperties, type ConfigAggregator } from '@salesforce/core';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
@@ -767,6 +768,10 @@ describe('ConnectionService.getConnection (Web Console)', () => {
   });
 
   it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+    jest.mocked(homedir).mockReturnValue(tmpdir());
+    // Load real core before Web mode so its file system is initialized outside the isolated Web module graph.
+    const { AuthInfo: RealAuthInfo, Connection: RealConnection } =
+      jest.requireActual<typeof import('@salesforce/core')>('@salesforce/core');
     process.env.ESBUILD_PLATFORM = 'web';
     jest.resetModules();
 
@@ -788,10 +793,33 @@ describe('ConnectionService.getConnection (Web Console)', () => {
         typeof import('../../../src/vscode/settingsService.js')
       >('../../../src/vscode/settingsService');
       const accessToken = 'web-console-token';
-      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
-      const connection = makeConn({ isAccessTokenFlow: false });
-      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
-      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      const retrieveUserInfo = jest.spyOn(
+        RealAuthInfo.prototype as unknown as {
+          retrieveUserInfo: (
+            instanceUrl: string,
+            token: string
+          ) => Promise<{ username: string; organizationId: string }>;
+        },
+        'retrieveUserInfo'
+      );
+      retrieveUserInfo.mockResolvedValue({
+        username: 'web-console-auth-flags@example.com',
+        organizationId: '00D000000000001'
+      });
+      const organizationQuery = jest.fn().mockResolvedValue({ IsSandbox: true, TrialExpirationDate: undefined });
+      const orgConnection = jest.spyOn(RealConnection, 'create').mockResolvedValue({
+        singleRecordQuery: organizationQuery
+      } as unknown as Connection);
+      jest.mocked(WebAuthInfo.create).mockImplementation(async options => {
+        const authInfo = await RealAuthInfo.create(options);
+        jest.spyOn(authInfo, 'save').mockResolvedValue(authInfo);
+        return authInfo;
+      });
+      jest.mocked(WebConnection.create).mockImplementation(async ({ authInfo }) => {
+        const connection = makeConn({ isAccessTokenFlow: false });
+        jest.spyOn(connection, 'getAuthInfoFields').mockImplementation(() => authInfo.getFields());
+        return connection;
+      });
       const dependencies = WebLayer.mergeAll(
         WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
         WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
@@ -806,13 +834,34 @@ describe('ConnectionService.getConnection (Web Console)', () => {
       );
       const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
-      await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+      try {
+        const connection = await WebEffect.runPromise(
+          WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+        );
+        const cached = await WebEffect.runPromise(
+          WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+        );
 
-      expect(WebAuthInfo.create).toHaveBeenCalledWith({
-        accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
-      });
-      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+        expect(connection.getAuthInfoFields()).toMatchObject({ isDevHub: false, isScratch: false, isSandbox: false });
+        expect(orgConnection).not.toHaveBeenCalled();
+        expect(WebAuthInfo.create).toHaveBeenCalledWith({
+          accessTokenOptions: {
+            accessToken,
+            loginUrl: INSTANCE_URL,
+            instanceUrl: INSTANCE_URL,
+            isDevHub: false,
+            isScratch: false,
+            isSandbox: false,
+            namespacePrefix: ''
+          }
+        });
+        expect(organizationQuery).not.toHaveBeenCalled();
+        expect(cached).toBe(connection);
+        expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+      } finally {
+        orgConnection.mockRestore();
+        retrieveUserInfo.mockRestore();
+      }
     });
   });
 });
