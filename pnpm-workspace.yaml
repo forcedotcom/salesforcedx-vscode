@@ -37,5 +37,3 @@ allowBuilds:
   protobufjs: true
   ttf2woff2: true
   unrs-resolver: true
-minimumReleaseAgeExclude:
-  - '@salesforce/core@9.3.0'
