@@ -47,13 +47,13 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
       : T extends SfTemplates.TemplateType.ApexTrigger
         ? ApexTriggerCreateOptions
         : T extends SfTemplates.TemplateType.LightningApp
-          ? SfTemplates.LightningAppOptions
+          ? LightningAppCreateOptions
           : T extends SfTemplates.TemplateType.LightningComponent
             ? LightningComponentCreateOptions
             : T extends SfTemplates.TemplateType.LightningEvent
-              ? SfTemplates.LightningEventOptions
+              ? LightningEventCreateOptions
               : T extends SfTemplates.TemplateType.LightningInterface
-                ? SfTemplates.LightningInterfaceOptions
+                ? LightningInterfaceCreateOptions
                 : T extends SfTemplates.TemplateType.LightningTest
                   ? SfTemplates.LightningTestOptions
                   : T extends SfTemplates.TemplateType.Project
@@ -100,6 +100,24 @@ export type ApexTriggerCreateOptions = {
 /** Lightning component options with `template` typed as `string` to support custom template names
  * from `org-custom-metadata-templates` in addition to the built-in literal union. */
 export type LightningComponentCreateOptions = Omit<SfTemplates.LightningComponentOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning app options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningAppCreateOptions = Omit<SfTemplates.LightningAppOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning event options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningEventCreateOptions = Omit<SfTemplates.LightningEventOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning interface options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningInterfaceCreateOptions = Omit<SfTemplates.LightningInterfaceOptions, 'template'> & {
   readonly template: string;
 };
 
