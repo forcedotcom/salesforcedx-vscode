@@ -4,19 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
-import { classifyOrgForTelemetry } from '@salesforce/salesforcedx-utils';
+import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace, type ExtensionContext } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
-import { getCliId } from './cliTelemetry';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSdkLayerConfigFromContext, resolveConnectionString } from './sdkLayerConfig';
 import { setSpanCreationIdentity } from './spanTransformProcessor';
@@ -44,53 +42,28 @@ export const legacyCallerExtName = (span: { attributes: Record<string, unknown> 
   return isString(value) ? value : 'unknown';
 };
 
-type LegacyTelemetryIdentity = {
-  cliId?: string;
-  webUserId: string;
-  orgId?: string;
-  orgShape?: string;
-  devHubId?: string;
-  orgEdition?: string;
-  telemetryClassification: 'gov' | 'nonGov' | 'unknown';
-};
+type DefaultOrgInfo = typeof DefaultOrgInfoSchema.Type;
+type LegacyOrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
+type LegacyTelemetryIdentity = Readonly<
+  Pick<DefaultOrgInfo, 'cliId' | 'orgId' | 'orgEdition'> & {
+    webUserId: string;
+    orgShape: LegacyOrgShape;
+    devHubId?: DefaultOrgInfo['devHubOrgId'];
+    telemetryClassification: TelemetryClassification;
+  }
+>;
 
-export type LegacyTelemetryPayload = {
+export type LegacyTelemetryItem = {
   kind: 'event' | 'exception';
   name: string;
   message?: string;
   properties?: Readonly<Record<string, string>>;
   measurements?: Readonly<Record<string, number>>;
+};
+
+type LegacyTelemetryPayload = LegacyTelemetryItem & {
   identity: LegacyTelemetryIdentity;
 };
-
-type LegacyTelemetryEvent = Omit<LegacyTelemetryPayload, 'identity'>;
-export type LegacyTelemetrySender = (payload: LegacyTelemetryPayload) => Promise<void>;
-export type PreparedLegacyTelemetrySender = (event: LegacyTelemetryEvent) => () => Promise<void>;
-
-type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
-
-const orgShapeFrom = (info: typeof DefaultOrgInfoSchema.Type): OrgShape => {
-  if (info.isScratch) return 'Scratch';
-  if (info.isSandbox) return 'Sandbox';
-  if (info.alias ?? info.username) return 'Production';
-  return 'Undefined';
-};
-
-const identityFromDefaultOrgInfo = ({
-  instanceName,
-  ...info
-}: typeof DefaultOrgInfoSchema.Type): LegacyTelemetryIdentity => ({
-  cliId: info.cliId,
-  webUserId: info.webUserId ?? UNAUTHENTICATED_USER,
-  orgId: info.orgId,
-  orgShape: orgShapeFrom(info),
-  devHubId: info.devHubOrgId,
-  orgEdition: info.orgEdition,
-  telemetryClassification: classifyOrgForTelemetry(info.orgId, instanceName)
-});
-
-const snapshotIdentity = () =>
-  Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.map(identityFromDefaultOrgInfo)));
 
 // otelConnectionString as-is, aiKey normalized, else legacy default; precedence shared with sdkLayerConfig
 export const resolveLegacyConnectionString = (packageJSON?: {
@@ -154,10 +127,41 @@ const readEnableO11y = (packageJSON: unknown): unknown =>
     ? packageJSON.enableO11y
     : undefined;
 
+const legacyOrgShapeFrom = (identity: DefaultOrgInfo): LegacyOrgShape => {
+  if (identity.isScratch) return 'Scratch';
+  if (identity.isSandbox) return 'Sandbox';
+  if (identity.alias ?? identity.username) return 'Production';
+  return 'Undefined';
+};
+
+const getLegacyTelemetryIdentitySnapshot = (): LegacyTelemetryIdentity => {
+  const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+  return {
+    cliId: identity.cliId,
+    webUserId: identity.webUserId ?? UNAUTHENTICATED_USER,
+    orgId: identity.orgId,
+    orgShape: legacyOrgShapeFrom(identity),
+    devHubId: identity.devHubOrgId,
+    orgEdition: identity.orgEdition,
+    telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName)
+  };
+};
+
 type LegacyTelemetrySenderConfig = {
   extensionName: string;
   extensionVersion: string;
   callerO11y: { endpoint?: string; enabled: boolean; productFeatureId?: string };
+};
+
+const warnDegradedTelemetrySession = (channelName: string, cliId: DefaultOrgInfo['cliId']): void => {
+  if (!isUndefined(cliId)) {
+    return;
+  }
+  Effect.runSync(
+    Effect.flatMap(ChannelService, channel =>
+      channel.appendToChannel('telemetry seed missing — degraded session')
+    ).pipe(Effect.provide(ChannelServiceLayer(channelName)))
+  );
 };
 
 class LegacyTelemetryException extends Schema.TaggedError<LegacyTelemetryException>()('LegacyTelemetryException', {
@@ -207,9 +211,14 @@ export const createLegacyTelemetrySpan = (config: LegacyTelemetrySenderConfig, p
   );
 };
 
-const senderConfigFromContext = (context: ExtensionContext): LegacyTelemetrySenderConfig => {
+// cached sender, built once per TelemetryService instance
+export const getLegacyTelemetrySender = (
+  context: ExtensionContext
+): ((item: LegacyTelemetryItem) => () => Promise<void>) => {
   const { extensionName, extensionVersion, o11yEndpoint, productFeatureId } = getSdkLayerConfigFromContext(context);
-  return {
+  const activationIdentity = getLegacyTelemetryIdentitySnapshot();
+  warnDegradedTelemetrySession(extensionName, activationIdentity.cliId);
+  const config = {
     extensionName,
     extensionVersion,
     callerO11y: {
@@ -218,31 +227,15 @@ const senderConfigFromContext = (context: ExtensionContext): LegacyTelemetrySend
       productFeatureId
     }
   };
-};
-
-/** Build the backwards-compatible sender for callers that provide a complete identity. */
-export const getLegacyTelemetrySender = (context: ExtensionContext): LegacyTelemetrySender => {
-  const config = senderConfigFromContext(context);
-  return payload => createLegacyTelemetrySpan(config, payload).pipe(runOnServicesRuntime, Effect.runPromise);
-};
-
-/** Prepare legacy telemetry events from shared identity and send them in the services runtime. */
-export const prepareLegacyTelemetrySender = async (
-  context: ExtensionContext
-): Promise<PreparedLegacyTelemetrySender> => {
-  const config = senderConfigFromContext(context);
-  const { extensionName } = config;
-  if (process.env.ESBUILD_PLATFORM !== 'web') {
-    await Effect.gen(function* () {
-      if (Option.isNone(yield* getCliId())) {
-        yield* (yield* ChannelService).appendToChannel('telemetry seed missing — degraded session');
-      }
-    }).pipe(Effect.provide(ChannelServiceLayer(extensionName)), runOnServicesRuntime, Effect.runPromise);
-  }
-
-  return event => {
-    // Capture identity now; the returned work may run after the caller's telemetry gate awaits.
-    const payload: LegacyTelemetryPayload = { ...event, identity: Object.freeze(snapshotIdentity()) };
+  return item => {
+    // Capture identity at event invocation. TelemetryService may wait on its async
+    // opt-out check before running this deferred send.
+    const payload: LegacyTelemetryPayload = Object.freeze({
+      ...item,
+      properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
+      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
+      identity: Object.freeze(getLegacyTelemetryIdentitySnapshot())
+    });
     return () => createLegacyTelemetrySpan(config, payload).pipe(runOnServicesRuntime, Effect.runPromise);
   };
 };

@@ -47,7 +47,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
-import { getLegacyTelemetrySender, prepareLegacyTelemetrySender } from './observability/legacyTelemetrySender';
+import { getLegacyTelemetrySender } from './observability/legacyTelemetrySender';
 import { redactingConsoleLoggerLayer, runOnServicesRuntime } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
@@ -166,7 +166,6 @@ export type SalesforceVSCodeServicesApi = {
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     getLegacyTelemetrySender: typeof getLegacyTelemetrySender;
-    prepareLegacyTelemetrySender: typeof prepareLegacyTelemetrySender;
     SdkLayerFor: PublicSdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -588,7 +587,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         ProjectService,
         getSdkLayerConfigFromContext,
         getLegacyTelemetrySender,
-        prepareLegacyTelemetrySender,
         SdkLayerFor: publicSdkLayerFor,
         SettingsChangePubSub,
         SettingsService,

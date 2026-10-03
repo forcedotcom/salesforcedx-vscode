@@ -23,7 +23,7 @@ describe('Telemetry', () => {
       isActive: true,
       exports: {
         services: {
-          prepareLegacyTelemetrySender: () => Promise.resolve(jest.fn(() => jest.fn().mockResolvedValue(undefined)))
+          getLegacyTelemetrySender: () => jest.fn(() => jest.fn().mockResolvedValue(undefined))
         }
       }
     } as unknown as ReturnType<typeof extensions.getExtension>);

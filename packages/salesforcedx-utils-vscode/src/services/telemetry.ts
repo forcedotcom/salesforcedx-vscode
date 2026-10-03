@@ -28,10 +28,8 @@ type CommandMetric = {
   executionTime?: string;
 };
 
-type LegacyTelemetrySender = Awaited<
-  ReturnType<SalesforceVSCodeServicesApi['services']['prepareLegacyTelemetrySender']>
->;
-type TelemetryPayload = Parameters<LegacyTelemetrySender>[0];
+type TelemetrySender = ReturnType<SalesforceVSCodeServicesApi['services']['getLegacyTelemetrySender']>;
+type TelemetryPayload = Parameters<TelemetrySender>[0];
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -49,7 +47,7 @@ export class TelemetryServiceProvider {
 }
 
 export class TelemetryService implements TelemetryServiceInterface {
-  private sendProductionTelemetry: LegacyTelemetrySender | undefined;
+  private sendProductionTelemetry: TelemetrySender | undefined;
   private disposed = false;
   private pendingTelemetry = new Set<Promise<void>>();
   public isInternal: boolean = false;
@@ -108,8 +106,9 @@ export class TelemetryService implements TelemetryServiceInterface {
     });
 
     if (!this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
+      // sender built once per instance from ExtensionContext, cached exporters live in services
       const api = await Effect.runPromise(getServicesApi);
-      this.sendProductionTelemetry = await api.services.prepareLegacyTelemetrySender(extensionContext);
+      this.sendProductionTelemetry = api.services.getLegacyTelemetrySender(extensionContext);
     }
     if (!extensionContext.subscriptions.includes(this)) extensionContext.subscriptions.push(this);
   }
@@ -269,15 +268,18 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param callback function to call if telemetry is enabled
    */
   private sendTelemetryItem(item: TelemetryPayload): void {
+    if (this.disposed || !this.sendProductionTelemetry) return;
     const payload: TelemetryPayload = Object.freeze({
       ...item,
       properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
       measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined
     });
-    const send = this.sendProductionTelemetry?.(payload);
+    // Services captures its DefaultOrgInfo snapshot synchronously here, before
+    // telemetry opt-in checks can yield or the target org can change.
+    const send = this.sendProductionTelemetry(payload);
     const pending = Promise.resolve(
       this.validateTelemetry(async () => {
-        await send?.();
+        await send();
       })
     );
     this.pendingTelemetry.add(pending);
