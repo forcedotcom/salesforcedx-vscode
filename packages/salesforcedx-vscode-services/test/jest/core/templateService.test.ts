@@ -176,4 +176,69 @@ describe('TemplateService', () => {
       undefined
     );
   });
+
+  describe('getBuiltInTemplateSubdirNames', () => {
+    it('delegates to CreateUtil.getCommandTemplatesInSubdirs', async () => {
+      (SfTemplates.CreateUtil.getCommandTemplatesInSubdirs as jest.Mock).mockReturnValue(['default', 'typeScript']);
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getBuiltInTemplateSubdirNames('lightningcomponent', 'lwc', /\.html$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['default', 'typeScript']);
+      expect(SfTemplates.CreateUtil.getCommandTemplatesInSubdirs).toHaveBeenCalledWith(
+        'lightningcomponent',
+        { filetype: /\.html$/, subdir: 'lwc' },
+        expect.anything(),
+        expect.anything()
+      );
+    });
+  });
+
+  describe('getCustomTemplateSubdirNames', () => {
+    it('returns [] when ORG_CUSTOM_METADATA_TEMPLATES is not set', async () => {
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns only subdirectories containing a matching file', async () => {
+      const layer = createTestLayer(createMockConfigService('/my/custom/templates'));
+      // Compare against uri.path (always forward-slash) rather than uri.fsPath, which is
+      // backslash-separated on Windows and would never match these POSIX-style keys there.
+      vscode.workspace.fs.readDirectory.mockImplementation((uri: { path: string }) => {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc') {
+          return Promise.resolve([
+            ['myCustomTemplate', vscode.FileType.Directory],
+            ['notATemplate', vscode.FileType.Directory],
+            ['stray.txt', vscode.FileType.File]
+          ]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/myCustomTemplate') {
+          return Promise.resolve([['myCustomTemplate.js', vscode.FileType.File]]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/notATemplate') {
+          return Promise.resolve([['readme.md', vscode.FileType.File]]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['myCustomTemplate']);
+    });
+  });
 });
