@@ -7,6 +7,10 @@
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { toO11yEvent } from '../../../src/observability/o11ySpanExporter';
 import { getSpanCreationIdentity, SpanTransformProcessor } from '../../../src/observability/spanTransformProcessor';
+import {
+  LEGACY_TELEMETRY_SOURCE_ATTR,
+  LEGACY_TELEMETRY_SOURCE_VALUE
+} from '../../../src/observability/legacyTelemetrySender';
 
 describe('O11ySpanExporter attribution', () => {
   it('uses complete immutable creation identity after the default org switches', () => {
@@ -34,5 +38,39 @@ describe('O11ySpanExporter attribution', () => {
 
     expect(identity).toEqual({ orgId: 'created', devHubOrgId: 'hub', userId: 'user', cliId: 'cli' });
     expect(event.properties).toMatchObject({ userId: 'user', cliId: 'cli' });
+  });
+
+  it('keeps legacy numeric measurements as numbers alongside duration', () => {
+    const legacy = {
+      name: 'ext/commandExecution',
+      resource: { attributes: {} },
+      attributes: {
+        [LEGACY_TELEMETRY_SOURCE_ATTR]: LEGACY_TELEMETRY_SOURCE_VALUE,
+        executionTime: 50,
+        customMetric: 42,
+        commandName: 'myCommand'
+      },
+      status: {},
+      spanContext: () => ({ traceId: 'trace', spanId: 'span' }),
+      startTime: [0, 0],
+      endTime: [0, 50_000_000],
+      duration: [0, 50_000_000]
+    } as unknown as ReadableSpan;
+    const event = toO11yEvent(legacy, {});
+    expect(event.measurements).toEqual({ executionTime: 50, customMetric: 42, duration: 50 });
+  });
+
+  it('emits duration-only measurements for non-legacy spans', () => {
+    const span = {
+      name: 'plain',
+      resource: { attributes: {} },
+      attributes: { count: 7 },
+      status: {},
+      spanContext: () => ({ traceId: 'trace', spanId: 'span' }),
+      startTime: [0, 0],
+      endTime: [1, 0],
+      duration: [1, 0]
+    } as unknown as ReadableSpan;
+    expect(toO11yEvent(span, {}).measurements).toEqual({ duration: 1000 });
   });
 });

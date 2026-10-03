@@ -6,26 +6,9 @@
  */
 
 import { ExtensionContext } from 'vscode';
-import { TelemetryServiceProvider, TelemetryService } from '../services/telemetry';
 
 /**
- * Ensures that all extensions (Core, Apex, etc.) refresh their telemetry reporters so the next event
- * uses the latest identity values sourced from the services extension.
+ * No-op: production sender uses frozen send-time identity, nothing cached to refresh.
+ * Kept for the workspace-context refresh call site.
  */
-export const updateUserIDOnTelemetryReporters = async (coreExtensionContext: ExtensionContext): Promise<void> => {
-  console.log('Updating userID and WebID telemetry reporters for all extensions...');
-
-  await Promise.allSettled(
-    Array.from(TelemetryServiceProvider.instances.entries())
-      .filter(
-        ([, telemetryService]) => telemetryService instanceof TelemetryService && 'updateReporters' in telemetryService
-      )
-      .map(
-        async ([extname, telemetryService]) =>
-          await telemetryService.updateReporters(coreExtensionContext).catch((error: unknown) => {
-            console.log(`Failed to update telemetry reporters for ${extname}:`, String(error));
-          })
-      )
-  );
-  console.log('Completed updating userID and WebID telemetry reporters for all extensions');
-};
+export const updateUserIDOnTelemetryReporters = async (_coreExtensionContext: ExtensionContext): Promise<void> => {};

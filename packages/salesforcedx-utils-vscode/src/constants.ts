@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
-export const LOCAL_TELEMETRY_FILE = 'telemetry.json';
 export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_CORE_EXTENSION_NAME = SFDX_CORE_CONFIGURATION_NAME;

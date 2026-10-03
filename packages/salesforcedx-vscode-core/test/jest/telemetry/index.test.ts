@@ -7,7 +7,7 @@
 
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
-import { window, workspace } from 'vscode';
+import { extensions, window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
@@ -25,6 +25,14 @@ describe('Telemetry', () => {
       webUserId: 'web',
       telemetryClassification: 'nonGov'
     });
+    jest.spyOn(extensions, 'getExtension').mockReturnValue({
+      isActive: true,
+      exports: {
+        services: {
+          getLegacyTelemetrySender: () => jest.fn().mockResolvedValue(undefined)
+        }
+      }
+    } as unknown as ReturnType<typeof extensions.getExtension>);
 
     // Mock createFileSystemWatcher to return a proper mock object
     jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
