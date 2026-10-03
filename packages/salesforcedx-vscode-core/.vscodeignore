@@ -1,10 +1,21 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
+out/**
+test/**
+src/**
+node_modules/**
+coverage/**
+.nyc_output/**
 .circular-deps.json
 .eslintcache
+esbuild.config.mjs
+jest.config.js
+tsconfig.json
 **/*.map
 dist/*-metafile.json
+.gitignore
+metadata_types_map_scraped.json
 
 # ignore unused rxjs code
 node_modules/rxjs/src/**

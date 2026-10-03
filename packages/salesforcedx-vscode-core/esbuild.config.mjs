@@ -12,7 +12,7 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist/src',
-  external: [...nodeConfig.external, 'applicationinsights'],
+  external: nodeConfig.external,
   minify: true,
   metafile: true
 });
