@@ -1,6 +1,11 @@
 name: Dependabot Auto-Merge
 
-# Uses the battle-tested automerge workflow from salesforcecli/github-workflows
+# Inlined from salesforcecli/github-workflows/.github/workflows/automerge.yml
+# That reusable hardcodes `setup-node` with `cache: npm`, which fails on this
+# pnpm repo (pnpm-lock.yaml, no package-lock.json) with
+# "Dependencies lock file is not found".
+# The underlying `sf-release dependabot:automerge` only calls the GitHub API
+# (no repo deps), so no cache is needed here.
 # This automatically merges dependabot PRs that are:
 # 1. Up to date with main/develop
 # 2. Mergeable (per GitHub)
@@ -30,9 +35,19 @@ jobs:
   automerge:
     # Only run for dependabot PRs (when checks complete), manual triggers, or scheduled runs
     if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    uses: salesforcecli/github-workflows/.github/workflows/automerge.yml@main
-    secrets:
-      SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-    with:
-      mergeMethod: squash
-      skipCI: ${{ github.event.inputs.skipCI == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - run: npm install -g @salesforce/plugin-release-management --omit=dev
+
+      - name: run automerge command
+        run: sf-release dependabot:automerge --merge-method "squash" --max-version-bump "minor" --owner $GITHUB_REPOSITORY_OWNER --repo $(basename $GITHUB_REPOSITORY) ${{ github.event.inputs.skipCI == 'true' && '--skip-ci' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN || secrets.GITHUB_TOKEN }}
