@@ -62,6 +62,8 @@ export default [
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
+      // Playwright fixture extensions run as plain JavaScript outside the TypeScript projects.
+      '**/test/playwright/fixtureExtensions/**/*.js',
       '**/jest.config.js',
       '**/jest.integration.config.js',
       '**/.wireit/**',
