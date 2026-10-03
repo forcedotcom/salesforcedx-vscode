@@ -617,13 +617,13 @@ importers:
         version: 3.22.2
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
 
   packages/salesforcedx-apex:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/kit':
         specifier: ^4.0.0
@@ -675,7 +675,7 @@ importers:
   packages/salesforcedx-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/salesforcedx-utils':
         specifier: '*'
@@ -944,7 +944,7 @@ importers:
   packages/salesforcedx-utils-vscode:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
@@ -1037,7 +1037,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1049,7 +1049,7 @@ importers:
   packages/salesforcedx-vscode-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
@@ -1102,7 +1102,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1203,7 +1203,7 @@ importers:
         specifier: 1.60.0
         version: 1.60.0
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1243,7 +1243,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1258,7 +1258,7 @@ importers:
   packages/salesforcedx-vscode-core:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
@@ -1379,7 +1379,7 @@ importers:
         version: 1.3.1
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1431,7 +1431,7 @@ importers:
   packages/salesforcedx-vscode-org:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
@@ -1478,7 +1478,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
@@ -1736,7 +1736,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.63.1)
       '@salesforce/core':
-        specifier: ^9.1.9
+        specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/eslint-config-lwc':
         specifier: ^4.1.2
