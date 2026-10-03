@@ -1,3 +1,12 @@
+# [65.14.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.13.1...eslint-plugin-vscode-extensions-v65.14.0) (2026-10-03)
+
+
+### Features
+
+* **lwc:** add support for custom templates for SFDX: Create Lightning Web Component - W-23950041 ([#8289](https://github.com/forcedotcom/salesforcedx-vscode/issues/8289)) ([091daa2](https://github.com/forcedotcom/salesforcedx-vscode/commit/091daa24df91be71f3eba269315530157a5f40d3))
+
+
+
 ## [65.13.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.13.0...eslint-plugin-vscode-extensions-v65.13.1) (2026-09-16)
 
 
