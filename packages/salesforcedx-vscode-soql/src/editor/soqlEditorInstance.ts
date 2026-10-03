@@ -308,7 +308,11 @@ export class SOQLEditorInstance {
             if (!isOrgSet) {
               const message = nls.localize('info_no_default_org');
               return appendToChannel(message).pipe(
-                Effect.andThen(Effect.promise(() => vscode.window.showInformationMessage(message))),
+                Effect.andThen(
+                  Effect.sync(() => {
+                    void vscode.window.showInformationMessage(message);
+                  })
+                ),
                 Effect.andThen(getQueryPlanDone())
               );
             }

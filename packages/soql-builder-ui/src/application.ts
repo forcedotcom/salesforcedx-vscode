@@ -44,6 +44,7 @@ export class SoqlBuilderApplication {
   public readonly connect = (): void => {
     if (this.sessionFiber) return;
 
+    const { view } = this;
     const reportServiceError = (error: SoqlBuilderServiceError): Effect.Effect<void> =>
       Effect.sync(() => {
         this.view.viewState = {
@@ -53,37 +54,34 @@ export class SoqlBuilderApplication {
       });
     const session = SoqlBuilderController.pipe(
       Effect.flatMap(controller =>
-        Queue.unbounded<SoqlBuilderAction>().pipe(
-          Effect.flatMap(actions => {
-            const actionListener: EventListener = event => {
-              if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
-            };
+        Effect.gen(function* () {
+          const actions = yield* Queue.unbounded<SoqlBuilderAction>();
+          const actionListener: EventListener = event => {
+            if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
+          };
 
-            return Effect.acquireRelease(
-              Effect.sync(() => this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
-              () =>
-                Effect.sync(() => this.view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
-                  Effect.andThen(Queue.shutdown(actions))
-                )
-            ).pipe(
-              Effect.andThen(
-                Effect.all(
-                  [
-                    controller.states.pipe(
-                      Stream.runForEach(state =>
-                        Effect.sync(() => {
-                          this.view.viewState = state;
-                        })
-                      )
-                    ),
-                    Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
-                  ],
-                  { concurrency: 'unbounded', discard: true }
-                )
+          yield* Effect.acquireRelease(
+            Effect.sync(() => view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
+            () =>
+              Effect.sync(() => view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
+                Effect.andThen(Queue.shutdown(actions))
               )
-            );
-          })
-        )
+          );
+
+          yield* Effect.all(
+            [
+              controller.states.pipe(
+                Stream.runForEach(state =>
+                  Effect.sync(() => {
+                    view.viewState = state;
+                  })
+                )
+              ),
+              Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
+            ],
+            { concurrency: 'unbounded', discard: true }
+          );
+        })
       ),
       Effect.provide(SoqlBuilderController.Default.pipe(Layer.provide(this.serviceLayer))),
       Effect.scoped,

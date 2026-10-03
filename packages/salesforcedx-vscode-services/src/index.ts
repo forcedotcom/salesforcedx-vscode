@@ -348,30 +348,25 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.internal.showOrgMetadataCatalogState', () =>
     Effect.all([OrgMetadataCatalogStore, FsService]).pipe(
       Effect.flatMap(([catalogStore, fsService]) =>
-        getDefaultOrgRef().pipe(
-          Effect.flatMap(SubscriptionRef.get),
-          Effect.flatMap(({ orgId }) =>
-            !orgId
-              ? Effect.sync(() => {
-                  void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
-                })
-              : catalogStore.getSnapshotUri(orgId).pipe(
-                  Effect.flatMap(snapshotUri =>
-                    fsService.fileOrFolderExists(snapshotUri).pipe(
-                      Effect.flatMap(exists =>
-                        exists
-                          ? fsService.showTextDocument(snapshotUri, { preview: false }).pipe(Effect.asVoid)
-                          : Effect.sync(() => {
-                              void vscode.window.showInformationMessage(
-                                nls.localize('org_metadata_catalog_state_missing')
-                              );
-                            })
-                      )
-                    )
-                  )
-                )
-          )
-        )
+        Effect.gen(function* () {
+          const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+          if (!orgId) {
+            yield* Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
+            });
+            return;
+          }
+
+          const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
+          if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
+            yield* Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'));
+            });
+            return;
+          }
+
+          yield* fsService.showTextDocument(snapshotUri, { preview: false });
+        })
       ),
       Effect.withSpan('OrgMetadataCatalog.showPersistedState'),
       Effect.catchAll(error =>
