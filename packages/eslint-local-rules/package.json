@@ -71,7 +71,6 @@
       ],
       "files": [
         "test/**/*.ts",
-        "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "test/fixtures/no-raw-duration/tsconfig.json",
         "jest.config.js",
         "../../config/jest.base.config.js"

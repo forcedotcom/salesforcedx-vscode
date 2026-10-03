@@ -128,11 +128,14 @@ export class ApexTestController {
 
     // Non-fatal: result folder may not exist yet, or deletion may fail. Log + continue.
     await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const resultDir = yield* getTestResultsFolder();
-        yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
-      }).pipe(
+      ExtensionProviderService.pipe(
+        Effect.flatMap(provider => provider.getServicesApi),
+        Effect.flatMap(api =>
+          getTestResultsFolder().pipe(
+            Effect.flatMap(resultDir => api.services.FsService.safeDelete(resultDir, { recursive: true })),
+            Effect.asVoid
+          )
+        ),
         Effect.catchTags({
           NoDefaultOrgError: error => Effect.logWarning('Failed to delete test results folder', { error }),
           NoWorkspaceOpenError: error => Effect.logWarning('Failed to delete test results folder', { error }),

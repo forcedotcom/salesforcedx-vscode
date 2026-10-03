@@ -349,24 +349,28 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   yield* seedTelemetryIdentities();
   const scope = yield* getExtensionScope();
   yield* registerCommandWithRuntime(yield* getServicesRuntime())('sf.internal.showOrgMetadataCatalogState', () =>
-    Effect.gen(function* () {
-      const [catalogStore, fsService] = yield* Effect.all([OrgMetadataCatalogStore, FsService]);
-      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-      if (!orgId) {
-        yield* Effect.sync(() => {
-          void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
-        });
-        return;
-      }
-      const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
-      if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
-        yield* Effect.sync(() => {
-          void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'));
-        });
-        return;
-      }
-      yield* fsService.showTextDocument(snapshotUri, { preview: false });
-    }).pipe(
+    Effect.all([OrgMetadataCatalogStore, FsService]).pipe(
+      Effect.flatMap(([catalogStore, fsService]) =>
+        Effect.gen(function* () {
+          const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+          if (!orgId) {
+            yield* Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'));
+            });
+            return;
+          }
+
+          const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
+          if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
+            yield* Effect.sync(() => {
+              void vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'));
+            });
+            return;
+          }
+
+          yield* fsService.showTextDocument(snapshotUri, { preview: false });
+        })
+      ),
       Effect.withSpan('OrgMetadataCatalog.showPersistedState'),
       Effect.catchAll(error =>
         Effect.sync(() => {

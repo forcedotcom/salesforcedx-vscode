@@ -303,18 +303,23 @@ export class SOQLEditorInstance {
       case 'get_query_plan': {
         const getQueryPlanDone = () => this.getQueryPlanDone();
         const { document } = this;
-        return Effect.gen(function* () {
-          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
-          if (!isOrgSet) {
-            const message = nls.localize('info_no_default_org');
-            yield* appendToChannel(message);
-            yield* Effect.promise(() => vscode.window.showInformationMessage(message));
-            yield* getQueryPlanDone();
-            return;
-          }
-          yield* Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(document.getText())));
-          yield* getQueryPlanDone();
-        }).pipe(
+        return Effect.promise(() => isDefaultOrgSet()).pipe(
+          Effect.flatMap(isOrgSet => {
+            if (!isOrgSet) {
+              const message = nls.localize('info_no_default_org');
+              return appendToChannel(message).pipe(
+                Effect.andThen(
+                  Effect.sync(() => {
+                    void vscode.window.showInformationMessage(message);
+                  })
+                ),
+                Effect.andThen(getQueryPlanDone())
+              );
+            }
+            return Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(document.getText()))).pipe(
+              Effect.andThen(getQueryPlanDone())
+            );
+          }),
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
             return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(

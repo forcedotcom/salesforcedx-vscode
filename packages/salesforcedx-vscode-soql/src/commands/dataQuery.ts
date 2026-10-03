@@ -102,32 +102,32 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
     yield* channelService.clearChannel;
   }
 
-  yield* Effect.gen(function* () {
-    const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
-    const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
-    const statusMessage = truncated
-      ? nls.localize(
-          'data_query_warning_limit',
-          queryResult.totalSize - queryResult.records.length,
-          queryResult.records.length,
-          queryResult.totalSize,
-          queryResult.records.length
-        )
-      : nls.localize('data_query_complete', queryResult.totalSize);
-    // showChannel runs concurrently, not after: saveResultsToCSV awaits a
-    // showInformationMessage prompt that never resolves without user action,
-    // so gating show behind this Effect.all (e.g. via ensuring) never reveals
-    // the panel.
-    yield* Effect.all(
-      [
-        displayTableResults(queryResult),
-        channelService.appendToChannel(statusMessage),
-        saveResultsToCSV(queryResult),
-        channelService.showChannel
-      ],
-      { concurrency: 'unbounded' }
-    );
-  }).pipe(
+  yield* runSoqlQuery(query, queryApi === 'TOOLING').pipe(
+    Effect.flatMap(queryResult => {
+      const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
+      const statusMessage = truncated
+        ? nls.localize(
+            'data_query_warning_limit',
+            queryResult.totalSize - queryResult.records.length,
+            queryResult.records.length,
+            queryResult.totalSize,
+            queryResult.records.length
+          )
+        : nls.localize('data_query_complete', queryResult.totalSize);
+      // showChannel runs concurrently, not after: saveResultsToCSV awaits a
+      // showInformationMessage prompt that never resolves without user action,
+      // so gating show behind this Effect.all (e.g. via ensuring) never reveals
+      // the panel.
+      return Effect.all(
+        [
+          displayTableResults(queryResult),
+          channelService.appendToChannel(statusMessage),
+          saveResultsToCSV(queryResult),
+          channelService.showChannel
+        ],
+        { concurrency: 'unbounded' }
+      );
+    }),
     Effect.catchAllCause(cause =>
       cause.pipe(
         Cause.squash,

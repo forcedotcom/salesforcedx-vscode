@@ -83,19 +83,14 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
     yield* channelService.clearChannel;
   }
 
-  yield* Effect.gen(function* () {
-    const connection = yield* servicesApi.services.ConnectionService.getConnection();
-    yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
-
-    const encodedQuery = encodeURIComponent(query);
-    const path = `/query?explain=${encodedQuery}`;
-
-    const result = yield* Effect.promise(() => connection.request(path)).pipe(
-      Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
-    );
-    yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
-    yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
-  }).pipe(
+  yield* servicesApi.services.ConnectionService.getConnection().pipe(
+    Effect.tap(() => channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')))),
+    Effect.flatMap(connection =>
+      Effect.promise(() => connection.request(`/query?explain=${encodeURIComponent(query)}`))
+    ),
+    Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse)),
+    Effect.flatMap(result => channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`)),
+    Effect.andThen(channelService.appendToChannel(nls.localize('query_plan_complete'))),
     Effect.catchAllCause(cause => cause.pipe(Cause.squash, formatErrorMessage, channelService.appendToChannel)),
     Effect.ensuring(channelService.showChannel)
   );

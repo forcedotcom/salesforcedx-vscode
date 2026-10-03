@@ -11,7 +11,7 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | `effectSucceedWithVoid` | `Effect.succeed(undefined)` | `Effect.void` |
 | `unnecessaryFailYieldableError` | `yield* Effect.fail(err)` where `err` is already yieldable | `yield* err` |
 | `effectFnIife` | immediately-invoked `Effect.fn` | `Effect.gen` + piped `Effect.withSpan` |
-| `unnecessaryEffectGen` | `Effect.gen` whose whole body is one `yield* X` | `X`; `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void. `Effect.fn` never matches — keep its span. Misses 2+ yields + trailing recovery — nested-gen recovery in `composition-style.md`. |
+| `unnecessaryEffectGen` | `Effect.gen` whose whole body is one `yield* X` | `X`; `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void. `Effect.fn` never matches — keep its span. |
 | `unnecessaryPipeChain` | a pipe whose subject is itself a pipe, anywhere incl. inside a callback: `x.pipe(a).pipe(b)` or `pipe(pipe(x, a), b)` | 1 `pipe` with sibling steps: `x.pipe(a, b)`; drop steps the merge makes dead |
 | `returnEffectInGen` | generator `return`s an Effect without `yield*` → `Effect<Effect<…>>` | `return yield* X` |
 | `effectFnOpportunity` | `Effect.gen` where a named `Effect.fn` fits | `Effect.fn('Span')(function* …)` |
@@ -20,3 +20,5 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | `globalFetchInEffect` | global `fetch(...)` inside Effect | `@effect/platform` `HttpClient` |
 | `globalTimersInEffect` | `setTimeout`/`setInterval` inside Effect | `Effect.sleep`, `Effect.repeat`/`Effect.schedule` |
 | `missedPipeableOpportunity` | nested Effect/Schema calls `f(g(pipeable))` — fires at ≥2 pipeable call-kind transformations | `pipeable.pipe(g, f)` — steps apply inner-first, so the terminal step (`runPromise`, `fork`, outer semaphore) lands last. Nested Schema: `Schema.String.pipe(Schema.NullOr, Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)`. Never take the quickfix blind: it reflows to 4-space, collapses long chains, and moves preceding comments into the pipe's args |
+
+Recovery on `Effect.gen(...).pipe(...)`: `local/no-effect-gen-pipe-recovery` (not `unnecessaryEffectGen`). Keep recovery on the inner subject when a nested pipe is a different call.

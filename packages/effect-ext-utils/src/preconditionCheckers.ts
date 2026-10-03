@@ -17,26 +17,24 @@ import { nls } from './messages';
  */
 export const sfProjectPreconditionChecker = {
   check: (): Promise<boolean> =>
-    Effect.runPromise(
-      Effect.gen(function* () {
-        const api = yield* getServicesApi;
-        const isProject = yield* api.services.ProjectService.isSalesforceProject().pipe(
-          Effect.provide(api.services.prebuiltServicesLayer)
-        );
-        if (!isProject) {
-          return yield* Effect.sync(() => {
-            void vscode.window.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
-            return false;
-          });
-        }
-        return true;
-      }).pipe(
-        Effect.catchAllCause(() =>
-          Effect.sync(() => {
-            void vscode.window.showErrorMessage(nls.localize('predicates_no_folder_opened_text'));
-            return false;
-          })
-        )
-      )
+    getServicesApi.pipe(
+      Effect.flatMap(api =>
+        api.services.ProjectService.isSalesforceProject().pipe(Effect.provide(api.services.prebuiltServicesLayer))
+      ),
+      Effect.flatMap(isProject =>
+        isProject
+          ? Effect.succeed(true)
+          : Effect.sync(() => {
+              void vscode.window.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
+              return false;
+            })
+      ),
+      Effect.catchAllCause(() =>
+        Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('predicates_no_folder_opened_text'));
+          return false;
+        })
+      ),
+      Effect.runPromise
     )
 };

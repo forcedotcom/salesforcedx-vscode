@@ -47,15 +47,13 @@ export const ChannelServiceLayer = (channelName: string) =>
         const channel = yield* cache.get(channelName);
         return yield* Effect.sync(() => channel.show());
       }),
-      clearChannel: Effect.gen(function* () {
-        const channel = yield* cache.get(channelName);
-        return yield* Effect.try(() => channel.clear());
-      }).pipe(Effect.catchAll(() => Effect.void)),
+      clearChannel: cache.get(channelName).pipe(
+        Effect.flatMap(channel => Effect.try(() => channel.clear())),
+        Effect.catchAll(() => Effect.void)
+      ),
       appendToChannel: (message: string) =>
-        Effect.gen(function* () {
-          const channel = yield* cache.get(channelName);
-          return yield* Effect.try(() => channel.appendLine(message));
-        }).pipe(
+        cache.get(channelName).pipe(
+          Effect.flatMap(channel => Effect.try(() => channel.appendLine(message))),
           // channelLogging is "best effort" and will not cause a failure
           Effect.catchAll(() => Effect.void)
         )
