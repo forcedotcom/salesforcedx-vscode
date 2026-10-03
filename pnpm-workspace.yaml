@@ -6,6 +6,9 @@ linkWorkspacePackages: true
 preferWorkspacePackages: true
 saveExact: true
 
+minimumReleaseAgeExclude:
+  - '@salesforce/*'
+
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
   jest: 30.4.2

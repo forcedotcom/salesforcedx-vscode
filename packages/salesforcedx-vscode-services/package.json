@@ -47,7 +47,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
-    "@salesforce/templates": "^66.16.0",
+    "@salesforce/templates": "^66.16.3",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
