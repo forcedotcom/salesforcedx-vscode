@@ -7,9 +7,47 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForAuraName } from './promptForAuraName';
+
+const AURA_APP_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  DefaultLightningApp: nls.localize('aura_app_default_template_description')
+};
+
+const promptForTemplate = Effect.fn('promptForAuraAppTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('lightningapp', '.app');
+  if (customTemplateNames.length === 0) {
+    return 'DefaultLightningApp';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('lightningapp', /\.app$/);
+  const builtInItems = builtInNames.map(label => ({
+    label,
+    description: AURA_APP_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
+
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_custom_templates_label') },
+    ...customItems
+  ];
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, { placeHolder: nls.localize('template_type_prompt') })
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(selected => selected.label)
+  );
+});
 
 export const createAuraAppCommand = Effect.fn('createAuraAppCommand')(function* (
   outputDirParam?: URI,
@@ -21,7 +59,8 @@ export const createAuraAppCommand = Effect.fn('createAuraAppCommand')(function* 
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
 
-  const appName = yield* promptForAuraName();
+  const template = yield* promptForTemplate();
+  const appName = yield* promptForAuraName({ promptKey: 'aura_app_name_prompt' });
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
 
@@ -42,7 +81,7 @@ export const createAuraAppCommand = Effect.fn('createAuraAppCommand')(function* 
     outputdir: outputDirUri,
     options: {
       appname: appName,
-      template: 'DefaultLightningApp',
+      template,
       internal: options?.internal ?? false
     }
   });

@@ -7,9 +7,55 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForAuraName } from './promptForAuraName';
+
+const AURA_COMPONENT_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  default: nls.localize('aura_component_default_template_description')
+};
+
+const promptForTemplate = Effect.fn('promptForAuraComponentTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateSubdirNames(
+    'lightningcomponent',
+    'aura',
+    /\.cmp$/
+  );
+  if (customTemplateNames.length === 0) {
+    return 'default';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateSubdirNames(
+    'lightningcomponent',
+    'aura',
+    /\.cmp$/
+  );
+  const builtInItems = builtInNames.map(label => ({
+    label,
+    description: AURA_COMPONENT_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
+
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_custom_templates_label') },
+    ...customItems
+  ];
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, { placeHolder: nls.localize('template_type_prompt') })
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(selected => selected.label)
+  );
+});
 
 export const createAuraComponentCommand = Effect.fn('createAuraComponentCommand')(function* (
   outputDirParam?: URI,
@@ -21,6 +67,7 @@ export const createAuraComponentCommand = Effect.fn('createAuraComponentCommand'
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
 
+  const template = yield* promptForTemplate();
   const componentName = yield* promptForAuraName();
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
@@ -42,7 +89,7 @@ export const createAuraComponentCommand = Effect.fn('createAuraComponentCommand'
     outputdir: outputDirUri,
     options: {
       componentname: componentName,
-      template: 'default',
+      template,
       type: 'aura',
       internal: options?.internal ?? false
     }

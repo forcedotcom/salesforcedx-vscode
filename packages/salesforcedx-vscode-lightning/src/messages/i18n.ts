@@ -20,6 +20,9 @@ export const messages = {
   aura_language_server_loading: 'Indexing Aura files. Hold tight, almost ready… $(sync~spin)',
   aura_language_server_loaded: 'Indexing complete $(check)',
   aura_component_name_prompt: 'Enter Aura component name',
+  aura_event_name_prompt: 'Enter Aura event name',
+  aura_interface_name_prompt: 'Enter Aura interface name',
+  aura_app_name_prompt: 'Enter Aura app name',
   aura_component_name_empty_error: 'Name cannot be empty',
   aura_component_name_format_error:
     'Name must start with a letter and contain only alphanumeric characters and underscores',
@@ -28,6 +31,13 @@ export const messages = {
   aura_generate_component_success: 'Aura component created successfully',
   aura_generate_event_success: 'Aura event created successfully',
   aura_generate_interface_success: 'Aura interface created successfully',
+  template_type_prompt: 'Select template type',
+  aura_builtin_templates_label: 'Built-In Templates',
+  aura_custom_templates_label: 'Custom Templates',
+  aura_component_default_template_description: 'Standard Aura component',
+  aura_event_default_template_description: 'Standard Aura event',
+  aura_interface_default_template_description: 'Standard Aura interface',
+  aura_app_default_template_description: 'Standard Aura app',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   rename_component_input_dup_file_name_error:
