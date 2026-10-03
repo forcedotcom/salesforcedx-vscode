@@ -28,7 +28,8 @@ describe('EditorService', () => {
     expect(context).toEqual({
       text: 'class Example {}',
       documentUri,
-      selectionRange: { startLine: 7, startCharacter: 12 }
+      selectionStart: { line: 7, character: 12 },
+      selectionRange: undefined
     });
   });
 });

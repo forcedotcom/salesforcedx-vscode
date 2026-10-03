@@ -726,7 +726,7 @@ const toggleCheckpoint = Effect.fn('toggleCheckpoint')(function* () {
   if (Option.isNone(editorContextOption)) return;
   const editorContext = editorContextOption.value;
 
-  const lineNumber = editorContext.selectionRange?.startLine;
+  const lineNumber = editorContext.selectionStart?.line;
   if (isUndefined(lineNumber)) return;
 
   // While selection could be passed directly into the location instead of creating

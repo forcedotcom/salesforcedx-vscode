@@ -43,6 +43,7 @@ describe('sfToggleCheckpointCommand', () => {
         Effect.succeed({
           text: '',
           documentUri,
+          selectionStart: { line: 7, character: 12 },
           selectionRange: { startLine: 7, startCharacter: 12 }
         })
     } as unknown as EditorService;
