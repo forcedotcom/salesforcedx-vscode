@@ -251,6 +251,8 @@ export {
   type LightningComponentCreateOptions,
   type LightningEventCreateOptions,
   type LightningInterfaceCreateOptions,
+  type VisualforceComponentCreateOptions,
+  type VisualforcePageCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,
